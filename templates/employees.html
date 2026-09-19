@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}الموظفون — مطاعم ضيافة{% endblock %}
+{% block title %}الموظفون — إدارة الكادر وأكواد الدخول{% endblock %}
 
 {% block content %}
 <div>
@@ -8,10 +8,12 @@
     <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
             <h1 class="text-2xl font-black font-display text-ink">فريق العمل والموظفون</h1>
-            <p class="text-xs font-bold text-soft mt-1">إدارة الكادر التشغيلي، الرواتب، وتوزيع المهام على الفروع</p>
+            <p class="text-xs font-bold text-soft mt-1">
+                إدارة الكادر التشغيلي، الرواتب، أكواد الدخول السريع (ID)، ورموز الـ PIN للمناوبات
+            </p>
         </div>
         <div>
-            <button onclick="openAddEmpModal()" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
+            <button onclick="openAddEmpModal()" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-black text-white hover:bg-brand-700 shadow-sm transition">
                 + إضافة موظف جديد
             </button>
         </div>
@@ -56,16 +58,16 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="relative w-full sm:w-60">
+            <div class="relative w-full sm:w-64">
                 <input 
                     type="text" 
                     name="q" 
                     value="{{ search_query }}" 
-                    placeholder="بحث بالاسم أو الجوال…" 
+                    placeholder="بحث بالاسم، الجوال، أو الكود…" 
                     class="input text-xs"
                 >
             </div>
-            <button type="submit" class="rounded-lg bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">
+            <button type="submit" class="rounded-lg bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink">
                 بحث
             </button>
             {% if search_query or branch_filter != 'all' or role_filter != 'all' %}
@@ -81,6 +83,7 @@
                 <thead class="border-b border-line bg-paper/70">
                     <tr>
                         <th class="th">الموظف</th>
+                        <th class="th">كود الدخول وPIN</th>
                         <th class="th">المسمى الوظيفي</th>
                         <th class="th">الفرع</th>
                         <th class="th">الراتب الأساسي</th>
@@ -97,6 +100,22 @@
                             <p class="text-[11px] text-soft font-mono" dir="ltr">{{ emp.phone|default:"—" }}</p>
                         </td>
                         <td class="td">
+                            <div class="flex items-center gap-2">
+                                <span class="rounded-lg bg-paper border border-line px-2 py-0.5 font-mono text-xs font-black text-ink shadow-sm" title="كود تسجيل الدخول">
+                                    #{{ emp.employee_code|default:"—" }}
+                                </span>
+                                {% if emp.pin_code %}
+                                <span class="rounded bg-good-100 text-good-700 border border-good-600/30 px-1.5 py-0.5 text-[10px] font-mono font-bold" title="رمز PIN مفعل">
+                                    PIN: ●●●●
+                                </span>
+                                {% else %}
+                                <span class="rounded bg-bad-100 text-bad-700 px-1.5 py-0.5 text-[10px] font-bold">
+                                    بدون PIN
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="td">
                             <span class="rounded-lg px-2.5 py-1 text-[11px] font-bold
                                 {% if emp.role == 'manager' %}bg-night text-gold-300
                                 {% elif emp.role == 'cashier' %}bg-brand-100 text-brand-700
@@ -107,7 +126,7 @@
                                 {{ emp.get_role_display }}
                             </span>
                         </td>
-                        <td class="td text-soft">{{ emp.branch.name|default:"—" }}</td>
+                        <td class="td text-soft font-bold">{{ emp.branch.name|default:"—" }}</td>
                         <td class="td font-extrabold text-brand-700 font-mono">{{ emp.salary|floatformat:0 }} ر.س</td>
                         <td class="td text-soft">{{ emp.hire_date|date:"j M Y" }}</td>
                         <td class="td">
@@ -117,16 +136,16 @@
                         </td>
                         <td class="td text-center">
                             <button 
-                                onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name }}', '{{ emp.phone }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}')" 
-                                class="rounded border border-line bg-paper px-2.5 py-1 text-xs font-bold text-soft hover:text-ink"
+                                onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.phone|escapejs }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}', '{{ emp.employee_code|default:'' }}')" 
+                                class="rounded-lg border border-line bg-paper px-3 py-1 text-xs font-bold text-soft hover:text-ink hover:border-brand-400 transition"
                             >
-                                تعديل
+                                تعديل / PIN
                             </button>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="py-12 text-center text-xs text-soft font-bold">لا يوجد موظفون مطابقون للشروط</td>
+                        <td colspan="8" class="py-12 text-center text-xs text-soft font-bold">لا يوجد موظفون مطابقون للشروط</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -135,15 +154,20 @@
     </div>
 </div>
 
-<!-- Add Modal -->
+<!-- Add Employee Modal -->
 <div id="add-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
     <div class="card max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-sm font-black font-display text-ink mb-4">إضافة موظف جديد</h3>
-        <div class="space-y-3 text-xs">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="text-sm font-black font-display text-ink">إضافة موظف جديد</h3>
+            <button onclick="closeAddEmpModal()" class="text-soft hover:text-ink text-sm">✕</button>
+        </div>
+
+        <div class="space-y-3.5 text-xs">
             <div>
                 <label class="mb-1 block font-bold text-soft">اسم الموظف *</label>
                 <input type="text" id="add-emp-name" placeholder="سلمان الدوسري" class="input text-xs">
             </div>
+
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="mb-1 block font-bold text-soft">رقم الجوال</label>
@@ -154,13 +178,14 @@
                     <select id="add-emp-role" class="input text-xs">
                         <option value="cashier">كاشير</option>
                         <option value="manager">مدير فرع</option>
-                        <option value="chef">طاهٍ</option>
+                        <option value="chef">طاهٍ / مطبخ</option>
                         <option value="driver">سائق توصيل</option>
                         <option value="call_center">خدمة عملاء</option>
                         <option value="waiter">مباشر / نادل</option>
                     </select>
                 </div>
             </div>
+
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="mb-1 block font-bold text-soft">الفرع</label>
@@ -173,28 +198,75 @@
                 </div>
                 <div>
                     <label class="mb-1 block font-bold text-soft">الراتب الشهري (ر.س)</label>
-                    <input type="number" id="add-emp-salary" placeholder="5000" class="input text-xs">
+                    <input type="number" id="add-emp-salary" placeholder="5000" value="5000" class="input text-xs">
                 </div>
             </div>
+
+            <!-- Login Credentials & PIN Section -->
+            <div class="rounded-xl bg-paper p-3 border border-line space-y-2.5">
+                <p class="font-black text-ink text-xs flex items-center gap-1.5">
+                    <span>🔑</span> بيانات تسجيل الدخول ورمز الـ PIN:
+                </p>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-bold text-soft text-[11px]">كود الموظف (ID) *</label>
+                            <button type="button" onclick="autoFillSuggestedCode()" class="text-[10px] text-brand-600 hover:underline">تلقائي</button>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="add-emp-code" 
+                            value="{{ suggested_next_code }}" 
+                            placeholder="104" 
+                            class="input text-xs font-mono font-black text-center"
+                        >
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-bold text-soft text-[11px]">رمز PIN (4 أرقام) *</label>
+                            <button type="button" onclick="randomizePin('add-emp-pin')" class="text-[10px] text-brand-600 hover:underline">🎲 عشوائي</button>
+                        </div>
+                        <input 
+                            type="password" 
+                            id="add-emp-pin" 
+                            maxlength="6" 
+                            value="1234" 
+                            placeholder="••••" 
+                            class="input text-xs font-mono font-black text-center tracking-widest"
+                        >
+                    </div>
+                </div>
+                <p class="text-[10px] text-soft">يستخدم الموظف هذا الكود ورمز PIN للدخول السريع للوردية وشاشات الـ POS والمطبخ.</p>
+            </div>
         </div>
-        <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeAddEmpModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
-            <button onclick="saveNewEmp()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ الموظف</button>
+
+        <div class="mt-5 flex items-center justify-end gap-2 border-t border-line pt-3">
+            <button onclick="closeAddEmpModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">إلغاء</button>
+            <button onclick="saveNewEmp()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-black text-white hover:bg-brand-700 shadow-sm transition">حفظ الموظف</button>
         </div>
     </div>
 </div>
 
-<!-- Edit Modal -->
+<!-- Edit Employee Modal -->
 <div id="edit-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
     <div class="card max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-sm font-black font-display text-ink mb-1">تعديل بيانات الموظف</h3>
-        <p id="edit-emp-title" class="text-xs font-bold text-brand-700 mb-4"></p>
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
+            <div>
+                <h3 class="text-sm font-black font-display text-ink">تعديل بيانات الموظف ورمز الـ PIN</h3>
+                <p id="edit-emp-title" class="text-xs font-bold text-brand-700 mt-0.5"></p>
+            </div>
+            <button onclick="closeEditEmpModal()" class="text-soft hover:text-ink text-sm">✕</button>
+        </div>
+
         <input type="hidden" id="edit-emp-id">
         <div class="space-y-3 text-xs">
             <div>
                 <label class="mb-1 block font-bold text-soft">اسم الموظف</label>
-                <input type="text" id="edit-emp-name" class="input text-xs">
+                <input type="text" id="edit-emp-name" class="input text-xs font-bold">
             </div>
+
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="mb-1 block font-bold text-soft">رقم الجوال</label>
@@ -205,13 +277,14 @@
                     <select id="edit-emp-role" class="input text-xs">
                         <option value="cashier">كاشير</option>
                         <option value="manager">مدير فرع</option>
-                        <option value="chef">طاهٍ</option>
+                        <option value="chef">طاهٍ / مطبخ</option>
                         <option value="driver">سائق توصيل</option>
                         <option value="call_center">خدمة عملاء</option>
                         <option value="waiter">مباشر / نادل</option>
                     </select>
                 </div>
             </div>
+
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="mb-1 block font-bold text-soft">الفرع</label>
@@ -231,21 +304,69 @@
                     </select>
                 </div>
             </div>
+
             <div>
                 <label class="mb-1 block font-bold text-soft">الراتب (ر.س)</label>
-                <input type="number" id="edit-emp-salary" class="input text-xs">
+                <input type="number" id="edit-emp-salary" class="input text-xs font-mono">
+            </div>
+
+            <!-- Employee ID & PIN Management Section -->
+            <div class="rounded-xl bg-paper p-3 border border-line space-y-2.5">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-soft">كود الموظف (ID الدخول)</label>
+                        {% if not can_edit_id %}
+                        <span class="text-[10px] font-bold text-warn-700 bg-warn-100 px-1.5 py-0.5 rounded">خاص بالمالك</span>
+                        {% endif %}
+                    </div>
+                    <input 
+                        type="text" 
+                        id="edit-emp-code" 
+                        {% if not can_edit_id %}readonly disabled class="input text-xs font-mono font-bold bg-gray-100 text-gray-500 cursor-not-allowed"{% else %}class="input text-xs font-mono font-bold text-ink"{% endif %}
+                    >
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-soft">تعيين رمز PIN جديد (4 أرقام)</label>
+                        <button type="button" onclick="randomizePin('edit-emp-pin')" class="text-[10px] text-brand-600 hover:underline">🎲 توليد PIN عشوائي</button>
+                    </div>
+                    <input 
+                        type="password" 
+                        id="edit-emp-pin" 
+                        maxlength="6"
+                        placeholder="اتركه فارغاً للإبقاء على الرمز الحالي" 
+                        class="input text-xs font-mono tracking-widest text-center"
+                    >
+                    <p class="text-[10px] text-soft mt-1">اتركه فارغاً للإبقاء على الرمز الحالي، أو أدخل 4 أرقام جديدة لإعادة تعيين PIN الموظف.</p>
+                </div>
             </div>
         </div>
-        <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeEditEmpModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
-            <button onclick="saveEditEmp()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ التعديلات</button>
+
+        <div class="mt-5 flex items-center justify-end gap-2 border-t border-line pt-3">
+            <button onclick="closeEditEmpModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">إلغاء</button>
+            <button onclick="saveEditEmp()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-black text-white hover:bg-brand-700 shadow-sm transition">حفظ التعديلات</button>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
+    const DEFAULT_SUGGESTED_CODE = "{{ suggested_next_code|default:'101' }}";
+
+    function randomizePin(elementId) {
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.value = rand;
+            el.type = 'text'; // Briefly show plain text so manager can see what was generated
+            setTimeout(() => { el.type = 'password'; }, 3000);
+        }
+    }
+
+    function autoFillSuggestedCode() {
+        document.getElementById('add-emp-code').value = DEFAULT_SUGGESTED_CODE;
+    }
+
     function openAddEmpModal() {
         document.getElementById('add-emp-modal').classList.remove('hidden');
         document.getElementById('add-emp-modal').classList.add('flex');
@@ -261,6 +382,8 @@
         const role = document.getElementById('add-emp-role').value;
         const branchId = document.getElementById('add-emp-branch').value;
         const salary = parseFloat(document.getElementById('add-emp-salary').value) || 0;
+        const employeeCode = document.getElementById('add-emp-code').value.trim();
+        const pin = document.getElementById('add-emp-pin').value.trim();
 
         if (!name) {
             showToast('اسم الموظف مطلوب', 'error');
@@ -274,12 +397,12 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ name, phone, role, branchId: branchId || null, salary })
+                body: JSON.stringify({ name, phone, role, branchId: branchId || null, salary, employeeCode, pin })
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            if (!res.ok) throw new Error(data.error || 'تعذر إضافة الموظف');
 
-            showToast(`تمت إضافة الموظف «${data.name}»`);
+            showToast(`تمت إضافة الموظف بنجاح بكود #${data.employeeCode}`);
             closeAddEmpModal();
             setTimeout(() => location.reload(), 600);
         } catch (e) {
@@ -287,15 +410,17 @@
         }
     }
 
-    function openEditEmpModal(id, name, phone, role, branchId, salary, status) {
+    function openEditEmpModal(id, name, phone, role, branchId, salary, status, code) {
         document.getElementById('edit-emp-id').value = id;
-        document.getElementById('edit-emp-title').textContent = name;
+        document.getElementById('edit-emp-title').textContent = `${name} (كود #${code || '—'})`;
         document.getElementById('edit-emp-name').value = name;
         document.getElementById('edit-emp-phone').value = phone;
         document.getElementById('edit-emp-role').value = role;
         document.getElementById('edit-emp-branch').value = branchId;
         document.getElementById('edit-emp-salary').value = salary;
         document.getElementById('edit-emp-status').value = status;
+        document.getElementById('edit-emp-code').value = code || '';
+        document.getElementById('edit-emp-pin').value = '';
 
         document.getElementById('edit-emp-modal').classList.remove('hidden');
         document.getElementById('edit-emp-modal').classList.add('flex');
@@ -313,21 +438,29 @@
         const branchId = document.getElementById('edit-emp-branch').value;
         const salary = parseFloat(document.getElementById('edit-emp-salary').value) || 0;
         const status = document.getElementById('edit-emp-status').value;
+        const employeeCode = document.getElementById('edit-emp-code').value.trim();
+        const pin = document.getElementById('edit-emp-pin').value.trim();
 
         try {
+            const payload = { name, phone, role, branchId: branchId || null, salary, status };
+            if (employeeCode) payload.employeeCode = employeeCode;
+            if (pin) payload.pin = pin;
+
             const res = await fetch(`/api/employees/update/${id}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ name, phone, role, branchId: branchId || null, salary, status })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (data.ok) {
-                showToast('تم تحديث بيانات الموظف');
+                showToast(pin ? 'تم تحديث بيانات الموظف وتعيين رمز PIN جديد!' : 'تم تحديث بيانات الموظف');
                 closeEditEmpModal();
                 setTimeout(() => location.reload(), 600);
+            } else {
+                showToast(data.error || 'تعذر حفظ التعديلات', 'error');
             }
         } catch (e) {
             showToast('تعذر حفظ التعديلات', 'error');

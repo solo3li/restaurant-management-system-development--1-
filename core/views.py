@@ -810,6 +810,16 @@ def employees_view(request):
         "waiter": base_qs.filter(role="waiter").count(),
     }
 
+    # Calculate next suggested employee code for tenant
+    last_emp = Employee.objects.filter(tenant=tenant, employee_code__regex=r'^\d+$').order_by("-id").first()
+    if last_emp and last_emp.employee_code and last_emp.employee_code.isdigit():
+        suggested_next_code = str(int(last_emp.employee_code) + 1)
+    else:
+        suggested_next_code = str(101 + Employee.objects.filter(tenant=tenant).count())
+
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
     context = {
         "tenant": tenant,
         "current_branch": active_branch,
@@ -819,6 +829,8 @@ def employees_view(request):
         "branch_filter": branch_filter,
         "search_query": search,
         "roles_summary": roles_summary,
+        "can_edit_id": is_owner_or_super,
+        "suggested_next_code": suggested_next_code,
     }
     return render(request, "employees.html", context)
 
@@ -1145,6 +1157,9 @@ def api_create_employee(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -1157,13 +1172,27 @@ def api_create_employee(request):
     branch_id = data.get("branchId")
     branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
 
-    # Generate employee code if omitted
+    # Branch managers can only create employees in their branch
+    if not is_owner_or_super and profile and profile.branch and branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح لك بإضافة موظف في فرع آخر"}, status=403)
+
+    # Generate or validate employee code
     code = str(data.get("employeeCode") or "").strip()
     if not code:
-        count = Employee.objects.filter(tenant=tenant).count()
-        code = str(100 + count + 1)
+        last_emp = Employee.objects.filter(tenant=tenant, employee_code__regex=r'^\d+$').order_by("-id").first()
+        if last_emp and last_emp.employee_code and last_emp.employee_code.isdigit():
+            code = str(int(last_emp.employee_code) + 1)
+        else:
+            code = str(101 + Employee.objects.filter(tenant=tenant).count())
 
-    pin = str(data.get("pin") or "1234").strip()
+    if Employee.objects.filter(tenant=tenant, employee_code=code).exists():
+        return JsonResponse({"error": f"كود الموظف ({code}) مستخدم مسبقاً في هذا المطعم، يرجى اختيار كود آخر"}, status=400)
+
+    pin = str(data.get("pin") or "").strip()
+    if not pin:
+        pin = "1234"
+    elif len(pin) < 4:
+        return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
 
     emp = Employee.objects.create(
         tenant=tenant,
@@ -1190,7 +1219,7 @@ def api_create_employee(request):
         defaults={"tenant": tenant, "role": emp.role, "branch": emp.branch}
     )
 
-    return JsonResponse({"ok": True, "id": emp.id, "employeeCode": code})
+    return JsonResponse({"ok": True, "id": emp.id, "name": emp.name, "employeeCode": code})
 
 
 @login_required
@@ -1198,22 +1227,64 @@ def api_update_employee(request, emp_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
     emp = get_object_or_404(Employee, tenant=tenant, id=emp_id)
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
         return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
 
-    if "role" in data:
+    # Branch managers can only edit employees in their branch
+    if not is_owner_or_super and profile and profile.branch and emp.branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح لك بتعديل موظفي الفروع الأخرى"}, status=403)
+
+    if "name" in data and str(data["name"]).strip():
+        emp.name = str(data["name"]).strip()
+        if emp.user:
+            emp.user.first_name = emp.name
+            emp.user.save()
+
+    if "phone" in data:
+        emp.phone = str(data["phone"]).strip()
+
+    if "role" in data and data["role"] in dict(Employee.ROLE_CHOICES):
         emp.role = data["role"]
-    if "status" in data:
+        if emp.user and hasattr(emp.user, "profile"):
+            emp.user.profile.role = emp.role
+            emp.user.profile.save()
+
+    if "status" in data and data["status"] in dict(Employee.STATUS_CHOICES):
         emp.status = data["status"]
+
     if "salary" in data:
-        emp.salary = Decimal(str(data["salary"]))
-    if "pin" in data and data["pin"]:
-        emp.set_pin(data["pin"])
-    if "branchId" in data:
+        try:
+            emp.salary = Decimal(str(data["salary"]))
+        except Exception:
+            pass
+
+    if "branchId" in data and is_owner_or_super:
         emp.branch = Branch.objects.filter(tenant=tenant, id=data["branchId"]).first() if data["branchId"] else None
+        if emp.user and hasattr(emp.user, "profile"):
+            emp.user.profile.branch = emp.branch
+            emp.user.profile.save()
+
+    # Employee Code (ID) update - restricted to Superadmin and Owner
+    new_code = str(data.get("employeeCode") or "").strip()
+    if new_code and new_code != emp.employee_code:
+        if not is_owner_or_super:
+            return JsonResponse({"error": "تعديل كود الموظف مقتصر على المالك ومدير النظام فقط"}, status=403)
+        if Employee.objects.filter(tenant=tenant, employee_code=new_code).exclude(id=emp.id).exists():
+            return JsonResponse({"error": f"كود الموظف ({new_code}) مستخدم مسبقاً لموظف آخر"}, status=400)
+        emp.employee_code = new_code
+
+    # PIN change / reset - allowed for Owner, Superadmin, and Branch Manager
+    new_pin = str(data.get("pin") or "").strip()
+    if new_pin:
+        if len(new_pin) < 4:
+            return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
+        emp.set_pin(new_pin)
 
     emp.save()
-    return JsonResponse({"ok": True})
+    return JsonResponse({"ok": True, "employeeCode": emp.employee_code, "hasPin": bool(emp.pin_code)})
