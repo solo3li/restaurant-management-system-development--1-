@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}الكول سنتر — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">الكول سنتر وخدمة العملاء</h1>
+            <p class="text-xs font-bold text-soft mt-1">استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل</p>
+        </div>
+        <div>
+            <span class="inline-flex items-center gap-1.5 rounded-xl bg-good-100 border border-good-600/30 px-3.5 py-1.5 text-xs font-bold text-good-700">
+                <span>🟢</span> الخطوط جاهزة لاستقبال الاتصالات
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_420px]">
+        <!-- Left: Customer Lookup & Menu Picker -->
+        <div class="space-y-5">
+            <!-- 1. Customer Search Card -->
+            <div class="card p-5">
+                <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+                    <h2 class="text-sm font-black font-display text-ink flex items-center gap-2">
+                        <span>📞</span> البحث عن العميل المتصل
+                    </h2>
+                    <span class="text-xs text-soft">أدخل رقم الجوال أو الاسم</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <input 
+                        type="text" 
+                        id="phone-lookup-input" 
+                        placeholder="أدخل رقم جوال العميل (مثال: 0551234567)…" 
+                        dir="ltr"
+                        class="input text-xs font-mono"
+                        onkeydown="if(event.key === 'Enter') searchCustomer()"
+                    >
+                    <button 
+                        type="button" 
+                        onclick="searchCustomer()" 
+                        class="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700"
+                    >
+                        بحث
+                    </button>
+                </div>
+
+                <!-- Search Results Box -->
+                <div id="customer-results-box" class="hidden mt-3 space-y-2 border-t border-line pt-3"></div>
+
+                <!-- Active Customer Details Form -->
+                <div id="active-customer-box" class="mt-4 rounded-xl border border-brand-500/30 bg-brand-50/50 p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span id="cust-status-badge" class="rounded bg-brand-200 px-2 py-0.5 text-[11px] font-bold text-brand-800">عميل جديد</span>
+                        <span id="cust-stats-badge" class="text-xs font-bold text-brand-700">0 طلبات سابقة</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="mb-1 block font-bold text-soft">اسم العميل *</label>
+                            <input type="text" id="order-cust-name" placeholder="الاسم الكامل" class="input text-xs">
+                        </div>
+                        <div>
+                            <label class="mb-1 block font-bold text-soft">رقم الجوال *</label>
+                            <input type="text" id="order-cust-phone" placeholder="05xxxxxxxx" dir="ltr" class="input text-xs">
+                        </div>
+                    </div>
+                    <div class="text-xs">
+                        <label class="mb-1 block font-bold text-soft">عنوان التوصيل بالتفصيل *</label>
+                        <input type="text" id="order-cust-address" placeholder="الحي، اسم الشارع، رقم المبنى أو الشقة..." class="input text-xs">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Menu Item Picker -->
+            <div class="card p-5">
+                <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+                    <h2 class="text-sm font-black font-display text-ink flex items-center gap-2">
+                        <span>🍽️</span> اختيار أصناف الوجبات
+                    </h2>
+                    <input 
+                        type="text" 
+                        id="call-menu-search" 
+                        placeholder="بحث في القائمة…" 
+                        class="input w-48 text-xs"
+                        oninput="filterCallMenu()"
+                    >
+                </div>
+
+                <div id="call-menu-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto">
+                    {% for m in menu_items %}
+                    <div 
+                        class="call-menu-card flex items-center justify-between rounded-xl border border-line p-3 hover:border-brand-400 hover:bg-paper/40 transition cursor-pointer"
+                        data-name="{{ m.name }}"
+                        onclick="addCallItem({{ m.id }}, '{{ m.name }}', {{ m.price }})"
+                    >
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xl">{{ m.emoji|default:"🍛" }}</span>
+                            <div>
+                                <p class="text-xs font-bold text-ink">{{ m.name }}</p>
+                                <p class="text-[10px] text-soft">{{ m.category }}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-extrabold text-brand-700">{{ m.price }} ر.س</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Current Order Invoice & Recent Calls -->
+        <div class="space-y-5">
+            <!-- Delivery Invoice Card -->
+            <div class="card p-5 shadow-lg border-line">
+                <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
+                    <h2 class="text-sm font-black font-display text-ink">طلب التوصيل</h2>
+                    <span id="call-cart-count" class="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
+                </div>
+
+                <div id="call-cart-items" class="max-h-52 min-h-[100px] overflow-y-auto divide-y divide-line/60">
+                    <div id="call-cart-empty" class="py-6 text-center text-xs text-soft">
+                        لم يتم اختيار وجبات بعد
+                    </div>
+                </div>
+
+                <div class="space-y-3 border-t border-line pt-3 mt-3 text-xs">
+                    <div>
+                        <label class="mb-1 block font-bold text-soft">الفرع المنفذ للطلب</label>
+                        <select id="call-order-branch" class="input text-xs">
+                            {% for b in branches %}
+                            <option value="{{ b.id }}">{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="mb-1 block font-bold text-soft">طريقة الدفع</label>
+                            <select id="call-order-pay" class="input text-xs">
+                                <option value="cash">عند الاستلام (نقداً)</option>
+                                <option value="card">مدى / بطاقة</option>
+                                <option value="wallet">محفظة</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block font-bold text-soft">ملاحظات التحضير</label>
+                            <input type="text" id="call-order-notes" placeholder="بدون بصل، حار..." class="input text-xs">
+                        </div>
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="rounded-xl bg-paper p-3 space-y-1.5 border border-line">
+                        <div class="flex justify-between text-soft">
+                            <span>قيمة الأصناف</span>
+                            <span id="call-subtotal" class="font-bold">0.00 ر.س</span>
+                        </div>
+                        <div class="flex justify-between text-soft">
+                            <span>رسوم التوصيل</span>
+                            <span class="font-bold text-brand-700">8.00 ر.س</span>
+                        </div>
+                        <div class="flex justify-between border-t border-line pt-2 font-display text-sm font-black text-ink">
+                            <span>المجموع الكلي</span>
+                            <span id="call-total" class="text-base text-brand-700 font-black">8.00 ر.س</span>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="button" 
+                        id="call-submit-btn" 
+                        onclick="submitCallOrder()" 
+                        class="w-full rounded-xl bg-brand-600 py-3 text-sm font-extrabold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700"
+                    >
+                        اعتماد طلب التوصيل
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Call Center Orders -->
+            <div class="card p-5">
+                <h3 class="text-xs font-black font-display text-ink mb-3 border-b border-line pb-2">آخر طلبات الكول سنتر</h3>
+                <div class="space-y-2.5 max-h-60 overflow-y-auto">
+                    {% for o in recent_orders %}
+                    <div class="rounded-lg border border-line p-2.5 bg-paper/40 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-ink">{{ o.order_number }}</span>
+                            <span class="font-extrabold text-brand-700">{{ o.total|floatformat:2 }} ر.س</span>
+                        </div>
+                        <p class="text-[11px] text-soft mt-0.5">{{ o.customer_name }} • {{ o.created_at|time:"H:i" }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-center py-4 text-xs text-soft">لا توجد طلبات سابقة</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let callCart = {};
+
+    function filterCallMenu() {
+        const q = document.getElementById('call-menu-search').value.trim().toLowerCase();
+        document.querySelectorAll('.call-menu-card').forEach(card => {
+            const name = card.dataset.name.toLowerCase();
+            card.style.display = (!q || name.includes(q)) ? 'flex' : 'none';
+        });
+    }
+
+    async function searchCustomer() {
+        const q = document.getElementById('phone-lookup-input').value.trim();
+        if (q.length < 3) {
+            showToast('أدخل 3 أرقام أو أحرف على الأقل للبحث', 'error');
+            return;
+        }
+
+        const resBox = document.getElementById('customer-results-box');
+        resBox.innerHTML = '<p class="text-xs text-soft py-2">جارٍ البحث…</p>';
+        resBox.classList.remove('hidden');
+
+        try {
+            const res = await fetch(`/api/customers/search/?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            if (data.customers && data.customers.length > 0) {
+                let html = '<p class="text-xs font-bold text-ink mb-1">النتائج المطابقة:</p>';
+                data.customers.forEach(c => {
+                    html += `
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-card border border-line hover:border-brand-400 cursor-pointer" onclick='selectCustomer(${JSON.stringify(c)})'>
+                            <div>
+                                <p class="text-xs font-bold text-ink">${c.name} (${c.phone})</p>
+                                <p class="text-[11px] text-soft">${c.address || 'بدون عنوان مسجل'}</p>
+                            </div>
+                            <span class="text-[11px] font-bold text-brand-700">${c.ordersCount} طلبات • ${c.lifetime} ر.س</span>
+                        </div>
+                    `;
+                });
+                resBox.innerHTML = html;
+            } else {
+                resBox.innerHTML = `
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-warn-100/60 border border-warn-600/30 text-xs text-warn-700">
+                        <span>لم يتم العثور على عميل سابق بهذا الرقم. تم تجهيز نموذج عميل جديد.</span>
+                    </div>
+                `;
+                document.getElementById('order-cust-phone').value = q;
+                document.getElementById('order-cust-name').value = '';
+                document.getElementById('order-cust-address').value = '';
+                document.getElementById('cust-status-badge').textContent = 'عميل جديد';
+                document.getElementById('cust-stats-badge').textContent = '0 طلبات سابقة';
+            }
+        } catch (e) {
+            showToast('خطأ أثناء البحث', 'error');
+        }
+    }
+
+    function selectCustomer(c) {
+        document.getElementById('order-cust-name').value = c.name;
+        document.getElementById('order-cust-phone').value = c.phone;
+        document.getElementById('order-cust-address').value = c.address;
+        document.getElementById('cust-status-badge').textContent = 'عميل مسجل';
+        document.getElementById('cust-stats-badge').textContent = `${c.ordersCount} طلبات (${c.lifetime} ر.س)`;
+        document.getElementById('customer-results-box').classList.add('hidden');
+        showToast(`تم اختيار العميل: ${c.name}`);
+    }
+
+    function addCallItem(id, name, price) {
+        if (!callCart[id]) {
+            callCart[id] = { id, name, price, qty: 1 };
+        } else {
+            callCart[id].qty += 1;
+        }
+        renderCallCart();
+    }
+
+    function updateCallItemQty(id, delta) {
+        if (!callCart[id]) return;
+        callCart[id].qty += delta;
+        if (callCart[id].qty <= 0) {
+            delete callCart[id];
+        }
+        renderCallCart();
+    }
+
+    function renderCallCart() {
+        const container = document.getElementById('call-cart-items');
+        const keys = Object.keys(callCart);
+        const count = keys.reduce((s, k) => s + callCart[k].qty, 0);
+        document.getElementById('call-cart-count').textContent = `${count} أصناف`;
+
+        if (keys.length === 0) {
+            container.innerHTML = `<div id="call-cart-empty" class="py-6 text-center text-xs text-soft">لم يتم اختيار وجبات بعد</div>`;
+            document.getElementById('call-subtotal').textContent = '0.00 ر.س';
+            document.getElementById('call-total').textContent = '8.00 ر.س';
+            return;
+        }
+
+        let html = '';
+        let subtotal = 0;
+        keys.forEach(k => {
+            const it = callCart[k];
+            subtotal += it.price * it.qty;
+            html += `
+                <div class="flex items-center justify-between py-2 text-xs">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-ink truncate">${it.name}</p>
+                        <p class="text-[11px] text-soft">${it.price} ر.س × ${it.qty}</p>
+                    </div>
+                    <div class="flex items-center gap-1 mx-2 border border-line rounded-lg p-0.5 bg-paper/50">
+                        <button onclick="updateCallItemQty(${it.id}, 1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-brand-100 font-bold text-brand-700">+</button>
+                        <span class="w-5 text-center font-bold">${it.qty}</span>
+                        <button onclick="updateCallItemQty(${it.id}, -1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-bad-100 font-bold text-bad-700">-</button>
+                    </div>
+                    <span class="font-extrabold text-brand-700 w-14 text-left">${(it.price * it.qty).toFixed(2)}</span>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        document.getElementById('call-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
+        document.getElementById('call-total').textContent = `${(subtotal + 8).toFixed(2)} ر.س`;
+    }
+
+    async function submitCallOrder() {
+        const name = document.getElementById('order-cust-name').value.trim();
+        const phone = document.getElementById('order-cust-phone').value.trim();
+        const address = document.getElementById('order-cust-address').value.trim();
+        const keys = Object.keys(callCart);
+
+        if (!name || !phone) {
+            showToast('اسم العميل ورقم الجوال مطلوبان', 'error');
+            return;
+        }
+        if (!address) {
+            showToast('عنوان التوصيل مطلوب', 'error');
+            return;
+        }
+        if (keys.length === 0) {
+            showToast('اختر صنفاً واحداً على الأقل للطلب', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('call-submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'جارٍ تسجيل الطلب…';
+
+        try {
+            const res = await fetch("{% url 'api_create_order' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    type: 'delivery',
+                    channel: 'call_center',
+                    branchId: document.getElementById('call-order-branch').value,
+                    payMethod: document.getElementById('call-order-pay').value,
+                    notes: document.getElementById('call-order-notes').value,
+                    customerName: name,
+                    customerPhone: phone,
+                    address: address,
+                    items: keys.map(k => ({ menuItemId: callCart[k].id, qty: callCart[k].qty }))
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'فشل تسجيل الطلب');
+
+            showToast(`تم إنشاء طلب التوصيل ${data.order.orderNumber} بنجاح!`);
+            setTimeout(() => location.reload(), 1200);
+        } catch (e) {
+            showToast(e.message, 'error');
+            btn.disabled = false;
+            btn.textContent = 'اعتماد طلب التوصيل';
+        }
+    }
+</script>
+{% endblock %}

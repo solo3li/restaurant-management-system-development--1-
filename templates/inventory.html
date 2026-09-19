@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة المخزون — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">إدارة المخزون والمستودعات</h1>
+            <p class="text-xs font-bold text-soft mt-1">متابعة الكميات المتوفرة، حدود الأمان، وتوريدات الفروع</p>
+        </div>
+        <div class="flex items-center gap-2">
+            {% if low_count > 0 %}
+            <span class="rounded-xl bg-bad-100 border border-bad-600/30 px-3.5 py-1.5 text-xs font-bold text-bad-700">
+                ⚠️ {{ low_count }} صنف تحت حد الأمان
+            </span>
+            {% else %}
+            <span class="rounded-xl bg-good-100 border border-good-600/30 px-3.5 py-1.5 text-xs font-bold text-good-700">
+                ✓ كافة المواد فوق حد الأمان
+            </span>
+            {% endif %}
+            <button onclick="openAddInvModal()" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
+                + إضافة مادة جديدة
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card p-4 mb-5 flex flex-wrap items-center justify-between gap-3">
+        <form method="GET" action="{% url 'inventory' %}" class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-soft">الفرع:</span>
+                <select name="branch" onchange="this.form.submit()" class="input !w-44 text-xs">
+                    <option value="all">كافة الفروع</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}" {% if selected_branch == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="relative w-full sm:w-60">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}" 
+                    placeholder="بحث عن مادة أو مورد…" 
+                    class="input text-xs"
+                >
+            </div>
+            <button type="submit" class="rounded-lg bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">
+                تصفية
+            </button>
+            {% if search_query or selected_branch != 'all' %}
+            <a href="{% url 'inventory' %}" class="text-xs font-bold text-bad-700 hover:underline">إلغاء التصفية</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card overflow-hidden shadow-md">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead class="border-b border-line bg-paper/70">
+                    <tr>
+                        <th class="th">المادة الغذائية</th>
+                        <th class="th">الفرع</th>
+                        <th class="th">الكمية الحالية</th>
+                        <th class="th">حد الأمان الأدنى</th>
+                        <th class="th">المورد</th>
+                        <th class="th">تعديل سريع</th>
+                        <th class="th text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line/70">
+                    {% for it in items %}
+                    <tr class="hover:bg-paper/30 transition">
+                        <td class="td font-bold text-ink">
+                            <p class="text-sm font-extrabold">{{ it.name }}</p>
+                            <p class="text-[10px] text-soft">الوحدة: {{ it.unit }}</p>
+                        </td>
+                        <td class="td text-soft">{{ it.branch.name }}</td>
+                        <td class="td">
+                            <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-black text-xs
+                                {% if it.quantity == 0 %}bg-bad-100 text-bad-700
+                                {% elif it.quantity <= it.min_quantity %}bg-warn-100 text-warn-700
+                                {% else %}bg-good-100 text-good-700{% endif %}">
+                                {{ it.quantity|floatformat:1 }} {{ it.unit }}
+                                {% if it.quantity == 0 %} (نفد)
+                                {% elif it.quantity <= it.min_quantity %} (منخفض)
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="td font-mono">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
+                        <td class="td text-soft">{{ it.supplier|default:"—" }}</td>
+                        <td class="td">
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustStock({{ it.id }}, 5)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-brand-100 text-brand-700">+5</button>
+                                <button onclick="adjustStock({{ it.id }}, 1)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-brand-100 text-brand-700">+1</button>
+                                <button onclick="adjustStock({{ it.id }}, -1)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-bad-100 text-bad-700">-1</button>
+                            </div>
+                        </td>
+                        <td class="td text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="openEditInvModal({{ it.id }}, '{{ it.name }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier }}')" class="text-brand-600 hover:text-brand-700 font-bold">
+                                    تعديل
+                                </button>
+                                <span>•</span>
+                                <button onclick="deleteInventoryItem({{ it.id }}, '{{ it.name }}')" class="text-bad-600 hover:text-bad-700 font-bold">
+                                    حذف
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-xs text-soft font-bold">لا توجد مواد مطابقة في المخزون</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div id="add-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-sm font-black font-display text-ink mb-4">إضافة مادة جديدة للمخزون</h3>
+        <div class="space-y-3 text-xs">
+            <div>
+                <label class="mb-1 block font-bold text-soft">اسم المادة *</label>
+                <input type="text" id="add-inv-name" placeholder="أرز بسمتي" class="input text-xs">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الفرع *</label>
+                    <select id="add-inv-branch" class="input text-xs">
+                        {% for b in branches %}
+                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">وحدة القياس</label>
+                    <select id="add-inv-unit" class="input text-xs">
+                        {% for u in units %}
+                        <option value="{{ u }}">{{ u }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الكمية المتوفرة</label>
+                    <input type="number" id="add-inv-qty" placeholder="20" class="input text-xs">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">حد الأمان الأدنى</label>
+                    <input type="number" id="add-inv-min" placeholder="5" class="input text-xs">
+                </div>
+            </div>
+            <div>
+                <label class="mb-1 block font-bold text-soft">اسم المورد</label>
+                <input type="text" id="add-inv-supplier" placeholder="مؤسسة الريف" class="input text-xs">
+            </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+            <button onclick="closeAddInvModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
+            <button onclick="saveNewInventoryItem()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ المادة</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-sm font-black font-display text-ink mb-1">تعديل بيانات المخزون</h3>
+        <p id="edit-inv-title" class="text-xs font-bold text-brand-700 mb-4"></p>
+        <input type="hidden" id="edit-inv-id">
+        <div class="space-y-3 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الكمية المتوفرة</label>
+                    <input type="number" id="edit-inv-qty" class="input text-xs">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">حد الأمان</label>
+                    <input type="number" id="edit-inv-min" class="input text-xs">
+                </div>
+            </div>
+            <div>
+                <label class="mb-1 block font-bold text-soft">المورد</label>
+                <input type="text" id="edit-inv-supplier" class="input text-xs">
+            </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+            <button onclick="closeEditInvModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
+            <button onclick="saveEditInventoryItem()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ التعديلات</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function adjustStock(itemId, delta) {
+        try {
+            const res = await fetch(`/api/inventory/adjust/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ delta })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast('تم تحديث الكمية');
+                setTimeout(() => location.reload(), 400);
+            }
+        } catch (e) {
+            showToast('تعذر تعديل الكمية', 'error');
+        }
+    }
+
+    function openAddInvModal() {
+        document.getElementById('add-inv-modal').classList.remove('hidden');
+        document.getElementById('add-inv-modal').classList.add('flex');
+    }
+    function closeAddInvModal() {
+        document.getElementById('add-inv-modal').classList.add('hidden');
+        document.getElementById('add-inv-modal').classList.remove('flex');
+    }
+
+    async function saveNewInventoryItem() {
+        const name = document.getElementById('add-inv-name').value.trim();
+        const branchId = document.getElementById('add-inv-branch').value;
+        const unit = document.getElementById('add-inv-unit').value;
+        const qty = parseFloat(document.getElementById('add-inv-qty').value) || 0;
+        const minQ = parseFloat(document.getElementById('add-inv-min').value) || 0;
+        const supplier = document.getElementById('add-inv-supplier').value.trim();
+
+        if (!name) {
+            showToast('اسم المادة مطلوب', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch("{% url 'api_create_inventory' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ name, branchId, unit, quantity: qty, minQuantity: minQ, supplier })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast('تمت إضافة المادة بنجاح');
+            closeAddInvModal();
+            setTimeout(() => location.reload(), 600);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function openEditInvModal(id, name, qty, min, supplier) {
+        document.getElementById('edit-inv-id').value = id;
+        document.getElementById('edit-inv-title').textContent = name;
+        document.getElementById('edit-inv-qty').value = qty;
+        document.getElementById('edit-inv-min').value = min;
+        document.getElementById('edit-inv-supplier').value = supplier;
+        document.getElementById('edit-inv-modal').classList.remove('hidden');
+        document.getElementById('edit-inv-modal').classList.add('flex');
+    }
+    function closeEditInvModal() {
+        document.getElementById('edit-inv-modal').classList.add('hidden');
+        document.getElementById('edit-inv-modal').classList.remove('flex');
+    }
+
+    async function saveEditInventoryItem() {
+        const id = document.getElementById('edit-inv-id').value;
+        const qty = parseFloat(document.getElementById('edit-inv-qty').value) || 0;
+        const minQ = parseFloat(document.getElementById('edit-inv-min').value) || 0;
+        const supplier = document.getElementById('edit-inv-supplier').value.trim();
+
+        try {
+            const res = await fetch(`/api/inventory/adjust/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ quantity: qty, minQuantity: minQ, supplier })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast('تم حفظ التعديلات');
+                closeEditInvModal();
+                setTimeout(() => location.reload(), 600);
+            }
+        } catch (e) {
+            showToast('تعذر الحفظ', 'error');
+        }
+    }
+
+    async function deleteInventoryItem(id, name) {
+        if (!confirm(`هل أنت متأكد من حذف «${name}» نهائياً من المخزون؟`)) return;
+        try {
+            const res = await fetch(`/api/inventory/delete/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast('تم حذف المادة');
+                setTimeout(() => location.reload(), 600);
+            }
+        } catch (e) {
+            showToast('تعذر الحذف', 'error');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Page Header -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">لوحة التحكم والعمليات</h1>
+            <p class="text-xs font-bold text-soft mt-1">متابعة فورية للمبيعات، الطلبات، والتوصيل عبر كافة الفروع</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft shadow-sm">
+                <span>📅</span> اليوم: {% now "l, j F Y" %}
+            </span>
+        </div>
+    </div>
+
+    <!-- 4 Key Stats -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <!-- Sales Today -->
+        <div class="card p-5 border-l-4 border-l-brand-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">مبيعات اليوم</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">💰</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">{{ orders_today }} طلباً مسجلاً منذ الصباح</p>
+        </div>
+
+        <!-- Orders Today -->
+        <div class="card p-5 border-l-4 border-l-night">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">طلبات اليوم</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-night-2 text-gold-300 text-base">🧾</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-ink">{{ orders_today }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">مباشر، سفري، وتوصيل</p>
+        </div>
+
+        <!-- Active Deliveries -->
+        <div class="card p-5 border-l-4 border-l-info-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">توصيلات نشطة</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info-100 text-info-700 text-base">🛵</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-info-700">{{ active_deliveries }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">في مسار التوصيل والتحضير</p>
+        </div>
+
+        <!-- Low Stock Items -->
+        <div class="card p-5 border-l-4 {% if low_stock_count > 0 %}border-l-bad-600{% else %}border-l-good-600{% endif %}">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">أصناف تحت الحد الآمن</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl {% if low_stock_count > 0 %}bg-bad-100 text-bad-700{% else %}bg-good-100 text-good-700{% endif %} text-base">⚠️</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display {% if low_stock_count > 0 %}text-bad-700{% else %}text-good-700{% endif %}">{{ low_stock_count }} <span class="text-xs font-bold text-soft">صنف</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">{% if low_stock_count > 0 %}تحتاج لإعادة توريد عاجلة{% else %}المستودع بحالة ممتازة{% endif %}</p>
+        </div>
+    </div>
+
+    <!-- Charts & Branch Breakdown -->
+    <div class="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <!-- 7 Days Sales Chart -->
+        <div class="card p-5 xl:col-span-2">
+            <div class="mb-4 flex items-center justify-between border-b border-line pb-3">
+                <div>
+                    <h2 class="text-sm font-black font-display text-ink">مبيعات آخر 7 أيام</h2>
+                    <p class="text-[11px] text-soft">مقارنة حركة الإيرادات اليومية</p>
+                </div>
+                <div class="flex items-center gap-1.5 rounded-lg bg-good-100/80 px-2.5 py-1 text-xs font-bold text-good-700">
+                    <span>📈</span>
+                    <span>إجمالي الأسبوع: {{ week_total|floatformat:2 }} ر.س</span>
+                </div>
+            </div>
+
+            <!-- Visual Bar Chart -->
+            <div class="flex h-52 items-end gap-3 pt-6 px-2">
+                {% for d in days_data %}
+                <div class="group flex h-full flex-1 flex-col items-center justify-end gap-2">
+                    <span class="text-[11px] font-bold text-soft opacity-0 transition group-hover:opacity-100 whitespace-nowrap">
+                        {{ d.total|floatformat:0 }} ر.س
+                    </span>
+                    <div 
+                        class="w-full max-w-12 rounded-t-lg transition-all {% if d.is_today %}bg-brand-600 shadow-lg shadow-brand-600/30{% else %}bg-brand-200 group-hover:bg-brand-300{% endif %}"
+                        style="height: {% widthratio d.total max_day_total 85 %}%; min-height: {% if d.total > 0 %}12px{% else %}4px{% endif %};"
+                    ></div>
+                    <span class="text-[11px] font-bold {% if d.is_today %}text-brand-700 font-extrabold{% else %}text-soft{% endif %}">
+                        {{ d.label }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Branch Sales Breakdown -->
+        <div class="card p-5">
+            <div class="mb-4 flex items-center justify-between border-b border-line pb-3">
+                <div>
+                    <h2 class="text-sm font-black font-display text-ink">مبيعات الفروع اليوم</h2>
+                    <p class="text-[11px] text-soft">حجم المبيعات حسب الفرع</p>
+                </div>
+                <span class="text-xs font-bold text-brand-700">اليوم</span>
+            </div>
+
+            <div class="space-y-4">
+                {% for b in branch_sales %}
+                <div>
+                    <div class="mb-1 flex items-center justify-between text-xs">
+                        <span class="font-bold text-ink">{{ b.name }}</span>
+                        <span class="font-extrabold text-brand-700">{{ b.total|floatformat:2 }} ر.س</span>
+                    </div>
+                    <div class="h-2.5 overflow-hidden rounded-full bg-line/80">
+                        <div 
+                            class="h-full rounded-full bg-gradient-to-l from-brand-600 to-gold-400" 
+                            style="width: {% widthratio b.total max_branch_sale 100 %}%;"
+                        ></div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="py-6 text-center text-xs text-soft">لا توجد مبيعات مسجلة اليوم بعد</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders & Top Items -->
+    <div class="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <!-- Recent Orders Table -->
+        <div class="card xl:col-span-2 overflow-hidden">
+            <div class="flex items-center justify-between border-b border-line p-5">
+                <div>
+                    <h2 class="text-sm font-black font-display text-ink">أحدث الطلبات المسجلة</h2>
+                    <p class="text-[11px] text-soft">آخر المعاملات عبر الكاشير والكول سنتر</p>
+                </div>
+                <a href="{% url 'pos' %}" class="text-xs font-bold text-brand-600 hover:text-brand-700">+ طلب جديد</a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead class="border-b border-line bg-paper/60">
+                        <tr>
+                            <th class="th">الطلب</th>
+                            <th class="th">النوع</th>
+                            <th class="th">القناة</th>
+                            <th class="th">الفرع</th>
+                            <th class="th">الإجمالي</th>
+                            <th class="th">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line/70">
+                        {% for o in recent_orders %}
+                        <tr class="transition hover:bg-paper/40">
+                            <td class="td">
+                                <p class="font-extrabold text-ink">{{ o.order_number }}</p>
+                                <p class="text-[11px] text-soft">{{ o.created_at|date:"j M" }} • {{ o.created_at|time:"H:i" }}</p>
+                            </td>
+                            <td class="td font-bold text-xs">{{ o.get_order_type_display }}</td>
+                            <td class="td text-xs text-soft">{{ o.get_channel_display }}</td>
+                            <td class="td text-xs">{{ o.branch.name|default:"—" }}</td>
+                            <td class="td font-extrabold text-brand-700 text-xs">{{ o.total|floatformat:2 }} ر.س</td>
+                            <td class="td">
+                                <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold 
+                                    {% if o.status == 'delivered' %}bg-good-100 text-good-700
+                                    {% elif o.status == 'out_for_delivery' %}bg-brand-100 text-brand-700
+                                    {% elif o.status == 'ready' %}bg-good-100 text-good-700
+                                    {% elif o.status == 'preparing' %}bg-warn-100 text-warn-700
+                                    {% elif o.status == 'cancelled' %}bg-bad-100 text-bad-700
+                                    {% else %}bg-info-100 text-info-700{% endif %}">
+                                    {{ o.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-xs text-soft">لا توجد طلبات مسجلة</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Selling & Inventory Alerts -->
+        <div class="space-y-5">
+            <!-- Top Selling Items -->
+            <div class="card p-5">
+                <div class="mb-3 border-b border-line pb-2.5">
+                    <h2 class="text-sm font-black font-display text-ink">الأكثر مبيعاً هذا الأسبوع</h2>
+                    <p class="text-[11px] text-soft">الأطباق الأكثر طلباً من قبل الزبائن</p>
+                </div>
+
+                <div class="space-y-3">
+                    {% for it in top_items %}
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black {% if forloop.first %}bg-gold-300 text-night shadow{% else %}bg-line/60 text-soft{% endif %}">
+                            {{ forloop.counter }}
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-xs font-bold text-ink">{{ it.name }}</p>
+                            <p class="text-[11px] text-soft">{{ it.total_qty }} طبقاً</p>
+                        </div>
+                        <span class="text-xs font-extrabold text-brand-700">{{ it.total_revenue|floatformat:0 }} ر.س</span>
+                    </div>
+                    {% empty %}
+                    <p class="py-4 text-center text-xs text-soft">لا توجد مبيعات مسجلة للأسبوع</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Stock Alerts -->
+            <div class="card p-5">
+                <div class="mb-3 flex items-center justify-between border-b border-line pb-2.5">
+                    <div>
+                        <h2 class="text-sm font-black font-display text-ink">تنبيهات المخزون</h2>
+                        <p class="text-[11px] text-soft">أصناف شارفت على النفاد</p>
+                    </div>
+                    <a href="{% url 'inventory' %}" class="text-xs font-bold text-brand-600 hover:text-brand-700">المخزون</a>
+                </div>
+
+                <div class="space-y-2">
+                    {% for item in low_stock_items %}
+                    <div class="flex items-center justify-between rounded-lg border border-warn-600/20 bg-warn-100/50 p-2.5">
+                        <div>
+                            <p class="text-xs font-bold text-ink">{{ item.name }}</p>
+                            <p class="text-[11px] text-soft">{{ item.branch.name }}</p>
+                        </div>
+                        <span class="rounded px-2 py-0.5 text-[11px] font-extrabold {% if item.quantity == 0 %}bg-bad-100 text-bad-700{% else %}bg-warn-100 text-warn-700{% endif %}">
+                            {% if item.quantity == 0 %}نفد{% else %}{{ item.quantity|floatformat:0 }} {{ item.unit }}{% endif %}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="py-4 text-center text-xs text-good-700 font-bold">جميع المواد فوق الحد الآمن</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+<div class="card p-3 shadow-sm border-line text-xs">
+    <div class="flex items-center justify-between">
+        <span class="font-extrabold text-ink">{{ order.order_number }}</span>
+        <span class="text-[10px] text-soft font-bold">{{ order.created_at|time:"H:i" }}</span>
+    </div>
+
+    <p class="font-bold text-ink mt-1 truncate">{{ order.customer_name }}</p>
+    {% if order.customer_phone %}
+    <p class="text-[11px] text-soft font-mono" dir="ltr">{{ order.customer_phone }}</p>
+    {% endif %}
+    {% if order.address %}
+    <p class="text-[11px] text-soft line-clamp-2 mt-0.5">📍 {{ order.address }}</p>
+    {% endif %}
+
+    <div class="mt-2 flex items-center justify-between border-t border-line/60 pt-1.5">
+        <span class="font-extrabold text-brand-700">{{ order.total|floatformat:2 }} ر.س</span>
+        <span class="text-[10px] font-bold text-soft">{{ order.get_pay_method_display }}</span>
+    </div>
+
+    <p class="text-[10px] text-soft mt-0.5">{{ order.branch.name|default:"—" }}</p>
+
+    {% if order.notes %}
+    <p class="mt-1 rounded bg-warn-100/70 px-2 py-0.5 text-[10px] font-bold text-warn-700">
+        {{ order.notes }}
+    </p>
+    {% endif %}
+
+    <!-- Driver Selector -->
+    {% if order.status != 'delivered' and order.status != 'cancelled' %}
+    <div class="mt-2">
+        <select 
+            id="driver-select-{{ order.id }}" 
+            class="input !px-2 !py-1 !text-[11px]" 
+            onchange="updateOrderDriver({{ order.id }}, this)"
+        >
+            <option value="">— اختر السائق —</option>
+            {% for d in drivers %}
+            <option value="{{ d.id }}" {% if order.driver_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% elif order.driver %}
+    <p class="text-[11px] font-bold text-ink mt-1">🛵 السائق: {{ order.driver.name }}</p>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="mt-2 flex items-center gap-1.5">
+        {% if next_status %}
+        <button 
+            type="button" 
+            onclick="advanceOrderStatus({{ order.id }}, '{{ next_status }}', {% if need_driver %}true{% else %}false{% endif %})" 
+            class="flex-1 rounded-lg bg-brand-600 py-1.5 text-center text-[11px] font-bold text-white hover:bg-brand-700 transition"
+        >
+            {{ next_label }}
+        </button>
+        {% endif %}
+
+        {% if order.status == 'new' or order.status == 'preparing' %}
+        <button 
+            type="button" 
+            onclick="cancelOrder({{ order.id }})" 
+            title="إلغاء الطلب"
+            class="rounded-lg bg-bad-100 px-2 py-1.5 text-[11px] font-bold text-bad-700 hover:bg-bad-200 transition"
+        >
+            ✕
+        </button>
+        {% endif %}
+    </div>
+</div>

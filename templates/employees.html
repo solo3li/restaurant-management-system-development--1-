@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}الموظفون — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">فريق العمل والموظفون</h1>
+            <p class="text-xs font-bold text-soft mt-1">إدارة الكادر التشغيلي، الرواتب، وتوزيع المهام على الفروع</p>
+        </div>
+        <div>
+            <button onclick="openAddEmpModal()" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
+                + إضافة موظف جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- Role Filters & Search -->
+    <div class="card p-4 mb-5 space-y-3">
+        <!-- Role Pills -->
+        <div class="flex flex-wrap items-center gap-1.5 border-b border-line pb-3">
+            <a href="?role=all&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'all' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                الكل ({{ roles_summary.all }})
+            </a>
+            <a href="?role=manager&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'manager' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                مدراء ({{ roles_summary.manager }})
+            </a>
+            <a href="?role=cashier&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'cashier' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                كاشير ({{ roles_summary.cashier }})
+            </a>
+            <a href="?role=chef&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'chef' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                طهاة ({{ roles_summary.chef }})
+            </a>
+            <a href="?role=driver&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'driver' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                سائقون ({{ roles_summary.driver }})
+            </a>
+            <a href="?role=call_center&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'call_center' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                خدمة عملاء ({{ roles_summary.call_center }})
+            </a>
+            <a href="?role=waiter&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'waiter' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                مباشرون ({{ roles_summary.waiter }})
+            </a>
+        </div>
+
+        <!-- Branch and text search -->
+        <form method="GET" action="{% url 'employees' %}" class="flex flex-wrap items-center gap-3">
+            <input type="hidden" name="role" value="{{ role_filter }}">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-soft">الفرع:</span>
+                <select name="branch" onchange="this.form.submit()" class="input !w-44 text-xs">
+                    <option value="all">كافة الفروع</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}" {% if branch_filter == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="relative w-full sm:w-60">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}" 
+                    placeholder="بحث بالاسم أو الجوال…" 
+                    class="input text-xs"
+                >
+            </div>
+            <button type="submit" class="rounded-lg bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">
+                بحث
+            </button>
+            {% if search_query or branch_filter != 'all' or role_filter != 'all' %}
+            <a href="{% url 'employees' %}" class="text-xs font-bold text-bad-700 hover:underline">إعادة ضبط</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Employees Table -->
+    <div class="card overflow-hidden shadow-md">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead class="border-b border-line bg-paper/70">
+                    <tr>
+                        <th class="th">الموظف</th>
+                        <th class="th">المسمى الوظيفي</th>
+                        <th class="th">الفرع</th>
+                        <th class="th">الراتب الأساسي</th>
+                        <th class="th">تاريخ التعيين</th>
+                        <th class="th">الحالة</th>
+                        <th class="th text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line/70">
+                    {% for emp in employees %}
+                    <tr class="hover:bg-paper/30 transition">
+                        <td class="td">
+                            <p class="font-extrabold text-ink text-sm">{{ emp.name }}</p>
+                            <p class="text-[11px] text-soft font-mono" dir="ltr">{{ emp.phone|default:"—" }}</p>
+                        </td>
+                        <td class="td">
+                            <span class="rounded-lg px-2.5 py-1 text-[11px] font-bold
+                                {% if emp.role == 'manager' %}bg-night text-gold-300
+                                {% elif emp.role == 'cashier' %}bg-brand-100 text-brand-700
+                                {% elif emp.role == 'chef' %}bg-warn-100 text-warn-700
+                                {% elif emp.role == 'driver' %}bg-info-100 text-info-700
+                                {% elif emp.role == 'call_center' %}bg-good-100 text-good-700
+                                {% else %}bg-paper text-soft{% endif %}">
+                                {{ emp.get_role_display }}
+                            </span>
+                        </td>
+                        <td class="td text-soft">{{ emp.branch.name|default:"—" }}</td>
+                        <td class="td font-extrabold text-brand-700 font-mono">{{ emp.salary|floatformat:0 }} ر.س</td>
+                        <td class="td text-soft">{{ emp.hire_date|date:"j M Y" }}</td>
+                        <td class="td">
+                            <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {% if emp.status == 'active' %}bg-good-100 text-good-700{% elif emp.status == 'vacation' %}bg-warn-100 text-warn-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                                {{ emp.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="td text-center">
+                            <button 
+                                onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name }}', '{{ emp.phone }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}')" 
+                                class="rounded border border-line bg-paper px-2.5 py-1 text-xs font-bold text-soft hover:text-ink"
+                            >
+                                تعديل
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-xs text-soft font-bold">لا يوجد موظفون مطابقون للشروط</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div id="add-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-sm font-black font-display text-ink mb-4">إضافة موظف جديد</h3>
+        <div class="space-y-3 text-xs">
+            <div>
+                <label class="mb-1 block font-bold text-soft">اسم الموظف *</label>
+                <input type="text" id="add-emp-name" placeholder="سلمان الدوسري" class="input text-xs">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">رقم الجوال</label>
+                    <input type="text" id="add-emp-phone" placeholder="05xxxxxxxx" dir="ltr" class="input text-xs">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">المسمى الوظيفي</label>
+                    <select id="add-emp-role" class="input text-xs">
+                        <option value="cashier">كاشير</option>
+                        <option value="manager">مدير فرع</option>
+                        <option value="chef">طاهٍ</option>
+                        <option value="driver">سائق توصيل</option>
+                        <option value="call_center">خدمة عملاء</option>
+                        <option value="waiter">مباشر / نادل</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الفرع</label>
+                    <select id="add-emp-branch" class="input text-xs">
+                        <option value="">— بدون فرع —</option>
+                        {% for b in branches %}
+                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الراتب الشهري (ر.س)</label>
+                    <input type="number" id="add-emp-salary" placeholder="5000" class="input text-xs">
+                </div>
+            </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+            <button onclick="closeAddEmpModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
+            <button onclick="saveNewEmp()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ الموظف</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-sm font-black font-display text-ink mb-1">تعديل بيانات الموظف</h3>
+        <p id="edit-emp-title" class="text-xs font-bold text-brand-700 mb-4"></p>
+        <input type="hidden" id="edit-emp-id">
+        <div class="space-y-3 text-xs">
+            <div>
+                <label class="mb-1 block font-bold text-soft">اسم الموظف</label>
+                <input type="text" id="edit-emp-name" class="input text-xs">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">رقم الجوال</label>
+                    <input type="text" id="edit-emp-phone" dir="ltr" class="input text-xs">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">المسمى الوظيفي</label>
+                    <select id="edit-emp-role" class="input text-xs">
+                        <option value="cashier">كاشير</option>
+                        <option value="manager">مدير فرع</option>
+                        <option value="chef">طاهٍ</option>
+                        <option value="driver">سائق توصيل</option>
+                        <option value="call_center">خدمة عملاء</option>
+                        <option value="waiter">مباشر / نادل</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الفرع</label>
+                    <select id="edit-emp-branch" class="input text-xs">
+                        <option value="">— بدون فرع —</option>
+                        {% for b in branches %}
+                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الحالة</label>
+                    <select id="edit-emp-status" class="input text-xs">
+                        <option value="active">على رأس العمل</option>
+                        <option value="vacation">في إجازة</option>
+                        <option value="inactive">غير نشط</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="mb-1 block font-bold text-soft">الراتب (ر.س)</label>
+                <input type="number" id="edit-emp-salary" class="input text-xs">
+            </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+            <button onclick="closeEditEmpModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
+            <button onclick="saveEditEmp()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ التعديلات</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openAddEmpModal() {
+        document.getElementById('add-emp-modal').classList.remove('hidden');
+        document.getElementById('add-emp-modal').classList.add('flex');
+    }
+    function closeAddEmpModal() {
+        document.getElementById('add-emp-modal').classList.add('hidden');
+        document.getElementById('add-emp-modal').classList.remove('flex');
+    }
+
+    async function saveNewEmp() {
+        const name = document.getElementById('add-emp-name').value.trim();
+        const phone = document.getElementById('add-emp-phone').value.trim();
+        const role = document.getElementById('add-emp-role').value;
+        const branchId = document.getElementById('add-emp-branch').value;
+        const salary = parseFloat(document.getElementById('add-emp-salary').value) || 0;
+
+        if (!name) {
+            showToast('اسم الموظف مطلوب', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch("{% url 'api_create_employee' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ name, phone, role, branchId: branchId || null, salary })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast(`تمت إضافة الموظف «${data.name}»`);
+            closeAddEmpModal();
+            setTimeout(() => location.reload(), 600);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function openEditEmpModal(id, name, phone, role, branchId, salary, status) {
+        document.getElementById('edit-emp-id').value = id;
+        document.getElementById('edit-emp-title').textContent = name;
+        document.getElementById('edit-emp-name').value = name;
+        document.getElementById('edit-emp-phone').value = phone;
+        document.getElementById('edit-emp-role').value = role;
+        document.getElementById('edit-emp-branch').value = branchId;
+        document.getElementById('edit-emp-salary').value = salary;
+        document.getElementById('edit-emp-status').value = status;
+
+        document.getElementById('edit-emp-modal').classList.remove('hidden');
+        document.getElementById('edit-emp-modal').classList.add('flex');
+    }
+    function closeEditEmpModal() {
+        document.getElementById('edit-emp-modal').classList.add('hidden');
+        document.getElementById('edit-emp-modal').classList.remove('flex');
+    }
+
+    async function saveEditEmp() {
+        const id = document.getElementById('edit-emp-id').value;
+        const name = document.getElementById('edit-emp-name').value.trim();
+        const phone = document.getElementById('edit-emp-phone').value.trim();
+        const role = document.getElementById('edit-emp-role').value;
+        const branchId = document.getElementById('edit-emp-branch').value;
+        const salary = parseFloat(document.getElementById('edit-emp-salary').value) || 0;
+        const status = document.getElementById('edit-emp-status').value;
+
+        try {
+            const res = await fetch(`/api/employees/update/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ name, phone, role, branchId: branchId || null, salary, status })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast('تم تحديث بيانات الموظف');
+                closeEditEmpModal();
+                setTimeout(() => location.reload(), 600);
+            }
+        } catch (e) {
+            showToast('تعذر حفظ التعديلات', 'error');
+        }
+    }
+</script>
+{% endblock %}

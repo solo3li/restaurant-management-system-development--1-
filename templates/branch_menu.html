@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}قائمة أصناف الفرع والتوفر — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div id="branchMenuApp">
+    <!-- Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">قائمة أطعمة الفرع وإدارة التوفر</h1>
+            <p class="text-xs font-bold text-soft mt-1">
+                {% if branch %}
+                    📍 فرع: <span class="text-ink font-extrabold">{{ branch.name }}</span> • التحكم في توفر الأطباق في مطبخ الفرع ونقاط البيع
+                {% else %}
+                    🏢 كل الفروع • التعديل هنا يؤثر على الحالة العامة للأصناف
+                {% endif %}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="rounded-xl bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft">
+                إجمالي الأصناف: <span class="font-extrabold text-ink">{{ items_data|length }}</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Notice Banner -->
+    <div class="rounded-2xl bg-amber-50 border border-amber-200/80 p-4 mb-5 flex items-start gap-3 text-amber-900">
+        <span class="text-xl">💡</span>
+        <div class="text-xs space-y-1">
+            <p class="font-black text-amber-950">ملاحظة تشغيلية لمطبخ الفرع:</p>
+            <p class="text-amber-800 leading-relaxed">
+                الأصناف المحددة كـ <strong class="text-amber-950">"غير متوفر"</strong> تُستبعد فوراً وبشكل تلقائي من شاشات الكاشير (POS) ومركز الاتصال عند إسناد الطلب لهذا الفرع، لتفادي إحراج العملاء عند نفاد المكونات اليومية بالمطبخ.
+            </p>
+        </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="card p-4 mb-5 space-y-3">
+        <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-3">
+            <!-- Category Pills -->
+            <div class="flex flex-wrap gap-1.5">
+                {% for c in categories %}
+                <a 
+                    href="?cat={{ c }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+                    class="rounded-xl px-3.5 py-1.5 text-xs font-black transition-all {% if selected_cat == c %}bg-brand-600 text-white shadow-sm{% else %}bg-paper text-soft hover:text-ink border border-line{% endif %}"
+                >
+                    {{ c }}
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Search -->
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <input 
+                    type="hidden" 
+                    name="cat" 
+                    value="{{ selected_cat }}"
+                >
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}" 
+                    placeholder="ابحث عن وجبة أو مشروب…" 
+                    class="input text-xs w-full sm:w-64"
+                >
+                <button type="submit" class="rounded-xl bg-ink text-white px-3.5 py-2 text-xs font-bold hover:bg-black transition">
+                    بحث
+                </button>
+                {% if search_query or selected_cat != 'الكل' %}
+                <a href="{% url 'branch_menu' %}" class="text-xs font-bold text-bad-700 hover:underline">إلغاء</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Dishes Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for row in items_data %}
+        <div 
+            id="item-card-{{ row.item.id }}" 
+            class="card p-4 flex flex-col justify-between transition-all duration-200 hover:shadow-md {% if not row.is_available %}opacity-70 bg-paper/60 border-bad-200{% endif %}"
+        >
+            <div>
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-3xl filter drop-shadow-sm">{{ row.item.emoji }}</span>
+                        <div>
+                            <h3 class="font-black text-sm text-ink leading-tight">{{ row.item.name }}</h3>
+                            <span class="text-[10px] font-bold text-soft">{{ row.item.category }}</span>
+                        </div>
+                    </div>
+                    <span 
+                        id="badge-{{ row.item.id }}" 
+                        class="rounded-lg px-2 py-0.5 text-[10px] font-black {% if row.is_available %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}"
+                    >
+                        {% if row.is_available %}متوفر بالفرع{% else %}غير متوفر (نافد){% endif %}
+                    </span>
+                </div>
+
+                <div class="flex items-center justify-between text-xs py-2 my-2 border-y border-line/60">
+                    <span class="text-soft font-bold">سعر البيع:</span>
+                    <span class="font-extrabold text-ink font-mono text-sm">{{ row.item.price }} <span class="text-[10px] font-bold text-soft">ر.س</span></span>
+                </div>
+            </div>
+
+            <!-- Action Toggle Button -->
+            <div class="mt-2 pt-1">
+                <button 
+                    type="button" 
+                    id="btn-{{ row.item.id }}"
+                    onclick="toggleItemAvailability({{ row.item.id }}, '{{ row.item.name|escapejs }}')"
+                    class="w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm {% if row.is_available %}bg-bad-50 text-bad-700 border border-bad-200 hover:bg-bad-100{% else %}bg-good-600 text-white hover:bg-good-700{% endif %}"
+                >
+                    {% if row.is_available %}
+                        <span>⛔ تعطيل من المطبخ</span>
+                    {% else %}
+                        <span>✅ إعادة التفعيل بالفرع</span>
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center text-soft">
+            <span class="text-4xl block mb-2">🔍</span>
+            <p class="font-bold text-sm">لا توجد أصناف مطابقة للبحث أو التصنيف الحالي</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function getCsrfToken() {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+
+async function toggleItemAvailability(itemId, itemName) {
+    const btn = document.getElementById(`btn-${itemId}`);
+    const badge = document.getElementById(`badge-${itemId}`);
+    const card = document.getElementById(`item-card-${itemId}`);
+    
+    if (!btn) return;
+    btn.disabled = true;
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '<span>جاري التحديث…</span>';
+
+    try {
+        const res = await fetch(`/api/branch-menu/toggle/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            }
+        });
+
+        if (!res.ok) {
+            throw new Error(`Server returned ${res.status}`);
+        }
+
+        const data = await res.json();
+        if (data.ok) {
+            if (data.isAvailable) {
+                // Now available
+                badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-black bg-good-100 text-good-700';
+                badge.innerText = 'متوفر بالفرع';
+
+                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm bg-bad-50 text-bad-700 border border-bad-200 hover:bg-bad-100';
+                btn.innerHTML = '<span>⛔ تعطيل من المطبخ</span>';
+
+                card.classList.remove('opacity-70', 'bg-paper/60', 'border-bad-200');
+            } else {
+                // Now unavailable
+                badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-black bg-bad-100 text-bad-700';
+                badge.innerText = 'غير متوفر (نافد)';
+
+                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm bg-good-600 text-white hover:bg-good-700';
+                btn.innerHTML = '<span>✅ إعادة التفعيل بالفرع</span>';
+
+                card.classList.add('opacity-70', 'bg-paper/60', 'border-bad-200');
+            }
+        } else {
+            alert(data.error || 'تعذر تغيير حالة الصنف');
+            btn.innerHTML = oldText;
+        }
+    } catch (err) {
+        console.error(err);
+        alert('حدث خطأ أثناء الاتصال بالخادم.');
+        btn.innerHTML = oldText;
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

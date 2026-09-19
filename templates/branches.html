@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}الفروع — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">فروع السلسلة والمواقع</h1>
+            <p class="text-xs font-bold text-soft mt-1">إدارة فروع المطعم، متابعة تشغيلها، وأداء كل فرع بشكل مستقل</p>
+        </div>
+        <div>
+            <button onclick="openAddBranchModal()" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
+                + افتتاح فرع جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- Branches Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {% for item in branches_data %}
+        <div class="card overflow-hidden shadow-md border-line">
+            <!-- Card Header -->
+            <div class="flex items-center justify-between bg-night p-4 text-white">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white text-lg">
+                        🏢
+                    </span>
+                    <div>
+                        <h2 class="text-sm font-black font-display text-white">{{ item.branch.name }}</h2>
+                        <p class="text-[11px] text-gold-300/70">{{ item.branch.city|default:"الرياض" }}</p>
+                    </div>
+                </div>
+                <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold {% if item.branch.status == 'active' %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                    {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
+                </span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-4 space-y-3 text-xs">
+                <div class="space-y-1 text-soft">
+                    {% if item.branch.address %}
+                    <p class="flex items-center gap-1.5"><span class="text-sm">📍</span> {{ item.branch.address }}</p>
+                    {% endif %}
+                    {% if item.branch.phone %}
+                    <p class="flex items-center gap-1.5"><span class="text-sm">📞</span> <span dir="ltr">{{ item.branch.phone }}</span></p>
+                    {% endif %}
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-2 border-t border-line/60 pt-3 text-center">
+                    <div class="rounded-lg bg-paper p-2">
+                        <p class="font-extrabold text-ink text-sm">{{ item.employees_count }}</p>
+                        <p class="text-[10px] text-soft">موظف</p>
+                    </div>
+                    <div class="rounded-lg bg-paper p-2">
+                        <p class="font-extrabold text-ink text-sm">{{ item.orders_today }}</p>
+                        <p class="text-[10px] text-soft">طلبات اليوم</p>
+                    </div>
+                    <div class="rounded-lg bg-brand-50 p-2">
+                        <p class="font-extrabold text-brand-700 text-sm">{{ item.sales_today|floatformat:0 }}</p>
+                        <p class="text-[10px] text-brand-700">مبيعات ر.س</p>
+                    </div>
+                </div>
+
+                <!-- Toggle Actions -->
+                <div class="border-t border-line/60 pt-3 flex items-center justify-between gap-2">
+                    <button 
+                        onclick="toggleBranchStatus({{ item.branch.id }})" 
+                        class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink"
+                    >
+                        {% if item.branch.status == 'active' %}إغلاق مؤقت{% else %}تفعيل الفرع{% endif %}
+                    </button>
+                    <a href="{% url 'switch_branch' item.branch.id %}" class="rounded-lg bg-brand-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-brand-700 transition">
+                        لوحة الفرع ←
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="col-span-3 text-center py-12 text-xs text-soft">لا توجد فروع مسجلة</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add Branch Modal -->
+<div id="add-branch-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-sm font-black font-display text-ink mb-4">افتتاح فرع جديد</h3>
+        <div class="space-y-3 text-xs">
+            <div>
+                <label class="mb-1 block font-bold text-soft">اسم الفرع *</label>
+                <input type="text" id="branch-name-input" placeholder="مثال: فرع حطين" class="input text-xs">
+            </div>
+            <div>
+                <label class="mb-1 block font-bold text-soft">المدينة</label>
+                <input type="text" id="branch-city-input" placeholder="الرياض" value="الرياض" class="input text-xs">
+            </div>
+            <div>
+                <label class="mb-1 block font-bold text-soft">العنوان التفصيلي</label>
+                <input type="text" id="branch-address-input" placeholder="طريق الملك فهد، حي حطين" class="input text-xs">
+            </div>
+            <div>
+                <label class="mb-1 block font-bold text-soft">رقم الهاتف</label>
+                <input type="text" id="branch-phone-input" placeholder="011xxxxxxx" dir="ltr" class="input text-xs">
+            </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+            <button onclick="closeAddBranchModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
+            <button onclick="saveNewBranch()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">افتتاح الفرع</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openAddBranchModal() {
+        document.getElementById('add-branch-modal').classList.remove('hidden');
+        document.getElementById('add-branch-modal').classList.add('flex');
+    }
+    function closeAddBranchModal() {
+        document.getElementById('add-branch-modal').classList.add('hidden');
+        document.getElementById('add-branch-modal').classList.remove('flex');
+    }
+
+    async function saveNewBranch() {
+        const name = document.getElementById('branch-name-input').value.trim();
+        const city = document.getElementById('branch-city-input').value.trim();
+        const address = document.getElementById('branch-address-input').value.trim();
+        const phone = document.getElementById('branch-phone-input').value.trim();
+
+        if (!name) {
+            showToast('اسم الفرع مطلوب', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch("{% url 'api_create_branch' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ name, city, address, phone })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast(`تم افتتاح «${data.name}» بنجاح!`);
+            closeAddBranchModal();
+            setTimeout(() => location.reload(), 600);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    async function toggleBranchStatus(branchId) {
+        try {
+            const res = await fetch(`/api/branches/toggle/${branchId}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const data = await res.json();
+            showToast(data.status === 'active' ? 'تم تفعيل الفرع' : 'تم إغلاق الفرع مؤقتاً');
+            setTimeout(() => location.reload(), 500);
+        } catch (e) {
+            showToast('تعذر تغيير حالة الفرع', 'error');
+        }
+    }
+</script>
+{% endblock %}

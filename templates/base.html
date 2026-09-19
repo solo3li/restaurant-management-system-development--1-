@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}نظام مطاعم ضيافة{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'Cairo', 'sans-serif'],
+                        display: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        paper: '#f4f0e7',
+                        card: '#fffdf7',
+                        ink: '#26190f',
+                        soft: '#7d6c59',
+                        line: '#e5dbc8',
+                        night: '#221712',
+                        'night-2': '#2e2018',
+                        'night-3': '#3b2a1f',
+                        brand: {
+                            50: '#fdf4ec',
+                            100: '#f9e2cf',
+                            200: '#f1c29c',
+                            300: '#e69c63',
+                            400: '#da7837',
+                            500: '#c85e22',
+                            600: '#ac4a1a',
+                            700: '#8b3a18',
+                            800: '#713019',
+                            900: '#5d2917',
+                        },
+                        gold: {
+                            300: '#ecc87e',
+                            400: '#dda94b',
+                            500: '#c9902e',
+                        },
+                        good: {
+                            100: '#dcefe2',
+                            600: '#257a4e',
+                            700: '#1d6140',
+                        },
+                        warn: {
+                            100: '#f7e9cd',
+                            600: '#a26a0d',
+                            700: '#855708',
+                        },
+                        bad: {
+                            100: '#f8dcd7',
+                            600: '#b53a2b',
+                            700: '#932e23',
+                        },
+                        info: {
+                            100: '#d9edf0',
+                            600: '#1f6e7e',
+                            700: '#175865',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f4f0e7;
+            color: #26190f;
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+        }
+        .font-display { font-family: 'Cairo', sans-serif; }
+        .card {
+            background-color: #fffdf7;
+            border: 1px solid #e5dbc8;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(60, 42, 24, 0.05);
+        }
+        .input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #e5dbc8;
+            background-color: #fffdf7;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #26190f;
+            outline: none;
+            transition: all 0.15s ease-in-out;
+        }
+        .input:focus {
+            border-color: #da7837;
+            box-shadow: 0 0 0 3px #f1c29c;
+        }
+        .th {
+            padding: 0.625rem 1rem;
+            text-align: right;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #7d6c59;
+        }
+        .td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-toast {
+            animation: toastIn 0.25s ease-out forwards;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 left-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    {% if user.is_authenticated %}
+    <!-- Sidebar for Large Screens -->
+    <aside class="fixed inset-y-0 right-0 z-40 hidden w-[250px] flex-col bg-night text-gold-300/80 lg:flex shadow-xl">
+        <!-- Brand Logo & Context Title -->
+        <div class="px-5 py-4 border-b border-night-3">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-[0_4px_14px_rgba(172,74,26,0.45)] text-xl font-bold">
+                    🔥
+                </span>
+                <div class="min-w-0">
+                    <p class="font-display text-lg font-black text-white truncate">مطاعم ضيافة</p>
+                    <p class="text-[11px] font-bold text-gold-300/70 truncate">
+                        {% if is_hq_mode %}
+                            🏢 الإدارة العامة (كل الفروع)
+                        {% else %}
+                            📍 {{ current_branch.name }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Branch Switcher Dropdown (for Owners / Admins) -->
+            {% if can_switch_branches %}
+            <div class="mt-3">
+                <label class="block text-[10.5px] font-bold text-gold-300/60 mb-1">التحويل بين الفروع / الإدارة:</label>
+                <select 
+                    onchange="location.href='/branch/switch/' + this.value + '/';" 
+                    class="w-full bg-night-2 text-white border border-night-3 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:border-brand-500 outline-none cursor-pointer"
+                >
+                    <option value="all" {% if is_hq_mode %}selected{% endif %}>🏢 الإدارة العامة (كافة الفروع)</option>
+                    {% for b in all_branches %}
+                    <option value="{{ b.id }}" {% if current_branch and current_branch.id == b.id %}selected{% endif %}>
+                        📍 {{ b.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% else %}
+            <div class="mt-2.5 rounded-lg bg-night-2 px-2.5 py-1 text-[11px] font-bold text-gold-400 border border-night-3">
+                🔒 فرعك: {{ current_branch.name }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Dynamic Navigation Links -->
+        <nav class="mt-2.5 flex flex-1 flex-col gap-1 px-3 overflow-y-auto">
+            {% if is_hq_mode %}
+                <!-- =================== HQ / OWNER MENU =================== -->
+                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">الإدارة والتحليلات</div>
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">📊</span> لوحة الإدارة العامة
+                </a>
+                <a href="{% url 'branches' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branches' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🏢</span> إدارة الفروع
+                </a>
+                <a href="{% url 'employees' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'employees' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">👥</span> كل الموظفين والرواتب
+                </a>
+                <a href="{% url 'branch_menu' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">📋</span> قائمة الطعام الرئيسية
+                </a>
+                <a href="{% url 'inventory' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'inventory' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">📦</span> المخزون المركزي
+                </a>
+                <a href="{% url 'call_center' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'call_center' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🎧</span> الكول سنتر المركزي
+                </a>
+                <a href="{% url 'delivery' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🛵</span> متابعة كل التوصيلات
+                </a>
+            {% else %}
+                <!-- =================== BRANCH OPERATIONS MENU =================== -->
+                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">تشغيل الفرع</div>
+                <a href="{% url 'branch_dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🏠</span> لوحة تحكم الفرع
+                </a>
+                <a href="{% url 'pos' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'pos' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">💳</span> كاشير الفرع (POS)
+                </a>
+                <a href="{% url 'kitchen' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'kitchen' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🍳</span> شاشة المطبخ (KDS)
+                </a>
+                <a href="{% url 'branch_orders' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_orders' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🧾</span> طلبات وفواتير الفرع
+                </a>
+                <a href="{% url 'delivery' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🛵</span> توصيل وسائقي الفرع
+                </a>
+                <a href="{% url 'branch_menu' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">📋</span> منيو وتوفر الوجبات
+                </a>
+                <a href="{% url 'inventory' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'inventory' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">📦</span> مخزون الفرع
+                </a>
+                <a href="{% url 'employees' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'employees' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">👥</span> موظفو الفرع
+                </a>
+
+                {% if can_switch_branches %}
+                <div class="mt-2 pt-2 border-t border-night-3">
+                    <a href="{% url 'switch_branch' 'all' %}" class="flex items-center gap-2.5 rounded-xl px-3.5 py-2 text-xs font-bold text-gold-300 hover:bg-night-2">
+                        <span>🏢</span> العودة للإدارة العامة
+                    </a>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            {% if user.is_staff %}
+            <div class="mt-auto pt-2 border-t border-night-3">
+                <a href="/admin/" target="_blank" class="flex items-center gap-3 rounded-xl px-3.5 py-1.5 text-xs font-bold transition text-gold-400/80 hover:bg-night-2">
+                    <span>⚙️</span> لوحة Django Admin
+                </a>
+            </div>
+            {% endif %}
+        </nav>
+
+        <!-- User Profile & Session info -->
+        <div class="m-3 rounded-xl border border-night-3 bg-night-2 p-3.5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-700 text-white text-xs font-bold">
+                        {{ user.username|slice:":1"|upper }}
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold text-white truncate">{{ user.username }}</p>
+                        <p class="text-[10px] text-gold-300/60 truncate">
+                            {% if user_profile %}{{ user_profile.get_role_display }}{% else %}مسؤول النظام{% endif %}
+                        </p>
+                    </div>
+                </div>
+                <a href="{% url 'logout' %}" title="تسجيل الخروج" class="text-bad-600 hover:text-bad-700 p-1 rounded-lg hover:bg-night transition text-sm">
+                    🚪
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="sticky top-0 z-40 flex items-center justify-between border-b border-night-3 bg-night px-4 py-2.5 lg:hidden text-white">
+        <div class="flex items-center gap-2">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white text-base">🔥</span>
+            <div>
+                <span class="font-display text-sm font-extrabold text-white">ضيافة</span>
+                <span class="text-[10px] text-gold-300/80 block">
+                    {% if is_hq_mode %}الإدارة العامة{% else %}{{ current_branch.name }}{% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 overflow-x-auto text-xs py-1">
+            {% if is_hq_mode %}
+            <a href="{% url 'dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">HQ</a>
+            <a href="{% url 'branches' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفروع</a>
+            {% else %}
+            <a href="{% url 'branch_dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفرع</a>
+            <a href="{% url 'pos' %}" class="px-2 py-1 rounded font-bold text-gold-300">كاشير</a>
+            <a href="{% url 'kitchen' %}" class="px-2 py-1 rounded font-bold text-gold-300">المطبخ</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="px-2 py-1 text-bad-600 font-bold">خروج</a>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="lg:mr-[250px]">
+        <div class="mx-auto max-w-[1400px] px-4 py-6 lg:px-8">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    {% else %}
+    <main>
+        {% block unauth_content %}{% endblock %}
+    </main>
+    {% endif %}
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-bold animate-toast ${
+                type === 'error' 
+                ? 'bg-bad-100 border-bad-600 text-bad-700' 
+                : 'bg-card border-brand-500 text-ink'
+            }`;
+            const icon = type === 'error' ? '❌' : '✅';
+            toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

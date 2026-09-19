@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة الإدارة العامة — مطاعم ضيافة (HQ){% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-night px-2.5 py-1 text-xs font-black text-gold-300">HQ • الإدارة العامة</span>
+                <h1 class="text-2xl font-black font-display text-ink">نظرة عامة على كافة الفروع</h1>
+            </div>
+            <p class="text-xs font-bold text-soft mt-1">التقارير المجمعة، أداء الفروع، مسارات العمليات، ومتابعة الأسطول</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft shadow-sm">
+                <span>📅</span> اليوم: {% now "l, j F Y" %}
+            </span>
+        </div>
+    </div>
+
+    <!-- 4 Key Aggregate Metrics -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <!-- Total Company Sales -->
+        <div class="card p-5 border-l-4 border-l-brand-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">إجمالي مبيعات السلسلة اليوم</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">💰</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">{{ orders_today }} طلباً في كل الفروع</p>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="card p-5 border-l-4 border-l-night">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">إجمالي الطلبات</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-night-2 text-gold-300 text-base">🧾</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-ink">{{ orders_today }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">مباشر، سفري، وتوصيل كول سنتر</p>
+        </div>
+
+        <!-- Active Deliveries -->
+        <div class="card p-5 border-l-4 border-l-info-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">أسطول التوصيل النشط</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info-100 text-info-700 text-base">🛵</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-info-700">{{ active_deliveries }} <span class="text-xs font-bold text-soft">طلب في المسار</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">عبر كافة السائقين</p>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="card p-5 border-l-4 {% if low_stock_count > 0 %}border-l-bad-600{% else %}border-l-good-600{% endif %}">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">تنبيهات المخزون بالفروع</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl {% if low_stock_count > 0 %}bg-bad-100 text-bad-700{% else %}bg-good-100 text-good-700{% endif %} text-base">⚠️</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display {% if low_stock_count > 0 %}text-bad-700{% else %}text-good-700{% endif %}">{{ low_stock_count }} <span class="text-xs font-bold text-soft">صنف منخفض</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">{% if low_stock_count > 0 %}تحتاج توريد عاجل{% else %}المخزون مكتمل بكافة الفروع{% endif %}</p>
+        </div>
+    </div>
+
+    <!-- Branch Performance Matrix -->
+    <div class="mt-6">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-black font-display text-ink">مقارنة أداء الفروع اليوم</h2>
+                <p class="text-xs font-bold text-soft">اختر أي فرع للدخول المباشر إلى لوحة التحكم والعمليات الخاصة به</p>
+            </div>
+            <a href="{% url 'branches' %}" class="text-xs font-bold text-brand-600 hover:underline">
+                إدارة الفروع وافتتاح فروع جديدة ←
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {% for item in branch_matrix %}
+            <div class="card p-5 shadow-sm border-line flex flex-col justify-between hover:border-brand-400 transition">
+                <div>
+                    <div class="flex items-center justify-between border-b border-line pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">🏢</span>
+                            <div>
+                                <h3 class="text-sm font-black font-display text-ink">{{ item.branch.name }}</h3>
+                                <p class="text-[11px] text-soft">{{ item.branch.city|default:"الرياض" }}</p>
+                            </div>
+                        </div>
+                        <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {% if item.branch.status == 'active' %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                            {% if item.branch.status == 'active' %}يعمل{% else %}مغلق{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                        <div class="rounded-lg bg-paper p-2.5">
+                            <p class="text-soft text-[11px]">مبيعات اليوم</p>
+                            <p class="font-extrabold text-brand-700 text-base mt-0.5">{{ item.sales_today|floatformat:0 }} ر.س</p>
+                        </div>
+                        <div class="rounded-lg bg-paper p-2.5">
+                            <p class="text-soft text-[11px]">طلبات اليوم</p>
+                            <p class="font-extrabold text-ink text-base mt-0.5">{{ item.orders_today }}</p>
+                        </div>
+                        <div class="rounded-lg bg-paper p-2.5">
+                            <p class="text-soft text-[11px]">كادر الموظفين</p>
+                            <p class="font-bold text-ink mt-0.5">{{ item.employees_count }} موظف</p>
+                        </div>
+                        <div class="rounded-lg bg-paper p-2.5">
+                            <p class="text-soft text-[11px]">نواقص المخزون</p>
+                            <p class="font-bold {% if item.low_stock_count > 0 %}text-bad-700{% else %}text-good-700{% endif %} mt-0.5">{{ item.low_stock_count }} مادة</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-line">
+                    <a 
+                        href="{% url 'switch_branch' item.branch.id %}" 
+                        class="w-full flex items-center justify-center gap-2 rounded-xl bg-night py-2.5 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow"
+                    >
+                        <span>📍</span> الدخول للوحة تشغيل الفرع
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 7 Days Sales Chart & Top Items -->
+    <div class="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <!-- 7 Days Sales Chart -->
+        <div class="card p-5 xl:col-span-2">
+            <div class="mb-4 flex items-center justify-between border-b border-line pb-3">
+                <div>
+                    <h2 class="text-sm font-black font-display text-ink">مبيعات الشركة لآخر 7 أيام</h2>
+                    <p class="text-[11px] text-soft">حركة إيرادات كافة الفروع مجتمعة</p>
+                </div>
+                <span class="rounded-lg bg-good-100 px-2.5 py-1 text-xs font-bold text-good-700">
+                    إجمالي الأسبوع: {{ week_total|floatformat:0 }} ر.س
+                </span>
+            </div>
+
+            <!-- Visual Bar Chart -->
+            <div class="flex h-52 items-end gap-3 pt-6 px-2">
+                {% for d in days_data %}
+                <div class="group flex h-full flex-1 flex-col items-center justify-end gap-2">
+                    <span class="text-[11px] font-bold text-soft opacity-0 transition group-hover:opacity-100 whitespace-nowrap">
+                        {{ d.total|floatformat:0 }} ر.س
+                    </span>
+                    <div 
+                        class="w-full max-w-12 rounded-t-lg transition-all {% if d.is_today %}bg-brand-600 shadow-lg shadow-brand-600/30{% else %}bg-brand-200 group-hover:bg-brand-300{% endif %}"
+                        style="height: {% widthratio d.total max_day_total 85 %}%; min-height: {% if d.total > 0 %}12px{% else %}4px{% endif %};"
+                    ></div>
+                    <span class="text-[11px] font-bold {% if d.is_today %}text-brand-700 font-extrabold{% else %}text-soft{% endif %}">
+                        {{ d.label }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top Selling Dishes -->
+        <div class="card p-5">
+            <div class="mb-3 border-b border-line pb-2.5">
+                <h2 class="text-sm font-black font-display text-ink">الأكثر مبيعاً في السلسلة</h2>
+                <p class="text-[11px] text-soft">الوجبات الأعلى طلباً في كل الفروع</p>
+            </div>
+
+            <div class="space-y-3">
+                {% for it in top_items %}
+                <div class="flex items-center gap-3">
+                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black {% if forloop.first %}bg-gold-300 text-night shadow{% else %}bg-line/60 text-soft{% endif %}">
+                        {{ forloop.counter }}
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-xs font-bold text-ink">{{ it.name }}</p>
+                        <p class="text-[11px] text-soft">{{ it.total_qty }} وجبة</p>
+                    </div>
+                    <span class="text-xs font-extrabold text-brand-700">{{ it.total_revenue|floatformat:0 }} ر.س</span>
+                </div>
+                {% empty %}
+                <p class="py-4 text-center text-xs text-soft">لا توجد بيانات بعد</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

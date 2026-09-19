@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}شاشة المطبخ (KDS) — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Kitchen Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-night p-4 rounded-xl text-white shadow-md">
+        <div class="flex items-center gap-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-warn-600 text-white text-xl font-bold">
+                🍳
+            </span>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-lg font-black font-display text-white">شاشة تحضير المطبخ (KDS)</h1>
+                    <span class="rounded-full bg-warn-600/30 border border-warn-600/60 px-2.5 py-0.5 text-xs font-bold text-gold-300">
+                        {{ total_pending }} طلب قيد الإعداد
+                    </span>
+                </div>
+                <p class="text-xs text-gold-300/70">
+                    {% if branch %}📍 {{ branch.name }}{% else %}كل الفروع{% endif %} • متابعة مباشرة لأوامر الطهي والتجهيز
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="location.reload()" class="rounded-lg bg-night-2 border border-night-3 px-3 py-1.5 text-xs font-bold text-gold-300 hover:bg-night-3 transition">
+                🔄 تحديث فوري (<span id="refresh-countdown">12</span> ث)
+            </button>
+        </div>
+    </div>
+
+    <!-- Kitchen Orders Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for item in kitchen_orders %}
+        <div class="card overflow-hidden shadow-md border-line flex flex-col justify-between {% if item.elapsed_minutes > 15 %}border-t-4 border-t-bad-600{% elif item.elapsed_minutes > 8 %}border-t-4 border-t-warn-600{% else %}border-t-4 border-t-good-600{% endif %}">
+            <!-- Card Header -->
+            <div class="p-3.5 bg-paper/50 border-b border-line flex items-center justify-between">
+                <div>
+                    <span class="text-base font-black font-display text-ink">{{ item.order.order_number }}</span>
+                    <span class="block text-[11px] font-bold text-soft">{{ item.order.created_at|time:"H:i" }}</span>
+                </div>
+                <div class="text-left">
+                    <span class="rounded px-2 py-0.5 text-[11px] font-black
+                        {% if item.order.order_type == 'dine_in' %}bg-brand-100 text-brand-700
+                        {% elif item.order.order_type == 'takeaway' %}bg-paper border border-line text-ink
+                        {% else %}bg-info-100 text-info-700{% endif %}">
+                        {{ item.order.get_order_type_display }}
+                    </span>
+                    <p class="text-[11px] font-bold font-mono mt-1 {% if item.elapsed_minutes > 15 %}text-bad-700 font-black animate-pulse{% elif item.elapsed_minutes > 8 %}text-warn-700{% else %}text-good-700{% endif %}">
+                        ⏱️ {{ item.elapsed_minutes }} دقيقة
+                    </p>
+                </div>
+            </div>
+
+            <!-- Items Checklist -->
+            <div class="p-4 flex-1 space-y-2">
+                <p class="text-[11px] font-black text-soft uppercase tracking-wider mb-1">الوجبات المطلوبة:</p>
+                {% for oi in item.items %}
+                <label class="flex items-center gap-2.5 p-2 rounded-lg bg-card border border-line/60 hover:bg-paper/30 transition cursor-pointer">
+                    <input type="checkbox" class="w-4 h-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                    <span class="text-xs font-black text-ink flex-1 leading-snug">
+                        <span class="text-brand-700 text-sm font-black">{{ oi.qty }}x</span> {{ oi.name }}
+                    </span>
+                </label>
+                {% endfor %}
+
+                {% if item.order.notes %}
+                <div class="mt-2 rounded-lg bg-warn-100/80 border border-warn-600/30 p-2 text-xs font-bold text-warn-700">
+                    ⚠️ ملاحظات: {{ item.order.notes }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Action Button -->
+            <div class="p-3 bg-paper/20 border-t border-line">
+                {% if item.order.status == 'new' %}
+                <button 
+                    onclick="updateKitchenOrder({{ item.order.id }}, 'preparing')" 
+                    class="w-full rounded-xl bg-warn-600 py-2.5 text-xs font-black text-white hover:bg-warn-700 transition shadow"
+                >
+                    🔥 بدء التحضير
+                </button>
+                {% elif item.order.status == 'preparing' %}
+                <button 
+                    onclick="updateKitchenOrder({{ item.order.id }}, 'ready')" 
+                    class="w-full rounded-xl bg-good-600 py-2.5 text-xs font-black text-white hover:bg-good-700 transition shadow"
+                >
+                    ✓ جاهز للتسليم
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-16 text-center card p-8">
+            <span class="text-4xl mb-2 block">🍳</span>
+            <h3 class="text-base font-black font-display text-ink">المطبخ هادئ الآن</h3>
+            <p class="text-xs text-soft mt-1">لا توجد طلبات جديدة بانتظار الطهي أو التحضير.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let countdown = 12;
+    setInterval(() => {
+        countdown--;
+        const el = document.getElementById('refresh-countdown');
+        if (el) el.textContent = countdown;
+        if (countdown <= 0) {
+            location.reload();
+        }
+    }, 1000);
+
+    async function updateKitchenOrder(orderId, nextStatus) {
+        try {
+            const res = await fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: nextStatus })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast(nextStatus === 'ready' ? 'تم تجهيز الوجبة بنجاح! جاهزة للتسليم' : 'تم بدء تحضير الوجبة');
+                setTimeout(() => location.reload(), 400);
+            } else {
+                showToast('تعذر تحديث حالة الطلب', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+</script>
+{% endblock %}

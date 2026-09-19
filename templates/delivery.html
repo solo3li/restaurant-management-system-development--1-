@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة التوصيل — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">إدارة وتوزيع طلبات التوصيل</h1>
+            <p class="text-xs font-bold text-soft mt-1">متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 rounded-xl bg-brand-100 px-3.5 py-1.5 text-xs font-bold text-brand-700">
+                🛵 {{ active_count }} طلب قيد المتابعة والتوصيل
+            </span>
+        </div>
+    </div>
+
+    <!-- Board & Drivers Layout -->
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_300px]">
+        <!-- Kanban Delivery Columns -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+            <!-- 1. New (جديد) -->
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+                <div class="flex items-center justify-between border-b-2 border-info-600 bg-card px-3 py-2.5 rounded-t-xl">
+                    <span class="text-xs font-black font-display text-ink">1. جديد</span>
+                    <span class="rounded-full bg-info-100 px-2 py-0.5 text-[11px] font-bold text-info-700">{{ orders_by_status.new|length }}</span>
+                </div>
+                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+                    {% for o in orders_by_status.new %}
+                        {% include "delivery_card.html" with order=o next_status="preparing" next_label="بدء التحضير" %}
+                    {% empty %}
+                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 2. Preparing (قيد التحضير) -->
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+                <div class="flex items-center justify-between border-b-2 border-warn-600 bg-card px-3 py-2.5 rounded-t-xl">
+                    <span class="text-xs font-black font-display text-ink">2. قيد التحضير</span>
+                    <span class="rounded-full bg-warn-100 px-2 py-0.5 text-[11px] font-bold text-warn-700">{{ orders_by_status.preparing|length }}</span>
+                </div>
+                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+                    {% for o in orders_by_status.preparing %}
+                        {% include "delivery_card.html" with order=o next_status="ready" next_label="جاهز للتسليم" %}
+                    {% empty %}
+                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 3. Ready (جاهز للتسليم) -->
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+                <div class="flex items-center justify-between border-b-2 border-good-600 bg-card px-3 py-2.5 rounded-t-xl">
+                    <span class="text-xs font-black font-display text-ink">3. جاهز للتسليم</span>
+                    <span class="rounded-full bg-good-100 px-2 py-0.5 text-[11px] font-bold text-good-700">{{ orders_by_status.ready|length }}</span>
+                </div>
+                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+                    {% for o in orders_by_status.ready %}
+                        {% include "delivery_card.html" with order=o next_status="out_for_delivery" next_label="تسليم للسائق" need_driver=True %}
+                    {% empty %}
+                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 4. Out for delivery (في الطريق) -->
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+                <div class="flex items-center justify-between border-b-2 border-brand-600 bg-card px-3 py-2.5 rounded-t-xl">
+                    <span class="text-xs font-black font-display text-ink">4. في الطريق</span>
+                    <span class="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">{{ orders_by_status.out_for_delivery|length }}</span>
+                </div>
+                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+                    {% for o in orders_by_status.out_for_delivery %}
+                        {% include "delivery_card.html" with order=o next_status="delivered" next_label="تم التوصيل" %}
+                    {% empty %}
+                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 5. Delivered (تم التسليم) -->
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+                <div class="flex items-center justify-between border-b-2 border-night bg-card px-3 py-2.5 rounded-t-xl">
+                    <span class="text-xs font-black font-display text-ink">5. تم التسليم</span>
+                    <span class="rounded-full bg-night-2 text-gold-300 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.delivered|length }}</span>
+                </div>
+                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+                    {% for o in orders_by_status.delivered %}
+                        {% include "delivery_card.html" with order=o %}
+                    {% empty %}
+                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Drivers Panel -->
+        <div class="card p-4 h-fit sticky top-4 shadow-md">
+            <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
+                <h2 class="text-sm font-black font-display text-ink">أسطول السائقين</h2>
+                <span class="rounded-full bg-night px-2 py-0.5 text-xs font-bold text-gold-300">{{ driver_stats|length }} سائقين</span>
+            </div>
+
+            <div class="space-y-3">
+                {% for d in driver_stats %}
+                <div class="rounded-xl border border-line p-3 bg-paper/50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-night text-gold-300 text-xs font-bold">🛵</span>
+                            <div>
+                                <p class="text-xs font-bold text-ink">{{ d.name }}</p>
+                                <p class="text-[11px] text-soft font-mono" dir="ltr">{{ d.phone|default:"—" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2.5 grid grid-cols-2 gap-1.5 text-center text-xs">
+                        <div class="rounded-lg bg-brand-100 p-1.5">
+                            <p class="font-extrabold text-brand-700 text-sm">{{ d.active }}</p>
+                            <p class="text-[10px] text-brand-700/80">في الطريق</p>
+                        </div>
+                        <div class="rounded-lg bg-good-100 p-1.5">
+                            <p class="font-extrabold text-good-700 text-sm">{{ d.done }}</p>
+                            <p class="text-[10px] text-good-700/80">سُلّمت اليوم</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-xs text-soft py-4 text-center">لا يوجد سائقون مسجلون</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function updateOrderDriver(orderId, selectEl) {
+        const driverId = selectEl.value;
+        try {
+            const res = await fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ driverId: driverId || null })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast('تم تعيين السائق بنجاح');
+            } else {
+                showToast('تعذر تعيين السائق', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+
+    async function advanceOrderStatus(orderId, nextStatus, needDriver = false) {
+        if (needDriver) {
+            const selectEl = document.getElementById(`driver-select-${orderId}`);
+            if (selectEl && !selectEl.value) {
+                showToast('يجب اختيار سائق للطلب قبل التسليم للمسار!', 'error');
+                return;
+            }
+        }
+
+        try {
+            const res = await fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: nextStatus })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast(`تم تحديث حالة الطلب إلى: ${nextStatus}`);
+                setTimeout(() => location.reload(), 600);
+            } else {
+                showToast('تعذر تحديث الحالة', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+
+    async function cancelOrder(orderId) {
+        if (!confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) return;
+        try {
+            const res = await fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: 'cancelled' })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showToast('تم إلغاء الطلب');
+                setTimeout(() => location.reload(), 600);
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+</script>
+{% endblock %}

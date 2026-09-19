@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة تشغيل {{ branch.name }} — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Branch Header Banner -->
+    <div class="card p-5 mb-6 bg-gradient-to-r from-night via-night-2 to-night text-white border-night-3 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white text-2xl shadow-lg shadow-brand-600/40">
+                    🏢
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-black font-display text-white">{{ branch.name }}</h1>
+                        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold {% if branch.status == 'active' %}bg-good-600/30 text-good-100 border border-good-600/50{% else %}bg-bad-600/30 text-bad-100 border border-bad-600/50{% endif %}">
+                            {% if branch.status == 'active' %}الفرع يعمل ومتاح{% else %}مغلق مؤقتاً{% endif %}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gold-300/80 mt-0.5">
+                        📍 {{ branch.address|default:branch.city|default:"الرياض" }} • هاتف: <span dir="ltr">{{ branch.phone|default:"—" }}</span>
+                    </p>
+                </div>
+            </div>
+
+            {% if can_switch_branches %}
+            <div>
+                <a href="{% url 'switch_branch' 'all' %}" class="inline-flex items-center gap-2 rounded-xl bg-night-3 border border-gold-300/20 px-3.5 py-2 text-xs font-bold text-gold-300 hover:bg-gold-300/10 transition">
+                    <span>🏢</span> العودة إلى لوحة الإدارة العامة (HQ)
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 4 Branch KPI Cards -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <!-- Branch Sales -->
+        <div class="card p-5 border-l-4 border-l-brand-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">مبيعات الفرع اليوم</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">💰</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">{{ orders_today }} طلباً مسجلاً اليوم</p>
+        </div>
+
+        <!-- Kitchen Pending Orders -->
+        <a href="{% url 'kitchen' %}" class="card p-5 border-l-4 border-l-warn-600 hover:border-brand-500 transition group block">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">طلبات المطبخ قيد التحضير</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-warn-100 text-warn-700 text-base group-hover:scale-110 transition">🍳</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-warn-700">{{ kitchen_pending_count }} <span class="text-xs font-bold text-soft">وجبة للتحضير</span></p>
+            <p class="mt-1 text-xs font-bold text-brand-600 group-hover:underline">فتح شاشة المطبخ (KDS) ←</p>
+        </a>
+
+        <!-- Active Deliveries -->
+        <a href="{% url 'delivery' %}" class="card p-5 border-l-4 border-l-info-600 hover:border-brand-500 transition group block">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">توصيلات الفرع النشطة</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info-100 text-info-700 text-base group-hover:scale-110 transition">🛵</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-info-700">{{ active_deliveries_count }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="mt-1 text-xs font-bold text-brand-600 group-hover:underline">متابعة مسارات السائقين ←</p>
+        </a>
+
+        <!-- Branch Low Stock -->
+        <a href="{% url 'inventory' %}" class="card p-5 border-l-4 {% if low_stock_count > 0 %}border-l-bad-600{% else %}border-l-good-600{% endif %} hover:border-brand-500 transition group block">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">نواقص مخزون الفرع</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl {% if low_stock_count > 0 %}bg-bad-100 text-bad-700{% else %}bg-good-100 text-good-700{% endif %} text-base">📦</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display {% if low_stock_count > 0 %}text-bad-700{% else %}text-good-700{% endif %}">{{ low_stock_count }} <span class="text-xs font-bold text-soft">مادة</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">من أصل {{ employees_count }} موظف مسجل بالفرع</p>
+        </a>
+    </div>
+
+    <!-- Branch Operational Modules Hub (7 Cards) -->
+    <div class="mt-7">
+        <h2 class="text-sm font-black font-display text-ink mb-3">الأنظمة التشغيلية للفرع</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- 1. POS Cashier -->
+            <a href="{% url 'pos' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-xl group-hover:scale-105 transition">
+                    💳
+                </span>
+                <div>
+                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">كاشير الفرع (POS)</h3>
+                    <p class="text-[11px] text-soft mt-0.5">تسجيل الطلبات، الفواتير الفورية، والتحصيل</p>
+                </div>
+            </a>
+
+            <!-- 2. Kitchen KDS -->
+            <a href="{% url 'kitchen' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warn-100 text-warn-700 text-xl group-hover:scale-105 transition">
+                    🍳
+                </span>
+                <div>
+                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">شاشة المطبخ (KDS)</h3>
+                    <p class="text-[11px] text-soft mt-0.5">أوامر التحضير الحية ومؤقتات الوجبات</p>
+                </div>
+            </a>
+
+            <!-- 3. Branch Orders -->
+            <a href="{% url 'branch_orders' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-paper text-ink text-xl group-hover:scale-105 transition">
+                    🧾
+                </span>
+                <div>
+                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">طلبات وفواتير الفرع</h3>
+                    <p class="text-[11px] text-soft mt-0.5">أرشيف المعاملات ومتابعة الحالات</p>
+                </div>
+            </a>
+
+            <!-- 4. Branch Delivery -->
+            <a href="{% url 'delivery' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-info-100 text-info-700 text-xl group-hover:scale-105 transition">
+                    🛵
+                </span>
+                <div>
+                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">توصيل وسائقي الفرع</h3>
+                    <p class="text-[11px] text-soft mt-0.5">توزيع الطلبات وتعيين السائقين</p>
+                </div>
+            </a>
+
+            <!-- 5. Branch Menu Availability -->
+            <a href="{% url 'branch_menu' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-good-100 text-good-700 text-xl group-hover:scale-105 transition">
+                    📋
+                </span>
+                <div>
+                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">منيو وتوفر الوجبات</h3>
+                    <p class="text-[11px] text-soft mt-0.5">تفعيل أو إيقاف توفر الأطباق بمطبخ الفرع</p>
+                </div>
+            </a>
+
+            <!-- 6. Branch Inventory -->
+            <a href="{% url 'inventory' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-800 text-xl group-hover:scale-105 transition">
+                    📦
+                </span>
+                <div>
+                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">مخزون الفرع</h3>
+                    <p class="text-[11px] text-soft mt-0.5">كميات المواد الغذائية، النواقص، والتوريد</p>
+                </div>
+            </a>
+
+            <!-- 7. Branch Employees -->
+            <a href="{% url 'employees' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-night text-gold-300 text-xl group-hover:scale-105 transition">
+                    👥
+                </span>
+                <div>
+                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">موظفو الفرع</h3>
+                    <p class="text-[11px] text-soft mt-0.5">طاقم العمل (كاشير، طهاة، سائقون، نُدُل)</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Live Kitchen Queue & Recent Orders for Branch -->
+    <div class="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <!-- Live Kitchen Queue Preview -->
+        <div class="card p-5 xl:col-span-2">
+            <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">🍳</span>
+                    <div>
+                        <h2 class="text-sm font-black font-display text-ink">مطبخ الفرع — أوامر الطهي الحالية</h2>
+                        <p class="text-[11px] text-soft">الطلبات قيد الإعداد الآن في صالة المطبخ</p>
+                    </div>
+                </div>
+                <a href="{% url 'kitchen' %}" class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700">
+                    شاشة المطبخ الكاملة ←
+                </a>
+            </div>
+
+            <div class="space-y-3">
+                {% for item in kitchen_preview_data %}
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-line bg-paper/30 gap-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-sm text-ink">{{ item.order.order_number }}</span>
+                            <span class="rounded px-2 py-0.5 text-[10px] font-bold {% if item.order.status == 'new' %}bg-info-100 text-info-700{% else %}bg-warn-100 text-warn-700{% endif %}">
+                                {{ item.order.get_status_display }}
+                            </span>
+                            <span class="text-[11px] font-bold text-soft font-mono">⏱️ منذ {{ item.elapsed_minutes }} دقيقة</span>
+                        </div>
+                        <div class="mt-2 flex flex-wrap gap-1.5 text-xs">
+                            {% for oi in item.order.items.all %}
+                            <span class="rounded bg-card border border-line px-2 py-0.5 font-bold text-ink">
+                                {{ oi.qty }}x {{ oi.name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'kitchen' %}" class="rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">
+                            تحديث الحالة
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="py-10 text-center text-xs text-soft">
+                    <p class="text-2xl mb-1">🎉</p>
+                    <p>لا توجد طلبات في قائمة الانتظار، المطبخ جاهز للطلبات القادمة</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Branch Orders -->
+        <div class="card p-5">
+            <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
+                <h3 class="text-xs font-black font-display text-ink">أحدث فواتير الفرع</h3>
+                <a href="{% url 'branch_orders' %}" class="text-xs font-bold text-brand-600 hover:underline">الكل</a>
+            </div>
+
+            <div class="space-y-2.5 max-h-80 overflow-y-auto">
+                {% for o in recent_orders %}
+                <div class="rounded-lg border border-line p-2.5 bg-paper/40 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-ink">{{ o.order_number }}</span>
+                        <span class="font-extrabold text-brand-700">{{ o.total|floatformat:2 }} ر.س</span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between text-[11px] text-soft">
+                        <span>{{ o.customer_name }}</span>
+                        <span>{{ o.created_at|time:"H:i" }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center py-6 text-xs text-soft">لا توجد طلبات مسجلة</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

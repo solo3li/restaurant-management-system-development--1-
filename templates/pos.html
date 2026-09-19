@@ -1,0 +1,577 @@
+{% extends "base.html" %}
+
+{% block title %}الكاشير ونقاط البيع — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">الكاشير — نقطة البيع</h1>
+            <p class="text-xs font-bold text-soft mt-1">تسجيل الطلبات، إصدار الفواتير الفورية، والتحصيل</p>
+        </div>
+        <div>
+            <button onclick="openMenuManager()" class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-card px-3.5 py-2 text-xs font-bold text-ink shadow-sm hover:border-brand-300">
+                <span>📋</span> إدارة أصناف القائمة
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Layout: Menu Left + Invoice Right -->
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_390px]">
+        <!-- Menu Section -->
+        <div>
+            <!-- Categories & Search -->
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    {% for c in categories %}
+                    <button 
+                        onclick="setCategory('{{ c }}')" 
+                        id="cat-btn-{{ forloop.counter }}"
+                        class="cat-btn rounded-full px-3 py-1 text-xs font-bold transition {% if forloop.first %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}"
+                        data-cat="{{ c }}"
+                    >
+                        {{ c }}
+                    </button>
+                    {% endfor %}
+                </div>
+                <div class="relative w-full sm:w-60">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-soft">🔍</span>
+                    <input 
+                        type="text" 
+                        id="menu-search" 
+                        placeholder="ابحث عن وجبة أو مشروب…" 
+                        class="input pr-8 text-xs"
+                        oninput="filterMenu()"
+                    >
+                </div>
+            </div>
+
+            <!-- Menu Items Grid -->
+            <div id="menu-grid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                {% for m in menu_items %}
+                <div 
+                    class="menu-item group relative rounded-xl border border-line bg-card p-3.5 text-right transition hover:border-brand-400 hover:shadow-md cursor-pointer {% if not m.available %}opacity-45 pointer-events-none{% endif %}"
+                    data-id="{{ m.id }}"
+                    data-name="{{ m.name }}"
+                    data-price="{{ m.price }}"
+                    data-category="{{ m.category }}"
+                    onclick="addToCart({{ m.id }}, '{{ m.name }}', {{ m.price }})"
+                >
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100/60 text-2xl mb-2">
+                        {{ m.emoji|default:"🍽️" }}
+                    </span>
+                    <p class="truncate text-xs font-black text-ink">{{ m.name }}</p>
+                    <div class="mt-1 flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-brand-700">{{ m.price|floatformat:0 }} ر.س</span>
+                        <span class="text-[10px] font-bold text-soft">{{ m.category }}</span>
+                    </div>
+                    {% if not m.available %}
+                    <span class="absolute top-2 left-2 rounded bg-bad-100 px-1.5 py-0.5 text-[10px] font-bold text-bad-700">غير متوفر</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div id="no-items-msg" class="hidden py-12 text-center text-xs text-soft font-bold">لا توجد أصناف مطابقة للبحث</div>
+        </div>
+
+        <!-- Invoice / Cart Section -->
+        <div>
+            <div class="card sticky top-4 shadow-lg border-line">
+                <div class="flex items-center justify-between border-b border-line px-5 py-3.5 bg-paper/30 rounded-t-xl">
+                    <h2 class="text-sm font-black font-display text-ink">الفاتورة الحالية</h2>
+                    <span id="cart-badge" class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
+                </div>
+
+                <!-- Items list -->
+                <div id="cart-items-container" class="max-h-56 min-h-[120px] overflow-y-auto p-4 divide-y divide-line/60">
+                    <div id="cart-empty" class="py-8 text-center text-xs text-soft">
+                        <p class="text-2xl mb-1">🛒</p>
+                        <p>اضغط على أي صنف لإضافته إلى الفاتورة</p>
+                    </div>
+                </div>
+
+                <!-- Order Controls -->
+                <div class="space-y-3 border-t border-line p-4 bg-paper/10">
+                    <!-- Order Type Selector -->
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button type="button" onclick="setOrderType('dine_in')" id="btn-type-dine_in" class="type-btn rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition">
+                            🍽️ محلي
+                        </button>
+                        <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="type-btn rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-brand-300">
+                            🥡 سفري
+                        </button>
+                        <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="type-btn rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-brand-300">
+                            🛵 توصيل
+                        </button>
+                    </div>
+
+                    <!-- Branch & Payment -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="mb-1 block font-bold text-soft">الفرع</label>
+                            <select id="order-branch" class="input text-xs">
+                                {% for b in branches %}
+                                <option value="{{ b.id }}">{{ b.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block font-bold text-soft">طريقة الدفع</label>
+                            <select id="order-pay" class="input text-xs">
+                                <option value="cash">نقداً</option>
+                                <option value="card">بطاقة / مدى</option>
+                                <option value="wallet">محفظة رقمية</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Delivery info (conditionally shown) -->
+                    <div id="delivery-fields" class="hidden space-y-2 rounded-xl border border-info-600/30 bg-info-100/40 p-3 text-xs">
+                        <p class="font-bold text-info-700">بيانات التوصيل:</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="cust-name" placeholder="اسم العميل" class="input text-xs">
+                            <input type="text" id="cust-phone" placeholder="رقم الجوال" dir="ltr" class="input text-xs">
+                        </div>
+                        <input type="text" id="cust-address" placeholder="عنوان التوصيل (الحي، الشارع...)" class="input text-xs">
+                    </div>
+
+                    <!-- Cashier and Discount -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="cashier-name" placeholder="اسم الكاشير" value="{{ user.username }}" class="input text-xs">
+                        <input type="number" id="order-discount" placeholder="خصم (ر.س)" min="0" step="1" oninput="updateTotals()" class="input text-xs">
+                    </div>
+
+                    <!-- Invoice Totals Box -->
+                    <div class="rounded-xl bg-paper p-3 text-xs space-y-1.5 border border-line">
+                        <div class="flex justify-between text-soft">
+                            <span>المجموع الفرعي</span>
+                            <span id="sum-subtotal" class="font-bold">0.00 ر.س</span>
+                        </div>
+                        <div id="row-delivery-fee" class="hidden flex justify-between text-soft">
+                            <span>رسوم التوصيل</span>
+                            <span class="font-bold">8.00 ر.س</span>
+                        </div>
+                        <div id="row-discount" class="hidden flex justify-between text-good-700">
+                            <span>الخصم</span>
+                            <span id="sum-discount" class="font-bold">- 0.00 ر.س</span>
+                        </div>
+                        <div class="flex justify-between border-t border-line pt-2 font-display text-sm font-black text-ink">
+                            <span>الإجمالي المستحق</span>
+                            <span id="sum-total" class="text-base text-brand-700 font-black">0.00 ر.س</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        id="submit-order-btn"
+                        type="button" 
+                        onclick="submitOrder()" 
+                        class="w-full rounded-xl bg-brand-600 py-3 text-sm font-extrabold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none"
+                        disabled
+                    >
+                        تحصيل الفاتورة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-sm w-full p-6 text-center shadow-2xl">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-good-100 text-good-700 text-2xl mb-3">
+            ✓
+        </div>
+        <h3 class="text-base font-black font-display text-ink">تم إصدار الطلب بنجاح</h3>
+        <p id="modal-order-number" class="text-2xl font-black font-display text-brand-700 my-2">ORD-1000</p>
+        <p class="text-xs text-soft mb-5">تم إرسال الطلب للمطبخ وحفظ الفاتورة في النظام</p>
+        <button onclick="closeOrderModal()" class="w-full rounded-xl bg-brand-600 py-2.5 text-xs font-bold text-white hover:bg-brand-700">
+            فاتورة جديدة
+        </button>
+    </div>
+</div>
+
+<!-- Menu Manager Modal -->
+<div id="menu-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-xl w-full p-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+                <h3 class="text-sm font-black font-display text-ink">إدارة أصناف القائمة</h3>
+                <p class="text-xs text-soft">تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة</p>
+            </div>
+            <button onclick="openAddMenuModal()" class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700">
+                + صنف جديد
+            </button>
+        </div>
+
+        <div class="max-h-72 overflow-y-auto divide-y divide-line/60 border border-line rounded-lg">
+            {% for m in menu_items %}
+            <div class="flex items-center justify-between p-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">{{ m.emoji|default:"🍽️" }}</span>
+                    <div>
+                        <p class="text-xs font-bold text-ink">{{ m.name }}</p>
+                        <p class="text-[10px] text-soft">{{ m.category }} • {{ m.price }} ر.س</p>
+                    </div>
+                </div>
+                <button 
+                    onclick="toggleMenuItem({{ m.id }}, this)" 
+                    class="rounded-full px-3 py-1 text-[11px] font-bold transition {% if m.available %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}"
+                >
+                    {% if m.available %}متوفر{% else %}غير متوفر{% endif %}
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-line text-left">
+            <button onclick="closeMenuManager()" class="rounded-lg border border-line bg-paper px-4 py-1.5 text-xs font-bold text-soft hover:text-ink">
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Menu Item Modal -->
+<div id="add-menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-sm font-black font-display text-ink mb-4">إضافة صنف جديد للمنيو</h3>
+        <div class="space-y-3 text-xs">
+            <div>
+                <label class="mb-1 block font-bold text-soft">اسم الصنف</label>
+                <input type="text" id="new-item-name" placeholder="مثال: مقلوبة دجاج" class="input text-xs">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">الفئة</label>
+                    <select id="new-item-cat" class="input text-xs">
+                        <option value="أطباق رئيسية">أطباق رئيسية</option>
+                        <option value="مشويات">مشويات</option>
+                        <option value="ساندويتشات">ساندويتشات</option>
+                        <option value="مقبلات">مقبلات</option>
+                        <option value="مشروبات">مشروبات</option>
+                        <option value="حلويات">حلويات</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">رمز تعبيري (Emoji)</label>
+                    <input type="text" id="new-item-emoji" placeholder="🍗" class="input text-xs">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">سعر البيع (ر.س)</label>
+                    <input type="number" id="new-item-price" placeholder="45" class="input text-xs">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">التكلفة (ر.س)</label>
+                    <input type="number" id="new-item-cost" placeholder="18" class="input text-xs">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-end gap-2">
+            <button onclick="closeAddMenuModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">إلغاء</button>
+            <button onclick="saveNewMenuItem()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ الصنف</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let cart = {};
+    let selectedOrderType = 'dine_in';
+    let currentCategory = 'الكل';
+
+    function setCategory(cat) {
+        currentCategory = cat;
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            if (btn.dataset.cat === cat) {
+                btn.className = 'cat-btn rounded-full px-3 py-1 text-xs font-bold transition bg-night text-gold-300 shadow';
+            } else {
+                btn.className = 'cat-btn rounded-full px-3 py-1 text-xs font-bold transition border border-line bg-card text-soft hover:text-ink';
+            }
+        });
+        filterMenu();
+    }
+
+    function filterMenu() {
+        const query = document.getElementById('menu-search').value.trim().toLowerCase();
+        const items = document.querySelectorAll('.menu-item');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const name = item.dataset.name.toLowerCase();
+            const cat = item.dataset.category;
+            const matchesCat = (currentCategory === 'الكل' || cat === currentCategory);
+            const matchesSearch = (!query || name.includes(query));
+
+            if (matchesCat && matchesSearch) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        document.getElementById('no-items-msg').style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function setOrderType(type) {
+        selectedOrderType = type;
+        const types = ['dine_in', 'takeaway', 'delivery'];
+        types.forEach(t => {
+            const btn = document.getElementById(`btn-type-${t}`);
+            if (t === type) {
+                btn.className = 'type-btn rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition';
+            } else {
+                btn.className = 'type-btn rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-brand-300';
+            }
+        });
+
+        const deliveryBox = document.getElementById('delivery-fields');
+        const deliveryFeeRow = document.getElementById('row-delivery-fee');
+        if (type === 'delivery') {
+            deliveryBox.classList.remove('hidden');
+            deliveryFeeRow.classList.remove('hidden');
+        } else {
+            deliveryBox.classList.add('hidden');
+            deliveryFeeRow.classList.add('hidden');
+        }
+        updateTotals();
+    }
+
+    function addToCart(id, name, price) {
+        if (!cart[id]) {
+            cart[id] = { id, name, price, qty: 1 };
+        } else {
+            cart[id].qty += 1;
+        }
+        renderCart();
+    }
+
+    function updateCartQty(id, delta) {
+        if (!cart[id]) return;
+        cart[id].qty += delta;
+        if (cart[id].qty <= 0) {
+            delete cart[id];
+        }
+        renderCart();
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items-container');
+        const keys = Object.keys(cart);
+        const totalCount = keys.reduce((sum, k) => sum + cart[k].qty, 0);
+        document.getElementById('cart-badge').textContent = `${totalCount} أصناف`;
+
+        if (keys.length === 0) {
+            container.innerHTML = `
+                <div id="cart-empty" class="py-8 text-center text-xs text-soft">
+                    <p class="text-2xl mb-1">🛒</p>
+                    <p>اضغط على أي صنف لإضافته إلى الفاتورة</p>
+                </div>
+            `;
+            document.getElementById('submit-order-btn').disabled = true;
+            updateTotals();
+            return;
+        }
+
+        document.getElementById('submit-order-btn').disabled = false;
+        let html = '';
+        keys.forEach(k => {
+            const item = cart[k];
+            html += `
+                <div class="flex items-center justify-between py-2 text-xs">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-ink truncate">${item.name}</p>
+                        <p class="text-[11px] text-soft">${item.price} ر.س × ${item.qty}</p>
+                    </div>
+                    <div class="flex items-center gap-1 mx-2 border border-line rounded-lg p-0.5 bg-paper/50">
+                        <button onclick="updateCartQty(${item.id}, 1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-brand-100 font-black text-brand-700">+</button>
+                        <span class="w-5 text-center font-bold">${item.qty}</span>
+                        <button onclick="updateCartQty(${item.id}, -1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-bad-100 font-black text-bad-700">-</button>
+                    </div>
+                    <span class="font-extrabold text-brand-700 w-16 text-left">${(item.price * item.qty).toFixed(2)} ر.س</span>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        updateTotals();
+    }
+
+    function updateTotals() {
+        const keys = Object.keys(cart);
+        let subtotal = 0;
+        keys.forEach(k => {
+            subtotal += cart[k].price * cart[k].qty;
+        });
+
+        const fee = selectedOrderType === 'delivery' ? 8 : 0;
+        const discountInput = parseFloat(document.getElementById('order-discount').value) || 0;
+        const discount = Math.min(Math.max(discountInput, 0), subtotal);
+        const total = Math.max(0, subtotal + fee - discount);
+
+        document.getElementById('sum-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
+        document.getElementById('sum-total').textContent = `${total.toFixed(2)} ر.س`;
+
+        const discRow = document.getElementById('row-discount');
+        if (discount > 0) {
+            discRow.classList.remove('hidden');
+            document.getElementById('sum-discount').textContent = `- ${discount.toFixed(2)} ر.س`;
+        } else {
+            discRow.classList.add('hidden');
+        }
+
+        const submitBtn = document.getElementById('submit-order-btn');
+        submitBtn.textContent = `تحصيل ${total.toFixed(2)} ر.س`;
+    }
+
+    async function submitOrder() {
+        const keys = Object.keys(cart);
+        if (keys.length === 0) return;
+
+        const custName = document.getElementById('cust-name').value.trim();
+        const custPhone = document.getElementById('cust-phone').value.trim();
+        const custAddress = document.getElementById('cust-address').value.trim();
+
+        if (selectedOrderType === 'delivery' && (!custName || !custPhone)) {
+            showToast('طلبات التوصيل تتطلب اسم العميل ورقم الجوال', 'error');
+            return;
+        }
+
+        const items = keys.map(k => ({ menuItemId: cart[k].id, qty: cart[k].qty }));
+        const branchId = document.getElementById('order-branch').value;
+        const payMethod = document.getElementById('order-pay').value;
+        const cashier = document.getElementById('cashier-name').value;
+        const discount = parseFloat(document.getElementById('order-discount').value) || 0;
+
+        const submitBtn = document.getElementById('submit-order-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'جارٍ الإصدار…';
+
+        try {
+            const res = await fetch("{% url 'api_create_order' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    type: selectedOrderType,
+                    channel: 'cashier',
+                    branchId: branchId,
+                    payMethod: payMethod,
+                    cashier: cashier,
+                    discount: discount,
+                    customerName: custName,
+                    customerPhone: custPhone,
+                    address: custAddress,
+                    items: items
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'تعذر إصدار الطلب');
+
+            // Show success modal
+            document.getElementById('modal-order-number').textContent = data.order.orderNumber;
+            document.getElementById('order-modal').classList.remove('hidden');
+            document.getElementById('order-modal').classList.add('flex');
+
+            // Reset cart
+            cart = {};
+            document.getElementById('order-discount').value = '';
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('cust-address').value = '';
+            renderCart();
+            showToast(`تم إصدار الطلب ${data.order.orderNumber} بنجاح!`);
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    function closeOrderModal() {
+        document.getElementById('order-modal').classList.add('hidden');
+        document.getElementById('order-modal').classList.remove('flex');
+    }
+
+    // Menu Manager
+    function openMenuManager() {
+        document.getElementById('menu-manager-modal').classList.remove('hidden');
+        document.getElementById('menu-manager-modal').classList.add('flex');
+    }
+    function closeMenuManager() {
+        document.getElementById('menu-manager-modal').classList.add('hidden');
+        document.getElementById('menu-manager-modal').classList.remove('flex');
+    }
+
+    async function toggleMenuItem(id, btn) {
+        try {
+            const res = await fetch(`/api/menu/toggle/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const data = await res.json();
+            if (data.available) {
+                btn.className = 'rounded-full px-3 py-1 text-[11px] font-bold transition bg-good-100 text-good-700';
+                btn.textContent = 'متوفر';
+                showToast(`تم تفعيل «${data.name}»`);
+            } else {
+                btn.className = 'rounded-full px-3 py-1 text-[11px] font-bold transition bg-bad-100 text-bad-700';
+                btn.textContent = 'غير متوفر';
+                showToast(`تم إيقاف «${data.name}» مؤقتاً`);
+            }
+        } catch (e) {
+            showToast('خطأ في تحديث الصنف', 'error');
+        }
+    }
+
+    function openAddMenuModal() {
+        document.getElementById('add-menu-modal').classList.remove('hidden');
+        document.getElementById('add-menu-modal').classList.add('flex');
+    }
+    function closeAddMenuModal() {
+        document.getElementById('add-menu-modal').classList.add('hidden');
+        document.getElementById('add-menu-modal').classList.remove('flex');
+    }
+
+    async function saveNewMenuItem() {
+        const name = document.getElementById('new-item-name').value.trim();
+        const cat = document.getElementById('new-item-cat').value;
+        const emoji = document.getElementById('new-item-emoji').value.trim() || '🍽️';
+        const price = parseFloat(document.getElementById('new-item-price').value);
+        const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
+
+        if (!name || isNaN(price) || price <= 0) {
+            showToast('اسم الصنف وسعر البيع مطلوبان', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch("{% url 'api_create_menu_item' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ name, category: cat, emoji, price, cost })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast(`تمت إضافة «${data.name}» للقائمة!`);
+            closeAddMenuModal();
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+</script>
+{% endblock %}

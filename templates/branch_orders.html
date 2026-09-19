@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}طلبات وفواتير الفرع — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-black font-display text-ink">سجل طلبات وفواتير الفرع</h1>
+            <p class="text-xs font-bold text-soft mt-1">
+                {% if branch %}📍 {{ branch.name }}{% else %}كل الفروع{% endif %} • استعراض الفواتير ومتابعة الحالات والمدفوعات
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'pos' %}" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
+                + فاتورة كاشير جديدة
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card p-4 mb-5">
+        <form method="GET" action="{% url 'branch_orders' %}" class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-soft">الحالة:</span>
+                <select name="status" onchange="this.form.submit()" class="input !w-36 text-xs">
+                    <option value="all">كافة الحالات</option>
+                    {% for st_val, st_lbl in statuses %}
+                    <option value="{{ st_val }}" {% if status_filter == st_val %}selected{% endif %}>{{ st_lbl }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-soft">نوع الطلب:</span>
+                <select name="type" onchange="this.form.submit()" class="input !w-32 text-xs">
+                    <option value="all">كافة الأنواع</option>
+                    {% for t_val, t_lbl in order_types %}
+                    <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="relative w-full sm:w-60">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}" 
+                    placeholder="رقم الطلب، اسم العميل، الجوال…" 
+                    class="input text-xs"
+                >
+            </div>
+
+            <button type="submit" class="rounded-lg bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink">
+                بحث وتصفية
+            </button>
+            {% if status_filter != 'all' or type_filter != 'all' or search_query %}
+            <a href="{% url 'branch_orders' %}" class="text-xs font-bold text-bad-700 hover:underline">إلغاء التصفية</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card overflow-hidden shadow-md">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead class="border-b border-line bg-paper/70">
+                    <tr>
+                        <th class="th">رقم الطلب</th>
+                        <th class="th">النوع</th>
+                        <th class="th">العميل</th>
+                        <th class="th">طريقة الدفع</th>
+                        <th class="th">السائق</th>
+                        <th class="th">الإجمالي</th>
+                        <th class="th">الحالة</th>
+                        <th class="th">التاريخ والوقت</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line/70">
+                    {% for o in orders %}
+                    <tr class="hover:bg-paper/30 transition">
+                        <td class="td">
+                            <span class="font-extrabold text-ink text-sm">{{ o.order_number }}</span>
+                            <span class="block text-[10px] text-soft">الكاشير: {{ o.cashier|default:"—" }}</span>
+                        </td>
+                        <td class="td">
+                            <span class="rounded px-2 py-0.5 text-[11px] font-bold
+                                {% if o.order_type == 'dine_in' %}bg-brand-100 text-brand-700
+                                {% elif o.order_type == 'takeaway' %}bg-paper border border-line text-ink
+                                {% else %}bg-info-100 text-info-700{% endif %}">
+                                {{ o.get_order_type_display }}
+                            </span>
+                        </td>
+                        <td class="td">
+                            <p class="font-bold text-ink">{{ o.customer_name }}</p>
+                            {% if o.customer_phone %}
+                            <p class="text-[10px] text-soft font-mono" dir="ltr">{{ o.customer_phone }}</p>
+                            {% endif %}
+                        </td>
+                        <td class="td text-soft">{{ o.get_pay_method_display }}</td>
+                        <td class="td text-soft">{{ o.driver.name|default:"—" }}</td>
+                        <td class="td font-extrabold text-brand-700 font-mono text-sm">{{ o.total|floatformat:2 }} ر.س</td>
+                        <td class="td">
+                            <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold
+                                {% if o.status == 'delivered' %}bg-good-100 text-good-700
+                                {% elif o.status == 'ready' %}bg-good-100 text-good-700
+                                {% elif o.status == 'out_for_delivery' %}bg-brand-100 text-brand-700
+                                {% elif o.status == 'preparing' %}bg-warn-100 text-warn-700
+                                {% elif o.status == 'cancelled' %}bg-bad-100 text-bad-700
+                                {% else %}bg-info-100 text-info-700{% endif %}">
+                                {{ o.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="td text-soft">
+                            <span>{{ o.created_at|date:"j M Y" }}</span>
+                            <span class="block text-[10px] font-mono">{{ o.created_at|time:"H:i" }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-xs text-soft font-bold">لا توجد طلبات مطابقة للبحث</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
