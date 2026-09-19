@@ -4,6 +4,8 @@ from . import views
 urlpatterns = [
     path("", views.dashboard_view, name="home"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("platform/", views.platform_dashboard_view, name="platform_dashboard"),
+    path("platform/switch-tenant/<int:tenant_id>/", views.switch_tenant_view, name="switch_tenant"),
     path("branch/", views.branch_dashboard_view, name="branch_dashboard"),
     path("branch/switch/<str:branch_id>/", views.switch_branch_view, name="switch_branch"),
     path("kitchen/", views.kitchen_view, name="kitchen"),
@@ -20,6 +22,7 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     
     # Internal JSON APIs
+    path("api/tenants/create/", views.api_create_tenant, name="api_create_tenant"),
     path("api/orders/", views.api_create_order, name="api_create_order"),
     path("api/orders/<int:order_id>/", views.api_update_order, name="api_update_order"),
     path("api/branch-menu/toggle/<int:item_id>/", views.api_toggle_branch_menu, name="api_toggle_branch_menu"),

@@ -1,56 +1,74 @@
 {% extends "base.html" %}
 
-{% block title %}تسجيل الدخول — مطاعم ضيافة{% endblock %}
+{% block title %}تسجيل الدخول — نظام إدارة المطاعم المتعددة{% endblock %}
 
 {% block unauth_content %}
 <div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-paper via-brand-50 to-paper">
     <div class="w-full max-w-md">
         <!-- Logo & Header -->
-        <div class="text-center mb-8">
-            <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-white text-3xl shadow-xl shadow-brand-600/30 mb-4">
+        <div class="text-center mb-6">
+            <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-white text-3xl shadow-xl shadow-brand-600/30 mb-3">
                 🔥
             </div>
-            <h1 class="text-2xl font-black text-ink font-display">مطاعم ضيافة</h1>
-            <p class="text-sm font-bold text-soft mt-1">نظام الإدارة المتكامل — نقاط البيع والتشغيل</p>
+            <h1 class="text-2xl font-black text-ink font-display">منصة ضيافة لإدارة المطاعم</h1>
+            <p class="text-xs font-bold text-soft mt-1">نظام SaaS متعدد المنشآت • الفروع، الكاشير والمطابخ</p>
         </div>
 
         <!-- Login Card -->
-        <div class="card p-7 shadow-xl border-line">
-            <h2 class="text-lg font-bold text-ink mb-1 font-display">تسجيل الدخول للنظام</h2>
-            <p class="text-xs text-soft mb-6">أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة التحكم</p>
+        <div class="card p-6 shadow-xl border-line">
+            <!-- Tabs -->
+            <div class="flex items-center gap-2 p-1 bg-paper rounded-xl mb-5 border border-line">
+                <button 
+                    type="button" 
+                    id="tab-btn-credentials" 
+                    onclick="switchTab('credentials')" 
+                    class="flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-brand-700 shadow-sm"
+                >
+                    👤 حساب الإدارة
+                </button>
+                <button 
+                    type="button" 
+                    id="tab-btn-pin" 
+                    onclick="switchTab('pin')" 
+                    class="flex-1 py-2 rounded-lg text-xs font-black transition-all text-soft hover:text-ink"
+                >
+                    🔢 دخول سريع للموظفين (PIN)
+                </button>
+            </div>
 
             {% if error %}
-            <div class="mb-5 flex items-center gap-2 rounded-xl border border-bad-600/30 bg-bad-100/80 p-3.5 text-sm font-bold text-bad-700">
+            <div class="mb-4 flex items-center gap-2 rounded-xl border border-bad-600/30 bg-bad-100/80 p-3 text-xs font-bold text-bad-700">
                 <span>⚠️</span>
                 <span>{{ error }}</span>
             </div>
             {% endif %}
 
-            <form method="POST" action="{% url 'login' %}">
+            <!-- Form 1: Standard Username & Password -->
+            <form id="form-credentials" method="POST" action="{% url 'login' %}">
                 {% csrf_token %}
-                <div class="space-y-4">
+                <input type="hidden" name="auth_type" value="credentials">
+                <div class="space-y-3.5">
                     <div>
-                        <label for="username" class="mb-1.5 block text-xs font-bold text-ink/80">اسم المستخدم</label>
+                        <label for="username" class="mb-1 block text-xs font-bold text-ink/80">اسم المستخدم</label>
                         <input 
                             type="text" 
                             id="username" 
                             name="username" 
                             required 
-                            autofocus 
-                            class="input font-medium" 
-                            placeholder="admin"
+                            class="input font-medium text-xs" 
+                            placeholder="admin أو manager_olaya"
                             value="admin"
                         >
                     </div>
 
                     <div>
-                        <label for="password" class="mb-1.5 block text-xs font-bold text-ink/80">كلمة المرور</label>
+                        <label for="password" class="mb-1 block text-xs font-bold text-ink/80">كلمة المرور</label>
                         <input 
                             type="password" 
                             id="password" 
                             name="password" 
                             required 
-                            class="input font-medium" 
+                            class="input font-medium text-xs" 
                             placeholder="••••••••"
                             value="admin123"
                         >
@@ -58,24 +76,112 @@
 
                     <button 
                         type="submit" 
-                        class="w-full mt-2 rounded-xl bg-brand-600 py-3 text-sm font-extrabold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700 active:scale-[0.99]"
+                        class="w-full mt-2 rounded-xl bg-brand-600 py-2.5 text-xs font-black text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700 active:scale-[0.99]"
                     >
-                        دخول للنظام
+                        دخول لوحة التحكم ←
                     </button>
                 </div>
             </form>
 
-            <div class="mt-6 pt-5 border-t border-line text-center text-xs text-soft">
-                <p>بيانات الدخول الافتراضية:</p>
-                <div class="mt-2 inline-flex items-center gap-3 rounded-lg bg-paper px-3 py-1.5 font-mono text-[12px] font-bold text-brand-700 border border-line">
-                    <span>المستخدم: <strong>admin</strong></span>
-                    <span>•</span>
-                    <span>كلمة المرور: <strong>admin123</strong></span>
+            <!-- Form 2: Quick Shift PIN Login for Staff -->
+            <form id="form-pin" method="POST" action="{% url 'login' %}" class="hidden">
+                {% csrf_token %}
+                <input type="hidden" name="auth_type" value="pin">
+                <div class="space-y-3.5">
+                    <div>
+                        <label for="employee_code" class="mb-1 block text-xs font-bold text-ink/80">كود الموظف (Badge / ID)</label>
+                        <input 
+                            type="text" 
+                            id="employee_code" 
+                            name="employee_code" 
+                            required 
+                            class="input font-mono font-black text-center text-sm tracking-wider" 
+                            placeholder="مثال: 104 للكاشير أو 106 للشيف"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="pin" class="mb-1 block text-xs font-bold text-ink/80">رمز PIN السريع (4 أرقام)</label>
+                        <input 
+                            type="password" 
+                            id="pin" 
+                            name="pin" 
+                            maxlength="6"
+                            required 
+                            class="input font-mono font-black text-center text-lg tracking-[0.3em]" 
+                            placeholder="••••"
+                        >
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        class="w-full mt-2 rounded-xl bg-good-600 py-2.5 text-xs font-black text-white shadow-lg shadow-good-600/30 transition hover:bg-good-700 active:scale-[0.99]"
+                    >
+                        🔓 بدء الوردية والدخول
+                    </button>
+                </div>
+            </form>
+
+            <!-- Quick Demo Helper -->
+            <div class="mt-5 pt-4 border-t border-line text-[11px] text-soft space-y-2">
+                <p class="font-bold text-ink text-center">حسابات تجريبية جاهزة للاختبار بنقرة واحدة:</p>
+                <div class="grid grid-cols-2 gap-1.5 font-bold">
+                    <button type="button" onclick="fillCreds('superadmin', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
+                        🏢 مدير المنصة (SaaS)
+                    </button>
+                    <button type="button" onclick="fillCreds('admin', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
+                        👑 مالك مطاعم ضيافة
+                    </button>
+                    <button type="button" onclick="fillCreds('owner_burger', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
+                        🍔 مالك برجر كلاسيك
+                    </button>
+                    <button type="button" onclick="fillCreds('manager_olaya', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
+                        📍 مدير فرع العليا
+                    </button>
+                    <button type="button" onclick="fillPin('104', '1234')" class="p-1.5 rounded-lg bg-good-50 hover:bg-good-100 text-good-800 text-right border border-good-200">
+                        💳 كاشير ضيافة (104 / 1234)
+                    </button>
+                    <button type="button" onclick="fillPin('106', '5678')" class="p-1.5 rounded-lg bg-good-50 hover:bg-good-100 text-good-800 text-right border border-good-200">
+                        🍳 شيف ضيافة (106 / 5678)
+                    </button>
                 </div>
             </div>
         </div>
 
-        <p class="mt-8 text-center text-xs font-bold text-soft/70">مطاعم ضيافة © 2026 — نظام إدارة الفروع ونقاط البيع</p>
+        <p class="mt-6 text-center text-xs font-bold text-soft/70">منصة إدارة المطاعم المتعددة © 2026</p>
     </div>
 </div>
+
+<script>
+function switchTab(mode) {
+    const credForm = document.getElementById('form-credentials');
+    const pinForm = document.getElementById('form-pin');
+    const btnCred = document.getElementById('tab-btn-credentials');
+    const btnPin = document.getElementById('tab-btn-pin');
+
+    if (mode === 'credentials') {
+        credForm.classList.remove('hidden');
+        pinForm.classList.add('hidden');
+        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-brand-700 shadow-sm';
+        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-soft hover:text-ink';
+    } else {
+        credForm.classList.add('hidden');
+        pinForm.classList.remove('hidden');
+        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-good-700 shadow-sm';
+        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-soft hover:text-ink';
+    }
+}
+
+function fillCreds(u, p) {
+    switchTab('credentials');
+    document.getElementById('username').value = u;
+    document.getElementById('password').value = p;
+}
+
+function fillPin(code, pin) {
+    switchTab('pin');
+    document.getElementById('employee_code').value = code;
+    document.getElementById('pin').value = pin;
+}
+</script>
 {% endblock %}

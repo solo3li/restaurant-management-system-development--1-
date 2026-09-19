@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة إدارة المنصة العامة (SaaS Platform) — إدارة المطاعم{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Platform Banner -->
+    <div class="card p-5 mb-6 bg-gradient-to-r from-night via-night-2 to-night text-white border-night-3 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white text-2xl shadow-lg shadow-brand-600/40">
+                    🌐
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-black font-display text-white">إدارة منصة المطاعم السحابية (SaaS Admin)</h1>
+                        <span class="rounded-full bg-brand-600/40 border border-brand-500/50 px-2.5 py-0.5 text-[10px] font-bold text-gold-300">
+                            Super Admin
+                        </span>
+                    </div>
+                    <p class="text-xs text-gold-300/80 mt-0.5">
+                        إدارة اشتراكات المنشآت والمطاعم، وتعيين الملاك، ومتابعة الأداء العام لكافة المستأجرين
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="openAddTenantModal()" class="rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-black text-white hover:bg-brand-700 shadow-md transition">
+                    + تسجيل مطعم / منشأة جديدة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platform KPI Stats -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+        <div class="card p-5 border-l-4 border-l-brand-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">إجمالي سلاسل المطاعم</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">🍽️</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ total_tenants }} <span class="text-xs font-bold text-soft">منشأة</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">مشتركون فعالون في النظام</p>
+        </div>
+
+        <div class="card p-5 border-l-4 border-l-info-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">إجمالي الفروع التشغيلية</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info-100 text-info-700 text-base">🏢</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-info-700">{{ total_branches }} <span class="text-xs font-bold text-soft">فرع</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">عبر كافة المدن</p>
+        </div>
+
+        <div class="card p-5 border-l-4 border-l-good-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">كادر الموظفين والعمالة</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-good-100 text-good-700 text-base">👥</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-good-700">{{ total_employees }} <span class="text-xs font-bold text-soft">موظف</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">مسجلين برمز PIN وحسابات</p>
+        </div>
+
+        <div class="card p-5 border-l-4 border-l-warn-600">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">إجمالي الطلبات المنفذة</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-warn-100 text-warn-700 text-base">🧾</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-warn-700">{{ total_orders }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">مبيعات المنصة الإجمالية</p>
+        </div>
+    </div>
+
+    <!-- Tenants Grid -->
+    <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-base font-black font-display text-ink">سجل المطاعم والمستأجرين (Tenants)</h2>
+        <span class="text-xs font-bold text-soft">{{ tenants_data|length }} منشأة مسجلة</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {% for t in tenants_data %}
+        <div class="card overflow-hidden shadow-md border-line flex flex-col justify-between hover:border-brand-400 transition">
+            <div>
+                <!-- Header -->
+                <div class="p-4 bg-night text-white flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl filter drop-shadow">{{ t.tenant.logo_emoji|default:"🍽️" }}</span>
+                        <div>
+                            <h3 class="font-black text-sm text-white font-display">{{ t.tenant.name }}</h3>
+                            <p class="text-[11px] text-gold-300/70 font-mono">slug: {{ t.tenant.slug }}</p>
+                        </div>
+                    </div>
+                    <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold {% if t.tenant.is_active %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                        {% if t.tenant.is_active %}نشط{% else %}معطل{% endif %}
+                    </span>
+                </div>
+
+                <!-- Info Body -->
+                <div class="p-4 space-y-3 text-xs">
+                    <div class="flex items-center justify-between text-soft border-b border-line pb-2">
+                        <span>خطة الاشتراك:</span>
+                        <span class="font-bold text-ink rounded bg-paper px-2 py-0.5 uppercase tracking-wide text-[10px]">{{ t.tenant.get_plan_display }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-center pt-1">
+                        <div class="rounded-lg bg-paper p-2">
+                            <span class="block text-sm font-black text-ink">{{ t.branches_count }}</span>
+                            <span class="text-[10px] text-soft font-bold">فروع</span>
+                        </div>
+                        <div class="rounded-lg bg-paper p-2">
+                            <span class="block text-sm font-black text-ink">{{ t.employees_count }}</span>
+                            <span class="text-[10px] text-soft font-bold">موظف</span>
+                        </div>
+                        <div class="rounded-lg bg-paper p-2">
+                            <span class="block text-sm font-black text-brand-700">{{ t.orders_count }}</span>
+                            <span class="text-[10px] text-soft font-bold">طلب</span>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-soft space-y-0.5 pt-1">
+                        <p>📍 المقر: {{ t.tenant.address|default:"غير محدد" }}</p>
+                        <p>📞 الهاتف: <span dir="ltr">{{ t.tenant.phone|default:"—" }}</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="p-3.5 bg-paper/50 border-t border-line flex items-center gap-2">
+                <a 
+                    href="{% url 'switch_tenant' t.tenant.id %}" 
+                    class="flex-1 text-center rounded-xl bg-brand-600 py-2 text-xs font-black text-white hover:bg-brand-700 shadow-sm transition"
+                >
+                    🏢 الدخول لإدارة هذا المطعم ←
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center text-soft card">
+            <span class="text-4xl block mb-2">🔍</span>
+            <p class="font-bold text-sm">لا توجد منشآت مسجلة حتى الآن</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal: Add New Tenant -->
+<div id="add-tenant-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="text-sm font-black font-display text-ink">تسجيل مطعم / منشأة جديدة بالمنصة</h3>
+            <button onclick="closeAddTenantModal()" class="text-soft hover:text-ink text-sm">✕</button>
+        </div>
+
+        <form id="add-tenant-form" onsubmit="submitNewTenant(event)" class="space-y-3 text-xs">
+            <div>
+                <label class="mb-1 block font-bold text-soft">اسم المطعم / الشركة *</label>
+                <input type="text" id="tenant-name" required placeholder="مثال: شاورما بلس" class="input text-xs">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">المعرف اللاتيني (Slug) *</label>
+                    <input type="text" id="tenant-slug" required placeholder="shawarma-plus" dir="ltr" class="input text-xs font-mono">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">أيقونة الشعار</label>
+                    <input type="text" id="tenant-emoji" value="🥙" class="input text-xs text-center text-base">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">رقم الهاتف</label>
+                    <input type="text" id="tenant-phone" placeholder="0501234567" dir="ltr" class="input text-xs font-mono">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">خطة الاشتراك</label>
+                    <select id="tenant-plan" class="input text-xs">
+                        <option value="standard">أساسي (Standard)</option>
+                        <option value="premium">متقدم (Premium)</option>
+                        <option value="enterprise">شركات (Enterprise)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-1 block font-bold text-soft">المقر الرئيسي / العنوان</label>
+                <input type="text" id="tenant-address" placeholder="الرياض، حي السليمانية" class="input text-xs">
+            </div>
+
+            <div class="border-t border-line pt-3 mt-3">
+                <p class="font-bold text-ink mb-2">بيانات حساب المالك الأول للمطعم:</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="mb-1 block font-bold text-soft">اسم المستخدم *</label>
+                        <input type="text" id="tenant-owner-user" required placeholder="owner_shawarma" dir="ltr" class="input text-xs font-mono">
+                    </div>
+                    <div>
+                        <label class="mb-1 block font-bold text-soft">كلمة المرور *</label>
+                        <input type="password" id="tenant-owner-pass" required placeholder="••••••••" class="input text-xs">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-3 border-t border-line mt-4">
+                <button type="submit" class="flex-1 rounded-xl bg-brand-600 py-2.5 text-xs font-bold text-white hover:bg-brand-700 transition">
+                    حفظ وتدشين المنشأة
+                </button>
+                <button type="button" onclick="closeAddTenantModal()" class="rounded-xl border border-line bg-paper px-4 py-2.5 text-xs font-bold text-soft hover:text-ink">
+                    إلغاء
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openAddTenantModal() {
+    document.getElementById('add-tenant-modal').classList.remove('hidden');
+    document.getElementById('add-tenant-modal').classList.add('flex');
+}
+
+function closeAddTenantModal() {
+    document.getElementById('add-tenant-modal').classList.add('hidden');
+    document.getElementById('add-tenant-modal').classList.remove('flex');
+}
+
+async function submitNewTenant(e) {
+    e.preventDefault();
+    const data = {
+        name: document.getElementById('tenant-name').value,
+        slug: document.getElementById('tenant-slug').value,
+        emoji: document.getElementById('tenant-emoji').value,
+        phone: document.getElementById('tenant-phone').value,
+        plan: document.getElementById('tenant-plan').value,
+        address: document.getElementById('tenant-address').value,
+        owner_username: document.getElementById('tenant-owner-user').value,
+        owner_password: document.getElementById('tenant-owner-pass').value,
+    };
+
+    try {
+        const res = await fetch('/api/tenants/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        });
+        const resData = await res.json();
+        if (res.ok && resData.ok) {
+            showToast('تم إنشاء المنشأة وحساب المالك بنجاح!');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            showToast(resData.error || 'حدث خطأ أثناء الإنشاء', 'error');
+        }
+    } catch (err) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+    }
+}
+</script>
+{% endblock %}

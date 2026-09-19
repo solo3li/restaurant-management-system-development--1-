@@ -1,7 +1,35 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password, check_password
 
+
+class Tenant(models.Model):
+    PLAN_CHOICES = [
+        ("trial", "تجريبي"),
+        ("standard", "أساسي"),
+        ("premium", "متقدم"),
+        ("enterprise", "شركات"),
+    ]
+
+    name = models.CharField(max_length=255, verbose_name="اسم المطعم / المنشأة")
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="المعرف اللاتيني (Slug)")
+    logo_emoji = models.CharField(max_length=20, default="🍽️", blank=True, verbose_name="شعار / أيقونة")
+    phone = models.CharField(max_length=50, default="", blank=True, verbose_name="رقم الهاتف")
+    email = models.EmailField(blank=True, default="", verbose_name="البريد الإلكتروني")
+    address = models.CharField(max_length=255, default="", blank=True, verbose_name="المقر الرئيسي")
+    plan = models.CharField(max_length=30, choices=PLAN_CHOICES, default="standard", verbose_name="خطة الاشتراك")
+    is_active = models.BooleanField(default=True, verbose_name="نشط")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التسجيل")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
+
+    class Meta:
+        verbose_name = "مستأجر / منشأة"
+        verbose_name_plural = "المستأجرون (المنشآت والمطاعم)"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.slug})"
 
 
 class Branch(models.Model):
@@ -10,6 +38,14 @@ class Branch(models.Model):
         ("closed", "مغلق"),
     ]
 
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="branches",
+        null=True,
+        blank=True,
+        verbose_name="المستأجر / المنشأة",
+    )
     name = models.CharField(max_length=255, verbose_name="اسم الفرع")
     city = models.CharField(max_length=100, default="", blank=True, verbose_name="المدينة")
     address = models.CharField(max_length=255, default="", blank=True, verbose_name="العنوان")
@@ -23,7 +59,8 @@ class Branch(models.Model):
         ordering = ["id"]
 
     def __str__(self):
-        return self.name
+        tenant_name = f" [{self.tenant.name}]" if self.tenant else ""
+        return f"{self.name}{tenant_name}"
 
 
 class Employee(models.Model):
@@ -41,7 +78,37 @@ class Employee(models.Model):
         ("inactive", "غير نشط"),
     ]
 
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="employees",
+        null=True,
+        blank=True,
+        verbose_name="المستأجر / المنشأة",
+    )
+    user = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employee_profile",
+        verbose_name="حساب المستخدم المربوط",
+    )
     name = models.CharField(max_length=255, verbose_name="اسم الموظف")
+    employee_code = models.CharField(
+        max_length=30,
+        null=True,
+        blank=True,
+        verbose_name="كود الموظف للدخول السريع",
+        help_text="مثال: 101 أو EMP-101",
+    )
+    pin_code = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True,
+        verbose_name="رمز PIN المشفر",
+        help_text="رمز دخول سريع من 4 أرقام",
+    )
     phone = models.CharField(max_length=50, default="", blank=True, verbose_name="الجوال")
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, verbose_name="المسمى الوظيفي")
     branch = models.ForeignKey(
@@ -62,11 +129,31 @@ class Employee(models.Model):
         verbose_name_plural = "الموظفون"
         ordering = ["id"]
 
+    def set_pin(self, raw_pin):
+        if raw_pin:
+            self.pin_code = make_password(str(raw_pin).strip())
+        else:
+            self.pin_code = None
+
+    def check_pin(self, raw_pin):
+        if not self.pin_code or not raw_pin:
+            return False
+        return check_password(str(raw_pin).strip(), self.pin_code)
+
     def __str__(self):
-        return f"{self.name} ({self.get_role_display()})"
+        code_str = f" [{self.employee_code}]" if self.employee_code else ""
+        return f"{self.name}{code_str} ({self.get_role_display()})"
 
 
 class MenuItem(models.Model):
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="menu_items",
+        null=True,
+        blank=True,
+        verbose_name="المستأجر / المنشأة",
+    )
     name = models.CharField(max_length=255, verbose_name="اسم الصنف")
     category = models.CharField(max_length=100, verbose_name="الفئة")
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="سعر البيع")
@@ -84,6 +171,14 @@ class MenuItem(models.Model):
 
 
 class InventoryItem(models.Model):
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="inventory_items",
+        null=True,
+        blank=True,
+        verbose_name="المستأجر / المنشأة",
+    )
     branch = models.ForeignKey(
         Branch,
         on_delete=models.CASCADE,
@@ -107,6 +202,14 @@ class InventoryItem(models.Model):
 
 
 class Customer(models.Model):
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="customers",
+        null=True,
+        blank=True,
+        verbose_name="المستأجر / المنشأة",
+    )
     name = models.CharField(max_length=255, verbose_name="اسم العميل")
     phone = models.CharField(max_length=50, db_index=True, verbose_name="رقم الهاتف")
     address = models.CharField(max_length=255, default="", blank=True, verbose_name="العنوان")
@@ -146,6 +249,14 @@ class Order(models.Model):
         ("wallet", "محفظة رقمية"),
     ]
 
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        null=True,
+        blank=True,
+        verbose_name="المستأجر / المنشأة",
+    )
     order_number = models.CharField(max_length=50, unique=True, verbose_name="رقم الطلب")
     order_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="dine_in", verbose_name="نوع الطلب")
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES, default="cashier", verbose_name="القناة")
@@ -228,25 +339,37 @@ class OrderItem(models.Model):
 
 class UserProfile(models.Model):
     ROLE_CHOICES = [
-        ("owner", "مالك / إدارة عامة"),
+        ("platform_admin", "مسؤول المنصة العامة (SaaS Admin)"),
+        ("owner", "مالك / إدارة عامة للمطعم"),
         ("branch_manager", "مدير فرع"),
         ("cashier", "كاشير"),
         ("chef", "طاهٍ / مطبخ"),
         ("driver", "سائق توصيل"),
         ("call_center", "خدمة عملاء"),
+        ("waiter", "مباشر"),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", verbose_name="المستخدم")
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="user_profiles",
+        verbose_name="المستأجر / المنشأة",
+    )
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default="branch_manager", verbose_name="الدور والصلاحية")
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_profiles", verbose_name="الفرع المعين")
+    is_platform_admin = models.BooleanField(default=False, verbose_name="مسؤول النظام والمنصة بالكامل")
 
     class Meta:
         verbose_name = "ملف المستخدم"
         verbose_name_plural = "ملفات المستخدمين"
 
     def __str__(self):
+        tenant_str = f" [{self.tenant.name}]" if self.tenant else ""
         branch_str = f" - {self.branch.name}" if self.branch else ""
-        return f"{self.user.username} ({self.get_role_display()}{branch_str})"
+        return f"{self.user.username}{tenant_str} ({self.get_role_display()}{branch_str})"
 
 
 class BranchMenuAvailability(models.Model):
@@ -262,5 +385,3 @@ class BranchMenuAvailability(models.Model):
     def __str__(self):
         status = "متوفر" if self.is_available else "غير متوفر"
         return f"{self.menu_item.name} ({self.branch.name}) - {status}"
-
-

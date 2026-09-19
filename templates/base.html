@@ -130,12 +130,14 @@
         <div class="px-5 py-4 border-b border-night-3">
             <div class="flex items-center gap-3">
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-[0_4px_14px_rgba(172,74,26,0.45)] text-xl font-bold">
-                    🔥
+                    {{ tenant_logo|default:"🔥" }}
                 </span>
                 <div class="min-w-0">
-                    <p class="font-display text-lg font-black text-white truncate">مطاعم ضيافة</p>
+                    <p class="font-display text-lg font-black text-white truncate">{{ tenant_name|default:"مطاعم ضيافة" }}</p>
                     <p class="text-[11px] font-bold text-gold-300/70 truncate">
-                        {% if is_hq_mode %}
+                        {% if is_platform_admin and not active_tenant %}
+                            🌐 منصة SaaS العامة
+                        {% elif is_hq_mode %}
                             🏢 الإدارة العامة (كل الفروع)
                         {% else %}
                             📍 {{ current_branch.name }}
@@ -144,9 +146,27 @@
                 </div>
             </div>
 
+            <!-- Platform Admin Tenant Switcher -->
+            {% if is_platform_admin and all_tenants %}
+            <div class="mt-2.5">
+                <label class="block text-[10px] font-bold text-gold-300/60 mb-1">المنشأة الحالية (SaaS):</label>
+                <select 
+                    onchange="if(this.value==='platform'){location.href='{% url 'platform_dashboard' %}';}else{location.href='/platform/switch-tenant/' + this.value + '/';}" 
+                    class="w-full bg-night-3 text-gold-300 border border-gold-300/30 rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer"
+                >
+                    <option value="platform" {% if request.resolver_match.url_name == 'platform_dashboard' %}selected{% endif %}>🌐 لوحة المنصة (Super Admin)</option>
+                    {% for t in all_tenants %}
+                    <option value="{{ t.id }}" {% if active_tenant and active_tenant.id == t.id and request.resolver_match.url_name != 'platform_dashboard' %}selected{% endif %}>
+                        {{ t.logo_emoji }} {{ t.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
             <!-- Branch Switcher Dropdown (for Owners / Admins) -->
-            {% if can_switch_branches %}
-            <div class="mt-3">
+            {% if can_switch_branches and all_branches %}
+            <div class="mt-2.5">
                 <label class="block text-[10.5px] font-bold text-gold-300/60 mb-1">التحويل بين الفروع / الإدارة:</label>
                 <select 
                     onchange="location.href='/branch/switch/' + this.value + '/';" 
@@ -160,7 +180,7 @@
                     {% endfor %}
                 </select>
             </div>
-            {% else %}
+            {% elif current_branch %}
             <div class="mt-2.5 rounded-lg bg-night-2 px-2.5 py-1 text-[11px] font-bold text-gold-400 border border-night-3">
                 🔒 فرعك: {{ current_branch.name }}
             </div>
@@ -169,9 +189,16 @@
 
         <!-- Dynamic Navigation Links -->
         <nav class="mt-2.5 flex flex-1 flex-col gap-1 px-3 overflow-y-auto">
+            {% if is_platform_admin %}
+                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-400 uppercase">منصة SaaS</div>
+                <a href="{% url 'platform_dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'platform_dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🌐</span> إدارة المنصة والمطاعم
+                </a>
+            {% endif %}
+
             {% if is_hq_mode %}
                 <!-- =================== HQ / OWNER MENU =================== -->
-                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">الإدارة والتحليلات</div>
+                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">إدارة المنشأة والتحليلات</div>
                 <a href="{% url 'dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">📊</span> لوحة الإدارة العامة
                 </a>
@@ -247,9 +274,16 @@
                         {{ user.username|slice:":1"|upper }}
                     </span>
                     <div class="min-w-0">
-                        <p class="text-xs font-bold text-white truncate">{{ user.username }}</p>
+                        <p class="text-xs font-bold text-white truncate">{{ user.first_name|default:user.username }}</p>
                         <p class="text-[10px] text-gold-300/60 truncate">
-                            {% if user_profile %}{{ user_profile.get_role_display }}{% else %}مسؤول النظام{% endif %}
+                            {% if user_profile %}
+                                {{ user_profile.get_role_display }}
+                                {% if user_profile.user.employee_profile.employee_code %}
+                                    #{{ user_profile.user.employee_profile.employee_code }}
+                                {% endif %}
+                            {% else %}
+                                مسؤول النظام
+                            {% endif %}
                         </p>
                     </div>
                 </div>
