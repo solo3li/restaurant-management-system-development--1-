@@ -51,6 +51,10 @@ class Branch(models.Model):
     address = models.CharField(max_length=255, default="", blank=True, verbose_name="العنوان")
     phone = models.CharField(max_length=50, default="", blank=True, verbose_name="الهاتف")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", verbose_name="الحالة")
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True, verbose_name="خط العرض")
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True, verbose_name="خط الطول")
+    delivery_polygon = models.JSONField(default=list, blank=True, verbose_name="مضلع التغطية على الخريطة")
+    delivery_radius_km = models.DecimalField(max_digits=5, decimal_places=2, default=5.00, verbose_name="نصف قطر التغطية (كم)")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
 
     class Meta:
@@ -61,6 +65,37 @@ class Branch(models.Model):
     def __str__(self):
         tenant_name = f" [{self.tenant.name}]" if self.tenant else ""
         return f"{self.name}{tenant_name}"
+
+
+class DeliveryArea(models.Model):
+    AREA_TYPES = [
+        ("compound", "كومبوند / مجمع سكني"),
+        ("district", "حي سكني"),
+        ("zone", "منطقة / قطاع"),
+        ("commercial", "منطقة تجارية / مول"),
+    ]
+
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        related_name="delivery_areas",
+        verbose_name="الفرع التابع له",
+    )
+    name = models.CharField(max_length=255, verbose_name="اسم المنطقة / الكومبوند")
+    area_type = models.CharField(max_length=30, choices=AREA_TYPES, default="compound", verbose_name="نوع المنطقة")
+    delivery_fee = models.DecimalField(max_digits=8, decimal_places=2, default=8.00, verbose_name="رسوم التوصيل")
+    estimated_time_minutes = models.PositiveIntegerField(default=35, verbose_name="وقت التوصيل التقديري (دقيقة)")
+    is_active = models.BooleanField(default=True, verbose_name="نشطة للتوصيل")
+    notes = models.CharField(max_length=255, blank=True, default="", verbose_name="ملاحظات / بوابات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+
+    class Meta:
+        verbose_name = "منطقة تغطية وكومبوند"
+        verbose_name_plural = "المناطق والكومبوندات المغطاة"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_area_type_display()}) - {self.branch.name}"
 
 
 class Employee(models.Model):
@@ -267,6 +302,14 @@ class Order(models.Model):
         blank=True,
         related_name="orders",
         verbose_name="الفرع",
+    )
+    delivery_area = models.ForeignKey(
+        "DeliveryArea",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+        verbose_name="منطقة التوصيل / الكومبوند",
     )
     customer = models.ForeignKey(
         Customer,

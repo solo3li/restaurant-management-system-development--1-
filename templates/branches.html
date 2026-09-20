@@ -1,18 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}الفروع — مطاعم ضيافة{% endblock %}
+{% block title %}إدارة الفروع ونطاقات التوصيل — مطاعم ضيافة{% endblock %}
+
+{% block extra_head %}
+<!-- Leaflet CSS & JS for Interactive Map and Polygon Geofencing -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    .leaflet-popup-content-wrapper {
+        border-radius: 0.75rem;
+        font-family: 'Tajawal', 'Cairo', sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+    .custom-map-container {
+        height: 280px;
+        width: 100%;
+        border-radius: 0.75rem;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-6">
     <!-- Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black font-display text-ink">فروع السلسلة والمواقع</h1>
-            <p class="text-xs font-bold text-soft mt-1">إدارة فروع المطعم، متابعة تشغيلها، وأداء كل فرع بشكل مستقل</p>
+            <h1 class="text-2xl font-black font-display text-ink">فروع السلسلة ونطاقات التوصيل</h1>
+            <p class="text-xs font-bold text-soft mt-1">تحديد مواقع الفروع، رسم زون التوصيل على الخريطة، وإدارة الأحياء والكمبوندات التابعة لكل فرع</p>
         </div>
         <div>
-            <button onclick="openAddBranchModal()" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
-                + افتتاح فرع جديد
+            <button onclick="openAddBranchModal()" class="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-700 shadow-md transition">
+                <span class="text-base">📍</span> + افتتاح فرع وتحديد النطاق
             </button>
         </div>
     </div>
@@ -20,95 +40,359 @@
     <!-- Branches Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {% for item in branches_data %}
-        <div class="card overflow-hidden shadow-md border-line">
-            <!-- Card Header -->
-            <div class="flex items-center justify-between bg-night p-4 text-white">
-                <div class="flex items-center gap-2.5">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white text-lg">
-                        🏢
+        <div class="card overflow-hidden shadow-sm border border-line flex flex-col justify-between hover:shadow-md transition">
+            <div>
+                <!-- Card Header -->
+                <div class="flex items-center justify-between bg-night p-4 text-white">
+                    <div class="flex items-center gap-2.5">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white text-lg">
+                            🏢
+                        </span>
+                        <div>
+                            <h2 class="text-sm font-black font-display text-white">{{ item.branch.name }}</h2>
+                            <p class="text-[11px] text-gold-300/70">{{ item.branch.city|default:"الرياض" }}</p>
+                        </div>
+                    </div>
+                    <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold {% if item.branch.status == 'active' %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                        {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
                     </span>
-                    <div>
-                        <h2 class="text-sm font-black font-display text-white">{{ item.branch.name }}</h2>
-                        <p class="text-[11px] text-gold-300/70">{{ item.branch.city|default:"الرياض" }}</p>
+                </div>
+
+                <!-- Card Body -->
+                <div class="p-4 space-y-3 text-xs">
+                    <div class="space-y-1 text-soft">
+                        {% if item.branch.address %}
+                        <p class="flex items-center gap-1.5"><span class="text-sm">📍</span> {{ item.branch.address }}</p>
+                        {% endif %}
+                        {% if item.branch.phone %}
+                        <p class="flex items-center gap-1.5"><span class="text-sm">📞</span> <span dir="ltr">{{ item.branch.phone }}</span></p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Delivery Zone & Covered Areas Badge Box -->
+                    <div class="rounded-xl border border-line/90 bg-paper/60 p-3 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-ink flex items-center gap-1">
+                                <span>🗺️</span> نطاق التوصيل الجغرافي
+                            </span>
+                            <span class="rounded-full bg-brand-100 text-brand-700 px-2 py-0.5 text-[10px] font-extrabold">
+                                {{ item.areas_count }} مناطق وكومبوندات
+                            </span>
+                        </div>
+
+                        {% if item.areas %}
+                        <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto pt-1">
+                            {% for a in item.areas|slice:":6" %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-card border border-line px-2 py-0.5 text-[10px] font-bold text-soft shadow-2xs">
+                                {% if a.area_type == 'compound' %}🏰{% elif a.area_type == 'district' %}🏘️{% elif a.area_type == 'commercial' %}🏬{% else %}📍{% endif %}
+                                {{ a.name }}
+                                <span class="text-brand-700 font-extrabold">{{ a.delivery_fee }}ر.س</span>
+                            </span>
+                            {% endfor %}
+                            {% if item.areas_count > 6 %}
+                            <span class="text-[10px] text-soft font-bold self-center">+{{ item.areas_count|add:"-6" }} أخرى</span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <p class="text-[11px] text-soft italic py-1">لم يتم إضافة كمبوندات أو أحياء بعد لهذا الفرع</p>
+                        {% endif %}
+
+                        <button 
+                            onclick="openBranchZoneModal({{ item.branch.id }}, '{{ item.branch.name|escapejs }}')"
+                            class="w-full mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-brand-500/30 bg-brand-50 hover:bg-brand-100 text-brand-800 text-[11px] font-bold py-1.5 transition"
+                        >
+                            <span>🗺️</span> تفاصيل الخريطة وإدارة الأحياء والكمبوندات
+                        </button>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-2 border-t border-line/60 pt-3 text-center">
+                        <div class="rounded-lg bg-paper p-2">
+                            <p class="font-extrabold text-ink text-sm">{{ item.employees_count }}</p>
+                            <p class="text-[10px] text-soft">موظف</p>
+                        </div>
+                        <div class="rounded-lg bg-paper p-2">
+                            <p class="font-extrabold text-ink text-sm">{{ item.orders_today }}</p>
+                            <p class="text-[10px] text-soft">طلبات اليوم</p>
+                        </div>
+                        <div class="rounded-lg bg-brand-50 p-2">
+                            <p class="font-extrabold text-brand-700 text-sm">{{ item.sales_today|floatformat:0 }}</p>
+                            <p class="text-[10px] text-brand-700">مبيعات ر.س</p>
+                        </div>
                     </div>
                 </div>
-                <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold {% if item.branch.status == 'active' %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
-                    {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
-                </span>
             </div>
 
-            <!-- Card Body -->
-            <div class="p-4 space-y-3 text-xs">
-                <div class="space-y-1 text-soft">
-                    {% if item.branch.address %}
-                    <p class="flex items-center gap-1.5"><span class="text-sm">📍</span> {{ item.branch.address }}</p>
-                    {% endif %}
-                    {% if item.branch.phone %}
-                    <p class="flex items-center gap-1.5"><span class="text-sm">📞</span> <span dir="ltr">{{ item.branch.phone }}</span></p>
-                    {% endif %}
-                </div>
-
-                <!-- Stats -->
-                <div class="grid grid-cols-3 gap-2 border-t border-line/60 pt-3 text-center">
-                    <div class="rounded-lg bg-paper p-2">
-                        <p class="font-extrabold text-ink text-sm">{{ item.employees_count }}</p>
-                        <p class="text-[10px] text-soft">موظف</p>
-                    </div>
-                    <div class="rounded-lg bg-paper p-2">
-                        <p class="font-extrabold text-ink text-sm">{{ item.orders_today }}</p>
-                        <p class="text-[10px] text-soft">طلبات اليوم</p>
-                    </div>
-                    <div class="rounded-lg bg-brand-50 p-2">
-                        <p class="font-extrabold text-brand-700 text-sm">{{ item.sales_today|floatformat:0 }}</p>
-                        <p class="text-[10px] text-brand-700">مبيعات ر.س</p>
-                    </div>
-                </div>
-
-                <!-- Toggle Actions -->
-                <div class="border-t border-line/60 pt-3 flex items-center justify-between gap-2">
-                    <button 
-                        onclick="toggleBranchStatus({{ item.branch.id }})" 
-                        class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink"
-                    >
-                        {% if item.branch.status == 'active' %}إغلاق مؤقت{% else %}تفعيل الفرع{% endif %}
-                    </button>
-                    <a href="{% url 'switch_branch' item.branch.id %}" class="rounded-lg bg-brand-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-brand-700 transition">
-                        لوحة الفرع ←
-                    </a>
-                </div>
+            <!-- Card Footer / Actions -->
+            <div class="p-4 border-t border-line/60 bg-card flex items-center justify-between gap-2">
+                <button 
+                    onclick="toggleBranchStatus({{ item.branch.id }})" 
+                    class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink transition"
+                >
+                    {% if item.branch.status == 'active' %}إغلاق مؤقت{% else %}تفعيل الفرع{% endif %}
+                </button>
+                <a href="{% url 'switch_branch' item.branch.id %}" class="rounded-lg bg-brand-600 text-white px-3.5 py-1.5 text-xs font-bold hover:bg-brand-700 transition">
+                    لوحة الفرع ←
+                </a>
             </div>
         </div>
         {% empty %}
-        <p class="col-span-3 text-center py-12 text-xs text-soft">لا توجد فروع مسجلة</p>
+        <div class="col-span-3 card p-12 text-center text-xs text-soft">
+            <span class="text-3xl block mb-2">🏢</span>
+            لا توجد فروع مسجلة حتى الآن. اضغط على «افتتاح فرع وتحديد النطاق» للبدء.
+        </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Add Branch Modal -->
+<!-- ======================================================== -->
+<!-- MODAL 1: ADD NEW BRANCH (WITH MAP & INITIAL COVERED AREAS) -->
+<!-- ======================================================== -->
 <div id="add-branch-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-sm font-black font-display text-ink mb-4">افتتاح فرع جديد</h3>
-        <div class="space-y-3 text-xs">
+    <div class="card max-w-4xl w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4 shrink-0">
             <div>
-                <label class="mb-1 block font-bold text-soft">اسم الفرع *</label>
-                <input type="text" id="branch-name-input" placeholder="مثال: فرع حطين" class="input text-xs">
+                <h3 class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>🏢</span> افتتاح فرع جديد وتحديد زون التوصيل
+                </h3>
+                <p class="text-[11px] text-soft">حدد بيانات الفرع، موقعه على الخريطة، زون التغطية، والمناطق والكمبوندات التابعة</p>
             </div>
-            <div>
-                <label class="mb-1 block font-bold text-soft">المدينة</label>
-                <input type="text" id="branch-city-input" placeholder="الرياض" value="الرياض" class="input text-xs">
+            <button onclick="closeAddBranchModal()" class="text-soft hover:text-ink text-lg font-bold">✕</button>
+        </div>
+
+        <!-- Modal Scrollable Content -->
+        <div class="space-y-5 overflow-y-auto pr-1 text-xs flex-1">
+            <!-- Section 1: Basic Information -->
+            <div class="rounded-xl border border-line p-3.5 bg-paper/40 space-y-3">
+                <h4 class="font-bold text-ink flex items-center gap-1.5">
+                    <span class="text-sm">📝</span> 1. البيانات الأساسية للفرع
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="mb-1 block font-bold text-soft">اسم الفرع *</label>
+                        <input type="text" id="branch-name-input" placeholder="مثال: فرع مدينة الشروق" class="input text-xs">
+                    </div>
+                    <div>
+                        <label class="mb-1 block font-bold text-soft">المدينة *</label>
+                        <input type="text" id="branch-city-input" placeholder="مثال: الشروق أو الرياض" value="مدينة الشروق" class="input text-xs">
+                    </div>
+                    <div>
+                        <label class="mb-1 block font-bold text-soft">العنوان التفصيلي</label>
+                        <input type="text" id="branch-address-input" placeholder="مثال: طريق الشباب، بجوار الجامعة البريطانية" class="input text-xs">
+                    </div>
+                    <div>
+                        <label class="mb-1 block font-bold text-soft">رقم هاتف الفرع</label>
+                        <input type="text" id="branch-phone-input" placeholder="010xxxxxxxx" dir="ltr" class="input text-xs">
+                    </div>
+                </div>
             </div>
-            <div>
-                <label class="mb-1 block font-bold text-soft">العنوان التفصيلي</label>
-                <input type="text" id="branch-address-input" placeholder="طريق الملك فهد، حي حطين" class="input text-xs">
+
+            <!-- Section 2: Interactive Map & Delivery Polygon -->
+            <div class="rounded-xl border border-line p-3.5 bg-paper/40 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <h4 class="font-bold text-ink flex items-center gap-1.5">
+                        <span class="text-sm">🗺️</span> 2. موقع الفرع ومضلع زون التوصيل على الخريطة
+                    </h4>
+                    <div class="flex items-center gap-1.5 text-[11px]">
+                        <span id="add-map-mode-indicator" class="rounded bg-brand-100 text-brand-800 font-bold px-2 py-0.5">وضع: تحديد موقع الفرع 📌</span>
+                        <span id="add-polygon-count" class="text-soft font-bold">0 نقاط زون</span>
+                    </div>
+                </div>
+
+                <!-- Map Action Buttons -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="setAddMapMode('pin')" id="btn-mode-pin" class="rounded-lg bg-brand-600 text-white px-2.5 py-1 text-[11px] font-bold shadow-xs">
+                        📌 تحديد موقع الفرع
+                    </button>
+                    <button type="button" onclick="setAddMapMode('polygon')" id="btn-mode-poly" class="rounded-lg border border-line bg-card text-ink px-2.5 py-1 text-[11px] font-bold hover:bg-paper">
+                        ✍️ رسم حدود الزون (مضلع)
+                    </button>
+                    <button type="button" onclick="undoAddPolygonPoint()" class="rounded-lg border border-line bg-card text-soft px-2 py-1 text-[11px] hover:text-ink">
+                        ↩️ تراجع عن نقطة
+                    </button>
+                    <button type="button" onclick="clearAddPolygon()" class="rounded-lg border border-bad-600/30 bg-bad-100 text-bad-700 px-2 py-1 text-[11px] font-bold">
+                        🗑️ مسح المضلع
+                    </button>
+                </div>
+
+                <!-- Leaflet Map Container -->
+                <div id="add-branch-map" class="custom-map-container border border-line shadow-inner"></div>
+                <p class="text-[11px] text-soft">
+                    💡 <span class="font-bold text-ink">طريقة الاستخدام:</span> انقر على الخريطة لوضع دبوس الفرع، ثم اضغط «رسم حدود الزون» وانقر على أطراف الأحياء والكمبوندات لتشكيل المضلع المحيط بنطاق التوصيل.
+                </p>
             </div>
-            <div>
-                <label class="mb-1 block font-bold text-soft">رقم الهاتف</label>
-                <input type="text" id="branch-phone-input" placeholder="011xxxxxxx" dir="ltr" class="input text-xs">
+
+            <!-- Section 3: Covered Delivery Areas & Compounds -->
+            <div class="rounded-xl border border-line p-3.5 bg-paper/40 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-ink flex items-center gap-1.5">
+                            <span class="text-sm">🏘️</span> 3. المناطق والكمبوندات والأحياء التابعة لهذا النطاق
+                        </h4>
+                        <p class="text-[11px] text-soft mt-0.5">حدد المناطق (مثلاً: 5 كمبوندات و 8 أحياء) وسعر وتوقيت التوصيل لكل منها</p>
+                    </div>
+                    <span id="staged-areas-count" class="rounded-full bg-brand-100 text-brand-700 px-2.5 py-0.5 text-[11px] font-extrabold">0 مناطق مضافة</span>
+                </div>
+
+                <!-- Quick Add Area Form -->
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-card p-2.5 rounded-lg border border-line">
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-soft mb-1 text-[10px]">اسم الحي / الكومبوند *</label>
+                        <input type="text" id="new-area-name" placeholder="مثال: كمبوند مدينتي أو الحي الأول" class="input text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-soft mb-1 text-[10px]">النوع</label>
+                        <select id="new-area-type" class="input text-xs">
+                            <option value="compound">🏰 كومبوند سكني</option>
+                            <option value="district" selected>🏘️ حي سكني</option>
+                            <option value="zone">📍 منطقة عامة</option>
+                            <option value="commercial">🏬 مجمع تجاري</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-soft mb-1 text-[10px]">سعر التوصيل (ر.س)</label>
+                        <input type="number" id="new-area-fee" step="0.5" value="10.00" class="input text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-soft mb-1 text-[10px]">وقت الوصول (دقيقة)</label>
+                        <div class="flex gap-1">
+                            <input type="number" id="new-area-time" value="35" class="input text-xs">
+                            <button type="button" onclick="stageAddArea()" class="shrink-0 rounded-lg bg-good-600 px-3 py-1 font-bold text-white hover:bg-good-700 text-xs">
+                                + إضافة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staged Areas Table / List -->
+                <div id="staged-areas-container" class="max-h-44 overflow-y-auto divide-y divide-line/60 rounded-lg border border-line bg-card">
+                    <p id="staged-areas-empty" class="text-center py-5 text-soft text-[11px]">
+                        لم يتم إضافة مناطق بعد. استخدم النموذج أعلاه لإضافة الأحياء والكمبوندات التابعة للفرع.
+                    </p>
+                </div>
             </div>
         </div>
-        <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeAddBranchModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
-            <button onclick="saveNewBranch()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">افتتاح الفرع</button>
+
+        <!-- Modal Footer Actions -->
+        <div class="mt-4 pt-3 border-t border-line flex items-center justify-between shrink-0">
+            <span class="text-[11px] text-soft">سيتم حفظ الزون الجغرافي وكافة الكمبوندات المسجلة فوراً</span>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="closeAddBranchModal()" class="rounded-lg border border-line bg-paper px-4 py-2 text-xs font-bold text-soft hover:text-ink">
+                    إلغاء
+                </button>
+                <button type="button" id="save-branch-btn" onclick="saveNewBranch()" class="rounded-lg bg-brand-600 px-5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-md">
+                    افتتاح الفرع وحفظ النطاق
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL 2: EDIT BRANCH DELIVERY ZONE & AREAS (EXISTING BRANCH) -->
+<!-- ======================================================== -->
+<div id="branch-zone-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-4xl w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4 shrink-0">
+            <div>
+                <h3 class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>🗺️</span> إدارة زون التوصيل ومناطق: <span id="zone-modal-branch-title" class="text-brand-700"></span>
+                </h3>
+                <p class="text-[11px] text-soft">تعديل مضلع الزون الجغرافي على الخريطة، وإضافة أو حذف الكمبوندات والأحياء التابعة</p>
+            </div>
+            <button onclick="closeBranchZoneModal()" class="text-soft hover:text-ink text-lg font-bold">✕</button>
+        </div>
+
+        <!-- Content -->
+        <div class="space-y-5 overflow-y-auto pr-1 text-xs flex-1">
+            <!-- Map Card -->
+            <div class="rounded-xl border border-line p-3.5 bg-paper/40 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <span class="font-bold text-ink flex items-center gap-1.5">
+                        <span>📍</span> مضلع الزون الجغرافي للفرع
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="clearEditPolygon()" class="rounded-lg border border-line bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-paper">
+                            إعادة رسم الزون
+                        </button>
+                        <button type="button" onclick="saveEditZoneMap()" id="btn-save-zone-poly" class="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-bold text-white hover:bg-brand-700">
+                            💾 حفظ تعديل نطاق الخريطة
+                        </button>
+                    </div>
+                </div>
+
+                <div id="edit-branch-map" class="custom-map-container border border-line shadow-inner"></div>
+                <p class="text-[11px] text-soft">
+                    💡 انقر على الخريطة لإعادة رسم مضلع الزون، ثم اضغط على «حفظ تعديل نطاق الخريطة».
+                </p>
+            </div>
+
+            <!-- Areas & Compounds Management Section -->
+            <div class="rounded-xl border border-line p-3.5 bg-paper/40 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-ink flex items-center gap-1.5">
+                        <span>🏰</span> الأحياء والكمبوندات التابعة للفرع
+                    </h4>
+                    <span id="zone-modal-areas-count" class="rounded-full bg-brand-100 text-brand-700 px-2.5 py-0.5 text-[11px] font-extrabold">0 مناطق</span>
+                </div>
+
+                <!-- Add New Area Inline Form -->
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-card p-2.5 rounded-lg border border-line">
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-soft mb-1 text-[10px]">اسم الحي / الكومبوند الجديد *</label>
+                        <input type="text" id="edit-area-name" placeholder="مثال: كمبوند ستيلا أو الحي الثالث" class="input text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-soft mb-1 text-[10px]">النوع</label>
+                        <select id="edit-area-type" class="input text-xs">
+                            <option value="compound">🏰 كومبوند سكني</option>
+                            <option value="district" selected>🏘️ حي سكني</option>
+                            <option value="zone">📍 منطقة عامة</option>
+                            <option value="commercial">🏬 مجمع تجاري</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-soft mb-1 text-[10px]">سعر التوصيل (ر.س)</label>
+                        <input type="number" id="edit-area-fee" step="0.5" value="10.00" class="input text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-soft mb-1 text-[10px]">وقت الوصول (دقيقة)</label>
+                        <div class="flex gap-1">
+                            <input type="number" id="edit-area-time" value="35" class="input text-xs">
+                            <button type="button" onclick="submitAddAreaToBranch()" class="shrink-0 rounded-lg bg-good-600 px-3 py-1 font-bold text-white hover:bg-good-700 text-xs">
+                                + إضافة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Areas List Table -->
+                <div class="rounded-lg border border-line bg-card overflow-hidden">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-paper border-b border-line text-[11px] text-soft">
+                            <tr>
+                                <th class="p-2.5">اسم المنطقة / الكومبوند</th>
+                                <th class="p-2.5">النوع</th>
+                                <th class="p-2.5">سعر التوصيل</th>
+                                <th class="p-2.5">وقت التوصيل التقديري</th>
+                                <th class="p-2.5 text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="zone-modal-areas-tbody" class="divide-y divide-line/60">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-4 pt-3 border-t border-line flex items-center justify-end shrink-0">
+            <button type="button" onclick="closeBranchZoneModal()" class="rounded-lg bg-night text-white px-5 py-2 text-xs font-bold hover:bg-night-2 transition">
+                إغلاق
+            </button>
         </div>
     </div>
 </div>
@@ -116,13 +400,163 @@
 
 {% block extra_scripts %}
 <script>
+    // ==========================================
+    // STATE MANAGEMENT FOR ADD BRANCH MODAL
+    // ==========================================
+    let addMap = null;
+    let addMarker = null;
+    let addPolygon = null;
+    let addPolygonPoints = [];
+    let addMapMode = 'pin'; // 'pin' or 'polygon'
+    let stagedAreas = [];
+
+    // Default map center (Cairo / El Shorouk default 30.12, 31.60 or Riyadh 24.71, 46.67)
+    const DEFAULT_LAT = 30.1300;
+    const DEFAULT_LNG = 31.6150;
+
     function openAddBranchModal() {
         document.getElementById('add-branch-modal').classList.remove('hidden');
         document.getElementById('add-branch-modal').classList.add('flex');
+
+        // Init map if not created
+        setTimeout(() => {
+            if (!addMap) {
+                addMap = L.map('add-branch-map').setView([DEFAULT_LAT, DEFAULT_LNG], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(addMap);
+
+                addMap.on('click', handleAddMapClick);
+            } else {
+                addMap.invalidateSize();
+            }
+        }, 200);
     }
+
     function closeAddBranchModal() {
         document.getElementById('add-branch-modal').classList.add('hidden');
         document.getElementById('add-branch-modal').classList.remove('flex');
+    }
+
+    function setAddMapMode(mode) {
+        addMapMode = mode;
+        const ind = document.getElementById('add-map-mode-indicator');
+        const btnPin = document.getElementById('btn-mode-pin');
+        const btnPoly = document.getElementById('btn-mode-poly');
+
+        if (mode === 'pin') {
+            ind.textContent = 'وضع: تحديد موقع الفرع 📌';
+            btnPin.className = 'rounded-lg bg-brand-600 text-white px-2.5 py-1 text-[11px] font-bold shadow-xs';
+            btnPoly.className = 'rounded-lg border border-line bg-card text-ink px-2.5 py-1 text-[11px] font-bold hover:bg-paper';
+        } else {
+            ind.textContent = 'وضع: رسم حدود الزون ✍️';
+            btnPoly.className = 'rounded-lg bg-brand-600 text-white px-2.5 py-1 text-[11px] font-bold shadow-xs';
+            btnPin.className = 'rounded-lg border border-line bg-card text-ink px-2.5 py-1 text-[11px] font-bold hover:bg-paper';
+        }
+    }
+
+    function handleAddMapClick(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        if (addMapMode === 'pin') {
+            if (addMarker) addMap.removeLayer(addMarker);
+            addMarker = L.marker([lat, lng], { draggable: true }).addTo(addMap);
+            addMarker.bindPopup('<b>موقع الفرع المختار</b>').openPopup();
+            showToast('تم تحديد موقع الفرع');
+        } else {
+            // Polygon point
+            addPolygonPoints.push([lat, lng]);
+            renderAddPolygon();
+        }
+    }
+
+    function renderAddPolygon() {
+        if (addPolygon) addMap.removeLayer(addPolygon);
+        if (addPolygonPoints.length > 0) {
+            addPolygon = L.polygon(addPolygonPoints, {
+                color: '#ac4a1a',
+                fillColor: '#da7837',
+                fillOpacity: 0.35,
+                weight: 2
+            }).addTo(addMap);
+        }
+        document.getElementById('add-polygon-count').textContent = `${addPolygonPoints.length} نقاط زون`;
+    }
+
+    function undoAddPolygonPoint() {
+        if (addPolygonPoints.length > 0) {
+            addPolygonPoints.pop();
+            renderAddPolygon();
+        }
+    }
+
+    function clearAddPolygon() {
+        addPolygonPoints = [];
+        if (addPolygon) {
+            addMap.removeLayer(addPolygon);
+            addPolygon = null;
+        }
+        document.getElementById('add-polygon-count').textContent = '0 نقاط زون';
+    }
+
+    // Areas staging in Add Modal
+    function stageAddArea() {
+        const name = document.getElementById('new-area-name').value.trim();
+        const area_type = document.getElementById('new-area-type').value;
+        const delivery_fee = parseFloat(document.getElementById('new-area-fee').value) || 0;
+        const estimated_time_minutes = parseInt(document.getElementById('new-area-time').value) || 30;
+
+        if (!name) {
+            showToast('اسم الحي أو الكومبوند مطلوب', 'error');
+            return;
+        }
+
+        stagedAreas.push({ name, area_type, delivery_fee, estimated_time_minutes });
+        document.getElementById('new-area-name').value = '';
+        renderStagedAreas();
+        showToast(`تمت إضافة «${name}» للقائمة`);
+    }
+
+    function removeStagedArea(index) {
+        stagedAreas.splice(index, 1);
+        renderStagedAreas();
+    }
+
+    function renderStagedAreas() {
+        const container = document.getElementById('staged-areas-container');
+        document.getElementById('staged-areas-count').textContent = `${stagedAreas.length} مناطق مضافة`;
+
+        if (stagedAreas.length === 0) {
+            container.innerHTML = `<p id="staged-areas-empty" class="text-center py-5 text-soft text-[11px]">لم يتم إضافة مناطق بعد. استخدم النموذج أعلاه لإضافة الأحياء والكمبوندات التابعة للفرع.</p>`;
+            return;
+        }
+
+        const typeLabels = {
+            'compound': '🏰 كمبوند سكني',
+            'district': '🏘️ حي سكني',
+            'zone': '📍 منطقة عامة',
+            'commercial': '🏬 مجمع تجاري'
+        };
+
+        let html = '';
+        stagedAreas.forEach((area, idx) => {
+            html += `
+                <div class="flex items-center justify-between p-2.5 text-xs hover:bg-paper/50">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-ink">${area.name}</span>
+                        <span class="rounded bg-brand-100 text-brand-800 text-[10px] font-bold px-1.5 py-0.5">${typeLabels[area.area_type] || area.area_type}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-extrabold text-brand-700">${area.delivery_fee} ر.س</span>
+                        <span class="text-soft text-[11px]">⏱️ ${area.estimated_time_minutes} دقيقة</span>
+                        <button type="button" onclick="removeStagedArea(${idx})" class="text-bad-600 hover:text-bad-700 font-bold px-1">✕</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
     }
 
     async function saveNewBranch() {
@@ -136,6 +570,25 @@
             return;
         }
 
+        const lat = addMarker ? addMarker.getLatLng().lat : null;
+        const lng = addMarker ? addMarker.getLatLng().lng : null;
+
+        const payload = {
+            name,
+            city,
+            address,
+            phone,
+            latitude: lat,
+            longitude: lng,
+            polygon: addPolygonPoints,
+            delivery_radius_km: 5.0,
+            areas: stagedAreas
+        };
+
+        const btn = document.getElementById('save-branch-btn');
+        btn.disabled = true;
+        btn.textContent = 'جارٍ الحفظ...';
+
         try {
             const res = await fetch("{% url 'api_create_branch' %}", {
                 method: 'POST',
@@ -143,19 +596,243 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ name, city, address, phone })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            if (!res.ok) throw new Error(data.error || 'فشل إضافة الفرع');
 
-            showToast(`تم افتتاح «${data.name}» بنجاح!`);
+            showToast(`تم افتتاح «${data.name}» وإعداد نطاق التوصيل بنجاح!`);
             closeAddBranchModal();
             setTimeout(() => location.reload(), 600);
         } catch (e) {
             showToast(e.message, 'error');
+            btn.disabled = false;
+            btn.textContent = 'افتتاح الفرع وحفظ النطاق';
         }
     }
 
+    // ==========================================
+    // STATE MANAGEMENT FOR EDIT BRANCH ZONE MODAL
+    // ==========================================
+    let editBranchId = null;
+    let editMap = null;
+    let editMarker = null;
+    let editPolygon = null;
+    let editPolygonPoints = [];
+
+    async function openBranchZoneModal(branchId, branchName) {
+        editBranchId = branchId;
+        document.getElementById('zone-modal-branch-title').textContent = branchName;
+        document.getElementById('branch-zone-modal').classList.remove('hidden');
+        document.getElementById('branch-zone-modal').classList.add('flex');
+
+        try {
+            const res = await fetch(`/api/branches/${branchId}/areas/`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            // Populate Map
+            setTimeout(() => {
+                initOrUpdateEditMap(data.branch);
+            }, 200);
+
+            // Populate Areas Table
+            renderEditAreasTable(data.areas);
+        } catch (e) {
+            showToast('تعذر تحميل بيانات النطاق والمناطق', 'error');
+        }
+    }
+
+    function closeBranchZoneModal() {
+        document.getElementById('branch-zone-modal').classList.add('hidden');
+        document.getElementById('branch-zone-modal').classList.remove('flex');
+    }
+
+    function initOrUpdateEditMap(branchData) {
+        const lat = branchData.latitude || DEFAULT_LAT;
+        const lng = branchData.longitude || DEFAULT_LNG;
+
+        if (!editMap) {
+            editMap = L.map('edit-branch-map').setView([lat, lng], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(editMap);
+
+            editMap.on('click', (e) => {
+                editPolygonPoints.push([e.latlng.lat, e.latlng.lng]);
+                renderEditPolygon();
+            });
+        } else {
+            editMap.setView([lat, lng], 12);
+            editMap.invalidateSize();
+        }
+
+        // Marker
+        if (editMarker) editMap.removeLayer(editMarker);
+        if (branchData.latitude && branchData.longitude) {
+            editMarker = L.marker([lat, lng]).addTo(editMap);
+            editMarker.bindPopup(`<b>${branchData.name}</b>`).openPopup();
+        }
+
+        // Polygon
+        editPolygonPoints = (branchData.delivery_polygon && Array.isArray(branchData.delivery_polygon)) ? branchData.delivery_polygon : [];
+        renderEditPolygon();
+    }
+
+    function renderEditPolygon() {
+        if (editPolygon) editMap.removeLayer(editPolygon);
+        if (editPolygonPoints.length > 0) {
+            editPolygon = L.polygon(editPolygonPoints, {
+                color: '#ac4a1a',
+                fillColor: '#da7837',
+                fillOpacity: 0.35,
+                weight: 2
+            }).addTo(editMap);
+        }
+    }
+
+    function clearEditPolygon() {
+        editPolygonPoints = [];
+        if (editPolygon) {
+            editMap.removeLayer(editPolygon);
+            editPolygon = null;
+        }
+        showToast('تم مسح مضلع الزون. انقر على الخريطة لرسم نقاط جديدة.');
+    }
+
+    async function saveEditZoneMap() {
+        if (!editBranchId) return;
+        const btn = document.getElementById('btn-save-zone-poly');
+        btn.disabled = true;
+        btn.textContent = 'جارٍ الحفظ...';
+
+        try {
+            const res = await fetch(`/api/branches/${editBranchId}/areas/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    action: 'save_zone',
+                    polygon: editPolygonPoints
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast('تم حفظ مضلع نطاق التوصيل بنجاح');
+        } catch (e) {
+            showToast(e.message || 'فشل حفظ النطاق', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '💾 حفظ تعديل نطاق الخريطة';
+        }
+    }
+
+    function renderEditAreasTable(areas) {
+        const tbody = document.getElementById('zone-modal-areas-tbody');
+        document.getElementById('zone-modal-areas-count').textContent = `${areas.length} مناطق`;
+
+        if (!areas || areas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-soft text-xs">لا توجد كمبوندات أو أحياء مسجلة لهذا الفرع بعد</td></tr>`;
+            return;
+        }
+
+        const typeLabels = {
+            'compound': '🏰 كمبوند سكني',
+            'district': '🏘️ حي سكني',
+            'zone': '📍 منطقة عامة',
+            'commercial': '🏬 مجمع تجاري'
+        };
+
+        let html = '';
+        areas.forEach(a => {
+            html += `
+                <tr class="hover:bg-paper/40 transition">
+                    <td class="p-2.5 font-bold text-ink">${a.name}</td>
+                    <td class="p-2.5"><span class="rounded bg-brand-100 text-brand-800 text-[10px] font-bold px-2 py-0.5">${typeLabels[a.area_type] || a.area_type}</span></td>
+                    <td class="p-2.5 font-extrabold text-brand-700">${parseFloat(a.delivery_fee).toFixed(2)} ر.س</td>
+                    <td class="p-2.5 text-soft">⏱️ ${a.estimated_time_minutes} دقيقة</td>
+                    <td class="p-2.5 text-center">
+                        <button type="button" onclick="deleteAreaFromBranch(${a.id})" class="rounded border border-bad-600/30 bg-bad-100 hover:bg-bad-200 text-bad-700 px-2 py-0.5 text-[10px] font-bold">
+                            حذف
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    async function submitAddAreaToBranch() {
+        if (!editBranchId) return;
+        const name = document.getElementById('edit-area-name').value.trim();
+        const area_type = document.getElementById('edit-area-type').value;
+        const delivery_fee = parseFloat(document.getElementById('edit-area-fee').value) || 0;
+        const estimated_time_minutes = parseInt(document.getElementById('edit-area-time').value) || 30;
+
+        if (!name) {
+            showToast('اسم الحي أو الكومبوند مطلوب', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/branches/${editBranchId}/areas/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    action: 'add',
+                    name,
+                    area_type,
+                    delivery_fee,
+                    estimated_time_minutes
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast(`تمت إضافة «${name}» بنجاح!`);
+            document.getElementById('edit-area-name').value = '';
+
+            // Reload areas list
+            const refreshRes = await fetch(`/api/branches/${editBranchId}/areas/`);
+            const refreshData = await refreshRes.json();
+            renderEditAreasTable(refreshData.areas);
+        } catch (e) {
+            showToast(e.message || 'فشل إضافة المنطقة', 'error');
+        }
+    }
+
+    async function deleteAreaFromBranch(areaId) {
+        if (!confirm('هل أنت متأكد من حذف هذه المنطقة من نطاق تغطية الفرع؟')) return;
+
+        try {
+            const res = await fetch(`/api/branches/${editBranchId}/areas/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ action: 'delete', area_id: areaId })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast('تم حذف المنطقة بنجاح');
+            const refreshRes = await fetch(`/api/branches/${editBranchId}/areas/`);
+            const refreshData = await refreshRes.json();
+            renderEditAreasTable(refreshData.areas);
+        } catch (e) {
+            showToast(e.message || 'فشل حذف المنطقة', 'error');
+        }
+    }
+
+    // Toggle active status
     async function toggleBranchStatus(branchId) {
         try {
             const res = await fetch(`/api/branches/toggle/${branchId}/`, {

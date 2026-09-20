@@ -22,6 +22,7 @@ from .models import (
     OrderItem,
     UserProfile,
     BranchMenuAvailability,
+    DeliveryArea,
 )
 
 
@@ -914,13 +915,15 @@ def pos_view(request):
 @ensure_csrf_cookie
 def call_center_view(request):
     tenant = get_active_tenant(request)
-    branches = Branch.objects.filter(tenant=tenant, status="active").order_by("name")
+    branches = Branch.objects.filter(tenant=tenant, status="active").prefetch_related("delivery_areas").order_by("name")
     menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name")
     recent_orders = Order.objects.filter(tenant=tenant, channel="call_center").order_by("-id")[:10]
+    delivery_areas = DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).select_related("branch").order_by("branch__name", "name")
 
     context = {
         "tenant": tenant,
         "branches": branches,
+        "delivery_areas": delivery_areas,
         "menu_items": menu_items,
         "recent_orders": recent_orders,
     }
@@ -1028,7 +1031,7 @@ def inventory_view(request):
 def branches_view(request):
     tenant = get_active_tenant(request)
     start_of_today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    branches = Branch.objects.filter(tenant=tenant).order_by("id")
+    branches = Branch.objects.filter(tenant=tenant).prefetch_related("delivery_areas").order_by("id")
     branch_list = []
     for b in branches:
         emp_count = Employee.objects.filter(branch=b).count()
@@ -1041,6 +1044,8 @@ def branches_view(request):
             "employees_count": emp_count,
             "sales_today": sales,
             "orders_today": orders_count,
+            "areas_count": b.delivery_areas.count(),
+            "areas": list(b.delivery_areas.all()),
         })
 
     context = {
@@ -1154,7 +1159,21 @@ def api_create_order(request):
     if not rows:
         return JsonResponse({"error": "الأصناف المحددة غير متوفرة"}, status=400)
 
-    delivery_fee = Decimal("8") if order_type == "delivery" else Decimal("0")
+    delivery_area_id = data.get("deliveryAreaId")
+    delivery_area = None
+    if delivery_area_id:
+        delivery_area = DeliveryArea.objects.filter(branch__tenant=tenant, id=delivery_area_id).first()
+        if delivery_area:
+            branch = delivery_area.branch
+
+    if order_type == "delivery":
+        if delivery_area:
+            delivery_fee = delivery_area.delivery_fee
+        else:
+            delivery_fee = Decimal(str(data.get("deliveryFee") or "8"))
+    else:
+        delivery_fee = Decimal("0")
+
     discount = Decimal(str(data.get("discount") or 0))
     discount = max(Decimal("0"), min(discount, subtotal))
     total = max(Decimal("0"), subtotal + delivery_fee - discount)
@@ -1182,6 +1201,7 @@ def api_create_order(request):
         order_type=order_type,
         channel=channel,
         branch=branch,
+        delivery_area=delivery_area,
         customer=customer,
         customer_name=cust_name,
         customer_phone=phone,
@@ -1405,15 +1425,127 @@ def api_create_branch(request):
     if not name:
         return JsonResponse({"error": "اسم الفرع مطلوب"}, status=400)
 
+    lat = data.get("latitude")
+    lng = data.get("longitude")
+    polygon = data.get("polygon", [])
+    radius = data.get("delivery_radius_km", 5.0)
+
     branch = Branch.objects.create(
         tenant=tenant,
         name=name,
         city=data.get("city", "الرياض"),
         address=data.get("address", ""),
         phone=data.get("phone", ""),
+        latitude=Decimal(str(lat)) if lat is not None and str(lat).strip() != "" else None,
+        longitude=Decimal(str(lng)) if lng is not None and str(lng).strip() != "" else None,
+        delivery_polygon=polygon if isinstance(polygon, list) else [],
+        delivery_radius_km=Decimal(str(radius or 5.0)),
         status="active",
     )
-    return JsonResponse({"ok": True, "id": branch.id})
+
+    # Process initial delivery areas / compounds if provided
+    areas_data = data.get("delivery_areas") or data.get("areas") or []
+    if isinstance(areas_data, list):
+        for a in areas_data:
+            a_name = str(a.get("name", "")).strip()
+            if not a_name:
+                continue
+            DeliveryArea.objects.create(
+                branch=branch,
+                name=a_name,
+                area_type=a.get("area_type", "compound"),
+                delivery_fee=Decimal(str(a.get("delivery_fee") or 8.0)),
+                estimated_time_minutes=int(a.get("estimated_time_minutes") or 35),
+                notes=str(a.get("notes", "")).strip(),
+                is_active=True,
+            )
+
+    return JsonResponse({
+        "ok": True,
+        "id": branch.id,
+        "name": branch.name,
+        "areas_count": branch.delivery_areas.count()
+    })
+
+
+@login_required
+def api_branch_delivery_areas(request, branch_id):
+    tenant = get_active_tenant(request)
+    branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
+
+    if request.method == "GET":
+        areas = list(branch.delivery_areas.all().values(
+            "id", "name", "area_type", "delivery_fee", "estimated_time_minutes", "is_active", "notes"
+        ))
+        return JsonResponse({
+            "ok": True,
+            "branch": {
+                "id": branch.id,
+                "name": branch.name,
+                "city": branch.city,
+                "latitude": float(branch.latitude) if branch.latitude else None,
+                "longitude": float(branch.longitude) if branch.longitude else None,
+                "delivery_polygon": branch.delivery_polygon,
+                "delivery_radius_km": float(branch.delivery_radius_km),
+            },
+            "areas": areas
+        })
+
+    elif request.method == "POST":
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+        action = data.get("action", "add")
+        if action == "add":
+            name = str(data.get("name", "")).strip()
+            if not name:
+                return JsonResponse({"error": "اسم المنطقة أو الكومبوند مطلوب"}, status=400)
+            area = DeliveryArea.objects.create(
+                branch=branch,
+                name=name,
+                area_type=data.get("area_type", "compound"),
+                delivery_fee=Decimal(str(data.get("delivery_fee") or 8.0)),
+                estimated_time_minutes=int(data.get("estimated_time_minutes") or 35),
+                notes=str(data.get("notes", "")).strip(),
+                is_active=True
+            )
+            return JsonResponse({
+                "ok": True,
+                "area": {
+                    "id": area.id,
+                    "name": area.name,
+                    "area_type": area.area_type,
+                    "delivery_fee": str(area.delivery_fee),
+                    "estimated_time_minutes": area.estimated_time_minutes,
+                    "notes": area.notes
+                }
+            })
+
+        elif action == "delete":
+            area_id = data.get("area_id")
+            DeliveryArea.objects.filter(branch=branch, id=area_id).delete()
+            return JsonResponse({"ok": True})
+
+        elif action == "save_zone":
+            lat = data.get("latitude")
+            lng = data.get("longitude")
+            polygon = data.get("polygon")
+            radius = data.get("delivery_radius_km")
+
+            if lat is not None and str(lat).strip():
+                branch.latitude = Decimal(str(lat))
+            if lng is not None and str(lng).strip():
+                branch.longitude = Decimal(str(lng))
+            if polygon is not None and isinstance(polygon, list):
+                branch.delivery_polygon = polygon
+            if radius is not None:
+                branch.delivery_radius_km = Decimal(str(radius))
+            branch.save()
+            return JsonResponse({"ok": True, "message": "تم حفظ مضلع الزون وإحداثيات الفرع بنجاح"})
+
+        return JsonResponse({"error": "إجراء غير معروف"}, status=400)
 
 
 @login_required

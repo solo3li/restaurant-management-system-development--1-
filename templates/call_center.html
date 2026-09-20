@@ -66,9 +66,27 @@
                             <input type="text" id="order-cust-phone" placeholder="05xxxxxxxx" dir="ltr" class="input text-xs">
                         </div>
                     </div>
-                    <div class="text-xs">
-                        <label class="mb-1 block font-bold text-soft">عنوان التوصيل بالتفصيل *</label>
-                        <input type="text" id="order-cust-address" placeholder="الحي، اسم الشارع، رقم المبنى أو الشقة..." class="input text-xs">
+                    <!-- Delivery Area / Compound Selection -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="mb-1 block font-bold text-soft flex items-center justify-between">
+                                <span>المنطقة / الكومبوند المغطى</span>
+                                <span id="area-route-badge" class="hidden text-[10px] text-brand-800 bg-brand-100 px-1.5 py-0.5 rounded font-bold"></span>
+                            </label>
+                            <select id="order-delivery-area" class="input text-xs" onchange="onDeliveryAreaChanged()">
+                                <option value="">-- اختر المنطقة أو الكومبوند لتوجيه الفرع --</option>
+                                {% for a in delivery_areas %}
+                                <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.name }}">
+                                    {% if a.area_type == 'compound' %}🏰{% elif a.area_type == 'district' %}🏘️{% elif a.area_type == 'commercial' %}🏬{% else %}📍{% endif %}
+                                    {{ a.name }} (فرع: {{ a.branch.name }} • {{ a.delivery_fee }} ر.س)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block font-bold text-soft">عنوان التوصيل بالتفصيل *</label>
+                            <input type="text" id="order-cust-address" placeholder="الحي، اسم الشارع، رقم المبنى أو الشقة..." class="input text-xs">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -155,9 +173,12 @@
                             <span>قيمة الأصناف</span>
                             <span id="call-subtotal" class="font-bold">0.00 ر.س</span>
                         </div>
-                        <div class="flex justify-between text-soft">
-                            <span>رسوم التوصيل</span>
-                            <span class="font-bold text-brand-700">8.00 ر.س</span>
+                        <div class="flex justify-between text-soft items-center">
+                            <span class="flex items-center gap-1.5">
+                                <span>رسوم التوصيل</span>
+                                <span id="call-est-time-badge" class="hidden text-[10px] text-brand-800 bg-brand-100 px-1.5 py-0.5 rounded font-bold"></span>
+                            </span>
+                            <span id="call-delivery-fee" class="font-bold text-brand-700">8.00 ر.س</span>
                         </div>
                         <div class="flex justify-between border-t border-line pt-2 font-display text-sm font-black text-ink">
                             <span>المجموع الكلي</span>
@@ -201,6 +222,43 @@
 {% block extra_scripts %}
 <script>
     let callCart = {};
+    let callDeliveryFee = 8.00;
+
+    function onDeliveryAreaChanged() {
+        const sel = document.getElementById('order-delivery-area');
+        const opt = sel.options[sel.selectedIndex];
+        const routeBadge = document.getElementById('area-route-badge');
+        const timeBadge = document.getElementById('call-est-time-badge');
+        const branchSelect = document.getElementById('call-order-branch');
+
+        if (sel.value && opt) {
+            const branchId = opt.dataset.branch;
+            const branchName = opt.dataset.branchName;
+            const fee = parseFloat(opt.dataset.fee) || 8.00;
+            const timeMin = opt.dataset.time || 35;
+
+            // Auto-select responsible branch
+            if (branchSelect) {
+                branchSelect.value = branchId;
+            }
+
+            // Update delivery fee & time
+            callDeliveryFee = fee;
+            routeBadge.textContent = `📍 موجه لـ: ${branchName}`;
+            routeBadge.classList.remove('hidden');
+
+            timeBadge.textContent = `⏱️ ${timeMin} دقيقة`;
+            timeBadge.classList.remove('hidden');
+
+            showToast(`تم توجيه الطلب تلقائياً لـ «${branchName}» برسم توصيل ${fee} ر.س`);
+        } else {
+            callDeliveryFee = 8.00;
+            routeBadge.classList.add('hidden');
+            timeBadge.classList.add('hidden');
+        }
+
+        renderCallCart();
+    }
 
     function filterCallMenu() {
         const q = document.getElementById('call-menu-search').value.trim().toLowerCase();
@@ -289,10 +347,12 @@
         const count = keys.reduce((s, k) => s + callCart[k].qty, 0);
         document.getElementById('call-cart-count').textContent = `${count} أصناف`;
 
+        document.getElementById('call-delivery-fee').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
+
         if (keys.length === 0) {
             container.innerHTML = `<div id="call-cart-empty" class="py-6 text-center text-xs text-soft">لم يتم اختيار وجبات بعد</div>`;
             document.getElementById('call-subtotal').textContent = '0.00 ر.س';
-            document.getElementById('call-total').textContent = '8.00 ر.س';
+            document.getElementById('call-total').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
             return;
         }
 
@@ -318,13 +378,14 @@
         });
         container.innerHTML = html;
         document.getElementById('call-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
-        document.getElementById('call-total').textContent = `${(subtotal + 8).toFixed(2)} ر.س`;
+        document.getElementById('call-total').textContent = `${(subtotal + callDeliveryFee).toFixed(2)} ر.س`;
     }
 
     async function submitCallOrder() {
         const name = document.getElementById('order-cust-name').value.trim();
         const phone = document.getElementById('order-cust-phone').value.trim();
         const address = document.getElementById('order-cust-address').value.trim();
+        const deliveryAreaId = document.getElementById('order-delivery-area').value || null;
         const keys = Object.keys(callCart);
 
         if (!name || !phone) {
@@ -355,6 +416,7 @@
                     type: 'delivery',
                     channel: 'call_center',
                     branchId: document.getElementById('call-order-branch').value,
+                    deliveryAreaId: deliveryAreaId,
                     payMethod: document.getElementById('call-order-pay').value,
                     notes: document.getElementById('call-order-notes').value,
                     customerName: name,

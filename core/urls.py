@@ -40,6 +40,7 @@ urlpatterns = [
     path("api/inventory/delete/<int:item_id>/", views.api_delete_inventory, name="api_delete_inventory"),
     path("api/branches/create/", views.api_create_branch, name="api_create_branch"),
     path("api/branches/toggle/<int:branch_id>/", views.api_toggle_branch, name="api_toggle_branch"),
+    path("api/branches/<int:branch_id>/areas/", views.api_branch_delivery_areas, name="api_branch_delivery_areas"),
     path("api/employees/create/", views.api_create_employee, name="api_create_employee"),
     path("api/employees/update/<int:emp_id>/", views.api_update_employee, name="api_update_employee"),
 ]
