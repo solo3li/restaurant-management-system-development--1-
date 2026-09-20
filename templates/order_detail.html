@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل الطلب {{ order.order_number }} — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl mx-auto">
+    <!-- Breadcrumbs & Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs text-soft font-bold">
+            <a href="{% url 'dashboard' %}" class="hover:text-ink">لوحة HQ</a>
+            <span>/</span>
+            <a href="{% url 'hq_orders' %}" class="hover:text-ink">سجل كل الطلبات</a>
+            <span>/</span>
+            <span class="text-ink font-black">{{ order.order_number }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'hq_orders' %}" class="rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft hover:text-ink shadow-sm transition">
+                ← العودة لسجل الطلبات
+            </a>
+            {% if is_owner %}
+            <a href="{% url 'order_edit' order.id %}" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm flex items-center gap-1.5 transition">
+                <span>✏️</span> تعديل الطلب
+            </a>
+            {% endif %}
+            <button type="button" onclick="printReceipt()" class="rounded-xl bg-night px-4 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 shadow-sm flex items-center gap-1.5 transition">
+                <span>🖨️</span> طباعة الفاتورة
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Card -->
+    <div class="card p-6 border-r-4 {% if order.status == 'delivered' %}border-r-good-600{% elif order.status == 'cancelled' %}border-r-bad-600{% elif order.status == 'out_for_delivery' %}border-r-info-600{% else %}border-r-brand-600{% endif %} shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 text-2xl font-black">
+                    🧾
+                </span>
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h1 class="text-2xl font-black font-display text-ink">{{ order.order_number }}</h1>
+                        <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold
+                            {% if order.status == 'delivered' %}bg-good-100 text-good-700
+                            {% elif order.status == 'out_for_delivery' %}bg-info-100 text-info-700
+                            {% elif order.status == 'ready' %}bg-good-100 text-good-700
+                            {% elif order.status == 'preparing' %}bg-warn-100 text-warn-700
+                            {% elif order.status == 'cancelled' %}bg-bad-100 text-bad-700
+                            {% else %}bg-info-100 text-info-700{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    <p class="text-xs font-bold text-soft mt-1">
+                        🏢 فرع: <span class="text-ink">{{ order.branch.name|default:"غير محدد" }}</span> • 
+                        📅 تم الإنشاء: {{ order.created_at|date:"Y-m-d H:i" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Status Change & Action buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+                {% if order.status != 'cancelled' %}
+                <button type="button" onclick="cancelOrder({{ order.id }})" class="rounded-xl bg-warn-100 px-3.5 py-2 text-xs font-bold text-warn-700 hover:bg-warn-200 transition">
+                    ⚠️ إلغاء الطلب
+                </button>
+                {% endif %}
+                {% if is_owner %}
+                <button type="button" onclick="deleteOrder({{ order.id }})" class="rounded-xl bg-bad-100 px-3.5 py-2 text-xs font-bold text-bad-700 hover:bg-bad-200 transition">
+                    🗑️ حذف نهائي
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Info + Financials -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left 2 Cols: Customer & Order Details & Items -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Details Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Customer Card -->
+                <div class="card p-4">
+                    <div class="flex items-center gap-2 border-b border-line pb-2 mb-3">
+                        <span class="text-base">👤</span>
+                        <h2 class="text-xs font-black text-ink">بيانات العميل</h2>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <span class="text-soft text-[11px] block">اسم العميل:</span>
+                            <span class="font-bold text-ink">{{ order.customer_name }}</span>
+                        </div>
+                        {% if order.customer_phone %}
+                        <div>
+                            <span class="text-soft text-[11px] block">رقم الجوال:</span>
+                            <span class="font-bold text-ink font-mono" dir="ltr">{{ order.customer_phone }}</span>
+                        </div>
+                        {% endif %}
+                        {% if order.address %}
+                        <div>
+                            <span class="text-soft text-[11px] block">عنوان التوصيل:</span>
+                            <span class="text-ink font-bold">{{ order.address }}</span>
+                        </div>
+                        {% endif %}
+                        {% if order.notes %}
+                        <div class="rounded-lg bg-warn-100/60 p-2 border border-warn-600/20 mt-1">
+                            <span class="text-warn-700 font-bold block text-[11px]">ملاحظات:</span>
+                            <span class="text-ink">{{ order.notes }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Logistics & Staff Card -->
+                <div class="card p-4">
+                    <div class="flex items-center gap-2 border-b border-line pb-2 mb-3">
+                        <span class="text-base">⚙️</span>
+                        <h2 class="text-xs font-black text-ink">بيانات التشغيل</h2>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <span class="text-soft text-[11px] block">نوع الطلب:</span>
+                            <span class="font-bold text-ink">{{ order.get_order_type_display }}</span>
+                        </div>
+                        <div>
+                            <span class="text-soft text-[11px] block">القناة:</span>
+                            <span class="font-bold text-ink">
+                                {% if order.channel == 'call_center' %}🎧 كول سنتر مركزي{% else %}💻 كاشير الفرع{% endif %}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-soft text-[11px] block">الكاشير المسجل:</span>
+                            <span class="font-bold text-ink">{{ order.cashier|default:"—" }}</span>
+                        </div>
+                        <div>
+                            <span class="text-soft text-[11px] block">سائق التوصيل:</span>
+                            <span class="font-bold text-ink">
+                                {% if order.driver %}🛵 {{ order.driver.name }} ({{ order.driver.phone|default:"بدون هاتف" }}){% else %}— لم يحدد بعد{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="card overflow-hidden shadow-md">
+                <div class="flex items-center justify-between border-b border-line px-5 py-3.5 bg-paper/60">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-black font-display text-ink">قائمة الأصناف المشتراة</span>
+                        <span class="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-black text-brand-700">
+                            {{ items|length }} أصناف
+                        </span>
+                    </div>
+                    {% if is_owner %}
+                    <a href="{% url 'order_edit' order.id %}" class="text-xs font-bold text-brand-600 hover:underline">
+                        + تعديل الأصناف
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-xs">
+                        <thead class="border-b border-line bg-paper/80">
+                            <tr>
+                                <th class="th">#</th>
+                                <th class="th">الصنف</th>
+                                <th class="th text-center">الكمية</th>
+                                <th class="th text-left">سعر الوحدة</th>
+                                <th class="th text-left">المجموع الفرعي</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-line/70">
+                            {% for item in items %}
+                            <tr class="hover:bg-paper/30">
+                                <td class="td text-soft">{{ forloop.counter }}</td>
+                                <td class="td font-bold text-ink">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-base">{{ item.menu_item.emoji|default:"🍽️" }}</span>
+                                        <span>{{ item.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="td text-center font-black text-ink text-sm">{{ item.qty }}</td>
+                                <td class="td text-left font-bold text-soft">{{ item.price|floatformat:2 }} ر.س</td>
+                                <td class="td text-left font-black text-brand-700">{{ item.line_total|floatformat:2 }} ر.س</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-soft">لا توجد أصناف في هذا الطلب</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right 1 Col: Financial Summary Card -->
+        <div class="space-y-5">
+            <div class="card p-5 shadow-md border-t-4 border-t-brand-600">
+                <h2 class="text-sm font-black font-display text-ink border-b border-line pb-2.5 mb-4">
+                    الملخص المالي للفاتورة
+                </h2>
+
+                <div class="space-y-3 text-xs">
+                    <div class="flex justify-between text-soft">
+                        <span>المجموع الفرعي:</span>
+                        <span class="font-bold text-ink">{{ order.subtotal|floatformat:2 }} ر.س</span>
+                    </div>
+                    <div class="flex justify-between text-soft">
+                        <span>رسوم التوصيل:</span>
+                        <span class="font-bold text-ink">{{ order.delivery_fee|floatformat:2 }} ر.س</span>
+                    </div>
+                    <div class="flex justify-between text-soft">
+                        <span>الخصم المطبق:</span>
+                        <span class="font-bold text-bad-700">-{{ order.discount|floatformat:2 }} ر.س</span>
+                    </div>
+
+                    <div class="border-t-2 border-dashed border-line pt-3 flex justify-between items-center text-base font-black">
+                        <span class="text-ink">المبلغ الإجمالي:</span>
+                        <span class="text-brand-700 text-xl font-display">{{ order.total|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></span>
+                    </div>
+
+                    <div class="rounded-xl bg-paper p-3 mt-4 space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-soft">طريقة الدفع:</span>
+                            <span class="font-bold text-ink">{{ order.get_pay_method_display }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-soft">حالة السداد:</span>
+                            <span class="rounded px-2 py-0.5 text-[11px] font-black {% if order.paid %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                                {% if order.paid %}✓ تم الدفع بالكامل{% else %}معلق / غير مدفوع{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Links -->
+                <div class="mt-6 space-y-2">
+                    {% if is_owner %}
+                    <a href="{% url 'order_edit' order.id %}" class="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-600 py-2.5 text-xs font-bold text-white hover:bg-brand-700 transition shadow">
+                        <span>✏️</span> تعديل بيانات وفاتورة الطلب
+                    </a>
+                    {% endif %}
+                    <button type="button" onclick="printReceipt()" class="w-full flex items-center justify-center gap-2 rounded-xl bg-night py-2.5 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow">
+                        <span>🖨️</span> طباعة الفاتورة الحرارية
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCsrfToken() {
+        return getCookie('csrftoken');
+    }
+
+    async function cancelOrder(orderId) {
+        if (!confirm('هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟ سيتم تحويل حالته إلى "ملغي" مع الاحتفاظ بسجله المحاسبي.')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/orders/${orderId}/cancel/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || 'تم إلغاء الطلب بنجاح');
+                location.reload();
+            } else {
+                alert(data.error || 'حدث خطأ أثناء إلغاء الطلب');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('تعذر الاتصال بالخادم');
+        }
+    }
+
+    async function deleteOrder(orderId) {
+        if (!confirm('تحذير أمني: هل أنت متأكد من الحذف النهائي لهذا الطلب من قاعدة البيانات؟ لا يمكن التراجع عن هذه الخطوة!')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/orders/${orderId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || 'تم حذف الطلب نهائياً');
+                location.href = '{% url "hq_orders" %}';
+            } else {
+                alert(data.error || 'حدث خطأ أثناء حذف الطلب');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('تعذر الاتصال بالخادم');
+        }
+    }
+
+    function printReceipt() {
+        window.print();
+    }
+</script>
+{% endblock %}

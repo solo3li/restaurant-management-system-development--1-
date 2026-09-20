@@ -277,15 +277,48 @@
                             <p class="text-[10px]">{{ o.created_at|time:"H:i" }}</p>
                         </td>
 
-                        <!-- Action Button -->
+                        <!-- Action Buttons -->
                         <td class="td text-center" onclick="event.stopPropagation()">
-                            <button 
-                                type="button" 
-                                onclick="openOrderModal('order-{{ o.id }}')"
-                                class="rounded-lg bg-paper border border-line px-2.5 py-1 text-xs font-bold text-brand-600 hover:bg-brand-50 hover:border-brand-300 transition shadow-sm"
-                            >
-                                🔍 عرض الفاتورة
-                            </button>
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                <button 
+                                    type="button" 
+                                    onclick="openOrderModal('order-{{ o.id }}')"
+                                    title="معاينة سريعة للفاتورة"
+                                    class="rounded-lg bg-paper border border-line px-2 py-1 text-xs font-bold text-brand-600 hover:bg-brand-50 hover:border-brand-300 transition shadow-sm"
+                                >
+                                    👁️ معاينة
+                                </button>
+                                <a 
+                                    href="{% url 'order_detail' o.id %}"
+                                    title="صفحة تفاصيل الطلب الكاملة"
+                                    class="rounded-lg bg-paper border border-line px-2 py-1 text-xs font-bold text-ink hover:bg-line transition shadow-sm"
+                                >
+                                    🔍 تفاصيل
+                                </a>
+                                <a 
+                                    href="{% url 'order_edit' o.id %}"
+                                    title="تعديل الطلب والأصناف"
+                                    class="rounded-lg bg-brand-50 border border-brand-200 px-2 py-1 text-xs font-bold text-brand-700 hover:bg-brand-100 transition shadow-sm"
+                                >
+                                    ✏️ تعديل
+                                </a>
+                                <button 
+                                    type="button" 
+                                    onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')"
+                                    title="إلغاء الطلب"
+                                    class="rounded-lg bg-warn-50 border border-warn-200 px-1.5 py-1 text-xs font-bold text-warn-700 hover:bg-warn-100 transition shadow-sm"
+                                >
+                                    ⚠️
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')"
+                                    title="حذف نهائي من قاعدة البيانات"
+                                    class="rounded-lg bg-bad-50 border border-bad-200 px-1.5 py-1 text-xs font-bold text-bad-700 hover:bg-bad-100 transition shadow-sm"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
                         </td>
                     </tr>
 
@@ -446,21 +479,37 @@
         </div>
 
         <!-- Footer Actions -->
-        <div class="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
-            <button 
-                type="button" 
-                onclick="printModalReceipt()" 
-                class="rounded-xl bg-night px-4 py-2.5 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow flex items-center gap-1.5"
-            >
-                <span>🖨️</span> طباعة الفاتورة
-            </button>
-            <button 
-                type="button" 
-                onclick="closeOrderModal()" 
-                class="rounded-xl bg-paper border border-line px-5 py-2.5 text-xs font-bold text-soft hover:text-ink transition"
-            >
-                إغلاق
-            </button>
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
+            <div class="flex items-center gap-2 flex-wrap">
+                <a id="modal-view-link" href="#" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 transition shadow flex items-center gap-1">
+                    <span>🔍</span> صفحة التفاصيل
+                </a>
+                <a id="modal-edit-link" href="#" class="rounded-xl bg-paper border border-line px-3 py-2 text-xs font-bold text-ink hover:bg-line transition flex items-center gap-1">
+                    <span>✏️</span> تعديل
+                </a>
+                <button type="button" onclick="cancelFromModal()" class="rounded-xl bg-warn-100 px-3 py-2 text-xs font-bold text-warn-700 hover:bg-warn-200 transition">
+                    ⚠️ إلغاء
+                </button>
+                <button type="button" onclick="deleteFromModal()" class="rounded-xl bg-bad-100 px-3 py-2 text-xs font-bold text-bad-700 hover:bg-bad-200 transition">
+                    🗑️ حذف
+                </button>
+            </div>
+            <div class="flex items-center gap-2">
+                <button 
+                    type="button" 
+                    onclick="printModalReceipt()" 
+                    class="rounded-xl bg-night px-3.5 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow flex items-center gap-1.5"
+                >
+                    <span>🖨️</span> طباعة
+                </button>
+                <button 
+                    type="button" 
+                    onclick="closeOrderModal()" 
+                    class="rounded-xl bg-paper border border-line px-4 py-2 text-xs font-bold text-soft hover:text-ink transition"
+                >
+                    إغلاق
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -475,6 +524,9 @@
         try {
             const data = JSON.parse(scriptEl.textContent);
             activeModalOrder = data;
+
+            document.getElementById('modal-view-link').href = '/orders/' + data.id + '/';
+            document.getElementById('modal-edit-link').href = '/orders/' + data.id + '/edit/';
 
             document.getElementById('modal-order-number').textContent = data.order_number;
             document.getElementById('modal-order-branch').textContent = '🏢 فرع: ' + data.branch;
@@ -631,6 +683,62 @@
             printWin.print();
             printWin.close();
         }, 300);
+    }
+
+    async function quickCancelOrder(orderId, orderNumber) {
+        if (!confirm(`هل أنت متأكد من رغبتك في إلغاء الطلب ${orderNumber}؟\nسيتم الاحتفاظ بالسجل وتغيير الحالة إلى "ملغي".`)) return;
+        try {
+            const res = await fetch(`/api/orders/${orderId}/cancel/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || 'تم إلغاء الطلب');
+                location.reload();
+            } else {
+                alert(data.error || 'حدث خطأ أثناء إلغاء الطلب');
+            }
+        } catch(e) {
+            console.error(e);
+            alert('تعذر الاتصال بالخادم');
+        }
+    }
+
+    async function quickDeleteOrder(orderId, orderNumber) {
+        if (!confirm(`⚠️ تحذير أمني هام:\nهل أنت متأكد من الحذف النهائي للطلب ${orderNumber} من قاعدة البيانات؟\nلا يمكن التراجع عن هذا الإجراء!`)) return;
+        try {
+            const res = await fetch(`/api/orders/${orderId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || 'تم حذف الطلب نهائياً');
+                location.reload();
+            } else {
+                alert(data.error || 'حدث خطأ أثناء حذف الطلب');
+            }
+        } catch(e) {
+            console.error(e);
+            alert('تعذر الاتصال بالخادم');
+        }
+    }
+
+    function cancelFromModal() {
+        if (!activeModalOrder) return;
+        quickCancelOrder(activeModalOrder.id, activeModalOrder.order_number);
+    }
+
+    function deleteFromModal() {
+        if (!activeModalOrder) return;
+        quickDeleteOrder(activeModalOrder.id, activeModalOrder.order_number);
     }
 </script>
 {% endblock %}

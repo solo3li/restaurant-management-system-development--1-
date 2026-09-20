@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}تعديل الطلب {{ order.order_number }} — مطاعم ضيافة{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl mx-auto">
+    <!-- Breadcrumbs & Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs text-soft font-bold">
+            <a href="{% url 'dashboard' %}" class="hover:text-ink">لوحة HQ</a>
+            <span>/</span>
+            <a href="{% url 'hq_orders' %}" class="hover:text-ink">سجل الطلبات</a>
+            <span>/</span>
+            <a href="{% url 'order_detail' order.id %}" class="hover:text-ink">{{ order.order_number }}</a>
+            <span>/</span>
+            <span class="text-ink font-black">تعديل</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'order_detail' order.id %}" class="rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft hover:text-ink shadow-sm transition">
+                ← إلغاء والعودة للتفاصيل
+            </a>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <form method="POST" action="{% url 'order_edit' order.id %}" id="order-edit-form" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="items_json" id="items-json-input">
+
+        <!-- Header Card -->
+        <div class="card p-6 border-r-4 border-r-brand-600 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="rounded-lg bg-brand-100 px-2.5 py-1 text-xs font-black text-brand-700">تعديل شامل</span>
+                        <h1 class="text-2xl font-black font-display text-ink">تعديل الطلب {{ order.order_number }}</h1>
+                    </div>
+                    <p class="text-xs font-bold text-soft mt-1">
+                        يمكنك تعديل بيانات العميل، السائق، الحالة، والتحكم في أصناف الوجبات والكميات وإعادة احتساب الإجمالي
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="rounded-xl bg-brand-600 px-5 py-2.5 text-xs font-black text-white hover:bg-brand-700 shadow-md transition flex items-center gap-1.5">
+                        <span>💾</span> حفظ كافة التعديلات
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left 2 Cols: Form Sections -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 1. Order Status & Branch -->
+                <div class="card p-5 space-y-4">
+                    <h2 class="text-xs font-black text-ink border-b border-line pb-2 flex items-center gap-2">
+                        <span>⚙️</span> البيانات الأساسية والتشغيل
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <!-- Branch -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">🏢 الفرع:</label>
+                            <select name="branch_id" class="input font-bold">
+                                <option value="none" {% if not order.branch %}selected{% endif %}>غير محدد</option>
+                                {% for b in branches %}
+                                <option value="{{ b.id }}" {% if order.branch and order.branch.id == b.id %}selected{% endif %}>
+                                    {{ b.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">📌 حالة الطلب:</label>
+                            <select name="status" class="input font-bold">
+                                {% for st_val, st_lbl in statuses %}
+                                <option value="{{ st_val }}" {% if order.status == st_val %}selected{% endif %}>{{ st_lbl }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Order Type -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">🍽️ نوع الطلب:</label>
+                            <select name="order_type" id="order-type-select" onchange="handleOrderTypeChange()" class="input font-bold">
+                                {% for t_val, t_lbl in order_types %}
+                                <option value="{{ t_val }}" {% if order.order_type == t_val %}selected{% endif %}>{{ t_lbl }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Channel -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">📡 القناة:</label>
+                            <select name="channel" class="input font-bold">
+                                <option value="cashier" {% if order.channel == 'cashier' %}selected{% endif %}>الكاشير</option>
+                                <option value="call_center" {% if order.channel == 'call_center' %}selected{% endif %}>الكول سنتر</option>
+                            </select>
+                        </div>
+
+                        <!-- Driver -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">🛵 سائق التوصيل:</label>
+                            <select name="driver_id" class="input font-bold">
+                                <option value="none" {% if not order.driver %}selected{% endif %}>بدون سائق</option>
+                                {% for drv in drivers %}
+                                <option value="{{ drv.id }}" {% if order.driver and order.driver.id == drv.id %}selected{% endif %}>
+                                    {{ drv.name }} ({{ drv.phone|default:"—" }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Cashier -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">💻 الكاشير:</label>
+                            <input type="text" name="cashier" value="{{ order.cashier }}" class="input font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Customer Information -->
+                <div class="card p-5 space-y-4">
+                    <h2 class="text-xs font-black text-ink border-b border-line pb-2 flex items-center gap-2">
+                        <span>👤</span> بيانات العميل والتوصيل
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-soft mb-1">اسم العميل:</label>
+                            <input type="text" name="customer_name" value="{{ order.customer_name }}" required class="input font-bold">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-soft mb-1">رقم الهاتف:</label>
+                            <input type="text" name="customer_phone" value="{{ order.customer_phone }}" class="input font-bold font-mono" dir="ltr">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-bold text-soft mb-1">عنوان التوصيل:</label>
+                            <input type="text" name="address" value="{{ order.address }}" placeholder="الحي، الشارع، تفاصيل الموقع…" class="input">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-bold text-soft mb-1">ملاحظات الطلب:</label>
+                            <textarea name="notes" rows="2" class="input" placeholder="ملاحظات إضافية، بدون بصل، صوص إضافي…">{{ order.notes }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Interactive Items Editor -->
+                <div class="card p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-line pb-3">
+                        <div>
+                            <h2 class="text-xs font-black text-ink flex items-center gap-2">
+                                <span>🛒</span> إدارة أصناف الطلب والكميات
+                            </h2>
+                            <p class="text-[11px] text-soft">عدّل الكميات أو احذف الأصناف أو اختر أصنافاً جديدة لإضافتها للطلب</p>
+                        </div>
+                    </div>
+
+                    <!-- Add New Item Bar -->
+                    <div class="rounded-xl bg-paper p-3 border border-line flex flex-col sm:flex-row items-center gap-3">
+                        <div class="flex-1 w-full">
+                            <label class="block text-[10px] font-bold text-soft mb-1">اختر وجبة من المنيو للإضافة:</label>
+                            <select id="new-item-select" class="input text-xs font-bold w-full">
+                                <option value="">-- اختر صنفاً لإضافته --</option>
+                                {% for m in menu_items %}
+                                <option value="{{ m.id }}" data-name="{{ m.name }}" data-price="{{ m.price }}">
+                                    {{ m.emoji|default:"🍽️" }} {{ m.name }} — {{ m.price|floatformat:2 }} ر.س ({{ m.category }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="button" onclick="addItemToOrder()" class="w-full sm:w-auto mt-2 sm:mt-4 rounded-xl bg-night px-4 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow shrink-0">
+                            + إضافة للطلب
+                        </button>
+                    </div>
+
+                    <!-- Current Items Table -->
+                    <div class="border border-line rounded-xl overflow-hidden">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-paper/80 border-b border-line text-soft text-[11px]">
+                                <tr>
+                                    <th class="p-2.5">الصنف</th>
+                                    <th class="p-2.5 text-center">الكمية</th>
+                                    <th class="p-2.5 text-left">السعر</th>
+                                    <th class="p-2.5 text-left">الإجمالي</th>
+                                    <th class="p-2.5 text-center">حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-table-body" class="divide-y divide-line/60">
+                                <!-- Rendered dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right 1 Col: Payment & Recalculated Financial Summary -->
+            <div class="space-y-5">
+                <!-- Financial Card -->
+                <div class="card p-5 shadow-md border-t-4 border-t-brand-600 space-y-4">
+                    <h2 class="text-sm font-black font-display text-ink border-b border-line pb-2.5">
+                        الحساب المالي والمدفوعات
+                    </h2>
+
+                    <!-- Delivery & Discount Inputs -->
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-soft mb-1">رسوم التوصيل (ر.س):</label>
+                            <input 
+                                type="number" 
+                                step="0.5" 
+                                min="0" 
+                                name="delivery_fee" 
+                                id="delivery-fee-input" 
+                                value="{{ order.delivery_fee|floatformat:2 }}" 
+                                oninput="recalcFinancials()" 
+                                class="input font-bold"
+                            >
+                        </div>
+                        <div>
+                            <label class="block font-bold text-soft mb-1">الخصم المطبق (ر.س):</label>
+                            <input 
+                                type="number" 
+                                step="0.5" 
+                                min="0" 
+                                name="discount" 
+                                id="discount-input" 
+                                value="{{ order.discount|floatformat:2 }}" 
+                                oninput="recalcFinancials()" 
+                                class="input font-bold"
+                            >
+                        </div>
+
+                        <!-- Live Summary Display -->
+                        <div class="border-t border-line pt-3 space-y-2">
+                            <div class="flex justify-between text-soft">
+                                <span>المجموع الفرعي للأصناف:</span>
+                                <span id="display-subtotal" class="font-bold text-ink">0.00 ر.س</span>
+                            </div>
+                            <div class="flex justify-between text-soft">
+                                <span>رسوم التوصيل:</span>
+                                <span id="display-delivery" class="font-bold text-ink">0.00 ر.س</span>
+                            </div>
+                            <div class="flex justify-between text-soft">
+                                <span>الخصم:</span>
+                                <span id="display-discount" class="font-bold text-bad-700">-0.00 ر.س</span>
+                            </div>
+                            <div class="border-t-2 border-dashed border-line pt-2 flex justify-between items-center text-sm font-black">
+                                <span class="text-ink">المبلغ الإجمالي النهائي:</span>
+                                <span id="display-total" class="text-brand-700 text-lg font-display">0.00 ر.س</span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="border-t border-line pt-3 space-y-3">
+                            <div>
+                                <label class="block font-bold text-soft mb-1">طريقة الدفع:</label>
+                                <select name="pay_method" class="input font-bold">
+                                    {% for p_val, p_lbl in pay_choices %}
+                                    <option value="{{ p_val }}" {% if order.pay_method == p_val %}selected{% endif %}>{{ p_lbl }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 pt-1">
+                                <input type="checkbox" id="paid-check" name="paid" value="true" {% if order.paid %}checked{% endif %} class="h-4 w-4 rounded accent-brand-600 cursor-pointer">
+                                <label for="paid-check" class="font-bold text-ink text-xs cursor-pointer">تم الدفع / مسدد بالكامل</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="pt-4 border-t border-line space-y-2">
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-600 py-3 text-xs font-black text-white hover:bg-brand-700 transition shadow-md">
+                            <span>💾</span> حفظ التعديلات
+                        </button>
+                        <a href="{% url 'order_detail' order.id %}" class="w-full flex items-center justify-center rounded-xl bg-paper border border-line py-2.5 text-xs font-bold text-soft hover:text-ink transition">
+                            إلغاء
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Initial order items loaded from Django context
+    let orderItems = [
+        {% for item in items %}
+        {
+            menu_item_id: {{ item.menu_item.id|default:"null" }},
+            name: "{{ item.name|escapejs }}",
+            price: {{ item.price|stringformat:".2f" }},
+            qty: {{ item.qty }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function renderItemsTable() {
+        const tbody = document.getElementById('items-table-body');
+        tbody.innerHTML = '';
+
+        if (orderItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-soft">السلة فارغة، أضف أصنافاً للطلب</td></tr>';
+            recalcFinancials();
+            return;
+        }
+
+        orderItems.forEach((item, index) => {
+            const lineTotal = (item.price * item.qty).toFixed(2);
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-paper/40 transition';
+            tr.innerHTML = `
+                <td class="p-2.5 font-bold text-ink">${item.name}</td>
+                <td class="p-2.5 text-center">
+                    <div class="inline-flex items-center gap-1 bg-paper border border-line rounded-lg p-1">
+                        <button type="button" onclick="changeItemQty(${index}, -1)" class="h-6 w-6 flex items-center justify-center rounded bg-card hover:bg-line text-ink font-bold">-</button>
+                        <span class="w-8 text-center font-black text-ink">${item.qty}</span>
+                        <button type="button" onclick="changeItemQty(${index}, 1)" class="h-6 w-6 flex items-center justify-center rounded bg-card hover:bg-line text-ink font-bold">+</button>
+                    </div>
+                </td>
+                <td class="p-2.5 text-left text-soft font-bold">${item.price.toFixed(2)} ر.س</td>
+                <td class="p-2.5 text-left font-black text-brand-700">${lineTotal} ر.س</td>
+                <td class="p-2.5 text-center">
+                    <button type="button" onclick="removeItem(${index})" class="rounded-lg p-1 text-bad-600 hover:bg-bad-100 hover:text-bad-700 font-bold text-sm" title="حذف الصنف">
+                        ✕
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        recalcFinancials();
+    }
+
+    function changeItemQty(index, delta) {
+        if (!orderItems[index]) return;
+        orderItems[index].qty += delta;
+        if (orderItems[index].qty <= 0) {
+            orderItems.splice(index, 1);
+        }
+        renderItemsTable();
+    }
+
+    function removeItem(index) {
+        if (!orderItems[index]) return;
+        orderItems.splice(index, 1);
+        renderItemsTable();
+    }
+
+    function addItemToOrder() {
+        const select = document.getElementById('new-item-select');
+        const opt = select.selectedOptions[0];
+        if (!opt || !opt.value) return;
+
+        const itemId = parseInt(opt.value);
+        const name = opt.getAttribute('data-name');
+        const price = parseFloat(opt.getAttribute('data-price')) || 0;
+
+        // Check if item already in order, if so increment qty
+        const existing = orderItems.find(i => i.menu_item_id === itemId);
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            orderItems.push({
+                menu_item_id: itemId,
+                name: name,
+                price: price,
+                qty: 1
+            });
+        }
+
+        select.value = '';
+        renderItemsTable();
+    }
+
+    function handleOrderTypeChange() {
+        const typeSelect = document.getElementById('order-type-select');
+        const deliveryInput = document.getElementById('delivery-fee-input');
+        if (typeSelect.value === 'delivery') {
+            if (parseFloat(deliveryInput.value) === 0) {
+                deliveryInput.value = '8.00';
+            }
+        } else {
+            deliveryInput.value = '0.00';
+        }
+        recalcFinancials();
+    }
+
+    function recalcFinancials() {
+        let subtotal = 0;
+        orderItems.forEach(it => {
+            subtotal += it.price * it.qty;
+        });
+
+        const deliveryFee = parseFloat(document.getElementById('delivery-fee-input').value) || 0;
+        const discount = parseFloat(document.getElementById('discount-input').value) || 0;
+        const total = Math.max(0, subtotal + deliveryFee - discount);
+
+        document.getElementById('display-subtotal').textContent = subtotal.toFixed(2) + ' ر.س';
+        document.getElementById('display-delivery').textContent = deliveryFee.toFixed(2) + ' ر.س';
+        document.getElementById('display-discount').textContent = '-' + discount.toFixed(2) + ' ر.س';
+        document.getElementById('display-total').textContent = total.toFixed(2) + ' ر.س';
+
+        // Update hidden JSON input
+        document.getElementById('items-json-input').value = JSON.stringify(orderItems);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        renderItemsTable();
+    });
+
+    document.getElementById('order-edit-form').addEventListener('submit', function(e) {
+        if (orderItems.length === 0) {
+            e.preventDefault();
+            alert('لا يمكن حفظ الطلب بدون أي أصناف! يرجى إضافة صنف واحد على الأقل.');
+            return false;
+        }
+        document.getElementById('items-json-input').value = JSON.stringify(orderItems);
+    });
+</script>
+{% endblock %}

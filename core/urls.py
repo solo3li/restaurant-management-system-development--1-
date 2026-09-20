@@ -22,10 +22,15 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     
+    path("orders/<int:order_id>/", views.order_detail_view, name="order_detail"),
+    path("orders/<int:order_id>/edit/", views.order_edit_view, name="order_edit"),
+
     # Internal JSON APIs
     path("api/tenants/create/", views.api_create_tenant, name="api_create_tenant"),
     path("api/orders/", views.api_create_order, name="api_create_order"),
     path("api/orders/<int:order_id>/", views.api_update_order, name="api_update_order"),
+    path("api/orders/<int:order_id>/cancel/", views.api_cancel_order, name="api_cancel_order"),
+    path("api/orders/<int:order_id>/delete/", views.api_delete_order, name="api_delete_order"),
     path("api/branch-menu/toggle/<int:item_id>/", views.api_toggle_branch_menu, name="api_toggle_branch_menu"),
     path("api/customers/search/", views.api_search_customers, name="api_search_customers"),
     path("api/menu/toggle/<int:item_id>/", views.api_toggle_menu_item, name="api_toggle_menu_item"),

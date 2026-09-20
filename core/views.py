@@ -645,6 +645,189 @@ def hq_orders_view(request):
 
 
 # ==========================================
+# 4c. ORDER DETAILS & EDIT VIEWS
+# ==========================================
+
+@login_required
+@ensure_csrf_cookie
+def order_detail_view(request, order_id):
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    order = get_object_or_404(
+        Order.objects.select_related("branch", "customer", "driver", "tenant").prefetch_related("items__menu_item"),
+        tenant=tenant,
+        id=order_id
+    )
+
+    # If branch-locked and not owner, verify branch
+    if not is_owner and profile and profile.branch and order.branch != profile.branch:
+        return HttpResponseForbidden("غير مصرح لك بمشاهدة طلبات هذا الفرع")
+
+    context = {
+        "tenant": tenant,
+        "order": order,
+        "items": order.items.all(),
+        "is_owner": is_owner,
+    }
+    return render(request, "order_detail.html", context)
+
+
+@login_required
+@ensure_csrf_cookie
+def order_edit_view(request, order_id):
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    order = get_object_or_404(
+        Order.objects.select_related("branch", "customer", "driver", "tenant").prefetch_related("items__menu_item"),
+        tenant=tenant,
+        id=order_id
+    )
+
+    if not is_owner and profile and profile.branch and order.branch != profile.branch:
+        return HttpResponseForbidden("غير مصرح لك بتعديل طلبات هذا الفرع")
+
+    branches = Branch.objects.filter(tenant=tenant) if tenant else Branch.objects.none()
+    drivers = Employee.objects.filter(tenant=tenant, role="driver") if tenant else Employee.objects.none()
+    menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name") if tenant else MenuItem.objects.none()
+
+    if request.method == "POST":
+        branch_id = request.POST.get("branch_id")
+        if branch_id and branch_id != "none":
+            order.branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+        else:
+            order.branch = None
+
+        order.order_type = request.POST.get("order_type", order.order_type)
+        order.channel = request.POST.get("channel", order.channel)
+        order.status = request.POST.get("status", order.status)
+        order.customer_name = request.POST.get("customer_name", order.customer_name).strip()
+        order.customer_phone = request.POST.get("customer_phone", order.customer_phone).strip()
+        order.address = request.POST.get("address", order.address).strip()
+        order.notes = request.POST.get("notes", order.notes).strip()
+        order.cashier = request.POST.get("cashier", order.cashier).strip()
+        order.pay_method = request.POST.get("pay_method", order.pay_method)
+        order.paid = request.POST.get("paid") in ["true", "on", "1", True]
+
+        driver_id = request.POST.get("driver_id")
+        if driver_id and driver_id != "none":
+            order.driver = Employee.objects.filter(tenant=tenant, id=driver_id, role="driver").first()
+        else:
+            order.driver = None
+
+        # Update customer record if phone exists
+        if order.customer_phone:
+            cust, _ = Customer.objects.get_or_create(
+                tenant=tenant,
+                phone=order.customer_phone,
+                defaults={"name": order.customer_name, "address": order.address}
+            )
+            if order.customer_name and cust.name != order.customer_name:
+                cust.name = order.customer_name
+            if order.address and cust.address != order.address:
+                cust.address = order.address
+            cust.save()
+            order.customer = cust
+
+        # Items parsing from JSON submitted by interactive editor
+        items_json = request.POST.get("items_json")
+        parsed_items = None
+        if items_json:
+            try:
+                parsed_items = json.loads(items_json)
+            except Exception:
+                parsed_items = None
+
+        if parsed_items is not None:
+            order.items.all().delete()
+            subtotal = Decimal("0")
+            for pi in parsed_items:
+                m_id = pi.get("menu_item_id")
+                m_item = MenuItem.objects.filter(tenant=tenant, id=m_id).first() if m_id else None
+                name = pi.get("name") or (m_item.name if m_item else "صنف")
+                price = Decimal(str(pi.get("price") or (m_item.price if m_item else 0)))
+                qty = max(1, int(pi.get("qty") or 1))
+                subtotal += price * qty
+                OrderItem.objects.create(
+                    order=order,
+                    menu_item=m_item,
+                    name=name,
+                    price=price,
+                    qty=qty
+                )
+            order.subtotal = subtotal
+
+        # Delivery Fee & Discount
+        try:
+            order.delivery_fee = Decimal(str(request.POST.get("delivery_fee") or ("8" if order.order_type == "delivery" else "0")))
+        except Exception:
+            order.delivery_fee = Decimal("0")
+
+        try:
+            order.discount = Decimal(str(request.POST.get("discount") or "0"))
+        except Exception:
+            order.discount = Decimal("0")
+
+        order.total = max(Decimal("0"), order.subtotal + order.delivery_fee - order.discount)
+        order.save()
+
+        return redirect("order_detail", order_id=order.id)
+
+    context = {
+        "tenant": tenant,
+        "order": order,
+        "items": order.items.all(),
+        "branches": branches,
+        "drivers": drivers,
+        "menu_items": menu_items,
+        "statuses": Order.STATUS_CHOICES,
+        "order_types": Order.TYPE_CHOICES,
+        "pay_choices": Order.PAY_CHOICES,
+        "is_owner": is_owner,
+    }
+    return render(request, "order_edit.html", context)
+
+
+@login_required
+def api_cancel_order(request, order_id):
+    if request.method not in ["POST", "PATCH"]:
+        return HttpResponseBadRequest("POST or PATCH required")
+
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    order = get_object_or_404(Order, tenant=tenant, id=order_id)
+    if not is_owner and profile and profile.branch and order.branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح"}, status=403)
+
+    order.status = "cancelled"
+    order.save()
+    return JsonResponse({"ok": True, "status": "cancelled", "message": f"تم إلغاء الطلب {order.order_number} بنجاح"})
+
+
+@login_required
+def api_delete_order(request, order_id):
+    if request.method not in ["POST", "DELETE"]:
+        return HttpResponseBadRequest("POST or DELETE required")
+
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner:
+        return JsonResponse({"error": "غير مصرح بالحذف النهائي إلا للإدارة العامة"}, status=403)
+
+    order = get_object_or_404(Order, tenant=tenant, id=order_id)
+    order_number = order.order_number
+    order.delete()
+    return JsonResponse({"ok": True, "message": f"تم حذف الطلب {order_number} نهائياً من قاعدة البيانات"})
+
+
+# ==========================================
 # 5. BRANCH MENU AVAILABILITY VIEW
 # ==========================================
 
