@@ -35,6 +35,7 @@ from asgiref.sync import sync_to_async
 
 _current_session_key: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("_current_session_key", default=None)
 SESSION_ACCESS_KEYS: dict[str, str] = {}
+KEY_LATEST_SESSION: dict[str, str] = {}
 
 # Initialize FastMCP Server
 mcp = FastMCP(
@@ -55,11 +56,11 @@ def _check_key_valid(key: str) -> bool:
 class FastMCPAuthMiddleware:
     """
     ASGI Middleware to secure FastMCP Streamable-HTTP endpoints (/mcp, /sse).
-    Accepts access_key via:
-      - Query param:  ?access_key=...
-      - Header:       X-Access-Key: ...
-      - Header:       Authorization: Bearer ...
-      - Session ID:   mcp-session-id (restores key from established session)
+    Features:
+      - Authenticates via ?access_key=..., X-Access-Key, Authorization header, or mcp-session-id.
+      - Handles CORS preflight (OPTIONS) requests.
+      - Exposes 'mcp-session-id' header via Access-Control-Expose-Headers so Electron/Web clients can capture it.
+      - Auto-heals requests where client loses or omits session ID (e.g., subscriptions/listen) by attaching active session.
     """
     def __init__(self, app):
         self.app = app
@@ -67,6 +68,7 @@ class FastMCPAuthMiddleware:
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
             path = scope.get("path", "")
+            method = scope.get("method", "GET").upper()
 
             # Transparently alias /sse or /messages to /mcp for backward/cross compatibility
             if path in ("/sse", "/messages") or path.startswith("/sse/") or path.startswith("/messages/"):
@@ -80,12 +82,39 @@ class FastMCPAuthMiddleware:
 
             # Intercept /mcp endpoint (Streamable HTTP transport)
             if path == "/mcp" or path.startswith("/mcp/"):
-                key = self._extract_key(scope)
-                req_session_id = self._extract_header(scope, "mcp-session-id")
+                # Handle CORS preflight
+                if method == "OPTIONS":
+                    await send({
+                        "type": "http.response.start",
+                        "status": 200,
+                        "headers": [
+                            (b"access-control-allow-origin", b"*"),
+                            (b"access-control-allow-methods", b"GET, POST, DELETE, OPTIONS, HEAD"),
+                            (b"access-control-allow-headers", b"*"),
+                            (b"access-control-expose-headers", b"mcp-session-id, *"),
+                            (b"content-length", b"0"),
+                        ],
+                    })
+                    await send({"type": "http.response.body", "body": b""})
+                    return
 
-                # If no key in URL/headers, try to restore from established session ID
-                if not key and req_session_id:
-                    key = SESSION_ACCESS_KEYS.get(req_session_id)
+                key = self._extract_key(scope)
+                raw_session_id = self._extract_header(scope, "mcp-session-id")
+
+                # If session ID was provided and valid in cache, retrieve key
+                if not key and raw_session_id and raw_session_id in SESSION_ACCESS_KEYS:
+                    key = SESSION_ACCESS_KEYS[raw_session_id]
+
+                # Fallback to key associated with latest active session
+                if not key and raw_session_id:
+                    for k, sid in list(KEY_LATEST_SESSION.items()):
+                        if sid == raw_session_id:
+                            key = k
+                            break
+
+                # If still no key, but there is only one active key in system or latest session
+                if not key and len(KEY_LATEST_SESSION) == 1:
+                    key = list(KEY_LATEST_SESSION.keys())[0]
 
                 if not key:
                     await self._reject(send, 401, "مفتاح الدخول (Access Key) مطلوب. مرره في ?access_key=... أو عبر Headers.")
@@ -96,20 +125,45 @@ class FastMCPAuthMiddleware:
                     await self._reject(send, 401, "مفتاح الدخول (Access Key) غير صالح أو تم إيقافه.")
                     return
 
-                # If session ID was already present in request, cache the key
-                if req_session_id:
-                    SESSION_ACCESS_KEYS[req_session_id] = key
+                # Clean scope headers: remove any empty mcp-session-id header
+                orig_headers = list(scope.get("headers", []))
+                cleaned_headers = [
+                    (k, v) for k, v in orig_headers
+                    if not (k.lower() == b"mcp-session-id" and not v.strip())
+                ]
+
+                # If request has NO session id (or had empty one), but an active session exists for this key:
+                # Auto-inject the active session ID so stateful endpoints (like subscriptions/listen) succeed!
+                active_sid = KEY_LATEST_SESSION.get(key)
+                has_valid_sid = any(k.lower() == b"mcp-session-id" and v.strip() for k, v in cleaned_headers)
+                
+                # For GET requests (subscriptions/listen) or POST calls after initialization:
+                if not has_valid_sid and active_sid:
+                    cleaned_headers.append((b"mcp-session-id", active_sid.encode("latin1")))
+
+                scope["headers"] = cleaned_headers
 
                 # Set key in contextvar so MCP tools can access it via _authenticate()
                 token = _current_session_key.set(key)
 
-                # Intercept response to catch newly issued mcp-session-id
+                # Intercept response to catch newly issued mcp-session-id and attach CORS expose headers
                 async def intercept_send(message):
                     if message.get("type") == "http.response.start":
-                        for h_name_b, h_val_b in message.get("headers", []):
+                        res_headers = list(message.get("headers", []))
+                        for h_name_b, h_val_b in res_headers:
                             if h_name_b.lower() == b"mcp-session-id":
                                 new_sid = h_val_b.decode("latin1").strip()
-                                SESSION_ACCESS_KEYS[new_sid] = key
+                                if new_sid:
+                                    SESSION_ACCESS_KEYS[new_sid] = key
+                                    KEY_LATEST_SESSION[key] = new_sid
+
+                        # Append CORS and Expose-Headers so clients in Electron/Web can read mcp-session-id
+                        res_headers.extend([
+                            (b"access-control-allow-origin", b"*"),
+                            (b"access-control-allow-headers", b"*"),
+                            (b"access-control-expose-headers", b"mcp-session-id, *"),
+                        ])
+                        message["headers"] = res_headers
                     await send(message)
 
                 try:
