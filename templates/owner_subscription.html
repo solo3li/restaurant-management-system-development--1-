@@ -469,11 +469,11 @@
                             <div class="flex items-center justify-center gap-2">
                                 <button 
                                     type="button" 
-                                    onclick="showClaudeConfig('{{ k.key }}', '{{ k.name }}')" 
-                                    class="px-2.5 py-1 rounded-lg bg-paper hover:bg-card border border-line text-brand-700 text-[11px] font-bold shadow-xs transition"
-                                    title="عرض إعدادات Claude Desktop الجاهزة"
+                                    onclick="showMcpConfigModal('{{ k.key }}', '{{ k.name }}')" 
+                                    class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-800 dark:text-purple-300 text-[11px] font-bold shadow-2xs transition flex items-center gap-1"
+                                    title="عرض إعدادات وكود ربط الذكاء الاصطناعي (MCP)"
                                 >
-                                    ⚙️ إعدادات Claude
+                                    ⚙️ إعدادات الذكاء الاصطناعي (MCP)
                                 </button>
                                 <button 
                                     type="button" 
@@ -717,50 +717,119 @@
     const serverPythonPath = "{{ python_path|escapejs }}";
     const serverManagePyPath = "{{ manage_py_path|escapejs }}";
 
+    let currentMcpKey = '';
+    let currentMcpUrl = '';
     let currentConfigText = '';
-    let currentSseUrl = '';
-    function showClaudeConfig(accessKey, botName) {
-        const sseUrl = `${window.location.origin}/mcp?access_key=${accessKey}`;
-        currentSseUrl = sseUrl;
+    let currentPipecatText = '';
 
+    function showMcpConfigModal(accessKey, botName) {
+        currentMcpKey = accessKey;
+        const origin = window.location.origin;
+        currentMcpUrl = `${origin}/mcp?access_key=${accessKey}`;
+
+        // 1. JSON Config (Antigravity IDE / Cursor / Claude Desktop)
         const configObj = {
             "mcpServers": {
                 "restaurant-callcenter": {
-                    "serverUrl": sseUrl
+                    "serverUrl": currentMcpUrl
                 }
             }
         };
-
         currentConfigText = JSON.stringify(configObj, null, 2);
-        document.getElementById('claude-config-json').innerText = currentConfigText;
-        document.getElementById('claude-sse-url-input').value = sseUrl;
-        document.getElementById('claude-config-modal').classList.remove('hidden');
+        const jsonPre = document.getElementById('mcp-config-json');
+        if (jsonPre) jsonPre.innerText = currentConfigText;
+
+        // 2. Pipecat Voice AI Python snippet
+        currentPipecatText = `# تثبيت الحزمة أولاً: pip install "pipecat-ai[mcp]"
+from mcp.client.session_group import StreamableHttpParameters
+from pipecat.services.mcp_service import MCPClient
+
+# ربط بوت الكول سنتر الصوتي بسيرفر المنشأة
+mcp_client = MCPClient(
+    server_params=StreamableHttpParameters(
+        url="${currentMcpUrl}"
+    )
+)
+
+# جلب كافة أدوات المطعم (الفروع، المنيو، العملاء، ضرب الأوردرات)
+restaurant_tools = await mcp_client.tools()`;
+        const pipecatPre = document.getElementById('mcp-pipecat-code');
+        if (pipecatPre) pipecatPre.innerText = currentPipecatText;
+
+        // 3. Direct URL Input
+        const urlInput = document.getElementById('mcp-url-input');
+        if (urlInput) urlInput.value = currentMcpUrl;
+
+        // Reset to first tab
+        switchMcpTab('json');
+
+        const modal = document.getElementById('mcp-config-modal');
+        if (modal) modal.classList.remove('hidden');
     }
 
+    // Alias for backward compatibility
+    window.showClaudeConfig = showMcpConfigModal;
 
-
-    function closeClaudeConfigModal() {
-        document.getElementById('claude-config-modal').classList.add('hidden');
-        location.reload();
+    function switchMcpTab(tabName) {
+        // Tab buttons
+        const tabs = ['json', 'pipecat', 'url'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`mcp-tab-btn-${t}`);
+            const content = document.getElementById(`mcp-tab-content-${t}`);
+            if (t === tabName) {
+                if (btn) {
+                    btn.classList.add('bg-purple-600', 'text-white', 'shadow-xs');
+                    btn.classList.remove('text-soft', 'hover:text-ink', 'hover:bg-paper');
+                }
+                if (content) content.classList.remove('hidden');
+            } else {
+                if (btn) {
+                    btn.classList.remove('bg-purple-600', 'text-white', 'shadow-xs');
+                    btn.classList.add('text-soft', 'hover:text-ink', 'hover:bg-paper');
+                }
+                if (content) content.classList.add('hidden');
+            }
+        });
     }
 
-    function copySseUrl() {
-        if (!currentSseUrl) return;
-        navigator.clipboard.writeText(currentSseUrl).then(() => {
-            showToast('تم نسخ الرابط السحابي المباشر (SSE URL) بنجاح!');
+    function closeMcpModal() {
+        const modal = document.getElementById('mcp-config-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    // Alias
+    window.closeClaudeConfigModal = closeMcpModal;
+
+    function copyMcpJson() {
+        if (!currentConfigText) return;
+        navigator.clipboard.writeText(currentConfigText).then(() => {
+            showToast('تم نسخ كود إعدادات JSON بنجاح!');
+        }).catch(() => {
+            showToast('يرجى نسخ الكود يدوياً');
+        });
+    }
+
+    function copyMcpPipecat() {
+        if (!currentPipecatText) return;
+        navigator.clipboard.writeText(currentPipecatText).then(() => {
+            showToast('تم نسخ كود Pipecat Voice AI بنجاح!');
+        }).catch(() => {
+            showToast('يرجى نسخ الكود يدوياً');
+        });
+    }
+
+    function copyMcpUrl() {
+        if (!currentMcpUrl) return;
+        navigator.clipboard.writeText(currentMcpUrl).then(() => {
+            showToast('تم نسخ الرابط السحابي المباشر بنجاح!');
         }).catch(() => {
             showToast('يرجى نسخ الرابط يدوياً');
         });
     }
 
-    function copyConfigJson() {
-        if (!currentConfigText) return;
-        navigator.clipboard.writeText(currentConfigText).then(() => {
-            showToast('تم نسخ كود إعدادات الذكاء الاصطناعي (MCP Config) بنجاح!');
-        }).catch(() => {
-            showToast('يرجى نسخ الكود يدوياً');
-        });
-    }
+    // Aliases
+    window.copyConfigJson = copyMcpJson;
+    window.copySseUrl = copyMcpUrl;
 
     function copyToClipboard(text, msg) {
         navigator.clipboard.writeText(text).then(() => {
@@ -813,77 +882,181 @@
 </div>
 
 <!-- ========================================== -->
-<!-- CLOUD FASTMCP SSE 24/7 CONFIG MODAL        -->
+<!-- ENHANCED FASTMCP CLOUD 24/7 CONFIG MODAL   -->
 <!-- ========================================== -->
-<div id="claude-config-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="card w-full max-w-lg p-6 shadow-2xl border-line animate-modal max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between pb-4 border-b border-line mb-4">
+<div id="mcp-config-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <!-- Keep alias ID for safety -->
+    <span id="claude-config-modal" class="hidden"></span>
+
+    <div class="card w-full max-w-xl p-6 shadow-2xl border-line animate-modal max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-line mb-4">
             <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
-                <span>📡 ربط الذكاء الاصطناعي السحابي (FastMCP SSE 24/7)</span>
+                <span>📡 ربط الذكاء الاصطناعي والكول سنتر (FastMCP 24/7)</span>
             </h3>
-            <button type="button" onclick="closeClaudeConfigModal()" class="text-soft hover:text-ink text-xl font-bold">✕</button>
+            <button type="button" onclick="closeMcpModal()" class="text-soft hover:text-ink text-xl font-bold p-1">✕</button>
         </div>
 
+        <!-- Hero info banner -->
         <div class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-900 dark:text-purple-200 mb-4 leading-relaxed">
             <p class="font-bold flex items-center gap-1.5 mb-1">
-                <span>⚡</span> يعمل 24/7 على السيرفر مباشرة دون برامج محلية:
+                <span>⚡</span> يعمل على مدار 24 ساعة سحابياً دون الحاجة لتشغيل أي برامج محلية:
             </p>
-            خدمة الكول سنتر السحابية تعمل عبر بروتوكول <b>Server-Sent Events (SSE)</b>. يمكنك ربطها مباشرة مع <b>Antigravity IDE</b>، <b>Cursor</b>، <b>Claude Desktop</b>، أو أي وكيل ذكاء اصطناعي صوتي عبر الرابط السحابي المباشر.
+            خادم FastMCP يتيح للوكلاء الأذكياء (المحررات البرمجية وبوتات الكول سنتر الصوتية) استعراض الفروع، جلب المنيو، فحص تغطية الكومبوندات، وضرب الأوردرات مباشرة في النظام.
         </div>
 
-        <!-- 1. Direct Cloud SSE URL -->
-        <div class="mb-4">
-            <label class="block text-xs font-bold text-ink mb-1.5 flex items-center justify-between">
-                <span>🌐 رابط الخادم السحابي المباشر (Cloud SSE URL):</span>
-                <span class="text-[10.5px] text-good-700 font-black">جاهز للاتصال ✓</span>
-            </label>
-            <div class="flex gap-2">
-                <input 
-                    type="text" 
-                    id="claude-sse-url-input" 
-                    readonly 
-                    class="input font-mono text-[11px] bg-paper select-all text-left dir-ltr flex-1"
-                >
-                <button 
-                    type="button" 
-                    onclick="copySseUrl()" 
-                    class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition shrink-0"
-                >
-                    📋 نسخ الرابط
-                </button>
+        <!-- Navigation Tabs -->
+        <div class="flex items-center gap-1.5 p-1 rounded-xl bg-paper border border-line mb-4 text-xs font-bold">
+            <button 
+                type="button" 
+                id="mcp-tab-btn-json" 
+                onclick="switchMcpTab('json')" 
+                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 bg-purple-600 text-white shadow-xs"
+            >
+                <span>⚙️</span> إعدادات JSON
+            </button>
+            <button 
+                type="button" 
+                id="mcp-tab-btn-pipecat" 
+                onclick="switchMcpTab('pipecat')" 
+                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 text-soft hover:text-ink hover:bg-paper"
+            >
+                <span>🎙️</span> Pipecat Voice AI
+            </button>
+            <button 
+                type="button" 
+                id="mcp-tab-btn-url" 
+                onclick="switchMcpTab('url')" 
+                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 text-soft hover:text-ink hover:bg-paper"
+            >
+                <span>🌐</span> الرابط المباشر
+            </button>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 1: JSON CONFIG (Antigravity, Claude, Cursor) -->
+        <!-- ============================================== -->
+        <div id="mcp-tab-content-json" class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-bold text-ink">
+                        كود ملف الإعدادات لـ Antigravity IDE / Cursor / Claude Desktop:
+                    </label>
+                    <span class="text-[10.5px] text-purple-700 font-bold">JSON Schema</span>
+                </div>
+                <div class="relative">
+                    <pre 
+                        id="mcp-config-json" 
+                        dir="ltr" 
+                        style="direction: ltr; text-align: left; unicode-bidi: isolate;"
+                        class="bg-night text-gold-300 font-mono text-[11.5px] p-4 rounded-xl overflow-x-auto border border-night-3 max-h-48 leading-relaxed select-all"
+                    ></pre>
+                    <!-- Fallback hidden pre for legacy JS -->
+                    <pre id="claude-config-json" class="hidden"></pre>
+                    <button 
+                        type="button" 
+                        onclick="copyMcpJson()" 
+                        class="absolute top-2.5 right-2.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition flex items-center gap-1"
+                    >
+                        <span>📋</span> نسخ الكود
+                    </button>
+                </div>
+            </div>
+
+            <!-- Path Help -->
+            <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5">
+                <p class="font-bold text-ink flex items-center gap-1.5">
+                    <span>💡</span> أين تضع هذا الكود في برامجك؟
+                </p>
+                <div class="space-y-1 text-[11px]">
+                    <div>• <b>Antigravity IDE:</b> ضع الكود في الملف: <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-ink bg-card px-1.5 py-0.5 rounded">%USERPROFILE%\.gemini\config\mcp_config.json</code></div>
+                    <div>• <b>Claude Desktop:</b> ضع الكود في: <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-ink bg-card px-1.5 py-0.5 rounded">%APPDATA%\Claude\claude_desktop_config.json</code></div>
+                    <div>• <b>Cursor:</b> في إعدادات Features > MCP > Add New Server أو في <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-ink bg-card px-1.5 py-0.5 rounded">.cursor/mcp.json</code></div>
+                </div>
             </div>
         </div>
 
-        <!-- 2. JSON Configuration -->
-        <div class="mb-4">
-            <label class="block text-xs font-bold text-ink mb-1.5">
-                ⚙️ كود الإعداد (JSON Config لـ Antigravity IDE / Cursor / Claude):
-            </label>
-            <div class="relative">
-                <pre id="claude-config-json" class="bg-night text-gold-300 font-mono text-[11px] p-4 rounded-xl overflow-x-auto border border-night-3 text-left dir-ltr max-h-48"></pre>
-                <button 
-                    type="button" 
-                    onclick="copyConfigJson()" 
-                    class="absolute top-2.5 right-2.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition"
-                >
-                    📋 نسخ الكود
-                </button>
+        <!-- ============================================== -->
+        <!-- TAB 2: PIPECAT VOICE AI (Voice Call Center Bot) -->
+        <!-- ============================================== -->
+        <div id="mcp-tab-content-pipecat" class="space-y-4 hidden">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-bold text-ink">
+                        كود بايثون للبوت الصوتي (Pipecat Voice Pipeline):
+                    </label>
+                    <span class="text-[10.5px] text-purple-700 font-bold">Python 3.10+</span>
+                </div>
+                <div class="relative">
+                    <pre 
+                        id="mcp-pipecat-code" 
+                        dir="ltr" 
+                        style="direction: ltr; text-align: left; unicode-bidi: isolate;"
+                        class="bg-night text-emerald-300 font-mono text-[11.5px] p-4 rounded-xl overflow-x-auto border border-night-3 max-h-56 leading-relaxed select-all"
+                    ></pre>
+                    <button 
+                        type="button" 
+                        onclick="copyMcpPipecat()" 
+                        class="absolute top-2.5 right-2.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition flex items-center gap-1"
+                    >
+                        <span>📋</span> نسخ كود البايثون
+                    </button>
+                </div>
+            </div>
+
+            <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5">
+                <p class="font-bold text-ink flex items-center gap-1.5">
+                    <span>🎙️</span> كيف يعمل مع مكالمات هاتف المطعم؟
+                </p>
+                <div class="text-[11px] leading-relaxed text-soft">
+                    عندما يتصل العميل تليفونياً (Twilio أو SIP)، يقوم Pipecat بتحويل صوته لنص، ثم يستدعي أدوات الـ FastMCP الخاصة بمطعمك (تحديد أقرب فرع، الأسعار الحية، وفحص الكومبوند)، ويقوم بإنشاء الأوردر في شاشة المطبخ ثم يرد بصوت الذكاء الاصطناعي لتأكيد الطلب مع العميل.
+                </div>
             </div>
         </div>
 
-        <!-- 3. Helper Path Note -->
-        <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5 mb-4">
-            <p class="font-bold text-ink flex items-center gap-1.5">
-                <span>💡</span> مسار ملف الإعدادات في برامجك المفضلة:
-            </p>
-            <div class="space-y-1 text-[11px]">
-                <div>• <b>Antigravity IDE:</b> <code class="font-mono text-ink bg-card px-1.5 py-0.5 rounded dir-ltr">%USERPROFILE%\.gemini\config\mcp_config.json</code></div>
-                <div>• <b>Claude Desktop:</b> <code class="font-mono text-ink bg-card px-1.5 py-0.5 rounded dir-ltr">%APPDATA%\Claude\claude_desktop_config.json</code></div>
+        <!-- ============================================== -->
+        <!-- TAB 3: DIRECT CLOUD URL                        -->
+        <!-- ============================================== -->
+        <div id="mcp-tab-content-url" class="space-y-4 hidden">
+            <div>
+                <label class="block text-xs font-bold text-ink mb-1.5 flex items-center justify-between">
+                    <span>🌐 الرابط السحابي المباشر (Cloud Server URL):</span>
+                    <span class="text-[10.5px] text-good-700 font-black">نشط 24/7 ✓</span>
+                </label>
+                <div class="flex gap-2">
+                    <input 
+                        type="text" 
+                        id="mcp-url-input" 
+                        readonly 
+                        dir="ltr"
+                        style="direction: ltr; text-align: left;"
+                        class="input font-mono text-[11px] bg-paper select-all flex-1"
+                    >
+                    <!-- Fallback hidden input for legacy scripts -->
+                    <input type="hidden" id="claude-sse-url-input">
+                    <button 
+                        type="button" 
+                        onclick="copyMcpUrl()" 
+                        class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition shrink-0 flex items-center gap-1"
+                    >
+                        <span>📋</span> نسخ الرابط
+                    </button>
+                </div>
+            </div>
+
+            <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5">
+                <p class="font-bold text-ink flex items-center gap-1.5">
+                    <span>ℹ️</span> البروتوكولات المدعومة على هذا الرابط:
+                </p>
+                <div class="space-y-1 text-[11px] text-soft">
+                    <div>• <b>Streamable-HTTP (/mcp):</b> البروتوكول الحديث والموصى به لجميع الوكلاء والـ IDEs.</div>
+                    <div>• <b>SSE Legacy (/sse):</b> يعمل تلقائياً وبشكل متوافق مع أي تطبيق يعتمد على Server-Sent Events.</div>
+                    <div>• <b>الأمان:</b> مفتاح <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-purple-700">access_key</code> محمي ومربوط بمنشأتك لمنع الوصول غير المصرح به.</div>
+                </div>
             </div>
         </div>
 
-        <div class="flex justify-end">
-            <button type="button" onclick="closeClaudeConfigModal()" class="px-5 py-2 rounded-xl bg-card border border-line text-ink text-xs font-bold hover:bg-paper">
+        <div class="flex justify-end pt-4 border-t border-line mt-4">
+            <button type="button" onclick="closeMcpModal()" class="px-5 py-2 rounded-xl bg-card border border-line text-ink text-xs font-bold hover:bg-paper transition">
                 إغلاق
             </button>
         </div>
