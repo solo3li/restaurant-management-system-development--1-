@@ -141,6 +141,19 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
             f"تم رفض {rejected_count} طلب ترقية."
         )
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if obj.status == "approved":
+            self.message_user(
+                request,
+                f"تمت الموافقة وتحديث باقة منشأة «{obj.tenant.name}» إلى «{obj.requested_plan.name}» وتمديد الصلاحية بنجاح."
+            )
+        elif obj.status == "rejected":
+            self.message_user(
+                request,
+                f"تم تسجيل رفض طلب ترقية منشأة «{obj.tenant.name}»."
+            )
+
 
 @admin.register(Tenant)
 class TenantAdmin(admin.ModelAdmin):

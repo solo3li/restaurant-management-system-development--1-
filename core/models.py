@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -729,4 +730,38 @@ class UpgradeRequest(models.Model):
 
     def __str__(self):
         return f"طلب {self.tenant.name} -> {self.requested_plan.name} ({self.get_status_display()})"
+
+    def apply_upgrade(self):
+        """Apply requested plan and extension to the tenant."""
+        tenant = self.tenant
+        tenant.subscription_plan = self.requested_plan
+        tenant.billing_cycle = self.billing_cycle
+        tenant.subscription_status = "active"
+
+        extension_days = 365 if self.billing_cycle == "yearly" else 30
+        base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
+        tenant.subscription_end = base_time + timedelta(days=extension_days)
+        tenant.save()
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        old_status = None
+        if not is_new:
+            try:
+                old_status = UpgradeRequest.objects.filter(pk=self.pk).values_list("status", flat=True).first()
+            except Exception:
+                pass
+
+        if self.status == "approved":
+            if not self.reviewed_at:
+                self.reviewed_at = timezone.now()
+            # If newly approved or tenant's current plan doesn't match requested plan:
+            if is_new or old_status != "approved" or (self.tenant.subscription_plan_id != self.requested_plan_id):
+                self.apply_upgrade()
+        elif self.status == "rejected":
+            if not self.reviewed_at:
+                self.reviewed_at = timezone.now()
+
+        super().save(*args, **kwargs)
+
 
