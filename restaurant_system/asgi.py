@@ -23,7 +23,8 @@ async def application(scope, receive, send):
 
     if scope_type in ("http", "websocket"):
         path = scope.get("path", "")
-        if path.startswith("/sse") or path.startswith("/messages") or path.startswith("/mcp"):
+        # Route FastMCP Streamable-HTTP & SSE traffic + OAuth discovery
+        if path.startswith("/mcp") or path.startswith("/sse") or path.startswith("/messages") or path.startswith("/.well-known"):
             await mcp_application(scope, receive, send)
             return
 

@@ -22,7 +22,8 @@ if not os.environ.get("DJANGO_SETTINGS_MODULE"):
 
 
 import django
-if not django.conf.settings.configured:
+from django.conf import settings
+if not settings.configured:
     django.setup()
 
 from django.db import models
@@ -51,8 +52,15 @@ def _check_key_valid(key: str) -> bool:
     return TenantApiKey.objects.filter(key=key, is_active=True).exists()
 
 
-class FastMCPSseAuthMiddleware:
-    """ASGI Middleware to secure SSE endpoints and manage session-level access keys."""
+class FastMCPAuthMiddleware:
+    """
+    ASGI Middleware to secure FastMCP Streamable-HTTP endpoints (/mcp, /sse).
+    Accepts access_key via:
+      - Query param:  ?access_key=...
+      - Header:       X-Access-Key: ...
+      - Header:       Authorization: Bearer ...
+      - Session ID:   mcp-session-id (restores key from established session)
+    """
     def __init__(self, app):
         self.app = app
 
@@ -60,89 +68,103 @@ class FastMCPSseAuthMiddleware:
         if scope["type"] == "http":
             path = scope.get("path", "")
 
-            # Intercept /sse connection requests
-            if path.startswith("/sse") or path == "/sse":
-                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
-                params = parse_qs(query_string)
-                key = params.get("access_key", [None])[0]
+            # Transparently alias /sse or /messages to /mcp for backward/cross compatibility
+            if path in ("/sse", "/messages") or path.startswith("/sse/") or path.startswith("/messages/"):
+                scope["path"] = "/mcp"
+                path = "/mcp"
+
+            # Allow OAuth discovery and health endpoints without auth
+            if path.startswith("/.well-known"):
+                await self.app(scope, receive, send)
+                return
+
+            # Intercept /mcp endpoint (Streamable HTTP transport)
+            if path == "/mcp" or path.startswith("/mcp/"):
+                key = self._extract_key(scope)
+                req_session_id = self._extract_header(scope, "mcp-session-id")
+
+                # If no key in URL/headers, try to restore from established session ID
+                if not key and req_session_id:
+                    key = SESSION_ACCESS_KEYS.get(req_session_id)
 
                 if not key:
-                    for h_name_b, h_val_b in scope.get("headers", []):
-                        h_name = h_name_b.decode("latin1").lower()
-                        if h_name == "x-access-key":
-                            key = h_val_b.decode("latin1").strip()
-                            break
-                        elif h_name == "authorization":
-                            auth_str = h_val_b.decode("latin1").strip()
-                            key = auth_str[7:].strip() if auth_str.startswith("Bearer ") else auth_str
-                            break
-
-                if not key:
-                    body = "مفتاح الدخول (Access Key) مطلوب. مرره في رابط الاتصال ?access_key=... أو عبر Headers.\n".encode("utf-8")
-                    await send({
-                        "type": "http.response.start",
-                        "status": 401,
-                        "headers": [
-                            (b"content-type", b"text/plain; charset=utf-8"),
-                            (b"content-length", str(len(body)).encode("ascii")),
-                        ],
-                    })
-                    await send({"type": "http.response.body", "body": body})
+                    await self._reject(send, 401, "مفتاح الدخول (Access Key) مطلوب. مرره في ?access_key=... أو عبر Headers.")
                     return
 
                 is_valid = await sync_to_async(_check_key_valid)(key)
                 if not is_valid:
-                    body = "مفتاح الدخول (Access Key) غير صالح أو تم إيقافه.\n".encode("utf-8")
-                    await send({
-                        "type": "http.response.start",
-                        "status": 401,
-                        "headers": [
-                            (b"content-type", b"text/plain; charset=utf-8"),
-                            (b"content-length", str(len(body)).encode("ascii")),
-                        ],
-                    })
-                    await send({"type": "http.response.body", "body": body})
+                    await self._reject(send, 401, "مفتاح الدخول (Access Key) غير صالح أو تم إيقافه.")
                     return
 
-                # Record session_id from SSE endpoint event
+                # If session ID was already present in request, cache the key
+                if req_session_id:
+                    SESSION_ACCESS_KEYS[req_session_id] = key
+
+                # Set key in contextvar so MCP tools can access it via _authenticate()
+                token = _current_session_key.set(key)
+
+                # Intercept response to catch newly issued mcp-session-id
                 async def intercept_send(message):
-                    if message["type"] == "http.response.body":
-                        body_chunk = message.get("body", b"").decode("utf-8", errors="ignore")
-                        if "session_id=" in body_chunk:
-                            try:
-                                for part in body_chunk.split():
-                                    if "session_id=" in part:
-                                        s_id = part.split("session_id=")[-1].strip()
-                                        SESSION_ACCESS_KEYS[s_id] = key
-                            except Exception:
-                                pass
+                    if message.get("type") == "http.response.start":
+                        for h_name_b, h_val_b in message.get("headers", []):
+                            if h_name_b.lower() == b"mcp-session-id":
+                                new_sid = h_val_b.decode("latin1").strip()
+                                SESSION_ACCESS_KEYS[new_sid] = key
                     await send(message)
 
-                await self.app(scope, receive, intercept_send)
+                try:
+                    await self.app(scope, receive, intercept_send)
+                finally:
+                    _current_session_key.reset(token)
                 return
-
-            # Intercept /messages POST requests
-            elif path.startswith("/messages") or path == "/messages":
-                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
-                params = parse_qs(query_string)
-                s_id = params.get("session_id", [None])[0]
-                session_key = SESSION_ACCESS_KEYS.get(s_id) if s_id else None
-
-                if session_key:
-                    token = _current_session_key.set(session_key)
-                    try:
-                        await self.app(scope, receive, send)
-                    finally:
-                        _current_session_key.reset(token)
-                    return
 
         await self.app(scope, receive, send)
 
+    def _extract_header(self, scope, header_name: str) -> Optional[str]:
+        target = header_name.lower().encode("latin1")
+        for h_name_b, h_val_b in scope.get("headers", []):
+            if h_name_b.lower() == target:
+                return h_val_b.decode("latin1").strip()
+        return None
+
+    def _extract_key(self, scope) -> Optional[str]:
+        """Extract access key from query params or headers."""
+        query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
+        params = parse_qs(query_string)
+        key = params.get("access_key", [None])[0]
+        if key:
+            return key.strip()
+
+        x_key = self._extract_header(scope, "x-access-key")
+        if x_key:
+            return x_key
+
+        auth = self._extract_header(scope, "authorization")
+        if auth:
+            if auth.startswith("Bearer "):
+                return auth[7:].strip()
+            return auth.strip()
+
+        return None
+
+    @staticmethod
+    async def _reject(send, status: int, message: str):
+        body = message.encode("utf-8")
+        await send({
+            "type": "http.response.start",
+            "status": status,
+            "headers": [
+                (b"content-type", b"text/plain; charset=utf-8"),
+                (b"content-length", str(len(body)).encode("ascii")),
+            ],
+        })
+        await send({"type": "http.response.body", "body": body})
+
 
 def get_mcp_asgi_app():
-    """Return the FastMCP SSE Starlette application wrapped with security and multi-tenant authentication."""
-    raw_app = mcp.http_app(transport="sse")
-    return FastMCPSseAuthMiddleware(raw_app)
+    """Return the FastMCP Streamable-HTTP app wrapped with access key authentication."""
+    raw_app = mcp.http_app()  # Default transport = streamable-http in FastMCP 4.x
+    return FastMCPAuthMiddleware(raw_app)
 
 
 def _authenticate(access_key: Optional[str] = None):
