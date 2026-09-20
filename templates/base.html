@@ -202,6 +202,9 @@
                 <a href="{% url 'dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">📊</span> لوحة الإدارة العامة
                 </a>
+                <a href="{% url 'hq_orders' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'hq_orders' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🧾</span> سجل كل الطلبات
+                </a>
                 <a href="{% url 'branches' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branches' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🏢</span> إدارة الفروع
                 </a>
@@ -308,6 +311,7 @@
         <div class="flex items-center gap-2 overflow-x-auto text-xs py-1">
             {% if is_hq_mode %}
             <a href="{% url 'dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">HQ</a>
+            <a href="{% url 'hq_orders' %}" class="px-2 py-1 rounded font-bold text-gold-300">الطلبات</a>
             <a href="{% url 'branches' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفروع</a>
             {% else %}
             <a href="{% url 'branch_dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفرع</a>

@@ -1,0 +1,636 @@
+{% extends "base.html" %}
+
+{% block title %}سجل كل الطلبات — الإدارة العامة (HQ){% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-night px-2.5 py-1 text-xs font-black text-gold-300">HQ • الإدارة العامة</span>
+                <h1 class="text-2xl font-black font-display text-ink">سجل كافة طلبات وفواتير الفروع</h1>
+            </div>
+            <p class="text-xs font-bold text-soft mt-1">
+                متابعة مركزية فورية لجميع المعاملات، الفواتير، وحالات الطلبات عبر كل فروع المنشأة
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'call_center' %}" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm flex items-center gap-1.5 transition">
+                <span>🎧</span> + طلب كول سنتر جديد
+            </a>
+            <a href="{% url 'dashboard' %}" class="rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft hover:text-ink shadow-sm transition">
+                ← لوحة HQ
+            </a>
+        </div>
+    </div>
+
+    <!-- 5 KPI Summary Cards -->
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        <!-- Total Orders -->
+        <div class="card p-4 border-l-4 border-l-night">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-soft">إجمالي الطلبات</span>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-night-2 text-gold-300 text-sm">🧾</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-ink">{{ total_orders }}</p>
+            <p class="text-[10px] font-bold text-soft mt-0.5">مطابقة للفلتر المحدد</p>
+        </div>
+
+        <!-- Total Revenue -->
+        <div class="card p-4 border-l-4 border-l-brand-600">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-soft">إجمالي الإيرادات</span>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-brand-700 text-sm">💰</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ total_revenue|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></p>
+            <p class="text-[10px] font-bold text-soft mt-0.5">باستثناء الطلبات الملغاة</p>
+        </div>
+
+        <!-- Pending Orders -->
+        <div class="card p-4 border-l-4 border-l-warn-600">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-soft">طلبات قيد المعالجة</span>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-warn-100 text-warn-700 text-sm">⏳</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-warn-700">{{ pending_orders }}</p>
+            <p class="text-[10px] font-bold text-soft mt-0.5">جديد، تحضير، وتوصيل</p>
+        </div>
+
+        <!-- Delivered Orders -->
+        <div class="card p-4 border-l-4 border-l-good-600">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-soft">تم التسليم بنجاح</span>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-good-100 text-good-700 text-sm">✅</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-good-700">{{ delivered_orders }}</p>
+            <p class="text-[10px] font-bold text-soft mt-0.5">طلبات مكتملة</p>
+        </div>
+
+        <!-- Cancelled Orders -->
+        <div class="card p-4 border-l-4 border-l-bad-600 col-span-2 sm:col-span-1">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-soft">طلبات ملغاة</span>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-bad-100 text-bad-700 text-sm">❌</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-bad-700">{{ cancelled_orders }}</p>
+            <p class="text-[10px] font-bold text-soft mt-0.5">عمليات ملغاة</p>
+        </div>
+    </div>
+
+    <!-- Advanced Filters Card -->
+    <div class="card p-4 shadow-sm">
+        <form method="GET" action="{% url 'hq_orders' %}" id="hq-orders-filter-form" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <!-- Branch Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-soft mb-1">🏢 الفرع:</label>
+                    <select name="branch" onchange="this.form.submit()" class="input text-xs font-bold">
+                        <option value="all">كل الفروع</option>
+                        {% for b in branches %}
+                        <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:"i" %}selected{% endif %}>
+                            {{ b.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-soft mb-1">📌 حالة الطلب:</label>
+                    <select name="status" onchange="this.form.submit()" class="input text-xs font-bold">
+                        <option value="all">كافة الحالات</option>
+                        {% for st_val, st_lbl in statuses %}
+                        <option value="{{ st_val }}" {% if status_filter == st_val %}selected{% endif %}>{{ st_lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Type Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-soft mb-1">🍽️ نوع الطلب:</label>
+                    <select name="type" onchange="this.form.submit()" class="input text-xs font-bold">
+                        <option value="all">كافة الأنواع</option>
+                        {% for t_val, t_lbl in order_types %}
+                        <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Payment Method Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-soft mb-1">💳 طريقة الدفع:</label>
+                    <select name="pay_method" onchange="this.form.submit()" class="input text-xs font-bold">
+                        <option value="all">كافة الطرق</option>
+                        {% for p_val, p_lbl in pay_choices %}
+                        <option value="{{ p_val }}" {% if pay_method_filter == p_val %}selected{% endif %}>{{ p_lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Range Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-soft mb-1">📅 الفترة الزمنية:</label>
+                    <select name="date" onchange="this.form.submit()" class="input text-xs font-bold">
+                        <option value="all" {% if date_filter == 'all' %}selected{% endif %}>كافة التواريخ</option>
+                        <option value="today" {% if date_filter == 'today' %}selected{% endif %}>اليوم</option>
+                        <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>أمس</option>
+                        <option value="week" {% if date_filter == 'week' %}selected{% endif %}>آخر 7 أيام</option>
+                        <option value="month" {% if date_filter == 'month' %}selected{% endif %}>آخر 30 يوماً</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Search and Action Row -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-line">
+                <div class="relative flex-1 w-full">
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-soft text-sm">🔍</span>
+                    <input 
+                        type="text" 
+                        name="q" 
+                        value="{{ search_query }}" 
+                        placeholder="ابحث برقم الطلب (مثال DIY-1001)، اسم العميل، رقم الهاتف، أو الكاشير…" 
+                        class="input text-xs pr-8 w-full"
+                    >
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                    <button type="submit" class="w-full sm:w-auto rounded-lg bg-night px-4 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow">
+                        بحث وتطبيق الفلاتر
+                    </button>
+                    {% if branch_filter != 'all' or status_filter != 'all' or type_filter != 'all' or pay_method_filter != 'all' or date_filter != 'all' or search_query %}
+                    <a href="{% url 'hq_orders' %}" class="w-full sm:w-auto text-center rounded-lg bg-bad-100 px-3.5 py-2 text-xs font-bold text-bad-700 hover:bg-bad-200 transition">
+                        ✕ إعادة ضبط
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Orders Table Card -->
+    <div class="card overflow-hidden shadow-md">
+        <div class="flex items-center justify-between border-b border-line px-5 py-3.5 bg-paper/40">
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-black font-display text-ink">قائمة الطلبات</span>
+                <span class="rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-black text-brand-700">
+                    {{ orders|length }} من {{ total_orders }} طلب
+                </span>
+            </div>
+            <p class="text-[11px] text-soft font-bold">
+                اضغط على أي طلب أو زر "التفاصيل" لمشاهدة كامل الفاتورة والأصناف
+            </p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead class="border-b border-line bg-paper/80">
+                    <tr>
+                        <th class="th">رقم الطلب / القناة</th>
+                        <th class="th">الفرع</th>
+                        <th class="th">النوع</th>
+                        <th class="th">العميل</th>
+                        <th class="th">الكاشير / السائق</th>
+                        <th class="th">طريقة الدفع</th>
+                        <th class="th">الإجمالي</th>
+                        <th class="th">الحالة</th>
+                        <th class="th">التاريخ والوقت</th>
+                        <th class="th text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line/70">
+                    {% for o in orders %}
+                    <tr class="hover:bg-paper/50 transition cursor-pointer" onclick="openOrderModal('order-{{ o.id }}')">
+                        <!-- Order Number & Channel -->
+                        <td class="td">
+                            <span class="font-extrabold text-ink text-sm block">{{ o.order_number }}</span>
+                            <span class="text-[10px] text-soft font-bold">
+                                {% if o.channel == 'call_center' %}🎧 كول سنتر{% else %}💻 كاشير{% endif %}
+                            </span>
+                        </td>
+
+                        <!-- Branch -->
+                        <td class="td">
+                            <span class="inline-flex items-center gap-1 rounded-md bg-night-2/10 px-2 py-1 text-xs font-bold text-ink border border-line">
+                                🏢 {{ o.branch.name|default:"غير محدد" }}
+                            </span>
+                        </td>
+
+                        <!-- Order Type -->
+                        <td class="td">
+                            <span class="rounded-md px-2 py-0.5 text-[11px] font-bold
+                                {% if o.order_type == 'dine_in' %}bg-brand-100 text-brand-700
+                                {% elif o.order_type == 'takeaway' %}bg-paper border border-line text-ink
+                                {% else %}bg-info-100 text-info-700{% endif %}">
+                                {% if o.order_type == 'dine_in' %}🍽️ محلي
+                                {% elif o.order_type == 'takeaway' %}🛍️ سفري
+                                {% else %}🛵 توصيل{% endif %}
+                            </span>
+                        </td>
+
+                        <!-- Customer -->
+                        <td class="td">
+                            <p class="font-bold text-ink">{{ o.customer_name }}</p>
+                            {% if o.customer_phone %}
+                            <p class="text-[10px] text-soft font-mono" dir="ltr">{{ o.customer_phone }}</p>
+                            {% endif %}
+                        </td>
+
+                        <!-- Staff / Driver -->
+                        <td class="td">
+                            <p class="text-ink font-bold">{{ o.cashier|default:"—" }}</p>
+                            {% if o.driver %}
+                            <p class="text-[10px] text-info-700 font-bold">🛵 {{ o.driver.name }}</p>
+                            {% endif %}
+                        </td>
+
+                        <!-- Payment -->
+                        <td class="td">
+                            <span class="font-bold text-ink block">{{ o.get_pay_method_display }}</span>
+                            <span class="text-[10px] {% if o.paid %}text-good-700 font-bold{% else %}text-bad-700{% endif %}">
+                                {% if o.paid %}✓ تم الدفع{% else %}معلق{% endif %}
+                            </span>
+                        </td>
+
+                        <!-- Total -->
+                        <td class="td">
+                            <span class="font-black text-brand-700 text-sm block">{{ o.total|floatformat:2 }}</span>
+                            <span class="text-[10px] font-bold text-soft">ر.س</span>
+                        </td>
+
+                        <!-- Status Badge -->
+                        <td class="td">
+                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold
+                                {% if o.status == 'delivered' %}bg-good-100 text-good-700
+                                {% elif o.status == 'out_for_delivery' %}bg-brand-100 text-brand-700
+                                {% elif o.status == 'ready' %}bg-good-100 text-good-700
+                                {% elif o.status == 'preparing' %}bg-warn-100 text-warn-700
+                                {% elif o.status == 'cancelled' %}bg-bad-100 text-bad-700
+                                {% else %}bg-info-100 text-info-700{% endif %}">
+                                {{ o.get_status_display }}
+                            </span>
+                        </td>
+
+                        <!-- Date/Time -->
+                        <td class="td text-soft">
+                            <p class="font-bold text-ink">{{ o.created_at|date:"Y-m-d" }}</p>
+                            <p class="text-[10px]">{{ o.created_at|time:"H:i" }}</p>
+                        </td>
+
+                        <!-- Action Button -->
+                        <td class="td text-center" onclick="event.stopPropagation()">
+                            <button 
+                                type="button" 
+                                onclick="openOrderModal('order-{{ o.id }}')"
+                                class="rounded-lg bg-paper border border-line px-2.5 py-1 text-xs font-bold text-brand-600 hover:bg-brand-50 hover:border-brand-300 transition shadow-sm"
+                            >
+                                🔍 عرض الفاتورة
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Hidden JSON data for this order modal -->
+                    <script id="data-order-{{ o.id }}" type="application/json">
+                        {
+                            "id": {{ o.id }},
+                            "order_number": "{{ o.order_number|escapejs }}",
+                            "branch": "{{ o.branch.name|default:'غير محدد'|escapejs }}",
+                            "order_type": "{{ o.get_order_type_display|escapejs }}",
+                            "channel": "{% if o.channel == 'call_center' %}كول سنتر مركزي{% else %}كاشير الفرع{% endif %}",
+                            "status": "{{ o.get_status_display|escapejs }}",
+                            "status_raw": "{{ o.status }}",
+                            "created_at": "{{ o.created_at|date:'Y-m-d H:i' }}",
+                            "customer_name": "{{ o.customer_name|escapejs }}",
+                            "customer_phone": "{{ o.customer_phone|escapejs }}",
+                            "address": "{{ o.address|escapejs }}",
+                            "cashier": "{{ o.cashier|default:'—'|escapejs }}",
+                            "driver": "{{ o.driver.name|default:''|escapejs }}",
+                            "notes": "{{ o.notes|escapejs }}",
+                            "pay_method": "{{ o.get_pay_method_display|escapejs }}",
+                            "paid": {{ o.paid|yesno:"true,false" }},
+                            "subtotal": "{{ o.subtotal|floatformat:2 }}",
+                            "delivery_fee": "{{ o.delivery_fee|floatformat:2 }}",
+                            "discount": "{{ o.discount|floatformat:2 }}",
+                            "total": "{{ o.total|floatformat:2 }}",
+                            "items": [
+                                {% for item in o.items.all %}
+                                {
+                                    "name": "{{ item.name|escapejs }}",
+                                    "qty": {{ item.qty }},
+                                    "price": "{{ item.price|floatformat:2 }}",
+                                    "line_total": "{{ item.line_total|floatformat:2 }}"
+                                }{% if not forloop.last %},{% endif %}
+                                {% endfor %}
+                            ]
+                        }
+                    </script>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="py-12 text-center text-soft">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <span class="text-3xl">🔍</span>
+                                <p class="text-sm font-bold text-ink">لم يتم العثور على أي طلبات مطابقة</p>
+                                <p class="text-xs text-soft">جرّب تغيير خيارات التصفية أو البحث</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Order Detail & Receipt Modal -->
+<div id="order-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-card border border-line shadow-2xl p-6" onclick="event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-line pb-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-xl font-bold">
+                    🧾
+                </span>
+                <div>
+                    <h2 class="text-lg font-black font-display text-ink" id="modal-order-number">طلب</h2>
+                    <p class="text-xs font-bold text-soft" id="modal-order-branch">الفرع</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="modal-order-status" class="rounded-lg px-2.5 py-1 text-xs font-bold bg-brand-100 text-brand-700">
+                    الحالة
+                </span>
+                <button type="button" onclick="closeOrderModal()" class="rounded-lg p-1.5 text-soft hover:bg-paper hover:text-ink text-lg font-bold">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <!-- Meta Info Grid -->
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+            <div class="rounded-xl bg-paper p-3">
+                <span class="text-soft text-[11px] block">نوع الطلب</span>
+                <span id="modal-order-type" class="font-bold text-ink mt-0.5 block">—</span>
+            </div>
+            <div class="rounded-xl bg-paper p-3">
+                <span class="text-soft text-[11px] block">القناة</span>
+                <span id="modal-order-channel" class="font-bold text-ink mt-0.5 block">—</span>
+            </div>
+            <div class="rounded-xl bg-paper p-3">
+                <span class="text-soft text-[11px] block">التاريخ والوقت</span>
+                <span id="modal-order-date" class="font-bold text-ink mt-0.5 block">—</span>
+            </div>
+            <div class="rounded-xl bg-paper p-3">
+                <span class="text-soft text-[11px] block">العميل</span>
+                <span id="modal-customer-name" class="font-bold text-ink mt-0.5 block">—</span>
+                <span id="modal-customer-phone" class="text-[10px] text-soft font-mono block" dir="ltr"></span>
+            </div>
+            <div class="rounded-xl bg-paper p-3">
+                <span class="text-soft text-[11px] block">الكاشير</span>
+                <span id="modal-order-cashier" class="font-bold text-ink mt-0.5 block">—</span>
+            </div>
+            <div class="rounded-xl bg-paper p-3">
+                <span class="text-soft text-[11px] block">طريقة الدفع</span>
+                <span id="modal-order-pay" class="font-bold text-ink mt-0.5 block">—</span>
+            </div>
+        </div>
+
+        <!-- Address & Notes if any -->
+        <div id="modal-address-box" class="mt-3 rounded-xl bg-info-100/50 border border-info-600/20 p-3 text-xs hidden">
+            <p class="font-bold text-info-700">📍 عنوان التوصيل:</p>
+            <p id="modal-order-address" class="text-ink mt-0.5"></p>
+        </div>
+        <div id="modal-notes-box" class="mt-2 rounded-xl bg-warn-100/50 border border-warn-600/20 p-3 text-xs hidden">
+            <p class="font-bold text-warn-700">📝 ملاحظات الطلب:</p>
+            <p id="modal-order-notes" class="text-ink mt-0.5"></p>
+        </div>
+
+        <!-- Items Table -->
+        <div class="mt-4 border border-line rounded-xl overflow-hidden">
+            <div class="bg-paper px-3.5 py-2 border-b border-line text-xs font-bold text-ink">
+                أصناف الطلب
+            </div>
+            <table class="w-full text-right text-xs">
+                <thead class="bg-paper/50 border-b border-line text-soft text-[11px]">
+                    <tr>
+                        <th class="p-2.5">الصنف</th>
+                        <th class="p-2.5 text-center">الكمية</th>
+                        <th class="p-2.5 text-left">السعر</th>
+                        <th class="p-2.5 text-left">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-items-tbody" class="divide-y divide-line/60">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="mt-4 rounded-xl bg-paper p-3.5 text-xs space-y-1.5">
+            <div class="flex justify-between text-soft">
+                <span>المجموع الفرعي:</span>
+                <span id="modal-subtotal" class="font-bold text-ink">0.00 ر.س</span>
+            </div>
+            <div class="flex justify-between text-soft" id="modal-delivery-row">
+                <span>رسوم التوصيل:</span>
+                <span id="modal-delivery-fee" class="font-bold text-ink">0.00 ر.س</span>
+            </div>
+            <div class="flex justify-between text-soft" id="modal-discount-row">
+                <span>الخصم:</span>
+                <span id="modal-discount" class="font-bold text-bad-700">0.00 ر.س</span>
+            </div>
+            <div class="border-t border-line pt-2 flex justify-between items-center text-sm font-black">
+                <span class="text-ink">المبلغ الإجمالي النهائي:</span>
+                <span id="modal-total" class="text-brand-700 text-base">0.00 ر.س</span>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
+            <button 
+                type="button" 
+                onclick="printModalReceipt()" 
+                class="rounded-xl bg-night px-4 py-2.5 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow flex items-center gap-1.5"
+            >
+                <span>🖨️</span> طباعة الفاتورة
+            </button>
+            <button 
+                type="button" 
+                onclick="closeOrderModal()" 
+                class="rounded-xl bg-paper border border-line px-5 py-2.5 text-xs font-bold text-soft hover:text-ink transition"
+            >
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let activeModalOrder = null;
+
+    function openOrderModal(dataKey) {
+        const scriptEl = document.getElementById('data-' + dataKey);
+        if (!scriptEl) return;
+        
+        try {
+            const data = JSON.parse(scriptEl.textContent);
+            activeModalOrder = data;
+
+            document.getElementById('modal-order-number').textContent = data.order_number;
+            document.getElementById('modal-order-branch').textContent = '🏢 فرع: ' + data.branch;
+            document.getElementById('modal-order-status').textContent = data.status;
+            
+            document.getElementById('modal-order-type').textContent = data.order_type;
+            document.getElementById('modal-order-channel').textContent = data.channel;
+            document.getElementById('modal-order-date').textContent = data.created_at;
+            document.getElementById('modal-customer-name').textContent = data.customer_name;
+            document.getElementById('modal-customer-phone').textContent = data.customer_phone || '—';
+            document.getElementById('modal-order-cashier').textContent = data.cashier;
+            document.getElementById('modal-order-pay').textContent = data.pay_method + (data.paid ? ' (مدفوع)' : ' (غير مدفوع)');
+
+            // Address
+            const addrBox = document.getElementById('modal-address-box');
+            if (data.address && data.address.trim() !== '') {
+                document.getElementById('modal-order-address').textContent = data.address;
+                addrBox.classList.remove('hidden');
+            } else {
+                addrBox.classList.add('hidden');
+            }
+
+            // Notes
+            const notesBox = document.getElementById('modal-notes-box');
+            if (data.notes && data.notes.trim() !== '') {
+                document.getElementById('modal-order-notes').textContent = data.notes;
+                notesBox.classList.remove('hidden');
+            } else {
+                notesBox.classList.add('hidden');
+            }
+
+            // Items tbody
+            const tbody = document.getElementById('modal-items-tbody');
+            tbody.innerHTML = '';
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(it => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-paper/30';
+                    tr.innerHTML = `
+                        <td class="p-2.5 font-bold text-ink">${it.name}</td>
+                        <td class="p-2.5 text-center font-bold text-ink">${it.qty}</td>
+                        <td class="p-2.5 text-left text-soft">${it.price} ر.س</td>
+                        <td class="p-2.5 text-left font-black text-brand-700">${it.line_total} ر.س</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-soft">لا توجد تفاصيل أصناف مسجلة</td></tr>';
+            }
+
+            // Financials
+            document.getElementById('modal-subtotal').textContent = data.subtotal + ' ر.س';
+            document.getElementById('modal-delivery-fee').textContent = data.delivery_fee + ' ر.س';
+            document.getElementById('modal-discount').textContent = '-' + data.discount + ' ر.س';
+            document.getElementById('modal-total').textContent = data.total + ' ر.س';
+
+            const modal = document.getElementById('order-detail-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } catch (e) {
+            console.error('Error opening order modal:', e);
+        }
+    }
+
+    function closeOrderModal() {
+        const modal = document.getElementById('order-detail-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        activeModalOrder = null;
+    }
+
+    // Close modal when pressing ESC or clicking outside
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeOrderModal();
+        }
+    });
+
+    const modalOverlay = document.getElementById('order-detail-modal');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                closeOrderModal();
+            }
+        });
+    }
+
+    function printModalReceipt() {
+        if (!activeModalOrder) return;
+        const o = activeModalOrder;
+        
+        let itemsHtml = '';
+        o.items.forEach(it => {
+            itemsHtml += `
+                <tr>
+                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${it.name}</td>
+                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: center;">${it.qty}</td>
+                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: left;">${it.line_total} ر.س</td>
+                </tr>
+            `;
+        });
+
+        const printWin = window.open('', '', 'width=450,height=600');
+        printWin.document.write(`
+            <html dir="rtl">
+            <head>
+                <title>فاتورة ${o.order_number}</title>
+                <style>
+                    body { font-family: 'Courier New', Courier, monospace, sans-serif; font-size: 12px; margin: 15px; color: #000; }
+                    .header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
+                    .title { font-size: 16px; font-weight: bold; }
+                    .row { display: flex; justify-content: space-between; margin: 3px 0; }
+                    table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+                    .total-row { font-size: 14px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="title">مطاعم ضيافة</div>
+                    <div>فرع: ${o.branch}</div>
+                    <div>رقم الطلب: ${o.order_number}</div>
+                    <div>التاريخ: ${o.created_at}</div>
+                </div>
+                <div class="row"><span>العميل:</span><span>${o.customer_name}</span></div>
+                ${o.customer_phone ? `<div class="row"><span>الهاتف:</span><span>${o.customer_phone}</span></div>` : ''}
+                <div class="row"><span>النوع:</span><span>${o.order_type}</span></div>
+                <div class="row"><span>الكاشير:</span><span>${o.cashier}</span></div>
+                <table>
+                    <thead>
+                        <tr style="border-bottom: 1px solid #000;">
+                            <th style="text-align: right;">الصنف</th>
+                            <th style="text-align: center;">الكمية</th>
+                            <th style="text-align: left;">المجموع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="row"><span>المجموع الفرعي:</span><span>${o.subtotal} ر.س</span></div>
+                ${parseFloat(o.delivery_fee) > 0 ? `<div class="row"><span>رسوم التوصيل:</span><span>${o.delivery_fee} ر.س</span></div>` : ''}
+                ${parseFloat(o.discount) > 0 ? `<div class="row"><span>الخصم:</span><span>-${o.discount} ر.س</span></div>` : ''}
+                <div class="row total-row"><span>المبلغ الإجمالي:</span><span>${o.total} ر.س</span></div>
+                <div class="row"><span>طريقة الدفع:</span><span>${o.pay_method}</span></div>
+                <div style="text-align: center; margin-top: 15px; font-size: 11px;">
+                    شكراً لاختياركم مطاعم ضيافة!
+                </div>
+            </body>
+            </html>
+        `);
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(() => {
+            printWin.print();
+            printWin.close();
+        }, 300);
+    }
+</script>
+{% endblock %}

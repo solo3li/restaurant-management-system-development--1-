@@ -553,6 +553,98 @@ def branch_orders_view(request):
 
 
 # ==========================================
+# 4b. HQ / ALL BRANCHES ORDERS VIEW
+# ==========================================
+
+@login_required
+@ensure_csrf_cookie
+def hq_orders_view(request):
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    # If user is branch-locked and not an owner/admin, redirect to branch orders
+    if not is_owner and profile and profile.branch:
+        return redirect("branch_orders")
+
+    branches = Branch.objects.filter(tenant=tenant).order_by("name") if tenant else Branch.objects.none()
+
+    branch_filter = request.GET.get("branch", "all")
+    status_filter = request.GET.get("status", "all")
+    type_filter = request.GET.get("type", "all")
+    pay_method_filter = request.GET.get("pay_method", "all")
+    date_filter = request.GET.get("date", "all")
+    search = request.GET.get("q", "").strip()
+
+    orders_base = Order.objects.filter(tenant=tenant) if tenant else Order.objects.none()
+    orders = orders_base.select_related("branch", "customer", "driver").prefetch_related("items__menu_item").order_by("-created_at", "-id")
+
+    if branch_filter != "all" and branch_filter:
+        orders = orders.filter(branch_id=branch_filter)
+
+    if status_filter != "all" and status_filter:
+        orders = orders.filter(status=status_filter)
+
+    if type_filter != "all" and type_filter:
+        orders = orders.filter(order_type=type_filter)
+
+    if pay_method_filter != "all" and pay_method_filter:
+        orders = orders.filter(pay_method=pay_method_filter)
+
+    now = timezone.now()
+    start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    if date_filter == "today":
+        orders = orders.filter(created_at__gte=start_of_today)
+    elif date_filter == "yesterday":
+        yesterday_start = start_of_today - timedelta(days=1)
+        orders = orders.filter(created_at__gte=yesterday_start, created_at__lt=start_of_today)
+    elif date_filter == "week":
+        seven_days_ago = start_of_today - timedelta(days=6)
+        orders = orders.filter(created_at__gte=seven_days_ago)
+    elif date_filter == "month":
+        thirty_days_ago = start_of_today - timedelta(days=29)
+        orders = orders.filter(created_at__gte=thirty_days_ago)
+
+    if search:
+        orders = orders.filter(
+            Q(order_number__icontains=search) |
+            Q(customer_name__icontains=search) |
+            Q(customer_phone__icontains=search) |
+            Q(cashier__icontains=search) |
+            Q(branch__name__icontains=search)
+        )
+
+    # Summary metrics for the filtered queryset
+    total_orders = orders.count()
+    total_revenue = orders.exclude(status="cancelled").aggregate(s=Sum("total"))["s"] or Decimal("0")
+    pending_orders = orders.filter(status__in=["new", "preparing", "ready", "out_for_delivery"]).count()
+    delivered_orders = orders.filter(status="delivered").count()
+    cancelled_orders = orders.filter(status="cancelled").count()
+
+    context = {
+        "tenant": tenant,
+        "branches": branches,
+        "orders": orders[:100],
+        "total_orders": total_orders,
+        "total_revenue": total_revenue,
+        "pending_orders": pending_orders,
+        "delivered_orders": delivered_orders,
+        "cancelled_orders": cancelled_orders,
+        "branch_filter": branch_filter,
+        "status_filter": status_filter,
+        "type_filter": type_filter,
+        "pay_method_filter": pay_method_filter,
+        "date_filter": date_filter,
+        "search_query": search,
+        "statuses": Order.STATUS_CHOICES,
+        "order_types": Order.TYPE_CHOICES,
+        "pay_choices": Order.PAY_CHOICES,
+    }
+    return render(request, "hq_orders.html", context)
+
+
+# ==========================================
 # 5. BRANCH MENU AVAILABILITY VIEW
 # ==========================================
 

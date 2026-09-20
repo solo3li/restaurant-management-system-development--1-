@@ -19,6 +19,8 @@ class TenantMiddleware:
                 active_t_id = request.session.get("active_tenant_id")
                 if active_t_id:
                     request.tenant = Tenant.objects.filter(id=active_t_id, is_active=True).first()
+                elif profile and profile.tenant:
+                    request.tenant = profile.tenant
                 else:
                     # Default to first tenant if available
                     request.tenant = Tenant.objects.filter(is_active=True).first()

@@ -14,6 +14,9 @@
             <p class="text-xs font-bold text-soft mt-1">التقارير المجمعة، أداء الفروع، مسارات العمليات، ومتابعة الأسطول</p>
         </div>
         <div class="flex items-center gap-2">
+            <a href="{% url 'hq_orders' %}" class="inline-flex items-center gap-1.5 rounded-xl bg-night px-3.5 py-2 text-xs font-bold text-gold-300 shadow hover:bg-night-2 transition">
+                <span>🧾</span> سجل كل الطلبات ←
+            </a>
             <span class="inline-flex items-center gap-1.5 rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft shadow-sm">
                 <span>📅</span> اليوم: {% now "l, j F Y" %}
             </span>
@@ -33,14 +36,14 @@
         </div>
 
         <!-- Total Orders -->
-        <div class="card p-5 border-l-4 border-l-night">
+        <a href="{% url 'hq_orders' %}" class="card p-5 border-l-4 border-l-night hover:border-brand-500 transition block group">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">إجمالي الطلبات</span>
+                <span class="text-xs font-bold text-soft group-hover:text-brand-600 transition">إجمالي الطلبات (عرض الكل ←)</span>
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-night-2 text-gold-300 text-base">🧾</span>
             </div>
             <p class="mt-2 text-2xl font-black font-display text-ink">{{ orders_today }} <span class="text-xs font-bold text-soft">طلب</span></p>
             <p class="mt-1 text-xs font-bold text-soft">مباشر، سفري، وتوصيل كول سنتر</p>
-        </div>
+        </a>
 
         <!-- Active Deliveries -->
         <div class="card p-5 border-l-4 border-l-info-600">
