@@ -2,6 +2,8 @@ from datetime import timedelta
 from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
+from django.urls import path, reverse
+from django.shortcuts import redirect, get_object_or_404
 from .models import (
     Tenant,
     Branch,
@@ -81,6 +83,7 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         "billing_cycle_badge",
         "requested_by",
         "status_badge",
+        "quick_actions",
         "created_at",
         "reviewed_at",
     )
@@ -101,6 +104,63 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
             return format_html('<span style="color: #b53a2b; font-weight: bold;">✕ مرفوض</span>')
         return format_html('<span style="color: #a26a0d; font-weight: bold;">⏳ قيد المراجعة</span>')
 
+    @admin.display(description="إجراءات سريعة")
+    def quick_actions(self, obj):
+        if obj.status == "pending":
+            approve_url = reverse("admin:upgraderequest-approve", args=[obj.id])
+            reject_url = reverse("admin:upgraderequest-reject", args=[obj.id])
+            safe_tenant = obj.tenant.name.replace("'", "\\'")
+            safe_plan = obj.requested_plan.name.replace("'", "\\'")
+            return format_html(
+                '<a href="{}" onclick="return confirm(\'هل أنت متأكد من الموافقة على ترقية منشأة «{}» إلى باقة «{}»؟\');" '
+                'style="background-color: #257a4e; color: #ffffff; padding: 4px 9px; border-radius: 6px; font-weight: bold; '
+                'text-decoration: none; font-size: 11px; margin-left: 5px; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">✓ موافقة وتفعيل</a>'
+                '<a href="{}" onclick="return confirm(\'هل أنت متأكد من رفض طلب ترقية منشأة «{}»؟\');" '
+                'style="background-color: #b53a2b; color: #ffffff; padding: 4px 9px; border-radius: 6px; font-weight: bold; '
+                'text-decoration: none; font-size: 11px; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">✕ رفض</a>',
+                approve_url, safe_tenant, safe_plan,
+                reject_url, safe_tenant
+            )
+        elif obj.status == "approved":
+            return format_html('<span style="color: #257a4e; font-weight: bold; font-size: 11px;">مفعل ومعتمد ✓</span>')
+        return format_html('<span style="color: #b53a2b; font-weight: bold; font-size: 11px;">مرفوض ✕</span>')
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:req_id>/approve/",
+                self.admin_site.admin_view(self.quick_approve_view),
+                name="upgraderequest-approve",
+            ),
+            path(
+                "<int:req_id>/reject/",
+                self.admin_site.admin_view(self.quick_reject_view),
+                name="upgraderequest-reject",
+            ),
+        ]
+        return custom_urls + urls
+
+    def quick_approve_view(self, request, req_id):
+        req = get_object_or_404(UpgradeRequest, id=req_id)
+        req.status = "approved"
+        req.save()
+        self.message_user(
+            request,
+            f"تمت الموافقة بنجاح على طلب ترقية منشأة «{req.tenant.name}» إلى «{req.requested_plan.name}» وتمديد الصلاحية."
+        )
+        return redirect("admin:core_upgraderequest_changelist")
+
+    def quick_reject_view(self, request, req_id):
+        req = get_object_or_404(UpgradeRequest, id=req_id)
+        req.status = "rejected"
+        req.save()
+        self.message_user(
+            request,
+            f"تم تسجيل رفض طلب ترقية منشأة «{req.tenant.name}»."
+        )
+        return redirect("admin:core_upgraderequest_changelist")
+
     @admin.action(description="✓ الموافقة على طلبات الترقية المحددة وتفعيل الباقة فوراً")
     def approve_requests(self, request, queryset):
         approved_count = 0
@@ -109,16 +169,6 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
                 req.status = "approved"
                 req.reviewed_at = timezone.now()
                 req.save()
-
-                tenant = req.tenant
-                tenant.subscription_plan = req.requested_plan
-                tenant.billing_cycle = req.billing_cycle
-                tenant.subscription_status = "active"
-
-                extension_days = 365 if req.billing_cycle == "yearly" else 30
-                base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
-                tenant.subscription_end = base_time + timedelta(days=extension_days)
-                tenant.save()
                 approved_count += 1
 
         self.message_user(
