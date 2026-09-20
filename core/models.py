@@ -765,3 +765,25 @@ class UpgradeRequest(models.Model):
         super().save(*args, **kwargs)
 
 
+class RestaurantOwnerManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(role="owner")
+
+
+class RestaurantOwner(UserProfile):
+    objects = RestaurantOwnerManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "مالك منشأة / مطعم"
+        verbose_name_plural = "قائمة الملاك (Restaurant Owners)"
+
+
+class TenantSubscription(Tenant):
+    class Meta:
+        proxy = True
+        verbose_name = "مشترك / اشتراك منشأة"
+        verbose_name_plural = "قائمة المشتركين (Subscribers)"
+
+
+

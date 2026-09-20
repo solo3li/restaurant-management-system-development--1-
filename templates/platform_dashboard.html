@@ -24,11 +24,17 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <a href="#plans-section" class="rounded-xl border border-gold-300/30 bg-night-3 px-3.5 py-2.5 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="#plans-section" class="rounded-xl border border-gold-300/30 bg-night-3 px-3 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
                     💎 باقات الاشتراك
                 </a>
-                <button onclick="openAddTenantModal()" class="rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-black text-white hover:bg-brand-700 shadow-md transition">
+                <a href="#owners-section" class="rounded-xl border border-gold-300/30 bg-night-3 px-3 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
+                    👑 سجل الملاك
+                </a>
+                <a href="/admin/core/restaurantowner/" class="rounded-xl border border-gold-300/30 bg-night-3 px-3 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
+                    ⚙️ لوحة السوبر ادمن
+                </a>
+                <button onclick="openAddTenantModal()" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-black text-white hover:bg-brand-700 shadow-md transition">
                     + تسجيل مطعم جديد
                 </button>
             </div>
@@ -36,19 +42,28 @@
     </div>
 
     <!-- Platform KPI Stats -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 mb-6">
         <div class="card p-5 border-l-4 border-l-brand-600">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">إجمالي سلاسل المطاعم</span>
+                <span class="text-xs font-bold text-soft">سلاسل المطاعم</span>
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">🍽️</span>
             </div>
             <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ total_tenants }} <span class="text-xs font-bold text-soft">منشأة</span></p>
             <p class="mt-1 text-xs font-bold text-soft">مشتركون فعالون في النظام</p>
         </div>
 
+        <div class="card p-5 border-l-4 border-l-gold-500">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">ملاك المنشآت</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700 text-base">👑</span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-display text-amber-700">{{ total_owners }} <span class="text-xs font-bold text-soft">مالك</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">حسابات أصحاب المطاعم</p>
+        </div>
+
         <div class="card p-5 border-l-4 border-l-info-600">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">إجمالي الفروع التشغيلية</span>
+                <span class="text-xs font-bold text-soft">الفروع التشغيلية</span>
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info-100 text-info-700 text-base">🏢</span>
             </div>
             <p class="mt-2 text-2xl font-black font-display text-info-700">{{ total_branches }} <span class="text-xs font-bold text-soft">فرع</span></p>
@@ -57,7 +72,7 @@
 
         <div class="card p-5 border-l-4 border-l-good-600">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">كادر الموظفين والعمالة</span>
+                <span class="text-xs font-bold text-soft">كادر الموظفين</span>
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-good-100 text-good-700 text-base">👥</span>
             </div>
             <p class="mt-2 text-2xl font-black font-display text-good-700">{{ total_employees }} <span class="text-xs font-bold text-soft">موظف</span></p>
@@ -66,7 +81,7 @@
 
         <div class="card p-5 border-l-4 border-l-warn-600">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">إجمالي الطلبات المنفذة</span>
+                <span class="text-xs font-bold text-soft">الطلبات المنفذة</span>
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-warn-100 text-warn-700 text-base">🧾</span>
             </div>
             <p class="mt-2 text-2xl font-black font-display text-warn-700">{{ total_orders }} <span class="text-xs font-bold text-soft">طلب</span></p>
@@ -399,6 +414,134 @@
             <p class="font-bold text-sm">لا توجد منشآت مسجلة حتى الآن</p>
         </div>
         {% endfor %}
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 3: RESTAURANT OWNERS DIRECTORY (سجل الملاك)      -->
+    <!-- ======================================================== -->
+    <div id="owners-section" class="mt-8 card p-5 border-line shadow-sm scroll-mt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-line mb-4">
+            <div>
+                <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>👑</span> سجل ملاك المطاعم والمنشآت (Restaurant Owners)
+                    <span class="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 text-xs font-black border border-brand-600/30">
+                        {{ total_owners }} مالك مسجل
+                    </span>
+                </h2>
+                <p class="text-xs text-soft mt-0.5">قائمة بجميع حسابات ملاك المنشآت (Owners)، المطعم المرتبط، الباقة الحالية، ووسائل التواصل وحالة الحساب</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/admin/core/restaurantowner/" class="rounded-xl border border-brand-600/30 bg-paper px-3.5 py-2 text-xs font-bold text-brand-800 hover:bg-brand-50 transition flex items-center gap-1.5 shadow-xs">
+                    <span>⚙️</span> فتح قائمة الملاك في Django Admin
+                </a>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead>
+                    <tr class="border-b border-line bg-paper/60 text-soft font-bold">
+                        <th class="p-3">#</th>
+                        <th class="p-3">المالك (Owner)</th>
+                        <th class="p-3">اسم المستخدم</th>
+                        <th class="p-3">المطعم / المنشأة المرتبطة</th>
+                        <th class="p-3">الباقة الحالية</th>
+                        <th class="p-3">حالة الاشتراك</th>
+                        <th class="p-3 text-center">الفروع</th>
+                        <th class="p-3">بيانات الاتصال</th>
+                        <th class="p-3">تاريخ الانضمام</th>
+                        <th class="p-3 text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                    {% for o in owners_data %}
+                    <tr class="hover:bg-paper/30 transition">
+                        <td class="p-3 font-mono font-bold text-soft">#{{ o.profile.id }}</td>
+                        <td class="p-3">
+                            <div class="font-black text-ink flex items-center gap-2">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-700 text-xs font-bold">
+                                    {{ o.user.first_name|first|default:o.user.username|first|upper }}
+                                </span>
+                                <div>
+                                    <span>{{ o.user.get_full_name|default:o.user.username }}</span>
+                                    {% if o.user.is_superuser %}
+                                    <span class="mr-1 rounded bg-night text-gold-300 text-[9px] px-1 py-0.5 font-mono font-bold">Super</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-3 font-mono text-soft font-bold">{{ o.user.username }}</td>
+                        <td class="p-3 font-bold text-ink">
+                            {% if o.tenant %}
+                            <span class="text-base mr-1">{{ o.tenant.logo_emoji|default:"🍽️" }}</span>
+                            {{ o.tenant.name }}
+                            {% else %}
+                            <span class="text-soft italic">غير مرتبط بمنشأة</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3">
+                            {% if o.tenant and o.tenant.subscription_plan %}
+                            <span class="rounded-full bg-brand-100 text-brand-800 px-2.5 py-0.5 text-[10px] font-black border border-brand-500/20">
+                                💎 {{ o.plan_name }}
+                            </span>
+                            {% else %}
+                            <span class="text-soft text-[11px]">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3">
+                            {% if o.status_code == 'active' %}
+                            <span class="px-2 py-0.5 rounded-full bg-good-100 text-good-700 font-bold text-[10px]">
+                                نشط ✓
+                            </span>
+                            {% elif o.status_code == 'trial' %}
+                            <span class="px-2 py-0.5 rounded-full bg-info-100 text-info-700 font-bold text-[10px]">
+                                تجريبي 🎁
+                            </span>
+                            {% elif o.status_code == 'past_due' %}
+                            <span class="px-2 py-0.5 rounded-full bg-warn-100 text-warn-700 font-bold text-[10px]">
+                                متأخر ⚠️
+                            </span>
+                            {% elif o.status_code == 'expired' or o.status_code == 'canceled' %}
+                            <span class="px-2 py-0.5 rounded-full bg-bad-100 text-bad-700 font-bold text-[10px]">
+                                منتهي ✕
+                            </span>
+                            {% else %}
+                            <span class="text-soft text-[10px]">{{ o.subscription_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3 text-center font-bold text-ink">
+                            {{ o.branches_count }}
+                        </td>
+                        <td class="p-3 text-[11px] text-soft space-y-0.5">
+                            <div dir="ltr" class="text-right">📞 {{ o.phone }}</div>
+                            <div class="truncate max-w-[150px]" title="{{ o.email }}">✉️ {{ o.email }}</div>
+                        </td>
+                        <td class="p-3 text-soft font-medium text-[11px]">
+                            {{ o.date_joined|date:"Y-m-d" }}
+                        </td>
+                        <td class="p-3 text-center">
+                            {% if o.tenant %}
+                            <a 
+                                href="{% url 'switch_tenant' o.tenant.id %}" 
+                                class="inline-flex items-center gap-1 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold text-[11px] px-2.5 py-1 shadow-xs transition"
+                            >
+                                <span>🏢</span> الدخول كمنشأة
+                            </a>
+                            {% else %}
+                            <span class="text-soft text-[10px]">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="p-6 text-center text-soft font-bold">
+                            لا يوجد ملاك مسجلون حالياً.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

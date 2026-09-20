@@ -257,6 +257,29 @@ def platform_dashboard_view(request):
         "tenant", "requested_plan", "requested_by"
     ).order_by("-created_at")[:25]
 
+    owners = UserProfile.objects.filter(role="owner").select_related(
+        "user", "tenant", "tenant__subscription_plan"
+    ).order_by("-id")
+
+    owners_data = []
+    for o in owners:
+        b_count = Branch.objects.filter(tenant=o.tenant).count() if o.tenant else 0
+        emp_prof = getattr(o.user, "employee_profile", None)
+        phone = emp_prof.phone if (emp_prof and emp_prof.phone) else (o.tenant.phone if o.tenant else "—")
+        owners_data.append({
+            "profile": o,
+            "user": o.user,
+            "tenant": o.tenant,
+            "plan_name": o.tenant.subscription_plan.name if (o.tenant and o.tenant.subscription_plan) else "بدون باقة",
+            "subscription_status": o.tenant.get_subscription_status_display() if o.tenant else "—",
+            "status_code": o.tenant.subscription_status if o.tenant else "none",
+            "branches_count": b_count,
+            "phone": phone,
+            "email": o.user.email or (o.tenant.email if o.tenant else "—"),
+            "date_joined": o.user.date_joined,
+            "last_login": o.user.last_login,
+        })
+
     context = {
         "tenants_data": tenants_data,
         "plans_data": plans_data,
@@ -269,6 +292,8 @@ def platform_dashboard_view(request):
         "pending_upgrade_requests": pending_upgrade_requests,
         "all_upgrade_requests": all_upgrade_requests,
         "pending_requests_count": pending_upgrade_requests.count(),
+        "owners_data": owners_data,
+        "total_owners": owners.count(),
     }
     return render(request, "platform_dashboard.html", context)
 

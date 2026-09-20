@@ -19,6 +19,8 @@ from .models import (
     JobRole,
     SubscriptionPlan,
     UpgradeRequest,
+    RestaurantOwner,
+    TenantSubscription,
 )
 
 
@@ -326,3 +328,182 @@ class BranchMenuAvailabilityAdmin(admin.ModelAdmin):
     list_display = ("branch", "menu_item", "is_available")
     list_filter = ("branch__tenant", "branch", "is_available", "menu_item__category")
     search_fields = ("menu_item__name", "branch__name")
+
+
+@admin.register(RestaurantOwner)
+class RestaurantOwnerAdmin(admin.ModelAdmin):
+    list_display = (
+        "owner_name",
+        "username",
+        "tenant_display",
+        "plan_display",
+        "subscription_status",
+        "branches_count",
+        "contact_phone",
+        "email",
+        "date_joined",
+        "is_active_badge",
+    )
+    list_filter = (
+        "tenant__subscription_plan",
+        "tenant__subscription_status",
+        "user__is_active",
+    )
+    search_fields = (
+        "user__username",
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+        "tenant__name",
+        "tenant__phone",
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(role="owner").select_related("user", "tenant", "tenant__subscription_plan")
+
+    @admin.display(description="اسم المالك")
+    def owner_name(self, obj):
+        name = obj.user.get_full_name() or obj.user.username
+        return format_html("👤 <strong>{}</strong>", name)
+
+    @admin.display(description="اسم المستخدم")
+    def username(self, obj):
+        return obj.user.username
+
+    @admin.display(description="المنشأة / المطعم")
+    def tenant_display(self, obj):
+        if not obj.tenant:
+            return "—"
+        return format_html("{} <strong>{}</strong>", obj.tenant.logo_emoji or "🍽️", obj.tenant.name)
+
+    @admin.display(description="الباقة الحالية")
+    def plan_display(self, obj):
+        if not obj.tenant or not obj.tenant.subscription_plan:
+            return format_html('<span style="color: #7d6c59;">بدون باقة</span>')
+        return format_html('<span style="color: #ac4a1a; font-weight: bold;">💎 {}</span>', obj.tenant.subscription_plan.name)
+
+    @admin.display(description="حالة الاشتراك")
+    def subscription_status(self, obj):
+        if not obj.tenant:
+            return "—"
+        st = obj.tenant.subscription_status
+        if st == "active":
+            return format_html('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
+        elif st == "trial":
+            return format_html('<span style="color: #1f6e7e; font-weight: bold;">تجريبي</span>')
+        return format_html('<span style="color: #b53a2b; font-weight: bold;">{}</span>', obj.tenant.get_subscription_status_display())
+
+    @admin.display(description="الفروع")
+    def branches_count(self, obj):
+        if not obj.tenant:
+            return 0
+        return obj.tenant.branches.count()
+
+    @admin.display(description="الهاتف")
+    def contact_phone(self, obj):
+        if hasattr(obj.user, "employee_profile") and obj.user.employee_profile and obj.user.employee_profile.phone:
+            return obj.user.employee_profile.phone
+        if obj.tenant and obj.tenant.phone:
+            return obj.tenant.phone
+        return "—"
+
+    @admin.display(description="البريد الإلكتروني")
+    def email(self, obj):
+        return obj.user.email or (obj.tenant.email if obj.tenant else "—")
+
+    @admin.display(description="تاريخ التسجيل")
+    def date_joined(self, obj):
+        return obj.user.date_joined.strftime("%Y-%m-%d")
+
+    @admin.display(description="الحساب")
+    def is_active_badge(self, obj):
+        if obj.user.is_active:
+            return format_html('<span style="color: #257a4e;">فعال</span>')
+        return format_html('<span style="color: #b53a2b;">معطل</span>')
+
+
+@admin.register(TenantSubscription)
+class TenantSubscriptionAdmin(admin.ModelAdmin):
+    list_display = (
+        "tenant_name",
+        "owner_name",
+        "plan_badge",
+        "status_badge",
+        "billing_cycle_display",
+        "expiry_date",
+        "branches_usage",
+        "employees_usage",
+        "is_active_badge",
+    )
+    list_filter = (
+        "subscription_status",
+        "billing_cycle",
+        "subscription_plan",
+        "is_active",
+    )
+    search_fields = ("name", "slug", "phone", "email")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("subscription_plan")
+
+    @admin.display(description="المنشأة المشتركة")
+    def tenant_name(self, obj):
+        return format_html("{} <strong>{}</strong>", obj.logo_emoji or "🍽️", obj.name)
+
+    @admin.display(description="المالك")
+    def owner_name(self, obj):
+        owner_profile = obj.user_profiles.filter(role="owner").select_related("user").first()
+        if owner_profile and owner_profile.user:
+            return owner_profile.user.get_full_name() or owner_profile.user.username
+        return "—"
+
+    @admin.display(description="باقة الاشتراك")
+    def plan_badge(self, obj):
+        if not obj.subscription_plan:
+            return format_html('<span style="color: #7d6c59;">بدون باقة</span>')
+        return format_html('<span style="color: #ac4a1a; font-weight: bold;">💎 {}</span>', obj.subscription_plan.name)
+
+    @admin.display(description="حالة الاشتراك")
+    def status_badge(self, obj):
+        if obj.subscription_status == "active":
+            return format_html('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
+        elif obj.subscription_status == "trial":
+            return format_html('<span style="color: #1f6e7e; font-weight: bold;">فترة تجريبية</span>')
+        elif obj.subscription_status == "past_due":
+            return format_html('<span style="color: #a26a0d; font-weight: bold;">متأخر السداد ⏳</span>')
+        return format_html('<span style="color: #b53a2b; font-weight: bold;">{}</span>', obj.get_subscription_status_display())
+
+    @admin.display(description="دورة الفوترة")
+    def billing_cycle_display(self, obj):
+        return obj.get_billing_cycle_display()
+
+    @admin.display(description="تاريخ الانتهاء")
+    def expiry_date(self, obj):
+        if not obj.subscription_end:
+            return "مستمر"
+        days = obj.days_until_expiry()
+        color = "#b53a2b" if days < 7 else "#257a4e"
+        return format_html('{} (<span style="color: {}; font-weight: bold;">{} يوم</span>)', obj.subscription_end.strftime("%Y-%m-%d"), color, days)
+
+    @admin.display(description="استهلاك الفروع")
+    def branches_usage(self, obj):
+        count = obj.branches.count()
+        limit = obj.subscription_plan.max_branches if obj.subscription_plan else 0
+        limit_text = "∞" if (limit <= 0 or limit >= 999) else str(limit)
+        color = "#b53a2b" if (limit > 0 and limit < 999 and count >= limit) else "#26190f"
+        return format_html('<span style="color: {}; font-weight: bold;">{}</span> / {}', color, count, limit_text)
+
+    @admin.display(description="استهلاك الموظفين")
+    def employees_usage(self, obj):
+        count = obj.employees.count()
+        limit = obj.subscription_plan.max_employees if obj.subscription_plan else 0
+        limit_text = "∞" if (limit <= 0 or limit >= 999) else str(limit)
+        color = "#b53a2b" if (limit > 0 and limit < 999 and count >= limit) else "#26190f"
+        return format_html('<span style="color: {}; font-weight: bold;">{}</span> / {}', color, count, limit_text)
+
+    @admin.display(description="حالة المنشأة")
+    def is_active_badge(self, obj):
+        if obj.is_active:
+            return format_html('<span style="color: #257a4e;">نشطة</span>')
+        return format_html('<span style="color: #b53a2b;">معطلة</span>')
+
