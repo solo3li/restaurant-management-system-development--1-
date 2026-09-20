@@ -410,25 +410,44 @@
     let addMapMode = 'pin'; // 'pin' or 'polygon'
     let stagedAreas = [];
 
-    // Default map center (Cairo / El Shorouk default 30.12, 31.60 or Riyadh 24.71, 46.67)
-    const DEFAULT_LAT = 30.1300;
-    const DEFAULT_LNG = 31.6150;
+    // Map Tile Configuration (CartoDB Voyager - beautiful, fast, zero rate-limit 403 blocks)
+    const MAP_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    const MAP_TILE_OPTIONS = {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    };
+
+    function getBranchDefaultCoordinates(city) {
+        if (!city) return [24.7136, 46.6753];
+        const c = city.trim().toLowerCase();
+        if (c.includes('شروق') || c.includes('shorouk') || c.includes('قاهرة') || c.includes('cairo')) {
+            return [30.1300, 31.6150]; // Cairo / El Shorouk
+        }
+        if (c.includes('جدة') || c.includes('jeddah')) {
+            return [21.5433, 39.1728]; // Jeddah
+        }
+        if (c.includes('دمام') || c.includes('dammam') || c.includes('خبر') || c.includes('khobar')) {
+            return [26.4207, 50.0888]; // Dammam
+        }
+        return [24.7136, 46.6753]; // Riyadh default
+    }
 
     function openAddBranchModal() {
         document.getElementById('add-branch-modal').classList.remove('hidden');
         document.getElementById('add-branch-modal').classList.add('flex');
 
+        const city = document.getElementById('branch-city-input').value;
+        const initialCoords = getBranchDefaultCoordinates(city);
+
         // Init map if not created
         setTimeout(() => {
             if (!addMap) {
-                addMap = L.map('add-branch-map').setView([DEFAULT_LAT, DEFAULT_LNG], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(addMap);
-
+                addMap = L.map('add-branch-map').setView(initialCoords, 12);
+                L.tileLayer(MAP_TILE_URL, MAP_TILE_OPTIONS).addTo(addMap);
                 addMap.on('click', handleAddMapClick);
             } else {
+                addMap.setView(initialCoords, 12);
                 addMap.invalidateSize();
             }
         }, 200);
@@ -649,15 +668,13 @@
     }
 
     function initOrUpdateEditMap(branchData) {
-        const lat = branchData.latitude || DEFAULT_LAT;
-        const lng = branchData.longitude || DEFAULT_LNG;
+        const defaultCoords = getBranchDefaultCoordinates(branchData.city);
+        const lat = branchData.latitude || defaultCoords[0];
+        const lng = branchData.longitude || defaultCoords[1];
 
         if (!editMap) {
             editMap = L.map('edit-branch-map').setView([lat, lng], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap'
-            }).addTo(editMap);
+            L.tileLayer(MAP_TILE_URL, MAP_TILE_OPTIONS).addTo(editMap);
 
             editMap.on('click', (e) => {
                 editPolygonPoints.push([e.latlng.lat, e.latlng.lng]);
@@ -665,8 +682,10 @@
             });
         } else {
             editMap.setView([lat, lng], 12);
-            editMap.invalidateSize();
         }
+        setTimeout(() => {
+            if (editMap) editMap.invalidateSize();
+        }, 150);
 
         // Marker
         if (editMarker) editMap.removeLayer(editMarker);
