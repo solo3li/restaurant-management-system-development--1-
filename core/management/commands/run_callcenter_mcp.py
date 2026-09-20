@@ -32,10 +32,16 @@ class Command(BaseCommand):
         host = options["host"]
         port = options["port"]
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Starting FastMCP Call Center Server (transport={transport}, host={host}, port={port})..."
+        if transport == "sse":
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Starting FastMCP Call Center Server (transport={transport}, host={host}, port={port})..."
+                )
             )
-        )
+        else:
+            self.stderr.write(
+                f"Starting FastMCP Call Center Server (transport={transport})...\n"
+            )
         run_server(transport=transport, host=host, port=port)
+
 

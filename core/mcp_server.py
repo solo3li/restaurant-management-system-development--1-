@@ -5,9 +5,21 @@ import random
 from decimal import Decimal
 from typing import List, Dict, Any, Optional
 
+# Ensure UTF-8 encoding on standard streams for JSON-RPC across all platforms
+try:
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8")
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 # Ensure Django settings are initialized if running directly
 if not os.environ.get("DJANGO_SETTINGS_MODULE"):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "restaurant_system.settings")
+
 
 import django
 if not django.conf.settings.configured:
@@ -543,11 +555,13 @@ def list_recent_orders(branch_id: Optional[int] = None, limit: int = 10, access_
 
 def run_server(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
     """Run FastMCP server via STDIO or SSE."""
-    print(f"🚀 Starting Restaurant FastMCP Server on transport '{transport}'...")
     if transport == "sse":
+        print(f"Starting Restaurant FastMCP Server on SSE {host}:{port}...", file=sys.stderr)
         mcp.run(transport="sse", host=host, port=port)
     else:
+        # In stdio mode, stdout is reserved strictly for JSON-RPC messages
         mcp.run(transport="stdio")
+
 
 
 if __name__ == "__main__":

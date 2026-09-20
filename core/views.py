@@ -1,8 +1,11 @@
 import json
+import sys
 from decimal import Decimal
 from datetime import timedelta
 
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -2382,8 +2385,11 @@ def owner_subscription_view(request):
         "has_pending_request": has_pending_request,
         "api_keys": api_keys,
         "branches": branches,
+        "manage_py_path": str(settings.BASE_DIR / "manage.py"),
+        "python_path": sys.executable,
     }
     return render(request, "owner_subscription.html", context)
+
 
 
 @login_required

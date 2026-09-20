@@ -714,16 +714,20 @@
         }
     }
 
+    const serverPythonPath = "{{ python_path|escapejs }}";
+    const serverManagePyPath = "{{ manage_py_path|escapejs }}";
+
     let currentConfigText = '';
     function showClaudeConfig(accessKey, botName) {
         const configObj = {
             "mcpServers": {
                 "restaurant-callcenter": {
-                    "command": "python",
+                    "command": serverPythonPath || "python",
                     "args": [
-                        "manage.py",
+                        serverManagePyPath,
                         "run_callcenter_mcp",
-                        "--transport=stdio"
+                        "--transport",
+                        "stdio"
                     ],
                     "env": {
                         "RESTAURANT_ACCESS_KEY": accessKey
@@ -736,6 +740,7 @@
         document.getElementById('claude-config-json').innerText = currentConfigText;
         document.getElementById('claude-config-modal').classList.remove('hidden');
     }
+
 
     function closeClaudeConfigModal() {
         document.getElementById('claude-config-modal').classList.add('hidden');
