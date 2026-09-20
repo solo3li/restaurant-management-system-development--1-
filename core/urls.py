@@ -45,4 +45,7 @@ urlpatterns = [
     path("api/employees/update/<int:emp_id>/", views.api_update_employee, name="api_update_employee"),
     path("api/job-roles/", views.api_job_roles, name="api_job_roles"),
     path("api/job-roles/<int:role_id>/", views.api_job_role_detail, name="api_job_role_detail"),
+    path("api/platform/plans/", views.api_subscription_plans, name="api_subscription_plans"),
+    path("api/platform/plans/<int:plan_id>/", views.api_subscription_plan_detail, name="api_subscription_plan_detail"),
+    path("api/platform/tenants/<int:tenant_id>/subscription/", views.api_update_tenant_subscription, name="api_update_tenant_subscription"),
 ]

@@ -25,6 +25,8 @@ from .models import (
     DeliveryArea,
     JobRole,
     PERMISSIONS_CATALOG,
+    SubscriptionPlan,
+    SAAS_FEATURES_CATALOG,
 )
 
 
@@ -220,7 +222,7 @@ def platform_dashboard_view(request):
     if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
         return HttpResponseForbidden("غير مصرح بالوصول إلى لوحة المنصة العامة")
 
-    tenants = Tenant.objects.all().order_by("-id")
+    tenants = Tenant.objects.select_related("subscription_plan").all().order_by("-id")
     tenants_data = []
     for t in tenants:
         b_count = Branch.objects.filter(tenant=t).count()
@@ -231,10 +233,26 @@ def platform_dashboard_view(request):
             "branches_count": b_count,
             "employees_count": e_count,
             "orders_count": o_count,
+            "plan_name": t.subscription_plan.name if t.subscription_plan else "بدون باقة",
+            "max_branches": t.subscription_plan.max_branches if t.subscription_plan else 0,
+            "max_employees": t.subscription_plan.max_employees if t.subscription_plan else 0,
+            "days_left": t.days_until_expiry(),
+            "status_display": t.get_subscription_status_display(),
+        })
+
+    plans = SubscriptionPlan.objects.all().order_by("ordering", "price_monthly")
+    plans_data = []
+    for p in plans:
+        plans_data.append({
+            "plan": p,
+            "tenants_count": p.tenants.count(),
         })
 
     context = {
         "tenants_data": tenants_data,
+        "plans_data": plans_data,
+        "plans": plans,
+        "features_catalog": SAAS_FEATURES_CATALOG,
         "total_tenants": tenants.count(),
         "total_branches": Branch.objects.count(),
         "total_employees": Employee.objects.count(),
@@ -959,10 +977,12 @@ def pos_view(request):
 @login_required
 @ensure_csrf_cookie
 def call_center_view(request):
+    tenant = get_active_tenant(request)
+    if tenant and not tenant.has_feature("call_center"):
+        return HttpResponseForbidden("ميزة الكول سنتر غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+
     if not user_has_perm(request.user, "call_center_access"):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى الكول سنتر")
-
-    tenant = get_active_tenant(request)
     branches = Branch.objects.filter(tenant=tenant, status="active").prefetch_related("delivery_areas").order_by("name")
     menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name")
     recent_orders = Order.objects.filter(tenant=tenant, channel="call_center").order_by("-id")[:10]
@@ -1042,10 +1062,12 @@ def delivery_view(request):
 @login_required
 @ensure_csrf_cookie
 def inventory_view(request):
+    tenant = get_active_tenant(request)
+    if tenant and not tenant.has_feature("inventory"):
+        return HttpResponseForbidden("ميزة إدارة المخزون غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+
     if not user_has_perm(request.user, "manage_inventory"):
         return HttpResponseForbidden("غير مصرح لك بالوصول لإدارة المخزون")
-
-    tenant = get_active_tenant(request)
     active_branch = get_active_branch(request)
     branch_id = request.GET.get("branch")
     search = request.GET.get("q", "").strip()
@@ -1493,6 +1515,12 @@ def api_create_branch(request):
     if not name:
         return JsonResponse({"error": "اسم الفرع مطلوب"}, status=400)
 
+    if tenant and not tenant.can_add_branch():
+        max_b = tenant.subscription_plan.max_branches if tenant.subscription_plan else 0
+        return JsonResponse({
+            "error": f"لقد استنفدت الحد الأقصى للفروع المسموح بها في باقتك الحالية ({max_b} فروع). يرجى ترقية باقة الاشتراك لإضافة فروع جديدة."
+        }, status=400)
+
     lat = data.get("latitude")
     lng = data.get("longitude")
     polygon = data.get("polygon", [])
@@ -1643,6 +1671,12 @@ def api_create_employee(request):
     name = str(data.get("name", "")).strip()
     if not name:
         return JsonResponse({"error": "اسم الموظف مطلوب"}, status=400)
+
+    if tenant and not tenant.can_add_employee():
+        max_e = tenant.subscription_plan.max_employees if tenant.subscription_plan else 0
+        return JsonResponse({
+            "error": f"لقد استنفدت الحد الأقصى للموظفين المسموح بهم في باقتك الحالية ({max_e} موظف). يرجى ترقية باقة الاشتراك لإضافة موظف جديد."
+        }, status=400)
 
     branch_id = data.get("branchId")
     branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
@@ -1954,3 +1988,236 @@ def api_job_role_detail(request, role_id):
         return JsonResponse({"ok": True, "message": "تم حذف المسمى الوظيفي بنجاح"})
 
     return HttpResponseBadRequest("Invalid method")
+
+
+# ==========================================
+# 9. SAAS SUBSCRIPTION PLANS & TENANT LIMITS
+# ==========================================
+
+@login_required
+def api_subscription_plans(request):
+    profile = getattr(request.user, "profile", None)
+    is_platform_admin = request.user.is_superuser or (profile and profile.is_platform_admin)
+
+    if request.method == "GET":
+        plans = SubscriptionPlan.objects.all().order_by("ordering", "price_monthly")
+        data = []
+        for p in plans:
+            data.append({
+                "id": p.id,
+                "name": p.name,
+                "code": p.code,
+                "description": p.description,
+                "price_monthly": str(p.price_monthly),
+                "price_yearly": str(p.price_yearly),
+                "max_branches": p.max_branches,
+                "max_employees": p.max_employees,
+                "features": p.features or [],
+                "trial_days": p.trial_days,
+                "is_active": p.is_active,
+                "is_popular": p.is_popular,
+                "ordering": p.ordering,
+                "tenants_count": p.tenants.count(),
+            })
+        return JsonResponse({"ok": True, "plans": data, "catalog": SAAS_FEATURES_CATALOG})
+
+    elif request.method == "POST":
+        if not is_platform_admin:
+            return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
+
+        try:
+            body = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+        name = str(body.get("name", "")).strip()
+        code = str(body.get("code", "")).strip().lower()
+        if not name:
+            return JsonResponse({"error": "اسم الباقة مطلوب"}, status=400)
+        if not code:
+            code = name.replace(" ", "-").lower()
+
+        if SubscriptionPlan.objects.filter(code=code).exists():
+            return JsonResponse({"error": f"كود الباقة «{code}» مستخدم مسبقاً"}, status=400)
+
+        try:
+            price_m = Decimal(str(body.get("price_monthly") or 0))
+            price_y = Decimal(str(body.get("price_yearly") or 0))
+        except Exception:
+            return JsonResponse({"error": "الأسعار غير صالحة"}, status=400)
+
+        max_branches = int(body.get("max_branches") if body.get("max_branches") is not None else 1)
+        max_employees = int(body.get("max_employees") if body.get("max_employees") is not None else 5)
+        features = body.get("features", [])
+        if not isinstance(features, list):
+            features = []
+
+        plan = SubscriptionPlan.objects.create(
+            name=name,
+            code=code,
+            description=str(body.get("description", "")).strip(),
+            price_monthly=price_m,
+            price_yearly=price_y,
+            max_branches=max_branches,
+            max_employees=max_employees,
+            features=features,
+            trial_days=int(body.get("trial_days") or 0),
+            is_active=bool(body.get("is_active", True)),
+            is_popular=bool(body.get("is_popular", False)),
+            ordering=int(body.get("ordering") or 0),
+        )
+
+        return JsonResponse({
+            "ok": True,
+            "plan": {
+                "id": plan.id,
+                "name": plan.name,
+                "code": plan.code,
+                "price_monthly": str(plan.price_monthly),
+                "price_yearly": str(plan.price_yearly),
+                "max_branches": plan.max_branches,
+                "max_employees": plan.max_employees,
+                "features": plan.features,
+                "tenants_count": 0,
+            }
+        })
+
+    return HttpResponseBadRequest("GET or POST required")
+
+
+@login_required
+def api_subscription_plan_detail(request, plan_id):
+    profile = getattr(request.user, "profile", None)
+    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
+
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    if request.method in ["POST", "PATCH", "PUT"]:
+        try:
+            body = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+        action = body.get("action")
+        if action == "delete" or request.method == "DELETE":
+            if plan.tenants.exists():
+                return JsonResponse({
+                    "error": f"لا يمكن حذف الباقة «{plan.name}» لوجود {plan.tenants.count()} منشآت مشتركة فيها. يرجى نقلهم لباقة أخرى أولاً."
+                }, status=400)
+            plan.delete()
+            return JsonResponse({"ok": True, "message": "تم حذف الباقة بنجاح"})
+
+        name = str(body.get("name", "")).strip()
+        if name:
+            plan.name = name
+
+        if "description" in body:
+            plan.description = str(body["description"]).strip()
+
+        if "price_monthly" in body:
+            try:
+                plan.price_monthly = Decimal(str(body["price_monthly"]))
+            except Exception:
+                pass
+
+        if "price_yearly" in body:
+            try:
+                plan.price_yearly = Decimal(str(body["price_yearly"]))
+            except Exception:
+                pass
+
+        if "max_branches" in body:
+            plan.max_branches = int(body["max_branches"])
+
+        if "max_employees" in body:
+            plan.max_employees = int(body["max_employees"])
+
+        if "features" in body and isinstance(body["features"], list):
+            plan.features = body["features"]
+
+        if "is_active" in body:
+            plan.is_active = bool(body["is_active"])
+
+        if "is_popular" in body:
+            plan.is_popular = bool(body["is_popular"])
+
+        plan.save()
+        return JsonResponse({
+            "ok": True,
+            "plan": {
+                "id": plan.id,
+                "name": plan.name,
+                "code": plan.code,
+                "price_monthly": str(plan.price_monthly),
+                "price_yearly": str(plan.price_yearly),
+                "max_branches": plan.max_branches,
+                "max_employees": plan.max_employees,
+                "features": plan.features,
+                "tenants_count": plan.tenants.count(),
+            }
+        })
+
+    elif request.method == "DELETE":
+        if plan.tenants.exists():
+            return JsonResponse({
+                "error": f"لا يمكن حذف الباقة «{plan.name}» لوجود {plan.tenants.count()} منشآت مشتركة فيها."
+            }, status=400)
+        plan.delete()
+        return JsonResponse({"ok": True, "message": "تم حذف الباقة بنجاح"})
+
+    return HttpResponseBadRequest("Invalid method")
+
+
+@login_required
+def api_update_tenant_subscription(request, tenant_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    profile = getattr(request.user, "profile", None)
+    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
+
+    tenant = get_object_or_404(Tenant, id=tenant_id)
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    plan_id = body.get("plan_id")
+    if plan_id:
+        plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+        tenant.subscription_plan = plan
+
+    if "status" in body and body["status"] in dict(Tenant.SUBSCRIPTION_STATUS_CHOICES):
+        tenant.subscription_status = body["status"]
+
+    if "billing_cycle" in body and body["billing_cycle"] in dict(Tenant.BILLING_CYCLE_CHOICES):
+        tenant.billing_cycle = body["billing_cycle"]
+
+    extend_days = body.get("extend_days")
+    if extend_days and str(extend_days).isdigit():
+        days = int(extend_days)
+        base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
+        tenant.subscription_end = base_time + timedelta(days=days)
+
+    custom_end = body.get("subscription_end")
+    if custom_end:
+        try:
+            tenant.subscription_end = timezone.datetime.fromisoformat(custom_end)
+        except Exception:
+            pass
+
+    tenant.save()
+    return JsonResponse({
+        "ok": True,
+        "message": f"تم تحديث اشتراك منشأة «{tenant.name}» بنجاح",
+        "subscription": {
+            "plan_name": tenant.subscription_plan.name if tenant.subscription_plan else "—",
+            "status": tenant.subscription_status,
+            "status_display": tenant.get_subscription_status_display(),
+            "billing_cycle": tenant.get_billing_cycle_display(),
+            "subscription_end": tenant.subscription_end.strftime("%Y-%m-%d") if tenant.subscription_end else None,
+            "days_left": tenant.days_until_expiry(),
+        }
+    })

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة إدارة المنصة العامة (SaaS Platform) — إدارة المطاعم{% endblock %}
+{% block title %}لوحة إدارة المنصة العامة (SaaS Platform) — إدارة المطاعم والباقات{% endblock %}
 
 {% block content %}
 <div>
@@ -19,14 +19,17 @@
                         </span>
                     </div>
                     <p class="text-xs text-gold-300/80 mt-0.5">
-                        إدارة اشتراكات المنشآت والمطاعم، وتعيين الملاك، ومتابعة الأداء العام لكافة المستأجرين
+                        إدارة باقات وخطط الاشتراك، ومتابعة حدود المنشآت والمطاعم وصلاحية تشغيلها
                     </p>
                 </div>
             </div>
 
-            <div>
+            <div class="flex items-center gap-2">
+                <a href="#plans-section" class="rounded-xl border border-gold-300/30 bg-night-3 px-3.5 py-2.5 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
+                    💎 باقات الاشتراك
+                </a>
                 <button onclick="openAddTenantModal()" class="rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-black text-white hover:bg-brand-700 shadow-md transition">
-                    + تسجيل مطعم / منشأة جديدة
+                    + تسجيل مطعم جديد
                 </button>
             </div>
         </div>
@@ -71,9 +74,132 @@
         </div>
     </div>
 
-    <!-- Tenants Grid -->
+    <!-- ======================================================== -->
+    <!-- SECTION 1: SAAS SUBSCRIPTION PLANS (TIERS & LIMITS)    -->
+    <!-- ======================================================== -->
+    <div id="plans-section" class="mb-8 scroll-mt-6">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>💎</span> باقات وخطط اشتراك المنصة (SaaS Pricing Plans)
+                </h2>
+                <p class="text-xs text-soft mt-0.5">تحديد أسعار الباقات، حدود الفروع والموظفين، وتفعيل الميزات لكل خطة</p>
+            </div>
+            <button onclick="openCreatePlanModal()" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 transition shadow-sm flex items-center gap-1.5">
+                <span>+</span> إضافة باقة جديدة
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {% for item in plans_data %}
+            {% with p=item.plan %}
+            <div class="card p-4 relative overflow-hidden flex flex-col justify-between border-line hover:border-brand-500 transition shadow-sm {% if p.is_popular %}ring-2 ring-brand-600 bg-brand-50/20{% endif %}">
+                {% if p.is_popular %}
+                <div class="absolute top-0 left-0 bg-brand-600 text-white text-[9px] font-black px-3 py-0.5 rounded-br-lg uppercase tracking-wider">
+                    الأكثر طلباً ⭐
+                </div>
+                {% endif %}
+
+                <div>
+                    <!-- Plan Header -->
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                            <h3 class="font-black text-sm text-ink">{{ p.name }}</h3>
+                            <p class="text-[10px] text-soft font-mono">code: {{ p.code }}</p>
+                        </div>
+                        <span class="rounded-full px-2 py-0.5 text-[9px] font-bold {% if p.is_active %}bg-good-100 text-good-800{% else %}bg-bad-100 text-bad-800{% endif %}">
+                            {% if p.is_active %}مفعلة{% else %}معطلة{% endif %}
+                        </span>
+                    </div>
+
+                    <p class="text-[11px] text-soft mb-3 line-clamp-2">{{ p.description|default:"—" }}</p>
+
+                    <!-- Price -->
+                    <div class="rounded-xl bg-paper p-2.5 mb-3 text-center border border-line/60">
+                        <div class="flex items-baseline justify-center gap-1">
+                            <span class="text-xl font-black text-brand-700">{{ p.price_monthly }}</span>
+                            <span class="text-[10px] text-soft font-bold">ر.س / شهر</span>
+                        </div>
+                        <p class="text-[10px] text-soft mt-0.5 font-bold">
+                            {{ p.price_yearly }} ر.س / سنوياً
+                        </p>
+                    </div>
+
+                    <!-- Limits Badges -->
+                    <div class="space-y-1.5 text-xs mb-3">
+                        <div class="flex items-center justify-between p-1.5 rounded-lg bg-card border border-line/50 text-[11px]">
+                            <span class="font-bold text-soft flex items-center gap-1">🏢 الحد الأقصى للفروع:</span>
+                            <span class="font-black text-ink">
+                                {% if p.max_branches <= 0 %}<span class="text-good-700">غير محدود (∞)</span>{% else %}{{ p.max_branches }} فروع{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between p-1.5 rounded-lg bg-card border border-line/50 text-[11px]">
+                            <span class="font-bold text-soft flex items-center gap-1">👥 الحد الأقصى للموظفين:</span>
+                            <span class="font-black text-ink">
+                                {% if p.max_employees <= 0 %}<span class="text-good-700">غير محدود (∞)</span>{% else %}{{ p.max_employees }} موظف{% endif %}
+                            </span>
+                        </div>
+                        {% if p.trial_days > 0 %}
+                        <div class="flex items-center justify-between p-1.5 rounded-lg bg-card border border-line/50 text-[11px]">
+                            <span class="font-bold text-soft flex items-center gap-1">🎁 التجربة المجانية:</span>
+                            <span class="font-black text-brand-700">{{ p.trial_days }} يوماً</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Included Features Checklist -->
+                    <div class="border-t border-line/80 pt-2.5 mb-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-soft mb-1.5">الميزات المشمولة:</p>
+                        <ul class="space-y-1 text-[11px]">
+                            {% for feat in features_catalog %}
+                            <li class="flex items-center gap-1.5 {% if feat.key in p.features %}text-ink font-bold{% else %}text-soft/40 line-through{% endif %}">
+                                {% if feat.key in p.features %}
+                                <span class="text-good-600 font-black">✓</span>
+                                {% else %}
+                                <span class="text-soft/40">✕</span>
+                                {% endif %}
+                                <span class="truncate">{{ feat.label }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Footer / Subscribers & Actions -->
+                <div class="border-t border-line pt-3 mt-auto">
+                    <div class="flex items-center justify-between mb-2 text-xs">
+                        <span class="text-[11px] text-soft font-bold">المشتركون:</span>
+                        <span class="rounded-full bg-brand-100 text-brand-800 px-2 py-0.5 text-[10px] font-extrabold">
+                            {{ item.tenants_count }} مطعم
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="openEditPlanModal({{ p.id }})" class="flex-1 rounded-lg border border-line bg-paper hover:bg-paper/80 py-1.5 text-[11px] font-bold text-ink transition">
+                            ⚙️ تعديل الباقة
+                        </button>
+                        {% if item.tenants_count == 0 %}
+                        <button onclick="deletePlan({{ p.id }}, '{{ p.name }}')" class="rounded-lg border border-bad-300 bg-bad-50 hover:bg-bad-100 px-2.5 py-1.5 text-[11px] font-bold text-bad-700 transition">
+                            حذف
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 2: TENANTS LIST & SUBSCRIPTION MANAGEMENT       -->
+    <!-- ======================================================== -->
     <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-base font-black font-display text-ink">سجل المطاعم والمستأجرين (Tenants)</h2>
+        <div>
+            <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
+                <span>🍽️</span> سجل المطاعم والمنشآت المشتركة (Tenants)
+            </h2>
+            <p class="text-xs text-soft mt-0.5">متابعة باقات كل مطعم، تواريخ الانتهاء، ومعدلات استهلاك حدود الفروع والموظفين</p>
+        </div>
         <span class="text-xs font-bold text-soft">{{ tenants_data|length }} منشأة مسجلة</span>
     </div>
 
@@ -90,30 +216,58 @@
                             <p class="text-[11px] text-gold-300/70 font-mono">slug: {{ t.tenant.slug }}</p>
                         </div>
                     </div>
-                    <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold {% if t.tenant.is_active %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
-                        {% if t.tenant.is_active %}نشط{% else %}معطل{% endif %}
-                    </span>
+                    <div class="text-left">
+                        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold {% if t.tenant.is_active %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                            {% if t.tenant.is_active %}نشط{% else %}معطل{% endif %}
+                        </span>
+                        <span class="block text-[9px] text-gold-300/80 mt-1 font-bold">
+                            {{ t.status_display }}
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Info Body -->
                 <div class="p-4 space-y-3 text-xs">
-                    <div class="flex items-center justify-between text-soft border-b border-line pb-2">
-                        <span>خطة الاشتراك:</span>
-                        <span class="font-bold text-ink rounded bg-paper px-2 py-0.5 uppercase tracking-wide text-[10px]">{{ t.tenant.get_plan_display }}</span>
+                    <!-- Current Plan & Expiry Details -->
+                    <div class="rounded-xl border border-line bg-paper/60 p-2.5 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-soft">الباقة الحالية:</span>
+                            <span class="rounded-full bg-brand-100 text-brand-800 px-2 py-0.5 text-[10px] font-black">
+                                💎 {{ t.plan_name }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-soft">
+                            <span>انتهاء الاشتراك:</span>
+                            <span class="font-bold text-ink">
+                                {% if t.tenant.subscription_end %}
+                                    {{ t.tenant.subscription_end|date:"Y-m-d" }}
+                                    <span class="text-brand-700">({{ t.days_left }} يوم)</span>
+                                {% else %}
+                                    غير محدد
+                                {% endif %}
+                            </span>
+                        </div>
                     </div>
 
+                    <!-- Consumption Metrics (Branches & Employees) -->
                     <div class="grid grid-cols-3 gap-2 text-center pt-1">
-                        <div class="rounded-lg bg-paper p-2">
-                            <span class="block text-sm font-black text-ink">{{ t.branches_count }}</span>
-                            <span class="text-[10px] text-soft font-bold">فروع</span>
+                        <div class="rounded-lg bg-paper p-2 border border-line/60">
+                            <span class="block text-sm font-black text-ink">
+                                {{ t.branches_count }}
+                                <span class="text-[10px] text-soft font-normal">/ {% if t.max_branches <= 0 %}∞{% else %}{{ t.max_branches }}{% endif %}</span>
+                            </span>
+                            <span class="text-[10px] text-soft font-bold">الفروع</span>
                         </div>
-                        <div class="rounded-lg bg-paper p-2">
-                            <span class="block text-sm font-black text-ink">{{ t.employees_count }}</span>
-                            <span class="text-[10px] text-soft font-bold">موظف</span>
+                        <div class="rounded-lg bg-paper p-2 border border-line/60">
+                            <span class="block text-sm font-black text-ink">
+                                {{ t.employees_count }}
+                                <span class="text-[10px] text-soft font-normal">/ {% if t.max_employees <= 0 %}∞{% else %}{{ t.max_employees }}{% endif %}</span>
+                            </span>
+                            <span class="text-[10px] text-soft font-bold">الموظفون</span>
                         </div>
-                        <div class="rounded-lg bg-paper p-2">
+                        <div class="rounded-lg bg-paper p-2 border border-line/60">
                             <span class="block text-sm font-black text-brand-700">{{ t.orders_count }}</span>
-                            <span class="text-[10px] text-soft font-bold">طلب</span>
+                            <span class="text-[10px] text-soft font-bold">الطلبات</span>
                         </div>
                     </div>
 
@@ -125,12 +279,18 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="p-3.5 bg-paper/50 border-t border-line flex items-center gap-2">
+            <div class="p-3 bg-paper/50 border-t border-line flex items-center gap-2">
+                <button 
+                    onclick="openTenantSubModal({{ t.tenant.id }}, '{{ t.tenant.name }}', {{ t.tenant.subscription_plan_id|default:'null' }}, '{{ t.tenant.subscription_status }}', '{{ t.tenant.billing_cycle }}', '{{ t.tenant.subscription_end|date:'Y-m-d'|default:'' }}')" 
+                    class="rounded-xl border border-brand-600/30 bg-brand-50 hover:bg-brand-100 py-2 px-3 text-xs font-bold text-brand-800 transition"
+                >
+                    🔄 تعديل الاشتراك
+                </button>
                 <a 
                     href="{% url 'switch_tenant' t.tenant.id %}" 
                     class="flex-1 text-center rounded-xl bg-brand-600 py-2 text-xs font-black text-white hover:bg-brand-700 shadow-sm transition"
                 >
-                    🏢 الدخول لإدارة هذا المطعم ←
+                    🏢 الدخول للمطعم ←
                 </a>
             </div>
         </div>
@@ -143,7 +303,197 @@
     </div>
 </div>
 
-<!-- Modal: Add New Tenant -->
+<!-- ======================================================== -->
+<!-- MODAL: ADD / EDIT SUBSCRIPTION PLAN                     -->
+<!-- ======================================================== -->
+<div id="plan-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4 shrink-0">
+            <div>
+                <h3 id="plan-modal-title" class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>💎</span> تفاصيل باقة الاشتراك
+                </h3>
+                <p class="text-[11px] text-soft">حدد اسم الباقة، الأسعار، الحدود التشغيلية والميزات المشمولة</p>
+            </div>
+            <button onclick="closePlanModal()" class="text-soft hover:text-ink text-lg font-bold">✕</button>
+        </div>
+
+        <input type="hidden" id="plan-id">
+
+        <form id="plan-form" onsubmit="submitPlanForm(event)" class="space-y-4 overflow-y-auto pr-1 text-xs flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">اسم الباقة *</label>
+                    <input type="text" id="plan-name" required placeholder="مثال: الباقة الذهبية" class="input text-xs font-bold">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">كود الباقة (Slug) *</label>
+                    <input type="text" id="plan-code" required placeholder="golden" dir="ltr" class="input text-xs font-mono">
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-1 block font-bold text-soft">وصف الباقة</label>
+                <input type="text" id="plan-desc" placeholder="وصف مميزات وخيارات الباقة..." class="input text-xs">
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-paper/50 p-3 rounded-xl border border-line">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">السعر الشهري (ر.س)</label>
+                    <input type="number" id="plan-price-m" step="0.01" min="0" value="0" class="input text-xs font-bold">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">السعر السنوي (ر.س)</label>
+                    <input type="number" id="plan-price-y" step="0.01" min="0" value="0" class="input text-xs font-bold">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">أقصى فروع (0=غير محدود)</label>
+                    <input type="number" id="plan-max-branches" min="0" value="1" class="input text-xs font-bold">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">أقصى موظفين (0=غير محدود)</label>
+                    <input type="number" id="plan-max-emp" min="0" value="5" class="input text-xs font-bold">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">أيام التجربة المجانية</label>
+                    <input type="number" id="plan-trial-days" min="0" value="0" class="input text-xs">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">ترتيب العرض</label>
+                    <input type="number" id="plan-ordering" min="0" value="1" class="input text-xs">
+                </div>
+                <div class="flex items-center gap-4 pt-4">
+                    <label class="flex items-center gap-1.5 font-bold text-ink cursor-pointer select-none">
+                        <input type="checkbox" id="plan-popular" class="rounded text-brand-600 focus:ring-brand-500">
+                        <span>الأكثر طلباً ⭐</span>
+                    </label>
+                    <label class="flex items-center gap-1.5 font-bold text-ink cursor-pointer select-none">
+                        <input type="checkbox" id="plan-active" checked class="rounded text-brand-600 focus:ring-brand-500">
+                        <span>مفعلة</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Features Checklist -->
+            <div class="border-t border-line pt-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-black text-ink flex items-center gap-1.5">
+                        <span>🧩</span> الميزات المفعلة في هذه الباقة:
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="toggleAllPlanFeatures(true)" class="text-[10px] text-brand-800 font-bold hover:underline">تحديد الكل</button>
+                        <span class="text-soft">|</span>
+                        <button type="button" onclick="toggleAllPlanFeatures(false)" class="text-[10px] text-soft font-bold hover:underline">إلغاء التحديد</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {% for feat in features_catalog %}
+                    <label class="flex items-start gap-2 p-2 rounded-lg border border-line/60 hover:bg-paper/40 cursor-pointer select-none">
+                        <input type="checkbox" value="{{ feat.key }}" class="plan-feat-cb mt-0.5 rounded border-line text-brand-600 focus:ring-brand-500">
+                        <div>
+                            <p class="font-bold text-ink text-xs">{{ feat.label }}</p>
+                            <p class="text-[10px] text-soft">{{ feat.desc }}</p>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-line shrink-0">
+                <button type="button" onclick="closePlanModal()" class="rounded-xl border border-line bg-paper px-4 py-2 text-xs font-bold text-soft hover:text-ink">إلغاء</button>
+                <button type="submit" id="save-plan-btn" class="rounded-xl bg-brand-600 px-5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-md transition">حفظ الباقة</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: TENANT SUBSCRIPTION UPGRADE & RENEWAL            -->
+<!-- ======================================================== -->
+<div id="tenant-sub-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-md w-full p-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+                <h3 class="text-sm font-black font-display text-ink flex items-center gap-1.5">
+                    <span>🔄</span> تعديل اشتراك: <span id="sub-modal-tenant-name" class="text-brand-700"></span>
+                </h3>
+                <p class="text-[11px] text-soft">ترقية باقة المطعم وتمديد تاريخ الصلاحية وحالة الاشتراك</p>
+            </div>
+            <button onclick="closeTenantSubModal()" class="text-soft hover:text-ink text-sm">✕</button>
+        </div>
+
+        <input type="hidden" id="sub-modal-tenant-id">
+
+        <form id="tenant-sub-form" onsubmit="submitTenantSubForm(event)" class="space-y-3.5 text-xs">
+            <div>
+                <label class="mb-1 block font-bold text-soft">باقة الاشتراك المخصصة</label>
+                <select id="sub-modal-plan" class="input text-xs font-bold">
+                    {% for p in plans %}
+                    <option value="{{ p.id }}">{{ p.name }} ({{ p.price_monthly }} ر.س/شهر - {{ p.max_branches }} فروع)</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="mb-1 block font-bold text-soft">حالة الاشتراك</label>
+                    <select id="sub-modal-status" class="input text-xs font-bold">
+                        <option value="active">نشط (Active)</option>
+                        <option value="trial">فترة تجريبية (Trial)</option>
+                        <option value="expired">منتهي (Expired)</option>
+                        <option value="grace_period">فترة سماح (Grace)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-soft">دورة الفوترة</label>
+                    <select id="sub-modal-cycle" class="input text-xs font-bold">
+                        <option value="monthly">شهري</option>
+                        <option value="yearly">سنوي</option>
+                        <option value="trial">تجريبي</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-1 block font-bold text-soft">تاريخ انتهاء الاشتراك الحالي</label>
+                <input type="date" id="sub-modal-end-date" class="input text-xs font-bold">
+            </div>
+
+            <!-- Quick Extend Days Buttons -->
+            <div class="rounded-xl bg-paper p-3 border border-line space-y-1.5">
+                <span class="block text-[11px] font-bold text-soft">تمديد سريع للاشتراك:</span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="quickExtendDays(30)" class="flex-1 rounded-lg border border-line bg-card py-1.5 text-[11px] font-bold text-ink hover:bg-brand-50 hover:text-brand-800 transition">
+                        + 30 يوم
+                    </button>
+                    <button type="button" onclick="quickExtendDays(90)" class="flex-1 rounded-lg border border-line bg-card py-1.5 text-[11px] font-bold text-ink hover:bg-brand-50 hover:text-brand-800 transition">
+                        + 3 شهور
+                    </button>
+                    <button type="button" onclick="quickExtendDays(365)" class="flex-1 rounded-lg border border-line bg-card py-1.5 text-[11px] font-bold text-ink hover:bg-brand-50 hover:text-brand-800 transition">
+                        + سنة كاملة
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-3 border-t border-line mt-4">
+                <button type="submit" id="save-tenant-sub-btn" class="flex-1 rounded-xl bg-brand-600 py-2.5 text-xs font-bold text-white hover:bg-brand-700 transition">
+                    حفظ وتحديث الاشتراك
+                </button>
+                <button type="button" onclick="closeTenantSubModal()" class="rounded-xl border border-line bg-paper px-4 py-2.5 text-xs font-bold text-soft hover:text-ink">
+                    إلغاء
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: ADD NEW TENANT                                   -->
+<!-- ======================================================== -->
 <div id="add-tenant-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
     <div class="card max-w-md w-full p-6 shadow-2xl">
         <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
@@ -154,7 +504,7 @@
         <form id="add-tenant-form" onsubmit="submitNewTenant(event)" class="space-y-3 text-xs">
             <div>
                 <label class="mb-1 block font-bold text-soft">اسم المطعم / الشركة *</label>
-                <input type="text" id="tenant-name" required placeholder="مثال: شاورما بلس" class="input text-xs">
+                <input type="text" id="tenant-name" required placeholder="مثال: شاورما بلس" class="input text-xs font-bold">
             </div>
 
             <div class="grid grid-cols-2 gap-2">
@@ -174,11 +524,11 @@
                     <input type="text" id="tenant-phone" placeholder="0501234567" dir="ltr" class="input text-xs font-mono">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">خطة الاشتراك</label>
-                    <select id="tenant-plan" class="input text-xs">
-                        <option value="standard">أساسي (Standard)</option>
-                        <option value="premium">متقدم (Premium)</option>
-                        <option value="enterprise">شركات (Enterprise)</option>
+                    <label class="mb-1 block font-bold text-soft">باقة الاشتراك المبدئية</label>
+                    <select id="tenant-plan" class="input text-xs font-bold">
+                        {% for p in plans %}
+                        <option value="{{ p.code }}">{{ p.name }} ({{ p.price_monthly }} ر.س)</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -215,6 +565,11 @@
 </div>
 
 <script>
+let cachedPlans = [];
+
+// ==========================================
+// TENANT REGISTRATION & SWITCH
+// ==========================================
 function openAddTenantModal() {
     document.getElementById('add-tenant-modal').classList.remove('hidden');
     document.getElementById('add-tenant-modal').classList.add('flex');
@@ -249,13 +604,240 @@ async function submitNewTenant(e) {
         });
         const resData = await res.json();
         if (res.ok && resData.ok) {
-            showToast('تم إنشاء المنشأة وحساب المالك بنجاح!');
+            showToast('تم إنشاء المنشأة وتعيين الباقة وحساب المالك بنجاح!');
             setTimeout(() => location.reload(), 500);
         } else {
             showToast(resData.error || 'حدث خطأ أثناء الإنشاء', 'error');
         }
     } catch (err) {
         showToast('خطأ في الاتصال بالخادم', 'error');
+    }
+}
+
+// ==========================================
+// SUBSCRIPTION PLANS MODAL & CRUD
+// ==========================================
+function openCreatePlanModal() {
+    document.getElementById('plan-id').value = '';
+    document.getElementById('plan-modal-title').innerHTML = '<span>✨</span> إضافة باقة اشتراك جديدة بالمنصة';
+    document.getElementById('plan-name').value = '';
+    document.getElementById('plan-code').value = '';
+    document.getElementById('plan-desc').value = '';
+    document.getElementById('plan-price-m').value = '299';
+    document.getElementById('plan-price-y').value = '2990';
+    document.getElementById('plan-max-branches').value = '2';
+    document.getElementById('plan-max-emp').value = '15';
+    document.getElementById('plan-trial-days').value = '0';
+    document.getElementById('plan-ordering').value = '5';
+    document.getElementById('plan-popular').checked = false;
+    document.getElementById('plan-active').checked = true;
+    toggleAllPlanFeatures(false);
+
+    document.getElementById('plan-modal').classList.remove('hidden');
+    document.getElementById('plan-modal').classList.add('flex');
+}
+
+async function openEditPlanModal(planId) {
+    try {
+        const res = await fetch('/api/platform/plans/');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        cachedPlans = data.plans || [];
+        const plan = cachedPlans.find(p => p.id === planId);
+        if (!plan) return;
+
+        document.getElementById('plan-id').value = plan.id;
+        document.getElementById('plan-modal-title').innerHTML = `<span>⚙️</span> تعديل باقة: <span class="text-brand-700">${plan.name}</span>`;
+        document.getElementById('plan-name').value = plan.name;
+        document.getElementById('plan-code').value = plan.code;
+        document.getElementById('plan-desc').value = plan.description || '';
+        document.getElementById('plan-price-m').value = plan.price_monthly;
+        document.getElementById('plan-price-y').value = plan.price_yearly;
+        document.getElementById('plan-max-branches').value = plan.max_branches;
+        document.getElementById('plan-max-emp').value = plan.max_employees;
+        document.getElementById('plan-trial-days').value = plan.trial_days;
+        document.getElementById('plan-ordering').value = plan.ordering;
+        document.getElementById('plan-popular').checked = plan.is_popular;
+        document.getElementById('plan-active').checked = plan.is_active;
+
+        const featSet = new Set(plan.features || []);
+        document.querySelectorAll('.plan-feat-cb').forEach(cb => {
+            cb.checked = featSet.has(cb.value);
+        });
+
+        document.getElementById('plan-modal').classList.remove('hidden');
+        document.getElementById('plan-modal').classList.add('flex');
+    } catch (e) {
+        showToast(e.message || 'فشل تحميل بيانات الباقة', 'error');
+    }
+}
+
+function closePlanModal() {
+    document.getElementById('plan-modal').classList.add('hidden');
+    document.getElementById('plan-modal').classList.remove('flex');
+}
+
+function toggleAllPlanFeatures(checked) {
+    document.querySelectorAll('.plan-feat-cb').forEach(cb => cb.checked = checked);
+}
+
+async function submitPlanForm(e) {
+    e.preventDefault();
+    const planId = document.getElementById('plan-id').value;
+    const selectedFeats = [];
+    document.querySelectorAll('.plan-feat-cb:checked').forEach(cb => selectedFeats.push(cb.value));
+
+    const payload = {
+        name: document.getElementById('plan-name').value.trim(),
+        code: document.getElementById('plan-code').value.trim().toLowerCase(),
+        description: document.getElementById('plan-desc').value.trim(),
+        price_monthly: parseFloat(document.getElementById('plan-price-m').value) || 0,
+        price_yearly: parseFloat(document.getElementById('plan-price-y').value) || 0,
+        max_branches: parseInt(document.getElementById('plan-max-branches').value) || 0,
+        max_employees: parseInt(document.getElementById('plan-max-emp').value) || 0,
+        trial_days: parseInt(document.getElementById('plan-trial-days').value) || 0,
+        ordering: parseInt(document.getElementById('plan-ordering').value) || 0,
+        is_popular: document.getElementById('plan-popular').checked,
+        is_active: document.getElementById('plan-active').checked,
+        features: selectedFeats,
+    };
+
+    const btn = document.getElementById('save-plan-btn');
+    btn.disabled = true;
+    btn.textContent = 'جارٍ الحفظ...';
+
+    try {
+        let url = '/api/platform/plans/';
+        let method = 'POST';
+        if (planId) {
+            url = `/api/platform/plans/${planId}/`;
+        }
+
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        showToast('تم حفظ باقة الاشتراك بنجاح!');
+        closePlanModal();
+        setTimeout(() => location.reload(), 400);
+    } catch (err) {
+        showToast(err.message || 'فشل حفظ الباقة', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'حفظ الباقة';
+    }
+}
+
+async function deletePlan(planId, planName) {
+    if (!confirm(`هل أنت متأكد من حذف باقة «${planName}»؟`)) return;
+
+    try {
+        const res = await fetch(`/api/platform/plans/${planId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ action: 'delete' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        showToast('تم حذف الباقة بنجاح');
+        setTimeout(() => location.reload(), 400);
+    } catch (err) {
+        showToast(err.message || 'فشل حذف الباقة', 'error');
+    }
+}
+
+// ==========================================
+// TENANT SUBSCRIPTION UPGRADE MODAL
+// ==========================================
+function openTenantSubModal(tenantId, tenantName, planId, status, cycle, endDate) {
+    document.getElementById('sub-modal-tenant-id').value = tenantId;
+    document.getElementById('sub-modal-tenant-name').textContent = tenantName;
+
+    if (planId) {
+        document.getElementById('sub-modal-plan').value = planId;
+    }
+    if (status) {
+        document.getElementById('sub-modal-status').value = status;
+    }
+    if (cycle) {
+        document.getElementById('sub-modal-cycle').value = cycle;
+    }
+    if (endDate) {
+        document.getElementById('sub-modal-end-date').value = endDate;
+    } else {
+        // default 30 days from now
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        document.getElementById('sub-modal-end-date').value = d.toISOString().split('T')[0];
+    }
+
+    document.getElementById('tenant-sub-modal').classList.remove('hidden');
+    document.getElementById('tenant-sub-modal').classList.add('flex');
+}
+
+function closeTenantSubModal() {
+    document.getElementById('tenant-sub-modal').classList.add('hidden');
+    document.getElementById('tenant-sub-modal').classList.remove('flex');
+}
+
+function quickExtendDays(days) {
+    const curVal = document.getElementById('sub-modal-end-date').value;
+    let base = new Date();
+    if (curVal) {
+        const parsed = new Date(curVal);
+        if (parsed > base) base = parsed;
+    }
+    base.setDate(base.getDate() + days);
+    document.getElementById('sub-modal-end-date').value = base.toISOString().split('T')[0];
+    showToast(`تم تمديد التاريخ +${days} يوماً`);
+}
+
+async function submitTenantSubForm(e) {
+    e.preventDefault();
+    const tenantId = document.getElementById('sub-modal-tenant-id').value;
+    const payload = {
+        plan_id: document.getElementById('sub-modal-plan').value,
+        status: document.getElementById('sub-modal-status').value,
+        billing_cycle: document.getElementById('sub-modal-cycle').value,
+        subscription_end: document.getElementById('sub-modal-end-date').value,
+    };
+
+    const btn = document.getElementById('save-tenant-sub-btn');
+    btn.disabled = true;
+    btn.textContent = 'جارٍ التحديث...';
+
+    try {
+        const res = await fetch(`/api/platform/tenants/${tenantId}/subscription/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        showToast(data.message || 'تم تحديث اشتراك المنشأة بنجاح');
+        closeTenantSubModal();
+        setTimeout(() => location.reload(), 400);
+    } catch (err) {
+        showToast(err.message || 'فشل تحديث اشتراك المنشأة', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'حفظ وتحديث الاشتراك';
     }
 }
 </script>

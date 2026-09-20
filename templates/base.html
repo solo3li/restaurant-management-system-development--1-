@@ -359,6 +359,33 @@
     <!-- Main Content Area -->
     <main class="lg:mr-[250px]">
         <div class="mx-auto max-w-[1400px] px-4 py-6 lg:px-8">
+            <!-- Subscription Warning Banner -->
+            {% if tenant_subscription and not is_platform_admin %}
+                {% if not tenant_subscription.is_active %}
+                <div class="mb-5 rounded-xl border border-bad-300 bg-bad-50 p-4 text-bad-900 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">⚠️</span>
+                        <div>
+                            <p class="font-extrabold text-sm">تنبيه: اشتراك المنشأة منتهي أو معلق</p>
+                            <p class="text-xs text-bad-700">باقتك الحالية «{{ tenant_subscription.plan_name }}» انتهت صلاحيتها. يرجى التواصل مع إدارة المنصة لتجديد الاشتراك واستعادة كافة الصلاحيات.</p>
+                        </div>
+                    </div>
+                    <span class="rounded-lg bg-bad-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs">منتهي الصلاحية</span>
+                </div>
+                {% elif tenant_subscription.is_expiring_soon %}
+                <div class="mb-5 rounded-xl border border-warn-300 bg-warn-50 p-3.5 text-warn-900 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">⏳</span>
+                        <div>
+                            <p class="font-bold text-xs">تذكير: اشتراك منشأتك ينتهي خلال {{ tenant_subscription.days_left }} أيام</p>
+                            <p class="text-[11px] text-warn-700">ينتهي اشتراك باقة «{{ tenant_subscription.plan_name }}» بتاريخ {{ tenant_subscription.end_date|date:"Y-m-d" }}. يرجى التجديد لضمان استمرارية التشغيل دون انقطاع.</p>
+                        </div>
+                    </div>
+                    <span class="rounded-lg bg-warn-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs">قرب الانتهاء</span>
+                </div>
+                {% endif %}
+            {% endif %}
+
             {% block content %}{% endblock %}
         </div>
     </main>

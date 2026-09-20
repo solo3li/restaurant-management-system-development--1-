@@ -4,12 +4,60 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 
 
+SAAS_FEATURES_CATALOG = [
+    {"key": "pos", "label": "شاشة الكاشير ونقاط البيع (POS)", "desc": "تسجيل طلبات الصالة والسفري والفواتير"},
+    {"key": "kds", "label": "شاشة المطبخ وتحضير الوجبات (KDS)", "desc": "إدارة تجهيز وتحضير الوجبات فورياً"},
+    {"key": "menu_management", "label": "إدارة قائمة الطعام والوجبات", "desc": "تعديل الأسعار وإتاحة الأطباق بالفروع"},
+    {"key": "delivery_management", "label": "نظام التوصيل ومناطق الخريطة", "desc": "تحديد الزون والكمبوندات وإسناد السائقين"},
+    {"key": "call_center", "label": "الكول سنتر وخدمة العملاء", "desc": "استقبال طلبات الهاتف والتوجيه الآلي للفروع"},
+    {"key": "inventory", "label": "إدارة المخزون والمواد الخام", "desc": "المستودعات والجرد وتنبيهات النواقص"},
+    {"key": "custom_roles", "label": "المسميات الوظيفية والصلاحيات المخصصة", "desc": "إنشاء مسميات مخصصة ومصفوفة الصلاحيات"},
+    {"key": "financial_analytics", "label": "التقارير والتحليلات المالية", "desc": "مؤشرات الإيرادات والمبيعات وتفاصيل الدفع"},
+]
+
+
+class SubscriptionPlan(models.Model):
+    name = models.CharField(max_length=100, verbose_name="اسم الباقة")
+    code = models.SlugField(max_length=50, unique=True, verbose_name="كود الباقة")
+    description = models.CharField(max_length=255, blank=True, default="", verbose_name="وصف الباقة")
+    price_monthly = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="السعر الشهري (ر.س)")
+    price_yearly = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="السعر السنوي (ر.س)")
+    max_branches = models.IntegerField(default=1, verbose_name="الحد الأقصى للفروع (0 لغير محدود)")
+    max_employees = models.IntegerField(default=5, verbose_name="الحد الأقصى للموظفين (0 لغير محدود)")
+    features = models.JSONField(default=list, blank=True, verbose_name="الميزات المفعلة في الباقة")
+    trial_days = models.PositiveIntegerField(default=14, verbose_name="أيام التجربة المجانية")
+    is_active = models.BooleanField(default=True, verbose_name="متاحة للاشتراك")
+    is_popular = models.BooleanField(default=False, verbose_name="الباقة الأكثر طلباً")
+    ordering = models.IntegerField(default=0, verbose_name="ترتيب العرض")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
+
+    class Meta:
+        verbose_name = "باقة اشتراك SaaS"
+        verbose_name_plural = "باقات اشتراك المنصة"
+        ordering = ["ordering", "price_monthly"]
+
+    def __str__(self):
+        return f"{self.name} ({self.price_monthly} ر.س/شهر)"
+
+
 class Tenant(models.Model):
     PLAN_CHOICES = [
         ("trial", "تجريبي"),
         ("standard", "أساسي"),
         ("premium", "متقدم"),
         ("enterprise", "شركات"),
+    ]
+    SUBSCRIPTION_STATUS_CHOICES = [
+        ("trial", "فترة تجريبية"),
+        ("active", "نشط"),
+        ("expired", "منتهي"),
+        ("grace_period", "فترة سماح"),
+    ]
+    BILLING_CYCLE_CHOICES = [
+        ("monthly", "شهري"),
+        ("yearly", "سنوي"),
+        ("trial", "تجريبي"),
     ]
 
     name = models.CharField(max_length=255, verbose_name="اسم المطعم / المنشأة")
@@ -19,6 +67,30 @@ class Tenant(models.Model):
     email = models.EmailField(blank=True, default="", verbose_name="البريد الإلكتروني")
     address = models.CharField(max_length=255, default="", blank=True, verbose_name="المقر الرئيسي")
     plan = models.CharField(max_length=30, choices=PLAN_CHOICES, default="standard", verbose_name="خطة الاشتراك")
+
+    subscription_plan = models.ForeignKey(
+        SubscriptionPlan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenants",
+        verbose_name="باقة الاشتراك",
+    )
+    subscription_status = models.CharField(
+        max_length=20,
+        choices=SUBSCRIPTION_STATUS_CHOICES,
+        default="active",
+        verbose_name="حالة الاشتراك",
+    )
+    billing_cycle = models.CharField(
+        max_length=20,
+        choices=BILLING_CYCLE_CHOICES,
+        default="monthly",
+        verbose_name="دورة الفوترة",
+    )
+    subscription_start = models.DateTimeField(default=timezone.now, null=True, blank=True, verbose_name="تاريخ بدء الاشتراك")
+    subscription_end = models.DateTimeField(null=True, blank=True, verbose_name="تاريخ انتهاء الاشتراك")
+
     is_active = models.BooleanField(default=True, verbose_name="نشط")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التسجيل")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
@@ -30,6 +102,42 @@ class Tenant(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.slug})"
+
+    def can_add_branch(self):
+        if not self.subscription_plan:
+            return True
+        limit = self.subscription_plan.max_branches
+        if limit is None or limit <= 0:
+            return True
+        return self.branches.count() < limit
+
+    def can_add_employee(self):
+        if not self.subscription_plan:
+            return True
+        limit = self.subscription_plan.max_employees
+        if limit is None or limit <= 0:
+            return True
+        return self.employees.count() < limit
+
+    def has_feature(self, feature_key):
+        if not self.subscription_plan:
+            return True
+        return feature_key in (self.subscription_plan.features or [])
+
+    def is_subscription_active(self):
+        if not self.is_active:
+            return False
+        if self.subscription_status in ["active", "trial"]:
+            if self.subscription_end and self.subscription_end < timezone.now():
+                return False
+            return True
+        return False
+
+    def days_until_expiry(self):
+        if not self.subscription_end:
+            return 999
+        diff = (self.subscription_end - timezone.now()).total_seconds()
+        return max(0, int(diff // 86400))
 
 
 class Branch(models.Model):

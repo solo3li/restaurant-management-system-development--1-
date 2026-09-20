@@ -60,6 +60,37 @@ def branch_context(request):
             elif profile.role == "call_center":
                 user_perms = {"call_center_access", "view_orders"}
 
+    tenant_subscription = None
+    if tenant and tenant.subscription_plan:
+        plan_features = set(tenant.subscription_plan.features or [])
+        # If tenant plan does not include certain modules, filter them from user perms unless platform superadmin
+        if not is_platform_admin:
+            if "call_center" not in plan_features:
+                user_perms.discard("call_center_access")
+            if "inventory" not in plan_features:
+                user_perms.discard("manage_inventory")
+            if "custom_roles" not in plan_features:
+                user_perms.discard("manage_roles")
+            if "delivery_management" not in plan_features:
+                user_perms.discard("delivery_access")
+
+        tenant_subscription = {
+            "plan": tenant.subscription_plan,
+            "plan_name": tenant.subscription_plan.name,
+            "status": tenant.subscription_status,
+            "status_display": tenant.get_subscription_status_display(),
+            "billing_cycle": tenant.get_billing_cycle_display(),
+            "end_date": tenant.subscription_end,
+            "days_left": tenant.days_until_expiry(),
+            "is_active": tenant.is_subscription_active(),
+            "is_expiring_soon": (tenant.days_until_expiry() <= 7) if tenant.subscription_end else False,
+            "max_branches": tenant.subscription_plan.max_branches,
+            "branches_count": tenant.branches.count(),
+            "max_employees": tenant.subscription_plan.max_employees,
+            "employees_count": tenant.employees.count(),
+            "features": plan_features,
+        }
+
     return {
         "active_tenant": tenant,
         "tenant_name": tenant.name if tenant else "منصة إدارة المطاعم",
@@ -73,4 +104,5 @@ def branch_context(request):
         "all_branches": all_branches,
         "user_profile": profile,
         "user_perms": user_perms,
+        "tenant_subscription": tenant_subscription,
     }
