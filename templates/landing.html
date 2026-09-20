@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+
+{% block title %}منصة ضيافة — النظام السحابي المتكامل لإدارة سلاسل المطاعم والكافيهات{% endblock %}
+
+{% block unauth_content %}
+<div class="min-h-screen bg-[#1c130e] text-paper font-sans selection:bg-brand-500 selection:text-white" dir="rtl">
+
+    <!-- ========================================== -->
+    <!-- TOP NAVIGATION BAR                         -->
+    <!-- ========================================== -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-night/85 border-b border-night-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand -->
+            <a href="{% url 'landing' %}" class="flex items-center gap-3.5 group">
+                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-gold-400 text-white text-2xl font-black shadow-lg shadow-brand-600/30 group-hover:scale-105 transition-transform">
+                    🔥
+                </span>
+                <div>
+                    <span class="font-display text-2xl font-black text-white tracking-tight">ضِيَافَة</span>
+                    <span class="text-[10px] font-bold text-gold-400 tracking-wider block uppercase">Restaurant Cloud OS</span>
+                </div>
+            </a>
+
+            <!-- Nav Links -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-bold text-paper/80">
+                <a href="#features" class="hover:text-gold-400 transition">المميزات والحلول</a>
+                <a href="#how-it-works" class="hover:text-gold-400 transition">طريقة العمل</a>
+                <a href="#pricing" class="hover:text-gold-400 transition">الخطط والأسعار</a>
+                <a href="#stats" class="hover:text-gold-400 transition">الأرقام</a>
+                <a href="#faq" class="hover:text-gold-400 transition">الأسئلة الشائعة</a>
+            </nav>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-3">
+                <a href="{% url 'login' %}" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-gold-300 hover:text-white hover:bg-night-2 transition border border-night-3">
+                    تسجيل الدخول
+                </a>
+                <a href="{% url 'login' %}" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 shadow-lg shadow-brand-600/30 transition hover:-translate-y-0.5">
+                    🚀 ابدأ تجربتك الآن
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- HERO SECTION                               -->
+    <!-- ========================================== -->
+    <section class="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-32">
+        <!-- Ambient background glows -->
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] bg-brand-600/15 blur-[120px] rounded-full pointer-events-none"></div>
+        <div class="absolute top-1/3 right-10 w-[300px] h-[300px] bg-gold-500/10 blur-[90px] rounded-full pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-gold-400/30 bg-night-2/90 text-gold-300 text-xs font-bold mb-8 shadow-inner">
+                <span class="flex h-2 w-2 rounded-full bg-good-600 animate-ping"></span>
+                <span>الجيل الجديد من منصات إدارة سلاسل المطاعم والكافيهات في الشرق الأوسط</span>
+                <span class="text-gold-400">✨</span>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.2] max-w-5xl mx-auto">
+                تحكّم في كل فروع مطعمك،
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-gold-400 to-brand-300">
+                    مبيعاتك وفريقك
+                </span>
+                من شاشة واحدة
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="mt-6 text-base sm:text-xl text-paper/75 max-w-3xl mx-auto leading-relaxed font-medium">
+                منظومة سحابية متكاملة تشمل كاشير سريع (POS)، شاشات مطبخ تفاعلية (KDS)، كول سنتر موحد يوزع الطلبات ذكياً على الفروع والمناطق الجغرافية، مع جرد دقيق للمخزون وتحكم فائق بالصلاحيات.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+                <a href="{% url 'login' %}" class="px-8 py-4 rounded-2xl text-base font-black text-white bg-gradient-to-r from-brand-600 via-brand-500 to-gold-500 hover:opacity-95 shadow-2xl shadow-brand-600/40 transition hover:scale-105">
+                    ⚡ ابدأ تجربة المنصة مجاناً
+                </a>
+                <a href="#pricing" class="px-8 py-4 rounded-2xl text-base font-bold text-gold-300 bg-night-2 hover:bg-night-3 border border-gold-300/30 transition hover:text-white">
+                    💎 استعرض باقات الاشتراك
+                </a>
+            </div>
+
+            <!-- Trust Bar -->
+            <div class="mt-8 flex items-center justify-center gap-6 text-xs text-paper/60 font-bold">
+                <span class="flex items-center gap-1.5"><span class="text-good-600">✓</span> بدون إعدادات معقدة</span>
+                <span class="flex items-center gap-1.5"><span class="text-good-600">✓</span> دعم فني مستمر</span>
+                <span class="flex items-center gap-1.5"><span class="text-good-600">✓</span> ترقية فورية للباقات</span>
+            </div>
+
+            <!-- Interactive System Showcase Card -->
+            <div class="mt-16 max-w-5xl mx-auto rounded-3xl border border-gold-300/20 bg-night-2/80 p-3 sm:p-5 shadow-2xl shadow-black/60 backdrop-blur-xl">
+                <div class="rounded-2xl border border-night-3 bg-night p-5 sm:p-7 text-right">
+                    <!-- Top Window Bar -->
+                    <div class="flex items-center justify-between pb-5 border-b border-night-3 mb-6">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white font-bold">🏢</span>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-white">لوحة تحكم الإدارة العامة (HQ) — شاشة حية</h3>
+                                <p class="text-[11px] text-paper/50">تزامن فوري بين الفروع، الكاشير والمطبخ</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-good-600/20 text-good-600 text-[11px] font-bold border border-good-600/30">
+                                <span class="h-1.5 w-1.5 rounded-full bg-good-600 animate-pulse"></span> متصل لحظياً
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Grid Preview -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6 text-center">
+                        <div class="rounded-xl bg-night-2 p-3.5 border border-night-3">
+                            <span class="text-[11px] font-bold text-paper/60">مبيعات اليوم النشطة</span>
+                            <p class="font-display text-lg sm:text-xl font-black text-gold-400 mt-1">48,920 ر.س</p>
+                            <span class="text-[10px] text-good-600 font-bold">▲ +14% عن الأمس</span>
+                        </div>
+                        <div class="rounded-xl bg-night-2 p-3.5 border border-night-3">
+                            <span class="text-[11px] font-bold text-paper/60">طلبات قيد التشغيل</span>
+                            <p class="font-display text-lg sm:text-xl font-black text-white mt-1">26 طلب</p>
+                            <span class="text-[10px] text-brand-400 font-bold">مطبخ وكول سنتر</span>
+                        </div>
+                        <div class="rounded-xl bg-night-2 p-3.5 border border-night-3">
+                            <span class="text-[11px] font-bold text-paper/60">الفروع المفتوحة</span>
+                            <p class="font-display text-lg sm:text-xl font-black text-white mt-1">5 فروع</p>
+                            <span class="text-[10px] text-good-600 font-bold">تغطية جغرافية كاملة</span>
+                        </div>
+                        <div class="rounded-xl bg-night-2 p-3.5 border border-night-3">
+                            <span class="text-[11px] font-bold text-paper/60">متوسط وقت التسليم</span>
+                            <p class="font-display text-lg sm:text-xl font-black text-good-600 mt-1">28 دقيقة</p>
+                            <span class="text-[10px] text-paper/50 font-bold">أسرع بـ 6 دقائق</span>
+                        </div>
+                    </div>
+
+                    <!-- Module Showcase Tabs -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-medium">
+                        <div class="rounded-xl bg-night-3/60 p-4 border border-night-3">
+                            <div class="flex items-center gap-2 font-bold text-brand-400 text-sm mb-2">
+                                <span>💳</span> شاشة كاشير POS سريعة
+                            </div>
+                            <p class="text-paper/70 leading-relaxed text-[11.5px]">تسجيل الطلبات بنقرة واحدة، فواتير إلكترونية فورية، ودعم كامل للصالة والسفري والتوصيل.</p>
+                        </div>
+                        <div class="rounded-xl bg-night-3/60 p-4 border border-night-3">
+                            <div class="flex items-center gap-2 font-bold text-gold-400 text-sm mb-2">
+                                <span>🍳</span> شاشة مطبخ تفاعلية KDS
+                            </div>
+                            <p class="text-paper/70 leading-relaxed text-[11.5px]">إلغاء تام للفواتير الورقية، تنبيهات تأخير الوجبات، وتوجيه الصنف للمحطة المعنية.</p>
+                        </div>
+                        <div class="rounded-xl bg-night-3/60 p-4 border border-night-3">
+                            <div class="flex items-center gap-2 font-bold text-info-600 text-sm mb-2">
+                                <span>🗺️</span> تغطية الكومبوندات والـ GPS
+                            </div>
+                            <p class="text-paper/70 leading-relaxed text-[11.5px]">رسم نطاقات التوصيل لكل فرع، وربط الكومبوندات والمناطق برسوم وأوقات مخصصة.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STATS COUNTER BAR                          -->
+    <!-- ========================================== -->
+    <section id="stats" class="border-y border-night-3 bg-night-2/70 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                <div>
+                    <p class="font-display text-4xl lg:text-5xl font-black text-gold-400">+{{ stats.restaurants }}</p>
+                    <p class="mt-2 text-xs sm:text-sm font-bold text-paper/70">مطعم وسلسلة نشطة</p>
+                </div>
+                <div>
+                    <p class="font-display text-4xl lg:text-5xl font-black text-brand-400">+{{ stats.branches }}</p>
+                    <p class="mt-2 text-xs sm:text-sm font-bold text-paper/70">فرعاً يعمل بنظام السحاب</p>
+                </div>
+                <div>
+                    <p class="font-display text-4xl lg:text-5xl font-black text-white">+{{ stats.orders|stringformat:"d" }}</p>
+                    <p class="mt-2 text-xs sm:text-sm font-bold text-paper/70">طلب منفّذ شهرياً</p>
+                </div>
+                <div>
+                    <p class="font-display text-4xl lg:text-5xl font-black text-good-600">{{ stats.uptime }}</p>
+                    <p class="mt-2 text-xs sm:text-sm font-bold text-paper/70">نسبة الجاهزية والاعتمادية</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- COMPREHENSIVE FEATURES GRID                -->
+    <!-- ========================================== -->
+    <section id="features" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-black text-brand-400 tracking-widest uppercase">حلول متكاملة 360 درجة</span>
+            <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white mt-2">
+                كل ما تحتاجه لإدارة مطعمك بكفاءة متناهية
+            </h2>
+            <p class="mt-4 text-paper/75 text-sm sm:text-base leading-relaxed">
+                صممنا النظام بالتعاون مع كبار مشغلي المطابخ والسلاسل لتغطية كافة العمليات من المطبخ وحتى تسليم العميل.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Feature 1 -->
+            <div class="rounded-3xl border border-night-3 bg-night-2 p-7 hover:border-gold-400/40 transition hover:-translate-y-1 group">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600/20 text-brand-400 text-2xl mb-5 group-hover:bg-brand-600 group-hover:text-white transition">
+                    💳
+                </div>
+                <h3 class="text-lg font-black text-white mb-2 font-display">نقطة بيع وكاشير سحابي (POS)</h3>
+                <p class="text-xs sm:text-sm text-paper/70 leading-relaxed">
+                    واجهة ذكية تدعم شاشات اللمس، تسجيل أصناف الوجبات والخيارات الإضافية، طباعة الفواتير وربط مباشر مع المطبخ والحسابات.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="rounded-3xl border border-night-3 bg-night-2 p-7 hover:border-gold-400/40 transition hover:-translate-y-1 group">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gold-500/20 text-gold-400 text-2xl mb-5 group-hover:bg-gold-500 group-hover:text-night transition">
+                    🍳
+                </div>
+                <h3 class="text-lg font-black text-white mb-2 font-display">شاشات المطبخ الذكية (KDS)</h3>
+                <p class="text-xs sm:text-sm text-paper/70 leading-relaxed">
+                    وداعاً للطلبات الضائعة أو التأخير. شاشة مطبخ ملونة توضح وقت تجهيز كل وجبة، الأصناف المطلوبة، وأزرار جاهزية فورية.
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="rounded-3xl border border-night-3 bg-night-2 p-7 hover:border-gold-400/40 transition hover:-translate-y-1 group">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-info-600/20 text-info-600 text-2xl mb-5 group-hover:bg-info-600 group-hover:text-white transition">
+                    🗺️
+                </div>
+                <h3 class="text-lg font-black text-white mb-2 font-display">تغطية الخرائط والكومبوندات</h3>
+                <p class="text-xs sm:text-sm text-paper/70 leading-relaxed">
+                    حدد نطاق التغطية الجغرافي لكل فرع على الخريطة، وأضف الكومبوندات والمناطق السكنية برسوم توصيل مخصصة وتوقيت تقديري دقيق.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="rounded-3xl border border-night-3 bg-night-2 p-7 hover:border-gold-400/40 transition hover:-translate-y-1 group">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-good-600/20 text-good-600 text-2xl mb-5 group-hover:bg-good-600 group-hover:text-white transition">
+                    🎧
+                </div>
+                <h3 class="text-lg font-black text-white mb-2 font-display">كول سنتر موحد متعدد الفروع</h3>
+                <p class="text-xs sm:text-sm text-paper/70 leading-relaxed">
+                    استقبل مكالمات العملاء عبر رقم موحد؛ يقوم النظام تلقائياً بتوجيه الطلب لأقرب فرع يغطي عنوان العميل وحساب رسوم التوصيل.
+                </p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="rounded-3xl border border-night-3 bg-night-2 p-7 hover:border-gold-400/40 transition hover:-translate-y-1 group">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/20 text-brand-300 text-2xl mb-5 group-hover:bg-brand-500 group-hover:text-white transition">
+                    📦
+                </div>
+                <h3 class="text-lg font-black text-white mb-2 font-display">المخزون المركزي وتنبيهات النواقص</h3>
+                <p class="text-xs sm:text-sm text-paper/70 leading-relaxed">
+                    مراقبة دقيقة للكميات والمواد الخام في كل فرع، خصم تلقائي مع كل طلب مباع، وتنبيه فوري قبل نفاد أي مكون أساسي.
+                </p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="rounded-3xl border border-night-3 bg-night-2 p-7 hover:border-gold-400/40 transition hover:-translate-y-1 group">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gold-400/20 text-gold-300 text-2xl mb-5 group-hover:bg-gold-400 group-hover:text-night transition">
+                    🛡️
+                </div>
+                <h3 class="text-lg font-black text-white mb-2 font-display">مسميات وصلاحيات دقيقة للموظفين</h3>
+                <p class="text-xs sm:text-sm text-paper/70 leading-relaxed">
+                    حدد بدقة ما يراه الموظف في الفرع أو الإدارة؛ إخفاء الأرقام المالية عن غير المختصين، ومنع الحذف والتعديل إلا بإذن المالك.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PRICING & SUBSCRIPTIONS SECTION            -->
+    <!-- ========================================== -->
+    <section id="pricing" class="py-24 bg-night/90 border-t border-night-3 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <span class="text-xs font-black text-gold-400 tracking-widest uppercase">خطط واضحة وشفافة</span>
+                <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white mt-2">
+                    اختر الباقة المناسبة لحجم أعمالك
+                </h2>
+                <p class="mt-4 text-paper/75 text-sm sm:text-base leading-relaxed">
+                    سواء كنت تبدأ بفرع واحد أو تدير سلسلة ضخمة، باقاتنا صممت لتنمو معك بكل مرونة.
+                </p>
+
+                <!-- Billing Switcher Toggle -->
+                <div class="mt-8 inline-flex items-center p-1.5 rounded-2xl bg-night-2 border border-night-3">
+                    <button 
+                        type="button" 
+                        id="btn-billing-monthly" 
+                        onclick="setBillingCycle('monthly')" 
+                        class="px-5 py-2 rounded-xl text-xs font-extrabold transition bg-brand-600 text-white shadow-md"
+                    >
+                        دفع شهري
+                    </button>
+                    <button 
+                        type="button" 
+                        id="btn-billing-yearly" 
+                        onclick="setBillingCycle('yearly')" 
+                        class="px-5 py-2 rounded-xl text-xs font-extrabold transition text-paper/70 hover:text-white flex items-center gap-1.5"
+                    >
+                        <span>دفع سنوي</span>
+                        <span class="px-2 py-0.5 rounded-md bg-gold-400 text-night text-[10px] font-black">وفر 20% 🎉</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pricing Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+                {% for plan in plans %}
+                <div class="relative rounded-3xl border {% if plan.is_popular %}border-gold-400/80 bg-gradient-to-b from-night-2 to-night shadow-2xl shadow-gold-500/10 scale-105 z-10{% else %}border-night-3 bg-night-2 shadow-lg{% endif %} p-8 flex flex-col justify-between transition-all">
+                    {% if plan.is_popular %}
+                    <div class="absolute -top-3.5 right-1/2 translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-gold-500 to-gold-400 text-night text-xs font-black shadow-md">
+                        ⭐ الخيار الأكثر طلباً
+                    </div>
+                    {% endif %}
+
+                    <div>
+                        <!-- Plan Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display text-2xl font-black text-white">{{ plan.name }}</h3>
+                            <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-night-3 text-gold-300">{{ plan.code }}</span>
+                        </div>
+                        <p class="text-xs text-paper/70 mb-6 leading-relaxed">{{ plan.description|default:"حل مثالي لتشغيل المطاعم مع أعلى مستويات الأمان والأداء." }}</p>
+
+                        <!-- Price Container -->
+                        <div class="mb-6 p-4 rounded-2xl bg-night-3/60 border border-night-3 text-center">
+                            <div class="price-monthly-box">
+                                <span class="font-display text-4xl font-black text-white">{{ plan.price_monthly|floatformat:0 }}</span>
+                                <span class="text-xs font-bold text-gold-400 mr-1">ر.س / شهرياً</span>
+                            </div>
+                            <div class="price-yearly-box hidden">
+                                <span class="font-display text-4xl font-black text-gold-400">{{ plan.price_yearly|floatformat:0 }}</span>
+                                <span class="text-xs font-bold text-paper/70 mr-1">ر.س / سنوياً</span>
+                                <p class="text-[10px] text-good-600 font-bold mt-1">وفر حتى شهرين مجاناً</p>
+                            </div>
+                        </div>
+
+                        <!-- Capacity Limits Badges -->
+                        <div class="grid grid-cols-2 gap-2 mb-6 text-center text-xs">
+                            <div class="p-2.5 rounded-xl bg-night border border-night-3">
+                                <span class="text-[10px] text-paper/50 block">الحد الأقصى للفروع</span>
+                                <span class="font-extrabold text-brand-400 text-sm">
+                                    {% if plan.max_branches >= 999 %}غير محدود{% else %}{{ plan.max_branches }} فروع{% endif %}
+                                </span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-night border border-night-3">
+                                <span class="text-[10px] text-paper/50 block">الحد الأقصى للموظفين</span>
+                                <span class="font-extrabold text-gold-400 text-sm">
+                                    {% if plan.max_employees >= 999 %}غير محدود{% else %}{{ plan.max_employees }} موظف{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Feature Checklist -->
+                        <div class="space-y-3 mb-8">
+                            <p class="text-xs font-black text-paper/90 uppercase tracking-wider">المميزات المضمنة:</p>
+                            {% for feat in catalog %}
+                            <div class="flex items-center gap-2.5 text-xs">
+                                {% if feat.code in plan.features %}
+                                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-good-600/20 text-good-600 font-bold text-xs">✓</span>
+                                <span class="text-white font-bold">{{ feat.name }}</span>
+                                {% else %}
+                                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-night-3 text-paper/30 font-bold text-xs">✕</span>
+                                <span class="text-paper/40 line-through">{{ feat.name }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <a href="{% url 'login' %}" class="w-full py-3.5 rounded-2xl text-center text-sm font-black transition {% if plan.is_popular %}bg-gradient-to-r from-brand-600 to-gold-500 hover:from-brand-500 hover:to-gold-400 text-white shadow-xl shadow-brand-600/30{% else %}bg-night-3 hover:bg-brand-600 text-gold-300 hover:text-white border border-night-3{% endif %}">
+                        اشترك في باقة {{ plan.name }}
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-span-3 text-center py-12 text-paper/50 font-bold">
+                    جاري تحديث خطط الأسعار الحالية.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- DEMO ACCESS HELPER CARD                    -->
+    <!-- ========================================== -->
+    <section class="py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="rounded-3xl border border-gold-400/30 bg-gradient-to-r from-night-2 via-night-3 to-night-2 p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl">
+            <div class="relative z-10">
+                <span class="inline-block px-3 py-1 rounded-full bg-gold-400/10 text-gold-300 text-xs font-black mb-3">🔑 حساب تجريبي فوري</span>
+                <h3 class="font-display text-2xl font-black text-white mb-2">تريد تجربة المنصة بنفسك الآن؟</h3>
+                <p class="text-xs sm:text-sm text-paper/75 max-w-xl mx-auto mb-6">
+                    يمكنك الدخول مباشرة بحساب المسؤول العام وتجربة الكاشير، شاشة المطبخ، والكول سنتر بدون الحاجة لإنشاء حساب جديد.
+                </p>
+
+                <div class="inline-flex flex-wrap items-center justify-center gap-4 p-3 rounded-2xl bg-night/80 border border-night-3 font-mono text-xs text-right">
+                    <div><span class="text-paper/50">المستخدم:</span> <strong class="text-gold-400">admin</strong></div>
+                    <div class="border-r border-night-3 pr-4"><span class="text-paper/50">كلمة المرور:</span> <strong class="text-gold-400">admin123</strong></div>
+                    <div class="border-r border-night-3 pr-4"><span class="text-paper/50">PIN السريع:</span> <strong class="text-brand-400">1001 (PIN: 1234)</strong></div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{% url 'login' %}" class="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-sm shadow-lg shadow-brand-600/30 transition">
+                        <span>تسجيل الدخول للتجربة</span>
+                        <span>←</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- FAQ SECTION                                -->
+    <!-- ========================================== -->
+    <section id="faq" class="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-night-3">
+        <div class="text-center mb-12">
+            <h2 class="font-display text-3xl font-black text-white">الأسئلة الشائعة</h2>
+            <p class="text-xs sm:text-sm text-paper/60 mt-2">إجابات عن أكثر الاستفسارات تكراراً</p>
+        </div>
+
+        <div class="space-y-4 text-right">
+            <details class="group rounded-2xl bg-night-2 border border-night-3 p-5 [&_summary::-webkit-details-marker]:hidden cursor-pointer" open>
+                <summary class="flex items-center justify-between font-bold text-white text-sm">
+                    <span>هل يمكنني ترقية باقتي في أي وقت؟</span>
+                    <span class="transition group-open:-rotate-180 text-gold-400">▼</span>
+                </summary>
+                <p class="mt-3 text-xs text-paper/70 leading-relaxed">
+                    نعم بكل تأكيد. يمكنك من لوحة تحكم المالك تقديم طلب ترقية لأي باقة أعلى فوراً، وستتم مراجعة الطلب واحتساب الفارق الزمني وتفعيل الباقة الجديدة دون أي توقف في الخدمة.
+                </p>
+            </details>
+
+            <details class="group rounded-2xl bg-night-2 border border-night-3 p-5 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
+                <summary class="flex items-center justify-between font-bold text-white text-sm">
+                    <span>هل يعمل النظام على أجهزة التابلت والكمبيوتر؟</span>
+                    <span class="transition group-open:-rotate-180 text-gold-400">▼</span>
+                </summary>
+                <p class="mt-3 text-xs text-paper/70 leading-relaxed">
+                    النظام سحابي متجاوب 100% ويعمل عبر أي متصفح ويب حديث على أجهزة الآيباد، التابلت بنظام أندرويد، أجهزة الكمبيوتر، وشاشات اللمس الخاصة بنقاط البيع بدون الحاجة لتحميل تطبيقات إضافية.
+                </p>
+            </details>
+
+            <details class="group rounded-2xl bg-night-2 border border-night-3 p-5 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
+                <summary class="flex items-center justify-between font-bold text-white text-sm">
+                    <span>كيف يتم توجيه طلبات الكول سنتر لأقرب فرع؟</span>
+                    <span class="transition group-open:-rotate-180 text-gold-400">▼</span>
+                </summary>
+                <p class="mt-3 text-xs text-paper/70 leading-relaxed">
+                    يقوم موظف الكول سنتر باختيار الحي أو الكومبوند أو تحديد موقع العميل، ويقوم النظام تلقائياً باكتشاف الفرع المسؤول عن تغطية هذه المنطقة وعرض رسوم التوصيل ووقت الوصول المتوقع فوراً.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- FOOTER                                     -->
+    <!-- ========================================== -->
+    <footer class="border-t border-night-3 bg-night py-12 text-paper/60 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2.5">
+                <span class="text-xl">🔥</span>
+                <span class="font-display font-black text-white text-base">ضيافة Cloud</span>
+                <span class="text-[11px] text-paper/40">© 2026 جميع الحقوق محفوظة</span>
+            </div>
+            <div class="flex items-center gap-6 font-bold">
+                <a href="#features" class="hover:text-gold-400 transition">المميزات</a>
+                <a href="#pricing" class="hover:text-gold-400 transition">الأسعار</a>
+                <a href="{% url 'login' %}" class="hover:text-white transition">دخول المشتركين</a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+    function setBillingCycle(cycle) {
+        const monthlyBtn = document.getElementById('btn-billing-monthly');
+        const yearlyBtn = document.getElementById('btn-billing-yearly');
+        const monthlyBoxes = document.querySelectorAll('.price-monthly-box');
+        const yearlyBoxes = document.querySelectorAll('.price-yearly-box');
+
+        if (cycle === 'yearly') {
+            monthlyBtn.className = 'px-5 py-2 rounded-xl text-xs font-extrabold transition text-paper/70 hover:text-white';
+            yearlyBtn.className = 'px-5 py-2 rounded-xl text-xs font-extrabold transition bg-brand-600 text-white shadow-md flex items-center gap-1.5';
+            monthlyBoxes.forEach(el => el.classList.add('hidden'));
+            yearlyBoxes.forEach(el => el.classList.remove('hidden'));
+        } else {
+            yearlyBtn.className = 'px-5 py-2 rounded-xl text-xs font-extrabold transition text-paper/70 hover:text-white flex items-center gap-1.5';
+            monthlyBtn.className = 'px-5 py-2 rounded-xl text-xs font-extrabold transition bg-brand-600 text-white shadow-md';
+            yearlyBoxes.forEach(el => el.classList.add('hidden'));
+            monthlyBoxes.forEach(el => el.classList.remove('hidden'));
+        }
+    }
+</script>
+{% endblock %}

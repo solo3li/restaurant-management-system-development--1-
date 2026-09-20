@@ -2,8 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.dashboard_view, name="home"),
+    path("", views.landing_view, name="landing"),
+    path("home/", views.landing_view, name="home"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("subscription/", views.owner_subscription_view, name="owner_subscription"),
     path("hq/orders/", views.hq_orders_view, name="hq_orders"),
     path("platform/", views.platform_dashboard_view, name="platform_dashboard"),
     path("platform/switch-tenant/<int:tenant_id>/", views.switch_tenant_view, name="switch_tenant"),
@@ -48,4 +50,6 @@ urlpatterns = [
     path("api/platform/plans/", views.api_subscription_plans, name="api_subscription_plans"),
     path("api/platform/plans/<int:plan_id>/", views.api_subscription_plan_detail, name="api_subscription_plan_detail"),
     path("api/platform/tenants/<int:tenant_id>/subscription/", views.api_update_tenant_subscription, name="api_update_tenant_subscription"),
+    path("api/subscription/request-upgrade/", views.api_request_upgrade, name="api_request_upgrade"),
+    path("api/platform/upgrade-requests/<int:req_id>/review/", views.api_review_upgrade_request, name="api_review_upgrade_request"),
 ]

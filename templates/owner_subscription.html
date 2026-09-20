@@ -1,0 +1,504 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الاشتراك واستهلاك الحساب — {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-7 pb-12" dir="rtl">
+
+    <!-- ========================================== -->
+    <!-- HEADER & BREADCRUMB                        -->
+    <!-- ========================================== -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-5">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-bold text-soft mb-1">
+                <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">الإدارة العامة (HQ)</a>
+                <span>/</span>
+                <span class="text-ink">الاشتراك واستهلاك الباقة</span>
+            </div>
+            <h1 class="font-display text-2xl sm:text-3xl font-black text-ink flex items-center gap-3">
+                <span>💎 اشتراك باقة منشأة: {{ tenant.name }}</span>
+            </h1>
+            <p class="text-xs font-bold text-soft mt-1">متابعة حدود الاستهلاك (الفروع والموظفين)، الصلاحيات المفعلة، وتقديم طلبات الترقية</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button 
+                type="button" 
+                onclick="openUpgradeModal()" 
+                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white text-xs font-black shadow-lg shadow-brand-600/30 transition hover:-translate-y-0.5 flex items-center gap-2"
+            >
+                <span>⚡ طلب ترقية أو تجديد الباقة</span>
+            </button>
+            <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-xl border border-line bg-card hover:bg-paper text-ink text-xs font-bold transition">
+                ← عودة للوحة HQ
+            </a>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PENDING UPGRADE BANNER (IF ANY)            -->
+    <!-- ========================================== -->
+    {% if has_pending_request %}
+    <div class="rounded-2xl border border-warn-300 bg-warn-50/90 p-4 shadow-sm flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">⏳</span>
+            <div>
+                <p class="font-black text-xs text-warn-900">لديك طلب ترقية باقة قيد المراجعة حالياً من قبل إدارة المنصة</p>
+                <p class="text-[11px] text-warn-700">سيتم تفعيل الميزات والمحددات الجديدة فور مراجعة وموافقة المسؤول، ويمكنك متابعة حالة الطلب في الجدول أسفل الصفحة.</p>
+            </div>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-warn-600 text-white text-[10px] font-black">قيد المراجعة</span>
+    </div>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- CURRENT PLAN SUMMARY CARD                  -->
+    <!-- ========================================== -->
+    <div class="card p-6 sm:p-7 relative overflow-hidden shadow-sm border-line">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div class="flex items-start gap-4">
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-gold-500 text-white text-3xl font-black shadow-xl shadow-brand-600/20">
+                    {{ tenant.logo_emoji|default:"💎" }}
+                </div>
+                <div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h2 class="font-display text-2xl font-black text-ink">
+                            باقة {{ plan.name|default:"الخطة الأساسية" }}
+                        </h2>
+                        {% if tenant.subscription_status == 'active' %}
+                            <span class="px-3 py-0.5 rounded-full bg-good-100 text-good-700 text-xs font-black border border-good-600/30">
+                                ● نشط
+                            </span>
+                        {% elif tenant.subscription_status == 'past_due' %}
+                            <span class="px-3 py-0.5 rounded-full bg-warn-100 text-warn-700 text-xs font-black border border-warn-600/30">
+                                ⏳ متأخر السداد
+                            </span>
+                        {% else %}
+                            <span class="px-3 py-0.5 rounded-full bg-bad-100 text-bad-700 text-xs font-black border border-bad-600/30">
+                                ⚠️ {{ tenant.get_subscription_status_display }}
+                            </span>
+                        {% endif %}
+                        <span class="px-2.5 py-0.5 rounded-md bg-paper text-soft text-xs font-bold border border-line">
+                            دورة الفوترة: {{ tenant.get_billing_cycle_display }}
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-soft mt-1.5 max-w-xl">
+                        {{ plan.description|default:"تتيح تشغيل فروع المطعم والوصول إلى كافة المميزات المضمنة في باقتك الحالية." }}
+                    </p>
+
+                    <div class="flex items-center gap-6 mt-4 text-xs font-bold text-soft flex-wrap">
+                        <div>
+                            تاريخ انتهاء الصلاحية: 
+                            <strong class="text-ink">
+                                {% if tenant.subscription_end %}{{ tenant.subscription_end|date:"Y-m-d" }}{% else %}مستمر{% endif %}
+                            </strong>
+                        </div>
+                        <div class="border-r border-line pr-4">
+                            الأيام المتبقية: 
+                            <strong class="{% if days_left < 7 %}text-bad-600{% else %}text-good-700{% endif %}">
+                                {% if days_left != 999 %}{{ days_left }} يوم{% else %}غير محدد{% endif %}
+                            </strong>
+                        </div>
+                        <div class="border-r border-line pr-4">
+                            السعر: 
+                            <strong class="text-ink">
+                                {% if tenant.billing_cycle == 'yearly' %}{{ plan.price_yearly|floatformat:0 }} ر.س / سنوياً{% else %}{{ plan.price_monthly|floatformat:0 }} ر.س / شهرياً{% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Button -->
+            <div class="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0">
+                <button 
+                    type="button" 
+                    onclick="openUpgradeModal()" 
+                    class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-black text-xs shadow-md transition text-center"
+                >
+                    ترقية الباقة الآن
+                </button>
+                <a href="#plans-comparison" class="px-5 py-2.5 rounded-xl border border-line bg-paper hover:bg-line text-ink font-bold text-xs transition text-center">
+                    مقارنة كافة الخطط
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- USAGE & QUOTAS PROGRESS METRICS            -->
+    <!-- ========================================== -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Metric 1: Branches Usage -->
+        <div class="card p-5 border-line shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 font-bold text-base">🏢</span>
+                    <div>
+                        <h4 class="text-xs font-black text-ink">الفروع المشغلة</h4>
+                        <span class="text-[10px] text-soft">المحدد في الباقة</span>
+                    </div>
+                </div>
+                <span class="font-mono text-sm font-black {% if branches_count >= max_branches %}text-bad-600{% else %}text-ink{% endif %}">
+                    {{ branches_count }} / {{ max_branches }}
+                </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-paper rounded-full h-2.5 overflow-hidden mb-2 border border-line">
+                <div 
+                    class="h-full rounded-full transition-all {% if branches_pct >= 100 %}bg-bad-600{% elif branches_pct >= 80 %}bg-warn-600{% else %}bg-good-600{% endif %}" 
+                    style="width: {{ branches_pct }}%;"
+                ></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] font-bold">
+                <span class="text-soft">نسبة الاستهلاك: {{ branches_pct }}%</span>
+                {% if branches_count >= max_branches %}
+                <span class="text-bad-600 font-black">وصلت للحد الأقصى</span>
+                {% else %}
+                <span class="text-good-700">متاح {{ max_branches|add:"-"|add:branches_count }} فروع</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Metric 2: Employees Usage -->
+        <div class="card p-5 border-line shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gold-50 text-gold-600 font-bold text-base">👥</span>
+                    <div>
+                        <h4 class="text-xs font-black text-ink">الموظفون المسجلون</h4>
+                        <span class="text-[10px] text-soft">المحدد في الباقة</span>
+                    </div>
+                </div>
+                <span class="font-mono text-sm font-black {% if employees_count >= max_employees %}text-bad-600{% else %}text-ink{% endif %}">
+                    {{ employees_count }} / {{ max_employees }}
+                </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-paper rounded-full h-2.5 overflow-hidden mb-2 border border-line">
+                <div 
+                    class="h-full rounded-full transition-all {% if employees_pct >= 100 %}bg-bad-600{% elif employees_pct >= 80 %}bg-warn-600{% else %}bg-gold-500{% endif %}" 
+                    style="width: {{ employees_pct }}%;"
+                ></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] font-bold">
+                <span class="text-soft">نسبة الاستهلاك: {{ employees_pct }}%</span>
+                {% if employees_count >= max_employees %}
+                <span class="text-bad-600 font-black">وصلت للحد الأقصى</span>
+                {% else %}
+                <span class="text-good-700">متاح إضافة موظفين</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Metric 3: Total Orders -->
+        <div class="card p-5 border-line shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-good-50 text-good-600 font-bold text-base">🧾</span>
+                    <div>
+                        <h4 class="text-xs font-black text-ink">الطلبات المنفذة</h4>
+                        <span class="text-[10px] text-soft">عبر كل الفروع</span>
+                    </div>
+                </div>
+                <span class="font-mono text-sm font-black text-ink">
+                    {{ orders_count }} طلب
+                </span>
+            </div>
+
+            <div class="w-full bg-paper rounded-full h-2.5 overflow-hidden mb-2 border border-line">
+                <div class="h-full rounded-full bg-brand-500 w-full"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] font-bold text-soft">
+                <span>استيعاب الطلبات:</span>
+                <span class="text-good-700 font-black">غير محدود ✓</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- FEATURES CATALOG STATUS IN CURRENT PLAN    -->
+    <!-- ========================================== -->
+    <div class="card p-6 border-line shadow-sm">
+        <div class="flex items-center justify-between pb-4 border-b border-line mb-5">
+            <div>
+                <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                    <span>📋 الميزات والأنظمة المضمنة في باقتك الحالية</span>
+                </h3>
+                <p class="text-xs text-soft mt-0.5">تفصيل الصلاحيات والأنظمة المتاحة أو المغلقة بناءً على باقة «{{ plan.name }}»</p>
+            </div>
+            <span class="text-xs font-bold text-soft">
+                مفعل: <strong class="text-good-700">{{ plan.features|length }}</strong> ميزات
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for feat in features_with_status %}
+            <div class="p-4 rounded-xl border {% if feat.is_enabled %}border-good-600/30 bg-good-50/40{% else %}border-line bg-paper/50 opacity-70{% endif %} flex items-start gap-3">
+                <span class="text-2xl shrink-0 mt-0.5">{{ feat.icon }}</span>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <h4 class="text-xs font-black text-ink truncate">{{ feat.name }}</h4>
+                        {% if feat.is_enabled %}
+                        <span class="px-2 py-0.5 rounded-md bg-good-100 text-good-700 text-[10px] font-black shrink-0">مفعل ✓</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded-md bg-bad-100 text-bad-700 text-[10px] font-black shrink-0">مغلق 🔒</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-[11px] text-soft mt-1 leading-relaxed">{{ feat.desc }}</p>
+                    {% if not feat.is_enabled %}
+                    <button 
+                        type="button" 
+                        onclick="openUpgradeModal()" 
+                        class="mt-2 text-[10.5px] font-black text-brand-600 hover:text-brand-700 hover:underline"
+                    >
+                        + ترقية لفتح هذه الميزة
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- UPGRADE PLANS COMPARISON                   -->
+    <!-- ========================================== -->
+    <div id="plans-comparison" class="card p-6 border-line shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-line mb-6">
+            <div>
+                <h3 class="font-display text-lg font-black text-ink">🚀 باقات الترقية المتاحة</h3>
+                <p class="text-xs text-soft mt-0.5">اختر الباقة المناسبة للتوسع وإضافة فروع وموظفين أكثر</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for p in available_plans %}
+            <div class="rounded-2xl border {% if p.id == plan.id %}border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/20{% elif p.is_popular %}border-gold-400 bg-card shadow-md{% else %}border-line bg-card{% endif %} p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-display text-lg font-black text-ink">{{ p.name }}</h4>
+                        {% if p.id == plan.id %}
+                        <span class="px-2.5 py-0.5 rounded-full bg-brand-600 text-white text-[10px] font-black">باقتك الحالية</span>
+                        {% elif p.is_popular %}
+                        <span class="px-2.5 py-0.5 rounded-full bg-gold-400 text-night text-[10px] font-black">الأكثر طلباً</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-soft mb-4">{{ p.description }}</p>
+
+                    <div class="p-3 rounded-xl bg-paper border border-line mb-4 text-center">
+                        <span class="font-display text-2xl font-black text-ink">{{ p.price_monthly|floatformat:0 }}</span>
+                        <span class="text-xs font-bold text-soft">ر.س / شهرياً</span>
+                        <p class="text-[11px] text-brand-600 font-bold mt-0.5">{{ p.price_yearly|floatformat:0 }} ر.س / سنوياً</p>
+                    </div>
+
+                    <ul class="space-y-2 text-xs font-bold text-soft mb-6">
+                        <li class="flex items-center gap-2">
+                            <span class="text-good-600">✓</span>
+                            <span>الحد الأقصى للفروع: <strong class="text-ink">{% if p.max_branches >= 999 %}غير محدود{% else %}{{ p.max_branches }}{% endif %}</strong></span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-good-600">✓</span>
+                            <span>الحد الأقصى للموظفين: <strong class="text-ink">{% if p.max_employees >= 999 %}غير محدود{% else %}{{ p.max_employees }}{% endif %}</strong></span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-good-600">✓</span>
+                            <span>عدد الميزات المضمنة: <strong class="text-ink">{{ p.features|length }} ميزات</strong></span>
+                        </li>
+                    </ul>
+                </div>
+
+                {% if p.id == plan.id %}
+                <button disabled class="w-full py-2.5 rounded-xl bg-paper text-soft text-xs font-bold cursor-not-allowed border border-line">
+                    الباقة الحالية النشطة
+                </button>
+                {% else %}
+                <button 
+                    type="button" 
+                    onclick="selectPlanForUpgrade({{ p.id }}, '{{ p.name }}')" 
+                    class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-sm transition"
+                >
+                    طلب ترقية لهذه الباقة
+                </button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- UPGRADE REQUESTS HISTORY TABLE             -->
+    <!-- ========================================== -->
+    <div class="card p-6 border-line shadow-sm">
+        <div class="pb-4 border-b border-line mb-4">
+            <h3 class="font-display text-lg font-black text-ink">📜 سجل طلبات الترقية السابقة</h3>
+            <p class="text-xs text-soft mt-0.5">تتبع حالة طلبات الترقية وتاريخ مراجعتها من إدارة المنصة</p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead>
+                    <tr class="border-b border-line bg-paper/60 text-soft">
+                        <th class="p-3">#</th>
+                        <th class="p-3">الباقة المطلوبة</th>
+                        <th class="p-3">دورة الفوترة</th>
+                        <th class="p-3">تاريخ الطلب</th>
+                        <th class="p-3">ملاحظات</th>
+                        <th class="p-3">الحالة</th>
+                        <th class="p-3">تاريخ المراجعة</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                    {% for req in upgrade_requests %}
+                    <tr class="hover:bg-paper/30 transition">
+                        <td class="p-3 font-mono font-bold text-soft">#{{ req.id }}</td>
+                        <td class="p-3 font-black text-ink">{{ req.requested_plan.name }}</td>
+                        <td class="p-3 font-bold text-soft">{{ req.get_billing_cycle_display }}</td>
+                        <td class="p-3 font-medium text-soft">{{ req.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="p-3 text-soft max-w-xs truncate">{{ req.notes|default:"—" }}</td>
+                        <td class="p-3">
+                            {% if req.status == 'pending' %}
+                            <span class="px-2.5 py-1 rounded-md bg-warn-100 text-warn-700 font-black text-[11px] border border-warn-600/30">قيد المراجعة</span>
+                            {% elif req.status == 'approved' %}
+                            <span class="px-2.5 py-1 rounded-md bg-good-100 text-good-700 font-black text-[11px] border border-good-600/30">تمت الموافقة ✓</span>
+                            {% else %}
+                            <span class="px-2.5 py-1 rounded-md bg-bad-100 text-bad-700 font-black text-[11px] border border-bad-600/30">مرفوض ✕</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3 font-medium text-soft">
+                            {% if req.reviewed_at %}{{ req.reviewed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="p-6 text-center text-soft font-bold">
+                            لا توجد طلبات ترقية سابقة. يمكنك تقديم طلب جديد في أي وقت!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- UPGRADE REQUEST MODAL                      -->
+<!-- ========================================== -->
+<div id="upgrade-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card w-full max-w-md p-6 shadow-2xl border-line animate-modal">
+        <div class="flex items-center justify-between pb-4 border-b border-line mb-5">
+            <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                <span>⚡ تقديم طلب ترقية باقة</span>
+            </h3>
+            <button type="button" onclick="closeUpgradeModal()" class="text-soft hover:text-ink text-xl font-bold">✕</button>
+        </div>
+
+        <form id="form-upgrade" onsubmit="submitUpgradeRequest(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-ink mb-1.5">الباقة المستهدفة:</label>
+                <select id="modal-plan-id" required class="input text-xs font-bold">
+                    {% for p in available_plans %}
+                    <option value="{{ p.id }}" {% if p.id != plan.id and forloop.first %}selected{% endif %}>
+                        {{ p.name }} ({{ p.price_monthly|floatformat:0 }} ر.س شهرياً • حتى {{ p.max_branches }} فروع)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-ink mb-1.5">دورة الدفع المرغوبة:</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-line bg-paper/60 cursor-pointer">
+                        <input type="radio" name="modal-cycle" value="monthly" checked class="accent-brand-600">
+                        <span class="text-xs font-bold text-ink">شهري</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-line bg-paper/60 cursor-pointer">
+                        <input type="radio" name="modal-cycle" value="yearly" class="accent-brand-600">
+                        <span class="text-xs font-bold text-ink">سنوي (خصم 20%)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-ink mb-1.5">ملاحظات إضافية أو طلب توسع خاص:</label>
+                <textarea id="modal-notes" rows="3" class="input text-xs" placeholder="اكتب أي استفسار أو طلب لفروع إضافية لإدارة المنصة..."></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-3">
+                <button type="button" onclick="closeUpgradeModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-soft hover:text-ink">
+                    إلغاء
+                </button>
+                <button type="submit" id="btn-submit-upgrade" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md transition">
+                    إرسال طلب الترقية
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openUpgradeModal() {
+        document.getElementById('upgrade-modal').classList.remove('hidden');
+    }
+
+    function closeUpgradeModal() {
+        document.getElementById('upgrade-modal').classList.add('hidden');
+    }
+
+    function selectPlanForUpgrade(planId, planName) {
+        const select = document.getElementById('modal-plan-id');
+        if (select) {
+            select.value = planId;
+        }
+        openUpgradeModal();
+    }
+
+    async function submitUpgradeRequest(e) {
+        e.preventDefault();
+        const planId = document.getElementById('modal-plan-id').value;
+        const cycle = document.querySelector('input[name="modal-cycle"]:checked')?.value || 'monthly';
+        const notes = document.getElementById('modal-notes').value.trim();
+        const submitBtn = document.getElementById('btn-submit-upgrade');
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'جاري الإرسال...';
+
+        try {
+            const resp = await fetch('{% url "api_request_upgrade" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    plan_id: planId,
+                    billing_cycle: cycle,
+                    notes: notes
+                })
+            });
+            const data = await resp.json();
+            if (!resp.ok || data.error) {
+                showToast(data.error || 'حدث خطأ أثناء تقديم الطلب', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'إرسال طلب الترقية';
+            } else {
+                showToast(data.message || 'تم إرسال الطلب بنجاح');
+                closeUpgradeModal();
+                setTimeout(() => location.reload(), 1200);
+            }
+        } catch (err) {
+            showToast('خطأ في الاتصال بالخادم', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'إرسال طلب الترقية';
+        }
+    }
+</script>
+{% endblock %}

@@ -239,6 +239,10 @@
                     <span class="text-base">🛵</span> متابعة كل التوصيلات
                 </a>
                 {% endif %}
+                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-400 uppercase mt-2">الاشتراك والباقة</div>
+                <a href="{% url 'owner_subscription' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'owner_subscription' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">💎</span> باقتي واستهلاك الحساب
+                </a>
             {% else %}
                 <!-- =================== BRANCH OPERATIONS MENU =================== -->
                 <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">تشغيل الفرع</div>

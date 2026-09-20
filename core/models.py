@@ -133,6 +133,9 @@ class Tenant(models.Model):
             return True
         return False
 
+    def is_subscription_expired(self):
+        return not self.is_subscription_active()
+
     def days_until_expiry(self):
         if not self.subscription_end:
             return 999
@@ -675,3 +678,55 @@ class BranchMenuAvailability(models.Model):
     def __str__(self):
         status = "متوفر" if self.is_available else "غير متوفر"
         return f"{self.menu_item.name} ({self.branch.name}) - {status}"
+
+
+class UpgradeRequest(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "قيد المراجعة"),
+        ("approved", "تمت الموافقة"),
+        ("rejected", "مرفوض"),
+    ]
+
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="upgrade_requests",
+        verbose_name="المطعم / المنشأة",
+    )
+    requested_plan = models.ForeignKey(
+        SubscriptionPlan,
+        on_delete=models.CASCADE,
+        related_name="upgrade_requests",
+        verbose_name="الباقة المطلوبة",
+    )
+    billing_cycle = models.CharField(
+        max_length=20,
+        default="monthly",
+        choices=[("monthly", "شهري"), ("yearly", "سنوي")],
+        verbose_name="دورة الفوترة",
+    )
+    requested_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="طالب الترقية",
+    )
+    notes = models.TextField(blank=True, default="", verbose_name="ملاحظات الطلب")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+        verbose_name="حالة الطلب",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الطلب")
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="تاريخ المراجعة")
+
+    class Meta:
+        verbose_name = "طلب ترقية باقة"
+        verbose_name_plural = "طلبات ترقية الباقات"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"طلب {self.tenant.name} -> {self.requested_plan.name} ({self.get_status_display()})"
+

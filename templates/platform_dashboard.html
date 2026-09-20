@@ -191,6 +191,105 @@
     </div>
 
     <!-- ======================================================== -->
+    <!-- SECTION: UPGRADE REQUESTS REVIEW (FROM TENANT OWNERS)   -->
+    <!-- ======================================================== -->
+    <div class="mb-8 card p-5 border-line shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-line mb-4">
+            <div>
+                <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>⚡</span> طلبات ترقية الباقات المقدمة من الملاك
+                    {% if pending_requests_count > 0 %}
+                    <span class="px-2.5 py-0.5 rounded-full bg-warn-100 text-warn-700 text-xs font-black border border-warn-600/30">
+                        {{ pending_requests_count }} طلب قيد الانتظار
+                    </span>
+                    {% endif %}
+                </h2>
+                <p class="text-xs text-soft mt-0.5">مراجعة طلبات الترقية المقدمة من أصحاب المطاعم، الموافقة عليها لتحديث خططهم تلقائياً أو رفضها</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead>
+                    <tr class="border-b border-line bg-paper/60 text-soft font-bold">
+                        <th class="p-3">#</th>
+                        <th class="p-3">المطعم / المنشأة</th>
+                        <th class="p-3">الباقة المطلوبة</th>
+                        <th class="p-3">دورة الفوترة</th>
+                        <th class="p-3">طالب الترقية</th>
+                        <th class="p-3">تاريخ الطلب</th>
+                        <th class="p-3">ملاحظات العميل</th>
+                        <th class="p-3">الحالة</th>
+                        <th class="p-3 text-center">إجراءات المراجعة</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                    {% for req in all_upgrade_requests %}
+                    <tr class="hover:bg-paper/30 transition {% if req.status == 'pending' %}bg-warn-50/20{% endif %}">
+                        <td class="p-3 font-mono font-bold text-soft">#{{ req.id }}</td>
+                        <td class="p-3 font-black text-ink">
+                            <span class="text-base mr-1">{{ req.tenant.logo_emoji|default:"🍽️" }}</span>
+                            {{ req.tenant.name }}
+                        </td>
+                        <td class="p-3">
+                            <span class="font-black text-brand-700">{{ req.requested_plan.name }}</span>
+                            <span class="text-[10px] text-soft block">حتى {{ req.requested_plan.max_branches }} فروع</span>
+                        </td>
+                        <td class="p-3 font-bold text-soft">{{ req.get_billing_cycle_display }}</td>
+                        <td class="p-3 font-bold text-ink">{{ req.requested_by.username|default:"—" }}</td>
+                        <td class="p-3 text-soft font-medium">{{ req.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="p-3 text-soft max-w-xs truncate" title="{{ req.notes }}">{{ req.notes|default:"—" }}</td>
+                        <td class="p-3">
+                            {% if req.status == 'pending' %}
+                            <span class="px-2.5 py-1 rounded-md bg-warn-100 text-warn-700 font-black text-[11px] border border-warn-600/30">
+                                قيد الانتظار ⏳
+                            </span>
+                            {% elif req.status == 'approved' %}
+                            <span class="px-2.5 py-1 rounded-md bg-good-100 text-good-700 font-black text-[11px] border border-good-600/30">
+                                معتمد ومفعل ✓
+                            </span>
+                            {% else %}
+                            <span class="px-2.5 py-1 rounded-md bg-bad-100 text-bad-700 font-black text-[11px] border border-bad-600/30">
+                                مرفوض ✕
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3 text-center">
+                            {% if req.status == 'pending' %}
+                            <div class="flex items-center justify-center gap-2">
+                                <button 
+                                    type="button" 
+                                    onclick="reviewUpgradeRequest({{ req.id }}, 'approve', '{{ req.tenant.name }}', '{{ req.requested_plan.name }}')" 
+                                    class="px-3 py-1.5 rounded-lg bg-good-600 hover:bg-good-700 text-white font-black text-[11px] shadow-xs transition"
+                                >
+                                    ✓ موافقة وتفعيل
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onclick="reviewUpgradeRequest({{ req.id }}, 'reject', '{{ req.tenant.name }}', '{{ req.requested_plan.name }}')" 
+                                    class="px-3 py-1.5 rounded-lg bg-bad-600 hover:bg-bad-700 text-white font-black text-[11px] shadow-xs transition"
+                                >
+                                    ✕ رفض
+                                </button>
+                            </div>
+                            {% else %}
+                            <span class="text-soft text-[11px]">تمت المراجعة {% if req.reviewed_at %}({{ req.reviewed_at|date:"Y-m-d" }}){% endif %}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="p-6 text-center text-soft font-bold">
+                            لا توجد طلبات ترقية مسجلة حالياً.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
     <!-- SECTION 2: TENANTS LIST & SUBSCRIPTION MANAGEMENT       -->
     <!-- ======================================================== -->
     <div class="mb-4 flex items-center justify-between">
@@ -838,6 +937,33 @@ async function submitTenantSubForm(e) {
     } finally {
         btn.disabled = false;
         btn.textContent = 'حفظ وتحديث الاشتراك';
+    }
+}
+
+async function reviewUpgradeRequest(reqId, action, tenantName, planName) {
+    const actionText = action === 'approve' ? 'الموافقة على ترقية' : 'رفض طلب ترقية';
+    if (!confirm(`هل أنت متأكد من ${actionText} مطعم «${tenantName}» إلى «${planName}»؟`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/platform/upgrade-requests/${reqId}/review/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ action: action })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+            showToast(data.error || 'حدث خطأ أثناء معالجة الطلب', 'error');
+        } else {
+            showToast(data.message || 'تم تحديث الطلب بنجاح');
+            setTimeout(() => location.reload(), 800);
+        }
+    } catch (err) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
     }
 }
 </script>

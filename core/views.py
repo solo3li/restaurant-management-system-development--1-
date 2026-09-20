@@ -27,6 +27,7 @@ from .models import (
     PERMISSIONS_CATALOG,
     SubscriptionPlan,
     SAAS_FEATURES_CATALOG,
+    UpgradeRequest,
 )
 
 
@@ -248,6 +249,14 @@ def platform_dashboard_view(request):
             "tenants_count": p.tenants.count(),
         })
 
+    pending_upgrade_requests = UpgradeRequest.objects.filter(status="pending").select_related(
+        "tenant", "requested_plan", "requested_by"
+    ).order_by("-created_at")
+
+    all_upgrade_requests = UpgradeRequest.objects.select_related(
+        "tenant", "requested_plan", "requested_by"
+    ).order_by("-created_at")[:25]
+
     context = {
         "tenants_data": tenants_data,
         "plans_data": plans_data,
@@ -257,6 +266,9 @@ def platform_dashboard_view(request):
         "total_branches": Branch.objects.count(),
         "total_employees": Employee.objects.count(),
         "total_orders": Order.objects.count(),
+        "pending_upgrade_requests": pending_upgrade_requests,
+        "all_upgrade_requests": all_upgrade_requests,
+        "pending_requests_count": pending_upgrade_requests.count(),
     }
     return render(request, "platform_dashboard.html", context)
 
@@ -2221,3 +2233,232 @@ def api_update_tenant_subscription(request, tenant_id):
             "days_left": tenant.days_until_expiry(),
         }
     })
+
+
+# ==========================================
+# 10. SAAS LANDING & OWNER SUBSCRIPTION VIEWS
+# ==========================================
+
+def landing_view(request):
+    """Public Landing Page. If authenticated, redirect to appropriate workspace."""
+    if request.user.is_authenticated:
+        profile = getattr(request.user, "profile", None)
+        if (request.user.is_superuser or (profile and profile.is_platform_admin)) and not request.session.get("active_tenant_id"):
+            return redirect("platform_dashboard")
+        return redirect("dashboard")
+
+    plans = SubscriptionPlan.objects.filter(is_active=True).order_by("ordering", "price_monthly")
+    total_tenants = Tenant.objects.filter(is_active=True).count()
+    total_branches = Branch.objects.filter(status="active").count()
+    total_orders = Order.objects.count()
+
+    catalog_data = []
+    for f in SAAS_FEATURES_CATALOG:
+        key = f.get("key") or f.get("code")
+        label = f.get("label") or f.get("name")
+        catalog_data.append({
+            "key": key,
+            "code": key,
+            "label": label,
+            "name": label,
+            "desc": f.get("desc", ""),
+        })
+
+    context = {
+        "plans": plans,
+        "catalog": catalog_data,
+        "stats": {
+            "restaurants": max(total_tenants, 18),
+            "branches": max(total_branches, 45),
+            "orders": max(total_orders, 15000),
+            "uptime": "99.9%",
+        }
+    }
+    return render(request, "landing.html", context)
+
+
+@login_required
+def owner_subscription_view(request):
+    """Owner dashboard for viewing current subscription, limits usage, and requesting upgrades."""
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return HttpResponseForbidden("صفحة إدارة الاشتراك مخصصة لمالك المنشأة فقط")
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
+
+    branches_count = Branch.objects.filter(tenant=tenant).count()
+    employees_count = Employee.objects.filter(tenant=tenant).count()
+    orders_count = Order.objects.filter(tenant=tenant).count()
+    
+    plan = tenant.subscription_plan
+    max_branches = plan.max_branches if plan else 1
+    max_employees = plan.max_employees if plan else 5
+
+    branches_pct = min(100, int((branches_count / max_branches) * 100)) if max_branches > 0 else 100
+    employees_pct = min(100, int((employees_count / max_employees) * 100)) if max_employees > 0 else 100
+
+    available_plans = SubscriptionPlan.objects.filter(is_active=True).order_by("ordering", "price_monthly")
+    upgrade_requests = UpgradeRequest.objects.filter(tenant=tenant).select_related("requested_plan", "requested_by").order_by("-created_at")
+
+    feature_icons = {
+        "pos": "💳",
+        "kds": "🍳",
+        "menu_management": "📋",
+        "delivery_management": "🗺️",
+        "call_center": "🎧",
+        "inventory": "📦",
+        "custom_roles": "🛡️",
+        "financial_analytics": "📊",
+    }
+
+    # Catalog mapped with enabled flags for current plan
+    current_features = plan.features if plan and plan.features else []
+    features_with_status = []
+    for feat in SAAS_FEATURES_CATALOG:
+        f_key = feat.get("key") or feat.get("code")
+        f_label = feat.get("label") or feat.get("name")
+        f_desc = feat.get("desc", "")
+        f_icon = feature_icons.get(f_key, "✨")
+        is_active_feat = (f_key in current_features) or (request.user.is_superuser)
+        features_with_status.append({
+            "key": f_key,
+            "code": f_key,
+            "name": f_label,
+            "label": f_label,
+            "desc": f_desc,
+            "icon": f_icon,
+            "is_enabled": is_active_feat,
+        })
+
+    has_pending_request = upgrade_requests.filter(status="pending").exists()
+
+    context = {
+        "tenant": tenant,
+        "plan": plan,
+        "branches_count": branches_count,
+        "employees_count": employees_count,
+        "orders_count": orders_count,
+        "max_branches": max_branches,
+        "max_employees": max_employees,
+        "branches_pct": branches_pct,
+        "employees_pct": employees_pct,
+        "days_left": tenant.days_until_expiry(),
+        "is_expired": tenant.is_subscription_expired(),
+        "features_with_status": features_with_status,
+        "available_plans": available_plans,
+        "upgrade_requests": upgrade_requests,
+        "has_pending_request": has_pending_request,
+    }
+    return render(request, "owner_subscription.html", context)
+
+
+@login_required
+def api_request_upgrade(request):
+    """API for tenant owner to submit an upgrade request."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return JsonResponse({"error": "طلب الترقية مقتصر على مالك المنشأة فقط"}, status=403)
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"error": "لا توجد منشأة نشطة مرتبطة بحسابك"}, status=400)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    plan_id = body.get("plan_id")
+    billing_cycle = body.get("billing_cycle", "monthly")
+    notes = str(body.get("notes", "")).strip()
+
+    if not plan_id:
+        return JsonResponse({"error": "يرجى تحديد الباقة المطلوبة"}, status=400)
+
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
+
+    if billing_cycle not in ["monthly", "yearly"]:
+        billing_cycle = "monthly"
+
+    # Create upgrade request
+    upgrade_req = UpgradeRequest.objects.create(
+        tenant=tenant,
+        requested_plan=plan,
+        billing_cycle=billing_cycle,
+        requested_by=request.user,
+        notes=notes,
+        status="pending",
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "message": f"تم إرسال طلب الترقية إلى باقة «{plan.name}» بنجاح! سيتم مراجعته وتفعيله من قبل إدارة المنصة.",
+        "request_id": upgrade_req.id,
+        "status": upgrade_req.status,
+    })
+
+
+@login_required
+def api_review_upgrade_request(request, req_id):
+    """API for platform super admin to approve or reject an upgrade request."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    profile = getattr(request.user, "profile", None)
+    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
+
+    upgrade_req = get_object_or_404(UpgradeRequest, id=req_id)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    action = body.get("action")
+    if action not in ["approve", "reject"]:
+        return JsonResponse({"error": "إجراء غير صالح. يرجى اختيار approve أو reject"}, status=400)
+
+    if action == "approve":
+        upgrade_req.status = "approved"
+        upgrade_req.reviewed_at = timezone.now()
+        upgrade_req.save()
+
+        # Update tenant subscription
+        tenant = upgrade_req.tenant
+        tenant.subscription_plan = upgrade_req.requested_plan
+        tenant.billing_cycle = upgrade_req.billing_cycle
+        tenant.subscription_status = "active"
+
+        # Extend subscription duration (365 days for yearly, 30 days for monthly)
+        extension_days = 365 if upgrade_req.billing_cycle == "yearly" else 30
+        base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
+        tenant.subscription_end = base_time + timedelta(days=extension_days)
+        tenant.save()
+
+        return JsonResponse({
+            "ok": True,
+            "message": f"تمت الموافقة على طلب ترقية «{tenant.name}» إلى باقة «{upgrade_req.requested_plan.name}» بنجاح وتم تفعيل الاشتراك.",
+            "status": "approved",
+            "plan_name": tenant.subscription_plan.name,
+            "subscription_end": tenant.subscription_end.strftime("%Y-%m-%d"),
+        })
+
+    elif action == "reject":
+        upgrade_req.status = "rejected"
+        upgrade_req.reviewed_at = timezone.now()
+        upgrade_req.save()
+
+        return JsonResponse({
+            "ok": True,
+            "message": f"تم رفض طلب الترقية للمنشأة «{upgrade_req.tenant.name}».",
+            "status": "rejected",
+        })
+
