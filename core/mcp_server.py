@@ -28,6 +28,12 @@ if not django.conf.settings.configured:
 from django.db import models
 from django.utils import timezone
 from fastmcp import FastMCP
+import contextvars
+from urllib.parse import parse_qs
+from asgiref.sync import sync_to_async
+
+_current_session_key: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("_current_session_key", default=None)
+SESSION_ACCESS_KEYS: dict[str, str] = {}
 
 # Initialize FastMCP Server
 mcp = FastMCP(
@@ -40,11 +46,115 @@ mcp = FastMCP(
 )
 
 
+def _check_key_valid(key: str) -> bool:
+    from core.models import TenantApiKey
+    return TenantApiKey.objects.filter(key=key, is_active=True).exists()
+
+
+class FastMCPSseAuthMiddleware:
+    """ASGI Middleware to secure SSE endpoints and manage session-level access keys."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+
+            # Intercept /sse connection requests
+            if path.startswith("/sse") or path == "/sse":
+                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
+                params = parse_qs(query_string)
+                key = params.get("access_key", [None])[0]
+
+                if not key:
+                    for h_name_b, h_val_b in scope.get("headers", []):
+                        h_name = h_name_b.decode("latin1").lower()
+                        if h_name == "x-access-key":
+                            key = h_val_b.decode("latin1").strip()
+                            break
+                        elif h_name == "authorization":
+                            auth_str = h_val_b.decode("latin1").strip()
+                            key = auth_str[7:].strip() if auth_str.startswith("Bearer ") else auth_str
+                            break
+
+                if not key:
+                    body = "مفتاح الدخول (Access Key) مطلوب. مرره في رابط الاتصال ?access_key=... أو عبر Headers.\n".encode("utf-8")
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [
+                            (b"content-type", b"text/plain; charset=utf-8"),
+                            (b"content-length", str(len(body)).encode("ascii")),
+                        ],
+                    })
+                    await send({"type": "http.response.body", "body": body})
+                    return
+
+                is_valid = await sync_to_async(_check_key_valid)(key)
+                if not is_valid:
+                    body = "مفتاح الدخول (Access Key) غير صالح أو تم إيقافه.\n".encode("utf-8")
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [
+                            (b"content-type", b"text/plain; charset=utf-8"),
+                            (b"content-length", str(len(body)).encode("ascii")),
+                        ],
+                    })
+                    await send({"type": "http.response.body", "body": body})
+                    return
+
+                # Record session_id from SSE endpoint event
+                async def intercept_send(message):
+                    if message["type"] == "http.response.body":
+                        body_chunk = message.get("body", b"").decode("utf-8", errors="ignore")
+                        if "session_id=" in body_chunk:
+                            try:
+                                for part in body_chunk.split():
+                                    if "session_id=" in part:
+                                        s_id = part.split("session_id=")[-1].strip()
+                                        SESSION_ACCESS_KEYS[s_id] = key
+                            except Exception:
+                                pass
+                    await send(message)
+
+                await self.app(scope, receive, intercept_send)
+                return
+
+            # Intercept /messages POST requests
+            elif path.startswith("/messages") or path == "/messages":
+                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
+                params = parse_qs(query_string)
+                s_id = params.get("session_id", [None])[0]
+                session_key = SESSION_ACCESS_KEYS.get(s_id) if s_id else None
+
+                if session_key:
+                    token = _current_session_key.set(session_key)
+                    try:
+                        await self.app(scope, receive, send)
+                    finally:
+                        _current_session_key.reset(token)
+                    return
+
+        await self.app(scope, receive, send)
+
+
+def get_mcp_asgi_app():
+    """Return the FastMCP SSE Starlette application wrapped with security and multi-tenant authentication."""
+    raw_app = mcp.http_app(transport="sse")
+    return FastMCPSseAuthMiddleware(raw_app)
+
+
 def _authenticate(access_key: Optional[str] = None):
-    """Validate access key (from parameter or RESTAURANT_ACCESS_KEY env) and check tenant subscription status."""
-    key = str(access_key or "").strip() or os.environ.get("RESTAURANT_ACCESS_KEY", "").strip()
+    """Validate access key (from parameter, session context, or RESTAURANT_ACCESS_KEY env) and check tenant subscription status."""
+    key = str(access_key or "").strip()
     if not key:
-        raise ValueError("مفتاح الدخول (Access Key) مطلوب. مرره كمعامل access_key أو اضبط متغير البيئة RESTAURANT_ACCESS_KEY.")
+        key = _current_session_key.get() or ""
+    if not key:
+        key = os.environ.get("RESTAURANT_ACCESS_KEY", "").strip()
+
+    if not key:
+        raise ValueError("مفتاح الدخول (Access Key) مطلوب. مرره كمعامل access_key أو في رابط الاتصال ?access_key=...")
 
     from core.models import TenantApiKey
     key_obj = TenantApiKey.objects.select_related("tenant", "assigned_branch", "tenant__subscription_plan").filter(
@@ -63,6 +173,7 @@ def _authenticate(access_key: Optional[str] = None):
         raise ValueError(f"اشتراك منشأة «{tenant.name}» منتهي أو ملغي. يرجى تجديد الاشتراك أولاً.")
 
     return key_obj, tenant
+
 
 
 @mcp.tool

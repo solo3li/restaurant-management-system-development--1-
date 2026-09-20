@@ -718,28 +718,25 @@
     const serverManagePyPath = "{{ manage_py_path|escapejs }}";
 
     let currentConfigText = '';
+    let currentSseUrl = '';
     function showClaudeConfig(accessKey, botName) {
+        const sseUrl = `${window.location.origin}/sse?access_key=${accessKey}`;
+        currentSseUrl = sseUrl;
+
         const configObj = {
             "mcpServers": {
                 "restaurant-callcenter": {
-                    "command": serverPythonPath || "python",
-                    "args": [
-                        serverManagePyPath,
-                        "run_callcenter_mcp",
-                        "--transport",
-                        "stdio"
-                    ],
-                    "env": {
-                        "RESTAURANT_ACCESS_KEY": accessKey
-                    }
+                    "serverUrl": sseUrl
                 }
             }
         };
 
         currentConfigText = JSON.stringify(configObj, null, 2);
         document.getElementById('claude-config-json').innerText = currentConfigText;
+        document.getElementById('claude-sse-url-input').value = sseUrl;
         document.getElementById('claude-config-modal').classList.remove('hidden');
     }
+
 
 
     function closeClaudeConfigModal() {
@@ -747,10 +744,19 @@
         location.reload();
     }
 
+    function copySseUrl() {
+        if (!currentSseUrl) return;
+        navigator.clipboard.writeText(currentSseUrl).then(() => {
+            showToast('تم نسخ الرابط السحابي المباشر (SSE URL) بنجاح!');
+        }).catch(() => {
+            showToast('يرجى نسخ الرابط يدوياً');
+        });
+    }
+
     function copyConfigJson() {
         if (!currentConfigText) return;
         navigator.clipboard.writeText(currentConfigText).then(() => {
-            showToast('تم نسخ كود إعدادات Claude Desktop بنجاح!');
+            showToast('تم نسخ كود إعدادات الذكاء الاصطناعي (MCP Config) بنجاح!');
         }).catch(() => {
             showToast('يرجى نسخ الكود يدوياً');
         });
@@ -780,7 +786,7 @@
         <form id="form-create-key" onsubmit="submitCreateApiKey(event)" class="space-y-4">
             <div>
                 <label class="block text-xs font-bold text-ink mb-1.5">اسم البوت أو الغرض:</label>
-                <input type="text" id="modal-key-name" required placeholder="مثال: بوت الكول سنتر - Claude" class="input text-xs font-bold">
+                <input type="text" id="modal-key-name" required placeholder="مثال: بوت الكول سنتر - السيرفر السحابي" class="input text-xs font-bold">
             </div>
 
             <div>
@@ -807,39 +813,73 @@
 </div>
 
 <!-- ========================================== -->
-<!-- CLAUDE DESKTOP CONFIG MODAL                -->
+<!-- CLOUD FASTMCP SSE 24/7 CONFIG MODAL        -->
 <!-- ========================================== -->
 <div id="claude-config-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="card w-full max-w-lg p-6 shadow-2xl border-line animate-modal">
+    <div class="card w-full max-w-lg p-6 shadow-2xl border-line animate-modal max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between pb-4 border-b border-line mb-4">
             <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
-                <span>⚙️ إعدادات ربط Claude Desktop و FastMCP</span>
+                <span>📡 ربط الذكاء الاصطناعي السحابي (FastMCP SSE 24/7)</span>
             </h3>
             <button type="button" onclick="closeClaudeConfigModal()" class="text-soft hover:text-ink text-xl font-bold">✕</button>
         </div>
 
-        <p class="text-xs text-soft mb-3">
-            انسخ الإعدادات التالية وضعها في ملف <code class="bg-paper px-1.5 py-0.5 rounded border border-line text-brand-700 font-mono text-[11px]">claude_desktop_config.json</code> لتمكين كلود من العمل كموظف كول سنتر لمطعمك مباشرة:
-        </p>
-
-        <div class="relative mb-4">
-            <pre id="claude-config-json" class="bg-night text-gold-300 font-mono text-[11px] p-4 rounded-xl overflow-x-auto border border-night-3 text-left dir-ltr max-h-60"></pre>
-            <button 
-                type="button" 
-                onclick="copyConfigJson()" 
-                class="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition"
-            >
-                📋 نسخ الكود
-            </button>
+        <div class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-900 dark:text-purple-200 mb-4 leading-relaxed">
+            <p class="font-bold flex items-center gap-1.5 mb-1">
+                <span>⚡</span> يعمل 24/7 على السيرفر مباشرة دون برامج محلية:
+            </p>
+            خدمة الكول سنتر السحابية تعمل عبر بروتوكول <b>Server-Sent Events (SSE)</b>. يمكنك ربطها مباشرة مع <b>Antigravity IDE</b>، <b>Cursor</b>، <b>Claude Desktop</b>، أو أي وكيل ذكاء اصطناعي صوتي عبر الرابط السحابي المباشر.
         </div>
 
+        <!-- 1. Direct Cloud SSE URL -->
+        <div class="mb-4">
+            <label class="block text-xs font-bold text-ink mb-1.5 flex items-center justify-between">
+                <span>🌐 رابط الخادم السحابي المباشر (Cloud SSE URL):</span>
+                <span class="text-[10.5px] text-good-700 font-black">جاهز للاتصال ✓</span>
+            </label>
+            <div class="flex gap-2">
+                <input 
+                    type="text" 
+                    id="claude-sse-url-input" 
+                    readonly 
+                    class="input font-mono text-[11px] bg-paper select-all text-left dir-ltr flex-1"
+                >
+                <button 
+                    type="button" 
+                    onclick="copySseUrl()" 
+                    class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition shrink-0"
+                >
+                    📋 نسخ الرابط
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. JSON Configuration -->
+        <div class="mb-4">
+            <label class="block text-xs font-bold text-ink mb-1.5">
+                ⚙️ كود الإعداد (JSON Config لـ Antigravity IDE / Cursor / Claude):
+            </label>
+            <div class="relative">
+                <pre id="claude-config-json" class="bg-night text-gold-300 font-mono text-[11px] p-4 rounded-xl overflow-x-auto border border-night-3 text-left dir-ltr max-h-48"></pre>
+                <button 
+                    type="button" 
+                    onclick="copyConfigJson()" 
+                    class="absolute top-2.5 right-2.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition"
+                >
+                    📋 نسخ الكود
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. Helper Path Note -->
         <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5 mb-4">
             <p class="font-bold text-ink flex items-center gap-1.5">
-                <span>💡</span> مسار ملف الإعدادات في جهازك:
+                <span>💡</span> مسار ملف الإعدادات في برامجك المفضلة:
             </p>
-            <code class="block font-mono text-[10.5px] text-ink select-all break-all bg-card p-2 rounded-lg border border-line/60 dir-ltr text-left">
-                %APPDATA%\Claude\claude_desktop_config.json
-            </code>
+            <div class="space-y-1 text-[11px]">
+                <div>• <b>Antigravity IDE:</b> <code class="font-mono text-ink bg-card px-1.5 py-0.5 rounded dir-ltr">%USERPROFILE%\.gemini\config\mcp_config.json</code></div>
+                <div>• <b>Claude Desktop:</b> <code class="font-mono text-ink bg-card px-1.5 py-0.5 rounded dir-ltr">%APPDATA%\Claude\claude_desktop_config.json</code></div>
+            </div>
         </div>
 
         <div class="flex justify-end">
@@ -850,3 +890,4 @@
     </div>
 </div>
 {% endblock %}
+

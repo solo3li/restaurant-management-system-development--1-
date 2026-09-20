@@ -1,16 +1,31 @@
-"""
-ASGI config for restaurant_system project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
-"""
-
 import os
-
 from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'restaurant_system.settings')
+django_application = get_asgi_application()
 
-application = get_asgi_application()
+from core.mcp_server import get_mcp_asgi_app
+mcp_application = get_mcp_asgi_app()
+
+
+async def application(scope, receive, send):
+    """
+    Unified ASGI Application for Restaurant Platform & 24/7 Call Center FastMCP:
+    - /sse, /messages, /mcp -> FastMCP SSE Starlette Server (AI Call Center)
+    - Lifespan events -> Handled by FastMCP Lifespan Manager
+    - All other URLs -> Django Core Application (POS, KDS, Admin, Dashboard, APIs)
+    """
+    scope_type = scope.get("type")
+
+    if scope_type == "lifespan":
+        await mcp_application(scope, receive, send)
+        return
+
+    if scope_type in ("http", "websocket"):
+        path = scope.get("path", "")
+        if path.startswith("/sse") or path.startswith("/messages") or path.startswith("/mcp"):
+            await mcp_application(scope, receive, send)
+            return
+
+    await django_application(scope, receive, send)
+
