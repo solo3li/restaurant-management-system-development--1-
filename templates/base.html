@@ -199,57 +199,89 @@
             {% if is_hq_mode %}
                 <!-- =================== HQ / OWNER MENU =================== -->
                 <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">إدارة المنشأة والتحليلات</div>
+                {% if 'view_hq_dashboard' in user_perms %}
                 <a href="{% url 'dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">📊</span> لوحة الإدارة العامة
                 </a>
+                {% endif %}
+                {% if 'view_orders' in user_perms %}
                 <a href="{% url 'hq_orders' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'hq_orders' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🧾</span> سجل كل الطلبات
                 </a>
+                {% endif %}
+                {% if 'manage_branches' in user_perms %}
                 <a href="{% url 'branches' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branches' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🏢</span> إدارة الفروع
                 </a>
+                {% endif %}
+                {% if 'manage_employees' in user_perms %}
                 <a href="{% url 'employees' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'employees' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">👥</span> كل الموظفين والرواتب
                 </a>
+                {% endif %}
+                {% if 'manage_menu' in user_perms %}
                 <a href="{% url 'branch_menu' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">📋</span> قائمة الطعام الرئيسية
                 </a>
+                {% endif %}
+                {% if 'manage_inventory' in user_perms %}
                 <a href="{% url 'inventory' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'inventory' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">📦</span> المخزون المركزي
                 </a>
+                {% endif %}
+                {% if 'call_center_access' in user_perms %}
                 <a href="{% url 'call_center' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'call_center' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🎧</span> الكول سنتر المركزي
                 </a>
+                {% endif %}
+                {% if 'delivery_access' in user_perms %}
                 <a href="{% url 'delivery' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🛵</span> متابعة كل التوصيلات
                 </a>
+                {% endif %}
             {% else %}
                 <!-- =================== BRANCH OPERATIONS MENU =================== -->
                 <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">تشغيل الفرع</div>
+                {% if 'view_branch_dashboard' in user_perms %}
                 <a href="{% url 'branch_dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🏠</span> لوحة تحكم الفرع
                 </a>
+                {% endif %}
+                {% if 'pos_access' in user_perms %}
                 <a href="{% url 'pos' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'pos' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">💳</span> كاشير الفرع (POS)
                 </a>
+                {% endif %}
+                {% if 'kds_access' in user_perms %}
                 <a href="{% url 'kitchen' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'kitchen' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🍳</span> شاشة المطبخ (KDS)
                 </a>
+                {% endif %}
+                {% if 'view_orders' in user_perms %}
                 <a href="{% url 'branch_orders' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_orders' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🧾</span> طلبات وفواتير الفرع
                 </a>
+                {% endif %}
+                {% if 'delivery_access' in user_perms %}
                 <a href="{% url 'delivery' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🛵</span> توصيل وسائقي الفرع
                 </a>
+                {% endif %}
+                {% if 'manage_menu' in user_perms %}
                 <a href="{% url 'branch_menu' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">📋</span> منيو وتوفر الوجبات
                 </a>
+                {% endif %}
+                {% if 'manage_inventory' in user_perms %}
                 <a href="{% url 'inventory' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'inventory' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">📦</span> مخزون الفرع
                 </a>
+                {% endif %}
+                {% if 'manage_employees' in user_perms %}
                 <a href="{% url 'employees' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'employees' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">👥</span> موظفو الفرع
                 </a>
+                {% endif %}
 
                 {% if can_switch_branches %}
                 <div class="mt-2 pt-2 border-t border-night-3">
@@ -279,7 +311,9 @@
                     <div class="min-w-0">
                         <p class="text-xs font-bold text-white truncate">{{ user.first_name|default:user.username }}</p>
                         <p class="text-[10px] text-gold-300/60 truncate">
-                            {% if user_profile %}
+                            {% if user_profile and user_profile.job_role %}
+                                🛡️ {{ user_profile.job_role.name }}
+                            {% elif user_profile %}
                                 {{ user_profile.get_role_display }}
                                 {% if user_profile.user.employee_profile.employee_code %}
                                     #{{ user_profile.user.employee_profile.employee_code }}
@@ -310,13 +344,13 @@
         </div>
         <div class="flex items-center gap-2 overflow-x-auto text-xs py-1">
             {% if is_hq_mode %}
-            <a href="{% url 'dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">HQ</a>
-            <a href="{% url 'hq_orders' %}" class="px-2 py-1 rounded font-bold text-gold-300">الطلبات</a>
-            <a href="{% url 'branches' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفروع</a>
+                {% if 'view_hq_dashboard' in user_perms %}<a href="{% url 'dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">HQ</a>{% endif %}
+                {% if 'view_orders' in user_perms %}<a href="{% url 'hq_orders' %}" class="px-2 py-1 rounded font-bold text-gold-300">الطلبات</a>{% endif %}
+                {% if 'manage_branches' in user_perms %}<a href="{% url 'branches' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفروع</a>{% endif %}
             {% else %}
-            <a href="{% url 'branch_dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفرع</a>
-            <a href="{% url 'pos' %}" class="px-2 py-1 rounded font-bold text-gold-300">كاشير</a>
-            <a href="{% url 'kitchen' %}" class="px-2 py-1 rounded font-bold text-gold-300">المطبخ</a>
+                {% if 'view_branch_dashboard' in user_perms %}<a href="{% url 'branch_dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفرع</a>{% endif %}
+                {% if 'pos_access' in user_perms %}<a href="{% url 'pos' %}" class="px-2 py-1 rounded font-bold text-gold-300">كاشير</a>{% endif %}
+                {% if 'kds_access' in user_perms %}<a href="{% url 'kitchen' %}" class="px-2 py-1 rounded font-bold text-gold-300">المطبخ</a>{% endif %}
             {% endif %}
             <a href="{% url 'logout' %}" class="px-2 py-1 text-bad-600 font-bold">خروج</a>
         </div>

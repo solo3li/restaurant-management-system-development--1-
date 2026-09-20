@@ -1,18 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}الموظفون — إدارة الكادر وأكواد الدخول{% endblock %}
+{% block title %}الموظفون — إدارة الكادر والمسميات الوظيفية والصلاحيات{% endblock %}
 
 {% block content %}
 <div>
     <!-- Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <h1 class="text-2xl font-black font-display text-ink">فريق العمل والموظفون</h1>
             <p class="text-xs font-bold text-soft mt-1">
-                إدارة الكادر التشغيلي، الرواتب، أكواد الدخول السريع (ID)، ورموز الـ PIN للمناوبات
+                إدارة الكادر التشغيلي، المسميات الوظيفية، مصفوفة الصلاحيات الشاملة، والرواتب
             </p>
         </div>
-        <div>
+        <div class="flex items-center gap-2">
+            <button onclick="openJobRolesModal()" class="rounded-xl border border-brand-600/40 bg-brand-50 px-3.5 py-2 text-xs font-bold text-brand-800 hover:bg-brand-100 transition shadow-xs flex items-center gap-1.5">
+                <span>🛡️</span> إدارة المسميات والصلاحيات
+            </button>
             <button onclick="openAddEmpModal()" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-black text-white hover:bg-brand-700 shadow-sm transition">
                 + إضافة موظف جديد
             </button>
@@ -21,40 +24,28 @@
 
     <!-- Role Filters & Search -->
     <div class="card p-4 mb-5 space-y-3">
-        <!-- Role Pills -->
+        <!-- Role & Scope Pills -->
         <div class="flex flex-wrap items-center gap-1.5 border-b border-line pb-3">
-            <a href="?role=all&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'all' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+            <a href="?job_role=all&role=all&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if job_role_filter == 'all' and role_filter == 'all' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
                 الكل ({{ roles_summary.all }})
             </a>
-            <a href="?role=manager&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'manager' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
-                مدراء ({{ roles_summary.manager }})
+            {% for jr in job_roles %}
+            <a href="?job_role={{ jr.id }}&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if job_role_filter == jr.id|stringformat:'s' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
+                {{ jr.name }} ({{ jr.emp_count }})
             </a>
-            <a href="?role=cashier&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'cashier' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
-                كاشير ({{ roles_summary.cashier }})
-            </a>
-            <a href="?role=chef&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'chef' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
-                طهاة ({{ roles_summary.chef }})
-            </a>
-            <a href="?role=driver&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'driver' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
-                سائقون ({{ roles_summary.driver }})
-            </a>
-            <a href="?role=call_center&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'call_center' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
-                خدمة عملاء ({{ roles_summary.call_center }})
-            </a>
-            <a href="?role=waiter&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-full px-3 py-1 text-xs font-bold transition {% if role_filter == 'waiter' %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}">
-                مباشرون ({{ roles_summary.waiter }})
-            </a>
+            {% endfor %}
         </div>
 
         <!-- Branch and text search -->
         <form method="GET" action="{% url 'employees' %}" class="flex flex-wrap items-center gap-3">
+            <input type="hidden" name="job_role" value="{{ job_role_filter }}">
             <input type="hidden" name="role" value="{{ role_filter }}">
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-soft">الفرع:</span>
                 <select name="branch" onchange="this.form.submit()" class="input !w-44 text-xs">
                     <option value="all">كافة الفروع</option>
                     {% for b in branches %}
-                    <option value="{{ b.id }}" {% if branch_filter == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:'s' or branch_filter == b.id %}selected{% endif %}>{{ b.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -70,7 +61,7 @@
             <button type="submit" class="rounded-lg bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink">
                 بحث
             </button>
-            {% if search_query or branch_filter != 'all' or role_filter != 'all' %}
+            {% if search_query or branch_filter != 'all' or role_filter != 'all' or job_role_filter != 'all' %}
             <a href="{% url 'employees' %}" class="text-xs font-bold text-bad-700 hover:underline">إعادة ضبط</a>
             {% endif %}
         </form>
@@ -84,10 +75,10 @@
                     <tr>
                         <th class="th">الموظف</th>
                         <th class="th">كود الدخول وPIN</th>
-                        <th class="th">المسمى الوظيفي</th>
+                        <th class="th">المسمى الوظيفي والصلاحيات</th>
+                        <th class="th">نطاق العمل</th>
                         <th class="th">الفرع</th>
                         <th class="th">الراتب الأساسي</th>
-                        <th class="th">تاريخ التعيين</th>
                         <th class="th">الحالة</th>
                         <th class="th text-center">إجراءات</th>
                     </tr>
@@ -100,43 +91,53 @@
                             <p class="text-[11px] text-soft font-mono" dir="ltr">{{ emp.phone|default:"—" }}</p>
                         </td>
                         <td class="td">
-                            <div class="flex items-center gap-2">
-                                <span class="rounded-lg bg-paper border border-line px-2 py-0.5 font-mono text-xs font-black text-ink shadow-sm" title="كود تسجيل الدخول">
+                            <div class="flex items-center gap-1.5">
+                                <span class="rounded bg-brand-50 border border-brand-200 px-2 py-0.5 font-mono text-xs font-bold text-brand-700">
                                     #{{ emp.employee_code|default:"—" }}
                                 </span>
                                 {% if emp.pin_code %}
-                                <span class="rounded bg-good-100 text-good-700 border border-good-600/30 px-1.5 py-0.5 text-[10px] font-mono font-bold" title="رمز PIN مفعل">
-                                    PIN: ●●●●
-                                </span>
+                                <span class="rounded bg-good-100 px-1.5 py-0.5 text-[10px] font-bold text-good-700">PIN مفعل</span>
                                 {% else %}
-                                <span class="rounded bg-bad-100 text-bad-700 px-1.5 py-0.5 text-[10px] font-bold">
-                                    بدون PIN
-                                </span>
+                                <span class="rounded bg-warn-100 px-1.5 py-0.5 text-[10px] font-bold text-warn-700">بدون PIN</span>
                                 {% endif %}
                             </div>
                         </td>
                         <td class="td">
-                            <span class="rounded-lg px-2.5 py-1 text-[11px] font-bold
-                                {% if emp.role == 'manager' %}bg-night text-gold-300
-                                {% elif emp.role == 'cashier' %}bg-brand-100 text-brand-700
-                                {% elif emp.role == 'chef' %}bg-warn-100 text-warn-700
-                                {% elif emp.role == 'driver' %}bg-info-100 text-info-700
-                                {% elif emp.role == 'call_center' %}bg-good-100 text-good-700
-                                {% else %}bg-paper text-soft{% endif %}">
-                                {{ emp.get_role_display }}
+                            <span class="rounded-lg bg-paper px-2 py-1 font-bold text-ink inline-flex items-center gap-1 border border-line">
+                                {% if emp.job_role %}
+                                    <span>🛡️</span> {{ emp.job_role.name }}
+                                {% else %}
+                                    {{ emp.get_role_display }}
+                                {% endif %}
                             </span>
                         </td>
-                        <td class="td text-soft font-bold">{{ emp.branch.name|default:"—" }}</td>
-                        <td class="td font-extrabold text-brand-700 font-mono">{{ emp.salary|floatformat:0 }} ر.س</td>
-                        <td class="td text-soft">{{ emp.hire_date|date:"j M Y" }}</td>
                         <td class="td">
-                            <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {% if emp.status == 'active' %}bg-good-100 text-good-700{% elif emp.status == 'vacation' %}bg-warn-100 text-warn-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                            {% if emp.job_role %}
+                                {% if emp.job_role.scope == 'hq' %}
+                                    <span class="rounded-full bg-purple-100 text-purple-800 px-2 py-0.5 text-[10px] font-bold">🏢 إدارة عامة (HQ)</span>
+                                {% elif emp.job_role.scope == 'both' %}
+                                    <span class="rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-[10px] font-bold">🌐 شامل (إدارة وفروع)</span>
+                                {% else %}
+                                    <span class="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-bold">📍 تشغيل فرع</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-soft text-[11px]">تشغيلي</span>
+                            {% endif %}
+                        </td>
+                        <td class="td text-soft font-bold">
+                            {{ emp.branch.name|default:"🏢 الإدارة العامة" }}
+                        </td>
+                        <td class="td font-mono font-bold text-ink">
+                            {{ emp.salary }} <span class="text-[10px] text-soft">ر.س</span>
+                        </td>
+                        <td class="td">
+                            <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold {% if emp.status == 'active' %}bg-good-100 text-good-700{% elif emp.status == 'vacation' %}bg-warn-100 text-warn-700{% else %}bg-bad-100 text-bad-700{% endif %}">
                                 {{ emp.get_status_display }}
                             </span>
                         </td>
                         <td class="td text-center">
                             <button 
-                                onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.phone|escapejs }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}', '{{ emp.employee_code|default:'' }}')" 
+                                onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.phone|escapejs }}', '{{ emp.job_role_id|default:'' }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}', '{{ emp.employee_code|default:'' }}')" 
                                 class="rounded-lg border border-line bg-paper px-3 py-1 text-xs font-bold text-soft hover:text-ink hover:border-brand-400 transition"
                             >
                                 تعديل / PIN
@@ -154,7 +155,9 @@
     </div>
 </div>
 
-<!-- Add Employee Modal -->
+<!-- ======================================================== -->
+<!-- MODAL 1: ADD NEW EMPLOYEE -->
+<!-- ======================================================== -->
 <div id="add-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
     <div class="card max-w-md w-full p-6 shadow-2xl">
         <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
@@ -174,14 +177,16 @@
                     <input type="text" id="add-emp-phone" placeholder="05xxxxxxxx" dir="ltr" class="input text-xs">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">المسمى الوظيفي</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-soft">المسمى الوظيفي</label>
+                        <button type="button" onclick="openCreateRoleFromAddModal()" class="text-[10px] font-bold text-brand-600 hover:underline">+ مسمى جديد</button>
+                    </div>
                     <select id="add-emp-role" class="input text-xs">
-                        <option value="cashier">كاشير</option>
-                        <option value="manager">مدير فرع</option>
-                        <option value="chef">طاهٍ / مطبخ</option>
-                        <option value="driver">سائق توصيل</option>
-                        <option value="call_center">خدمة عملاء</option>
-                        <option value="waiter">مباشر / نادل</option>
+                        {% for jr in job_roles %}
+                        <option value="{{ jr.id }}" data-scope="{{ jr.scope }}">{{ jr.name }} ({{ jr.get_scope_display }})</option>
+                        {% empty %}
+                        <option value="">كاشير</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -190,7 +195,7 @@
                 <div>
                     <label class="mb-1 block font-bold text-soft">الفرع</label>
                     <select id="add-emp-branch" class="input text-xs">
-                        <option value="">— بدون فرع —</option>
+                        <option value="">— بدون فرع (إدارة عامة) —</option>
                         {% for b in branches %}
                         <option value="{{ b.id }}">{{ b.name }}</option>
                         {% endfor %}
@@ -238,7 +243,7 @@
                         >
                     </div>
                 </div>
-                <p class="text-[10px] text-soft">يستخدم الموظف هذا الكود ورمز PIN للدخول السريع للوردية وشاشات الـ POS والمطبخ.</p>
+                <p class="text-[10px] text-soft">يستخدم الموظف هذا الكود ورمز PIN للدخول السريع للوردية وشاشات النظام.</p>
             </div>
         </div>
 
@@ -249,12 +254,14 @@
     </div>
 </div>
 
-<!-- Edit Employee Modal -->
+<!-- ======================================================== -->
+<!-- MODAL 2: EDIT EMPLOYEE -->
+<!-- ======================================================== -->
 <div id="edit-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
     <div class="card max-w-md w-full p-6 shadow-2xl">
         <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
             <div>
-                <h3 class="text-sm font-black font-display text-ink">تعديل بيانات الموظف ورمز الـ PIN</h3>
+                <h3 class="text-sm font-black font-display text-ink">تعديل بيانات الموظف والصلاحيات</h3>
                 <p id="edit-emp-title" class="text-xs font-bold text-brand-700 mt-0.5"></p>
             </div>
             <button onclick="closeEditEmpModal()" class="text-soft hover:text-ink text-sm">✕</button>
@@ -273,14 +280,14 @@
                     <input type="text" id="edit-emp-phone" dir="ltr" class="input text-xs">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">المسمى الوظيفي</label>
-                    <select id="edit-emp-role" class="input text-xs">
-                        <option value="cashier">كاشير</option>
-                        <option value="manager">مدير فرع</option>
-                        <option value="chef">طاهٍ / مطبخ</option>
-                        <option value="driver">سائق توصيل</option>
-                        <option value="call_center">خدمة عملاء</option>
-                        <option value="waiter">مباشر / نادل</option>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-soft">المسمى الوظيفي</label>
+                        <button type="button" onclick="openJobRolesModal()" class="text-[10px] font-bold text-brand-600 hover:underline">الصلاحيات 🛡️</button>
+                    </div>
+                    <select id="edit-emp-job-role" class="input text-xs">
+                        {% for jr in job_roles %}
+                        <option value="{{ jr.id }}">{{ jr.name }} ({{ jr.get_scope_display }})</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -289,7 +296,7 @@
                 <div>
                     <label class="mb-1 block font-bold text-soft">الفرع</label>
                     <select id="edit-emp-branch" class="input text-xs">
-                        <option value="">— بدون فرع —</option>
+                        <option value="">— بدون فرع (إدارة عامة) —</option>
                         {% for b in branches %}
                         <option value="{{ b.id }}">{{ b.name }}</option>
                         {% endfor %}
@@ -334,7 +341,7 @@
                     <input 
                         type="password" 
                         id="edit-emp-pin" 
-                        maxlength="6"
+                        maxlength="6" 
                         placeholder="اتركه فارغاً للإبقاء على الرمز الحالي" 
                         class="input text-xs font-mono tracking-widest text-center"
                     >
@@ -350,15 +357,172 @@
     </div>
 </div>
 
+<!-- ======================================================== -->
+<!-- MODAL 3: JOB ROLES & PERMISSIONS MANAGEMENT (ALL ROLES) -->
+<!-- ======================================================== -->
+<div id="job-roles-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-4xl w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4 shrink-0">
+            <div>
+                <h3 class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>🛡️</span> المسميات الوظيفية ومصفوفة الصلاحيات
+                </h3>
+                <p class="text-[11px] text-soft">إضافة وحذف المسميات الوظيفية، تحديد نطاق عملها، وتخصيص صلاحيات كل دور</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="openCreateRoleModal()" class="rounded-lg bg-brand-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-brand-700 transition">
+                    + مسمى وظيفي جديد
+                </button>
+                <button type="button" onclick="closeJobRolesModal()" class="text-soft hover:text-ink text-lg font-bold px-1">✕</button>
+            </div>
+        </div>
+
+        <!-- Roles Table Container -->
+        <div class="overflow-y-auto flex-1 pr-1">
+            <div class="rounded-xl border border-line bg-card overflow-hidden">
+                <table class="w-full text-right text-xs">
+                    <thead class="bg-paper border-b border-line text-[11px] text-soft">
+                        <tr>
+                            <th class="p-3">المسمى الوظيفي والوصف</th>
+                            <th class="p-3">نطاق العمل</th>
+                            <th class="p-3 text-center">الموظفون</th>
+                            <th class="p-3">الصلاحيات الممنوحة</th>
+                            <th class="p-3 text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="job-roles-tbody" class="divide-y divide-line/60">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-4 pt-3 border-t border-line flex items-center justify-end shrink-0">
+            <button type="button" onclick="closeJobRolesModal()" class="rounded-lg bg-night text-white px-5 py-2 text-xs font-bold hover:bg-night-2 transition">
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL 4: EDIT/CREATE JOB ROLE & PERMISSIONS MATRIX -->
+<!-- ======================================================== -->
+<div id="edit-role-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="card max-w-3xl w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4 shrink-0">
+            <div>
+                <h3 id="role-modal-title" class="text-base font-black font-display text-ink flex items-center gap-2">
+                    <span>⚙️</span> تعديل مصفوفة الصلاحيات والمسمى
+                </h3>
+                <p class="text-[11px] text-soft">حدد اسم المسمى الوظيفي، نطاق التغطية، واختر الصلاحيات الممنوحة له</p>
+            </div>
+            <button type="button" onclick="closeEditRoleModal()" class="text-soft hover:text-ink text-lg font-bold">✕</button>
+        </div>
+
+        <input type="hidden" id="role-modal-id">
+
+        <!-- Scrollable Form Body -->
+        <div class="space-y-4 overflow-y-auto pr-1 text-xs flex-1">
+            <!-- Basic Info Card -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-paper/40 p-3.5 rounded-xl border border-line">
+                <div class="sm:col-span-1">
+                    <label class="block font-bold text-soft mb-1">اسم المسمى الوظيفي *</label>
+                    <input type="text" id="role-name-input" placeholder="مثال: مشرف صالة أو محاسب" class="input text-xs font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-soft mb-1">نطاق العمل</label>
+                    <select id="role-scope-input" class="input text-xs font-bold">
+                        <option value="branch">📍 تشغيل فرع محدد</option>
+                        <option value="hq">🏢 الإدارة العامة (HQ)</option>
+                        <option value="both">🌐 شامل (إدارة وفروع)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-soft mb-1">الوصف العام</label>
+                    <input type="text" id="role-desc-input" placeholder="وصف موجز للمهام..." class="input text-xs">
+                </div>
+            </div>
+
+            <!-- Permissions Selection Toolbar -->
+            <div class="flex items-center justify-between bg-card p-2.5 rounded-lg border border-line">
+                <span class="font-black text-ink text-xs flex items-center gap-1.5">
+                    <span>📋</span> مصفوفة الصلاحيات الممنوحة:
+                </span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleAllRolePermissions(true)" class="rounded bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 px-2.5 py-1 text-[11px] font-bold">
+                        ✓ تحديد الكل
+                    </button>
+                    <button type="button" onclick="toggleAllRolePermissions(false)" class="rounded bg-paper hover:bg-paper/80 text-soft border border-line px-2.5 py-1 text-[11px] font-bold">
+                        ✕ إلغاء التحديد
+                    </button>
+                </div>
+            </div>
+
+            <!-- Permissions Catalog Groups -->
+            <div id="permissions-matrix-container" class="space-y-3">
+                {% for group in permissions_catalog %}
+                <div class="rounded-xl border border-line/90 bg-card p-3 space-y-2">
+                    <div class="flex items-center justify-between border-b border-line pb-1.5">
+                        <h4 class="font-extrabold text-ink text-xs flex items-center gap-1.5">
+                            <span>{{ group.icon }}</span> {{ group.category }}
+                        </h4>
+                        <span class="text-[10px] text-soft font-bold">{{ group.permissions|length }} صلاحيات</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        {% for p in group.permissions %}
+                        <label class="flex items-start gap-2 p-2 rounded-lg border border-line/60 hover:bg-paper/40 cursor-pointer transition select-none">
+                            <input type="checkbox" value="{{ p.key }}" class="perm-checkbox mt-0.5 rounded border-line text-brand-600 focus:ring-brand-500 w-4 h-4">
+                            <div>
+                                <p class="font-bold text-ink text-xs flex items-center gap-1">
+                                    {{ p.label }}
+                                    {% if p.key == 'delete_orders' %}
+                                    <span class="rounded bg-bad-100 text-bad-700 text-[9px] px-1 py-0.2 font-extrabold">حساس</span>
+                                    {% endif %}
+                                </p>
+                                <p class="text-[10px] text-soft mt-0.5">{{ p.desc }}</p>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="mt-4 pt-3 border-t border-line flex items-center justify-between shrink-0">
+            <span id="role-perm-selected-count" class="text-[11px] text-soft font-bold">تم اختيار 0 صلاحيات</span>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="closeEditRoleModal()" class="rounded-lg border border-line bg-paper px-4 py-2 text-xs font-bold text-soft hover:text-ink">
+                    إلغاء
+                </button>
+                <button type="button" id="save-role-btn" onclick="submitRoleForm()" class="rounded-lg bg-brand-600 px-5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-md">
+                    حفظ المسمى والصلاحيات
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
     const DEFAULT_SUGGESTED_CODE = "{{ suggested_next_code|default:'101' }}";
+    let cachedJobRoles = [];
 
+    // ==========================================
+    // PIN & EMPLOYEE HELPERS
+    // ==========================================
     function randomizePin(elementId) {
         const rand = Math.floor(1000 + Math.random() * 9000);
         const el = document.getElementById(elementId);
         if (el) {
             el.value = rand;
-            el.type = 'text'; // Briefly show plain text so manager can see what was generated
+            el.type = 'text';
             setTimeout(() => { el.type = 'password'; }, 3000);
         }
     }
@@ -379,7 +543,7 @@
     async function saveNewEmp() {
         const name = document.getElementById('add-emp-name').value.trim();
         const phone = document.getElementById('add-emp-phone').value.trim();
-        const role = document.getElementById('add-emp-role').value;
+        const jobRoleId = document.getElementById('add-emp-role').value;
         const branchId = document.getElementById('add-emp-branch').value;
         const salary = parseFloat(document.getElementById('add-emp-salary').value) || 0;
         const employeeCode = document.getElementById('add-emp-code').value.trim();
@@ -397,7 +561,15 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ name, phone, role, branchId: branchId || null, salary, employeeCode, pin })
+                body: JSON.stringify({ 
+                    name, 
+                    phone, 
+                    jobRoleId: jobRoleId || null, 
+                    branchId: branchId || null, 
+                    salary, 
+                    employeeCode, 
+                    pin 
+                })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'تعذر إضافة الموظف');
@@ -410,12 +582,21 @@
         }
     }
 
-    function openEditEmpModal(id, name, phone, role, branchId, salary, status, code) {
+    function openEditEmpModal(id, name, phone, jobRoleId, role, branchId, salary, status, code) {
         document.getElementById('edit-emp-id').value = id;
         document.getElementById('edit-emp-title').textContent = `${name} (كود #${code || '—'})`;
         document.getElementById('edit-emp-name').value = name;
         document.getElementById('edit-emp-phone').value = phone;
-        document.getElementById('edit-emp-role').value = role;
+        
+        const roleSel = document.getElementById('edit-emp-job-role');
+        if (roleSel) {
+            if (jobRoleId) {
+                roleSel.value = jobRoleId;
+            } else {
+                roleSel.selectedIndex = 0;
+            }
+        }
+
         document.getElementById('edit-emp-branch').value = branchId;
         document.getElementById('edit-emp-salary').value = salary;
         document.getElementById('edit-emp-status').value = status;
@@ -434,7 +615,7 @@
         const id = document.getElementById('edit-emp-id').value;
         const name = document.getElementById('edit-emp-name').value.trim();
         const phone = document.getElementById('edit-emp-phone').value.trim();
-        const role = document.getElementById('edit-emp-role').value;
+        const jobRoleId = document.getElementById('edit-emp-job-role').value;
         const branchId = document.getElementById('edit-emp-branch').value;
         const salary = parseFloat(document.getElementById('edit-emp-salary').value) || 0;
         const status = document.getElementById('edit-emp-status').value;
@@ -442,7 +623,14 @@
         const pin = document.getElementById('edit-emp-pin').value.trim();
 
         try {
-            const payload = { name, phone, role, branchId: branchId || null, salary, status };
+            const payload = { 
+                name, 
+                phone, 
+                jobRoleId: jobRoleId || null, 
+                branchId: branchId || null, 
+                salary, 
+                status 
+            };
             if (employeeCode) payload.employeeCode = employeeCode;
             if (pin) payload.pin = pin;
 
@@ -464,6 +652,239 @@
             }
         } catch (e) {
             showToast('تعذر حفظ التعديلات', 'error');
+        }
+    }
+
+    // ==========================================
+    // JOB ROLES & PERMISSIONS MANAGEMENT MODALS
+    // ==========================================
+    async function openJobRolesModal() {
+        document.getElementById('job-roles-modal').classList.remove('hidden');
+        document.getElementById('job-roles-modal').classList.add('flex');
+        await loadJobRoles();
+    }
+
+    function closeJobRolesModal() {
+        document.getElementById('job-roles-modal').classList.add('hidden');
+        document.getElementById('job-roles-modal').classList.remove('flex');
+    }
+
+    async function loadJobRoles() {
+        const tbody = document.getElementById('job-roles-tbody');
+        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-soft">جارٍ تحميل المسميات والصلاحيات...</td></tr>';
+
+        try {
+            const res = await fetch("{% url 'api_job_roles' %}");
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            cachedJobRoles = data.roles || [];
+            renderJobRolesTable(cachedJobRoles);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs text-bad-700 font-bold">فشل التحميل: ${e.message}</td></tr>`;
+        }
+    }
+
+    function renderJobRolesTable(roles) {
+        const tbody = document.getElementById('job-roles-tbody');
+        if (!roles || roles.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-soft">لا توجد مسميات وظيفية مسجلة</td></tr>';
+            return;
+        }
+
+        const scopeBadges = {
+            'hq': '<span class="rounded-full bg-purple-100 text-purple-800 px-2 py-0.5 text-[10px] font-bold">🏢 إدارة عامة (HQ)</span>',
+            'branch': '<span class="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-bold">📍 تشغيل فرع</span>',
+            'both': '<span class="rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-[10px] font-bold">🌐 شامل (إدارة وفروع)</span>'
+        };
+
+        let html = '';
+        roles.forEach(r => {
+            html += `
+                <tr class="hover:bg-paper/40 transition">
+                    <td class="p-3">
+                        <p class="font-black text-ink text-xs flex items-center gap-1.5">
+                            <span>🛡️</span> ${r.name}
+                            ${r.is_system ? '<span class="rounded bg-brand-50 border border-brand-200 text-brand-800 text-[9px] px-1 py-0.2 font-extrabold">أساسي</span>' : ''}
+                        </p>
+                        <p class="text-[11px] text-soft mt-0.5">${r.description || '—'}</p>
+                    </td>
+                    <td class="p-3">${scopeBadges[r.scope] || r.scope}</td>
+                    <td class="p-3 text-center">
+                        <span class="font-extrabold text-ink text-xs">${r.employees_count}</span>
+                        <span class="text-[10px] text-soft">موظف</span>
+                    </td>
+                    <td class="p-3">
+                        <span class="rounded-full bg-brand-100 text-brand-700 px-2 py-0.5 text-[10px] font-extrabold">
+                            ${r.permissions_count} صلاحيات مفعلة
+                        </span>
+                    </td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="openEditRoleModal(${r.id})" class="rounded border border-brand-600/30 bg-brand-50 hover:bg-brand-100 text-brand-800 px-2.5 py-1 text-[11px] font-bold transition">
+                                ⚙️ تعديل الصلاحيات
+                            </button>
+                            ${!r.is_system ? `
+                            <button onclick="deleteJobRole(${r.id}, '${r.name}')" class="rounded border border-bad-600/30 bg-bad-100 hover:bg-bad-200 text-bad-700 px-2 py-1 text-[11px] font-bold transition">
+                                حذف
+                            </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function openCreateRoleModal() {
+        document.getElementById('role-modal-id').value = '';
+        document.getElementById('role-modal-title').innerHTML = '<span>✨</span> إضافة مسمى وظيفي جديد ومصفوفة الصلاحيات';
+        document.getElementById('role-name-input').value = '';
+        document.getElementById('role-scope-input').value = 'branch';
+        document.getElementById('role-desc-input').value = '';
+        toggleAllRolePermissions(false);
+        updateSelectedPermCount();
+
+        document.getElementById('edit-role-modal').classList.remove('hidden');
+        document.getElementById('edit-role-modal').classList.add('flex');
+    }
+
+    function openCreateRoleFromAddModal() {
+        openCreateRoleModal();
+    }
+
+    function openEditRoleModal(roleId) {
+        const role = cachedJobRoles.find(r => r.id === roleId);
+        if (!role) return;
+
+        document.getElementById('role-modal-id').value = role.id;
+        document.getElementById('role-modal-title').innerHTML = `<span>⚙️</span> تعديل مسمى وصلاحيات: <span class="text-brand-700">${role.name}</span>`;
+        document.getElementById('role-name-input').value = role.name;
+        document.getElementById('role-scope-input').value = role.scope;
+        document.getElementById('role-desc-input').value = role.description || '';
+
+        // Check assigned permissions
+        const permsSet = new Set(role.permissions || []);
+        document.querySelectorAll('.perm-checkbox').forEach(cb => {
+            cb.checked = permsSet.has(cb.value);
+        });
+        updateSelectedPermCount();
+
+        document.getElementById('edit-role-modal').classList.remove('hidden');
+        document.getElementById('edit-role-modal').classList.add('flex');
+    }
+
+    function closeEditRoleModal() {
+        document.getElementById('edit-role-modal').classList.add('hidden');
+        document.getElementById('edit-role-modal').classList.remove('flex');
+    }
+
+    function toggleAllRolePermissions(checked) {
+        document.querySelectorAll('.perm-checkbox').forEach(cb => {
+            cb.checked = checked;
+        });
+        updateSelectedPermCount();
+    }
+
+    function updateSelectedPermCount() {
+        const count = document.querySelectorAll('.perm-checkbox:checked').length;
+        document.getElementById('role-perm-selected-count').textContent = `تم اختيار ${count} صلاحيات`;
+    }
+
+    // Attach listener for checkboxes change
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('perm-checkbox')) {
+            updateSelectedPermCount();
+        }
+    });
+
+    async function submitRoleForm() {
+        const roleId = document.getElementById('role-modal-id').value;
+        const name = document.getElementById('role-name-input').value.trim();
+        const scope = document.getElementById('role-scope-input').value;
+        const description = document.getElementById('role-desc-input').value.trim();
+
+        if (!name) {
+            showToast('اسم المسمى الوظيفي مطلوب', 'error');
+            return;
+        }
+
+        const selectedPerms = [];
+        document.querySelectorAll('.perm-checkbox:checked').forEach(cb => {
+            selectedPerms.push(cb.value);
+        });
+
+        const btn = document.getElementById('save-role-btn');
+        btn.disabled = true;
+        btn.textContent = 'جارٍ الحفظ...';
+
+        try {
+            let url = "{% url 'api_job_roles' %}";
+            let method = "POST";
+            if (roleId) {
+                url = `/api/job-roles/${roleId}/`;
+            }
+
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ name, scope, description, permissions: selectedPerms })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast(`تم حفظ المسمى الوظيفي «${name}» بنجاح!`);
+            closeEditRoleModal();
+            await loadJobRoles();
+
+            // Refresh role dropdown in add modal
+            updateAddRoleDropdown(data.role);
+        } catch (e) {
+            showToast(e.message || 'فشل حفظ المسمى', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'حفظ المسمى والصلاحيات';
+        }
+    }
+
+    function updateAddRoleDropdown(newRole) {
+        if (!newRole) return;
+        const sel = document.getElementById('add-emp-role');
+        if (sel) {
+            let opt = sel.querySelector(`option[value="${newRole.id}"]`);
+            if (!opt) {
+                opt = document.createElement('option');
+                opt.value = newRole.id;
+                sel.appendChild(opt);
+            }
+            opt.textContent = `${newRole.name} (${newRole.scope_display || newRole.scope})`;
+            sel.value = newRole.id;
+        }
+    }
+
+    async function deleteJobRole(roleId, roleName) {
+        if (!confirm(`هل أنت متأكد من حذف المسمى الوظيفي «${roleName}»؟`)) return;
+
+        try {
+            const res = await fetch(`/api/job-roles/${roleId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ action: 'delete' })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast('تم حذف المسمى الوظيفي بنجاح');
+            await loadJobRoles();
+        } catch (e) {
+            showToast(e.message || 'فشل حذف المسمى', 'error');
         }
     }
 </script>

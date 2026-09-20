@@ -43,4 +43,6 @@ urlpatterns = [
     path("api/branches/<int:branch_id>/areas/", views.api_branch_delivery_areas, name="api_branch_delivery_areas"),
     path("api/employees/create/", views.api_create_employee, name="api_create_employee"),
     path("api/employees/update/<int:emp_id>/", views.api_update_employee, name="api_update_employee"),
+    path("api/job-roles/", views.api_job_roles, name="api_job_roles"),
+    path("api/job-roles/<int:role_id>/", views.api_job_role_detail, name="api_job_role_detail"),
 ]

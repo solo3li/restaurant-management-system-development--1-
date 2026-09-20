@@ -23,6 +23,8 @@ from .models import (
     UserProfile,
     BranchMenuAvailability,
     DeliveryArea,
+    JobRole,
+    PERMISSIONS_CATALOG,
 )
 
 
@@ -62,6 +64,20 @@ def get_active_branch(request):
         return qs.first()
 
     return None
+
+
+def user_has_perm(user, perm_key):
+    """Check if user has permission either via superuser, owner, profile, or job role."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    profile = getattr(user, "profile", None)
+    if profile:
+        return profile.has_perm(perm_key)
+    if hasattr(user, "employee_profile"):
+        return user.employee_profile.has_perm(perm_key)
+    return False
 
 
 # ==========================================
@@ -304,6 +320,11 @@ def dashboard_view(request):
     active_branch = get_active_branch(request)
     is_owner = is_platform_admin or (profile and profile.role == "owner")
 
+    if not is_owner and not user_has_perm(request.user, "view_hq_dashboard"):
+        if user_has_perm(request.user, "view_branch_dashboard"):
+            return redirect("branch_dashboard")
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى لوحة الإدارة العامة")
+
     # If branch-locked or active branch selected, redirect to branch dashboard
     if not is_owner or active_branch is not None:
         return redirect("branch_dashboard")
@@ -410,6 +431,9 @@ def dashboard_view(request):
 @login_required
 @ensure_csrf_cookie
 def branch_dashboard_view(request):
+    if not user_has_perm(request.user, "view_branch_dashboard"):
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى لوحة تحكم الفرع")
+
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     if not branch:
@@ -491,6 +515,9 @@ def branch_dashboard_view(request):
 @login_required
 @ensure_csrf_cookie
 def kitchen_view(request):
+    if not user_has_perm(request.user, "kds_access"):
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى شاشة المطبخ (KDS)")
+
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     now = timezone.now()
@@ -524,6 +551,9 @@ def kitchen_view(request):
 @login_required
 @ensure_csrf_cookie
 def branch_orders_view(request):
+    if not user_has_perm(request.user, "view_orders"):
+        return HttpResponseForbidden("غير مصرح لك باستعراض سجل طلبات الفرع")
+
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     status_filter = request.GET.get("status", "all")
@@ -563,6 +593,9 @@ def hq_orders_view(request):
     tenant = get_active_tenant(request)
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner and not user_has_perm(request.user, "view_orders"):
+        return HttpResponseForbidden("غير مصرح لك باستعراض سجل الطلبات")
 
     # If user is branch-locked and not an owner/admin, redirect to branch orders
     if not is_owner and profile and profile.branch:
@@ -656,6 +689,9 @@ def order_detail_view(request, order_id):
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
+    if not is_owner and not user_has_perm(request.user, "view_orders"):
+        return HttpResponseForbidden("غير مصرح لك باستعراض تفاصيل الطلب")
+
     order = get_object_or_404(
         Order.objects.select_related("branch", "customer", "driver", "tenant").prefetch_related("items__menu_item"),
         tenant=tenant,
@@ -687,6 +723,9 @@ def order_edit_view(request, order_id):
         tenant=tenant,
         id=order_id
     )
+
+    if not is_owner and not user_has_perm(request.user, "edit_orders"):
+        return HttpResponseForbidden("غير مصرح لك بتعديل الطلبات")
 
     if not is_owner and profile and profile.branch and order.branch != profile.branch:
         return HttpResponseForbidden("غير مصرح لك بتعديل طلبات هذا الفرع")
@@ -835,6 +874,9 @@ def api_delete_order(request, order_id):
 @login_required
 @ensure_csrf_cookie
 def branch_menu_view(request):
+    if not user_has_perm(request.user, "manage_menu"):
+        return HttpResponseForbidden("غير مصرح لك بإدارة قائمة الطعام")
+
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     categories = ["الكل", "أطباق رئيسية", "مشويات", "ساندويتشات", "برجر", "دجاج", "مقبلات", "مشروبات", "حلويات"]
@@ -882,6 +924,9 @@ def branch_menu_view(request):
 @login_required
 @ensure_csrf_cookie
 def pos_view(request):
+    if not user_has_perm(request.user, "pos_access"):
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى نقطة البيع (POS)")
+
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     categories = ["الكل", "أطباق رئيسية", "مشويات", "ساندويتشات", "برجر", "دجاج", "مقبلات", "مشروبات", "حلويات"]
@@ -914,6 +959,9 @@ def pos_view(request):
 @login_required
 @ensure_csrf_cookie
 def call_center_view(request):
+    if not user_has_perm(request.user, "call_center_access"):
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى الكول سنتر")
+
     tenant = get_active_tenant(request)
     branches = Branch.objects.filter(tenant=tenant, status="active").prefetch_related("delivery_areas").order_by("name")
     menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name")
@@ -933,6 +981,9 @@ def call_center_view(request):
 @login_required
 @ensure_csrf_cookie
 def delivery_view(request):
+    if not user_has_perm(request.user, "delivery_access"):
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى قسم التوصيل")
+
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     start_of_today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -991,6 +1042,9 @@ def delivery_view(request):
 @login_required
 @ensure_csrf_cookie
 def inventory_view(request):
+    if not user_has_perm(request.user, "manage_inventory"):
+        return HttpResponseForbidden("غير مصرح لك بالوصول لإدارة المخزون")
+
     tenant = get_active_tenant(request)
     active_branch = get_active_branch(request)
     branch_id = request.GET.get("branch")
@@ -1029,6 +1083,9 @@ def inventory_view(request):
 @login_required
 @ensure_csrf_cookie
 def branches_view(request):
+    if not user_has_perm(request.user, "manage_branches"):
+        return HttpResponseForbidden("غير مصرح لك بالوصول لإدارة الفروع")
+
     tenant = get_active_tenant(request)
     start_of_today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     branches = Branch.objects.filter(tenant=tenant).prefetch_related("delivery_areas").order_by("id")
@@ -1058,13 +1115,17 @@ def branches_view(request):
 @login_required
 @ensure_csrf_cookie
 def employees_view(request):
+    if not user_has_perm(request.user, "manage_employees"):
+        return HttpResponseForbidden("غير مصرح لك بإدارة الموظفين")
+
     tenant = get_active_tenant(request)
     active_branch = get_active_branch(request)
     role_filter = request.GET.get("role", "all")
+    job_role_filter = request.GET.get("job_role", "all")
     branch_filter = request.GET.get("branch", "all")
     search = request.GET.get("q", "").strip()
 
-    employees = Employee.objects.filter(tenant=tenant).select_related("branch").order_by("name")
+    employees = Employee.objects.filter(tenant=tenant).select_related("branch", "job_role").order_by("name")
 
     if active_branch:
         employees = employees.filter(branch=active_branch)
@@ -1072,12 +1133,16 @@ def employees_view(request):
     elif branch_filter != "all" and str(branch_filter).isdigit():
         employees = employees.filter(branch_id=int(branch_filter))
 
-    if role_filter != "all":
-        employees = employees.filter(role=role_filter)
+    if job_role_filter != "all" and str(job_role_filter).isdigit():
+        employees = employees.filter(job_role_id=int(job_role_filter))
+    elif role_filter != "all":
+        employees = employees.filter(Q(role=role_filter) | Q(job_role__name=role_filter))
+
     if search:
         employees = employees.filter(Q(name__icontains=search) | Q(phone__icontains=search) | Q(employee_code__icontains=search))
 
     branches = Branch.objects.filter(tenant=tenant).order_by("name")
+    job_roles = JobRole.objects.filter(tenant=tenant).annotate(emp_count=Count("employees")).order_by("name")
 
     base_qs = Employee.objects.filter(tenant=tenant, branch=active_branch) if active_branch else Employee.objects.filter(tenant=tenant)
     roles_summary = {
@@ -1105,7 +1170,10 @@ def employees_view(request):
         "current_branch": active_branch,
         "employees": employees,
         "branches": branches,
+        "job_roles": job_roles,
+        "permissions_catalog": PERMISSIONS_CATALOG,
         "role_filter": role_filter,
+        "job_role_filter": job_role_filter,
         "branch_filter": branch_filter,
         "search_query": search,
         "roles_summary": roles_summary,
@@ -1601,11 +1669,23 @@ def api_create_employee(request):
     elif len(pin) < 4:
         return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
 
+    # Job Role resolution
+    job_role = None
+    job_role_id = data.get("jobRoleId") or data.get("job_role_id")
+    if job_role_id and str(job_role_id).isdigit():
+        job_role = JobRole.objects.filter(tenant=tenant, id=int(job_role_id)).first()
+
+    raw_role = data.get("role", "cashier")
+    legacy_role = raw_role
+    if job_role and raw_role not in dict(Employee.ROLE_CHOICES):
+        legacy_role = "cashier"
+
     emp = Employee.objects.create(
         tenant=tenant,
         name=name,
         phone=data.get("phone", ""),
-        role=data.get("role", "cashier"),
+        role=legacy_role,
+        job_role=job_role,
         branch=branch,
         salary=Decimal(str(data.get("salary") or 4000)),
         employee_code=code,
@@ -1623,10 +1703,21 @@ def api_create_employee(request):
 
     UserProfile.objects.update_or_create(
         user=user_obj,
-        defaults={"tenant": tenant, "role": emp.role, "branch": emp.branch}
+        defaults={
+            "tenant": tenant,
+            "role": emp.role,
+            "job_role": emp.job_role,
+            "branch": emp.branch,
+        }
     )
 
-    return JsonResponse({"ok": True, "id": emp.id, "name": emp.name, "employeeCode": code})
+    return JsonResponse({
+        "ok": True,
+        "id": emp.id,
+        "name": emp.name,
+        "employeeCode": code,
+        "jobRole": emp.job_role.name if emp.job_role else emp.get_role_display()
+    })
 
 
 @login_required
@@ -1655,6 +1746,16 @@ def api_update_employee(request, emp_id):
 
     if "phone" in data:
         emp.phone = str(data["phone"]).strip()
+
+    if "jobRoleId" in data or "job_role_id" in data:
+        jr_id = data.get("jobRoleId") or data.get("job_role_id")
+        if jr_id and str(jr_id).isdigit():
+            emp.job_role = JobRole.objects.filter(tenant=tenant, id=int(jr_id)).first()
+        else:
+            emp.job_role = None
+        if emp.user and hasattr(emp.user, "profile"):
+            emp.user.profile.job_role = emp.job_role
+            emp.user.profile.save()
 
     if "role" in data and data["role"] in dict(Employee.ROLE_CHOICES):
         emp.role = data["role"]
@@ -1695,3 +1796,161 @@ def api_update_employee(request, emp_id):
 
     emp.save()
     return JsonResponse({"ok": True, "employeeCode": emp.employee_code, "hasPin": bool(emp.pin_code)})
+
+
+# ==========================================
+# 8. JOB ROLES & PERMISSIONS APIS
+# ==========================================
+
+@login_required
+def api_job_roles(request):
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if request.method == "GET":
+        roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("name")
+        data = []
+        for r in roles:
+            data.append({
+                "id": r.id,
+                "name": r.name,
+                "scope": r.scope,
+                "scope_display": r.get_scope_display(),
+                "description": r.description,
+                "is_system": r.is_system,
+                "permissions": r.permissions or [],
+                "permissions_count": len(r.permissions or []),
+                "employees_count": r.employees_count,
+            })
+        return JsonResponse({"ok": True, "roles": data, "catalog": PERMISSIONS_CATALOG})
+
+    elif request.method == "POST":
+        if not is_owner_or_super and not user_has_perm(request.user, "manage_roles"):
+            return JsonResponse({"error": "غير مصرح لك بإضافة مسميات وظيفية"}, status=403)
+
+        try:
+            body = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+        name = str(body.get("name", "")).strip()
+        if not name:
+            return JsonResponse({"error": "اسم المسمى الوظيفي مطلوب"}, status=400)
+
+        if JobRole.objects.filter(tenant=tenant, name=name).exists():
+            return JsonResponse({"error": f"المسمى الوظيفي «{name}» مسجل مسبقاً"}, status=400)
+
+        scope = body.get("scope", "branch")
+        if scope not in ["hq", "branch", "both"]:
+            scope = "branch"
+
+        description = str(body.get("description", "")).strip()
+        permissions = body.get("permissions", [])
+        if not isinstance(permissions, list):
+            permissions = []
+
+        role = JobRole.objects.create(
+            tenant=tenant,
+            name=name,
+            scope=scope,
+            description=description,
+            is_system=False,
+            permissions=permissions,
+        )
+
+        return JsonResponse({
+            "ok": True,
+            "role": {
+                "id": role.id,
+                "name": role.name,
+                "scope": role.scope,
+                "scope_display": role.get_scope_display(),
+                "description": role.description,
+                "is_system": role.is_system,
+                "permissions": role.permissions,
+                "permissions_count": len(role.permissions),
+                "employees_count": 0,
+            }
+        })
+
+    return HttpResponseBadRequest("GET or POST required")
+
+
+@login_required
+def api_job_role_detail(request, role_id):
+    tenant = get_active_tenant(request)
+    role = get_object_or_404(JobRole, tenant=tenant, id=role_id)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_roles"):
+        return JsonResponse({"error": "غير مصرح لك بتعديل أو حذف المسميات الوظيفية"}, status=403)
+
+    if request.method in ["POST", "PATCH", "PUT"]:
+        try:
+            body = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+        action = body.get("action")
+        if action == "delete" or request.method == "DELETE":
+            if role.is_system:
+                return JsonResponse({"error": "لا يمكن حذف هذا المسمى الأساسي للنظام"}, status=400)
+            if role.employees.exists():
+                return JsonResponse({
+                    "error": f"لا يمكن حذف المسمى «{role.name}» لوجود {role.employees.count()} موظف مرتبطين به. يرجى نقلهم لمسمى آخر أولاً."
+                }, status=400)
+            role.delete()
+            return JsonResponse({"ok": True, "message": "تم حذف المسمى الوظيفي بنجاح"})
+
+        # Update action
+        name = str(body.get("name", "")).strip()
+        if name and name != role.name:
+            if JobRole.objects.filter(tenant=tenant, name=name).exclude(id=role.id).exists():
+                return JsonResponse({"error": f"اسم المسمى «{name}» مستخدم مسبقاً"}, status=400)
+            role.name = name
+
+        if "scope" in body and body["scope"] in ["hq", "branch", "both"]:
+            role.scope = body["scope"]
+
+        if "description" in body:
+            role.description = str(body["description"]).strip()
+
+        if "permissions" in body and isinstance(body["permissions"], list):
+            role.permissions = body["permissions"]
+
+        role.save()
+
+        # Update linked user profiles
+        for emp in role.employees.select_related("user"):
+            if emp.user and hasattr(emp.user, "profile"):
+                emp.user.profile.job_role = role
+                emp.user.profile.save()
+
+        return JsonResponse({
+            "ok": True,
+            "role": {
+                "id": role.id,
+                "name": role.name,
+                "scope": role.scope,
+                "scope_display": role.get_scope_display(),
+                "description": role.description,
+                "is_system": role.is_system,
+                "permissions": role.permissions,
+                "permissions_count": len(role.permissions),
+                "employees_count": role.employees.count(),
+            }
+        })
+
+    elif request.method == "DELETE":
+        if role.is_system:
+            return JsonResponse({"error": "لا يمكن حذف هذا المسمى الأساسي للنظام"}, status=400)
+        if role.employees.exists():
+            return JsonResponse({
+                "error": f"لا يمكن حذف المسمى «{role.name}» لوجود {role.employees.count()} موظف مرتبطين به. يرجى نقلهم لمسمى آخر أولاً."
+            }, status=400)
+        role.delete()
+        return JsonResponse({"ok": True, "message": "تم حذف المسمى الوظيفي بنجاح"})
+
+    return HttpResponseBadRequest("Invalid method")

@@ -98,6 +98,90 @@ class DeliveryArea(models.Model):
         return f"{self.name} ({self.get_area_type_display()}) - {self.branch.name}"
 
 
+PERMISSIONS_CATALOG = [
+    {
+        "category": "لوحات التحكم والتقارير المالية",
+        "icon": "📊",
+        "permissions": [
+            {"key": "view_hq_dashboard", "label": "لوحة الإدارة العامة (HQ)", "desc": "الاطلاع على أداء السلسلة ومؤشراتها العامة"},
+            {"key": "view_branch_dashboard", "label": "لوحة تحكم الفرع", "desc": "الاطلاع على مؤشرات وإحصائيات الفرع المحدد"},
+            {"key": "view_financials", "label": "الاطلاع على الأرقام المالية", "desc": "كشف إجمالي المبيعات، الإيرادات، وتفاصيل الكاش والبطاقات"},
+        ]
+    },
+    {
+        "category": "نقاط البيع والطلبات والفواتير",
+        "icon": "💳",
+        "permissions": [
+            {"key": "pos_access", "label": "شاشة الكاشير ونقاط البيع (POS)", "desc": "تسجيل طلبات الصالة والسفري وإصدار الفواتير"},
+            {"key": "view_orders", "label": "استعراض سجل الطلبات والفواتير", "desc": "رؤية قائمة الطلبات وطباعة الإيصالات والبحث"},
+            {"key": "edit_orders", "label": "تعديل تفاصيل الطلبات", "desc": "إمكانية تغيير أصناف وملاحظات وحالة الطلبات القائمة"},
+            {"key": "cancel_orders", "label": "إلغاء الطلبات", "desc": "إلغاء طلب وتغيير حالته إلى ملغي"},
+            {"key": "delete_orders", "label": "حذف الطلبات نهائياً (حساس)", "desc": "حذف سجل الطلب بالكامل من قاعدة البيانات"},
+        ]
+    },
+    {
+        "category": "المطبخ والتوصيل والكول سنتر",
+        "icon": "🍳",
+        "permissions": [
+            {"key": "kds_access", "label": "شاشة المطبخ وتحضير الوجبات (KDS)", "desc": "متابعة الطلبات وتحديث حالتها إلى جاهزة للتسليم"},
+            {"key": "call_center_access", "label": "شاشة الكول سنتر وخدمة العملاء", "desc": "استقبال المكالمات وتوجيه الطلبات وتسجيلها"},
+            {"key": "delivery_access", "label": "إدارة التوصيل وتعيين السائقين", "desc": "متابعة كباتن التوصيل وتوزيع الأوردرات عليهم"},
+        ]
+    },
+    {
+        "category": "قائمة الطعام والمخزون",
+        "icon": "📋",
+        "permissions": [
+            {"key": "manage_menu", "label": "إدارة قائمة الطعام والأسعار", "desc": "إضافة وتعديل وحذف الوجبات وتحديد توفرها بالفروع"},
+            {"key": "manage_inventory", "label": "إدارة المخزون والمواد الخام", "desc": "جرد وتعديل كميات المستودع والمكونات"},
+        ]
+    },
+    {
+        "category": "الفروع والموظفين والمسميات",
+        "icon": "👥",
+        "permissions": [
+            {"key": "manage_branches", "label": "إدارة الفروع ونطاقات التوصيل", "desc": "افتتاح فروع جديدة وتحديد زون الخريطة والكمبوندات"},
+            {"key": "manage_employees", "label": "إدارة الموظفين والرواتب", "desc": "تعيين موظفين جدد، تعديل الرواتب وتعيين الفروع"},
+            {"key": "manage_roles", "label": "إدارة المسميات والصلاحيات", "desc": "إنشاء وتعديل وحذف المسميات الوظيفية ومصفوفة الصلاحيات"},
+        ]
+    },
+]
+
+
+class JobRole(models.Model):
+    SCOPE_CHOICES = [
+        ("hq", "إدارة عامة (HQ)"),
+        ("branch", "تشغيل فرع"),
+        ("both", "شامل (إدارة وفروع)"),
+    ]
+
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="job_roles",
+        verbose_name="المطعم / المنشأة",
+    )
+    name = models.CharField(max_length=100, verbose_name="اسم المسمى الوظيفي")
+    scope = models.CharField(max_length=20, choices=SCOPE_CHOICES, default="branch", verbose_name="نطاق العمل")
+    description = models.CharField(max_length=255, blank=True, default="", verbose_name="وصف المهام")
+    is_system = models.BooleanField(default=False, verbose_name="مسمى أساسي للنظام")
+    permissions = models.JSONField(default=list, blank=True, verbose_name="مصفوفة الصلاحيات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
+
+    class Meta:
+        verbose_name = "مسمى وظيفي وصلاحيات"
+        verbose_name_plural = "المسميات الوظيفية والصلاحيات"
+        unique_together = ("tenant", "name")
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_scope_display()})"
+
+    def has_perm(self, perm_key):
+        return perm_key in (self.permissions or [])
+
+
 class Employee(models.Model):
     ROLE_CHOICES = [
         ("manager", "مدير"),
@@ -146,6 +230,14 @@ class Employee(models.Model):
     )
     phone = models.CharField(max_length=50, default="", blank=True, verbose_name="الجوال")
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, verbose_name="المسمى الوظيفي")
+    job_role = models.ForeignKey(
+        JobRole,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+        verbose_name="المسمى الوظيفي المخصص",
+    )
     branch = models.ForeignKey(
         Branch,
         on_delete=models.SET_NULL,
@@ -175,9 +267,26 @@ class Employee(models.Model):
             return False
         return check_password(str(raw_pin).strip(), self.pin_code)
 
+    def has_perm(self, perm_key):
+        if self.job_role:
+            return self.job_role.has_perm(perm_key)
+        # Fallback for legacy role choices
+        if self.role == "manager":
+            return perm_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
+        if self.role == "cashier":
+            return perm_key in ["pos_access", "view_orders"]
+        if self.role == "chef":
+            return perm_key in ["kds_access"]
+        if self.role == "driver":
+            return perm_key in ["delivery_access"]
+        if self.role == "call_center":
+            return perm_key in ["call_center_access", "view_orders"]
+        return False
+
     def __str__(self):
         code_str = f" [{self.employee_code}]" if self.employee_code else ""
-        return f"{self.name}{code_str} ({self.get_role_display()})"
+        role_label = self.job_role.name if self.job_role else self.get_role_display()
+        return f"{self.name}{code_str} ({role_label})"
 
 
 class MenuItem(models.Model):
@@ -403,16 +512,46 @@ class UserProfile(models.Model):
     )
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default="branch_manager", verbose_name="الدور والصلاحية")
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_profiles", verbose_name="الفرع المعين")
+    job_role = models.ForeignKey(
+        JobRole,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="user_profiles",
+        verbose_name="المسمى الوظيفي المخصص",
+    )
     is_platform_admin = models.BooleanField(default=False, verbose_name="مسؤول النظام والمنصة بالكامل")
 
     class Meta:
         verbose_name = "ملف المستخدم"
         verbose_name_plural = "ملفات المستخدمين"
 
+    def has_perm(self, perm_key):
+        if self.is_platform_admin or self.role in ["owner", "platform_admin"]:
+            return True
+        if self.job_role:
+            return self.job_role.has_perm(perm_key)
+        # Check attached employee profile
+        if hasattr(self.user, "employee_profile") and self.user.employee_profile:
+            return self.user.employee_profile.has_perm(perm_key)
+        # Fallback for legacy role choices
+        if self.role == "branch_manager":
+            return perm_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
+        if self.role == "cashier":
+            return perm_key in ["pos_access", "view_orders"]
+        if self.role == "chef":
+            return perm_key in ["kds_access"]
+        if self.role == "driver":
+            return perm_key in ["delivery_access"]
+        if self.role == "call_center":
+            return perm_key in ["call_center_access", "view_orders"]
+        return False
+
     def __str__(self):
         tenant_str = f" [{self.tenant.name}]" if self.tenant else ""
         branch_str = f" - {self.branch.name}" if self.branch else ""
-        return f"{self.user.username}{tenant_str} ({self.get_role_display()}{branch_str})"
+        role_label = self.job_role.name if self.job_role else self.get_role_display()
+        return f"{self.user.username}{tenant_str} ({role_label}{branch_str})"
 
 
 class BranchMenuAvailability(models.Model):
