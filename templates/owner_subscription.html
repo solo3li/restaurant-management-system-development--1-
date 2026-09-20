@@ -22,6 +22,9 @@
         </div>
 
         <div class="flex items-center gap-3">
+            <a href="#ai-fastmcp-section" class="px-4 py-2.5 rounded-xl border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-800 text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+                <span>🤖</span> مفاتيح الذكاء الاصطناعي (MCP)
+            </a>
             <button 
                 type="button" 
                 onclick="openUpgradeModal()" 
@@ -387,6 +390,121 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- AI & FASTMCP CALL CENTER INTEGRATION       -->
+    <!-- ========================================== -->
+    <div id="ai-fastmcp-section" class="card p-6 border-line shadow-sm scroll-mt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-line mb-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 text-purple-700 text-lg">🤖</span>
+                    <h3 class="font-display text-lg font-black text-ink">مفاتيح الذكاء الاصطناعي وتكامل الكول سنتر (FastMCP)</h3>
+                </div>
+                <p class="text-xs text-soft mt-1">ربط نماذج الذكاء الاصطناعي (Claude Desktop، Cursor، أو وكلاء مخصصين) بمطعمك كمشرف كول سنتر يعرف المنيو والتغطية ويضرب ويتابع الأوردرات</p>
+            </div>
+            <button 
+                type="button" 
+                onclick="openCreateKeyModal()" 
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition flex items-center gap-1.5"
+            >
+                <span>+</span> إنشاء مفتاح ذكاء اصطناعي جديد
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead>
+                    <tr class="border-b border-line bg-paper/60 text-soft font-bold">
+                        <th class="p-3">اسم المفتاح / البوت</th>
+                        <th class="p-3">مفتاح الدخول (Access Key)</th>
+                        <th class="p-3">الفرع المخصص</th>
+                        <th class="p-3 text-center">الطلبات المنفذة</th>
+                        <th class="p-3">آخر استخدام</th>
+                        <th class="p-3">الحالة</th>
+                        <th class="p-3 text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                    {% for k in api_keys %}
+                    <tr class="hover:bg-paper/30 transition">
+                        <td class="p-3 font-bold text-ink">
+                            <span class="mr-1">🤖</span> {{ k.name }}
+                        </td>
+                        <td class="p-3">
+                            <div class="flex items-center gap-2">
+                                <code class="font-mono bg-paper border border-line px-2 py-1 rounded-md text-[11px] font-bold text-brand-700 select-all" id="key-text-{{ k.id }}">
+                                    {{ k.key|slice:":12" }}••••••••••••••••••••
+                                </code>
+                                <button 
+                                    type="button" 
+                                    onclick="copyToClipboard('{{ k.key }}', 'تم نسخ مفتاح الدخول بالكامل!')" 
+                                    class="px-2 py-1 rounded bg-card border border-line text-soft hover:text-ink text-[11px] font-bold"
+                                    title="نسخ المفتاح بالكامل"
+                                >
+                                    📋 نسخ
+                                </button>
+                            </div>
+                        </td>
+                        <td class="p-3 text-soft font-medium">
+                            {% if k.assigned_branch %}
+                            🏢 {{ k.assigned_branch.name }}
+                            {% else %}
+                            <span class="text-good-700 font-bold">🌐 كافة الفروع</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3 text-center font-mono font-bold text-ink">
+                            <span class="px-2 py-0.5 rounded-full bg-paper border border-line text-xs font-black">{{ k.total_orders_placed }}</span>
+                        </td>
+                        <td class="p-3 text-soft font-medium">
+                            {% if k.last_used_at %}{{ k.last_used_at|date:"Y-m-d H:i" }}{% else %}لم يُستخدم بعد{% endif %}
+                        </td>
+                        <td class="p-3">
+                            {% if k.is_active %}
+                            <span class="px-2.5 py-0.5 rounded-full bg-good-100 text-good-700 text-[10px] font-black border border-good-600/30">مفعل ✓</span>
+                            {% else %}
+                            <span class="px-2.5 py-0.5 rounded-full bg-bad-100 text-bad-700 text-[10px] font-black border border-bad-600/30">معطل ✕</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button 
+                                    type="button" 
+                                    onclick="showClaudeConfig('{{ k.key }}', '{{ k.name }}')" 
+                                    class="px-2.5 py-1 rounded-lg bg-paper hover:bg-card border border-line text-brand-700 text-[11px] font-bold shadow-xs transition"
+                                    title="عرض إعدادات Claude Desktop الجاهزة"
+                                >
+                                    ⚙️ إعدادات Claude
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onclick="toggleApiKey({{ k.id }}, {{ k.is_active|yesno:'true,false' }})" 
+                                    class="px-2 py-1 rounded-lg {% if k.is_active %}text-warn-700 hover:bg-warn-50{% else %}text-good-700 hover:bg-good-50{% endif %} border border-line text-[11px] font-bold transition"
+                                >
+                                    {% if k.is_active %}تعطيل{% else %}تفعيل{% endif %}
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onclick="deleteApiKey({{ k.id }}, '{{ k.name }}')" 
+                                    class="px-2 py-1 rounded-lg text-bad-700 hover:bg-bad-50 border border-bad-200 text-[11px] font-bold transition"
+                                    title="حذف المفتاح"
+                                >
+                                    حذف
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="p-6 text-center text-soft font-bold">
+                            لم تقم بإنشاء أي مفاتيح ذكاء اصطناعي بعد. انقر على «إنشاء مفتاح ذكاء اصطناعي جديد» لربط بوت الكول سنتر فوراً!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <!-- ========================================== -->
@@ -500,5 +618,230 @@
             submitBtn.innerText = 'إرسال طلب الترقية';
         }
     }
+
+    // ==========================================
+    // FASTMCP & AI API KEYS JAVASCRIPT
+    // ==========================================
+    function openCreateKeyModal() {
+        document.getElementById('create-key-modal').classList.remove('hidden');
+    }
+
+    function closeCreateKeyModal() {
+        document.getElementById('create-key-modal').classList.add('hidden');
+    }
+
+    async function submitCreateApiKey(e) {
+        e.preventDefault();
+        const name = document.getElementById('modal-key-name').value.trim();
+        const branchId = document.getElementById('modal-key-branch').value;
+        const btn = document.getElementById('btn-submit-create-key');
+
+        btn.disabled = true;
+        btn.innerText = 'جاري الإنشاء...';
+
+        try {
+            const resp = await fetch('{% url "api_create_api_key" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    name: name,
+                    branch_id: branchId || null
+                })
+            });
+            const data = await resp.json();
+            if (!resp.ok || data.error) {
+                showToast(data.error || 'فشل إنشاء المفتاح', 'error');
+                btn.disabled = false;
+                btn.innerText = 'إنشاء المفتاح فوراً';
+            } else {
+                showToast(data.message || 'تم إنشاء المفتاح بنجاح');
+                closeCreateKeyModal();
+                showClaudeConfig(data.key.access_key, data.key.name);
+            }
+        } catch (err) {
+            showToast('خطأ في الاتصال بالخادم', 'error');
+            btn.disabled = false;
+            btn.innerText = 'إنشاء المفتاح فوراً';
+        }
+    }
+
+    async function toggleApiKey(keyId, currentActive) {
+        try {
+            const resp = await fetch(`/api/api-keys/${keyId}/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                showToast(data.message);
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showToast(data.error || 'تعذر تغيير الحالة', 'error');
+            }
+        } catch (err) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+
+    async function deleteApiKey(keyId, keyName) {
+        if (!confirm(`هل أنت متأكد من حذف مفتاح «${keyName}» نهائياً؟ سيتوقف أي بوت يستخدم هذا المفتاح عن العمل.`)) {
+            return;
+        }
+
+        try {
+            const resp = await fetch(`/api/api-keys/${keyId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                showToast(data.message);
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showToast(data.error || 'تعذر حذف المفتاح', 'error');
+            }
+        } catch (err) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+
+    let currentConfigText = '';
+    function showClaudeConfig(accessKey, botName) {
+        const configObj = {
+            "mcpServers": {
+                "restaurant-callcenter": {
+                    "command": "python",
+                    "args": [
+                        "manage.py",
+                        "run_callcenter_mcp",
+                        "--transport=stdio"
+                    ],
+                    "env": {
+                        "RESTAURANT_ACCESS_KEY": accessKey
+                    }
+                }
+            }
+        };
+
+        currentConfigText = JSON.stringify(configObj, null, 2);
+        document.getElementById('claude-config-json').innerText = currentConfigText;
+        document.getElementById('claude-config-modal').classList.remove('hidden');
+    }
+
+    function closeClaudeConfigModal() {
+        document.getElementById('claude-config-modal').classList.add('hidden');
+        location.reload();
+    }
+
+    function copyConfigJson() {
+        if (!currentConfigText) return;
+        navigator.clipboard.writeText(currentConfigText).then(() => {
+            showToast('تم نسخ كود إعدادات Claude Desktop بنجاح!');
+        }).catch(() => {
+            showToast('يرجى نسخ الكود يدوياً');
+        });
+    }
+
+    function copyToClipboard(text, msg) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(msg || 'تم النسخ بنجاح!');
+        }).catch(() => {
+            showToast('يرجى النسخ يدوياً');
+        });
+    }
 </script>
+
+<!-- ========================================== -->
+<!-- CREATE API KEY MODAL                       -->
+<!-- ========================================== -->
+<div id="create-key-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card w-full max-w-md p-6 shadow-2xl border-line animate-modal">
+        <div class="flex items-center justify-between pb-4 border-b border-line mb-5">
+            <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                <span>🤖 إنشاء مفتاح ذكاء اصطناعي جديد</span>
+            </h3>
+            <button type="button" onclick="closeCreateKeyModal()" class="text-soft hover:text-ink text-xl font-bold">✕</button>
+        </div>
+
+        <form id="form-create-key" onsubmit="submitCreateApiKey(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-ink mb-1.5">اسم البوت أو الغرض:</label>
+                <input type="text" id="modal-key-name" required placeholder="مثال: بوت الكول سنتر - Claude" class="input text-xs font-bold">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-ink mb-1.5">الفرع المخصص:</label>
+                <select id="modal-key-branch" class="input text-xs font-bold">
+                    <option value="">🌐 كافة فروع المنشأة (موصى به للكول سنتر)</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}">🏢 {{ b.name }} ({{ b.city }})</option>
+                    {% endfor %}
+                </select>
+                <p class="text-[10.5px] text-soft mt-1">إذا خصصت فرعاً محدداً، فلن يستطيع البوت الاطلاع أو طلب أوردرات إلا من هذا الفرع.</p>
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-3">
+                <button type="button" onclick="closeCreateKeyModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-soft hover:text-ink">
+                    إلغاء
+                </button>
+                <button type="submit" id="btn-submit-create-key" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition">
+                    إنشاء المفتاح فوراً
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- CLAUDE DESKTOP CONFIG MODAL                -->
+<!-- ========================================== -->
+<div id="claude-config-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card w-full max-w-lg p-6 shadow-2xl border-line animate-modal">
+        <div class="flex items-center justify-between pb-4 border-b border-line mb-4">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>⚙️ إعدادات ربط Claude Desktop و FastMCP</span>
+            </h3>
+            <button type="button" onclick="closeClaudeConfigModal()" class="text-soft hover:text-ink text-xl font-bold">✕</button>
+        </div>
+
+        <p class="text-xs text-soft mb-3">
+            انسخ الإعدادات التالية وضعها في ملف <code class="bg-paper px-1.5 py-0.5 rounded border border-line text-brand-700 font-mono text-[11px]">claude_desktop_config.json</code> لتمكين كلود من العمل كموظف كول سنتر لمطعمك مباشرة:
+        </p>
+
+        <div class="relative mb-4">
+            <pre id="claude-config-json" class="bg-night text-gold-300 font-mono text-[11px] p-4 rounded-xl overflow-x-auto border border-night-3 text-left dir-ltr max-h-60"></pre>
+            <button 
+                type="button" 
+                onclick="copyConfigJson()" 
+                class="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition"
+            >
+                📋 نسخ الكود
+            </button>
+        </div>
+
+        <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5 mb-4">
+            <p class="font-bold text-ink flex items-center gap-1.5">
+                <span>💡</span> مسار ملف الإعدادات في جهازك:
+            </p>
+            <code class="block font-mono text-[10.5px] text-ink select-all break-all bg-card p-2 rounded-lg border border-line/60 dir-ltr text-left">
+                %APPDATA%\Claude\claude_desktop_config.json
+            </code>
+        </div>
+
+        <div class="flex justify-end">
+            <button type="button" onclick="closeClaudeConfigModal()" class="px-5 py-2 rounded-xl bg-card border border-line text-ink text-xs font-bold hover:bg-paper">
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}

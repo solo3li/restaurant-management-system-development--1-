@@ -52,4 +52,7 @@ urlpatterns = [
     path("api/platform/tenants/<int:tenant_id>/subscription/", views.api_update_tenant_subscription, name="api_update_tenant_subscription"),
     path("api/subscription/request-upgrade/", views.api_request_upgrade, name="api_request_upgrade"),
     path("api/platform/upgrade-requests/<int:req_id>/review/", views.api_review_upgrade_request, name="api_review_upgrade_request"),
+    path("api/api-keys/create/", views.api_create_api_key, name="api_create_api_key"),
+    path("api/api-keys/<int:key_id>/toggle/", views.api_toggle_api_key, name="api_toggle_api_key"),
+    path("api/api-keys/<int:key_id>/delete/", views.api_delete_api_key, name="api_delete_api_key"),
 ]

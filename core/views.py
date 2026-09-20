@@ -28,6 +28,7 @@ from .models import (
     SubscriptionPlan,
     SAAS_FEATURES_CATALOG,
     UpgradeRequest,
+    TenantApiKey,
 )
 
 
@@ -2360,6 +2361,9 @@ def owner_subscription_view(request):
 
     has_pending_request = upgrade_requests.filter(status="pending").exists()
 
+    api_keys = TenantApiKey.objects.filter(tenant=tenant).select_related("assigned_branch").order_by("-created_at")
+    branches = Branch.objects.filter(tenant=tenant, status="active")
+
     context = {
         "tenant": tenant,
         "plan": plan,
@@ -2376,6 +2380,8 @@ def owner_subscription_view(request):
         "available_plans": available_plans,
         "upgrade_requests": upgrade_requests,
         "has_pending_request": has_pending_request,
+        "api_keys": api_keys,
+        "branches": branches,
     }
     return render(request, "owner_subscription.html", context)
 
@@ -2486,4 +2492,100 @@ def api_review_upgrade_request(request, req_id):
             "message": f"تم رفض طلب الترقية للمنشأة «{upgrade_req.tenant.name}».",
             "status": "rejected",
         })
+
+
+@login_required
+def api_create_api_key(request):
+    """API for tenant owner to create a new FastMCP / AI access key."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return JsonResponse({"error": "إنشاء مفاتيح الذكاء الاصطناعي مقتصر على مالك المنشأة فقط"}, status=403)
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"error": "لا توجد منشأة نشطة مرتبطة بحسابك"}, status=400)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        body = {}
+
+    name = str(body.get("name", "")).strip() or "بوت كول سنتر الذكاء الاصطناعي"
+    branch_id = body.get("branch_id")
+    assigned_branch = None
+    if branch_id:
+        try:
+            assigned_branch = Branch.objects.filter(tenant=tenant, id=int(branch_id), status="active").first()
+        except (ValueError, TypeError):
+            pass
+
+    api_key_obj = TenantApiKey.objects.create(
+        tenant=tenant,
+        name=name,
+        assigned_branch=assigned_branch,
+        is_active=True,
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "message": f"تم إنشاء مفتاح الذكاء الاصطناعي «{api_key_obj.name}» بنجاح!",
+        "key": {
+            "id": api_key_obj.id,
+            "name": api_key_obj.name,
+            "access_key": api_key_obj.key,
+            "assigned_branch_name": assigned_branch.name if assigned_branch else "كافة الفروع",
+            "created_at": api_key_obj.created_at.strftime("%Y-%m-%d %H:%M"),
+        }
+    })
+
+
+@login_required
+def api_toggle_api_key(request, key_id):
+    """API to enable/disable an API key."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return JsonResponse({"error": "غير مصرح"}, status=403)
+
+    tenant = get_active_tenant(request)
+    api_key_obj = get_object_or_404(TenantApiKey, id=key_id, tenant=tenant)
+    api_key_obj.is_active = not api_key_obj.is_active
+    api_key_obj.save(update_fields=["is_active"])
+
+    status_str = "تفعيل" if api_key_obj.is_active else "تعطيل"
+    return JsonResponse({
+        "ok": True,
+        "is_active": api_key_obj.is_active,
+        "message": f"تم {status_str} المفتاح بنجاح."
+    })
+
+
+@login_required
+def api_delete_api_key(request, key_id):
+    """API to delete an API key."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return JsonResponse({"error": "غير مصرح"}, status=403)
+
+    tenant = get_active_tenant(request)
+    api_key_obj = get_object_or_404(TenantApiKey, id=key_id, tenant=tenant)
+    name = api_key_obj.name
+    api_key_obj.delete()
+
+    return JsonResponse({
+        "ok": True,
+        "message": f"تم حذف المفتاح «{name}» نهائياً."
+    })
+
 
