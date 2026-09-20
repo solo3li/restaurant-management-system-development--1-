@@ -126,6 +126,14 @@ assert emp_client.get("/call-center/").status_code == 403, "Call center should b
 assert emp_client.get("/kitchen/").status_code == 403, "Kitchen should be FORBIDDEN"
 print("✓ Blocked pages (/inventory/, /branches/, /employees/, /call-center/, /kitchen/) returned HTTP 403: OK")
 
+# Check Sidebar HTML navigation filtering for restricted employee
+pos_page = emp_client.get("/pos/")
+pos_html = pos_page.content.decode("utf-8")
+assert 'href="/branches/"' not in pos_html, "Restricted employee sidebar should NOT show branches link"
+assert 'href="/employees/"' not in pos_html, "Restricted employee sidebar should NOT show employees link"
+assert 'href="/pos/"' in pos_html, "Restricted employee sidebar SHOULD show pos link"
+print("✓ Sidebar correctly filtered navigation links based on user permissions: OK")
+
 # Check Denied Action (Order deletion)
 order = Order.objects.filter(tenant=tenant).first()
 if order:
@@ -143,7 +151,28 @@ print("✓ Dynamically added 'manage_inventory' to role permissions")
 assert emp_client.get("/inventory/").status_code == 200, "Inventory should now be accessible"
 print("✓ Employee instantly granted access to /inventory/ after role update: OK")
 
-# 10. Clean up employee and delete custom role
+# 10. Test Role Name Validation (Empty name & Duplicate name)
+empty_res = admin_client.post("/api/job-roles/", data=json.dumps({"name": "  "}), content_type="application/json")
+assert empty_res.status_code == 400
+assert "اسم المسمى الوظيفي مطلوب" in empty_res.json()["error"]
+print("✓ Empty role name validation rejected: OK")
+
+dup_res = admin_client.post("/api/job-roles/", data=json.dumps({"name": custom_role_name}), content_type="application/json")
+assert dup_res.status_code == 400
+assert "مسجل مسبقاً" in dup_res.json()["error"]
+print("✓ Duplicate role name validation rejected: OK")
+
+# 11. Test Admin Employees page UI components
+emp_page_res = admin_client.get("/employees/")
+assert emp_page_res.status_code == 200
+emp_page_html = emp_page_res.content.decode("utf-8")
+assert "إدارة المسميات والصلاحيات" in emp_page_html, "Admin page must show Job Roles button"
+assert "job-roles-modal" in emp_page_html, "Admin page must contain job-roles-modal"
+assert "edit-role-modal" in emp_page_html, "Admin page must contain edit-role-modal"
+assert "permissions-matrix-container" in emp_page_html, "Admin page must contain permissions matrix container"
+print("✓ Admin Employees page verified to contain all Job Roles modals & buttons: OK")
+
+# 12. Clean up employee and delete custom role
 emp.delete()
 res = admin_client.post(f"/api/job-roles/{role_id}/", data=json.dumps({"action": "delete"}), content_type="application/json")
 assert res.status_code == 200
