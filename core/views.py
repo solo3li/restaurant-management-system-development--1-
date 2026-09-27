@@ -2683,6 +2683,20 @@ def ai_callcenter_management_view(request):
     orders_converted_count = sum(1 for c in calls_data if c.get("linked_order"))
     inquiries_count = max(0, total_calls_count - orders_converted_count)
 
+    mcp_resp = ps.get_client_mcp_servers(client_id)
+    mcp_servers = mcp_resp.get("servers") or []
+    primary_mcp = mcp_servers[0] if mcp_servers else None
+
+    from core.models import TenantApiKey
+    api_key_obj = TenantApiKey.objects.filter(tenant=tenant, is_active=True).first()
+    if not api_key_obj:
+        api_key_obj = TenantApiKey.objects.create(tenant=tenant, name="مفتاح FastMCP الموحد للمساعد الصوتي")
+    access_key = api_key_obj.key if api_key_obj else ""
+
+    host_name = "169.58.32.179"
+    mcp_sse_url = f"http://{host_name}:8000/sse?access_key={access_key}"
+    mcp_streamable_url = f"http://{host_name}:8000/mcp?access_key={access_key}"
+
     context = {
         "tenant": tenant,
         "client_id": client_id,
@@ -2704,6 +2718,12 @@ def ai_callcenter_management_view(request):
         "total_ai_orders": total_ai_orders,
         "total_ai_revenue": total_ai_revenue,
         "did_number": "+966 11 234 5678", # Assigned virtual number for demo
+        "mcp_servers": mcp_servers,
+        "primary_mcp": primary_mcp,
+        "mcp_tools": primary_mcp.get("cached_tools", []) if primary_mcp else [],
+        "access_key": access_key,
+        "mcp_sse_url": mcp_sse_url,
+        "mcp_streamable_url": mcp_streamable_url,
     }
     return render(request, "ai_callcenter.html", context)
 
@@ -2893,5 +2913,93 @@ def api_ai_callcenter_add_queue_member(request, queue_id):
 
     resp = ps.add_queue_member(client_id, queue_id, employee_id=int(employee_id), penalty=penalty)
     return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_sync_mcp(request):
+    """Triggers live tool synchronization between FastMCP and Partner Voice Platform."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    servers_resp = ps.get_client_mcp_servers(client_id)
+    servers = servers_resp.get("servers") or []
+    if not servers:
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على خادم FastMCP مسجل للمنشأة."}, status=404)
+
+    mcp_id = servers[0]["id"]
+    sync_resp = ps.sync_client_mcp_tools(client_id, mcp_id)
+    return JsonResponse(sync_resp)
+
+
+@login_required
+def api_ai_callcenter_update_mcp_url(request):
+    """Updates the live MCP server URL in Partner Voice Platform."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    server_url = data.get("server_url", "").strip()
+    if not server_url:
+        return JsonResponse({"status": "error", "message": "رابط الخادم مطلوب"}, status=400)
+
+    servers_resp = ps.get_client_mcp_servers(client_id)
+    servers = servers_resp.get("servers") or []
+    if not servers:
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على خادم FastMCP مسجل."}, status=404)
+
+    mcp_id = servers[0]["id"]
+    update_resp = ps.update_client_mcp_server(client_id, mcp_id, {"server_url": server_url})
+    # Also trigger sync right after update
+    ps.sync_client_mcp_tools(client_id, mcp_id)
+    return JsonResponse(update_resp)
+
+
+@login_required
+def api_ai_callcenter_test_mcp_tool(request):
+    """Executes a live tool call directly to test it from the dashboard."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    tool_name = data.get("tool_name", "").strip()
+    params = data.get("params", {})
+
+    from core.models import TenantApiKey
+    api_key_obj = TenantApiKey.objects.filter(tenant=tenant, is_active=True).first()
+    access_key = api_key_obj.key if api_key_obj else None
+
+    from core import mcp_server as ms
+    tool_map = {
+        "get_branches": lambda: ms.get_branches(access_key=access_key),
+        "get_menu": lambda: ms.get_menu(branch_id=int(params.get("branch_id", 1)), category=params.get("category"), access_key=access_key),
+        "lookup_customer": lambda: ms.lookup_customer(phone=str(params.get("phone", "0501234567")), access_key=access_key),
+        "check_delivery_coverage": lambda: ms.check_delivery_coverage(branch_id=int(params.get("branch_id", 1)), area_name=str(params.get("area_name", "الرياض")), access_key=access_key),
+        "track_order": lambda: ms.track_order(order_number=str(params.get("order_number", "")), access_key=access_key),
+        "list_recent_orders": lambda: ms.list_recent_orders(limit=int(params.get("limit", 5)), access_key=access_key),
+    }
+
+    if tool_name not in tool_map:
+        return JsonResponse({"status": "error", "message": f"الأداة {tool_name} غير مدعومة للاختبار المباشر."}, status=400)
+
+    try:
+        res = tool_map[tool_name]()
+        return JsonResponse({"status": "success", "tool": tool_name, "result": res})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
 
 

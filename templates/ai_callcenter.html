@@ -131,6 +131,9 @@
             <button onclick="switchTab('calls')" id="tab-btn-calls" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
                 <span>📊</span> سجل المكالمات والتسجيلات
             </button>
+            <button onclick="switchTab('mcp')" id="tab-btn-mcp" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+                <span>🤖</span> تكامل FastMCP والأدوات
+            </button>
         </div>
     </div>
 
@@ -957,6 +960,335 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- TAB 7: FASTMCP & AI LIVE TOOLS             -->
+    <!-- ========================================== -->
+    <div id="tab-content-mcp" class="tab-content hidden space-y-6">
+        <!-- Top Status & Actions Card -->
+        <div class="card p-6 sm:p-7 border-line space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
+                <div>
+                    <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                        <span>🤖</span> تكامل محرك FastMCP والأدوات الحية (AI Tools Integration)
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">
+                        خادم الأدوات السحابي المدمج في المنصة لتمكين المساعد الصوتي من استعراض الفروع والمنيو وتغطية التوصيل وضرب الأوردرات وتتبعها
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="syncMcpTools()" id="btn-sync-mcp" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-600/20 transition cursor-pointer">
+                        <span>🔄</span> مزامنة الأدوات فورياً (Live Sync)
+                    </button>
+                    <button type="button" onclick="openMcpUrlModal()" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-line bg-paper hover:bg-card text-ink text-xs font-bold transition cursor-pointer">
+                        <span>⚙️</span> إعدادات الرابط
+                    </button>
+                </div>
+            </div>
+
+            <!-- FastMCP Status Indicators -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-lg text-emerald-800">
+                        ⚡
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-emerald-800 font-bold">حالة خادم الأدوات</div>
+                        <div class="text-sm font-black text-emerald-700 flex items-center gap-1.5 mt-0.5">
+                            <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            مدمج ونشط في المنصة (Port 8000)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-paper/70 border border-line flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-lg text-brand-700">
+                        🛠️
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-soft font-bold">الأدوات الحية المفعلة</div>
+                        <div class="text-base font-black text-ink mt-0.5" id="mcp-tools-count-badge">
+                            {{ mcp_tools|length|default:7 }} أدوات ذكية متزامنة
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-paper/70 border border-line flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-lg text-blue-700">
+                        🔄
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-soft font-bold">آخر مزامنة ناجحة</div>
+                        <div class="text-xs font-black text-ink mt-0.5 font-mono" id="mcp-last-synced-badge">
+                            {{ primary_mcp.last_synced_at|default:"متزامن ومحدث" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Connection Endpoints Box -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-paper border border-line space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-black text-ink">📡 روابط الاتصال المباشرة للمساعد الصوتي والوكلاء</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-800 border border-brand-200">Unified ASGI</span>
+                    </div>
+                    <span class="text-xs text-soft font-bold">بروتوكول البث الحي والمحادثة الفورية</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">رابط بث الأحداث (Server-Sent Events / SSE)</label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="text" readonly id="mcp-sse-url-field" value="{{ mcp_sse_url }}" class="input font-mono text-xs text-brand-700 bg-white select-all">
+                            <button type="button" onclick="copyFieldValue('mcp-sse-url-field', 'تم نسخ رابط SSE بنجاح')" class="px-3 py-2 rounded-xl bg-paper hover:bg-brand-50 text-ink border border-line text-xs font-bold transition whitespace-nowrap cursor-pointer">
+                                📋 نسخ
+                            </button>
+                        </div>
+                        <p class="text-[10.5px] text-soft font-bold mt-1">الرابط المستخدم من قبل سنترال المساعد الصوتي السحابي (Live PBX).</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">رابط Streamable-HTTP الحديث (/mcp)</label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="text" readonly id="mcp-streamable-url-field" value="{{ mcp_streamable_url }}" class="input font-mono text-xs text-purple-700 bg-white select-all">
+                            <button type="button" onclick="copyFieldValue('mcp-streamable-url-field', 'تم نسخ رابط Streamable-HTTP بنجاح')" class="px-3 py-2 rounded-xl bg-paper hover:bg-purple-50 text-ink border border-line text-xs font-bold transition whitespace-nowrap cursor-pointer">
+                                📋 نسخ
+                            </button>
+                        </div>
+                        <p class="text-[10.5px] text-soft font-bold mt-1">الرابط الموصى به لربط الوكلاء الذكية عبر Pipecat, Cursor و Antigravity IDE.</p>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-line/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="text-soft font-bold">مفتاح الدخول النشط (Access Key):</span>
+                        <code class="px-2 py-0.5 rounded bg-white border border-line font-mono font-bold text-ink" id="mcp-key-display">{{ access_key }}</code>
+                    </div>
+                    <button type="button" onclick="copyFieldValue('mcp-key-display', 'تم نسخ مفتاح الدخول بنجاح')" class="text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1 cursor-pointer">
+                        <span>📋</span> نسخ المفتاح فقط
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Voice Tools Directory -->
+        <div class="card p-6 sm:p-7 border-line space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-line pb-4">
+                <div>
+                    <h3 class="font-display text-base sm:text-lg font-black text-ink flex items-center gap-2">
+                        <span>🛠️</span> دليل الأدوات المدمجة المتاحة للمساعد الصوتي (Active AI Tools)
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">
+                        هذه الأدوات يستدعيها المساعد الصوتي تلقائياً أثناء المكالمة الهاتفية لتلبية طلبات العميل في أجزاء من الثانية
+                    </p>
+                </div>
+                <span class="text-xs px-3 py-1 rounded-full font-black bg-brand-50 text-brand-800 border border-brand-200">
+                    7 أدوات جاهزة وموثقة
+                </span>
+            </div>
+
+            <!-- Grid of 7 Tools -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Tool 1 -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">get_branches</span>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">قراءة (Read)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>🏢</span> استعراض فروع المطعم
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            جلب قائمة الفروع النشطة، العناوين، أرقام الهواتف، ونطاقات التوصيل لاختيار أقرب فرع للعميل.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: تلقائي</span>
+                        <button type="button" onclick="testToolDirect('get_branches', {})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tool 2 -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">get_menu</span>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">قراءة (Read)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>🍔</span> استعراض أصناف وقائمة الطعام
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            استعراض المنيو والأسعار والتصنيفات والأصناف المتاحة للفرع للإجابة عن أسعار الوجبات ومكوناتها.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: branch_id, category</span>
+                        <button type="button" onclick="testToolDirect('get_menu', {branch_id: 1})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tool 3 -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">lookup_customer</span>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">قراءة (Read)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>👤</span> البحث عن بيانات المتصل
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            البحث برقم الهاتف عن اسم العميل وعناوين التوصيل المسجلة سابقاً للترحيب به شخصياً وسرعة الطلب.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: phone</span>
+                        <button type="button" onclick="testToolDirect('lookup_customer', {phone: '0501234567'})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tool 4 -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">check_delivery_coverage</span>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">قراءة (Read)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>📍</span> فحص تغطية التوصيل والرسوم
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            فحص اسم الحي أو العنوان لمعرفة هل يغطيه الفرع، وكم رسوم التوصيل والحد الأدنى للطلب.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: branch_id, area_name</span>
+                        <button type="button" onclick="testToolDirect('check_delivery_coverage', {branch_id: 1, area_name: 'النرجس'})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tool 5 -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-brand-200/80 hover:border-brand-400 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">create_callcenter_order</span>
+                            <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">كتابة (Write)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>🛒</span> ضرب وتسجيل الأوردر آلياً
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            إنشاء الطلب في الكاشير وحساب المجموع والضريبة ورسوم التوصيل وإرساله فوراً للمطبخ مع توليد رقم الأوردر.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: items, customer, branch</span>
+                        <span class="text-[10.5px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">محمية بالصلاحيات</span>
+                    </div>
+                </div>
+
+                <!-- Tool 6 -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">track_order</span>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">قراءة (Read)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>🔍</span> تتبع حالة الطلب للعميل
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            الاستعلام الفوري برقم الأوردر لمعرفة موقفه (في المطبخ / مع الدليفري / تم التسليم) وطمأنة العميل.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: order_number</span>
+                        <button type="button" onclick="testToolDirect('track_order', {order_number: 'DIY-1001'})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tool 7 -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">list_recent_orders</span>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">قراءة (Read)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>📋</span> استعراض حركة أحدث الطلبات
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            استعراض أحدث الأوردرات الصادرة لمراقبة حركة المبيعات وتأكيد استلام الطلبات المحولة هاتفياً.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: limit, branch_id</span>
+                        <button type="button" onclick="testToolDirect('list_recent_orders', {limit: 3})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- External Agents & IDE Integration Guides -->
+        <div class="card p-6 sm:p-7 border-line space-y-4">
+            <h4 class="text-sm font-black text-ink flex items-center gap-2">
+                <span>🔌</span> ربط خادم FastMCP مع الوكلاء والبيئات الذكية (External Integrations)
+            </h4>
+            <p class="text-xs text-soft font-bold">
+                يمكنك توصيل خادم المطعم المدمج مباشرة مع أدوات التطوير والوكلاء الذكية الخارجية بنسخ كود التهيئة التالي:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 rounded-xl bg-paper border border-line space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-xs text-ink flex items-center gap-1"><span>🤖</span> Claude Desktop / Cursor / Antigravity IDE</span>
+                        <span class="text-[10px] text-soft font-mono font-bold">JSON Config</span>
+                    </div>
+                    <pre class="bg-card p-3 rounded-lg border border-line text-[11px] font-mono text-ink overflow-x-auto leading-relaxed dir-ltr text-left" id="mcp-config-json">{
+  "mcpServers": {
+    "restaurant_callcenter": {
+      "url": "{{ mcp_streamable_url }}"
+    }
+  }
+}</pre>
+                    <button type="button" onclick="copyFieldValue('mcp-config-json', 'تم نسخ إعدادات JSON بنجاح')" class="w-full py-1.5 rounded-lg border border-line bg-white hover:bg-brand-50 text-ink text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+                        <span>📋</span> نسخ كود التوصيل (JSON)
+                    </button>
+                </div>
+
+                <div class="p-4 rounded-xl bg-paper border border-line space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-xs text-ink flex items-center gap-1"><span>🐍</span> Pipecat Voice Agent (Python)</span>
+                        <span class="text-[10px] text-soft font-mono font-bold">Python Code</span>
+                    </div>
+                    <pre class="bg-card p-3 rounded-lg border border-line text-[11px] font-mono text-ink overflow-x-auto leading-relaxed dir-ltr text-left" id="mcp-config-python">from pipecat.services.mcp_service import MCPClient
+
+mcp_client = MCPClient(
+    server_url="{{ mcp_sse_url }}"
+)
+restaurant_tools = await mcp_client.tools()</pre>
+                    <button type="button" onclick="copyFieldValue('mcp-config-python', 'تم نسخ كود Pipecat بنجاح')" class="w-full py-1.5 rounded-lg border border-line bg-white hover:bg-brand-50 text-ink text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+                        <span>📋</span> نسخ كود بايثون
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- ========================================== -->
@@ -1215,6 +1547,76 @@
                 </button>
                 <button type="submit" id="qm-submit-btn" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
                     تأكيد الإضافة للطابور
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: TEST MCP TOOL EXECUTION            -->
+<!-- ========================================== -->
+<div id="mcp-test-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-4 animate-toast" dir="rtl">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>🧪</span> اختبار استجابة الأداة: <span id="mcp-test-tool-title" class="text-brand-600 font-mono"></span>
+            </h3>
+            <button type="button" onclick="closeMcpTestModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
+        </div>
+
+        <div class="space-y-3">
+            <div id="mcp-test-params-container" class="space-y-3">
+                <!-- Dynamic Input Fields based on tool -->
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <span class="text-xs font-bold text-soft">النتيجة المسترجعة من خادم FastMCP المدمج:</span>
+                <button type="button" onclick="executeCurrentToolTest()" id="btn-run-tool-test" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
+                    ▶️ تشغيل الأداة الآن
+                </button>
+            </div>
+
+            <div class="relative">
+                <pre id="mcp-test-result-box" class="bg-card p-3 rounded-xl border border-line text-xs font-mono text-ink overflow-x-auto max-h-60 leading-relaxed dir-ltr text-left">اضغط على «تشغيل الأداة الآن» لعرض الاستجابة المباشرة...</pre>
+            </div>
+        </div>
+
+        <div class="pt-2 border-t border-line flex items-center justify-end">
+            <button type="button" onclick="closeMcpTestModal()" class="px-4 py-2 rounded-xl border border-line bg-paper text-ink text-xs font-bold cursor-pointer">
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: UPDATE MCP SERVER URL               -->
+<!-- ========================================== -->
+<div id="mcp-url-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-md w-full p-6 border-line shadow-2xl space-y-4 animate-toast" dir="rtl">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>⚙️</span> إعدادات رابط خادم FastMCP
+            </h3>
+            <button type="button" onclick="closeMcpUrlModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
+        </div>
+
+        <form onsubmit="submitUpdateMcpUrl(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-black text-ink mb-1.5">رابط SSE المسجل لدى منصة السنترال</label>
+                <input type="url" id="mcp_url_input" value="{{ primary_mcp.server_url|default:mcp_sse_url }}" required class="input font-mono text-xs">
+                <p class="text-[10.5px] text-soft font-bold mt-1">
+                    الرابط المعتمد للمساعد الصوتي السحابي للاتصال بخادم الأدوات المدمج في المنصة.
+                </p>
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeMcpUrlModal()" class="px-4 py-2 rounded-xl text-soft hover:bg-paper text-xs font-black transition cursor-pointer">
+                    إلغاء
+                </button>
+                <button type="submit" id="btn-save-mcp-url" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
+                    حفظ وتحديث السنترال
                 </button>
             </div>
         </form>
@@ -1901,6 +2303,259 @@ function copyOwnerMasterCreds() {
             showNotification('يرجى تحديد النص ونسخه يدوياً', true);
         }
         document.body.removeChild(textarea);
+    }
+}
+
+// ==========================================
+// FastMCP Live Tools & Integration JS
+// ==========================================
+function copyFieldValue(elementId, successMsg) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const text = el.value || el.textContent || '';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification(successMsg || 'تم النسخ إلى الحافظة بنجاح');
+        }).catch(() => {
+            showNotification('تم تجهيز النص يرجى نسخه يدوياً', true);
+        });
+    } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showNotification(successMsg || 'تم النسخ إلى الحافظة بنجاح');
+        } catch (err) {
+            showNotification('يرجى تحديد النص ونسخه يدوياً', true);
+        }
+        document.body.removeChild(textarea);
+    }
+}
+
+async function syncMcpTools() {
+    const btn = document.getElementById('btn-sync-mcp');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> جاري المزامنة...';
+    }
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_sync_mcp' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification(`تمت مزامنة ${data.tools_count || 7} أدوات مع السنترال السحابي بنجاح`);
+            const countBadge = document.getElementById('mcp-tools-count-badge');
+            const syncBadge = document.getElementById('mcp-last-synced-badge');
+            if (countBadge && data.tools_count) countBadge.textContent = `${data.tools_count} أدوات ذكية متزامنة`;
+            if (syncBadge && data.synced_at) syncBadge.textContent = data.synced_at;
+        } else {
+            showNotification(data.message || 'فشلت المزامنة مع السنترال', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر للمزامنة', true);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>🔄</span> مزامنة الأدوات فورياً (Live Sync)';
+        }
+    }
+}
+
+function openMcpUrlModal() {
+    document.getElementById('mcp-url-modal').classList.remove('hidden');
+}
+
+function closeMcpUrlModal() {
+    document.getElementById('mcp-url-modal').classList.add('hidden');
+}
+
+async function submitUpdateMcpUrl(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-mcp-url');
+    const server_url = document.getElementById('mcp_url_input').value.trim();
+
+    if (!server_url) {
+        showNotification('يرجى إدخال الرابط', true);
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري الحفظ...';
+    }
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_update_mcp_url' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ server_url })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            closeMcpUrlModal();
+            showNotification('تم تحديث رابط خادم FastMCP ومزامنته مع السنترال');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message || 'حدث خطأ أثناء التحديث', true);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'حفظ وتحديث السنترال';
+            }
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'حفظ وتحديث السنترال';
+        }
+    }
+}
+
+// Tool Testing Modal
+let activeTestingTool = null;
+let activeTestingParams = {};
+
+function testToolDirect(toolName, defaultParams) {
+    activeTestingTool = toolName;
+    activeTestingParams = defaultParams || {};
+
+    const modal = document.getElementById('mcp-test-modal');
+    const titleEl = document.getElementById('mcp-test-tool-title');
+    const container = document.getElementById('mcp-test-params-container');
+    const resultBox = document.getElementById('mcp-test-result-box');
+
+    if (titleEl) titleEl.textContent = toolName;
+    if (resultBox) resultBox.textContent = 'اضغط على «تشغيل الأداة الآن» لعرض الاستجابة المباشرة...';
+
+    // Render parameter fields
+    if (container) {
+        let html = '';
+        if (toolName === 'get_branches') {
+            html = '<p class="text-xs text-soft font-bold">لا تتطلب هذه الأداة أي معاملات إضافية (تعتمد على مفتاح المنشأة التلقائي).</p>';
+        } else if (toolName === 'get_menu') {
+            html = `
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">معرف الفرع (Branch ID)</label>
+                    <input type="number" id="test_param_branch_id" value="1" class="input font-mono font-bold">
+                </div>
+            `;
+        } else if (toolName === 'lookup_customer') {
+            html = `
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">رقم هاتف العميل (Phone)</label>
+                    <input type="text" id="test_param_phone" value="0501234567" class="input font-mono font-bold">
+                </div>
+            `;
+        } else if (toolName === 'check_delivery_coverage') {
+            html = `
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">معرف الفرع (Branch ID)</label>
+                        <input type="number" id="test_param_branch_id" value="1" class="input font-mono font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">اسم الحي / المنطقة</label>
+                        <input type="text" id="test_param_area_name" value="النرجس" class="input font-bold">
+                    </div>
+                </div>
+            `;
+        } else if (toolName === 'track_order') {
+            html = `
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">رقم الأوردر (Order Number)</label>
+                    <input type="text" id="test_param_order_number" value="DIY-1001" class="input font-mono font-bold">
+                </div>
+            `;
+        } else if (toolName === 'list_recent_orders') {
+            html = `
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">الحد الأقصى للطلبات (Limit)</label>
+                    <input type="number" id="test_param_limit" value="5" min="1" max="20" class="input font-mono font-bold">
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeMcpTestModal() {
+    const modal = document.getElementById('mcp-test-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function executeCurrentToolTest() {
+    if (!activeTestingTool) return;
+    const btn = document.getElementById('btn-run-tool-test');
+    const resultBox = document.getElementById('mcp-test-result-box');
+
+    // Collect inputs
+    const params = {};
+    if (document.getElementById('test_param_branch_id')) {
+        params.branch_id = parseInt(document.getElementById('test_param_branch_id').value) || 1;
+    }
+    if (document.getElementById('test_param_phone')) {
+        params.phone = document.getElementById('test_param_phone').value.trim();
+    }
+    if (document.getElementById('test_param_area_name')) {
+        params.area_name = document.getElementById('test_param_area_name').value.trim();
+    }
+    if (document.getElementById('test_param_order_number')) {
+        params.order_number = document.getElementById('test_param_order_number').value.trim();
+    }
+    if (document.getElementById('test_param_limit')) {
+        params.limit = parseInt(document.getElementById('test_param_limit').value) || 5;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري التنفيذ...';
+    }
+    if (resultBox) resultBox.textContent = 'جاري استدعاء الأداة واستقبال النتيجة...';
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_test_mcp_tool' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                tool_name: activeTestingTool,
+                params: params
+            })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            if (resultBox) {
+                resultBox.textContent = JSON.stringify(data.result, null, 2);
+            }
+            showNotification(`تم تنفيذ الأداة ${activeTestingTool} بنجاح`);
+        } else {
+            if (resultBox) {
+                resultBox.textContent = `خطأ: ${data.message || 'فشل تنفيذ الأداة'}`;
+            }
+            showNotification(data.message || 'حدث خطأ', true);
+        }
+    } catch (err) {
+        if (resultBox) resultBox.textContent = 'تعذر الاتصال بالسيرفر.';
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '▶️ تشغيل الأداة الآن';
+        }
     }
 }
 

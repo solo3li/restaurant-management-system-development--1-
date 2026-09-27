@@ -70,11 +70,6 @@ class FastMCPAuthMiddleware:
             path = scope.get("path", "")
             method = scope.get("method", "GET").upper()
 
-            # Transparently alias /sse or /messages to /mcp for backward/cross compatibility
-            if path in ("/sse", "/messages") or path.startswith("/sse/") or path.startswith("/messages/"):
-                scope["path"] = "/mcp"
-                path = "/mcp"
-
             # Allow OAuth discovery and health endpoints without auth
             if path.startswith("/.well-known"):
                 await self.app(scope, receive, send)
@@ -215,10 +210,75 @@ class FastMCPAuthMiddleware:
         await send({"type": "http.response.body", "body": body})
 
 
+class SSEAuthMiddleware:
+    """ASGI Middleware to authenticate FastMCP SSE connections."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            headers = dict(scope.get("headers", []))
+            auth = headers.get(b"authorization", b"").decode("latin1")
+            key = None
+            if auth.startswith("Bearer "):
+                key = auth[7:].strip()
+            elif auth:
+                key = auth.strip()
+
+            if not key:
+                x_key = headers.get(b"x-access-key", b"").decode("latin1")
+                if x_key:
+                    key = x_key.strip()
+
+            if not key:
+                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
+                qs = parse_qs(query_string)
+                key = qs.get("access_key", [None])[0]
+
+            if not key and len(KEY_LATEST_SESSION) == 1:
+                key = list(KEY_LATEST_SESSION.keys())[0]
+
+            if key:
+                valid = await sync_to_async(_check_key_valid)(key)
+                if not valid:
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [(b"content-type", b"text/plain; charset=utf-8")]
+                    })
+                    await send({"type": "http.response.body", "body": "مفتاح الدخول غير صالح".encode("utf-8")})
+                    return
+                token = _current_session_key.set(key)
+                try:
+                    await self.app(scope, receive, send)
+                finally:
+                    _current_session_key.reset(token)
+                return
+
+        await self.app(scope, receive, send)
+
+
 def get_mcp_asgi_app():
-    """Return the FastMCP Streamable-HTTP app wrapped with access key authentication."""
-    raw_app = mcp.http_app()  # Default transport = streamable-http in FastMCP 4.x
-    return FastMCPAuthMiddleware(raw_app)
+    """Return unified FastMCP ASGI dispatcher supporting both SSE (/sse, /messages) and Streamable-HTTP (/mcp)."""
+    raw_sse = mcp.http_app(transport="sse")
+    sse_app = SSEAuthMiddleware(raw_sse)
+
+    raw_stream = mcp.http_app(transport="streamable-http")
+    mcp_app = FastMCPAuthMiddleware(raw_stream)
+
+    async def unified_mcp_asgi(scope, receive, send):
+        path = scope.get("path", "")
+        if path.startswith("/sse") or path.startswith("/messages"):
+            await sse_app(scope, receive, send)
+        elif path.startswith("/mcp"):
+            await mcp_app(scope, receive, send)
+        elif scope.get("type") == "lifespan":
+            await raw_sse(scope, receive, send)
+        else:
+            await mcp_app(scope, receive, send)
+
+    return unified_mcp_asgi
+
 
 
 def _authenticate(access_key: Optional[str] = None):
@@ -738,54 +798,6 @@ def list_recent_orders(branch_id: Optional[int] = None, limit: int = 10, access_
         "count": len(orders_data),
         "orders": orders_data,
     }
-
-
-class SSEAuthMiddleware:
-    """ASGI Middleware to authenticate FastMCP SSE connections."""
-    def __init__(self, app):
-        self.app = app
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] == "http":
-            headers = dict(scope.get("headers", []))
-            auth = headers.get(b"authorization", b"").decode("latin1")
-            key = None
-            if auth.startswith("Bearer "):
-                key = auth[7:].strip()
-            elif auth:
-                key = auth.strip()
-
-            if not key:
-                x_key = headers.get(b"x-access-key", b"").decode("latin1")
-                if x_key:
-                    key = x_key.strip()
-
-            if not key:
-                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
-                qs = parse_qs(query_string)
-                key = qs.get("access_key", [None])[0]
-
-            if not key and len(KEY_LATEST_SESSION) == 1:
-                key = list(KEY_LATEST_SESSION.keys())[0]
-
-            if key:
-                valid = await sync_to_async(_check_key_valid)(key)
-                if not valid:
-                    await send({
-                        "type": "http.response.start",
-                        "status": 401,
-                        "headers": [(b"content-type", b"text/plain; charset=utf-8")]
-                    })
-                    await send({"type": "http.response.body", "body": "مفتاح الدخول غير صالح".encode("utf-8")})
-                    return
-                token = _current_session_key.set(key)
-                try:
-                    await self.app(scope, receive, send)
-                finally:
-                    _current_session_key.reset(token)
-                return
-
-        await self.app(scope, receive, send)
 
 
 def run_server(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):

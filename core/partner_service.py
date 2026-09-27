@@ -205,3 +205,19 @@ def get_calls(client_id: int) -> Dict[str, Any]:
 
 def get_wallet() -> Dict[str, Any]:
     return _request("/wallet/")
+
+
+def get_client_mcp_servers(client_id: int) -> Dict[str, Any]:
+    """Fetch registered FastMCP servers and cached tools for client."""
+    return _request(f"/clients/{client_id}/mcp/")
+
+
+def update_client_mcp_server(client_id: int, mcp_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Update MCP server details (e.g., server_url, auth_token, is_active)."""
+    return _request(f"/clients/{client_id}/mcp/{mcp_id}/", method="PATCH", data=data)
+
+
+def sync_client_mcp_tools(client_id: int, mcp_id: int) -> Dict[str, Any]:
+    """Trigger live SSE synchronization of tools from FastMCP server to Partner PBX."""
+    return _request(f"/clients/{client_id}/mcp/{mcp_id}/sync/", method="POST")
+

@@ -67,4 +67,8 @@ urlpatterns = [
     path("api/ai-callcenter/queues/save/", views.api_ai_callcenter_save_queue, name="api_ai_callcenter_save_queue"),
     path("api/ai-callcenter/queues/<int:queue_id>/delete/", views.api_ai_callcenter_delete_queue, name="api_ai_callcenter_delete_queue"),
     path("api/ai-callcenter/queues/<int:queue_id>/members/add/", views.api_ai_callcenter_add_queue_member, name="api_ai_callcenter_add_queue_member"),
+    path("api/ai-callcenter/mcp/sync/", views.api_ai_callcenter_sync_mcp, name="api_ai_callcenter_sync_mcp"),
+    path("api/ai-callcenter/mcp/update-url/", views.api_ai_callcenter_update_mcp_url, name="api_ai_callcenter_update_mcp_url"),
+    path("api/ai-callcenter/mcp/test-tool/", views.api_ai_callcenter_test_mcp_tool, name="api_ai_callcenter_test_mcp_tool"),
 ]
+
