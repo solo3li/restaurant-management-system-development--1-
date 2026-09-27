@@ -740,11 +740,62 @@ def list_recent_orders(branch_id: Optional[int] = None, limit: int = 10, access_
     }
 
 
+class SSEAuthMiddleware:
+    """ASGI Middleware to authenticate FastMCP SSE connections."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            headers = dict(scope.get("headers", []))
+            auth = headers.get(b"authorization", b"").decode("latin1")
+            key = None
+            if auth.startswith("Bearer "):
+                key = auth[7:].strip()
+            elif auth:
+                key = auth.strip()
+
+            if not key:
+                x_key = headers.get(b"x-access-key", b"").decode("latin1")
+                if x_key:
+                    key = x_key.strip()
+
+            if not key:
+                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
+                qs = parse_qs(query_string)
+                key = qs.get("access_key", [None])[0]
+
+            if not key and len(KEY_LATEST_SESSION) == 1:
+                key = list(KEY_LATEST_SESSION.keys())[0]
+
+            if key:
+                valid = await sync_to_async(_check_key_valid)(key)
+                if not valid:
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [(b"content-type", b"text/plain; charset=utf-8")]
+                    })
+                    await send({"type": "http.response.body", "body": "مفتاح الدخول غير صالح".encode("utf-8")})
+                    return
+                token = _current_session_key.set(key)
+                try:
+                    await self.app(scope, receive, send)
+                finally:
+                    _current_session_key.reset(token)
+                return
+
+        await self.app(scope, receive, send)
+
+
 def run_server(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
     """Run FastMCP server via STDIO or SSE."""
     if transport == "sse":
+        import uvicorn
         print(f"Starting Restaurant FastMCP Server on SSE {host}:{port}...", file=sys.stderr)
-        mcp.run(transport="sse", host=host, port=port)
+        raw_app = mcp.http_app(transport="sse")
+        app = SSEAuthMiddleware(raw_app)
+        uvicorn.run(app, host=host, port=port, log_level="info")
     else:
         # In stdio mode, stdout is reserved strictly for JSON-RPC messages
         mcp.run(transport="stdio")
@@ -755,7 +806,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Restaurant Call Center FastMCP Server")
     parser.add_argument("--transport", choices=["stdio", "sse"], default="stdio", help="Transport mode")
-    parser.add_argument("--host", default="127.0.0.1", help="Host for SSE server")
+    parser.add_argument("--host", default="0.0.0.0", help="Host for SSE server")
     parser.add_argument("--port", type=int, default=8002, help="Port for SSE server")
     args = parser.parse_args()
     run_server(transport=args.transport, host=args.host, port=args.port)
