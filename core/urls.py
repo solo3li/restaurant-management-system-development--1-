@@ -66,4 +66,5 @@ urlpatterns = [
     path("api/ai-callcenter/employees/<int:emp_id>/delete/", views.api_ai_callcenter_delete_employee, name="api_ai_callcenter_delete_employee"),
     path("api/ai-callcenter/queues/save/", views.api_ai_callcenter_save_queue, name="api_ai_callcenter_save_queue"),
     path("api/ai-callcenter/queues/<int:queue_id>/delete/", views.api_ai_callcenter_delete_queue, name="api_ai_callcenter_delete_queue"),
+    path("api/ai-callcenter/queues/<int:queue_id>/members/add/", views.api_ai_callcenter_add_queue_member, name="api_ai_callcenter_add_queue_member"),
 ]

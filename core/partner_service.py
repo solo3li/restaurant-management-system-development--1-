@@ -187,6 +187,18 @@ def delete_queue(client_id: int, queue_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/queues/{queue_id}/", method="DELETE")
 
 
+def get_queue_members(client_id: int, queue_id: int) -> Dict[str, Any]:
+    return _request(f"/clients/{client_id}/queues/{queue_id}/members/")
+
+
+def add_queue_member(client_id: int, queue_id: int, employee_id: int, penalty: int = 0) -> Dict[str, Any]:
+    payload = {
+        "employee_id": int(employee_id),
+        "penalty": int(penalty),
+    }
+    return _request(f"/clients/{client_id}/queues/{queue_id}/members/", method="POST", data=payload)
+
+
 def get_calls(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/calls/")
 

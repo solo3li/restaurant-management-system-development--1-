@@ -2636,12 +2636,12 @@ def ai_callcenter_management_view(request):
     calls_data = calls_resp.get("calls") or []
     wallet_data = ps.get_wallet().get("wallet") or {}
 
-    # 2. Local Restaurant Call Center Orders
-    call_orders = list(Order.objects.filter(tenant=tenant, channel="call_center").select_related("branch").order_by("-created_at")[:15])
+    # 2. Local Restaurant Call Center Orders & Cross-referencing
+    tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
+    call_orders = [o for o in tenant_orders if o.channel == "call_center"][:15]
     total_ai_orders = Order.objects.filter(tenant=tenant, channel="call_center").count()
     total_ai_revenue = Order.objects.filter(tenant=tenant, channel="call_center").aggregate(Sum("total"))["total__sum"] or Decimal("0.00")
 
-    # Match each call center order to its recorded call & AI summary
     def _norm_phone(p):
         if not p:
             return ""
@@ -2649,25 +2649,39 @@ def ai_callcenter_management_view(request):
         digits = re.sub(r"\D", "", str(p))
         return digits[-9:] if len(digits) >= 9 else digits
 
-    for ord in call_orders:
-        matched = None
-        # 1. First priority: match by order number in call summary or dialogue turns
-        for c in calls_data:
-            summary = c.get("summary") or ""
-            turns = str(c.get("dialogue_turns") or "")
-            if ord.order_number in summary or ord.order_number in turns:
-                matched = c
+    # Cross-reference every inbound call with orders and customer directory
+    for c in calls_data:
+        summary = c.get("summary") or ""
+        turns = str(c.get("dialogue_turns") or "")
+        c_phone = _norm_phone(c.get("caller_phone"))
+        matched_ord = None
+
+        # 1. Match by order number in summary or dialogue turns
+        for o in tenant_orders:
+            if o.order_number in summary or o.order_number in turns:
+                matched_ord = o
                 break
-        # 2. Second priority: match by normalized phone number
-        if not matched:
-            o_phone = _norm_phone(ord.customer_phone)
-            if o_phone:
-                for c in calls_data:
-                    c_phone = _norm_phone(c.get("caller_phone"))
-                    if c_phone and o_phone == c_phone:
-                        matched = c
-                        break
-        ord.matched_call = matched
+
+        # 2. Match by phone if order was placed
+        if not matched_ord and c_phone:
+            matching_orders = [o for o in tenant_orders if o.customer_phone and _norm_phone(o.customer_phone) == c_phone]
+            if matching_orders:
+                matched_ord = matching_orders[0]
+
+        c["linked_order"] = matched_ord
+        c["has_order"] = bool(matched_ord)
+
+        # Customer display name
+        if matched_ord and matched_ord.customer_name:
+            c["customer_name"] = matched_ord.customer_name
+        else:
+            raw_phone = c.get("caller_phone") or ""
+            cust = Customer.objects.filter(tenant=tenant).filter(Q(phone=raw_phone) | Q(phone__endswith=c_phone) if c_phone else Q(phone=raw_phone)).first()
+            c["customer_name"] = cust.name if cust else "عميل اتصال هاتفي"
+
+    total_calls_count = len(calls_data)
+    orders_converted_count = sum(1 for c in calls_data if c.get("linked_order"))
+    inquiries_count = max(0, total_calls_count - orders_converted_count)
 
     context = {
         "tenant": tenant,
@@ -2680,7 +2694,11 @@ def ai_callcenter_management_view(request):
         "documents": docs_data,
         "employees": employees_data,
         "queues": queues_data,
+        "primary_queue": queues_data[0] if queues_data else None,
         "calls": calls_data,
+        "total_calls_count": total_calls_count,
+        "orders_converted_count": orders_converted_count,
+        "inquiries_count": inquiries_count,
         "wallet": wallet_data,
         "call_orders": call_orders,
         "total_ai_orders": total_ai_orders,
@@ -2845,6 +2863,35 @@ def api_ai_callcenter_delete_queue(request, queue_id):
     client_id = ps.get_client_id_for_tenant(tenant)
 
     resp = ps.delete_queue(client_id, queue_id)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_add_queue_member(request, queue_id):
+    """API to add an employee member to a call queue with penalty priority."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return JsonResponse({"status": "error", "message": "غير مصرح"}, status=403)
+
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    employee_id = data.get("employee_id")
+    penalty = int(data.get("penalty", 0))
+
+    if not employee_id:
+        return JsonResponse({"status": "error", "message": "يرجى تحديد الموظف المراد إضافته للطابور"}, status=400)
+
+    resp = ps.add_queue_member(client_id, queue_id, employee_id=int(employee_id), penalty=penalty)
     return JsonResponse(resp)
 
 
