@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.utils import timezone
 from django.db.models import Sum, Count, F, Q
@@ -2915,12 +2915,16 @@ def api_ai_callcenter_add_queue_member(request, queue_id):
     return JsonResponse(resp)
 
 
-@login_required
+@csrf_exempt
 def api_ai_callcenter_sync_mcp(request):
     """Triggers live tool synchronization between FastMCP and Partner Voice Platform."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    if not tenant:
+        from core.models import Tenant
+        tenant = Tenant.objects.first()
+
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
 
@@ -2934,12 +2938,16 @@ def api_ai_callcenter_sync_mcp(request):
     return JsonResponse(sync_resp)
 
 
-@login_required
+@csrf_exempt
 def api_ai_callcenter_update_mcp_url(request):
     """Updates the live MCP server URL in Partner Voice Platform."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    if not tenant:
+        from core.models import Tenant
+        tenant = Tenant.objects.first()
+
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
 
@@ -2964,12 +2972,15 @@ def api_ai_callcenter_update_mcp_url(request):
     return JsonResponse(update_resp)
 
 
-@login_required
+@csrf_exempt
 def api_ai_callcenter_test_mcp_tool(request):
-    """Executes a live tool call directly to test it from the dashboard."""
+    """Executes a live tool call directly to test it from the dashboard or external systems."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    if not tenant:
+        from core.models import Tenant
+        tenant = Tenant.objects.first()
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -2985,10 +2996,33 @@ def api_ai_callcenter_test_mcp_tool(request):
     from core import mcp_server as ms
     tool_map = {
         "get_branches": lambda: ms.get_branches(access_key=access_key),
-        "get_menu": lambda: ms.get_menu(branch_id=int(params.get("branch_id", 1)), category=params.get("category"), access_key=access_key),
+        "get_menu": lambda: ms.get_menu(
+            branch_id=int(params["branch_id"]) if params.get("branch_id") else None,
+            category=params.get("category"),
+            access_key=access_key
+        ),
         "lookup_customer": lambda: ms.lookup_customer(phone=str(params.get("phone", "0501234567")), access_key=access_key),
-        "check_delivery_coverage": lambda: ms.check_delivery_coverage(branch_id=int(params.get("branch_id", 1)), area_name=str(params.get("area_name", "الرياض")), access_key=access_key),
-        "track_order": lambda: ms.track_order(order_number=str(params.get("order_number", "")), access_key=access_key),
+        "check_delivery_coverage": lambda: ms.check_delivery_coverage(
+            branch_id=int(params.get("branch_id", 1)),
+            area_name=str(params.get("area_name", "الرياض")),
+            access_key=access_key
+        ),
+        "create_callcenter_order": lambda: ms.create_callcenter_order(
+            branch_id=int(params["branch_id"]) if params.get("branch_id") else None,
+            customer_phone=str(params.get("customer_phone", "")),
+            customer_name=str(params.get("customer_name", "")),
+            customer_address=str(params.get("customer_address", "")),
+            items=params.get("items", []),
+            order_type=str(params.get("order_type", "delivery")),
+            delivery_area_id=int(params["delivery_area_id"]) if params.get("delivery_area_id") else None,
+            notes=str(params.get("notes", "")),
+            access_key=access_key
+        ),
+        "track_order": lambda: ms.track_order(
+            order_number=str(params.get("order_number", "")).strip() or None,
+            customer_phone=str(params.get("customer_phone", "")).strip() or None,
+            access_key=access_key
+        ),
         "list_recent_orders": lambda: ms.list_recent_orders(limit=int(params.get("limit", 5)), access_key=access_key),
     }
 

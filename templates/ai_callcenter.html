@@ -1188,12 +1188,14 @@
                             <span>🛒</span> ضرب وتسجيل الأوردر آلياً
                         </h4>
                         <p class="text-xs text-soft leading-relaxed">
-                            إنشاء الطلب في الكاشير وحساب المجموع والضريبة ورسوم التوصيل وإرساله فوراً للمطبخ مع توليد رقم الأوردر.
+                            إنشاء الطلب في الكاشير وحساب المجموع بدقة متناهية وفحص التغطية والتعرف على العميل برقم هاتفه، ودعم أسماء أو أرقام الأصناف.
                         </p>
                     </div>
                     <div class="pt-2 border-t border-line/60 flex items-center justify-between">
-                        <span class="text-[10px] text-soft font-mono">المدخلات: items, customer, branch</span>
-                        <span class="text-[10.5px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded">محمية بالصلاحيات</span>
+                        <span class="text-[10px] text-soft font-mono">المدخلات: items, phone, address</span>
+                        <button type="button" onclick="testToolDirect('create_callcenter_order', {})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
                     </div>
                 </div>
 
@@ -1208,12 +1210,12 @@
                             <span>🔍</span> تتبع حالة الطلب للعميل
                         </h4>
                         <p class="text-xs text-soft leading-relaxed">
-                            الاستعلام الفوري برقم الأوردر لمعرفة موقفه (في المطبخ / مع الدليفري / تم التسليم) وطمأنة العميل.
+                            الاستعلام الفوري برقم الأوردر أو برقم هاتف العميل لمعرفة موقفه (في المطبخ / مع الدليفري / تم التسليم) وطمأنة العميل.
                         </p>
                     </div>
                     <div class="pt-2 border-t border-line/60 flex items-center justify-between">
-                        <span class="text-[10px] text-soft font-mono">المدخلات: order_number</span>
-                        <button type="button" onclick="testToolDirect('track_order', {order_number: 'DIY-1001'})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: order_number أو customer_phone</span>
+                        <button type="button" onclick="testToolDirect('track_order', {order_number: 'DIY-1059'})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
                             <span>🧪</span> تجربة الأداة
                         </button>
                     </div>
@@ -2471,9 +2473,44 @@ function testToolDirect(toolName, defaultParams) {
             `;
         } else if (toolName === 'track_order') {
             html = `
-                <div>
-                    <label class="block text-xs font-black text-ink mb-1">رقم الأوردر (Order Number)</label>
-                    <input type="text" id="test_param_order_number" value="DIY-1001" class="input font-mono font-bold">
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">رقم الأوردر (أو رقم هاتف العميل)</label>
+                        <input type="text" id="test_param_order_number" value="DIY-1059" placeholder="مثال: DIY-1059 أو 0559998877" class="input font-mono font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">أو تتبع برقم الهاتف مباشرة (Customer Phone)</label>
+                        <input type="text" id="test_param_customer_phone" placeholder="مثال: 0559998877" class="input font-mono font-bold">
+                    </div>
+                </div>
+            `;
+        } else if (toolName === 'create_callcenter_order') {
+            html = `
+                <div class="space-y-2.5">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">رقم هاتف العميل *</label>
+                            <input type="text" id="test_param_order_phone" value="0559998877" class="input font-mono font-bold text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">اسم العميل</label>
+                            <input type="text" id="test_param_order_name" value="أحمد تجربة" class="input font-bold text-xs">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-ink mb-1">عنوان التوصيل * (يجب أن يكون مغطى بالفرع)</label>
+                        <input type="text" id="test_param_order_address" value="مدينة الشروق - كمبوند النرجس" class="input font-bold text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">اسم الصنف أو رقمه *</label>
+                            <input type="text" id="test_param_order_item" value="كبسة دجاج" class="input font-bold text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">الكمية</label>
+                            <input type="number" id="test_param_order_qty" value="1" min="1" max="10" class="input font-mono font-bold text-xs">
+                        </div>
+                    </div>
                 </div>
             `;
         } else if (toolName === 'list_recent_orders') {
@@ -2514,8 +2551,25 @@ async function executeCurrentToolTest() {
     if (document.getElementById('test_param_order_number')) {
         params.order_number = document.getElementById('test_param_order_number').value.trim();
     }
+    if (document.getElementById('test_param_customer_phone')) {
+        params.customer_phone = document.getElementById('test_param_customer_phone').value.trim();
+    }
     if (document.getElementById('test_param_limit')) {
         params.limit = parseInt(document.getElementById('test_param_limit').value) || 5;
+    }
+
+    if (activeTestingTool === 'create_callcenter_order') {
+        params.customer_phone = (document.getElementById('test_param_order_phone')?.value || '').trim();
+        params.customer_name = (document.getElementById('test_param_order_name')?.value || '').trim();
+        params.customer_address = (document.getElementById('test_param_order_address')?.value || '').trim();
+        const itemNameOrId = (document.getElementById('test_param_order_item')?.value || 'كبسة دجاج').trim();
+        const itemQty = parseInt(document.getElementById('test_param_order_qty')?.value || '1') || 1;
+        if (/^\d+$/.test(itemNameOrId)) {
+            params.items = [{item_id: parseInt(itemNameOrId), quantity: itemQty}];
+        } else {
+            params.items = [{name: itemNameOrId, quantity: itemQty}];
+        }
+        params.order_type = 'delivery';
     }
 
     if (btn) {

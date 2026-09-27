@@ -29,9 +29,22 @@ ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
     'http://169.58.32.179:8000',
     'http://169.58.32.179',
+    'https://169.58.32.179',
+    'https://app.169.58.32.179.nip.io',
+    'http://*.nip.io',
+    'https://*.nip.io',
+    'http://*.nip.io:8000',
+    'https://*.nip.io:8000',
     'http://127.0.0.1:8000',
     'http://localhost:8000',
+    'http://localhost:3000',
+    'https://*.ngrok-free.app',
+    'https://*.ngrok.io',
 ]
+
+# Allow external iframes, cross-origin modals and web tools
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+X_FRAME_OPTIONS = 'ALLOWALL'
 
 
 # Application definition

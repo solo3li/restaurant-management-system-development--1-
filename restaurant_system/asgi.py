@@ -8,7 +8,65 @@ from core.mcp_server import get_mcp_asgi_app
 mcp_application = get_mcp_asgi_app()
 
 
-async def application(scope, receive, send):
+class ASGICORSMiddleware:
+    """
+    Universal CORS Middleware for all ASGI traffic (Django + FastMCP SSE/Messages/MCP).
+    - Automatically handles OPTIONS Preflight requests with 200 OK.
+    - Appends Access-Control-Allow-Origin, Allow-Methods, Allow-Headers, Allow-Credentials to all responses.
+    - Exposes mcp-session-id and custom headers for third-party servers and web tools.
+    """
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            method = scope.get("method", "GET").upper()
+
+            # Determine request origin (echo requesting origin or default to wildcard)
+            origin = b"*"
+            for h_name, h_val in scope.get("headers", []):
+                if h_name.lower() == b"origin" and h_val:
+                    origin = h_val
+                    break
+
+            # Handle CORS preflight (OPTIONS)
+            if method == "OPTIONS":
+                await send({
+                    "type": "http.response.start",
+                    "status": 200,
+                    "headers": [
+                        (b"access-control-allow-origin", origin),
+                        (b"access-control-allow-methods", b"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"),
+                        (b"access-control-allow-headers", b"Authorization, Content-Type, X-Access-Key, X-CSRFToken, mcp-session-id, Accept, Origin, User-Agent, Cache-Control, *"),
+                        (b"access-control-expose-headers", b"mcp-session-id, Content-Disposition, *"),
+                        (b"access-control-allow-credentials", b"true"),
+                        (b"access-control-max-age", b"86400"),
+                        (b"content-length", b"0"),
+                    ],
+                })
+                await send({"type": "http.response.body", "body": b""})
+                return
+
+            # Intercept response to inject CORS headers
+            async def cors_send(message):
+                if message.get("type") == "http.response.start":
+                    headers = list(message.get("headers", []))
+                    if not any(h[0].lower() == b"access-control-allow-origin" for h in headers):
+                        headers.append((b"access-control-allow-origin", origin))
+                    if not any(h[0].lower() == b"access-control-allow-credentials" for h in headers):
+                        headers.append((b"access-control-allow-credentials", b"true"))
+                    if not any(h[0].lower() == b"access-control-expose-headers" for h in headers):
+                        headers.append((b"access-control-expose-headers", b"mcp-session-id, Content-Disposition, *"))
+                    message["headers"] = headers
+                await send(message)
+
+            await self.app(scope, receive, cors_send)
+            return
+
+        await self.app(scope, receive, send)
+
+
+async def _raw_application(scope, receive, send):
     """
     Unified ASGI Application for Restaurant Platform & 24/7 Call Center FastMCP:
     - /sse, /messages, /mcp -> FastMCP SSE Starlette Server (AI Call Center)
@@ -29,4 +87,8 @@ async def application(scope, receive, send):
             return
 
     await django_application(scope, receive, send)
+
+
+# Wrap root application in universal ASGI CORS Middleware
+application = ASGICORSMiddleware(_raw_application)
 
