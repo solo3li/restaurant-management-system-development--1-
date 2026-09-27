@@ -234,6 +234,9 @@
                     <span class="text-base">🎧</span> الكول سنتر المركزي
                 </a>
                 {% endif %}
+                <a href="{% url 'ai_callcenter_management' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_management' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
+                    <span class="text-base">🎙️</span> المساعد الصوتي الذكي (AI)
+                </a>
                 {% if 'delivery_access' in user_perms %}
                 <a href="{% url 'delivery' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
                     <span class="text-base">🛵</span> متابعة كل التوصيلات

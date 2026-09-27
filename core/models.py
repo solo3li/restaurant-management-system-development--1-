@@ -94,6 +94,13 @@ class Tenant(models.Model):
     subscription_end = models.DateTimeField(null=True, blank=True, verbose_name="تاريخ انتهاء الاشتراك")
 
     is_active = models.BooleanField(default=True, verbose_name="نشط")
+    
+    # Voice AI & Cloud PBX Partner Integration
+    voice_client_id = models.IntegerField(null=True, blank=True, verbose_name="معرف الكول سنتر (Client ID)")
+    voice_username = models.CharField(max_length=150, blank=True, default="", verbose_name="اسم مستخدم السنترال (Voice PBX Username)")
+    voice_password = models.CharField(max_length=128, blank=True, default="", verbose_name="كلمة مرور السنترال (Voice PBX Password)")
+    voice_is_active = models.BooleanField(default=False, verbose_name="تفعيل الكول سنتر الصوتي")
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التسجيل")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
 

@@ -2595,3 +2595,256 @@ def api_delete_api_key(request, key_id):
     })
 
 
+# ==============================================================================
+# AI Call Center Management (Owner Dashboard & Partner SaaS Integration)
+# ==============================================================================
+
+@login_required
+def ai_callcenter_management_view(request):
+    """
+    Comprehensive Owner Dashboard for managing the AI Call Center:
+    - Persona & Voice Studio (Egyptian, Saudi, etc.)
+    - Business Hours & Off-hours AI response
+    - Restaurant Knowledge Base (RAG & FAQ)
+    - Human Staff Directory & WebRTC Extensions
+    - Automated Call Queues (least_recent, ring timeout, AI fallback)
+    - Live Call Logs, Audio Playback & Transcripts
+    """
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return HttpResponseForbidden("صفحة إدارة المساعد الصوتي مخصصة لمالك المنشأة فقط")
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
+
+    from core import partner_service as ps
+    # Ensure tenant has voice partner registration and credentials
+    reg_info = ps.ensure_tenant_registered(tenant, password=tenant.voice_password or "Diyafa@2026!")
+    client_id = reg_info.get("client_id") or ps.get_client_id_for_tenant(tenant)
+    owner_username = tenant.voice_username or reg_info.get("username") or "prt_10_restaurant_diyafa_001"
+    owner_password = tenant.voice_password or reg_info.get("password") or "Diyafa@2026!"
+
+    # 1. Fetch live data from Partner API
+    profile_data = ps.get_profile(client_id).get("profile") or ps.get_profile(client_id).get("active_profile") or {}
+    hours_data = ps.get_business_hours(client_id).get("schedule") or {}
+    docs_data = ps.get_documents(client_id).get("documents") or []
+    employees_data = ps.get_employees(client_id).get("employees") or []
+    queues_data = ps.get_queues(client_id).get("queues") or []
+    calls_resp = ps.get_calls(client_id)
+    calls_data = calls_resp.get("calls") or []
+    wallet_data = ps.get_wallet().get("wallet") or {}
+
+    # 2. Local Restaurant Call Center Orders
+    call_orders = list(Order.objects.filter(tenant=tenant, channel="call_center").select_related("branch").order_by("-created_at")[:15])
+    total_ai_orders = Order.objects.filter(tenant=tenant, channel="call_center").count()
+    total_ai_revenue = Order.objects.filter(tenant=tenant, channel="call_center").aggregate(Sum("total"))["total__sum"] or Decimal("0.00")
+
+    # Match each call center order to its recorded call & AI summary
+    def _norm_phone(p):
+        if not p:
+            return ""
+        import re
+        digits = re.sub(r"\D", "", str(p))
+        return digits[-9:] if len(digits) >= 9 else digits
+
+    for ord in call_orders:
+        matched = None
+        # 1. First priority: match by order number in call summary or dialogue turns
+        for c in calls_data:
+            summary = c.get("summary") or ""
+            turns = str(c.get("dialogue_turns") or "")
+            if ord.order_number in summary or ord.order_number in turns:
+                matched = c
+                break
+        # 2. Second priority: match by normalized phone number
+        if not matched:
+            o_phone = _norm_phone(ord.customer_phone)
+            if o_phone:
+                for c in calls_data:
+                    c_phone = _norm_phone(c.get("caller_phone"))
+                    if c_phone and o_phone == c_phone:
+                        matched = c
+                        break
+        ord.matched_call = matched
+
+    context = {
+        "tenant": tenant,
+        "client_id": client_id,
+        "owner_username": owner_username,
+        "owner_password": owner_password,
+        "voice_portal_url": "https://app.169.58.32.179.nip.io",
+        "profile": profile_data,
+        "hours": hours_data,
+        "documents": docs_data,
+        "employees": employees_data,
+        "queues": queues_data,
+        "calls": calls_data,
+        "wallet": wallet_data,
+        "call_orders": call_orders,
+        "total_ai_orders": total_ai_orders,
+        "total_ai_revenue": total_ai_revenue,
+        "did_number": "+966 11 234 5678", # Assigned virtual number for demo
+    }
+    return render(request, "ai_callcenter.html", context)
+
+
+@login_required
+def api_ai_callcenter_update_profile(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    # Fetch profile ID
+    prof_resp = ps.get_profile(client_id)
+    prof = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
+    prof_id = prof.get("id") or 66
+
+    resp = ps.update_profile(client_id, prof_id, data)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_update_hours(request):
+    if request.method not in ("POST", "PUT"):
+        return HttpResponseBadRequest("POST or PUT required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    resp = ps.update_business_hours(client_id, data)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_add_doc(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    title = data.get("title", "").strip()
+    content = data.get("content", "").strip()
+    file_url = data.get("file_url", "").strip()
+
+    if not title:
+        return JsonResponse({"status": "error", "message": "عنوان المستند مطلوب"}, status=400)
+
+    resp = ps.add_document(client_id, title=title, content=content, file_url=file_url)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_delete_doc(request, doc_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    resp = ps.delete_document(client_id, doc_id)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_add_employee(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    name = data.get("display_name", "").strip()
+    ext = data.get("extension", "").strip()
+    dept = data.get("department", "خدمة العملاء").strip()
+    status = data.get("status", "ready").strip()
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+
+    if not name or not ext:
+        return JsonResponse({"status": "error", "message": "اسم الموظف والتحويلة مطلوبان"}, status=400)
+
+    resp = ps.add_employee(client_id, display_name=name, extension=ext, department=dept, status=status, username=username, password=password)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_delete_employee(request, emp_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    resp = ps.delete_employee(client_id, emp_id)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_save_queue(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    name = data.get("name", "طابور خدمة العملاء الرئيسي").strip()
+    code = data.get("code", "200").strip()
+    strategy = data.get("strategy", "least_recent").strip()
+    ring_timeout = int(data.get("ring_timeout_seconds", 20))
+    total_timeout = int(data.get("total_timeout_seconds", 60))
+    fallback = data.get("fallback_action", "ai_assistant").strip()
+
+    resp = ps.add_or_update_queue(
+        client_id,
+        name=name,
+        code=code,
+        strategy=strategy,
+        ring_timeout_seconds=ring_timeout,
+        total_timeout_seconds=total_timeout,
+        fallback_action=fallback
+    )
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_delete_queue(request, queue_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    resp = ps.delete_queue(client_id, queue_id)
+    return JsonResponse(resp)
+
+

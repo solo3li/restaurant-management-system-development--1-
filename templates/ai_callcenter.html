@@ -1,0 +1,1450 @@
+{% extends "base.html" %}
+
+{% block title %}المساعد الصوتي وكول سنتر الذكاء الاصطناعي — {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6 pb-14" dir="rtl">
+
+    <!-- ========================================== -->
+    <!-- HEADER & TOP BAR                           -->
+    <!-- ========================================== -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-line pb-5">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-bold text-soft mb-1">
+                <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">الإدارة العامة (HQ)</a>
+                <span>/</span>
+                <span class="text-ink">المساعد الصوتي والذكاء الاصطناعي</span>
+            </div>
+            <h1 class="font-display text-2xl sm:text-3xl font-black text-ink flex items-center gap-3">
+                <span class="p-2 rounded-2xl bg-brand-50 text-brand-600 border border-brand-200">🎙️</span>
+                <span>كول سنتر الذكاء الاصطناعي — {{ tenant.name }}</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> متصل بالسيرفر
+                </span>
+            </h1>
+            <p class="text-xs font-bold text-soft mt-1">
+                إدارة شخصية المساعد باللهجة المصرية، مواعيد العمل والاعتذار، قاعدة المعرفة (RAG)، موظفي التحويلات، وطوابير الانتظار
+            </p>
+        </div>
+
+        <div class="flex items-center flex-wrap gap-2.5">
+            <!-- Master Toggle Button -->
+            <button 
+                type="button" 
+                id="master-status-btn"
+                onclick="toggleMasterStatus()"
+                class="px-4 py-2.5 rounded-xl border text-xs font-black transition flex items-center gap-2 shadow-xs {% if profile.is_active %}bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100{% else %}bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100{% endif %}"
+            >
+                <span id="master-status-dot" class="h-2.5 w-2.5 rounded-full {% if profile.is_active %}bg-emerald-500{% else %}bg-rose-500{% endif %}"></span>
+                <span id="master-status-text">المساعد الصوتي: {% if profile.is_active %}مُفعّل ويستقبل المكالمات{% else %}موقوف مؤقتاً{% endif %}</span>
+            </button>
+
+            <a href="{% url 'call_center' %}" class="px-4 py-2.5 rounded-xl border border-line bg-card hover:bg-paper text-ink text-xs font-bold transition flex items-center gap-2">
+                <span>🎧</span> شاشة الكول سنتر المباشرة
+            </a>
+            <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-xl border border-line bg-card hover:bg-paper text-ink text-xs font-bold transition">
+                ← عودة للوحة HQ
+            </a>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- KPI SUMMARY CARDS                          -->
+    <!-- ========================================== -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Direct Phone Number Card -->
+        <div class="card p-4 border-line relative overflow-hidden bg-gradient-to-br from-card to-paper">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-bold text-soft">خط الهاتف المخصص (DID)</p>
+                <span class="text-xl">📞</span>
+            </div>
+            <p class="font-mono text-base font-black text-ink mt-1.5 tracking-wider">{{ did_number }}</p>
+            <div class="mt-2 flex items-center justify-between text-[10.5px]">
+                <span class="text-emerald-700 font-bold flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> جاهز للرنين
+                </span>
+                <button onclick="navigator.clipboard.writeText('{{ did_number }}'); showNotification('تم نسخ الرقم');" class="text-brand-600 font-bold hover:underline">نسخ الرقم</button>
+            </div>
+        </div>
+
+        <!-- Orders Generated via AI -->
+        <div class="card p-4 border-line">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-bold text-soft">الطلبات المنفذة آلياً (AI Orders)</p>
+                <span class="text-xl">🧾</span>
+            </div>
+            <p class="font-display text-2xl font-black text-ink mt-1">{{ total_ai_orders }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="text-[10.5px] font-bold text-emerald-700 mt-1.5">
+                مبيعات: {{ total_ai_revenue }} ريال
+            </p>
+        </div>
+
+        <!-- Call Center Conversion & Stats -->
+        <div class="card p-4 border-line">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-bold text-soft">سقف الاستهلاك المتاح</p>
+                <span class="text-xl">⏱️</span>
+            </div>
+            <p class="font-display text-2xl font-black text-ink mt-1">{{ wallet.balance|default:"9.60" }} <span class="text-xs font-bold text-soft">{{ wallet.currency|default:"USD" }}</span></p>
+            <p class="text-[10.5px] font-bold text-soft mt-1.5">
+                معدل الاستهلاك: 0.03$ / دقيقة مكالمة
+            </p>
+        </div>
+
+        <!-- Active Dialect & Persona -->
+        <div class="card p-4 border-line bg-brand-50/40 border-brand-200">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-bold text-brand-900">اللهجة والشخصية الحالية</p>
+                <span class="text-xl">🇪🇬</span>
+            </div>
+            <p class="font-display text-base font-black text-brand-900 mt-1.5">
+                {{ profile.dialect_display|default:"لهجة مصرية عامية (مصر)" }}
+            </p>
+            <p class="text-[10.5px] font-bold text-brand-700 mt-1.5 flex items-center gap-1">
+                <span>الصوت:</span> <span class="font-mono">{{ profile.voice_name|default:"Aoede" }}</span>
+                <span>•</span>
+                <span>{{ profile.speaking_style_display|default:"ودود ولطيف ومرح" }}</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TABS NAVIGATION BAR                        -->
+    <!-- ========================================== -->
+    <div class="border-b border-line">
+        <div class="flex items-center gap-2 overflow-x-auto pb-px no-scrollbar">
+            <button onclick="switchTab('persona')" id="tab-btn-persona" class="tab-btn px-4 py-3 text-xs font-black border-b-2 transition flex items-center gap-2 whitespace-nowrap text-brand-600 border-brand-600 bg-brand-50/50 rounded-t-xl">
+                <span>🎙️</span> شخصية المساعد واللهجة
+            </button>
+            <button onclick="switchTab('hours')" id="tab-btn-hours" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+                <span>⏰</span> مواعيد العمل والاعتذار
+            </button>
+            <button onclick="switchTab('knowledge')" id="tab-btn-knowledge" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+                <span>📚</span> قاعدة المعرفة الذكية (RAG)
+            </button>
+            <button onclick="switchTab('employees')" id="tab-btn-employees" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+                <span>👥</span> موظفو التحويل البشري
+            </button>
+            <button onclick="switchTab('queues')" id="tab-btn-queues" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+                <span>🔀</span> طوابير الانتظار (Queues)
+            </button>
+            <button onclick="switchTab('calls')" id="tab-btn-calls" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+                <span>📊</span> سجل المكالمات والتسجيلات
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: PERSONA & SCRIPT STUDIO             -->
+    <!-- ========================================== -->
+    <div id="tab-content-persona" class="tab-content space-y-6">
+        <form id="persona-form" onsubmit="savePersona(event)" class="card p-6 sm:p-7 border-line space-y-6">
+            {% csrf_token %}
+            <div class="border-b border-line pb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                        <span>🎙️</span> إعدادات شخصية وهوية المساعد الصوتي
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">تحديد اللهجة، النبرة، رسالة الترحيب الأولى للمتصل، وعروض اليوم الخاصة</p>
+                </div>
+                <span class="text-xs px-3 py-1 rounded-full font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                    تحديث فوري للسيرفر
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">اسم المساعد الصوتي</label>
+                    <input type="text" name="name" value="{{ profile.name|default:'كول سنتر مطاعم ضيافة' }}" required class="input">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة</label>
+                    <select name="dialect" class="input font-bold cursor-pointer">
+                        <option value="egyptian" {% if profile.dialect == 'egyptian' or not profile.dialect %}selected{% endif %}>🇪🇬 لهجة مصرية عامية (مصر)</option>
+                        <option value="saudi" {% if profile.dialect == 'saudi' %}selected{% endif %}>🇸🇦 لهجة سعودية / نجدية وحجازية</option>
+                        <option value="emirati" {% if profile.dialect == 'emirati' %}selected{% endif %}>🇦🇪 لهجة إماراتية / خليجية</option>
+                        <option value="kuwaiti" {% if profile.dialect == 'kuwaiti' %}selected{% endif %}>🇰🇼 لهجة كويتية</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">أسلوب الحديث والنبرة</label>
+                    <select name="speaking_style" class="input font-bold cursor-pointer">
+                        <option value="ودود ولطيف ومرح" selected>ودود ولطيف ومرح (ترحيب دافئ وأسلوب خدوم)</option>
+                        <option value="رسمي ومحترف ولبق">رسمي ومحترف ولبق (مناسب للشركات الراقية)</option>
+                        <option value="سريع ومباشر">سريع ومباشر (مفضل لأوقات الذروة)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الصوت المعتمد (Gemini Live / TTS)</label>
+                    <div class="flex items-center gap-2">
+                        <select name="voice_name" class="input font-bold cursor-pointer">
+                            <option value="Aoede" selected>Aoede (أنثوي — ناعم وواضح ولطيف)</option>
+                            <option value="Fenrir">Fenrir (ذكوري — دافئ وقوي وموثوق)</option>
+                            <option value="Kore">Kore (أنثوي — هادئ ومهذب)</option>
+                            <option value="Puck">Puck (ذكوري — نشيط وسريع)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">مستوى الإسهاب (Verbosity)</label>
+                    <select name="verbosity" class="input font-bold cursor-pointer">
+                        <option value="balanced" selected>متوازن (طبيعي ومهذب في 2-3 جمل)</option>
+                        <option value="concise">مختصر جداً (إجابات مباشرة ومقتضبة)</option>
+                        <option value="detailed">مفصل (شرح الوجبات ومكوناتها بالتفصيل)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Welcome Message -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-black text-ink">
+                        رسالة الترحيب الأولى المباشرة (Welcome Message)
+                    </label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-soft cursor-pointer">
+                        <input type="checkbox" name="is_welcome_message_enabled" checked class="rounded border-line text-brand-600">
+                        تفعيل الترحيب الفوري عند فتح الخط
+                    </label>
+                </div>
+                <textarea 
+                    name="welcome_message" 
+                    rows="2" 
+                    class="input font-bold text-brand-900 bg-brand-50/20"
+                >{{ profile.welcome_message|default:"أهلاً بحضرتك في مطاعم ضيافة! معاك خدمة العملاء لتسجيل طلبك، تؤمر بإيه النهارده يا فندم؟" }}</textarea>
+                <p class="text-[11px] text-soft mt-1">هذه أول جملة ينطقها المساعد الصوتي فور رد السنترال على العميل لبدء استقبال طلبه.</p>
+            </div>
+
+            <!-- Custom Instructions & Daily Specials -->
+            <div>
+                <label class="block text-xs font-black text-ink mb-1.5">
+                    التعليمات الخاصة وعروض اليوم (Custom Instructions & Specials)
+                </label>
+                <textarea 
+                    name="custom_instructions" 
+                    rows="4" 
+                    class="input text-xs font-mono"
+                >{{ profile.custom_instructions|default:"أنت موظف كول سنتر واستقبال طلبات ذكي في مطاعم ضيافة. تتحدث باللهجة المصرية العامية اللبقة والمهذبة (مثال: أهلاً بحضرتك يا فندم، تؤمر بأيه النهارده؟، حاضر من عينينا). تستخدم أدوات FastMCP المتاحة للبحث عن بيانات العميل وعناوينه وتوفر الأصناف وضرب الأوردر فوراً في النظام." }}</textarea>
+                <p class="text-[11px] text-soft mt-1">
+                    يمكنك إضافة ملاحظات يومية هنا مثل: "عرض اليوم: كبسة اللحم مع بيبسي مجاناً"، "الشاورما غير متوفرة اليوم"، أو "التوصيل مجاني للطلبات فوق 150 ريال".
+                </p>
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end">
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition">
+                    💾 حفظ إعدادات الشخصية
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: BUSINESS HOURS & OFF-HOURS          -->
+    <!-- ========================================== -->
+    <div id="tab-content-hours" class="tab-content hidden space-y-6">
+        <form id="hours-form" onsubmit="saveHours(event)" class="card p-6 sm:p-7 border-line space-y-6">
+            {% csrf_token %}
+            <div class="border-b border-line pb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                        <span>⏰</span> جدول ساعات العمل والرد خارج الدوام
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">تحديد مواعيد عمل المطعم والرد اللبق على المتصلين في أوقات الإغلاق مع إنهاء المكالمة</p>
+                </div>
+                <label class="flex items-center gap-2 text-xs font-black text-brand-900 bg-brand-50 px-3.5 py-1.5 rounded-xl border border-brand-200 cursor-pointer">
+                    <input type="checkbox" name="is_enabled" {% if hours.is_enabled %}checked{% endif %} class="rounded border-line text-brand-600">
+                    تفعيل الرقابة على أوقات العمل
+                </label>
+            </div>
+
+            <!-- Off-hours Action Message -->
+            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2">
+                <div class="flex items-center gap-2 text-amber-900 font-black text-xs">
+                    <span>🌙</span> رسالة الاعتذار الصوتية عند الاتصال خارج الدوام (تُغلق المكالمة بعدها تلقائياً):
+                </div>
+                <textarea 
+                    name="ai_message" 
+                    rows="2" 
+                    class="input bg-white font-bold text-xs"
+                >{{ hours.ai_message|default:"مرحباً بك، نتأسف لاتصالك خارج أوقات العمل الرسمية لمطاعم ضيافة. نسعد بتواصلك معنا مجدداً يومياً من 12 ظهراً وحتى 1 صباحاً." }}</textarea>
+                <p class="text-[10.5px] text-amber-800">
+                    يقوم المساعد بنطق هذه الرسالة بصوت ودود ثم إنهاء المكالمة لعدم استنزاف دقائق بلا جدوى.
+                </p>
+            </div>
+
+            <!-- Days Schedule Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                            <th class="py-2.5 px-3">اليوم</th>
+                            <th class="py-2.5 px-3">حالة العمل</th>
+                            <th class="py-2.5 px-3">بداية الدوام</th>
+                            <th class="py-2.5 px-3">نهاية الدوام</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line/60">
+                        {% with dcfg=hours.days_config %}
+                        <!-- Saturday -->
+                        <tr>
+                            <td class="py-3 px-3 font-bold text-ink">السبت</td>
+                            <td class="py-3 px-3">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="sat_work" checked class="rounded text-brand-600">
+                                    <span>يوم عمل</span>
+                                </label>
+                            </td>
+                            <td class="py-3 px-3"><input type="time" id="sat_start" value="12:00" class="input py-1 px-2 w-32"></td>
+                            <td class="py-3 px-3"><input type="time" id="sat_end" value="01:00" class="input py-1 px-2 w-32"></td>
+                        </tr>
+                        <!-- Sunday -->
+                        <tr>
+                            <td class="py-3 px-3 font-bold text-ink">الأحد</td>
+                            <td class="py-3 px-3">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="sun_work" checked class="rounded text-brand-600">
+                                    <span>يوم عمل</span>
+                                </label>
+                            </td>
+                            <td class="py-3 px-3"><input type="time" id="sun_start" value="12:00" class="input py-1 px-2 w-32"></td>
+                            <td class="py-3 px-3"><input type="time" id="sun_end" value="01:00" class="input py-1 px-2 w-32"></td>
+                        </tr>
+                        <!-- Monday -->
+                        <tr>
+                            <td class="py-3 px-3 font-bold text-ink">الاثنين</td>
+                            <td class="py-3 px-3">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="mon_work" checked class="rounded text-brand-600">
+                                    <span>يوم عمل</span>
+                                </label>
+                            </td>
+                            <td class="py-3 px-3"><input type="time" id="mon_start" value="12:00" class="input py-1 px-2 w-32"></td>
+                            <td class="py-3 px-3"><input type="time" id="mon_end" value="01:00" class="input py-1 px-2 w-32"></td>
+                        </tr>
+                        <!-- Tuesday -->
+                        <tr>
+                            <td class="py-3 px-3 font-bold text-ink">الثلاثاء</td>
+                            <td class="py-3 px-3">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="tue_work" checked class="rounded text-brand-600">
+                                    <span>يوم عمل</span>
+                                </label>
+                            </td>
+                            <td class="py-3 px-3"><input type="time" id="tue_start" value="12:00" class="input py-1 px-2 w-32"></td>
+                            <td class="py-3 px-3"><input type="time" id="tue_end" value="01:00" class="input py-1 px-2 w-32"></td>
+                        </tr>
+                        <!-- Wednesday -->
+                        <tr>
+                            <td class="py-3 px-3 font-bold text-ink">الأربعاء</td>
+                            <td class="py-3 px-3">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="wed_work" checked class="rounded text-brand-600">
+                                    <span>يوم عمل</span>
+                                </label>
+                            </td>
+                            <td class="py-3 px-3"><input type="time" id="wed_start" value="12:00" class="input py-1 px-2 w-32"></td>
+                            <td class="py-3 px-3"><input type="time" id="wed_end" value="01:00" class="input py-1 px-2 w-32"></td>
+                        </tr>
+                        <!-- Thursday -->
+                        <tr>
+                            <td class="py-3 px-3 font-bold text-ink">الخميس</td>
+                            <td class="py-3 px-3">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="thu_work" checked class="rounded text-brand-600">
+                                    <span>يوم عمل</span>
+                                </label>
+                            </td>
+                            <td class="py-3 px-3"><input type="time" id="thu_start" value="12:00" class="input py-1 px-2 w-32"></td>
+                            <td class="py-3 px-3"><input type="time" id="thu_end" value="02:00" class="input py-1 px-2 w-32"></td>
+                        </tr>
+                        <!-- Friday -->
+                        <tr>
+                            <td class="py-3 px-3 font-bold text-ink">الجمعة</td>
+                            <td class="py-3 px-3">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="fri_work" checked class="rounded text-brand-600">
+                                    <span>يوم عمل</span>
+                                </label>
+                            </td>
+                            <td class="py-3 px-3"><input type="time" id="fri_start" value="13:00" class="input py-1 px-2 w-32"></td>
+                            <td class="py-3 px-3"><input type="time" id="fri_end" value="02:00" class="input py-1 px-2 w-32"></td>
+                        </tr>
+                        {% endwith %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end">
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition">
+                    💾 حفظ مواعيد العمل
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: KNOWLEDGE BASE (RAG)                -->
+    <!-- ========================================== -->
+    <div id="tab-content-knowledge" class="tab-content hidden space-y-6">
+        <div class="card p-6 sm:p-7 border-line space-y-6">
+            <div class="border-b border-line pb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                        <span>📚</span> قاعدة المعرفة الذكية والاستعلام الدلالي (RAG)
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">تزويد المساعد الصوتي بالأسئلة الشائعة وسياسات المطعم ليرد بها بدقة فورية أثناء المكالمة</p>
+                </div>
+                <button onclick="openAddDocModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs">
+                    <span>➕</span> إضافة معلومة / سؤال شائع
+                </button>
+            </div>
+
+            <!-- Documents Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                            <th class="py-2.5 px-3">العنوان / الموضوع</th>
+                            <th class="py-2.5 px-3">النوع</th>
+                            <th class="py-2.5 px-3">المقاطع الدلالية (Chunks)</th>
+                            <th class="py-2.5 px-3">تاريخ الإضافة</th>
+                            <th class="py-2.5 px-3 text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="docs-tbody" class="divide-y divide-line/60">
+                        {% if documents %}
+                            {% for doc in documents %}
+                            <tr id="doc-row-{{ doc.id }}">
+                                <td class="py-3 px-3 font-bold text-ink">{{ doc.title }}</td>
+                                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-md bg-paper border border-line text-[11px] font-mono">{{ doc.file_type|default:"نص مباشر" }}</span></td>
+                                <td class="py-3 px-3 font-mono font-bold text-soft">{{ doc.chunks_count|default:"1" }} متجهات</td>
+                                <td class="py-3 px-3 text-soft font-mono">{{ doc.created_at }}</td>
+                                <td class="py-3 px-3 text-center">
+                                    <button onclick="deleteDoc({{ doc.id }})" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="حذف">
+                                        🗑️
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr id="no-docs-row">
+                                <td colspan="5" class="py-8 text-center text-soft font-bold">
+                                    لا توجد مستندات معرفية مضافة بعد. اضغط على «إضافة معلومة / سؤال شائع» لتغذية المساعد الذكي.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: HUMAN STAFF & EXTENSIONS            -->
+    <!-- ========================================== -->
+    <div id="tab-content-employees" class="tab-content hidden space-y-6">
+        <!-- Master Owner PBX Account Card -->
+        <div class="card p-6 border-amber-300 bg-gradient-to-br from-amber-50/70 via-paper to-amber-50/30 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/80 pb-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-xs">
+                            <span>👑</span> حساب المالك والمدير الرئيسي
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 font-mono">
+                            Client ID: #{{ client_id }}
+                        </span>
+                    </div>
+                    <h3 class="font-display text-base font-black text-ink">
+                        بيانات دخول مالك المنشأة لمنصة السنترال السحابي (Master PBX Account)
+                    </h3>
+                    <p class="text-xs text-soft font-bold">
+                        هذا الحساب تم توليده تلقائياً مع تسجيل العميل في السنترال، ويمنح المالك صلاحية إدارة السنترال واستخدام السوفت فون كمدير رئيسي للمنشأة.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <a href="{{ voice_portal_url }}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs">
+                        <span>🌐</span> الدخول للبوابة السحابية ↗
+                    </a>
+                    <button type="button" onclick="copyOwnerMasterCreds()" class="px-3.5 py-2.5 rounded-xl border border-amber-300 bg-white hover:bg-amber-50 text-amber-900 text-xs font-black transition flex items-center gap-1 shadow-xs">
+                        <span>📋</span> نسخ البيانات
+                    </button>
+                </div>
+            </div>
+
+            <!-- Credentials Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <!-- Username -->
+                <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 space-y-1">
+                    <div class="text-[11px] font-bold text-soft flex items-center justify-between">
+                        <span>اسم المستخدم الرئيسي (Username)</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ owner_username }}'); showNotification('تم نسخ اسم المستخدم الرئيسي');" class="text-amber-700 hover:text-amber-900 text-xs" title="نسخ">
+                            📋
+                        </button>
+                    </div>
+                    <div class="font-mono font-black text-sm text-ink select-all break-all" id="owner-display-username">
+                        {{ owner_username }}
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 space-y-1">
+                    <div class="text-[11px] font-bold text-soft flex items-center justify-between">
+                        <span>كلمة المرور (Master Password)</span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="toggleOwnerPasswordVisibility()" class="text-amber-700 hover:text-amber-900 text-xs cursor-pointer" title="إظهار / إخفاء">
+                                👁️
+                            </button>
+                            <button type="button" onclick="navigator.clipboard.writeText(rawOwnerPassword); showNotification('تم نسخ كلمة المرور');" class="text-amber-700 hover:text-amber-900 text-xs cursor-pointer" title="نسخ">
+                                📋
+                            </button>
+                        </div>
+                    </div>
+                    <div class="font-mono font-black text-sm text-amber-700 select-all" id="owner-display-password">
+                        ••••••••••••
+                    </div>
+                </div>
+
+                <!-- Role / Access -->
+                <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 space-y-1">
+                    <div class="text-[11px] font-bold text-soft">الصلاحية والصفة</div>
+                    <div class="font-bold text-xs text-ink flex items-center gap-1.5 pt-0.5">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        <span>مدير المنشأة الأعلى (PBX Tenant Owner)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6 sm:p-7 border-line space-y-6">
+            <div class="border-b border-line pb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                        <span>👥</span> موظفو الاستقبال والتحويل البشري
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">تسجيل موظفي الكاشير وخدمة العملاء وأرقام تحويلاتهم الداخلية (Extensions)</p>
+                </div>
+                <button onclick="openAddEmpModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs">
+                    <span>➕</span> إضافة موظف جديد
+                </button>
+            </div>
+
+            <!-- Employees Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                            <th class="py-2.5 px-3">اسم الموظف</th>
+                            <th class="py-2.5 px-3">اسم المستخدم (Login ID)</th>
+                            <th class="py-2.5 px-3">رقم التحويلة (Extension)</th>
+                            <th class="py-2.5 px-3">القسم</th>
+                            <th class="py-2.5 px-3">حالة التفرغ</th>
+                            <th class="py-2.5 px-3 text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emps-tbody" class="divide-y divide-line/60">
+                        {% if employees %}
+                            {% for emp in employees %}
+                            <tr id="emp-row-{{ emp.id }}">
+                                <td class="py-3 px-3 font-bold text-ink">{{ emp.display_name }}</td>
+                                <td class="py-3 px-3 font-mono font-bold text-soft text-xs">{{ emp.username|default:"—" }}</td>
+                                <td class="py-3 px-3 font-mono font-black text-brand-600 text-sm">#{{ emp.extension }}</td>
+                                <td class="py-3 px-3 text-soft font-bold">{{ emp.department }}</td>
+                                <td class="py-3 px-3">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-black {% if emp.status == 'ready' %}bg-emerald-100 text-emerald-800{% elif emp.status == 'busy' %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-700{% endif %}">
+                                        <span class="h-1.5 w-1.5 rounded-full {% if emp.status == 'ready' %}bg-emerald-500{% elif emp.status == 'busy' %}bg-amber-500{% else %}bg-slate-400{% endif %}"></span>
+                                        {{ emp.status_display|default:emp.status }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3 text-center">
+                                    <button onclick="deleteEmp({{ emp.id }})" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="حذف">
+                                        🗑️
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr id="no-emps-row">
+                                <td colspan="6" class="py-8 text-center text-soft font-bold">
+                                    لا يوجد موظفو تحويل مسجلون حالياً. يمكنك إضافة موظفي الكاشير أو خدمة العملاء لتحويل المكالمات إليهم عند الحاجة.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: CALL QUEUES                         -->
+    <!-- ========================================== -->
+    <div id="tab-content-queues" class="tab-content hidden space-y-6">
+        <form id="queue-form" onsubmit="saveQueue(event)" class="card p-6 sm:p-7 border-line space-y-6">
+            {% csrf_token %}
+            <div class="border-b border-line pb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                        <span>🔀</span> إعدادات طوابير الانتظار (Call Queues)
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">ضبط توزيع المكالمات، مهلة الرنين، ونغمة الانتظار الآلية للعميل</p>
+                </div>
+                <span class="text-xs px-3 py-1 rounded-full font-black bg-blue-50 text-blue-800 border border-blue-200">
+                    نغمة انتظار ذكية WebRTC
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">اسم الطابور الرئيسي</label>
+                    <input type="text" name="name" value="طابور خدمة عملاء مطاعم ضيافة" required class="input">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">كود الطابور الداخلي</label>
+                    <input type="text" name="code" value="200" required class="input font-mono font-bold">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">استراتيجية توزيع المكالمات</label>
+                    <select name="strategy" class="input font-bold cursor-pointer">
+                        <option value="least_recent" selected>التحويل للأقل استقبالاً (Least Recent - عدالة التوزيع)</option>
+                        <option value="round_robin">توزيع دائري تناوبي (Round Robin)</option>
+                        <option value="random">توزيع عشوائي (Random)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">مهلة رنين الموظف (ثواني)</label>
+                    <input type="number" name="ring_timeout_seconds" value="20" min="5" max="60" class="input font-bold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الإجراء عند عدم رد أي موظف (Fallback)</label>
+                    <select name="fallback_action" class="input font-bold cursor-pointer">
+                        <option value="ai_assistant" selected>عودة المساعد الذكي للاعتذار وأخذ رسالة العميل</option>
+                        <option value="hangup">إنهاء المكالمة بلباقة</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-paper border border-line space-y-1 text-xs">
+                <p class="font-bold text-ink">💡 كيف يعمل الطابور الذكي عند التحويل؟</p>
+                <p class="text-soft leading-relaxed">
+                    عندما يطلب العميل موظفاً بشرياً، يتم عزف نغمة موسيقية هادئة له تلقائياً (Hold Music). يرن السنترال عند الموظف الأقل استقبالاً، وفي حال انتهاء المهلة دون رد، يعود المساعد الذكي فوراً للاعتذار للعميل وأخذ تفاصيل طلبه وتسجيله في النظام!
+                </p>
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end">
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition">
+                    💾 حفظ إعدادات الطابور
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: CALL LOGS & RECORDINGS              -->
+    <!-- ========================================== -->
+    <div id="tab-content-calls" class="tab-content hidden space-y-6">
+        <!-- Cross-referenced Call Center Orders Section -->
+        <div class="card p-6 border-line space-y-4">
+            <div class="flex items-center justify-between border-b border-line pb-3">
+                <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                    <span>🧾</span> أحدث الأوردرات المسجلة عبر الكول سنتر والذكاء الاصطناعي
+                </h3>
+                <span class="text-xs font-bold text-soft">{{ call_orders.count }} طلب مسجل</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                            <th class="py-2.5 px-3">رقم الطلب</th>
+                            <th class="py-2.5 px-3">العميل</th>
+                            <th class="py-2.5 px-3">الفرع</th>
+                            <th class="py-2.5 px-3">عنوان التوصيل</th>
+                            <th class="py-2.5 px-3">الإجمالي</th>
+                            <th class="py-2.5 px-3">الحالة</th>
+                            <th class="py-2.5 px-3">الوقت</th>
+                            <th class="py-2.5 px-3 text-center">المكالمة والتسجيل</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line/60">
+                        {% if call_orders %}
+                            {% for ord in call_orders %}
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-black text-brand-600">
+                                    <a href="{% url 'order_detail' ord.id %}" class="hover:underline flex items-center gap-1">
+                                        {{ ord.order_number }} <span>↗</span>
+                                    </a>
+                                </td>
+                                <td class="py-3 px-3 font-bold text-ink">
+                                    {{ ord.customer_name }}
+                                    <div class="text-[10px] text-soft font-mono">{{ ord.customer_phone }}</div>
+                                </td>
+                                <td class="py-3 px-3 font-bold text-soft">{{ ord.branch.name }}</td>
+                                <td class="py-3 px-3 text-soft truncate max-w-[180px]">{{ ord.address }}</td>
+                                <td class="py-3 px-3 font-mono font-black text-ink whitespace-nowrap">{{ ord.total }} ريال</td>
+                                <td class="py-3 px-3 whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                                        {{ ord.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3 text-soft font-mono whitespace-nowrap">{{ ord.created_at|date:"Y-m-d H:i" }}</td>
+                                <td class="py-3 px-3 text-center whitespace-nowrap">
+                                    {% if ord.matched_call and ord.matched_call.recording_url %}
+                                    <button type="button" onclick="openCallDetailsModal(this)"
+                                        data-ref="{{ ord.order_number }}"
+                                        data-phone="{{ ord.customer_phone }}"
+                                        data-duration="{{ ord.matched_call.duration_formatted|default:"02:00" }}"
+                                        data-time="{{ ord.created_at|date:"Y-m-d H:i" }}"
+                                        data-audio="{{ ord.matched_call.recording_url }}"
+                                        data-summary="{{ ord.matched_call.summary|default:"لا يوجد ملخص متاح" }}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-black border border-brand-200 transition shadow-2xs cursor-pointer">
+                                        <span>🎙️</span> تفاصيل المكالمة
+                                    </button>
+                                    {% else %}
+                                    <span class="text-soft text-[11px]">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="py-6 text-center text-soft font-bold">لا توجد طلبات مسجلة بعد عبر الكول سنتر.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Telephony Raw Calls Table -->
+        <div class="card p-6 border-line space-y-4">
+            <div class="flex items-center justify-between border-b border-line pb-3">
+                <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                    <span>📊</span> سجل المكالمات الهاتفية الواردة والتسجيلات
+                </h3>
+                <span class="text-xs font-bold text-soft">{{ calls|length }} مكالمة</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                            <th class="py-2.5 px-3">معرف المكالمة</th>
+                            <th class="py-2.5 px-3">المتصل</th>
+                            <th class="py-2.5 px-3">المدة</th>
+                            <th class="py-2.5 px-3">الوقت</th>
+                            <th class="py-2.5 px-3">ملخص الذكاء الاصطناعي</th>
+                            <th class="py-2.5 px-3 text-center">التفاصيل والتسجيل</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line/60">
+                        {% if calls %}
+                            {% for c in calls %}
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-bold text-soft">{{ c.call_id }}</td>
+                                <td class="py-3 px-3 font-bold text-ink">{{ c.caller_phone }}</td>
+                                <td class="py-3 px-3 font-mono font-bold text-brand-600">{{ c.duration_formatted|default:c.duration_seconds|default:"00:00" }}</td>
+                                <td class="py-3 px-3 font-mono text-soft text-[11px]">{{ c.started_at }}</td>
+                                <td class="py-3 px-3 text-soft max-w-sm text-[11.5px] leading-relaxed truncate">
+                                    {{ c.summary|default:"—" }}
+                                </td>
+                                <td class="py-3 px-3 text-center whitespace-nowrap">
+                                    {% if c.recording_url %}
+                                    <button type="button" onclick="openCallDetailsModal(this)"
+                                        data-ref="{{ c.call_id }}"
+                                        data-phone="{{ c.caller_phone }}"
+                                        data-duration="{{ c.duration_formatted|default:c.duration_seconds|default:"02:00" }}"
+                                        data-time="{{ c.started_at }}"
+                                        data-audio="{{ c.recording_url }}"
+                                        data-summary="{{ c.summary|default:"لا يوجد ملخص متاح" }}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-black border border-brand-200 transition shadow-2xs cursor-pointer">
+                                        <span>🎙️</span> تفاصيل المكالمة
+                                    </button>
+                                    {% else %}
+                                    <span class="text-soft text-[11px]">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="py-8 text-center text-soft font-bold">
+                                    لم تُسجل أي مكالمات هاتفية بعد. بمجرد استقبال مكالمات على الخط المخصص ستظهر هنا فورياً مع تسجيلاتها.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================================== -->
+    <!-- MODAL: ADD DOCUMENT (RAG)                  -->
+<!-- ========================================== -->
+<div id="add-doc-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="rtl">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>📚</span> إضافة معلومة أو سؤال لقاعدة المعرفة
+            </h3>
+            <button onclick="closeAddDocModal()" class="text-soft hover:text-ink text-xl">✕</button>
+        </div>
+
+        <form onsubmit="submitAddDoc(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">عنوان الموضوع أو السؤال</label>
+                <input type="text" id="doc_title" placeholder="مثال: سياسة إلغاء الطلبات، مسببات الحساسية، عروض الحفلات" required class="input">
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">النص / الإجابة المباشرة (FAQ Content)</label>
+                <textarea id="doc_content" rows="4" placeholder="اكتب التفاصيل الكاملة هنا ليجيب بها الذكاء الاصطناعي عند سؤال العميل..." class="input"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">أو رابط خارجي لمستند (PDF / DOCX URL)</label>
+                <input type="url" id="doc_file_url" placeholder="https://example.com/menu_buffet.pdf" class="input font-mono text-xs">
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddDocModal()" class="px-4 py-2 rounded-xl border border-line bg-paper text-ink text-xs font-bold">إلغاء</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black">حفظ وإرسال للذكاء الاصطناعي</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+    <!-- MODAL: ADD EMPLOYEE (EXTENSION)            -->
+<!-- ========================================== -->
+<div id="add-emp-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-md w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="rtl">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>👥</span> إضافة موظف تحويل واستقبال
+            </h3>
+            <button onclick="closeAddEmpModal()" class="text-soft hover:text-ink text-xl">✕</button>
+        </div>
+
+        <form onsubmit="submitAddEmp(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">اسم الموظف</label>
+                <input type="text" id="emp_name" placeholder="مثال: أحمد عبد الله" required class="input">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">اسم المستخدم للدخول (Username)</label>
+                    <input type="text" id="emp_username" placeholder="اختياري (مثال: ahmed_101)" class="input font-mono text-xs">
+                    <p class="text-[10px] text-soft mt-0.5">يُولد تلقائياً إن تُرِك فارغاً</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">كلمة المرور (Password)</label>
+                    <input type="text" id="emp_password" placeholder="اختياري (كلمة سر الموظف)" class="input font-mono text-xs">
+                    <p class="text-[10px] text-soft mt-0.5">تُولد تلقائياً إن تُرِكت فارغة</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">رقم التحويلة الداخلية (Extension)</label>
+                    <input type="text" id="emp_ext" placeholder="مثال: 101 أو 102" required class="input font-mono font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">القسم</label>
+                    <select id="emp_dept" class="input font-bold cursor-pointer">
+                        <option value="كاشير الفرع" selected>كاشير الفرع</option>
+                        <option value="خدمة العملاء">خدمة العملاء</option>
+                        <option value="إدارة الفرع">إدارة الفرع</option>
+                        <option value="قسم التوصيل">قسم التوصيل</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">حالة التفرغ الأولية</label>
+                <select id="emp_status" class="input font-bold cursor-pointer">
+                    <option value="ready" selected>جاهز ومتاح لاستقبال المكالمات (Ready)</option>
+                    <option value="busy">مشغول (Busy)</option>
+                    <option value="offline">غير متصل (Offline)</option>
+                </select>
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddEmpModal()" class="px-4 py-2 rounded-xl border border-line bg-paper text-ink text-xs font-bold">إلغاء</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black">إضافة الموظف وتوليد الحساب</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: SHOW CREATED CREDENTIALS            -->
+<!-- ========================================== -->
+<div id="credentials-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-md w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="rtl">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-emerald-800 flex items-center gap-2">
+                <span>🔑</span> تم إنشاء حساب الموظف بنجاح!
+            </h3>
+            <button onclick="closeCredentialsModal()" class="text-soft hover:text-ink text-xl">✕</button>
+        </div>
+
+        <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 space-y-3">
+            <p class="text-xs text-emerald-900 font-bold">
+                يرجى نسخ بيانات الدخول التالية وتسليمها للموظف لتسجيل الدخول إلى الهاتف السحابي / السنترال:
+            </p>
+            <div class="space-y-2 text-xs font-mono">
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
+                    <span class="text-soft font-sans font-bold">الموظف:</span>
+                    <span id="cred-name" class="font-black text-ink"></span>
+                </div>
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
+                    <span class="text-soft font-sans font-bold">اسم المستخدم (Login):</span>
+                    <span id="cred-username" class="font-black text-brand-600"></span>
+                </div>
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
+                    <span class="text-soft font-sans font-bold">كلمة المرور (Password):</span>
+                    <span id="cred-password" class="font-black text-emerald-700 font-mono"></span>
+                </div>
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
+                    <span class="text-soft font-sans font-bold">التحويلة الداخلية:</span>
+                    <span id="cred-ext" class="font-black text-ink"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-3 border-t border-line flex items-center justify-between gap-2">
+            <button type="button" onclick="copyCredentialsText()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 shadow-sm">
+                <span>📋</span> نسخ كافة بيانات الدخول
+            </button>
+            <button type="button" onclick="closeCredentialsModal()" class="px-4 py-2 rounded-xl border border-line bg-paper text-ink text-xs font-bold">
+                إغلاق وتحديث الجدول
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: CALL DETAILS & RECORDING (NEW)      -->
+<!-- ========================================== -->
+<script>
+window.openCallDetailsModal = function(arg1, phone, duration, time, audioUrl, summary) {
+    let ref = arg1;
+    if (arg1 && typeof arg1 === 'object' && arg1.getAttribute) {
+        ref = arg1.getAttribute('data-ref') || '—';
+        phone = arg1.getAttribute('data-phone') || '—';
+        duration = arg1.getAttribute('data-duration') || '—';
+        time = arg1.getAttribute('data-time') || '—';
+        audioUrl = arg1.getAttribute('data-audio') || '';
+        summary = arg1.getAttribute('data-summary') || '';
+    }
+
+    const refEl = document.getElementById('cd-modal-ref');
+    const phoneEl = document.getElementById('cd-modal-phone');
+    const durEl = document.getElementById('cd-modal-duration');
+    const timeEl = document.getElementById('cd-modal-time');
+    const audio = document.getElementById('cd-modal-audio');
+    const source = document.getElementById('cd-modal-source');
+    const download = document.getElementById('cd-modal-download');
+    const summaryEl = document.getElementById('cd-modal-summary');
+
+    if (refEl) refEl.textContent = ref || '—';
+    if (phoneEl) phoneEl.textContent = phone || '—';
+    if (durEl) durEl.textContent = duration ? (duration.includes('دقيقة') ? duration : (duration + ' دقيقة')) : '—';
+    if (timeEl) timeEl.textContent = time || '—';
+    if (summaryEl) summaryEl.textContent = summary || 'لا يوجد ملخص مسجل لهذه المكالمة.';
+
+    if (audioUrl) {
+        if (source) source.src = audioUrl;
+        if (audio) {
+            audio.load();
+        }
+        if (download) {
+            download.href = audioUrl;
+            download.setAttribute('download', `${ref || 'call_recording'}.mp3`);
+            download.classList.remove('hidden');
+        }
+    } else {
+        if (source) source.src = '';
+        if (download) download.classList.add('hidden');
+    }
+
+    const modal = document.getElementById('call-details-modal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeCallDetailsModal = function() {
+    const audio = document.getElementById('cd-modal-audio');
+    if (audio) {
+        audio.pause();
+    }
+    const modal = document.getElementById('call-details-modal');
+    if (modal) modal.classList.add('hidden');
+};
+</script>
+
+<div id="call-details-modal" onclick="if(event.target===this)closeCallDetailsModal()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="rtl">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>🎧</span> تفاصيل المكالمة الصوتية والتسجيل
+            </h3>
+            <button onclick="closeCallDetailsModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
+        </div>
+
+        <!-- Quick Metadata Badges Bar -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div class="bg-paper p-2.5 rounded-xl border border-line text-center">
+                <span class="text-[10px] text-soft block font-bold">الرقم المرجعي</span>
+                <span id="cd-modal-ref" class="font-mono font-black text-brand-600 text-xs">—</span>
+            </div>
+            <div class="bg-paper p-2.5 rounded-xl border border-line text-center">
+                <span class="text-[10px] text-soft block font-bold">هاتف المتصل</span>
+                <span id="cd-modal-phone" class="font-mono font-bold text-ink text-xs">—</span>
+            </div>
+            <div class="bg-paper p-2.5 rounded-xl border border-line text-center">
+                <span class="text-[10px] text-soft block font-bold">مدة المكالمة</span>
+                <span id="cd-modal-duration" class="font-mono font-black text-emerald-700 text-xs">—</span>
+            </div>
+            <div class="bg-paper p-2.5 rounded-xl border border-line text-center">
+                <span class="text-[10px] text-soft block font-bold">توقيت المكالمة</span>
+                <span id="cd-modal-time" class="font-mono font-bold text-soft text-[11px] truncate block">—</span>
+            </div>
+        </div>
+
+        <!-- Section 1: Audio Player & Download (Above Summary) -->
+        <div class="p-4 rounded-2xl bg-paper/90 border border-line space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-ink flex items-center gap-1.5">
+                    <span>▶️</span> التسجيل الصوتي للمكالمة:
+                </span>
+                <a id="cd-modal-download" href="#" target="_blank" download="call_recording.mp3" class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-black border border-brand-200 transition shadow-2xs">
+                    <span>📥</span> تحميل MP3
+                </a>
+            </div>
+
+            <!-- Full Width HTML5 Audio Player -->
+            <audio id="cd-modal-audio" controls class="w-full h-10 rounded-xl focus:outline-none bg-paper">
+                <source id="cd-modal-source" src="" type="audio/mpeg">
+                متصفحك لا يدعم تشغيل هذا الملف الصوتي.
+            </audio>
+        </div>
+
+        <!-- Section 2: AI Call Summary (Under Audio Player) -->
+        <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
+            <div class="flex items-center gap-1.5 text-amber-900 text-xs font-black">
+                <span>✨</span> ملخص الذكاء الاصطناعي للمكالمة (AI Summary):
+            </div>
+            <div id="cd-modal-summary" class="bg-white/90 p-3.5 rounded-xl border border-amber-200/60 text-xs text-ink font-medium leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+                —
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="pt-2 border-t border-line flex items-center justify-end">
+            <button type="button" onclick="closeCallDetailsModal()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition">
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function showNotification(msg, isError = false) {
+    const container = document.getElementById('toast-container');
+    if (!container) {
+        alert(msg);
+        return;
+    }
+    const toast = document.createElement('div');
+    toast.className = `px-4 py-3 rounded-xl shadow-lg text-xs font-black text-white flex items-center gap-2 pointer-events-auto animate-toast ${isError ? 'bg-rose-600' : 'bg-emerald-600'}`;
+    toast.innerHTML = `<span>${isError ? '⚠️' : '✅'}</span><span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+function switchTab(tabKey) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-brand-600', 'border-brand-600', 'bg-brand-50/50');
+        btn.classList.add('text-soft', 'border-transparent');
+    });
+
+    const activeContent = document.getElementById('tab-content-' + tabKey);
+    const activeBtn = document.getElementById('tab-btn-' + tabKey);
+    if (activeContent) activeContent.classList.remove('hidden');
+    if (activeBtn) {
+        activeBtn.classList.remove('text-soft', 'border-transparent');
+        activeBtn.classList.add('text-brand-600', 'border-brand-600', 'bg-brand-50/50');
+    }
+}
+
+// Master Toggle
+async function toggleMasterStatus() {
+    const btn = document.getElementById('master-status-btn');
+    const dot = document.getElementById('master-status-dot');
+    const text = document.getElementById('master-status-text');
+    const currentlyActive = dot.classList.contains('bg-emerald-500');
+    const newStatus = !currentlyActive;
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_update_profile' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ is_active: newStatus })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            if (newStatus) {
+                dot.className = 'h-2.5 w-2.5 rounded-full bg-emerald-500';
+                btn.className = 'px-4 py-2.5 rounded-xl border text-xs font-black transition flex items-center gap-2 shadow-xs bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100';
+                text.textContent = 'المساعد الصوتي: مُفعّل ويستقبل المكالمات';
+                showNotification('تم تفعيل استقبال المكالمات للمساعد الصوتي');
+            } else {
+                dot.className = 'h-2.5 w-2.5 rounded-full bg-rose-500';
+                btn.className = 'px-4 py-2.5 rounded-xl border text-xs font-black transition flex items-center gap-2 shadow-xs bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100';
+                text.textContent = 'المساعد الصوتي: موقوف مؤقتاً';
+                showNotification('تم إيقاف المساعد الصوتي مؤقتاً');
+            }
+        } else {
+            showNotification(data.message || 'حدث خطأ أثناء تعديل الحالة', true);
+        }
+    } catch (e) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+// Save Persona
+async function savePersona(e) {
+    e.preventDefault();
+    const form = e.target;
+    const payload = {
+        name: form.name.value,
+        dialect: form.dialect.value,
+        speaking_style: form.speaking_style.value,
+        voice_name: form.voice_name.value,
+        verbosity: form.verbosity.value,
+        welcome_message: form.welcome_message.value,
+        is_welcome_message_enabled: form.is_welcome_message_enabled.checked,
+        custom_instructions: form.custom_instructions.value
+    };
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_update_profile' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification('تم حفظ إعدادات الشخصية واللهجة المصرية بنجاح');
+        } else {
+            showNotification(data.message || 'حدث خطأ في الحفظ', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+// Save Hours
+async function saveHours(e) {
+    e.preventDefault();
+    const form = e.target;
+    const days = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
+    const daysMap = {
+        'sat': 'saturday', 'sun': 'sunday', 'mon': 'monday',
+        'tue': 'tuesday', 'wed': 'wednesday', 'thu': 'thursday', 'fri': 'friday'
+    };
+
+    const days_config = {};
+    days.forEach(d => {
+        const work = document.getElementById(d + '_work').checked;
+        const start = document.getElementById(d + '_start').value || '12:00';
+        const end = document.getElementById(d + '_end').value || '01:00';
+        days_config[daysMap[d]] = {
+            is_workday: work,
+            start_time: start,
+            end_time: end
+        };
+    });
+
+    const payload = {
+        is_enabled: form.is_enabled.checked,
+        action_type: 'ai_message',
+        ai_message: form.ai_message.value,
+        timezone: 'Asia/Riyadh',
+        days_config: days_config
+    };
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_update_hours' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification('تم حفظ جدول مواعيد العمل ورسالة الاعتذار بنجاح');
+        } else {
+            showNotification(data.message || 'حدث خطأ في الحفظ', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+// Save Queue
+async function saveQueue(e) {
+    e.preventDefault();
+    const form = e.target;
+    const payload = {
+        name: form.name.value,
+        code: form.code.value,
+        strategy: form.strategy.value,
+        ring_timeout_seconds: parseInt(form.ring_timeout_seconds.value) || 20,
+        total_timeout_seconds: 60,
+        fallback_action: form.fallback_action.value
+    };
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_save_queue' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification('تم تحديث إعدادات طابور الانتظار بنجاح');
+        } else {
+            showNotification(data.message || 'حدث خطأ', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+// Modals
+function openAddDocModal() { document.getElementById('add-doc-modal').classList.remove('hidden'); }
+function closeAddDocModal() { document.getElementById('add-doc-modal').classList.add('hidden'); }
+function openAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('hidden'); }
+function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
+
+async function submitAddDoc(e) {
+    e.preventDefault();
+    const title = document.getElementById('doc_title').value;
+    const content = document.getElementById('doc_content').value;
+    const file_url = document.getElementById('doc_file_url').value;
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_add_doc' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ title, content, file_url })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification('تمت إضافة المعلومة لقاعدة المعرفة بنجاح');
+            closeAddDocModal();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message || 'حدث خطأ', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال', true);
+    }
+}
+
+async function deleteDoc(docId) {
+    if (!confirm('هل أنت متأكد من حذف هذه المعلومة من قاعدة المعرفة؟')) return;
+    try {
+        const res = await fetch(`/api/ai-callcenter/docs/${docId}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            document.getElementById('doc-row-' + docId)?.remove();
+            showNotification('تم حذف المستند بنجاح');
+        } else {
+            showNotification(data.message || 'حدث خطأ', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال', true);
+    }
+}
+
+async function submitAddEmp(e) {
+    e.preventDefault();
+    const display_name = document.getElementById('emp_name').value.trim();
+    const username = document.getElementById('emp_username').value.trim();
+    const password = document.getElementById('emp_password').value.trim();
+    const extension = document.getElementById('emp_ext').value.trim();
+    const department = document.getElementById('emp_dept').value;
+    const status = document.getElementById('emp_status').value;
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_add_employee' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ display_name, username, password, extension, department, status })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            closeAddEmpModal();
+            showNotification('تم إنشاء حساب الموظف بنجاح');
+            
+            // Populate credentials modal
+            const emp = data.employee || {};
+            document.getElementById('cred-name').textContent = emp.display_name || display_name;
+            document.getElementById('cred-username').textContent = emp.username || username || '—';
+            document.getElementById('cred-password').textContent = emp.temporary_password || password || '—';
+            document.getElementById('cred-ext').textContent = emp.extension || extension;
+
+            // Show credentials modal
+            document.getElementById('credentials-modal').classList.remove('hidden');
+        } else {
+            showNotification(data.message || 'حدث خطأ أثناء إضافة الموظف', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+function closeCredentialsModal() {
+    document.getElementById('credentials-modal').classList.add('hidden');
+    location.reload();
+}
+
+function copyCredentialsText() {
+    const name = document.getElementById('cred-name').textContent;
+    const username = document.getElementById('cred-username').textContent;
+    const password = document.getElementById('cred-password').textContent;
+    const ext = document.getElementById('cred-ext').textContent;
+    const text = `بيانات الدخول لموظف الكول سنتر:\nالاسم: ${name}\nاسم المستخدم (Login ID): ${username}\nكلمة المرور: ${password}\nالتحويلة الداخلية: ${ext}\nرابط البوابة السحابية: https://app.169.58.32.179.nip.io`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('تم نسخ بيانات الدخول إلى الحافظة بنجاح');
+        }).catch(() => {
+            showNotification('تم تجهيز النص، يرجى التحديد والنسخ يدوياً', true);
+        });
+    } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showNotification('تم نسخ بيانات الدخول إلى الحافظة بنجاح');
+        } catch (err) {
+            showNotification('يرجى تحديد النص ونسخه يدوياً', true);
+        }
+        document.body.removeChild(textarea);
+    }
+}
+
+async function deleteEmp(empId) {
+    if (!confirm('هل أنت متأكد من حذف الموظف؟')) return;
+    try {
+        const res = await fetch(`/api/ai-callcenter/employees/${empId}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            document.getElementById('emp-row-' + empId)?.remove();
+            showNotification('تم حذف الموظف بنجاح');
+        } else {
+            showNotification(data.message || 'حدث خطأ', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال', true);
+    }
+}
+
+// Master PBX Owner Credentials Helper
+let isOwnerPasswordVisible = false;
+const rawOwnerPassword = "{{ owner_password|escapejs }}";
+
+function toggleOwnerPasswordVisibility() {
+    const el = document.getElementById('owner-display-password');
+    if (!el) return;
+    isOwnerPasswordVisible = !isOwnerPasswordVisible;
+    if (isOwnerPasswordVisible) {
+        el.textContent = rawOwnerPassword;
+    } else {
+        el.textContent = '••••••••••••';
+    }
+}
+
+function copyOwnerMasterCreds() {
+    const username = "{{ owner_username|escapejs }}";
+    const password = rawOwnerPassword;
+    const portal = "{{ voice_portal_url|escapejs }}";
+    const text = `بيانات دخول المالك الرئيسي لمنصة السنترال السحابي:\nالمنشأة: {{ tenant.name|escapejs }}\nاسم المستخدم: ${username}\nكلمة المرور: ${password}\nرابط المنصة: ${portal}`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('تم نسخ بيانات دخول المالك بالكامل إلى الحافظة');
+        }).catch(() => {
+            showNotification('تم تجهيز النص يرجى نسخه يدوياً', true);
+        });
+    } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showNotification('تم نسخ بيانات دخول المالك بالكامل إلى الحافظة');
+        } catch (err) {
+            showNotification('يرجى تحديد النص ونسخه يدوياً', true);
+        }
+        document.body.removeChild(textarea);
+    }
+}
+
+</script>
+{% endblock %}

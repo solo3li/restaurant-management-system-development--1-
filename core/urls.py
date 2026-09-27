@@ -55,4 +55,15 @@ urlpatterns = [
     path("api/api-keys/create/", views.api_create_api_key, name="api_create_api_key"),
     path("api/api-keys/<int:key_id>/toggle/", views.api_toggle_api_key, name="api_toggle_api_key"),
     path("api/api-keys/<int:key_id>/delete/", views.api_delete_api_key, name="api_delete_api_key"),
+
+    # AI Call Center Management
+    path("ai-callcenter/", views.ai_callcenter_management_view, name="ai_callcenter_management"),
+    path("api/ai-callcenter/profile/", views.api_ai_callcenter_update_profile, name="api_ai_callcenter_update_profile"),
+    path("api/ai-callcenter/hours/", views.api_ai_callcenter_update_hours, name="api_ai_callcenter_update_hours"),
+    path("api/ai-callcenter/docs/add/", views.api_ai_callcenter_add_doc, name="api_ai_callcenter_add_doc"),
+    path("api/ai-callcenter/docs/<int:doc_id>/delete/", views.api_ai_callcenter_delete_doc, name="api_ai_callcenter_delete_doc"),
+    path("api/ai-callcenter/employees/add/", views.api_ai_callcenter_add_employee, name="api_ai_callcenter_add_employee"),
+    path("api/ai-callcenter/employees/<int:emp_id>/delete/", views.api_ai_callcenter_delete_employee, name="api_ai_callcenter_delete_employee"),
+    path("api/ai-callcenter/queues/save/", views.api_ai_callcenter_save_queue, name="api_ai_callcenter_save_queue"),
+    path("api/ai-callcenter/queues/<int:queue_id>/delete/", views.api_ai_callcenter_delete_queue, name="api_ai_callcenter_delete_queue"),
 ]
