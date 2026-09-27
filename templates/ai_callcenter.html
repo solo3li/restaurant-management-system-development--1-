@@ -586,147 +586,246 @@
     <!-- TAB 5: CALL QUEUES                         -->
     <!-- ========================================== -->
     <div id="tab-content-queues" class="tab-content hidden space-y-6">
-        <form id="queue-form" onsubmit="saveQueue(event)" class="card p-6 sm:p-7 border-line space-y-6">
-            {% csrf_token %}
-            <div class="border-b border-line pb-4 flex items-center justify-between">
+        <!-- Top Banner / Summary Card -->
+        <div class="card p-6 sm:p-7 border-line space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
                 <div>
                     <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                        <span>🔀</span> إعدادات طوابير الانتظار (Call Queues)
-                    </h3>
-                    <p class="text-xs text-soft font-bold mt-0.5">ضبط توزيع المكالمات، مهلة الرنين، ونغمة الانتظار الآلية للعميل</p>
-                </div>
-                <span class="text-xs px-3 py-1 rounded-full font-black bg-blue-50 text-blue-800 border border-blue-200">
-                    نغمة انتظار ذكية WebRTC
-                </span>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">اسم الطابور الرئيسي</label>
-                    <input type="text" name="name" value="طابور خدمة عملاء مطاعم ضيافة" required class="input">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">كود الطابور الداخلي</label>
-                    <input type="text" name="code" value="200" required class="input font-mono font-bold">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">استراتيجية توزيع المكالمات</label>
-                    <select name="strategy" class="input font-bold cursor-pointer">
-                        <option value="least_recent" selected>التحويل للأقل استقبالاً (Least Recent - عدالة التوزيع)</option>
-                        <option value="round_robin">توزيع دائري تناوبي (Round Robin)</option>
-                        <option value="random">توزيع عشوائي (Random)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">مهلة رنين الموظف (ثواني)</label>
-                    <input type="number" name="ring_timeout_seconds" value="20" min="5" max="60" class="input font-bold">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">الإجراء عند عدم رد أي موظف (Fallback)</label>
-                    <select name="fallback_action" class="input font-bold cursor-pointer">
-                        <option value="ai_assistant" selected>عودة المساعد الذكي للاعتذار وأخذ رسالة العميل</option>
-                        <option value="hangup">إنهاء المكالمة بلباقة</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="p-4 rounded-xl bg-paper border border-line space-y-1 text-xs">
-                <p class="font-bold text-ink">💡 كيف يعمل الطابور الذكي عند التحويل؟</p>
-                <p class="text-soft leading-relaxed">
-                    عندما يطلب العميل موظفاً بشرياً، يتم عزف نغمة موسيقية هادئة له تلقائياً (Hold Music). يرن السنترال عند الموظف الأقل استقبالاً، وفي حال انتهاء المهلة دون رد، يعود المساعد الذكي فوراً للاعتذار للعميل وأخذ تفاصيل طلبه وتسجيله في النظام!
-                </p>
-            </div>
-
-            <div class="pt-3 border-t border-line flex items-center justify-end">
-                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition">
-                    💾 حفظ إعدادات الطابور
-                </button>
-            </div>
-        </form>
-
-        <!-- ========================================== -->
-        <!-- QUEUE AGENTS / MEMBERS SECTION             -->
-        <!-- ========================================== -->
-        <div class="card p-6 sm:p-7 border-line space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-line pb-4">
-                <div>
-                    <h3 class="font-display text-base sm:text-lg font-black text-ink flex items-center gap-2">
-                        <span>👥</span> موظفو وأعضاء الطابور (Queue Agents)
+                        <span>🔀</span> إدارة وتوزيع طوابير الانتظار (Call Queues)
                     </h3>
                     <p class="text-xs text-soft font-bold mt-0.5">
-                        الموظفون المعينون لاستقبال وتلقي المكالمات المحولة من المساعد الذكي في هذا الطابور
+                        إنشاء وإدارة عدة طوابير مستقلة (مثل المبيعات، الشكاوى، وخدمة العملاء) مع تعيين الموظفين وتحديد استراتيجيات التوزيع
                     </p>
                 </div>
-                <button type="button" onclick="openAddQueueMemberModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
-                    <span>➕</span> إضافة موظف إلى الطابور
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="openCreateQueueModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
+                        <span>➕</span> إنشاء طابور انتظار جديد
+                    </button>
+                </div>
             </div>
 
-            <!-- Members Table / List -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-right border-collapse text-xs">
-                    <thead>
-                        <tr class="border-b border-line bg-paper/60 text-soft font-black">
-                            <th class="py-2.5 px-3">الموظف</th>
-                            <th class="py-2.5 px-3">التحويلة الداخلية</th>
-                            <th class="py-2.5 px-3">القسم</th>
-                            <th class="py-2.5 px-3">حالة الاتصال (WebRTC)</th>
-                            <th class="py-2.5 px-3 text-center">أولوية الرنين (Penalty)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-line/60">
-                        {% if primary_queue.members %}
-                            {% for m in primary_queue.members %}
-                            <tr class="hover:bg-paper/30 transition">
-                                <td class="py-3 px-3">
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="p-4 rounded-xl bg-paper/70 border border-line flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-lg text-brand-700">
+                        📋
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-soft font-bold">إجمالي الطوابير المعرفة</div>
+                        <div class="text-base font-black text-ink">{{ queues|length }} طوابير نشطة</div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-paper/70 border border-line flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-lg text-emerald-700">
+                        👥
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-soft font-bold">الموظفون المعينون للطوابير</div>
+                        <div class="text-base font-black text-emerald-600">
+                            {% for q in queues %}{{ q.members|length }}{% if not forloop.last %} + {% endif %}{% empty %}0{% endfor %} موظف
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-paper/70 border border-line flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-lg text-blue-700">
+                        ⚡
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-soft font-bold">موسيقى ونغمة الانتظار</div>
+                        <div class="text-base font-black text-blue-800">موسيقى هادئة مدمجة (Hold Music)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Master Queues Table -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-black text-ink flex items-center gap-1.5">
+                        <span>📑</span> قائمة طوابير السنترال السحابي
+                    </h4>
+                    <span class="text-[11px] text-soft font-bold">اضغط على «الأعضاء» لعرض وإدارة موظفي أي طابور أدناه</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-line">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-paper text-soft font-black border-b border-line">
+                                <th class="py-3 px-3.5">اسم الطابور</th>
+                                <th class="py-3 px-3 text-center">كود الطابور الداخلي</th>
+                                <th class="py-3 px-3">استراتيجية التوزيع</th>
+                                <th class="py-3 px-3 text-center">مهلة الرنين</th>
+                                <th class="py-3 px-3">الإجراء البديل (Fallback)</th>
+                                <th class="py-3 px-3 text-center">الأعضاء</th>
+                                <th class="py-3 px-3.5 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-line/60 bg-card">
+                            {% for q in queues %}
+                            <tr id="queue-row-{{ q.id }}" class="queue-row transition hover:bg-paper/40 {% if forloop.first %}bg-brand-50/30{% endif %}">
+                                <td class="py-3 px-3.5">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="h-8 w-8 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center text-xs font-bold text-brand-700">
-                                            👤
+                                        <div class="h-8 w-8 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-xs font-black text-brand-700">
+                                            🔀
                                         </div>
                                         <div>
-                                            <div class="font-bold text-ink text-[12.5px]">{{ m.name|default:"موظف كول سنتر" }}</div>
-                                            <div class="text-[10px] text-soft font-mono">ID: {{ m.employee_id }}</div>
+                                            <div class="font-black text-ink text-[12.5px] flex items-center gap-1.5">
+                                                <span>{{ q.name }}</span>
+                                                {% if forloop.first %}
+                                                <span class="text-[9.5px] px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-800 border border-brand-200">الافتراضي</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-[10px] text-soft font-mono">ID: {{ q.id }}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-3 px-3 font-mono font-black text-brand-600">
-                                    <span class="px-2 py-0.5 rounded bg-brand-50 border border-brand-200">ext: {{ m.extension }}</span>
+                                <td class="py-3 px-3 text-center">
+                                    <span class="px-2.5 py-1 rounded-md bg-paper border border-line font-mono font-black text-brand-600">
+                                        {{ q.code }}
+                                    </span>
                                 </td>
-                                <td class="py-3 px-3 font-bold text-soft">{{ m.department|default:"خدمة العملاء" }}</td>
-                                <td class="py-3 px-3 whitespace-nowrap">
-                                    {% if m.status == 'ready' %}
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> متاح (Ready)
+                                <td class="py-3 px-3 font-bold text-ink">
+                                    {% if q.strategy == 'least_recent' %}
+                                    <span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
+                                        <span>⚖️</span> الأقل استقبالاً (Least Recent)
+                                    </span>
+                                    {% elif q.strategy == 'round_robin' %}
+                                    <span class="inline-flex items-center gap-1 text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 text-[11px]">
+                                        <span>🔄</span> دائري بالتناوب (Round Robin)
                                     </span>
                                     {% else %}
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-slate-100 text-slate-700 border border-slate-300">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span> غير متصل
+                                    <span class="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-[11px]">
+                                        <span>🎲</span> عشوائي (Random)
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="py-3 px-3 text-center whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-paper border border-line text-soft">
-                                        {% if m.order == 0 or m.order == 1 or not m.penalty %}أولوية رئيسية (0){% else %}أولوية {{ m.penalty|default:m.order }}{% endif %}
+                                <td class="py-3 px-3 text-center font-mono font-bold text-soft">
+                                    {{ q.ring_timeout_seconds|default:20 }} ثانية
+                                </td>
+                                <td class="py-3 px-3 text-soft font-bold">
+                                    {% if q.fallback_action == 'ai_assistant' %}
+                                    <span class="text-brand-700">🤖 عودة المساعد الذكي</span>
+                                    {% else %}
+                                    <span class="text-slate-600">📞 إنهاء المكالمة</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-3 text-center">
+                                    <span class="px-2.5 py-0.5 rounded-full font-black text-[11px] {% if q.members %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-slate-100 text-slate-600 border border-slate-200{% endif %}">
+                                        {{ q.members|length }} أعضاء
                                     </span>
+                                </td>
+                                <td class="py-3 px-3.5 text-center">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <button type="button" onclick="selectActiveQueue({{ q.id }}, '{{ q.name|escapejs }}', '{{ q.code|escapejs }}')" class="px-2.5 py-1 rounded-lg bg-paper hover:bg-brand-50 text-ink hover:text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="عرض موظفي هذا الطابور">
+                                            <span>👥</span>
+                                            <span>الأعضاء</span>
+                                        </button>
+                                        <button type="button" onclick="deleteQueue({{ q.id }}, '{{ q.name|escapejs }}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="حذف الطابور">
+                                            <span>🗑️</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="py-8 text-center text-soft font-bold">
+                                    لم يتم إنشاء أي طوابير انتظار بعد. اضغط على «إنشاء طابور انتظار جديد» لإضافة أول طابور.
                                 </td>
                             </tr>
                             {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="5" class="py-8 text-center text-soft font-bold">
-                                    لا يوجد موظفون معينون في هذا الطابور حالياً. اضغط على «إضافة موظف إلى الطابور» لتعيين أول موظف يستقبل المكالمات.
-                                </td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ACTIVE QUEUE MEMBERS SECTION               -->
+        <!-- ========================================== -->
+        <div class="card p-6 sm:p-7 border-line space-y-5" id="active-queue-members-card">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-line pb-4">
+                <div>
+                    <h3 class="font-display text-base sm:text-lg font-black text-ink flex items-center gap-2">
+                        <span>👥</span> موظفو وأعضاء الطابور: <span id="active-queue-name-display" class="text-brand-600">{{ primary_queue.name|default:"طابور خدمة العملاء" }}</span>
+                        <span id="active-queue-code-badge" class="px-2 py-0.5 rounded bg-brand-50 border border-brand-200 font-mono text-xs text-brand-700">كود: <span id="active-queue-code-display">{{ primary_queue.code|default:"200" }}</span></span>
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-0.5">
+                        الموظفون المعينون لاستقبال وتلقي المكالمات المحولة من المساعد الذكي في هذا الطابور المحدد
+                    </p>
+                </div>
+                <button type="button" onclick="openAddQueueMemberModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
+                    <span>➕</span> إضافة موظف لهذا الطابور
+                </button>
+            </div>
+
+            <!-- Loop over each queue to render its members table container -->
+            {% for q in queues %}
+            <div id="queue-members-pane-{{ q.id }}" class="queue-members-pane {% if not forloop.first %}hidden{% endif %}">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                                <th class="py-2.5 px-3">الموظف</th>
+                                <th class="py-2.5 px-3">التحويلة الداخلية</th>
+                                <th class="py-2.5 px-3">القسم</th>
+                                <th class="py-2.5 px-3">حالة الاتصال (WebRTC)</th>
+                                <th class="py-2.5 px-3 text-center">أولوية الرنين (Penalty)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-line/60">
+                            {% if q.members %}
+                                {% for m in q.members %}
+                                <tr class="hover:bg-paper/30 transition">
+                                    <td class="py-3 px-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="h-8 w-8 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center text-xs font-bold text-brand-700">
+                                                👤
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-ink text-[12.5px]">{{ m.name|default:"موظف كول سنتر" }}</div>
+                                                <div class="text-[10px] text-soft font-mono">ID: {{ m.employee_id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-3 font-mono font-black text-brand-600">
+                                        <span class="px-2 py-0.5 rounded bg-brand-50 border border-brand-200">ext: {{ m.extension }}</span>
+                                    </td>
+                                    <td class="py-3 px-3 font-bold text-soft">{{ m.department|default:"خدمة العملاء" }}</td>
+                                    <td class="py-3 px-3 whitespace-nowrap">
+                                        {% if m.status == 'ready' %}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> متاح (Ready)
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-slate-100 text-slate-700 border border-slate-300">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span> غير متصل
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 px-3 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-paper border border-line text-soft">
+                                            {% if m.order == 0 or m.order == 1 or not m.penalty %}أولوية رئيسية (0){% else %}أولوية {{ m.penalty|default:m.order }}{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-soft font-bold">
+                                        لا يوجد موظفون معينون في «{{ q.name }}» حالياً. اضغط على «إضافة موظف لهذا الطابور» لتعيين أول موظف يستقبل المكالمات المحولة.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% empty %}
+            <div class="py-8 text-center text-soft font-bold">
+                يرجى إنشاء طابور انتظار أولاً للبدء في تعيين الموظفين.
+            </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -1008,13 +1107,78 @@
 </div>
 
 <!-- ========================================== -->
+<!-- MODAL: CREATE NEW CALL QUEUE               -->
+<!-- ========================================== -->
+<div id="create-queue-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="rtl">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>➕</span> إنشاء طابور انتظار جديد (Call Queue)
+            </h3>
+            <button type="button" onclick="closeCreateQueueModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
+        </div>
+
+        <form id="create-queue-form" onsubmit="submitCreateQueue(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-black text-ink mb-1.5">اسم الطابور</label>
+                <input type="text" id="cq_name" name="name" placeholder="مثال: طابور المبيعات والطلبات الجديدة" required class="input">
+                <p class="text-[10.5px] text-soft font-bold mt-1">اسم تعريفي واضح للطابور في النظام ولوحة التحكّم.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">كود الطابور الداخلي</label>
+                    <input type="text" id="cq_code" name="code" placeholder="مثال: 201" required class="input font-mono font-bold">
+                    <p class="text-[10.5px] text-soft font-bold mt-1">كود فريد للتحويل المباشر (مثل 200, 201, 202).</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">استراتيجية توزيع المكالمات</label>
+                    <select id="cq_strategy" name="strategy" class="input font-bold cursor-pointer">
+                        <option value="least_recent" selected>الأقل استقبالاً (Least Recent)</option>
+                        <option value="round_robin">دائري بالتناوب (Round Robin)</option>
+                        <option value="random">عشوائي (Random)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">مهلة رنين الموظف (ثواني)</label>
+                    <input type="number" id="cq_ring_timeout" name="ring_timeout_seconds" value="20" min="5" max="60" class="input font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الإجراء البديل (Fallback)</label>
+                    <select id="cq_fallback" name="fallback_action" class="input font-bold cursor-pointer">
+                        <option value="ai_assistant" selected>عودة المساعد الذكي للاعتذار وأخذ رسالة</option>
+                        <option value="hangup">إنهاء المكالمة بلباقة</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-paper border border-line text-xs text-soft leading-relaxed">
+                💡 <strong class="text-ink">ملاحظة:</strong> يتم تشغيل نغمة انتظار موسيقية تلقائياً للعميل عند وضعه في هذا الطابور لحين رد أحد الموظفين المتاحين.
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeCreateQueueModal()" class="px-4 py-2 rounded-xl text-soft hover:bg-paper text-xs font-black transition cursor-pointer">
+                    إلغاء
+                </button>
+                <button type="submit" id="cq-submit-btn" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
+                    حفظ وإنشاء الطابور
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
 <!-- MODAL: ADD QUEUE MEMBER                   -->
 <!-- ========================================== -->
 <div id="add-queue-member-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="card max-w-md w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="rtl">
         <div class="flex items-center justify-between border-b border-line pb-3">
             <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
-                <span>➕</span> إضافة موظف إلى طابور الانتظار
+                <span>➕</span> إضافة موظف إلى: <span id="modal-queue-name" class="text-brand-600 font-black">{{ primary_queue.name|default:"طابور الانتظار" }}</span>
             </h3>
             <button onclick="closeAddQueueMemberModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
         </div>
@@ -1033,7 +1197,7 @@
                     {% endfor %}
                 </select>
                 <p class="text-[10.5px] text-soft font-bold mt-1">
-                    سيتمكن هذا الموظف من تلقي المكالمات الواردة على رقم الطابور عبر تطبيقه أو البوابة السحابية.
+                    سيتمكن هذا الموظف من تلقي المكالمات الواردة على رقم هذا الطابور عبر تطبيقه أو البوابة السحابية.
                 </p>
             </div>
 
@@ -1046,7 +1210,7 @@
             </div>
 
             <div class="pt-3 border-t border-line flex items-center justify-end gap-2.5">
-                <button type="button" onclick="closeAddQueueMemberModal()" class="px-4 py-2 rounded-xl text-soft hover:bg-paper text-xs font-black transition">
+                <button type="button" onclick="closeAddQueueMemberModal()" class="px-4 py-2 rounded-xl text-soft hover:bg-paper text-xs font-black transition cursor-pointer">
                     إلغاء
                 </button>
                 <button type="submit" id="qm-submit-btn" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
@@ -1343,18 +1507,78 @@ async function saveHours(e) {
     }
 }
 
-// Save Queue
-async function saveQueue(e) {
+// ==========================================
+// Multi-Queue Management & Agents
+// ==========================================
+let currentActiveQueueId = {{ primary_queue.id|default:0 }};
+let currentActiveQueueName = "{{ primary_queue.name|escapejs }}";
+let currentActiveQueueCode = "{{ primary_queue.code|escapejs }}";
+
+function selectActiveQueue(queueId, queueName, queueCode) {
+    currentActiveQueueId = queueId;
+    currentActiveQueueName = queueName;
+    currentActiveQueueCode = queueCode;
+
+    // Update display badges
+    const nameEl = document.getElementById('active-queue-name-display');
+    const codeEl = document.getElementById('active-queue-code-display');
+    const modalQueueName = document.getElementById('modal-queue-name');
+    const qmQueueId = document.getElementById('qm_queue_id');
+
+    if (nameEl) nameEl.textContent = queueName;
+    if (codeEl) codeEl.textContent = queueCode;
+    if (modalQueueName) modalQueueName.textContent = queueName;
+    if (qmQueueId) qmQueueId.value = queueId;
+
+    // Highlight active row in master queue table
+    document.querySelectorAll('.queue-row').forEach(row => {
+        row.classList.remove('bg-brand-50/30');
+    });
+    const selectedRow = document.getElementById('queue-row-' + queueId);
+    if (selectedRow) selectedRow.classList.add('bg-brand-50/30');
+
+    // Switch visible member pane
+    document.querySelectorAll('.queue-members-pane').forEach(pane => {
+        pane.classList.add('hidden');
+    });
+    const targetPane = document.getElementById('queue-members-pane-' + queueId);
+    if (targetPane) {
+        targetPane.classList.remove('hidden');
+    }
+
+    // Scroll to members section smoothly
+    const membersCard = document.getElementById('active-queue-members-card');
+    if (membersCard) {
+        membersCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function openCreateQueueModal() {
+    document.getElementById('create-queue-modal').classList.remove('hidden');
+}
+
+function closeCreateQueueModal() {
+    document.getElementById('create-queue-modal').classList.add('hidden');
+}
+
+async function submitCreateQueue(e) {
     e.preventDefault();
-    const form = e.target;
-    const payload = {
-        name: form.name.value,
-        code: form.code.value,
-        strategy: form.strategy.value,
-        ring_timeout_seconds: parseInt(form.ring_timeout_seconds.value) || 20,
-        total_timeout_seconds: 60,
-        fallback_action: form.fallback_action.value
-    };
+    const btn = document.getElementById('cq-submit-btn');
+    const name = document.getElementById('cq_name').value.trim();
+    const code = document.getElementById('cq_code').value.trim();
+    const strategy = document.getElementById('cq_strategy').value;
+    const ring_timeout_seconds = parseInt(document.getElementById('cq_ring_timeout').value) || 20;
+    const fallback_action = document.getElementById('cq_fallback').value;
+
+    if (!name || !code) {
+        showNotification('يرجى ملء جميع الحقول المطلوبة', true);
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري الإنشاء...';
+    }
 
     try {
         const res = await fetch("{% url 'api_ai_callcenter_save_queue' %}", {
@@ -1363,34 +1587,93 @@ async function saveQueue(e) {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                name,
+                code,
+                strategy,
+                ring_timeout_seconds,
+                total_timeout_seconds: 60,
+                fallback_action
+            })
+        });
+        const data = await res.json();
+        if (data.status === 'success' || data.queue || data.id) {
+            closeCreateQueueModal();
+            showNotification('تم إنشاء طابور الانتظار بنجاح');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message || 'حدث خطأ أثناء إنشاء الطابور', true);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'حفظ وإنشاء الطابور';
+            }
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'حفظ وإنشاء الطابور';
+        }
+    }
+}
+
+async function deleteQueue(queueId, queueName) {
+    if (!confirm(`هل أنت متأكد من حذف طابور الانتظار «${queueName}»؟\nسيتم إلغاء ربط موظفيه من هذا الطابور.`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/ai-callcenter/queues/${queueId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
         });
         const data = await res.json();
         if (data.status === 'success') {
-            showNotification('تم تحديث إعدادات طابور الانتظار بنجاح');
+            showNotification(`تم حذف طابور «${queueName}» بنجاح`);
+            setTimeout(() => location.reload(), 800);
         } else {
-            showNotification(data.message || 'حدث خطأ', true);
+            showNotification(data.message || 'حدث خطأ أثناء حذف الطابور', true);
         }
     } catch (err) {
         showNotification('تعذر الاتصال بالسيرفر', true);
     }
 }
 
-// Modals
-function openAddDocModal() { document.getElementById('add-doc-modal').classList.remove('hidden'); }
-function closeAddDocModal() { document.getElementById('add-doc-modal').classList.add('hidden'); }
-function openAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('hidden'); }
-function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
-function openAddQueueMemberModal() { document.getElementById('add-queue-member-modal').classList.remove('hidden'); }
-function closeAddQueueMemberModal() { document.getElementById('add-queue-member-modal').classList.add('hidden'); }
+// Open / Close Add Queue Member Modal
+function openAddQueueMemberModal(queueId, queueName) {
+    if (queueId) {
+        currentActiveQueueId = queueId;
+        const qmQueueId = document.getElementById('qm_queue_id');
+        if (qmQueueId) qmQueueId.value = queueId;
+    }
+    if (queueName) {
+        currentActiveQueueName = queueName;
+        const modalQueueName = document.getElementById('modal-queue-name');
+        if (modalQueueName) modalQueueName.textContent = queueName;
+    } else {
+        const modalQueueName = document.getElementById('modal-queue-name');
+        if (modalQueueName) modalQueueName.textContent = currentActiveQueueName;
+    }
+    document.getElementById('add-queue-member-modal').classList.remove('hidden');
+}
+
+function closeAddQueueMemberModal() {
+    document.getElementById('add-queue-member-modal').classList.add('hidden');
+}
 
 async function submitAddQueueMember(e) {
     e.preventDefault();
-    const queueId = document.getElementById('qm_queue_id').value;
+    const queueId = document.getElementById('qm_queue_id').value || currentActiveQueueId;
     const employeeId = document.getElementById('qm_employee_id').value;
     const penalty = document.getElementById('qm_penalty').value || 0;
     const btn = document.getElementById('qm-submit-btn');
 
+    if (!queueId) {
+        showNotification('يرجى تحديد الطابور أولاً', true);
+        return;
+    }
     if (!employeeId) {
         showNotification('يرجى اختيار الموظف أولاً', true);
         return;
@@ -1420,16 +1703,25 @@ async function submitAddQueueMember(e) {
             setTimeout(() => location.reload(), 1000);
         } else {
             showNotification(data.message || 'حدث خطأ أثناء إضافة الموظف للطابور', true);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'تأكيد الإضافة للطابور';
+            }
         }
     } catch (err) {
         showNotification('تعذر الاتصال بالسيرفر', true);
-    } finally {
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'تأكيد الإضافة للطابور';
         }
     }
 }
+
+// Modals
+function openAddDocModal() { document.getElementById('add-doc-modal').classList.remove('hidden'); }
+function closeAddDocModal() { document.getElementById('add-doc-modal').classList.add('hidden'); }
+function openAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('hidden'); }
+function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
 
 async function submitAddDoc(e) {
     e.preventDefault();
