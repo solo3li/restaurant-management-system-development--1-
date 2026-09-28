@@ -33,6 +33,14 @@ from fastmcp import FastMCP
 import contextvars
 from urllib.parse import parse_qs
 from asgiref.sync import sync_to_async
+from pydantic import BaseModel, Field
+
+
+class OrderItemInput(BaseModel):
+    """عنصر مطلوب من قائمة الطعام مع الكمية"""
+    name: str = Field(description="اسم الصنف المطلوب كما في المنيو (مثال: شاي كرك، مندي لحم، كبسة دجاج)")
+    quantity: int = Field(default=1, ge=1, description="الكمية المطلوبة (افتراضياً 1)")
+
 
 _current_session_key: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("_current_session_key", default=None)
 SESSION_ACCESS_KEYS: dict[str, str] = {}
@@ -548,7 +556,11 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> t
     """
     from core.models import MenuItem
 
-    if isinstance(item_spec, str):
+    if hasattr(item_spec, "model_dump"):
+        item_spec = item_spec.model_dump()
+    elif hasattr(item_spec, "dict"):
+        item_spec = item_spec.dict()
+    elif isinstance(item_spec, str):
         try:
             item_spec = json.loads(item_spec)
         except Exception:
@@ -795,18 +807,34 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, ac
 
 
 @mcp.tool
-def lookup_customer(phone: str, access_key: Optional[str] = None) -> Dict[str, Any]:
+def lookup_customer(
+    phone: Optional[str] = None,
+    customer_phone: Optional[str] = None,
+    phone_number: Optional[str] = None,
+    access_key: Optional[str] = None
+) -> Dict[str, Any]:
     """
     البحث عن العميل برقم هاتفه لجلب اسمه وعناوينه والكومبوند وتاريخ طلباته السابقة.
     
     Args:
         phone: رقم هاتف العميل (مثال: '01012345678').
+        customer_phone: (بديل) رقم هاتف العميل.
+        phone_number: (بديل) رقم هاتف العميل.
         access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Customer, Order
 
-    clean_phone = str(phone).strip().replace(" ", "").replace("-", "")
+    raw_val = str(phone or customer_phone or phone_number or "").strip()
+    if not raw_val:
+        return {
+            "ok": True,
+            "status": "ready",
+            "message": "أداة البحث عن العميل (lookup_customer) جاهزة ونشطة بنجاح.",
+            "diagnostic": True
+        }
+
+    clean_phone = raw_val.replace(" ", "").replace("-", "")
     customer = Customer.objects.filter(tenant=tenant, phone=clean_phone).first()
 
     if not customer:
@@ -852,7 +880,14 @@ def lookup_customer(phone: str, access_key: Optional[str] = None) -> Dict[str, A
 
 
 @mcp.tool
-def check_delivery_coverage(branch_id: Optional[int] = None, area_name: Optional[str] = "", access_key: Optional[str] = None) -> Dict[str, Any]:
+def check_delivery_coverage(
+    branch_id: Optional[int] = None,
+    area_name: Optional[str] = "",
+    delivery_area_name: Optional[str] = None,
+    customer_address: Optional[str] = None,
+    address: Optional[str] = None,
+    access_key: Optional[str] = None
+) -> Dict[str, Any]:
     """
     فحص هل منطقة العميل أو الكومبوند يقع ضمن مناطق توصيل المطعم، وحساب رسوم ووقت التوصيل وتحديد الفرع الأنسب تلقائياً.
     إلزامي الاستدعاء عند رغبة العميل في خدمة التوصيل (Delivery) وقبل إنشاء الطلب.
@@ -860,12 +895,15 @@ def check_delivery_coverage(branch_id: Optional[int] = None, area_name: Optional
     Args:
         branch_id: (اختياري) معرف الفرع (يتم فحص وتحديد الفرع الأنسب تلقائياً لجميع الفروع إن لم يُحدد).
         area_name: اسم المنطقة أو الحي أو الكومبوند (مثال: 'مدينة الشروق', 'كمبوند النرجس', 'الياسمين').
+        delivery_area_name: (بديل) اسم المنطقة أو الحي.
+        customer_address: (بديل) عنوان أو منطقة العميل.
+        address: (بديل) عنوان العميل.
         access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Branch, DeliveryArea
 
-    query = str(area_name or "").strip()
+    query = str(area_name or delivery_area_name or customer_address or address or "").strip()
 
     # Diagnostic / Health check call from platform admin
     if not query:
@@ -913,12 +951,19 @@ def check_delivery_coverage(branch_id: Optional[int] = None, area_name: Optional
 
 @mcp.tool
 def preview_order(
-    items: Optional[Union[List[Dict[str, Any]], str]] = None,
+    items: Optional[List[OrderItemInput]] = None,
     customer_address: Optional[str] = "",
     delivery_area_name: Optional[str] = None,
     delivery_area_id: Optional[int] = None,
     order_type: str = "delivery",
     branch_id: Optional[int] = None,
+    customer_phone: Optional[str] = None,
+    phone: Optional[str] = None,
+    phone_number: Optional[str] = None,
+    customer_name: Optional[str] = None,
+    name: Optional[str] = None,
+    address: Optional[str] = None,
+    notes: Optional[str] = None,
     access_key: Optional[str] = None
 ) -> Dict[str, Any]:
     """
@@ -926,16 +971,26 @@ def preview_order(
     تُستخدم لحساب التكلفة الإجمالية وإبلاغ العميل بها والحصول على موافقته الصريحة قبل ضرب الطلب نهائياً.
 
     Args:
-        items: قائمة الأصناف المطلوبة مع الكميات (مثال: [{'name': 'شاورما دجاج', 'quantity': 2}]).
+        items: قائمة الأصناف المطلوبة مع الكميات (مثال: [{'name': 'شاي كرك', 'quantity': 2}]).
         customer_address: (مطلوب لطلبات التوصيل) عنوان العميل لحساب رسوم التوصيل الصحيحة وتحديد الفرع الأنسب.
         delivery_area_name: (اختياري) اسم المنطقة أو الحي لتطبيق رسوم التوصيل بدقة.
         delivery_area_id: (اختياري) معرف منطقة التوصيل.
         order_type: نوع الطلب ('delivery' للتوصيل أو 'takeaway' للاستلام من الفرع).
         branch_id: (اختياري) معرف الفرع (يُحدد تلقائياً بناءً على عنوان التوصيل إن لم يمرر).
+        customer_phone: (اختياري) رقم هاتف العميل.
+        phone: (بديل) رقم هاتف العميل.
+        phone_number: (بديل) رقم هاتف العميل.
+        customer_name: (اختياري) اسم العميل.
+        name: (بديل) اسم العميل.
+        address: (بديل) عنوان العميل.
+        notes: (اختياري) ملاحظات إضافية.
         access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Branch, MenuItem, BranchMenuAvailability
+
+    if not customer_address and address:
+        customer_address = address
 
     # Diagnostic / Health check call from platform admin
     if not items and not customer_address and not delivery_area_name:
@@ -946,7 +1001,7 @@ def preview_order(
             "diagnostic": True
         }
 
-    # 1. Parse items if stringified JSON
+    # 1. Parse & normalize items if stringified JSON or Pydantic models
     if isinstance(items, str):
         try:
             items = json.loads(items)
@@ -958,7 +1013,24 @@ def preview_order(
                 "instruction_for_ai": "اطلب من العميل توضيح الأصناف والكميات المطلوبة."
             }
 
-    if not items or not isinstance(items, list):
+    cleaned_items = []
+    for it in (items or []):
+        if hasattr(it, "model_dump"):
+            cleaned_items.append(it.model_dump())
+        elif hasattr(it, "dict"):
+            cleaned_items.append(it.dict())
+        elif isinstance(it, dict):
+            cleaned_items.append(it)
+        elif isinstance(it, str):
+            try:
+                cleaned_items.append(json.loads(it))
+            except Exception:
+                cleaned_items.append({"name": it, "quantity": 1})
+        else:
+            cleaned_items.append({"name": str(it), "quantity": 1})
+    items = cleaned_items
+
+    if not items:
         return {
             "ok": False,
             "error": "يجب تزويدنا بقائمة أصناف صالحة في المعامل items لحساب الفاتورة.",
@@ -1084,10 +1156,14 @@ def preview_order(
 @mcp.tool
 def create_callcenter_order(
     branch_id: Optional[int] = None,
-    customer_phone: str = "",
+    customer_phone: Optional[str] = None,
+    phone: Optional[str] = None,
+    phone_number: Optional[str] = None,
     customer_name: Optional[str] = "",
+    name: Optional[str] = None,
     customer_address: Optional[str] = "",
-    items: Optional[Union[List[Dict[str, Any]], str]] = None,
+    address: Optional[str] = None,
+    items: Optional[List[OrderItemInput]] = None,
     order_type: str = "delivery",
     delivery_area_id: Optional[int] = None,
     delivery_area_name: Optional[str] = None,
@@ -1101,9 +1177,13 @@ def create_callcenter_order(
     Args:
         branch_id: (اختياري) معرف الفرع المنفذ للطلب. إن لم يحدد يتم التوجيه التلقائي للفرع الأنسب.
         customer_phone: رقم هاتف العميل (إلزامي للتعرف على العميل وتتبع الطلب).
+        phone: (بديل) رقم هاتف العميل.
+        phone_number: (بديل) رقم هاتف العميل.
         customer_name: (اختياري) اسم العميل (يُحدث تلقائياً ويُسترجع من سجله السابق إن وجد).
+        name: (بديل) اسم العميل.
         customer_address: عنوان التوصيل بالتفصيل (الحي، الشارع، العمارة، الشقة).
-        items: قائمة الأصناف المطلوبة. كل عنصر يمكن تمريره برقم الصنف 'item_id' أو اسمه 'name' مع الكمية 'quantity'.
+        address: (بديل) عنوان التوصيل.
+        items: قائمة الأصناف المطلوبة مع الكميات (مثال: [{'name': 'شاي كرك', 'quantity': 1}]).
         order_type: نوع الطلب ('delivery' أو 'takeaway' أو 'dine_in'). الافتراضي هو 'delivery'.
         delivery_area_id: (اختياري) معرف منطقة التوصيل لتطبيق رسومها المحددة بدقة.
         delivery_area_name: (اختياري) اسم منطقة أو حي التوصيل (مثل: 'مدينة الشروق', 'العليا').
@@ -1112,6 +1192,12 @@ def create_callcenter_order(
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Branch, Customer, MenuItem, Order, OrderItem, DeliveryArea, BranchMenuAvailability
+
+    customer_phone = str(customer_phone or phone or phone_number or "").strip()
+    if not customer_address and address:
+        customer_address = address
+    if not customer_name and name:
+        customer_name = name
 
     # Diagnostic / Health check call from platform admin
     if not customer_phone and not items and not customer_address:
@@ -1122,7 +1208,7 @@ def create_callcenter_order(
             "diagnostic": True
         }
 
-    # 1. Parse items if stringified JSON
+    # 1. Parse & normalize items if stringified JSON or Pydantic models
     if isinstance(items, str):
         try:
             items = json.loads(items)
@@ -1134,7 +1220,24 @@ def create_callcenter_order(
                 "instruction_for_ai": "اطلب من العميل إعادة ذكر الأصناف والكميات المطلوبة."
             }
 
-    if not items or not isinstance(items, list):
+    cleaned_items = []
+    for it in (items or []):
+        if hasattr(it, "model_dump"):
+            cleaned_items.append(it.model_dump())
+        elif hasattr(it, "dict"):
+            cleaned_items.append(it.dict())
+        elif isinstance(it, dict):
+            cleaned_items.append(it)
+        elif isinstance(it, str):
+            try:
+                cleaned_items.append(json.loads(it))
+            except Exception:
+                cleaned_items.append({"name": it, "quantity": 1})
+        else:
+            cleaned_items.append({"name": str(it), "quantity": 1})
+    items = cleaned_items
+
+    if not items:
         return {
             "ok": False,
             "error": "قائمة الأصناف (items) مطلوبة لتنفيذ الطلب.",
@@ -1357,6 +1460,8 @@ def create_callcenter_order(
 def track_order(
     order_number: Optional[str] = None,
     customer_phone: Optional[str] = None,
+    phone: Optional[str] = None,
+    phone_number: Optional[str] = None,
     access_key: Optional[str] = None
 ) -> Dict[str, Any]:
     """
@@ -1368,13 +1473,15 @@ def track_order(
     Args:
         order_number: (اختياري) رقم الأوردر أو المعرف الرقمي، أو يمكن تمرير رقم جوال العميل هنا مباشرة.
         customer_phone: (اختياري) رقم هاتف العميل للبحث عن أحدث أوردراته مباشرة.
+        phone: (بديل) رقم هاتف العميل.
+        phone_number: (بديل) رقم هاتف العميل.
         access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Order
 
     raw_query = str(order_number or "").strip()
-    raw_phone = str(customer_phone or "").strip()
+    raw_phone = str(customer_phone or phone or phone_number or "").strip()
 
     # Diagnostic / Health check call from platform admin
     if not raw_query and not raw_phone:
@@ -1506,6 +1613,8 @@ def track_order(
 def cancel_order(
     order_number: Optional[str] = None,
     customer_phone: Optional[str] = None,
+    phone: Optional[str] = None,
+    phone_number: Optional[str] = None,
     reason: str = "طلب العميل عبر الهاتف",
     access_key: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -1516,6 +1625,8 @@ def cancel_order(
     Args:
         order_number: (اختياري) رقم الأوردر (مثال: 'DIY-3114' أو '3114' أو '٣١١٤').
         customer_phone: (اختياري) رقم جوال العميل للبحث التلقائي عن أحدث أوردر جديد له وإلغائه.
+        phone: (بديل) رقم هاتف العميل.
+        phone_number: (بديل) رقم هاتف العميل.
         reason: سبب الإلغاء (يُسجل في ملاحظات وتاريخ الأوردر).
         access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
@@ -1523,7 +1634,7 @@ def cancel_order(
     from core.models import Order
 
     raw_query = str(order_number or "").strip()
-    raw_phone = str(customer_phone or "").strip()
+    raw_phone = str(customer_phone or phone or phone_number or "").strip()
 
     # Diagnostic / Health check call from platform admin
     if not raw_query and not raw_phone:
