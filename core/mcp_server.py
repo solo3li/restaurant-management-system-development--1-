@@ -215,34 +215,64 @@ class FastMCPAuthMiddleware:
 
 
 class SSEAuthMiddleware:
-    """ASGI Middleware to authenticate FastMCP SSE connections."""
+    """
+    ASGI Middleware to authenticate FastMCP SSE connections and bind sessions dynamically to Tenant API keys.
+    Features:
+    - Zero hardcoding: completely dynamic per tenant and per session.
+    - SSE Endpoint Rewrite: Appends &access_key=<key> to the endpoint sent to the client.
+    - In-Memory Session Table: Maps session_id -> access_key so subsequent POST /messages/ automatically resolve the tenant.
+    - Strict Multi-Tenant Isolation: Sets ContextVar for the current request so tools operate strictly within the tenant's data.
+    """
     def __init__(self, app):
         self.app = app
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
+            method = scope.get("method", "GET").upper()
+            path = scope.get("path", "")
+            query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
+            qs = parse_qs(query_string)
+
             headers = dict(scope.get("headers", []))
-            auth = headers.get(b"authorization", b"").decode("latin1")
             key = None
+
+            # 1. Try to extract key directly from headers
+            auth = headers.get(b"authorization", b"").decode("latin1").strip()
             if auth.startswith("Bearer "):
                 key = auth[7:].strip()
             elif auth:
-                key = auth.strip()
+                key = auth
 
             if not key:
-                x_key = headers.get(b"x-access-key", b"").decode("latin1")
+                x_key = headers.get(b"x-access-key", b"").decode("latin1").strip()
                 if x_key:
-                    key = x_key.strip()
+                    key = x_key
 
+            # 2. Try to extract key from query parameters
             if not key:
-                query_string = scope.get("query_string", b"").decode("utf-8", errors="ignore")
-                qs = parse_qs(query_string)
                 key = qs.get("access_key", [None])[0]
+                if key:
+                    key = key.strip()
 
-            if not key and len(KEY_LATEST_SESSION) == 1:
-                key = list(KEY_LATEST_SESSION.keys())[0]
+            # 3. For POST /messages: if key not passed directly, lookup by session_id in dynamic session table
+            sid = qs.get("session_id", [None])[0]
+            if sid:
+                sid = sid.strip().lower()
 
-            if key:
+            if not key and sid and sid in SESSION_ACCESS_KEYS:
+                key = SESSION_ACCESS_KEYS[sid]
+
+            # 4. Handle GET /sse connection (Opening SSE stream)
+            if path.startswith("/sse") or path.endswith("/sse"):
+                if not key:
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [(b"content-type", b"text/plain; charset=utf-8")]
+                    })
+                    await send({"type": "http.response.body", "body": "مفتاح الدخول (Access Key) مطلوب لفتح اتصال SSE".encode("utf-8")})
+                    return
+
                 valid = await sync_to_async(_check_key_valid)(key)
                 if not valid:
                     await send({
@@ -250,8 +280,72 @@ class SSEAuthMiddleware:
                         "status": 401,
                         "headers": [(b"content-type", b"text/plain; charset=utf-8")]
                     })
-                    await send({"type": "http.response.body", "body": "مفتاح الدخول غير صالح".encode("utf-8")})
+                    await send({"type": "http.response.body", "body": "مفتاح الدخول غير صالح أو ملغي".encode("utf-8")})
                     return
+
+                # Intercept outgoing SSE chunks to capture session_id and rewrite endpoint URL
+                captured_sid = None
+
+                async def intercept_sse_send(message):
+                    nonlocal captured_sid
+                    if message.get("type") == "http.response.body":
+                        body = message.get("body", b"")
+                        if b"session_id=" in body:
+                            try:
+                                text = body.decode("utf-8")
+                                m = re.search(r"session_id=([0-9a-fA-F]+)", text)
+                                if m:
+                                    captured_sid = m.group(1).lower()
+                                    # Dynamically bind session_id to this tenant's API key
+                                    SESSION_ACCESS_KEYS[captured_sid] = key
+                                    # Rewrite endpoint line to include &access_key=key so standard clients preserve it
+                                    if "access_key=" not in text:
+                                        new_text = re.sub(r"(data: [^\r\n]+)", r"\1&access_key=" + key, text)
+                                        new_msg = dict(message)
+                                        new_msg["body"] = new_text.encode("utf-8")
+                                        await send(new_msg)
+                                        return
+                            except Exception:
+                                pass
+                    await send(message)
+
+                token = _current_session_key.set(key)
+                try:
+                    await self.app(scope, receive, intercept_sse_send)
+                finally:
+                    _current_session_key.reset(token)
+                return
+
+            # 5. Handle POST /messages (Calling MCP tools)
+            if path.startswith("/messages") or "messages" in path or method == "POST":
+                if not key:
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [(b"content-type", b"text/plain; charset=utf-8")]
+                    })
+                    await send({"type": "http.response.body", "body": "مفتاح الدخول (Access Key) غير متوفر في هذه الجلسة".encode("utf-8")})
+                    return
+
+                valid = await sync_to_async(_check_key_valid)(key)
+                if not valid:
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [(b"content-type", b"text/plain; charset=utf-8")]
+                    })
+                    await send({"type": "http.response.body", "body": "مفتاح الدخول غير صالح أو ملغي".encode("utf-8")})
+                    return
+
+                token = _current_session_key.set(key)
+                try:
+                    await self.app(scope, receive, send)
+                finally:
+                    _current_session_key.reset(token)
+                return
+
+            # 6. Any other requests
+            if key:
                 token = _current_session_key.set(key)
                 try:
                     await self.app(scope, receive, send)
