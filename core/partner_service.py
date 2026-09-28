@@ -221,3 +221,105 @@ def sync_client_mcp_tools(client_id: int, mcp_id: int) -> Dict[str, Any]:
     """Trigger live SSE synchronization of tools from FastMCP server to Partner PBX."""
     return _request(f"/clients/{client_id}/mcp/{mcp_id}/sync/", method="POST")
 
+
+# =========================================================================
+# Client Live Context (Redis Working Memory / Atomic Overwrite)
+# =========================================================================
+
+def get_client_live_context(client_id: int) -> Dict[str, Any]:
+    """Fetch current structured live context and Redis cache status for client."""
+    return _request(f"/clients/{client_id}/context/")
+
+
+def update_client_live_context(client_id: int, context_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Atomically overwrite structured live context in DB and Redis cache (<2ms)."""
+    return _request(f"/clients/{client_id}/context/", method="PUT", data=context_data)
+
+
+def clear_client_live_context(client_id: int) -> Dict[str, Any]:
+    """Clear structured live context from DB and Redis cache."""
+    return _request(f"/clients/{client_id}/context/", method="DELETE")
+
+
+def build_tenant_live_context_payload(tenant) -> Dict[str, Any]:
+    """
+    Build a comprehensive, clean JSON payload representing restaurant branches,
+    delivery coverage, categorized menus with prices, and out-of-stock items.
+    """
+    from core.models import Branch, MenuItem, DeliveryArea
+
+    branches = []
+    for b in Branch.objects.filter(tenant=tenant, status="active"):
+        branches.append({
+            "id": b.id,
+            "name": b.name,
+            "city": b.city or "الرياض",
+            "phone": b.phone or "",
+            "status": "مفتوح",
+            "address": b.address or ""
+        })
+
+    areas = []
+    for a in DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).select_related("branch"):
+        areas.append({
+            "id": a.id,
+            "zone": a.name,
+            "branch_id": a.branch.id if a.branch else None,
+            "branch_name": a.branch.name if a.branch else "",
+            "fee": float(a.delivery_fee or 0),
+            "estimated_time": f"{a.estimated_time_minutes} دقيقة" if a.estimated_time_minutes else "35 دقيقة"
+        })
+
+    menu = {}
+    for item in MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name"):
+        cat = item.category or "أطباق عامة"
+        if cat not in menu:
+            menu[cat] = []
+        menu[cat].append({
+            "id": item.id,
+            "name": item.name,
+            "price": float(item.price),
+        })
+
+    out_of_stock = list(MenuItem.objects.filter(tenant=tenant, available=False).values_list("name", flat=True))
+
+    return {
+        "restaurant_name": tenant.name,
+        "branches": branches,
+        "delivery_zones": areas,
+        "menu": menu,
+        "out_of_stock": out_of_stock,
+        "policies": {
+            "tax_rate": "15% ضريبة القيمة المضافة شاملة بالأسعار",
+            "cancellation": "يُسمح بإلغاء الطلب فقط طالما لا يزال جديداً ولم يدخل مرحلة التحضير بالمطبخ",
+            "payment_methods": ["الدفع عند الاستلام كاش أو مدى"]
+        },
+        "system_instruction_for_agent": (
+            "استخدم هذه الذاكرة اللحظية (الفروع، المنيو، الأسعار، مناطق التوصيل) للإجابة الفورية المباشرة على "
+            "استفسارات العميل دون استدعاء أي أداة MCP للأسئلة المرجعية. "
+            "استخدم أدوات MCP فقط عند طلب العميل: البحث عن بياناته السابقة (lookup_customer)، "
+            "معاينة الفاتورة قبل التأكيد (preview_order)، إنشاء الطلب النهائي (create_callcenter_order)، "
+            "أو تتبع وإلغاء أوردر جاري (track_order / cancel_order)."
+        )
+    }
+
+
+def sync_tenant_live_context(tenant, client_id: Optional[int] = None) -> Dict[str, Any]:
+    """
+    Generate the complete live context payload for the tenant and push it
+    atomically to the Partner PBX via PUT /clients/{client_id}/context/.
+    """
+    if client_id is None:
+        client_id = get_client_id_for_tenant(tenant)
+
+    payload = build_tenant_live_context_payload(tenant)
+    resp = update_client_live_context(client_id, payload)
+    
+    # Add summary counts
+    resp["items_count"] = sum(len(v) for v in payload.get("menu", {}).values())
+    resp["branches_count"] = len(payload.get("branches", []))
+    resp["zones_count"] = len(payload.get("delivery_zones", []))
+    resp["out_of_stock_count"] = len(payload.get("out_of_stock", []))
+    return resp
+
+

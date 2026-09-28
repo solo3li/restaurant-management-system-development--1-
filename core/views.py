@@ -2697,6 +2697,12 @@ def ai_callcenter_management_view(request):
     mcp_sse_url = f"http://{host_name}:8000/sse?access_key={access_key}"
     mcp_streamable_url = f"http://{host_name}:8000/mcp?access_key={access_key}"
 
+    # 3. Live Structured Context (Redis Cache)
+    live_context_resp = ps.get_client_live_context(client_id)
+    live_context_info = live_context_resp.get("context", {}) if live_context_resp.get("status") == "success" else {}
+    live_context_data = live_context_info.get("data", {})
+    live_context_cached = live_context_resp.get("cached_in_redis", False)
+
     context = {
         "tenant": tenant,
         "client_id": client_id,
@@ -2724,6 +2730,10 @@ def ai_callcenter_management_view(request):
         "access_key": access_key,
         "mcp_sse_url": mcp_sse_url,
         "mcp_streamable_url": mcp_streamable_url,
+        "live_context": live_context_info,
+        "live_context_data": live_context_data,
+        "live_context_cached": live_context_cached,
+        "live_context_raw": live_context_resp,
     }
     return render(request, "ai_callcenter.html", context)
 
@@ -3007,6 +3017,14 @@ def api_ai_callcenter_test_mcp_tool(request):
             area_name=str(params.get("area_name", "الرياض")),
             access_key=access_key
         ),
+        "preview_order": lambda: ms.preview_order(
+            items=params.get("items", []),
+            customer_address=str(params.get("customer_address", "")),
+            delivery_area_name=params.get("delivery_area_name"),
+            order_type=str(params.get("order_type", "delivery")),
+            branch_id=int(params["branch_id"]) if params.get("branch_id") else None,
+            access_key=access_key
+        ),
         "create_callcenter_order": lambda: ms.create_callcenter_order(
             branch_id=int(params["branch_id"]) if params.get("branch_id") else None,
             customer_phone=str(params.get("customer_phone", "")),
@@ -3015,12 +3033,19 @@ def api_ai_callcenter_test_mcp_tool(request):
             items=params.get("items", []),
             order_type=str(params.get("order_type", "delivery")),
             delivery_area_id=int(params["delivery_area_id"]) if params.get("delivery_area_id") else None,
+            delivery_area_name=params.get("delivery_area_name"),
             notes=str(params.get("notes", "")),
             access_key=access_key
         ),
         "track_order": lambda: ms.track_order(
             order_number=str(params.get("order_number", "")).strip() or None,
             customer_phone=str(params.get("customer_phone", "")).strip() or None,
+            access_key=access_key
+        ),
+        "cancel_order": lambda: ms.cancel_order(
+            order_number=str(params.get("order_number", "")).strip() or None,
+            customer_phone=str(params.get("customer_phone", "")).strip() or None,
+            reason=str(params.get("reason", "طلب العميل عبر الهاتف")),
             access_key=access_key
         ),
         "list_recent_orders": lambda: ms.list_recent_orders(limit=int(params.get("limit", 5)), access_key=access_key),
@@ -3034,6 +3059,38 @@ def api_ai_callcenter_test_mcp_tool(request):
         return JsonResponse({"status": "success", "tool": tool_name, "result": res})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@login_required
+def api_ai_callcenter_sync_live_context(request):
+    """Trigger immediate live context compilation and Redis sync for client."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة نشطة."}, status=400)
+    from core import partner_service as ps
+    try:
+        res = ps.sync_tenant_live_context(tenant)
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@login_required
+def api_ai_callcenter_get_live_context(request):
+    """Retrieve current cached live context from Partner PBX."""
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة نشطة."}, status=400)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    try:
+        res = ps.get_client_live_context(client_id)
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
 
 
 

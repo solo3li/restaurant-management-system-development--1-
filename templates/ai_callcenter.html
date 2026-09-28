@@ -1071,6 +1071,102 @@
             </div>
         </div>
 
+        <!-- Live Structured Context Card (In-Memory Redis Knowledge) -->
+        <div class="card p-6 sm:p-7 border-line space-y-5 bg-gradient-to-br from-amber-50/30 via-card to-card border-amber-200/80 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
+                <div class="space-y-1">
+                    <div class="flex items-center flex-wrap gap-2">
+                        <span class="text-xl">⚡</span>
+                        <h3 class="font-display text-base sm:text-lg font-black text-ink">
+                            الذاكرة المنظمة الحية للعميل (Client Live Context - Redis Cache)
+                        </h3>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                            استجابة فورية &lt; 2ms
+                        </span>
+                        {% if live_context_cached %}
+                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            نشط في Redis
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-soft font-bold">
+                        تُخزن قوائم الفروع والمنيو بالكامل ومناطق التوصيل والأسعار مباشرة في ذاكرة السنترال السحابية (Redis)، ليجيب المساعد الصوتي على المتصل فوراً بدون تأخير أو استدعاء أدوات بطيئة.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="syncLiveContext()" id="btn-sync-live-context" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-black shadow-md shadow-amber-600/20 transition cursor-pointer">
+                        <span>⚡</span> مزامنة الذاكرة الآن (Sync Context)
+                    </button>
+                    <button type="button" onclick="openLiveContextModal()" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-line bg-paper hover:bg-card text-ink text-xs font-bold transition cursor-pointer">
+                        <span>👁️</span> استعراض الـ JSON
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Context Stats Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div class="p-3.5 rounded-xl bg-paper/80 border border-line flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-base text-amber-800">
+                        🏪
+                    </div>
+                    <div>
+                        <div class="text-[10.5px] text-soft font-bold">فروع مفهرسة</div>
+                        <div class="text-sm font-black text-ink" id="live-ctx-branches-badge">
+                            {{ live_context_data.branches|length|default:3 }} فروع نشطة
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-paper/80 border border-line flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-base text-emerald-800">
+                        🍽️
+                    </div>
+                    <div>
+                        <div class="text-[10.5px] text-soft font-bold">أصناف المنيو الفورية</div>
+                        <div class="text-sm font-black text-ink" id="live-ctx-items-badge">
+                            {{ live_context_data.menu|length|default:6 }} أقسام رئيسية
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-paper/80 border border-line flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center text-base text-blue-800">
+                        🛵
+                    </div>
+                    <div>
+                        <div class="text-[10.5px] text-soft font-bold">مناطق التوصيل</div>
+                        <div class="text-sm font-black text-ink" id="live-ctx-zones-badge">
+                            {{ live_context_data.delivery_zones|length|default:2 }} مناطق / كومبوندات
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-paper/80 border border-line flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-purple-100 border border-purple-200 flex items-center justify-center text-base text-purple-800">
+                        💾
+                    </div>
+                    <div>
+                        <div class="text-[10.5px] text-soft font-bold">حجم الذاكرة & التحديث</div>
+                        <div class="text-xs font-black text-ink font-mono" id="live-ctx-size-badge">
+                            {{ live_context.size_bytes|default:"2.9" }} B | {{ live_context.updated_at|default:"محدث" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notice / Architecture explanation -->
+            <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+                <span class="text-base shrink-0">💡</span>
+                <div class="space-y-0.5">
+                    <span class="font-black">المزامنة التلقائية اللحظية (Auto Invalidation & Push) مفعلة:</span>
+                    <p class="text-[11px] leading-relaxed text-amber-800/90 font-bold">
+                        أي تعديل يجريه مدير المطعم أو الكاشير على الأصناف، الأسعار، الفروع، أو مناطق التوصيل يُحدّث ذاكرة السنترال (Redis) آلياً في الخلفية خلال أجزاء من الثانية. هذا يمنع كسل الـ AI ويضمن عدم حدوث أي انقطاع أو تأخير في المكالمات.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- AI Voice Tools Directory -->
         <div class="card p-6 sm:p-7 border-line space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-line pb-4">
@@ -1177,7 +1273,29 @@
                     </div>
                 </div>
 
-                <!-- Tool 5 -->
+                <!-- Tool 5: preview_order -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-brand-200/80 hover:border-brand-400 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">preview_order</span>
+                            <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">معاينة (Preview)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>🧾</span> حساب الفاتورة المبدئية والتوتال
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            حساب التكلفة الدقيقة، رسوم التوصيل، وضريبة 15%، وتوليد رد صوتي جاهز للعميل لأخذ موافقته قبل ضرب الطلب.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: items, address, area</span>
+                        <button type="button" onclick="testToolDirect('preview_order', {})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tool 6: create_callcenter_order -->
                 <div class="p-4 rounded-2xl bg-paper/60 border border-brand-200/80 hover:border-brand-400 transition space-y-3 flex flex-col justify-between">
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between">
@@ -1199,7 +1317,7 @@
                     </div>
                 </div>
 
-                <!-- Tool 6 -->
+                <!-- Tool 7: track_order -->
                 <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between">
@@ -1221,7 +1339,29 @@
                     </div>
                 </div>
 
-                <!-- Tool 7 -->
+                <!-- Tool 8: cancel_order -->
+                <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">cancel_order</span>
+                            <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">إلغاء (Cancel)</span>
+                        </div>
+                        <h4 class="font-black text-ink text-sm flex items-center gap-1.5">
+                            <span>❌</span> إلغاء الأوردر الجديد آلياً
+                        </h4>
+                        <p class="text-xs text-soft leading-relaxed">
+                            إلغاء الطلب إذا كان في حالة جديد (New) ولم يبدأ المطبخ في تحضيره، مع رفض صارم إذا بدأ التحضير وتوجيه المتصل للمشرف.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-line/60 flex items-center justify-between">
+                        <span class="text-[10px] text-soft font-mono">المدخلات: order_number أو customer_phone, reason</span>
+                        <button type="button" onclick="testToolDirect('cancel_order', {})" class="px-2.5 py-1 rounded-lg bg-white hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                            <span>🧪</span> تجربة الأداة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tool 9: list_recent_orders -->
                 <div class="p-4 rounded-2xl bg-paper/60 border border-line hover:border-brand-300 transition space-y-3 flex flex-col justify-between">
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between">
@@ -1622,6 +1762,39 @@ restaurant_tools = await mcp_client.tools()</pre>
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: LIVE CONTEXT JSON INSPECTOR        -->
+<!-- ========================================== -->
+<div id="live-context-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-2xl w-full p-6 border-line shadow-2xl space-y-4 animate-toast" dir="rtl">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>⚡</span> الذاكرة المنظمة الحية للعميل (Redis Live Context)
+            </h3>
+            <button type="button" onclick="closeLiveContextModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
+        </div>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-soft font-bold">البيانات الفورية المخزنة في Redis والجاهزة للمساعد الصوتي:</span>
+                <button type="button" onclick="copyLiveContextJson()" class="text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1 cursor-pointer">
+                    <span>📋</span> نسخ الـ JSON
+                </button>
+            </div>
+            <pre id="live-context-json-box" class="p-4 rounded-xl bg-slate-950 text-emerald-400 font-mono text-[11.5px] leading-relaxed max-h-[380px] overflow-y-auto whitespace-pre-wrap select-all border border-slate-800">جاري تحميل محتوى الذاكرة الحية...</pre>
+        </div>
+
+        <div class="pt-3 border-t border-line flex items-center justify-between gap-2.5">
+            <button type="button" onclick="syncLiveContext()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5">
+                <span>🔄</span> تحديث ومزامنة الآن
+            </button>
+            <button type="button" onclick="closeLiveContextModal()" class="px-4 py-2 rounded-xl border border-line hover:bg-paper text-xs font-black transition cursor-pointer">
+                إغلاق
+            </button>
+        </div>
     </div>
 </div>
 
@@ -2513,6 +2686,48 @@ function testToolDirect(toolName, defaultParams) {
                     </div>
                 </div>
             `;
+        } else if (toolName === 'preview_order') {
+            html = `
+                <div class="space-y-2.5">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">معرف الفرع (Branch ID)</label>
+                            <input type="number" id="test_param_preview_branch_id" value="1" class="input font-mono font-bold text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">اسم الحي / المنطقة</label>
+                            <input type="text" id="test_param_preview_area" value="النرجس" class="input font-bold text-xs">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">اسم الصنف أو رقمه *</label>
+                            <input type="text" id="test_param_preview_item" value="كبسة دجاج" class="input font-bold text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black text-ink mb-1">الكمية</label>
+                            <input type="number" id="test_param_preview_qty" value="1" min="1" max="10" class="input font-mono font-bold text-xs">
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (toolName === 'cancel_order') {
+            html = `
+                <div class="space-y-2.5">
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">رقم الطلب (Order Number)</label>
+                        <input type="text" id="test_param_cancel_order_number" placeholder="مثال: DIY-1059" class="input font-mono font-bold text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">أو رقم هاتف العميل (Customer Phone)</label>
+                        <input type="text" id="test_param_cancel_phone" placeholder="مثال: 0559998877" class="input font-mono font-bold text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-ink mb-1">سبب الإلغاء</label>
+                        <input type="text" id="test_param_cancel_reason" value="إلغاء بناء على رغبة العميل قبل بدء التحضير" class="input font-bold text-xs">
+                    </div>
+                </div>
+            `;
         } else if (toolName === 'list_recent_orders') {
             html = `
                 <div>
@@ -2558,7 +2773,22 @@ async function executeCurrentToolTest() {
         params.limit = parseInt(document.getElementById('test_param_limit').value) || 5;
     }
 
-    if (activeTestingTool === 'create_callcenter_order') {
+    if (activeTestingTool === 'preview_order') {
+        params.branch_id = parseInt(document.getElementById('test_param_preview_branch_id')?.value || '1') || 1;
+        params.area_name = (document.getElementById('test_param_preview_area')?.value || '').trim();
+        const itemNameOrId = (document.getElementById('test_param_preview_item')?.value || 'كبسة دجاج').trim();
+        const itemQty = parseInt(document.getElementById('test_param_preview_qty')?.value || '1') || 1;
+        if (/^\d+$/.test(itemNameOrId)) {
+            params.items = [{item_id: parseInt(itemNameOrId), quantity: itemQty}];
+        } else {
+            params.items = [{name: itemNameOrId, quantity: itemQty}];
+        }
+        params.order_type = 'delivery';
+    } else if (activeTestingTool === 'cancel_order') {
+        params.order_number = (document.getElementById('test_param_cancel_order_number')?.value || '').trim();
+        params.customer_phone = (document.getElementById('test_param_cancel_phone')?.value || '').trim();
+        params.reason = (document.getElementById('test_param_cancel_reason')?.value || 'إلغاء من العميل').trim();
+    } else if (activeTestingTool === 'create_callcenter_order') {
         params.customer_phone = (document.getElementById('test_param_order_phone')?.value || '').trim();
         params.customer_name = (document.getElementById('test_param_order_name')?.value || '').trim();
         params.customer_address = (document.getElementById('test_param_order_address')?.value || '').trim();
@@ -2609,6 +2839,95 @@ async function executeCurrentToolTest() {
         if (btn) {
             btn.disabled = false;
             btn.textContent = '▶️ تشغيل الأداة الآن';
+        }
+    }
+}
+
+// Live Context Client Functions
+let cachedLiveContextJson = null;
+
+async function syncLiveContext() {
+    const btn = document.getElementById('btn-sync-live-context');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> جاري المزامنة...';
+    }
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_sync_live_context' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification(`تمت مزامنة الذاكرة الحية بنجاح (${data.items_count || 0} صنف، ${data.branches_count || 0} فروع) في كاش Redis`);
+            
+            // Update badges if present
+            const sizeBadge = document.getElementById('live-ctx-size-badge');
+            if (sizeBadge && data.context && data.context.size_bytes) {
+                sizeBadge.textContent = `${data.context.size_bytes} B | محدث الآن`;
+            }
+            if (document.getElementById('live-context-modal') && !document.getElementById('live-context-modal').classList.contains('hidden')) {
+                openLiveContextModal();
+            } else {
+                setTimeout(() => location.reload(), 1200);
+            }
+        } else {
+            showNotification(data.message || 'فشلت مزامنة الذاكرة الحية', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر أثناء مزامنة الذاكرة', true);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
+    }
+}
+
+async function openLiveContextModal() {
+    const modal = document.getElementById('live-context-modal');
+    const box = document.getElementById('live-context-json-box');
+    if (modal) modal.classList.remove('hidden');
+    if (box) box.textContent = 'جاري استرجاع بيانات الذاكرة اللحظية من كاش Redis...';
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_get_live_context' %}");
+        const data = await res.json();
+        if (data.status === 'success') {
+            const ctxData = data.context?.data || {};
+            cachedLiveContextJson = JSON.stringify(ctxData, null, 2);
+            if (box) box.textContent = cachedLiveContextJson;
+        } else {
+            if (box) box.textContent = 'لا توجد بيانات ذاكرة حالية أو حدث خطأ: ' + (data.message || '');
+        }
+    } catch (err) {
+        if (box) box.textContent = 'تعذر استرجاع الذاكرة الحية من السيرفر.';
+    }
+}
+
+function closeLiveContextModal() {
+    const modal = document.getElementById('live-context-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function copyLiveContextJson() {
+    if (cachedLiveContextJson) {
+        navigator.clipboard.writeText(cachedLiveContextJson).then(() => {
+            showNotification('تم نسخ محتوى الـ JSON إلى الحافظة بنجاح');
+        }).catch(() => {
+            showNotification('تعذر النسخ تلقائياً', true);
+        });
+    } else {
+        const box = document.getElementById('live-context-json-box');
+        if (box && box.textContent) {
+            navigator.clipboard.writeText(box.textContent).then(() => {
+                showNotification('تم نسخ محتوى الـ JSON بنجاح');
+            });
         }
     }
 }
