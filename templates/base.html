@@ -19,50 +19,50 @@
                         display: ['Cairo', 'sans-serif'],
                     },
                     colors: {
-                        paper: '#f4f0e7',
-                        card: '#fffdf7',
-                        ink: '#26190f',
-                        soft: '#7d6c59',
-                        line: '#e5dbc8',
-                        night: '#221712',
-                        'night-2': '#2e2018',
-                        'night-3': '#3b2a1f',
+                        paper: '#F9F6F0',
+                        card: '#FFFFFF',
+                        ink: '#1E130D',
+                        soft: '#6E5D4F',
+                        line: '#E8DFD3',
+                        night: '#1E130D',
+                        'night-2': '#2A1C15',
+                        'night-3': '#38261E',
                         brand: {
-                            50: '#fdf4ec',
-                            100: '#f9e2cf',
-                            200: '#f1c29c',
-                            300: '#e69c63',
-                            400: '#da7837',
-                            500: '#c85e22',
-                            600: '#ac4a1a',
-                            700: '#8b3a18',
-                            800: '#713019',
-                            900: '#5d2917',
+                            50: '#F0FDF4',
+                            100: '#DCFCE7',
+                            200: '#BBF7D0',
+                            300: '#86EFAC',
+                            400: '#22C55E',
+                            500: '#1B634D',
+                            600: '#144D3B',
+                            700: '#0F3B2E',
+                            800: '#0A2B21',
+                            900: '#061D16',
                         },
                         gold: {
-                            300: '#ecc87e',
-                            400: '#dda94b',
-                            500: '#c9902e',
+                            300: '#E4C79C',
+                            400: '#D2AB6B',
+                            500: '#B88B46',
                         },
                         good: {
-                            100: '#dcefe2',
-                            600: '#257a4e',
-                            700: '#1d6140',
+                            100: '#E1F4EC',
+                            600: '#1B634D',
+                            700: '#144D3B',
                         },
                         warn: {
-                            100: '#f7e9cd',
-                            600: '#a26a0d',
-                            700: '#855708',
+                            100: '#FDF3DF',
+                            600: '#C07D1E',
+                            700: '#9C6212',
                         },
                         bad: {
-                            100: '#f8dcd7',
-                            600: '#b53a2b',
-                            700: '#932e23',
+                            100: '#FCEBE8',
+                            600: '#C53030',
+                            700: '#9B2C2C',
                         },
                         info: {
-                            100: '#d9edf0',
-                            600: '#1f6e7e',
-                            700: '#175865',
+                            100: '#E3F2FD',
+                            600: '#1976D2',
+                            700: '#0D47A1',
                         }
                     }
                 }
@@ -71,42 +71,44 @@
     </script>
     <style>
         body {
-            background-color: #f4f0e7;
-            color: #26190f;
+            background-color: #F9F6F0;
+            color: #1E130D;
             font-family: 'Tajawal', 'Cairo', sans-serif;
         }
         .font-display { font-family: 'Cairo', sans-serif; }
         .card {
-            background-color: #fffdf7;
-            border: 1px solid #e5dbc8;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(60, 42, 24, 0.05);
+            background-color: #FFFFFF;
+            border: 1px solid #E8DFD3;
+            border-radius: 0.875rem;
+            box-shadow: 0 1px 3px rgba(30, 19, 13, 0.04), 0 1px 2px rgba(30, 19, 13, 0.02);
         }
         .input {
             width: 100%;
             border-radius: 0.5rem;
-            border: 1px solid #e5dbc8;
-            background-color: #fffdf7;
+            border: 1px solid #E8DFD3;
+            background-color: #FFFFFF;
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
-            color: #26190f;
+            color: #1E130D;
             outline: none;
             transition: all 0.15s ease-in-out;
         }
         .input:focus {
-            border-color: #da7837;
-            box-shadow: 0 0 0 3px #f1c29c;
+            border-color: #1B634D;
+            box-shadow: 0 0 0 3px rgba(27, 99, 77, 0.15);
         }
         .th {
             padding: 0.625rem 1rem;
             text-align: right;
             font-size: 0.75rem;
             font-weight: 700;
-            color: #7d6c59;
+            color: #6E5D4F;
+            background-color: #F4EFE6;
         }
         .td {
             padding: 0.75rem 1rem;
             font-size: 0.875rem;
+            border-bottom: 1px solid #E8DFD3;
         }
         @keyframes toastIn {
             from { opacity: 0; transform: translateY(12px) scale(0.95); }
@@ -115,62 +117,71 @@
         .animate-toast {
             animation: toastIn 0.25s ease-out forwards;
         }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F4EFE6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D2AB6B;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1B634D;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-paper text-ink">
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-5 left-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     {% if user.is_authenticated %}
-    <!-- Sidebar for Large Screens -->
-    <aside class="fixed inset-y-0 right-0 z-40 hidden w-[250px] flex-col bg-night text-gold-300/80 lg:flex shadow-xl">
-        <!-- Brand Logo & Context Title -->
-        <div class="px-5 py-4 border-b border-night-3">
-            <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-[0_4px_14px_rgba(172,74,26,0.45)] text-xl font-bold">
+    <!-- ============================================================ -->
+    <!-- UNIFIED DARK MOCHA TOP BAR (CLEAN, MINIMAL & SPATIOUS)       -->
+    <!-- ============================================================ -->
+    <header class="fixed top-0 inset-x-0 z-50 h-16 bg-night text-white border-b border-night-3 px-3 sm:px-5 lg:px-6 shadow-md flex items-center justify-between">
+        
+        <!-- RIGHT (RTL Start): Brand + Mega-Menu Trigger + Branch Switcher -->
+        <div class="flex items-center gap-2.5 sm:gap-3 lg:gap-4 min-w-0">
+            <!-- Brand Logo & Name -->
+            <a href="{% if is_hq_mode %}{% url 'dashboard' %}{% else %}{% url 'branch_dashboard' %}{% endif %}" class="flex items-center gap-2.5 shrink-0 hover:opacity-95 transition">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white shadow-md text-lg font-bold">
                     {{ tenant_logo|default:"🔥" }}
                 </span>
-                <div class="min-w-0">
-                    <p class="font-display text-lg font-black text-white truncate">{{ tenant_name|default:"مطاعم ضيافة" }}</p>
-                    <p class="text-[11px] font-bold text-gold-300/70 truncate">
-                        {% if is_platform_admin and not active_tenant %}
-                            🌐 منصة SaaS العامة
-                        {% elif is_hq_mode %}
-                            🏢 الإدارة العامة (كل الفروع)
-                        {% else %}
-                            📍 {{ current_branch.name }}
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
+                <span class="font-display text-base sm:text-lg font-black tracking-wide text-white hidden sm:inline">
+                    {{ tenant_name|default:"مطاعم ضيافة" }}
+                </span>
+            </a>
 
-            <!-- Platform Admin Tenant Switcher -->
-            {% if is_platform_admin and all_tenants %}
-            <div class="mt-2.5">
-                <label class="block text-[10px] font-bold text-gold-300/60 mb-1">المنشأة الحالية (SaaS):</label>
-                <select 
-                    onchange="if(this.value==='platform'){location.href='{% url 'platform_dashboard' %}';}else{location.href='/platform/switch-tenant/' + this.value + '/';}" 
-                    class="w-full bg-night-3 text-gold-300 border border-gold-300/30 rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer"
+            <div class="h-6 w-px bg-night-3 hidden sm:block"></div>
+
+            <!-- MEGA-MENU TRIGGER BUTTON -->
+            <div class="relative">
+                <button 
+                    type="button" 
+                    id="mega-menu-trigger"
+                    onclick="toggleMegaMenu()"
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-night-2 hover:bg-night-3 border border-night-3 text-gold-300 text-xs font-bold transition shadow-xs"
                 >
-                    <option value="platform" {% if request.resolver_match.url_name == 'platform_dashboard' %}selected{% endif %}>🌐 لوحة المنصة (Super Admin)</option>
-                    {% for t in all_tenants %}
-                    <option value="{{ t.id }}" {% if active_tenant and active_tenant.id == t.id and request.resolver_match.url_name != 'platform_dashboard' %}selected{% endif %}>
-                        {{ t.logo_emoji }} {{ t.name }}
-                    </option>
-                    {% endfor %}
-                </select>
+                    <span class="text-sm">㗊</span>
+                    <span>الأقسام والخدمات</span>
+                    <span id="mega-menu-arrow" class="text-[10px] text-gold-400 transition-transform">▼</span>
+                </button>
             </div>
-            {% endif %}
 
-            <!-- Branch Switcher Dropdown (for Owners / Admins) -->
+            <div class="h-6 w-px bg-night-3 hidden md:block"></div>
+
+            <!-- Branch Switcher Dropdown (HQ vs Branch) right next to Mega-Menu -->
             {% if can_switch_branches and all_branches %}
-            <div class="mt-2.5">
-                <label class="block text-[10.5px] font-bold text-gold-300/60 mb-1">التحويل بين الفروع / الإدارة:</label>
+            <div class="flex items-center gap-1.5">
                 <select 
                     onchange="location.href='/branch/switch/' + this.value + '/';" 
-                    class="w-full bg-night-2 text-white border border-night-3 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:border-brand-500 outline-none cursor-pointer"
+                    class="bg-night-2 text-white border border-night-3 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:border-brand-500 outline-none cursor-pointer shadow-xs"
                 >
                     <option value="all" {% if is_hq_mode %}selected{% endif %}>🏢 الإدارة العامة (كافة الفروع)</option>
                     {% for b in all_branches %}
@@ -181,211 +192,270 @@
                 </select>
             </div>
             {% elif current_branch %}
-            <div class="mt-2.5 rounded-lg bg-night-2 px-2.5 py-1 text-[11px] font-bold text-gold-400 border border-night-3">
-                🔒 فرعك: {{ current_branch.name }}
+            <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-night-2 text-gold-300 border border-night-3 text-xs font-bold">
+                📍 فرع: {{ current_branch.name }}
+            </span>
+            {% endif %}
+
+            <!-- Platform Super Admin Tenant Switcher -->
+            {% if is_platform_admin and all_tenants %}
+            <div class="hidden lg:flex items-center gap-1.5">
+                <select 
+                    onchange="if(this.value==='platform'){location.href='{% url 'platform_dashboard' %}';}else{location.href='/platform/switch-tenant/' + this.value + '/';}" 
+                    class="bg-night-2 text-gold-300 border border-night-3 rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none cursor-pointer hover:border-gold-300/50 shadow-xs"
+                >
+                    <option value="platform" {% if request.resolver_match.url_name == 'platform_dashboard' %}selected{% endif %}>🌐 المنصة</option>
+                    {% for t in all_tenants %}
+                    <option value="{{ t.id }}" {% if active_tenant and active_tenant.id == t.id and request.resolver_match.url_name != 'platform_dashboard' %}selected{% endif %}>
+                        {{ t.logo_emoji }} {{ t.name }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
             {% endif %}
         </div>
 
-        <!-- Dynamic Navigation Links -->
-        <nav class="mt-2.5 flex flex-1 flex-col gap-1 px-3 overflow-y-auto">
-            {% if is_platform_admin %}
-                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-400 uppercase">منصة SaaS</div>
-                <a href="{% url 'platform_dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'platform_dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🌐</span> إدارة المنصة والمطاعم
-                </a>
-            {% endif %}
+        <!-- CENTER: Completely Empty & Spacious (No Clutter, Clean & Breathable) -->
+        <div class="flex-1"></div>
 
-            {% if is_hq_mode %}
-                <!-- =================== HQ / OWNER MENU =================== -->
-                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">إدارة المنشأة والتحليلات</div>
-                {% if 'view_hq_dashboard' in user_perms %}
-                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">📊</span> لوحة الإدارة العامة
-                </a>
-                {% endif %}
-                {% if 'view_orders' in user_perms %}
-                <a href="{% url 'hq_orders' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'hq_orders' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🧾</span> سجل كل الطلبات
-                </a>
-                {% endif %}
-                {% if 'manage_branches' in user_perms %}
-                <a href="{% url 'branches' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branches' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🏢</span> إدارة الفروع
-                </a>
-                {% endif %}
-                {% if 'manage_employees' in user_perms %}
-                <a href="{% url 'employees' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'employees' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">👥</span> كل الموظفين والرواتب
-                </a>
-                {% endif %}
-                {% if 'manage_menu' in user_perms %}
-                <a href="{% url 'branch_menu' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">📋</span> قائمة الطعام الرئيسية
-                </a>
-                {% endif %}
-                {% if 'manage_inventory' in user_perms %}
-                <a href="{% url 'inventory' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'inventory' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">📦</span> المخزون المركزي
-                </a>
-                {% endif %}
-                {% if 'call_center_access' in user_perms %}
-                <a href="{% url 'call_center' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'call_center' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🎧</span> الكول سنتر المركزي
-                </a>
-                {% endif %}
-                <a href="{% url 'ai_callcenter_management' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_management' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🎙️</span> المساعد الصوتي الذكي (AI)
-                </a>
-                {% if 'delivery_access' in user_perms %}
-                <a href="{% url 'delivery' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🛵</span> متابعة كل التوصيلات
-                </a>
-                {% endif %}
-                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-400 uppercase mt-2">الاشتراك والباقة</div>
-                <a href="{% url 'owner_subscription' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'owner_subscription' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">💎</span> باقتي واستهلاك الحساب
-                </a>
-            {% else %}
-                <!-- =================== BRANCH OPERATIONS MENU =================== -->
-                <div class="px-2.5 py-1 text-[10px] font-black tracking-wider text-gold-300/50 uppercase">تشغيل الفرع</div>
-                {% if 'view_branch_dashboard' in user_perms %}
-                <a href="{% url 'branch_dashboard' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_dashboard' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🏠</span> لوحة تحكم الفرع
-                </a>
-                {% endif %}
-                {% if 'pos_access' in user_perms %}
-                <a href="{% url 'pos' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'pos' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">💳</span> كاشير الفرع (POS)
-                </a>
-                {% endif %}
-                {% if 'kds_access' in user_perms %}
-                <a href="{% url 'kitchen' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'kitchen' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🍳</span> شاشة المطبخ (KDS)
-                </a>
-                {% endif %}
-                {% if 'view_orders' in user_perms %}
-                <a href="{% url 'branch_orders' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_orders' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🧾</span> طلبات وفواتير الفرع
-                </a>
-                {% endif %}
-                {% if 'delivery_access' in user_perms %}
-                <a href="{% url 'delivery' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">🛵</span> توصيل وسائقي الفرع
-                </a>
-                {% endif %}
-                {% if 'manage_menu' in user_perms %}
-                <a href="{% url 'branch_menu' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">📋</span> منيو وتوفر الوجبات
-                </a>
-                {% endif %}
-                {% if 'manage_inventory' in user_perms %}
-                <a href="{% url 'inventory' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'inventory' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">📦</span> مخزون الفرع
-                </a>
-                {% endif %}
-                {% if 'manage_employees' in user_perms %}
-                <a href="{% url 'employees' %}" class="flex items-center gap-3 rounded-xl px-3.5 py-2 text-[13px] font-bold transition {% if request.resolver_match.url_name == 'employees' %}bg-brand-600 text-white shadow-md{% else %}hover:bg-night-2 hover:text-gold-300{% endif %}">
-                    <span class="text-base">👥</span> موظفو الفرع
-                </a>
-                {% endif %}
-
-                {% if can_switch_branches %}
-                <div class="mt-2 pt-2 border-t border-night-3">
-                    <a href="{% url 'switch_branch' 'all' %}" class="flex items-center gap-2.5 rounded-xl px-3.5 py-2 text-xs font-bold text-gold-300 hover:bg-night-2">
-                        <span>🏢</span> العودة للإدارة العامة
-                    </a>
-                </div>
-                {% endif %}
-            {% endif %}
-
-            {% if user.is_staff %}
-            <div class="mt-auto pt-2 border-t border-night-3">
-                <a href="/admin/" target="_blank" class="flex items-center gap-3 rounded-xl px-3.5 py-1.5 text-xs font-bold transition text-gold-400/80 hover:bg-night-2">
-                    <span>⚙️</span> لوحة Django Admin
-                </a>
-            </div>
-            {% endif %}
-        </nav>
-
-        <!-- User Profile & Session info -->
-        <div class="m-3 rounded-xl border border-night-3 bg-night-2 p-3.5">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-700 text-white text-xs font-bold">
+        <!-- LEFT (RTL End): User Profile Dropdown -->
+        <div class="flex items-center gap-2.5">
+            <!-- User Profile Dropdown Trigger -->
+            <div class="relative">
+                <button 
+                    type="button" 
+                    id="profile-dropdown-trigger"
+                    onclick="toggleProfileDropdown()"
+                    class="flex items-center gap-2 p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-night-2 hover:bg-night-3 border border-night-3 transition"
+                >
+                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-500 text-white text-xs font-bold">
                         {{ user.username|slice:":1"|upper }}
                     </span>
-                    <div class="min-w-0">
-                        <p class="text-xs font-bold text-white truncate">{{ user.first_name|default:user.username }}</p>
-                        <p class="text-[10px] text-gold-300/60 truncate">
+                    <div class="hidden sm:block text-right">
+                        <p class="text-xs font-bold text-white leading-tight truncate max-w-[120px]">{{ user.first_name|default:user.username }}</p>
+                        <p class="text-[10px] text-gold-300/70 leading-tight truncate max-w-[120px]">
                             {% if user_profile and user_profile.job_role %}
-                                🛡️ {{ user_profile.job_role.name }}
+                                {{ user_profile.job_role.name }}
                             {% elif user_profile %}
                                 {{ user_profile.get_role_display }}
-                                {% if user_profile.user.employee_profile.employee_code %}
-                                    #{{ user_profile.user.employee_profile.employee_code }}
-                                {% endif %}
                             {% else %}
                                 مسؤول النظام
                             {% endif %}
                         </p>
                     </div>
-                </div>
-                <a href="{% url 'logout' %}" title="تسجيل الخروج" class="text-bad-600 hover:text-bad-700 p-1 rounded-lg hover:bg-night transition text-sm">
-                    🚪
-                </a>
-            </div>
-        </div>
-    </aside>
+                    <span class="text-[10px] text-gold-400">▼</span>
+                </button>
 
-    <!-- Mobile Header -->
-    <header class="sticky top-0 z-40 flex items-center justify-between border-b border-night-3 bg-night px-4 py-2.5 lg:hidden text-white">
-        <div class="flex items-center gap-2">
-            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white text-base">🔥</span>
-            <div>
-                <span class="font-display text-sm font-extrabold text-white">ضيافة</span>
-                <span class="text-[10px] text-gold-300/80 block">
-                    {% if is_hq_mode %}الإدارة العامة{% else %}{{ current_branch.name }}{% endif %}
-                </span>
+                <!-- Profile Dropdown Menu -->
+                <div id="profile-dropdown-menu" class="hidden absolute left-0 mt-2 w-56 rounded-2xl bg-night-2 border border-night-3 shadow-2xl p-2.5 text-xs text-white z-50 animate-toast">
+                    <div class="p-2 border-b border-night-3">
+                        <p class="font-bold text-white">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-[11px] text-gold-300/80">{{ user.email|default:user.username }}</p>
+                        <div class="mt-1.5 flex items-center gap-1.5">
+                            <span class="px-2 py-0.5 rounded bg-night-3 text-[10px] font-bold text-gold-300">
+                                {% if is_hq_mode %}🏢 إدارة عامة{% else %}📍 {{ current_branch.name }}{% endif %}
+                            </span>
+                            {% if tenant_subscription %}
+                            <span class="px-2 py-0.5 rounded bg-brand-500/30 text-emerald-300 border border-brand-500/50 text-[10px] font-bold">
+                                {{ tenant_subscription.plan_name }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="py-1 space-y-0.5">
+                        <a href="{% url 'owner_subscription' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-gold-300 hover:text-white hover:bg-night-3 transition font-bold">
+                            <span>💎</span> باقتي واستهلاك الحساب
+                        </a>
+                        {% if user.is_staff %}
+                        <a href="/admin/" target="_blank" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-gold-300 hover:text-white hover:bg-night-3 transition font-bold">
+                            <span>⚙️</span> لوحة Django Admin
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="pt-1 border-t border-night-3">
+                        <a href="{% url 'logout' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition font-bold">
+                            <span>🚪</span> تسجيل الخروج
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="flex items-center gap-2 overflow-x-auto text-xs py-1">
-            {% if is_hq_mode %}
-                {% if 'view_hq_dashboard' in user_perms %}<a href="{% url 'dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">HQ</a>{% endif %}
-                {% if 'view_orders' in user_perms %}<a href="{% url 'hq_orders' %}" class="px-2 py-1 rounded font-bold text-gold-300">الطلبات</a>{% endif %}
-                {% if 'manage_branches' in user_perms %}<a href="{% url 'branches' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفروع</a>{% endif %}
-            {% else %}
-                {% if 'view_branch_dashboard' in user_perms %}<a href="{% url 'branch_dashboard' %}" class="px-2 py-1 rounded font-bold text-gold-300">الفرع</a>{% endif %}
-                {% if 'pos_access' in user_perms %}<a href="{% url 'pos' %}" class="px-2 py-1 rounded font-bold text-gold-300">كاشير</a>{% endif %}
-                {% if 'kds_access' in user_perms %}<a href="{% url 'kitchen' %}" class="px-2 py-1 rounded font-bold text-gold-300">المطبخ</a>{% endif %}
-            {% endif %}
-            <a href="{% url 'logout' %}" class="px-2 py-1 text-bad-600 font-bold">خروج</a>
+
+            <!-- Mobile Menu Toggle Button -->
+            <button 
+                type="button" 
+                onclick="toggleMegaMenu()"
+                class="flex xl:hidden h-8 w-8 items-center justify-center rounded-lg bg-night-2 border border-night-3 text-gold-300 hover:bg-night-3"
+                title="القائمة الشاملة"
+            >
+                ☰
+            </button>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="lg:mr-[250px]">
-        <div class="mx-auto max-w-[1400px] px-4 py-6 lg:px-8">
+    <!-- ============================================================ -->
+    <!-- MEGA-MENU DROPDOWN MODAL (3 ORGANIZED FUNCTIONAL COLUMNS)    -->
+    <!-- ============================================================ -->
+    <div id="mega-menu-overlay" onclick="toggleMegaMenu(false)" class="hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity"></div>
+    <div id="mega-menu-panel" class="hidden fixed top-16 inset-x-3 sm:inset-x-6 lg:right-6 lg:left-auto lg:w-[860px] z-50 rounded-2xl bg-night-2 border border-night-3 shadow-2xl p-5 text-white animate-toast">
+        <div class="flex items-center justify-between border-b border-night-3 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+                <span class="text-base text-gold-400">㗊</span>
+                <span class="font-display text-sm font-black text-white">قائمة الأقسام والخدمات المركزية</span>
+                <span class="text-[11px] text-gold-300/60">
+                    {% if is_hq_mode %}🏢 الإدارة العامة (كافة الفروع){% else %}📍 فرع {{ current_branch.name }}{% endif %}
+                </span>
+            </div>
+            <button onclick="toggleMegaMenu(false)" class="text-xs text-gold-300/60 hover:text-white px-2 py-1 rounded-lg hover:bg-night-3">✕ إغلاق</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <!-- العمود 1: التشغيل والطلبات اليومية -->
+            <div class="rounded-xl bg-night p-3.5 border border-night-3 space-y-2">
+                <p class="font-display text-xs font-black text-gold-400 flex items-center gap-1.5 pb-1 border-b border-night-3">
+                    <span>🛵</span> العمليات والطلبات
+                </p>
+                <div class="space-y-1">
+                    {% if 'call_center_access' in user_perms %}
+                    <a href="{% url 'call_center' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'call_center' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🎧</span> الكول سنتر المركزي
+                    </a>
+                    {% endif %}
+                    
+                    {% if 'pos_access' in user_perms %}
+                    <a href="{% url 'pos' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'pos' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">💳</span> كاشير ونقاط البيع (POS)
+                    </a>
+                    {% endif %}
+
+                    {% if 'kds_access' in user_perms %}
+                    <a href="{% url 'kitchen' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'kitchen' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🍳</span> شاشة المطبخ (KDS)
+                    </a>
+                    {% endif %}
+
+                    {% if is_hq_mode and 'view_orders' in user_perms %}
+                    <a href="{% url 'hq_orders' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'hq_orders' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🧾</span> سجل كافة الطلبات
+                    </a>
+                    {% elif 'view_orders' in user_perms %}
+                    <a href="{% url 'branch_orders' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'branch_orders' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🧾</span> طلبات وفواتير الفرع
+                    </a>
+                    {% endif %}
+
+                    {% if 'delivery_access' in user_perms %}
+                    <a href="{% url 'delivery' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'delivery' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🛵</span> متابعة التوصيل والمناديب
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- العمود 2: إدارة المنشأة والفروع والمخزون -->
+            <div class="rounded-xl bg-night p-3.5 border border-night-3 space-y-2">
+                <p class="font-display text-xs font-black text-gold-400 flex items-center gap-1.5 pb-1 border-b border-night-3">
+                    <span>🏢</span> إدارة المنشأة والموارد
+                </p>
+                <div class="space-y-1">
+                    {% if is_hq_mode and 'view_hq_dashboard' in user_perms %}
+                    <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'dashboard' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">📊</span> لوحة الإدارة العامة (HQ)
+                    </a>
+                    {% elif 'view_branch_dashboard' in user_perms %}
+                    <a href="{% url 'branch_dashboard' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'branch_dashboard' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🏠</span> لوحة تحكم الفرع
+                    </a>
+                    {% endif %}
+
+                    {% if is_hq_mode and 'manage_branches' in user_perms %}
+                    <a href="{% url 'branches' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'branches' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🏢</span> إدارة الفروع والمناطق
+                    </a>
+                    {% endif %}
+
+                    {% if 'manage_menu' in user_perms %}
+                    <a href="{% url 'branch_menu' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">📋</span> قائمة الطعام والأسعار
+                    </a>
+                    {% endif %}
+
+                    {% if 'manage_inventory' in user_perms %}
+                    <a href="{% url 'inventory' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'inventory' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">📦</span> المخزون والمستودعات
+                    </a>
+                    {% endif %}
+
+                    {% if 'manage_employees' in user_perms %}
+                    <a href="{% url 'employees' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'employees' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">👥</span> الموظفون والرواتب
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- العمود 3: الذكاء الاصطناعي والإعدادات المتقدمة -->
+            <div class="rounded-xl bg-night p-3.5 border border-night-3 space-y-2">
+                <p class="font-display text-xs font-black text-gold-400 flex items-center gap-1.5 pb-1 border-b border-night-3">
+                    <span>✨</span> الذكاء الاصطناعي والمنصة
+                </p>
+                <div class="space-y-1">
+                    <a href="{% url 'ai_callcenter_management' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_management' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🎙️</span> المساعد الصوتي الذكي (AI)
+                    </a>
+
+                    <a href="{% url 'owner_subscription' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'owner_subscription' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">💎</span> باقتي واستهلاك الحساب
+                    </a>
+
+                    {% if is_platform_admin %}
+                    <a href="{% url 'platform_dashboard' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold transition {% if request.resolver_match.url_name == 'platform_dashboard' %}bg-brand-500 text-white{% else %}text-gold-300/90 hover:bg-night-3 hover:text-white{% endif %}">
+                        <span class="text-base">🌐</span> إدارة منصة SaaS العامة
+                    </a>
+                    {% endif %}
+
+                    {% if can_switch_branches and not is_hq_mode %}
+                    <a href="{% url 'switch_branch' 'all' %}" class="flex items-center gap-2.5 p-2 rounded-lg font-bold text-gold-300 hover:bg-night-3 hover:text-white transition">
+                        <span class="text-base">🏢</span> التحويل للإدارة العامة
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_staff %}
+                    <a href="/admin/" target="_blank" class="flex items-center gap-2.5 p-2 rounded-lg font-bold text-gold-300/80 hover:bg-night-3 hover:text-white transition">
+                        <span class="text-base">⚙️</span> لوحة Django Admin
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MAIN CONTENT AREA: FULL-WIDTH FLUID RESPONSIVE CANVAS         -->
+    <!-- ============================================================ -->
+    <main class="pt-16 min-h-screen">
+        <div class="w-full px-3 sm:px-6 lg:px-8 py-5">
             <!-- Subscription Warning Banner -->
             {% if tenant_subscription and not is_platform_admin %}
                 {% if not tenant_subscription.is_active %}
-                <div class="mb-5 rounded-xl border border-bad-300 bg-bad-50 p-4 text-bad-900 shadow-sm flex items-center justify-between">
+                <div class="mb-5 rounded-xl border border-bad-600/30 bg-bad-100 p-4 text-bad-700 shadow-sm flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">⚠️</span>
                         <div>
                             <p class="font-extrabold text-sm">تنبيه: اشتراك المنشأة منتهي أو معلق</p>
-                            <p class="text-xs text-bad-700">باقتك الحالية «{{ tenant_subscription.plan_name }}» انتهت صلاحيتها. يرجى التواصل مع إدارة المنصة لتجديد الاشتراك واستعادة كافة الصلاحيات.</p>
+                            <p class="text-xs">باقتك الحالية «{{ tenant_subscription.plan_name }}» انتهت صلاحيتها. يرجى التواصل مع إدارة المنصة لتجديد الاشتراك واستعادة كافة الصلاحيات.</p>
                         </div>
                     </div>
                     <span class="rounded-lg bg-bad-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs">منتهي الصلاحية</span>
                 </div>
                 {% elif tenant_subscription.is_expiring_soon %}
-                <div class="mb-5 rounded-xl border border-warn-300 bg-warn-50 p-3.5 text-warn-900 shadow-sm flex items-center justify-between">
+                <div class="mb-5 rounded-xl border border-warn-600/30 bg-warn-100 p-3.5 text-warn-700 shadow-sm flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <span class="text-xl">⏳</span>
                         <div>
                             <p class="font-bold text-xs">تذكير: اشتراك منشأتك ينتهي خلال {{ tenant_subscription.days_left }} أيام</p>
-                            <p class="text-[11px] text-warn-700">ينتهي اشتراك باقة «{{ tenant_subscription.plan_name }}» بتاريخ {{ tenant_subscription.end_date|date:"Y-m-d" }}. يرجى التجديد لضمان استمرارية التشغيل دون انقطاع.</p>
+                            <p class="text-[11px]">ينتهي اشتراك باقة «{{ tenant_subscription.plan_name }}» بتاريخ {{ tenant_subscription.end_date|date:"Y-m-d" }}. يرجى التجديد لضمان استمرارية التشغيل دون انقطاع.</p>
                         </div>
                     </div>
                     <span class="rounded-lg bg-warn-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs">قرب الانتهاء</span>
@@ -396,8 +466,10 @@
             {% block content %}{% endblock %}
         </div>
     </main>
+
     {% else %}
-    <main>
+    <!-- Unauthenticated Page Layout (Login, Landing, etc.) -->
+    <main class="min-h-screen bg-paper text-ink">
         {% block unauth_content %}{% endblock %}
     </main>
     {% endif %}
@@ -420,6 +492,7 @@
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-bold animate-toast ${
                 type === 'error' 
@@ -435,6 +508,70 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3500);
         }
+
+        function toggleMegaMenu(forceState) {
+            const panel = document.getElementById('mega-menu-panel');
+            const overlay = document.getElementById('mega-menu-overlay');
+            const arrow = document.getElementById('mega-menu-arrow');
+            const profileMenu = document.getElementById('profile-dropdown-menu');
+            
+            if (!panel || !overlay) return;
+
+            // Close profile dropdown if open
+            if (profileMenu && !profileMenu.classList.contains('hidden')) {
+                profileMenu.classList.add('hidden');
+            }
+
+            const isCurrentlyOpen = !panel.classList.contains('hidden');
+            const shouldOpen = forceState !== undefined ? forceState : !isCurrentlyOpen;
+
+            if (shouldOpen) {
+                panel.classList.remove('hidden');
+                overlay.classList.remove('hidden');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            } else {
+                panel.classList.add('hidden');
+                overlay.classList.add('hidden');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function toggleProfileDropdown() {
+            const menu = document.getElementById('profile-dropdown-menu');
+            const megaPanel = document.getElementById('mega-menu-panel');
+            const megaOverlay = document.getElementById('mega-menu-overlay');
+            
+            if (!menu) return;
+
+            // Close mega menu if open
+            if (megaPanel && !megaPanel.classList.contains('hidden')) {
+                megaPanel.classList.add('hidden');
+                if (megaOverlay) megaOverlay.classList.add('hidden');
+                const arrow = document.getElementById('mega-menu-arrow');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+
+            menu.classList.toggle('hidden');
+        }
+
+        // Close dropdowns on outside click or Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                toggleMegaMenu(false);
+                const menu = document.getElementById('profile-dropdown-menu');
+                if (menu) menu.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            const profileBtn = document.getElementById('profile-dropdown-trigger');
+            const profileMenu = document.getElementById('profile-dropdown-menu');
+            if (profileMenu && !profileMenu.classList.contains('hidden')) {
+                if (profileBtn && !profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
+                    profileMenu.classList.add('hidden');
+                }
+            }
+        });
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
