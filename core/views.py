@@ -521,8 +521,13 @@ def dashboard_view(request):
             "is_today": i == 0,
         })
 
-    # 6. Branch performance comparison matrix
+    # 6. Branch performance comparison matrix & ranking
     branches = Branch.objects.filter(tenant=tenant, status="active").order_by("id")
+    total_branches_count = Branch.objects.filter(tenant=tenant).count()
+    active_branches_count = branches.count()
+    callcenter_orders_count = today_orders.filter(channel="call_center").count()
+    cashier_orders_count = today_orders.filter(channel="cashier").count()
+
     branch_matrix = []
     max_branch_sale = Decimal("1")
     for b in branches:
@@ -540,8 +545,10 @@ def dashboard_view(request):
             "employees_count": b_emps,
             "low_stock_count": b_low_stock,
         })
+    # Sort descending by sales for live ranking
+    branch_matrix.sort(key=lambda x: x["sales_today"], reverse=True)
 
-    recent_orders = Order.objects.filter(tenant=tenant).select_related("branch").order_by("-id")[:6]
+    recent_orders = Order.objects.filter(tenant=tenant).select_related("branch").order_by("-id")[:8]
     top_items_qs = (
         OrderItem.objects.filter(order__tenant=tenant, order__created_at__gte=start_of_today)
         .values("name")
@@ -564,9 +571,13 @@ def dashboard_view(request):
         "week_total": week_total,
         "branch_matrix": branch_matrix,
         "max_branch_sale": float(max_branch_sale),
+        "active_branches_count": active_branches_count,
+        "total_branches_count": total_branches_count,
+        "callcenter_orders_count": callcenter_orders_count,
+        "cashier_orders_count": cashier_orders_count,
         "recent_orders": recent_orders,
         "top_items": top_items_qs,
-        "low_stock_items": low_stock[:6],
+        "low_stock_items": low_stock[:8],
     }
     return render(request, "hq_dashboard.html", context)
 
