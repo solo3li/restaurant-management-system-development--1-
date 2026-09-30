@@ -57,13 +57,13 @@
     }
 </style>
 
-<div class="min-h-screen bg-[#F9F6F0] font-body text-[#1E130D] flex flex-col justify-center selection:bg-[#1B634D] selection:text-white" dir="rtl">
+<div class="min-h-screen bg-[#F9F6F0] font-body text-[#1E130D] flex flex-col justify-center selection:bg-[#1B634D] selection:text-white" dir="{{ DIR|default:'rtl' }}">
     
     <!-- Full-Width Split-Screen Container -->
     <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 overflow-hidden shadow-2xl">
         
         <!-- ======================================================== -->
-        <!-- RIGHT PANEL: OPULENT HERITAGE SHOWCASE                   -->
+        <!-- SHOWCASE PANEL: OPULENT HERITAGE SHOWCASE                -->
         <!-- ======================================================== -->
         <div class="lg:col-span-5 xl:col-span-5 bg-arabesque-emerald relative flex flex-col justify-between p-8 sm:p-12 lg:p-14 text-white overflow-hidden order-2 lg:order-1">
             
@@ -83,16 +83,34 @@
             <!-- Top Header in Showcase -->
             <div class="relative z-10 flex items-center justify-between">
                 <a href="{% url 'landing' %}" class="inline-flex items-center gap-3 group">
-                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="شعار ضيافة" class="h-10 sm:h-12 w-auto drop-shadow-md group-hover:scale-105 transition-transform" />
+                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="{{ t.brand_name }}" class="h-10 sm:h-12 w-auto drop-shadow-md group-hover:scale-105 transition-transform" />
                     <div>
-                        <span class="font-royal text-2xl sm:text-3xl font-bold text-white tracking-tight">ضِيَافَة</span>
+                        <span class="font-royal text-2xl sm:text-3xl font-bold text-white tracking-tight">{{ t.brand_name }}</span>
                         <span class="block text-[10px] font-bold text-[#D2AB6B] tracking-widest uppercase">Heritage Culinary OS</span>
                     </div>
                 </a>
 
-                <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-[#D2AB6B]/40 bg-white/5 hover:bg-white/10 text-xs font-bold text-[#E8D3B0] hover:text-white transition flex items-center gap-1.5 backdrop-blur-xs">
-                    <span>← العودة للرئيسية</span>
-                </a>
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <!-- Royal Bilingual Switcher Capsule -->
+                    <div class="flex items-center p-0.5 rounded-full bg-white/10 border border-[#D2AB6B]/40 shadow-xs backdrop-blur-xs text-[11px] font-bold">
+                        <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
+                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-[#1B634D] text-[#E4C79C] shadow-sm font-extrabold{% else %}text-[#E8D3B0] hover:text-white{% endif %}"
+                           title="التبديل إلى اللغة العربية">
+                            <span>🇸🇦</span>
+                            <span>عربي</span>
+                        </a>
+                        <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
+                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-[#1B634D] text-[#E4C79C] shadow-sm font-extrabold{% else %}text-[#E8D3B0] hover:text-white{% endif %}"
+                           title="Switch to English">
+                            <span>🇬🇧</span>
+                            <span>EN</span>
+                        </a>
+                    </div>
+
+                    <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-[#D2AB6B]/40 bg-white/5 hover:bg-white/10 text-xs font-bold text-[#E8D3B0] hover:text-white transition flex items-center gap-1.5 backdrop-blur-xs">
+                        <span>{% if IS_RTL %}← العودة للرئيسية{% else %}Back to Home →{% endif %}</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Middle Core: Brand Title & Framed Traditional Feast Image -->

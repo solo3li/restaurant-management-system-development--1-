@@ -3190,6 +3190,32 @@ def api_ai_callcenter_get_live_context(request):
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
+def set_language_view(request, lang_code):
+    """
+    Switch active interface language (ar/en), save to session and cookie,
+    and redirect back to the previous page or next parameter.
+    """
+    from django.utils import translation
+    from django.http import HttpResponseRedirect
+    from django.conf import settings
+    
+    if lang_code not in ["ar", "en"]:
+        lang_code = "ar"
 
+    translation.activate(lang_code)
+    
+    next_url = request.GET.get("next") or request.META.get("HTTP_REFERER") or "/"
+    if not next_url.startswith("/"):
+        next_url = "/"
 
-
+    response = HttpResponseRedirect(next_url)
+    request.session["django_language"] = lang_code
+    request.session["_language"] = lang_code
+    
+    response.set_cookie(
+        settings.LANGUAGE_COOKIE_NAME,
+        lang_code,
+        max_age=365 * 24 * 60 * 60,
+        samesite="Lax"
+    )
+    return response

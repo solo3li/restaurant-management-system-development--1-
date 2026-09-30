@@ -1151,12 +1151,15 @@
         }
     };
 
-    let currentLang = localStorage.getItem('diyafa_lang') || 'ar';
+    let currentLang = '{{ CURRENT_LANG|default:"ar" }}' || localStorage.getItem('diyafa_lang') || 'ar';
 
     // Apply Language Function
     function setLanguage(lang) {
         currentLang = lang;
-        localStorage.setItem('diyafa_lang', lang);
+        try {
+            localStorage.setItem('diyafa_lang', lang);
+            fetch('/set-language/' + lang + '/');
+        } catch(e) {}
 
         const isAr = lang === 'ar';
         document.documentElement.lang = lang;

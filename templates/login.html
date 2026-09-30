@@ -48,13 +48,13 @@
     }
 </style>
 
-<div class="min-h-screen bg-[#F9F6F0] font-body text-[#1E130D] flex flex-col justify-center selection:bg-[#1B634D] selection:text-white" dir="rtl">
+<div class="min-h-screen bg-[#F9F6F0] font-body text-[#1E130D] flex flex-col justify-center selection:bg-[#1B634D] selection:text-white" dir="{{ DIR|default:'rtl' }}">
     
     <!-- Full-Width Split-Screen Container -->
     <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 overflow-hidden shadow-2xl">
         
         <!-- ======================================================== -->
-        <!-- RIGHT PANEL: OPULENT HERITAGE SHOWCASE (From Selected UI) -->
+        <!-- SHOWCASE PANEL: OPULENT HERITAGE SHOWCASE                -->
         <!-- ======================================================== -->
         <div class="lg:col-span-6 xl:col-span-7 bg-arabesque-emerald relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 text-white overflow-hidden order-2 lg:order-1">
             
@@ -74,16 +74,34 @@
             <!-- Top Header in Showcase -->
             <div class="relative z-10 flex items-center justify-between">
                 <a href="{% url 'landing' %}" class="inline-flex items-center gap-3 group">
-                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="شعار ضيافة" class="h-10 sm:h-12 w-auto drop-shadow-md group-hover:scale-105 transition-transform" />
+                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="{{ t.brand_name }}" class="h-10 sm:h-12 w-auto drop-shadow-md group-hover:scale-105 transition-transform" />
                     <div>
-                        <span class="font-royal text-2xl sm:text-3xl font-bold text-white tracking-tight">ضِيَافَة</span>
+                        <span class="font-royal text-2xl sm:text-3xl font-bold text-white tracking-tight">{{ t.brand_name }}</span>
                         <span class="block text-[10px] font-bold text-[#D2AB6B] tracking-widest uppercase">Heritage Culinary OS</span>
                     </div>
                 </a>
 
-                <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-[#D2AB6B]/40 bg-white/5 hover:bg-white/10 text-xs font-bold text-[#E8D3B0] hover:text-white transition flex items-center gap-1.5 backdrop-blur-xs">
-                    <span>← العودة للرئيسية</span>
-                </a>
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <!-- Royal Bilingual Switcher Capsule -->
+                    <div class="flex items-center p-0.5 rounded-full bg-white/10 border border-[#D2AB6B]/40 shadow-xs backdrop-blur-xs text-[11px] font-bold">
+                        <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
+                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-[#1B634D] text-[#E4C79C] shadow-sm font-extrabold{% else %}text-[#E8D3B0] hover:text-white{% endif %}"
+                           title="التبديل إلى اللغة العربية">
+                            <span>🇸🇦</span>
+                            <span>عربي</span>
+                        </a>
+                        <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
+                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-[#1B634D] text-[#E4C79C] shadow-sm font-extrabold{% else %}text-[#E8D3B0] hover:text-white{% endif %}"
+                           title="Switch to English">
+                            <span>🇬🇧</span>
+                            <span>EN</span>
+                        </a>
+                    </div>
+
+                    <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-[#D2AB6B]/40 bg-white/5 hover:bg-white/10 text-xs font-bold text-[#E8D3B0] hover:text-white transition flex items-center gap-1.5 backdrop-blur-xs">
+                        <span>{% if IS_RTL %}← العودة للرئيسية{% else %}Back to Home →{% endif %}</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Middle Core: Brand Title & Framed Traditional Feast Image -->
@@ -171,10 +189,10 @@
                         class="h-16 w-auto mx-auto mb-2 drop-shadow-md select-none hover:scale-105 transition-transform"
                     />
                     <h1 class="font-headline text-2xl sm:text-3xl font-black text-[#1E130D] tracking-tight">
-                        تسجيل الدخول إلى النظام
+                        {% if IS_RTL %}تسجيل الدخول إلى النظام{% else %}Sign In to System{% endif %}
                     </h1>
                     <p class="text-xs font-bold text-[#6E5D4F] mt-1.5">
-                        أدخل بيانات الاعتماد لإدارة مطعمك وفروعك
+                        {% if IS_RTL %}أدخل بيانات الاعتماد لإدارة مطعمك وفروعك{% else %}Enter your credentials to manage your restaurant & branches{% endif %}
                     </p>
                 </div>
 
@@ -187,7 +205,7 @@
                         class="flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-[#1B634D] shadow-sm border border-[#D2AB6B]/30 flex items-center justify-center gap-1.5"
                     >
                         <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        حساب المالك والإدارة
+                        {% if IS_RTL %}حساب المالك والإدارة{% else %}Owner & Management{% endif %}
                     </button>
                     <button 
                         type="button" 
@@ -196,7 +214,7 @@
                         class="flex-1 py-2 rounded-lg text-xs font-black transition-all text-[#6E5D4F] hover:text-[#1E130D] flex items-center justify-center gap-1.5"
                     >
                         <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                        كود الموظف السريع (PIN)
+                        {% if IS_RTL %}كود الموظف السريع (PIN){% else %}Quick Staff PIN{% endif %}
                     </button>
                 </div>
 
@@ -216,10 +234,10 @@
                     <div class="space-y-4">
                         <div>
                             <label for="username" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
-                                اسم المستخدم أو البريد الإلكتروني
+                                {% if IS_RTL %}اسم المستخدم أو البريد الإلكتروني{% else %}Username or Email{% endif %}
                             </label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#8C6527] pointer-events-none">
+                                <span class="absolute inset-y-0 {% if IS_RTL %}right-0 pr-3.5{% else %}left-0 pl-3.5{% endif %} flex items-center text-[#8C6527] pointer-events-none">
                                     <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </span>
                                 <input 
@@ -227,8 +245,8 @@
                                     id="username" 
                                     name="username" 
                                     required 
-                                    class="w-full pr-10 pl-3.5 py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
-                                    placeholder="مثال: admin أو owner_burger"
+                                    class="w-full {% if IS_RTL %}pr-10 pl-3.5{% else %}pl-10 pr-3.5{% endif %} py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                    placeholder="{% if IS_RTL %}مثال: admin أو owner_burger{% else %}e.g. admin or owner_burger{% endif %}"
                                     value="admin"
                                 >
                             </div>
@@ -237,14 +255,14 @@
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
                                 <label for="password" class="block text-xs font-bold text-[#1E130D]">
-                                    كلمة المرور
+                                    {% if IS_RTL %}كلمة المرور{% else %}Password{% endif %}
                                 </label>
-                                <a href="javascript:void(0)" onclick="alert('يرجى التواصل مع مدير النظام أو استخدام أحد الحسابات التجريبية بالأسفل.')" class="text-[11px] font-bold text-[#8C6527] hover:underline">
-                                    نسيت كلمة المرور؟
+                                <a href="javascript:void(0)" onclick="alert('{% if IS_RTL %}يرجى التواصل مع مدير النظام أو استخدام أحد الحسابات التجريبية بالأسفل.{% else %}Please contact your system admin or use a demo account below.{% endif %}')" class="text-[11px] font-bold text-[#8C6527] hover:underline">
+                                    {% if IS_RTL %}نسيت كلمة المرور؟{% else %}Forgot Password?{% endif %}
                                 </a>
                             </div>
                             <div class="relative">
-                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#8C6527] pointer-events-none">
+                                <span class="absolute inset-y-0 {% if IS_RTL %}right-0 pr-3.5{% else %}left-0 pl-3.5{% endif %} flex items-center text-[#8C6527] pointer-events-none">
                                     <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                 </span>
                                 <input 
@@ -252,7 +270,7 @@
                                     id="password" 
                                     name="password" 
                                     required 
-                                    class="w-full pr-10 pl-3.5 py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition font-mono" 
+                                    class="w-full {% if IS_RTL %}pr-10 pl-3.5{% else %}pl-10 pr-3.5{% endif %} py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition font-mono" 
                                     placeholder="••••••••"
                                     value="admin123"
                                 >
@@ -263,7 +281,7 @@
                         <div class="flex items-center justify-between pt-1">
                             <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-[#5C4B3F]">
                                 <input type="checkbox" checked class="rounded border-[#D2AB6B] text-[#1B634D] focus:ring-[#D2AB6B]">
-                                <span>تذكرني على هذا الجهاز</span>
+                                <span>{% if IS_RTL %}تذكرني على هذا الجهاز{% else %}Remember me on this device{% endif %}</span>
                             </label>
                         </div>
 
@@ -272,8 +290,8 @@
                             type="submit" 
                             class="w-full mt-2 btn-gold-pill py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                         >
-                            <span>دخول إلى المنظومة</span>
-                            <span class="text-xs">←</span>
+                            <span>{% if IS_RTL %}دخول إلى المنظومة{% else %}Sign In to System{% endif %}</span>
+                            <span class="text-xs">{% if IS_RTL %}←{% else %}→{% endif %}</span>
                         </button>
                     </div>
                 </form>
@@ -286,7 +304,7 @@
                     <div class="space-y-4">
                         <div>
                             <label for="employee_code" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
-                                كود الموظف (ID / Badge Code)
+                                {% if IS_RTL %}كود الموظف (ID / Badge Code){% else %}Staff Badge Code (ID){% endif %}
                             </label>
                             <input 
                                 type="text" 
@@ -294,13 +312,13 @@
                                 name="employee_code" 
                                 required 
                                 class="w-full py-3 px-3.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-center text-sm font-black font-mono tracking-wider focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
-                                placeholder="مثال: 104 للكاشير أو 106 للشيف"
+                                placeholder="{% if IS_RTL %}مثال: 104 للكاشير أو 106 للشيف{% else %}e.g. 104 for cashier or 106 for chef{% endif %}"
                             >
                         </div>
 
                         <div>
                             <label for="pin" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
-                                رمز الـ PIN السريع (4 أرقام)
+                                {% if IS_RTL %}رمز الـ PIN السريع (4 أرقام){% else %}Quick PIN (4 digits){% endif %}
                             </label>
                             <input 
                                 type="password" 
@@ -318,7 +336,7 @@
                             class="w-full mt-2 btn-gold-pill py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                         >
                             <svg class="w-4 h-4 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-                            <span>بدء الوردية والدخول</span>
+                            <span>{% if IS_RTL %}بدء الوردية والدخول{% else %}Clock-In & Shift Login{% endif %}</span>
                         </button>
                     </div>
                 </form>
@@ -326,9 +344,9 @@
                 <!-- Switch Link: Register New Restaurant (From UI design) -->
                 <div class="mt-6 pt-5 border-t border-[#E8DFD3] text-center">
                     <p class="text-xs font-bold text-[#5C4B3F]">
-                        ليس لديك حساب منشأة؟ 
+                        {% if IS_RTL %}ليس لديك حساب منشأة؟{% else %}Don't have an account?{% endif %}
                         <a href="{% url 'register' %}" class="text-[#1B634D] hover:text-[#8C6527] underline font-extrabold transition">
-                            تسجيل منشأة ومطعم جديد ←
+                            {% if IS_RTL %}تسجيل منشأة ومطعم جديد ←{% else %}Register Restaurant & Branch →{% endif %}
                         </a>
                     </p>
                 </div>
