@@ -6,132 +6,142 @@
 <div class="space-y-6 pb-14" dir="rtl">
 
     <!-- ========================================== -->
-    <!-- HEADER & TOP BAR                           -->
+    <!-- LUXURY HEADER & TOP BAR BANNER             -->
     <!-- ========================================== -->
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-line pb-5">
-        <div>
-            <div class="flex items-center gap-2 text-xs font-bold text-soft mb-1">
-                <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">الإدارة العامة (HQ)</a>
-                <span>/</span>
-                <span class="text-ink">المساعد الصوتي والذكاء الاصطناعي</span>
-            </div>
-            <h1 class="font-display text-2xl sm:text-3xl font-black text-ink flex items-center gap-3">
-                <span class="p-2 rounded-2xl bg-brand-50 text-brand-600 border border-brand-200">🎙️</span>
-                <span>كول سنتر الذكاء الاصطناعي — {{ tenant.name }}</span>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> متصل بالسيرفر
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#0E382A] via-[#144D3B] to-[#0A261C] text-white border border-[#D2AB6B]/30 shadow-xl relative overflow-hidden">
+        <!-- Subtle luxury geometric watermark -->
+        <div class="absolute -left-10 -bottom-10 w-44 h-44 rounded-full bg-[#D2AB6B]/10 blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-1.5">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#D2AB6B]/20 text-[#E4C79C] border border-[#D2AB6B]/40 text-[11px] font-black">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    HQ • كول سنتر الذكاء الاصطناعي 24/7
                 </span>
+                <span class="text-xs text-[#E2D9CE]/70 hidden sm:inline">|</span>
+                <span class="text-xs text-[#E2D9CE]/80 font-bold hidden sm:inline">{{ tenant.name|default:"مطاعم ضيافة" }}</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-black font-display text-white tracking-wide flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-xl border border-white/15">🎙️</span>
+                <span>المساعد الصوتي وكول سنتر الذكاء الاصطناعي</span>
             </h1>
-            <p class="text-xs font-bold text-soft mt-1">
-                إدارة شخصية المساعد باللهجة المصرية، مواعيد العمل والاعتذار، قاعدة المعرفة (RAG)، موظفي التحويلات، وطوابير الانتظار
+            <p class="text-xs text-[#E2D9CE]/80 mt-1 max-w-2xl leading-relaxed">
+                إدارة شخصية المساعد الذكي، مواعيد العمل، قاعدة المعرفة (RAG)، موظفي التحويلات، وتكامل خادم FastMCP المباشر.
             </p>
         </div>
 
-        <div class="flex items-center flex-wrap gap-2.5">
+        <div class="relative z-10 flex flex-wrap items-center gap-2.5 shrink-0">
             <!-- Master Toggle Button -->
             <button 
                 type="button" 
                 id="master-status-btn"
                 onclick="toggleMasterStatus()"
-                class="px-4 py-2.5 rounded-xl border text-xs font-black transition flex items-center gap-2 shadow-xs {% if profile.is_active %}bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100{% else %}bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100{% endif %}"
+                class="px-3.5 py-2 rounded-xl border text-xs font-black transition flex items-center gap-2 shadow-xs {% if profile.is_active %}bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30{% else %}bg-rose-500/20 text-rose-300 border-rose-400/40 hover:bg-rose-500/30{% endif %}"
             >
-                <span id="master-status-dot" class="h-2.5 w-2.5 rounded-full {% if profile.is_active %}bg-emerald-500{% else %}bg-rose-500{% endif %}"></span>
-                <span id="master-status-text">المساعد الصوتي: {% if profile.is_active %}مُفعّل ويستقبل المكالمات{% else %}موقوف مؤقتاً{% endif %}</span>
+                <span id="master-status-dot" class="h-2.5 w-2.5 rounded-full {% if profile.is_active %}bg-emerald-400 animate-pulse{% else %}bg-rose-400{% endif %}"></span>
+                <span id="master-status-text">المساعد: {% if profile.is_active %}مُفعّل ويستقبل المكالمات{% else %}موقوف مؤقتاً{% endif %}</span>
             </button>
 
-            <a href="{% url 'call_center' %}" class="px-4 py-2.5 rounded-xl border border-line bg-card hover:bg-paper text-ink text-xs font-bold transition flex items-center gap-2">
-                <span>🎧</span> شاشة الكول سنتر المباشرة
+            <a href="{% url 'call_center' %}" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#D2AB6B] to-[#B88B46] hover:brightness-105 text-[#1E130D] text-xs font-black transition shadow-md">
+                <span>🎧</span>
+                <span>شاشة الكول سنتر المباشرة</span>
             </a>
-            <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-xl border border-line bg-card hover:bg-paper text-ink text-xs font-bold transition">
-                ← عودة للوحة HQ
+
+            <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white transition">
+                <span>←</span>
+                <span>لوحة HQ</span>
             </a>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- KPI SUMMARY CARDS                          -->
+    <!-- KPI SUMMARY CARDS (4 LUXURY METRIC CARDS)  -->
     <!-- ========================================== -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Direct Phone Number Card -->
-        <div class="card p-4 border-line relative overflow-hidden bg-gradient-to-br from-card to-paper">
+        <div class="card p-5 border-t-4 border-t-[#D2AB6B] hover:shadow-md transition relative group">
             <div class="flex items-center justify-between">
-                <p class="text-[11px] font-bold text-soft">خط الهاتف المخصص (DID)</p>
-                <span class="text-xl">📞</span>
-            </div>
-            <p class="font-mono text-base font-black text-ink mt-1.5 tracking-wider">{{ did_number }}</p>
-            <div class="mt-2 flex items-center justify-between text-[10.5px]">
-                <span class="text-emerald-700 font-bold flex items-center gap-1">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> جاهز للرنين
+                <span class="text-xs font-bold text-soft">خط الهاتف المخصص (DID)</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#D2AB6B]/15 text-[#B88B46] text-base font-bold shadow-xs">
+                    📞
                 </span>
-                <button onclick="navigator.clipboard.writeText('{{ did_number }}'); showNotification('تم نسخ الرقم');" class="text-brand-600 font-bold hover:underline">نسخ الرقم</button>
+            </div>
+            <p class="font-mono text-lg font-black text-ink mt-2 tracking-wider" dir="ltr">{{ did_number }}</p>
+            <div class="mt-2.5 flex items-center justify-between text-xs">
+                <span class="text-emerald-700 font-extrabold flex items-center gap-1 text-[11px]">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> جاهز للرنين
+                </span>
+                <button onclick="navigator.clipboard.writeText('{{ did_number }}'); showToast('تم نسخ الرقم');" class="text-brand-600 font-extrabold hover:underline text-[11px]">نسخ الرقم</button>
             </div>
         </div>
 
         <!-- Orders Generated via AI -->
-        <div class="card p-4 border-line">
+        <div class="card p-5 border-t-4 border-t-brand-600 hover:shadow-md transition relative group">
             <div class="flex items-center justify-between">
-                <p class="text-[11px] font-bold text-soft">الطلبات المنفذة آلياً (AI Orders)</p>
-                <span class="text-xl">🧾</span>
+                <span class="text-xs font-bold text-soft">الطلبات المنفذة آلياً (AI)</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base font-bold shadow-xs">
+                    🧾
+                </span>
             </div>
-            <p class="font-display text-2xl font-black text-ink mt-1">{{ total_ai_orders }} <span class="text-xs font-bold text-soft">طلب</span></p>
-            <p class="text-[10.5px] font-bold text-emerald-700 mt-1.5">
-                مبيعات: {{ total_ai_revenue }} ريال
+            <p class="font-display text-2xl font-black text-brand-700 mt-2">{{ total_ai_orders }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="text-xs font-bold text-soft mt-1">
+                إجمالي المبيعات: <span class="font-black text-ink">{{ total_ai_revenue }} ر.س</span>
             </p>
         </div>
 
-        <!-- Call Center Conversion & Stats -->
-        <div class="card p-4 border-line">
+        <!-- Call Center Consumption Wallet -->
+        <div class="card p-5 border-t-4 border-t-[#D2AB6B] hover:shadow-md transition relative group">
             <div class="flex items-center justify-between">
-                <p class="text-[11px] font-bold text-soft">سقف الاستهلاك المتاح</p>
-                <span class="text-xl">⏱️</span>
+                <span class="text-xs font-bold text-soft">سقف الاستهلاك المتاح</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0E382A] text-[#D2AB6B] text-base font-bold shadow-xs">
+                    ⏱️
+                </span>
             </div>
-            <p class="font-display text-2xl font-black text-ink mt-1">{{ wallet.balance|default:"9.60" }} <span class="text-xs font-bold text-soft">{{ wallet.currency|default:"USD" }}</span></p>
-            <p class="text-[10.5px] font-bold text-soft mt-1.5">
-                معدل الاستهلاك: 0.03$ / دقيقة مكالمة
+            <p class="font-display text-2xl font-black text-ink mt-2">{{ wallet.balance|default:"9.60" }} <span class="text-xs font-bold text-soft">{{ wallet.currency|default:"USD" }}</span></p>
+            <p class="text-xs font-bold text-soft mt-1">
+                معدل الاستهلاك: 0.03$ / دقيقة
             </p>
         </div>
 
         <!-- Active Dialect & Persona -->
-        <div class="card p-4 border-line bg-brand-50/40 border-brand-200">
+        <div class="card p-5 border-t-4 border-t-brand-600 hover:shadow-md transition relative group">
             <div class="flex items-center justify-between">
-                <p class="text-[11px] font-bold text-brand-900">اللهجة والشخصية الحالية</p>
+                <span class="text-xs font-bold text-soft">اللهجة والشخصية الحالية</span>
                 <span class="text-xl">🇪🇬</span>
             </div>
-            <p class="font-display text-base font-black text-brand-900 mt-1.5">
+            <p class="font-display text-sm font-black text-ink mt-2 truncate">
                 {{ profile.dialect_display|default:"لهجة مصرية عامية (مصر)" }}
             </p>
-            <p class="text-[10.5px] font-bold text-brand-700 mt-1.5 flex items-center gap-1">
-                <span>الصوت:</span> <span class="font-mono">{{ profile.voice_name|default:"Aoede" }}</span>
-                <span>•</span>
-                <span>{{ profile.speaking_style_display|default:"ودود ولطيف ومرح" }}</span>
+            <p class="text-[11px] font-bold text-soft mt-1 truncate">
+                صوت: <span class="font-black text-brand-700">{{ profile.voice_name|default:"Aoede" }}</span> • {{ profile.speaking_style_display|default:"ودود ولطيف ومرح" }}
             </p>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- TABS NAVIGATION BAR                        -->
+    <!-- TABS NAVIGATION BAR (LUXURY STYLE)         -->
     <!-- ========================================== -->
-    <div class="border-b border-line">
-        <div class="flex items-center gap-2 overflow-x-auto pb-px no-scrollbar">
-            <button onclick="switchTab('persona')" id="tab-btn-persona" class="tab-btn px-4 py-3 text-xs font-black border-b-2 transition flex items-center gap-2 whitespace-nowrap text-brand-600 border-brand-600 bg-brand-50/50 rounded-t-xl">
+    <div class="border-b border-line bg-card rounded-2xl p-1.5 shadow-xs">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-px no-scrollbar">
+            <button onclick="switchTab('persona')" id="tab-btn-persona" class="tab-btn px-4 py-2.5 text-xs font-black transition flex items-center gap-2 whitespace-nowrap bg-[#0E382A] text-[#D2AB6B] rounded-xl shadow-xs">
                 <span>🎙️</span> شخصية المساعد واللهجة
             </button>
-            <button onclick="switchTab('hours')" id="tab-btn-hours" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+            <button onclick="switchTab('hours')" id="tab-btn-hours" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
                 <span>⏰</span> مواعيد العمل والاعتذار
             </button>
-            <button onclick="switchTab('knowledge')" id="tab-btn-knowledge" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+            <button onclick="switchTab('knowledge')" id="tab-btn-knowledge" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
                 <span>📚</span> قاعدة المعرفة الذكية (RAG)
             </button>
-            <button onclick="switchTab('employees')" id="tab-btn-employees" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+            <button onclick="switchTab('employees')" id="tab-btn-employees" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
                 <span>👥</span> موظفو التحويل البشري
             </button>
-            <button onclick="switchTab('queues')" id="tab-btn-queues" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+            <button onclick="switchTab('queues')" id="tab-btn-queues" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
                 <span>🔀</span> طوابير الانتظار (Queues)
             </button>
-            <button onclick="switchTab('calls')" id="tab-btn-calls" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+            <button onclick="switchTab('calls')" id="tab-btn-calls" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
                 <span>📊</span> سجل المكالمات والتسجيلات
             </button>
-            <button onclick="switchTab('mcp')" id="tab-btn-mcp" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap text-soft border-transparent hover:text-ink hover:border-line rounded-t-xl">
+            <button onclick="switchTab('mcp')" id="tab-btn-mcp" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
                 <span>🤖</span> تكامل FastMCP والأدوات
             </button>
         </div>
