@@ -153,51 +153,81 @@
     </svg>
 
     <!-- ======================================================== -->
-    <!-- TOP NAVIGATION: CLASSIC EMERALD & GOLD PILL (From Design #1) -->
+    <!-- TOP NAVIGATION: EXACT CLASSIC CARTOUCHE (MATCHING PHOTO) -->
     <!-- ======================================================== -->
-    <header class="sticky top-4 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="header-emerald-pill rounded-full px-4 sm:px-7 py-3 flex items-center justify-between text-white transition-all duration-300">
+    <header class="sticky top-3 sm:top-5 z-50 px-2 sm:px-4 max-w-6xl mx-auto w-full">
+        <!-- Floating Architectural Cartouche Ribbon -->
+        <div class="classic-navbar-cartouche flex items-stretch h-[64px] relative select-none">
             
-            <!-- Brand / Logo in Classic Script -->
-            <a href="{% url 'landing' %}" class="flex items-center gap-3 group">
-                <div class="h-10 w-10 rounded-full bg-[#1B634D] border border-[#D2AB6B]/70 flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition">
-                    🍽️
-                </div>
-                <div class="leading-tight">
-                    <span class="font-royal text-xl sm:text-2xl font-bold tracking-wide text-[#F9F6F0] block drop-shadow-sm" data-i18n="brand_name">ضِيَافَة</span>
-                    <span class="text-[9px] uppercase tracking-widest text-[#D2AB6B] font-bold block" data-i18n="brand_subtitle">Heritage Culinary OS</span>
-                </div>
-            </a>
-
-            <!-- Navigation Links -->
-            <nav class="hidden lg:flex items-center gap-7 text-xs sm:text-sm font-semibold text-[#F9F6F0]/90">
-                <a href="#hero" class="hover:text-[#D2AB6B] transition py-1 relative hover:-translate-y-0.5" data-i18n="nav_home">الرئيسية</a>
-                <a href="#heritage" class="hover:text-[#D2AB6B] transition py-1 relative hover:-translate-y-0.5" data-i18n="nav_heritage">التراث المطبخي</a>
-                <a href="#systems" class="hover:text-[#D2AB6B] transition py-1 relative hover:-translate-y-0.5" data-i18n="nav_systems">شبكة الأنظمة</a>
-                <a href="#ai-callcenter" class="hover:text-[#D2AB6B] transition py-1 relative hover:-translate-y-0.5" data-i18n="nav_ai">الكول سنتر الذكي</a>
-                <a href="#pricing" class="hover:text-[#D2AB6B] transition py-1 relative hover:-translate-y-0.5" data-i18n="nav_pricing">الخطط والأسعار</a>
-                <a href="#about" class="hover:text-[#D2AB6B] transition py-1 relative hover:-translate-y-0.5" data-i18n="nav_about">من نحن</a>
-            </nav>
-
-            <!-- Language Switcher & Action CTA -->
-            <div class="flex items-center gap-2.5 sm:gap-4">
-                
-                <!-- BILINGUAL LANGUAGE SWITCHER BUTTON (FULL EN / AR) -->
-                <button id="lang-toggle-btn" onclick="toggleLanguage()" class="px-3 py-1.5 rounded-full border border-[#D2AB6B]/60 bg-[#0B2920]/60 hover:bg-[#0B2920] text-xs font-bold text-[#E8D3B0] transition flex items-center gap-1.5 shadow-inner" title="Switch Language / تغيير اللغة">
-                    <span class="text-sm">🌐</span>
-                    <span id="lang-label" class="tracking-wide">English</span>
-                </button>
-
-                <!-- Login Button -->
-                <a href="{% url 'login' %}" class="hidden sm:inline-flex px-3.5 py-1.5 rounded-full text-xs font-bold text-[#F9F6F0] hover:text-[#D2AB6B] hover:bg-white/10 transition" data-i18n="nav_login">
-                    تسجيل الدخول
-                </a>
-
-                <!-- Gold Pill CTA Button matching design #1 ("ابدأ الآن") -->
-                <a href="{% url 'login' %}" class="btn-gold-pill px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-extrabold flex items-center gap-1.5" data-i18n="nav_cta">
-                    ابدأ الآن
-                </a>
+            <!-- Left Pointed Bracket Endcap with Gold Filigree (Exact from Mockup) -->
+            <div class="flex-shrink-0 h-[64px] w-[46px] relative overflow-hidden pointer-events-none">
+                <img src="{% static 'img/navbar_tip_left.png' %}" alt="" class="h-full w-full object-fill" />
             </div>
+
+            <!-- Center Emerald Banner Body -->
+            <div class="flex-1 bg-[#155240] h-[64px] relative flex items-center justify-between px-2 sm:px-6">
+                
+                <!-- Inner Gold Horizontal Pinstripes (Top and Bottom running between endcaps) -->
+                <div class="absolute top-[6px] left-0 right-0 h-[1.5px] bg-[#D2AB6B]/80 pointer-events-none"></div>
+                <div class="absolute bottom-[6px] left-0 right-0 h-[1.5px] bg-[#D2AB6B]/80 pointer-events-none"></div>
+
+                <!-- Navigation Links (Matching Exact Typography & Links in Reference) -->
+                <nav class="flex items-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-[14px] font-medium tracking-wide relative z-10 font-serif">
+                    <a href="#hero" class="nav-link-active text-[#D2AB6B] font-bold border-b-2 border-[#D2AB6B] pb-0.5 transition" data-i18n="nav_home">Home</a>
+                    <a href="#heritage" class="nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_heritage">Culinary Heritage</a>
+                    <a href="#systems" class="hidden md:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_systems">Restaurant Network</a>
+                    <a href="#systems" class="hidden sm:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_services">Services</a>
+                    <a href="#about" class="hidden lg:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_about">About Us</a>
+                    <a href="#contact" class="hidden sm:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_contact">Contact</a>
+                </nav>
+
+                <!-- Actions: Language Toggle & Exact Gold Cartouche Button ("ابدأ الآن") -->
+                <div class="flex items-center gap-2.5 sm:gap-4 relative z-10">
+                    
+                    <!-- Language Switcher Pill Button -->
+                    <button id="lang-toggle-btn" onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-[#D2AB6B]/60 bg-[#0B2920]/80 hover:bg-[#0B2920] text-xs font-bold text-[#E8D3B0] transition flex items-center gap-1.5 shadow-inner" title="Switch Language / تغيير اللغة">
+                        <span class="text-xs">🌐</span>
+                        <span id="lang-label" class="tracking-wider">English</span>
+                    </button>
+
+                    <!-- Login Link -->
+                    <a href="{% url 'login' %}" class="hidden xl:inline-block text-xs font-bold text-[#EAE5DB] hover:text-[#D2AB6B] transition" data-i18n="nav_login">
+                        تسجيل الدخول
+                    </a>
+
+                    <!-- The Exact Gold Cartouche Plaque Button with Pointed Bracket Notches -->
+                    <a href="{% url 'login' %}" class="classic-gold-cartouche-btn group relative flex items-center justify-center px-6 sm:px-8 h-[44px]">
+                        <!-- Gold Cartouche SVG Background -->
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none drop-shadow-md" viewBox="0 0 140 44" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="goldPlaqueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#F4DC9E"/>
+                                    <stop offset="48%" stop-color="#D4A759"/>
+                                    <stop offset="100%" stop-color="#BA8B42"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- Pointed bracket notches at both sides matching navbar_btn_gold.png -->
+                            <path d="M 16,1 L 124,1 C 130,1 133,5 133,12 C 133,16 137,19 140,22 C 137,25 133,28 133,32 C 133,39 130,43 124,43 L 16,43 C 10,43 7,39 7,32 C 7,28 3,25 0,22 C 3,19 7,16 7,12 C 7,5 10,1 16,1 Z" 
+                                  fill="url(#goldPlaqueGrad)" 
+                                  stroke="#FFF1D6" 
+                                  stroke-width="1.2"/>
+                        </svg>
+
+                        <!-- Calligraphic Gold Button Text (Exact Arabic "ابدأ الآن" from image) -->
+                        <span class="relative z-10 font-headline text-sm sm:text-base font-black text-[#1E130D] tracking-tight group-hover:scale-105 transition-transform" data-i18n="nav_cta">
+                            ابدأ الآن
+                        </span>
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- Right Pointed Bracket Endcap with Gold Filigree (Exact from Mockup) -->
+            <div class="flex-shrink-0 h-[64px] w-[46px] relative overflow-hidden pointer-events-none">
+                <img src="{% static 'img/navbar_tip_right_clean.png' %}" alt="" class="h-full w-full object-fill" />
+            </div>
+
         </div>
     </header>
 
@@ -283,7 +313,7 @@
                         <img src="{% static 'img/classic_feast_hero.jpg' %}" 
                              alt="Authentic Middle Eastern Culinary Feast" 
                              class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                             onerror="this.onerror=null; this.src='{% static 'img/classic_landing_reference.jpg' %}';">
+                             onerror="this.onerror=null; this.src='/static/img/classic_landing_reference.jpg';">
                         
                         <!-- Soft Gradient Ambient Overlay -->
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
@@ -961,10 +991,12 @@
             brand_subtitle: "Heritage Culinary OS",
             nav_home: "الرئيسية",
             nav_heritage: "التراث المطبخي",
-            nav_systems: "شبكة الأنظمة",
+            nav_systems: "شبكة المطاعم",
+            nav_services: "الخدمات",
+            nav_about: "من نحن",
+            nav_contact: "تواصل معنا",
             nav_ai: "الكول سنتر الذكي",
             nav_pricing: "الخطط والأسعار",
-            nav_about: "من نحن",
             nav_login: "تسجيل الدخول",
             nav_cta: "ابدأ الآن",
             hero_badge: "نظام إدارة المطاعم الراقية وسلاسل الضيافة",
@@ -1037,10 +1069,12 @@
             brand_subtitle: "Heritage Culinary OS",
             nav_home: "Home",
             nav_heritage: "Culinary Heritage",
-            nav_systems: "Systems Network",
+            nav_systems: "Restaurant Network",
+            nav_services: "Services",
+            nav_about: "About Us",
+            nav_contact: "Contact",
             nav_ai: "AI Call Center",
             nav_pricing: "Plans & Pricing",
-            nav_about: "About Us",
             nav_login: "Sign In",
             nav_cta: "Start Now",
             hero_badge: "Premium Restaurant Management & Hospitality OS",
