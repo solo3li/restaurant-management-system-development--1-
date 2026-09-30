@@ -1417,6 +1417,13 @@ def create_callcenter_order(
             qty=oi["quantity"],
         )
 
+    # Real-time SSE push to kitchen display
+    try:
+        from core.kitchen_events import notify_kitchen_order_event
+        notify_kitchen_order_event(order, "new_order")
+    except Exception as e:
+        logger.warning(f"Failed to notify kitchen of AI order: {e}")
+
     key_obj.record_usage(placed_order=True)
 
     est_time = f"{matched_area.estimated_time_minutes} دقيقة" if (matched_area and matched_area.estimated_time_minutes) else "30 إلى 45 دقيقة"

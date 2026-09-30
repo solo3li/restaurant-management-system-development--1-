@@ -7,13 +7,16 @@ from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 
 from django.contrib.auth import authenticate, login, logout
+import asyncio
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models import Sum, Count, F, Q
+from asgiref.sync import sync_to_async
+from .kitchen_events import kitchen_broadcaster, serialize_kitchen_order, notify_kitchen_order_event
 
 from .models import (
     Tenant,
@@ -667,39 +670,161 @@ def branch_dashboard_view(request):
 
 
 # ==========================================
-# 3. KITCHEN DISPLAY SCREEN (KDS - المطبخ)
+# 3. KITCHEN DISPLAY SCREEN (KDS - المطبخ) & REAL-TIME SSE
 # ==========================================
 
 @login_required
 @ensure_csrf_cookie
 def kitchen_view(request):
+    """
+    Renders the Kitchen Display Screen with category stations, live counters,
+    item-level checklists, and real-time SSE streaming.
+    """
     if not user_has_perm(request.user, "kds_access"):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى شاشة المطبخ (KDS)")
 
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
-    now = timezone.now()
+    q_branch = request.GET.get("branch_id")
+    target_branch_id = int(q_branch) if (q_branch and q_branch.isdigit()) else (branch.id if branch else None)
 
-    orders_qs = Order.objects.filter(tenant=tenant, status__in=["new", "preparing"]).prefetch_related("items").order_by("created_at")
-    if branch:
-        orders_qs = orders_qs.filter(branch=branch)
+    orders_qs = Order.objects.filter(
+        tenant=tenant,
+        status__in=["new", "preparing"]
+    ).prefetch_related("items__menu_item", "branch").order_by("created_at")
 
-    kitchen_orders = []
-    for o in orders_qs:
-        elapsed = int((now - o.created_at).total_seconds() / 60)
-        kitchen_orders.append({
-            "order": o,
-            "elapsed_minutes": elapsed,
-            "items": o.items.all(),
-        })
+    if target_branch_id:
+        orders_qs = orders_qs.filter(branch_id=target_branch_id)
+
+    orders_data = [serialize_kitchen_order(o) for o in orders_qs]
+
+    # Extract all distinct categories available in this tenant's menu
+    menu_categories = list(
+        MenuItem.objects.filter(tenant=tenant)
+        .exclude(category="")
+        .values_list("category", flat=True)
+        .distinct()
+    )
+    if not menu_categories:
+        menu_categories = ["مشويات", "أطباق رئيسية", "مقبلات", "مشروبات", "حلويات", "ساندويتشات"]
+    else:
+        menu_categories = sorted(list(set(menu_categories)))
+
+    # Calculate station counts across pending orders
+    station_counts = {}
+    for o in orders_data:
+        for cat in o.get("categories", []):
+            station_counts[cat] = station_counts.get(cat, 0) + 1
+
+    branches = list(Branch.objects.filter(tenant=tenant, status="active"))
 
     context = {
         "tenant": tenant,
         "branch": branch,
-        "kitchen_orders": kitchen_orders,
-        "total_pending": len(kitchen_orders),
+        "target_branch_id": target_branch_id,
+        "branches": branches,
+        "kitchen_orders": orders_data,
+        "kitchen_orders_json": json.dumps(orders_data),
+        "total_pending": len(orders_data),
+        "menu_categories": menu_categories,
+        "station_counts": station_counts,
+        "station_counts_json": json.dumps(station_counts),
     }
     return render(request, "kitchen.html", context)
+
+
+async def kitchen_stream_view(request):
+    """
+    True Real-Time Server-Sent Events (SSE) push stream for the Kitchen Display Screen (KDS).
+    Pushes events: 'connected', 'new_order', 'order_status_changed', 'order_updated', 'order_cancelled'.
+    Maintains persistent ASGI connection with automatic keepalive (zero polling, 0ms latency).
+    """
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden("يرجى تسجيل الدخول للوصول إلى بث المطبخ المباشر")
+
+    tenant = await sync_to_async(get_active_tenant)(request)
+    if not tenant:
+        return HttpResponseForbidden("المنشأة غير موجودة")
+
+    has_perm = await sync_to_async(user_has_perm)(request.user, "kds_access")
+    if not has_perm:
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى شاشة المطبخ (KDS)")
+
+    branch = await sync_to_async(get_active_branch)(request)
+    branch_id = branch.id if branch else None
+
+    q_branch = request.GET.get("branch_id")
+    if q_branch and q_branch.isdigit():
+        branch_id = int(q_branch)
+
+    queue = await kitchen_broadcaster.register(tenant.id, branch_id)
+
+    async def event_generator():
+        try:
+            # Initial connection confirmation event
+            init_payload = {
+                "status": "connected",
+                "tenant_id": tenant.id,
+                "branch_id": branch_id,
+                "server_time": timezone.now().isoformat(),
+            }
+            yield f"event: connected\ndata: {json.dumps(init_payload)}\n\n"
+
+            while True:
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    yield f"event: {event['type']}\ndata: {json.dumps(event['data'])}\n\n"
+                except asyncio.TimeoutError:
+                    # Heartbeat comment to keep connection alive through proxies
+                    yield ": ping\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            await kitchen_broadcaster.unregister(queue)
+
+    response = StreamingHttpResponse(event_generator(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache, no-transform"
+    response["X-Accel-Buffering"] = "no"
+    response["Connection"] = "keep-alive"
+    return response
+
+
+@login_required
+def kitchen_live_view(request):
+    """
+    Returns JSON snapshot of all active kitchen orders (new & preparing)
+    along with calculated category stations and counts.
+    """
+    if not user_has_perm(request.user, "kds_access"):
+        return JsonResponse({"error": "غير مصرح لك بالوصول"}, status=403)
+
+    tenant = get_active_tenant(request)
+    branch = get_active_branch(request)
+    q_branch = request.GET.get("branch_id")
+    target_branch_id = int(q_branch) if (q_branch and q_branch.isdigit()) else (branch.id if branch else None)
+
+    orders_qs = Order.objects.filter(
+        tenant=tenant,
+        status__in=["new", "preparing"]
+    ).prefetch_related("items__menu_item", "branch").order_by("created_at")
+
+    if target_branch_id:
+        orders_qs = orders_qs.filter(branch_id=target_branch_id)
+
+    orders_data = [serialize_kitchen_order(o) for o in orders_qs]
+
+    station_counts = {}
+    for o in orders_data:
+        for cat in o.get("categories", []):
+            station_counts[cat] = station_counts.get(cat, 0) + 1
+
+    return JsonResponse({
+        "ok": True,
+        "orders": orders_data,
+        "total_pending": len(orders_data),
+        "station_counts": station_counts,
+        "timestamp": timezone.now().isoformat(),
+    })
 
 
 # ==========================================
@@ -1004,6 +1129,7 @@ def api_cancel_order(request, order_id):
 
     order.status = "cancelled"
     order.save()
+    notify_kitchen_order_event(order, "order_cancelled")
     return JsonResponse({"ok": True, "status": "cancelled", "message": f"تم إلغاء الطلب {order.order_number} بنجاح"})
 
 
@@ -1021,6 +1147,7 @@ def api_delete_order(request, order_id):
 
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
     order_number = order.order_number
+    notify_kitchen_order_event(order, "order_cancelled")
     order.delete()
     return JsonResponse({"ok": True, "message": f"تم حذف الطلب {order_number} نهائياً من قاعدة البيانات"})
 
@@ -1456,6 +1583,9 @@ def api_create_order(request):
             qty=r["qty"],
         )
 
+    # Broadcast real-time SSE event to all active kitchen screens (0ms)
+    notify_kitchen_order_event(order, "new_order")
+
     return JsonResponse({"order": {"id": order.id, "orderNumber": order.order_number}}, status=201)
 
 
@@ -1471,6 +1601,7 @@ def api_update_order(request, order_id):
     except Exception:
         return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
 
+    old_status = order.status
     if "status" in data and data["status"] in dict(Order.STATUS_CHOICES):
         order.status = data["status"]
 
@@ -1485,6 +1616,11 @@ def api_update_order(request, order_id):
         order.paid = data["paid"]
 
     order.save()
+
+    # Broadcast real-time SSE status change to kitchen displays (0ms)
+    event_type = "order_status_changed" if old_status != order.status else "order_updated"
+    notify_kitchen_order_event(order, event_type)
+
     return JsonResponse({"ok": True, "status": order.status})
 
 

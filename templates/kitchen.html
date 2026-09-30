@@ -1,133 +1,682 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}{{ t.kds_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
+{% block title %}شاشة المطبخ وإدارة المحطات (KDS Live) — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Kitchen Header -->
-    <div class="p-5 rounded-2xl bg-gradient-to-r from-[#0E382A] via-[#144D3B] to-[#0A261C] text-white border border-[#D2AB6B]/30 shadow-xl relative overflow-hidden">
-        <div class="absolute -left-10 -bottom-10 w-40 h-40 rounded-full bg-[#D2AB6B]/10 blur-2xl pointer-events-none"></div>
+<div class="space-y-5 font-body">
 
-        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <span class="medallion-icon flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
-                    <svg class="w-6 h-6 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                </span>
+    <!-- ======================================================== -->
+    <!-- KDS CONTROL HEADER: Live SSE Status, Stations, Actions   -->
+    <!-- ======================================================== -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#0A261C] via-[#0E382A] to-[#082218] text-white border border-[#D2AB6B]/30 shadow-2xl relative overflow-hidden">
+        <div class="absolute -left-10 -bottom-10 w-44 h-44 rounded-full bg-[#D2AB6B]/10 blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-[#1B634D]/20 blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            
+            <!-- Left: Icon & Title -->
+            <div class="flex items-center gap-3.5">
+                <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#1B634D] to-[#0A261C] border border-[#D2AB6B]/40 flex items-center justify-center shadow-lg shadow-black/40 text-[#D2AB6B] shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-xl sm:text-2xl font-bold font-royal text-white tracking-wide">{{ t.kds_title }}</h1>
-                        <span class="rounded-full bg-[#D2AB6B]/20 border border-[#D2AB6B]/40 px-3 py-0.5 text-xs font-bold text-[#E6C898] font-body">
-                            {{ total_pending }} {% if IS_RTL %}طلب قيد الإعداد{% else %}Active Orders{% endif %}
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h1 class="text-xl sm:text-2xl font-black font-royal text-white tracking-wide">
+                            شاشة المطبخ وإدارة المحطات
+                        </h1>
+                        <span id="header-total-badge" class="rounded-full bg-[#D2AB6B]/20 border border-[#D2AB6B]/40 px-3 py-0.5 text-xs font-black text-[#E4C79C]">
+                            <span id="total-pending-count">{{ total_pending }}</span> طلب نشط
                         </span>
                     </div>
-                    <p class="text-xs text-[#E2D9CE]/80 mt-1 flex items-center gap-1 font-body">
-                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <span>{% if branch %}{{ branch.name }}{% else %}{{ t.all_branches_label }}{% endif %}</span>
-                        <span>• متابعة مباشرة لأوامر الطهي والتجهيز</span>
+                    <p class="text-xs text-[#E2D9CE]/80 mt-1 flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span id="active-branch-label">{% if branch %}{{ branch.name }}{% else %}كافة الفروع{% endif %}</span>
+                        </span>
+                        <span>•</span>
+                        <span>بث حي بالملي ثانية عبر SSE بدون إعادة تحميل</span>
                     </p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <button onclick="location.reload()" class="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-3.5 py-2 text-xs font-bold text-[#E6C898] hover:bg-white/20 transition font-body">
-                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>تحديث فوري (<span id="refresh-countdown">12</span> ث)</span>
+            <!-- Right: Real-Time SSE Indicator & Toolbar -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                
+                <!-- SSE Connection Status Beacon -->
+                <div id="sse-status-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border border-white/15 text-xs font-bold transition">
+                    <span id="sse-status-dot" class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span id="sse-status-text" class="text-emerald-300">متصل بالبث المباشر (0ms)</span>
+                </div>
+
+                <!-- Audio Chime Toggle -->
+                <button 
+                    id="btn-sound-toggle" 
+                    type="button" 
+                    onclick="toggleSound()" 
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-[#E4C79C] transition cursor-pointer"
+                    title="تفعيل أو كتم جرس تنبيه المطبخ"
+                >
+                    <span id="sound-icon">🔔</span>
+                    <span id="sound-label">جرس التنبيه: مفعّل</span>
                 </button>
+
+                <!-- Fullscreen Toggle -->
+                <button 
+                    type="button" 
+                    onclick="toggleFullscreen()" 
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-white transition cursor-pointer"
+                    title="وضع ملء الشاشة لشاشات العرض الجدارية"
+                >
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    <span class="hidden sm:inline">ملء الشاشة</span>
+                </button>
+
+                <!-- Branch Filter Dropdown (if multiple branches exist) -->
+                {% if branches and branches|length > 1 %}
+                <select 
+                    id="kds-branch-select" 
+                    onchange="changeBranchFilter(this.value)" 
+                    class="px-3 py-1.5 rounded-xl bg-[#082218] border border-[#D2AB6B]/40 text-xs font-bold text-[#E4C79C] focus:outline-none focus:ring-1 focus:ring-[#D2AB6B]"
+                >
+                    <option value="" {% if not target_branch_id %}selected{% endif %}>كل الفروع (شاشة عامة)</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}" {% if target_branch_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+
             </div>
+
         </div>
     </div>
 
-    <!-- Kitchen Orders Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 font-body">
-        {% for item in kitchen_orders %}
-        <div class="classic-card overflow-hidden shadow-md flex flex-col justify-between {% if item.elapsed_minutes > 15 %}border-t-4 border-t-bad-600{% elif item.elapsed_minutes > 8 %}border-t-4 border-t-warn-600{% else %}border-t-4 border-t-emerald-600{% endif %}">
-            <!-- Card Header -->
-            <div class="p-3.5 bg-paper/50 border-b border-line flex items-center justify-between">
-                <div>
-                    <span class="text-base font-black font-body text-ink">{{ item.order.order_number }}</span>
-                    <span class="block text-[11px] font-bold text-soft">{{ item.order.created_at|time:"H:i" }}</span>
-                </div>
-                <div class="text-left">
-                    <span class="rounded px-2 py-0.5 text-[11px] font-black
-                        {% if item.order.order_type == 'dine_in' %}bg-brand-100 text-brand-700
-                        {% elif item.order.order_type == 'takeaway' %}bg-paper border border-line text-ink
-                        {% else %}bg-sky-100 text-sky-800{% endif %}">
-                        {{ item.order.get_order_type_display }}
-                    </span>
-                    <p class="text-[11px] font-bold font-mono mt-1 flex items-center justify-end gap-1 {% if item.elapsed_minutes > 15 %}text-bad-700 font-black animate-pulse{% elif item.elapsed_minutes > 8 %}text-warn-700{% else %}text-emerald-700{% endif %}">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ item.elapsed_minutes }} دقيقة</span>
-                    </p>
-                </div>
-            </div>
-
-            <!-- Items Checklist -->
-            <div class="p-4 flex-1 space-y-2">
-                <p class="text-[11px] font-black text-soft uppercase tracking-wider mb-1">الوجبات المطلوبة:</p>
-                {% for oi in item.items %}
-                <label class="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-line/70 hover:bg-paper/40 transition cursor-pointer">
-                    <input type="checkbox" class="w-4 h-4 rounded border-[#D2AB6B] text-brand-600 focus:ring-[#D2AB6B]">
-                    <span class="text-xs font-black text-ink flex-1 leading-snug">
-                        <span class="text-brand-700 text-sm font-black">{{ oi.qty }}x</span> {{ oi.name }}
-                    </span>
-                </label>
-                {% endfor %}
-
-                {% if item.order.notes %}
-                <div class="mt-2 rounded-lg bg-amber-50 border border-amber-300 p-2 text-xs font-bold text-amber-800 flex items-start gap-1.5">
-                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span>ملاحظات: {{ item.order.notes }}</span>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Action Button -->
-            <div class="p-3 bg-paper/20 border-t border-line">
-                {% if item.order.status == 'new' %}
-                <button 
-                    onclick="updateKitchenOrder({{ item.order.id }}, 'preparing')" 
-                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 py-2.5 text-xs font-black text-white hover:bg-amber-700 transition shadow"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-                    <span>بدء التحضير</span>
-                </button>
-                {% elif item.order.status == 'preparing' %}
-                <button 
-                    onclick="updateKitchenOrder({{ item.order.id }}, 'ready')" 
-                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 py-2.5 text-xs font-black text-white hover:bg-emerald-800 transition shadow"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    <span>جاهز للتسليم</span>
-                </button>
-                {% endif %}
-            </div>
+    <!-- ======================================================== -->
+    <!-- KITCHEN STATIONS & CATEGORIES FILTER BAR                 -->
+    <!-- ======================================================== -->
+    <div class="bg-white rounded-2xl p-3 border border-[#E8DFD3] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        
+        <!-- Stations Horizontal Scrollable Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 text-xs font-black no-scrollbar" id="stations-pills-container">
+            <button 
+                type="button" 
+                onclick="setStationFilter('all')" 
+                id="station-pill-all" 
+                class="station-pill active px-4 py-2 rounded-xl border border-[#D2AB6B] bg-[#144D3B] text-white shadow-sm shrink-0 flex items-center gap-2 transition"
+            >
+                <span>🍽️ كافة الأقسام</span>
+                <span id="badge-station-all" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[11px] font-bold">{{ total_pending }}</span>
+            </button>
+            
+            {% for cat in menu_categories %}
+            <button 
+                type="button" 
+                onclick="setStationFilter('{{ cat }}')" 
+                id="station-pill-{{ cat|slugify }}" 
+                class="station-pill px-3.5 py-2 rounded-xl border border-[#E8DFD3] bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#5C4B3F] shrink-0 flex items-center gap-1.5 transition"
+            >
+                <span>{{ cat }}</span>
+                <span id="badge-station-{{ cat|slugify }}" class="station-count-badge px-1.5 py-0.2 rounded-full bg-[#E8DFD3] text-[10px] font-black text-[#1E130D]">
+                    0
+                </span>
+            </button>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="col-span-full py-16 text-center classic-card p-8">
-            <span class="medallion-icon mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl shadow-xs">
-                <svg class="w-7 h-7 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-            </span>
-            <h3 class="text-base font-bold font-royal text-ink">المطبخ هادئ الآن</h3>
-            <p class="text-xs text-soft mt-1">لا توجد طلبات جديدة بانتظار الطهي أو التحضير.</p>
+
+        <!-- Quick Search & Order Count Indicator -->
+        <div class="flex items-center gap-2 shrink-0">
+            <div class="relative w-full sm:w-56">
+                <input 
+                    type="text" 
+                    id="kds-search-input" 
+                    oninput="handleSearch(this.value)" 
+                    placeholder="بحث برقم الطلب أو اسم الصنف..." 
+                    class="w-full pl-3 pr-8 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#E8DFD3] text-xs font-bold text-[#1E130D] placeholder-[#8C7A6B] focus:outline-none focus:border-[#D2AB6B]"
+                >
+                <svg class="w-4 h-4 text-[#8C7A6B] absolute right-2.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <button 
+                type="button" 
+                onclick="manualRefresh()" 
+                class="h-8 w-8 rounded-xl bg-[#FAF8F5] hover:bg-[#F3EFE6] border border-[#E8DFD3] flex items-center justify-center text-[#5C4B3F] transition shrink-0 cursor-pointer"
+                title="مزامنة فورية"
+            >
+                <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
         </div>
-        {% endfor %}
+
     </div>
+
+    <!-- ======================================================== -->
+    <!-- KITCHEN ORDERS GRID CONTAINER                            -->
+    <!-- ======================================================== -->
+    <div id="kitchen-orders-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 font-body min-h-[350px]">
+        <!-- Cards are dynamically rendered and updated in real-time -->
+    </div>
+
+    <!-- Empty State (Shown when no pending orders exist) -->
+    <div id="kitchen-empty-state" class="hidden py-20 text-center bg-white rounded-3xl border border-[#E8DFD3] p-8 shadow-sm">
+        <div class="h-16 w-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#1B634D]/10 to-[#D2AB6B]/20 border border-[#D2AB6B]/40 flex items-center justify-center text-[#B88B46] shadow-sm">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold font-royal text-[#1E130D]">المطبخ هادئ الآن — جميع الطلبات منجزة</h3>
+        <p class="text-xs text-[#6E5D4F] mt-1 max-w-sm mx-auto">
+            ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر بدون الحاجة لتحديث الصفحة.
+        </p>
+    </div>
+
 </div>
+
+<!-- Sound Prompt Toast Container -->
+<div id="kds-toast-container" class="fixed bottom-5 left-5 z-50 space-y-2 pointer-events-none"></div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    let countdown = 12;
-    setInterval(() => {
-        countdown--;
-        const el = document.getElementById('refresh-countdown');
-        if (el) el.textContent = countdown;
-        if (countdown <= 0) {
-            location.reload();
-        }
-    }, 1000);
+    // ================================================================
+    // KURA KDS (Kitchen Display System) - True Real-Time SSE Engine
+    // Zero polling, zero page reloads, station filtering & audio bell
+    // ================================================================
 
-    async function updateKitchenOrder(orderId, nextStatus) {
+    // Initial server state passed securely
+    const INITIAL_ORDERS = {{ kitchen_orders_json|safe }};
+    const INITIAL_STATION_COUNTS = {{ station_counts_json|safe }};
+    const TARGET_BRANCH_ID = "{{ target_branch_id|default:'' }}";
+
+    // Application state in memory
+    let activeOrders = [...INITIAL_ORDERS];
+    let activeStationFilter = 'all';
+    let searchQuery = '';
+    let isSoundEnabled = localStorage.getItem('kura_kds_sound') !== 'false';
+    let checkedItemsState = JSON.parse(localStorage.getItem('kura_kds_checked') || '{}');
+    let sseEventSource = null;
+    let audioCtx = null;
+
+    // ----------------------------------------------------------------
+    // 1. Web Audio API Hotel Kitchen Bell Chime
+    // ----------------------------------------------------------------
+    function initAudio() {
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                audioCtx = new AudioContext();
+            }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playKitchenBell() {
+        if (!isSoundEnabled) return;
+        try {
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+
+            // Two-tone metallic hotel bell chime (Higher Ding + Harmonic Sustain)
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(1046.50, now); // C6 Note
+            osc1.frequency.exponentialRampToValueAtTime(1040.0, now + 0.8);
+            gain1.gain.setValueAtTime(0.5, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 1.2);
+
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'triangle';
+            osc2.frequency.setValueAtTime(2093.00, now); // C7 Harmonic
+            gain2.gain.setValueAtTime(0.2, now);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(now);
+            osc2.stop(now + 0.6);
+
+        } catch (e) {
+            console.warn("Audio chime failed:", e);
+        }
+    }
+
+    function toggleSound() {
+        initAudio();
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('kura_kds_sound', isSoundEnabled ? 'true' : 'false');
+        updateSoundUI();
+        if (isSoundEnabled) {
+            playKitchenBell();
+            showKdsToast("تم تفعيل جرس تنبيه المطبخ 🔔");
+        } else {
+            showKdsToast("تم كتم صوت التنبيه 🔕");
+        }
+    }
+
+    function updateSoundUI() {
+        const icon = document.getElementById('sound-icon');
+        const label = document.getElementById('sound-label');
+        if (isSoundEnabled) {
+            if (icon) icon.textContent = '🔔';
+            if (label) label.textContent = 'جرس التنبيه: مفعّل';
+        } else {
+            if (icon) icon.textContent = '🔕';
+            if (label) label.textContent = 'جرس التنبيه: مكتوم';
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // 2. Server-Sent Events (SSE) Live Push Connection
+    // ----------------------------------------------------------------
+    function initSSE() {
+        if (sseEventSource) {
+            sseEventSource.close();
+        }
+
+        let streamUrl = '/api/kitchen/stream/';
+        if (TARGET_BRANCH_ID) {
+            streamUrl += '?branch_id=' + encodeURIComponent(TARGET_BRANCH_ID);
+        }
+
+        updateSSEStatus('connecting');
+
+        sseEventSource = new EventSource(streamUrl);
+
+        sseEventSource.addEventListener('connected', (e) => {
+            updateSSEStatus('connected');
+        });
+
+        sseEventSource.addEventListener('new_order', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleIncomingNewOrder(orderData);
+            } catch (err) {
+                console.error("Failed to parse new_order payload:", err);
+            }
+        });
+
+        sseEventSource.addEventListener('order_status_changed', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleOrderStatusChanged(orderData);
+            } catch (err) {
+                console.error("Failed to parse status_changed payload:", err);
+            }
+        });
+
+        sseEventSource.addEventListener('order_updated', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleOrderUpdated(orderData);
+            } catch (err) {
+                console.error("Failed to parse order_updated payload:", err);
+            }
+        });
+
+        sseEventSource.addEventListener('order_cancelled', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleOrderRemoved(orderData.id, 'تم إلغاء الطلب #' + orderData.order_number);
+            } catch (err) {
+                console.error("Failed to parse order_cancelled payload:", err);
+            }
+        });
+
+        sseEventSource.onerror = (err) => {
+            updateSSEStatus('disconnected');
+            // Browser EventSource automatically attempts reconnection
+        };
+    }
+
+    function updateSSEStatus(status) {
+        const dot = document.getElementById('sse-status-dot');
+        const text = document.getElementById('sse-status-text');
+        const pill = document.getElementById('sse-status-pill');
+
+        if (status === 'connected') {
+            if (dot) dot.className = 'h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping';
+            if (text) {
+                text.textContent = 'متصل بالبث المباشر (0ms)';
+                text.className = 'text-emerald-300 font-bold';
+            }
+            if (pill) pill.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border border-emerald-500/30 text-xs font-bold transition';
+        } else if (status === 'connecting') {
+            if (dot) dot.className = 'h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse';
+            if (text) {
+                text.textContent = 'جاري الاتصال...';
+                text.className = 'text-amber-300 font-bold';
+            }
+        } else {
+            if (dot) dot.className = 'h-2.5 w-2.5 rounded-full bg-rose-400';
+            if (text) {
+                text.textContent = 'انقطع الاتصال — جاري إعادة الربط';
+                text.className = 'text-rose-300 font-bold';
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // 3. Real-Time Event Handlers
+    // ----------------------------------------------------------------
+    function handleIncomingNewOrder(newOrder) {
+        // If already exists, update
+        const existingIdx = activeOrders.findIndex(o => o.id === newOrder.id);
+        if (existingIdx >= 0) {
+            activeOrders[existingIdx] = newOrder;
+        } else {
+            activeOrders.unshift(newOrder);
+            playKitchenBell();
+            showKdsToast(`وصل طلب جديد #${newOrder.order_number} (${newOrder.total_items_count} أصناف) 🛎️`, 'success');
+        }
+        recalculateStationCounts();
+        renderOrdersGrid(true); // highlight new order
+    }
+
+    function handleOrderStatusChanged(updatedOrder) {
+        if (updatedOrder.status === 'ready' || updatedOrder.status === 'delivered' || updatedOrder.status === 'cancelled') {
+            handleOrderRemoved(updatedOrder.id, `تم إنجاز الطلب #${updatedOrder.order_number}`);
+        } else {
+            const idx = activeOrders.findIndex(o => o.id === updatedOrder.id);
+            if (idx >= 0) {
+                activeOrders[idx] = updatedOrder;
+                renderOrdersGrid();
+            } else {
+                activeOrders.unshift(updatedOrder);
+                renderOrdersGrid();
+            }
+            recalculateStationCounts();
+        }
+    }
+
+    function handleOrderUpdated(updatedOrder) {
+        const idx = activeOrders.findIndex(o => o.id === updatedOrder.id);
+        if (idx >= 0) {
+            activeOrders[idx] = updatedOrder;
+            renderOrdersGrid();
+            recalculateStationCounts();
+        }
+    }
+
+    function handleOrderRemoved(orderId, msg) {
+        const cardEl = document.getElementById(`order-card-${orderId}`);
+        if (cardEl) {
+            cardEl.style.transition = 'all 0.4s ease-out';
+            cardEl.style.opacity = '0';
+            cardEl.style.transform = 'scale(0.9) translateY(10px)';
+        }
+        setTimeout(() => {
+            activeOrders = activeOrders.filter(o => o.id !== orderId);
+            recalculateStationCounts();
+            renderOrdersGrid();
+            if (msg) showKdsToast(msg);
+        }, 350);
+    }
+
+    // ----------------------------------------------------------------
+    // 4. Station Filtering & Rendering Logic
+    // ----------------------------------------------------------------
+    function setStationFilter(stationName) {
+        activeStationFilter = stationName;
+        
+        // Update pills active style
+        document.querySelectorAll('.station-pill').forEach(btn => {
+            btn.classList.remove('active', 'bg-[#144D3B]', 'text-white', 'border-[#D2AB6B]');
+            btn.classList.add('bg-[#FAF8F5]', 'text-[#5C4B3F]', 'border-[#E8DFD3]');
+        });
+
+        const activeBtn = (stationName === 'all') 
+            ? document.getElementById('station-pill-all')
+            : document.querySelector(`[onclick="setStationFilter('${stationName}')"]`);
+
+        if (activeBtn) {
+            activeBtn.classList.add('active', 'bg-[#144D3B]', 'text-white', 'border-[#D2AB6B]');
+            activeBtn.classList.remove('bg-[#FAF8F5]', 'text-[#5C4B3F]', 'border-[#E8DFD3]');
+        }
+
+        renderOrdersGrid();
+    }
+
+    function recalculateStationCounts() {
+        const counts = {};
+        activeOrders.forEach(o => {
+            (o.categories || []).forEach(cat => {
+                counts[cat] = (counts[cat] || 0) + 1;
+            });
+        });
+
+        // Update total pending
+        const totalPendingEl = document.getElementById('total-pending-count');
+        const badgeAllEl = document.getElementById('badge-station-all');
+        if (totalPendingEl) totalPendingEl.textContent = activeOrders.length;
+        if (badgeAllEl) badgeAllEl.textContent = activeOrders.length;
+
+        // Update individual station pills
+        document.querySelectorAll('.station-count-badge').forEach(badge => {
+            const pillBtn = badge.closest('.station-pill');
+            if (pillBtn) {
+                const match = pillBtn.getAttribute('onclick') || '';
+                const catNameMatch = match.match(/setStationFilter\('([^']+)'\)/);
+                if (catNameMatch && catNameMatch[1]) {
+                    const catName = catNameMatch[1];
+                    const count = counts[catName] || 0;
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+            }
+        });
+    }
+
+    function handleSearch(val) {
+        searchQuery = (val || '').trim().toLowerCase();
+        renderOrdersGrid();
+    }
+
+    function getFilteredOrders() {
+        return activeOrders.filter(order => {
+            // Station Filter
+            if (activeStationFilter !== 'all') {
+                const hasCategory = (order.categories || []).includes(activeStationFilter);
+                if (!hasCategory) return false;
+            }
+
+            // Search Query Filter
+            if (searchQuery) {
+                const numMatch = (order.order_number || '').toLowerCase().includes(searchQuery);
+                const custMatch = (order.customer_name || '').toLowerCase().includes(searchQuery);
+                const itemMatch = (order.items || []).some(it => (it.name || '').toLowerCase().includes(searchQuery));
+                if (!numMatch && !custMatch && !itemMatch) return false;
+            }
+
+            return true;
+        });
+    }
+
+    function renderOrdersGrid(highlightNew = false) {
+        const grid = document.getElementById('kitchen-orders-grid');
+        const emptyState = document.getElementById('kitchen-empty-state');
+        const filtered = getFilteredOrders();
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
+            return;
+        }
+
+        if (emptyState) emptyState.classList.add('hidden');
+
+        let html = '';
+        filtered.forEach((order, idx) => {
+            html += generateOrderCardHtml(order, highlightNew && idx === 0);
+        });
+
+        grid.innerHTML = html;
+    }
+
+    function generateOrderCardHtml(order, isNewGlow = false) {
+        const isPreparing = order.status === 'preparing';
+        const isTakeaway = order.order_type === 'takeaway';
+        const isDelivery = order.order_type === 'delivery';
+
+        // Timer badge color thresholds
+        let timerColorClass = 'text-emerald-700 bg-emerald-50 border-emerald-200';
+        let topBorderClass = 'border-t-4 border-t-emerald-600';
+        if (order.elapsed_minutes > 15) {
+            timerColorClass = 'text-rose-700 bg-rose-50 border-rose-300 animate-pulse font-black';
+            topBorderClass = 'border-t-4 border-t-rose-600';
+        } else if (order.elapsed_minutes > 8) {
+            timerColorClass = 'text-amber-700 bg-amber-50 border-amber-200 font-bold';
+            topBorderClass = 'border-t-4 border-t-amber-600';
+        }
+
+        // Glow on freshly received SSE order
+        const glowClass = isNewGlow ? 'ring-4 ring-[#D2AB6B] shadow-2xl scale-[1.02] transition-transform duration-500' : '';
+
+        // Calculate item check progress
+        const totalItems = (order.items || []).length;
+        let checkedCount = 0;
+        (order.items || []).forEach(it => {
+            if (checkedItemsState[`order_${order.id}_item_${it.id}`]) {
+                checkedCount++;
+            }
+        });
+        const progressPct = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
+
+        // Items list HTML
+        let itemsHtml = '';
+        (order.items || []).forEach(it => {
+            const isChecked = !!checkedItemsState[`order_${order.id}_item_${it.id}`];
+            const isStationMatch = (activeStationFilter === 'all') || (it.category === activeStationFilter);
+            const itemHighlight = isStationMatch && activeStationFilter !== 'all' ? 'bg-[#FAF5EC] border-[#D2AB6B]/60' : 'bg-white border-line/70';
+
+            itemsHtml += `
+                <div 
+                    onclick="toggleItemCheck(${order.id}, ${it.id})" 
+                    class="flex items-center gap-2.5 p-2 rounded-xl border ${itemHighlight} hover:border-[#D2AB6B] transition cursor-pointer select-none ${isChecked ? 'opacity-50 line-through bg-emerald-50/50' : ''}"
+                >
+                    <div class="h-4 w-4 rounded border ${isChecked ? 'bg-emerald-600 border-emerald-600' : 'border-[#D2AB6B] bg-white'} flex items-center justify-center shrink-0">
+                        ${isChecked ? '<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-center justify-between gap-1.5">
+                        <span class="text-xs font-black text-[#1E130D] leading-snug truncate">
+                            <span class="text-[#144D3B] text-sm font-black">${it.qty}x</span> ${it.name}
+                        </span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FAF8F5] border border-[#E8DFD3] text-[#8C6527] shrink-0">
+                            ${it.category}
+                        </span>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Action button (Optimistic UI)
+        let actionBtnHtml = '';
+        if (order.status === 'new') {
+            actionBtnHtml = `
+                <button 
+                    id="btn-action-${order.id}" 
+                    type="button" 
+                    onclick="updateOrderStatusInPlace(${order.id}, 'preparing')" 
+                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 py-2.5 text-xs font-black text-white transition shadow cursor-pointer active:scale-95"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+                    <span>بدء التحضير</span>
+                </button>
+            `;
+        } else if (order.status === 'preparing') {
+            actionBtnHtml = `
+                <button 
+                    id="btn-action-${order.id}" 
+                    type="button" 
+                    onclick="updateOrderStatusInPlace(${order.id}, 'ready')" 
+                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 py-2.5 text-xs font-black text-white transition shadow cursor-pointer active:scale-95"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>جاهز للتسليم</span>
+                </button>
+            `;
+        }
+
+        return `
+            <div id="order-card-${order.id}" class="classic-card rounded-2xl bg-white border border-[#E8DFD3] overflow-hidden shadow-md flex flex-col justify-between ${topBorderClass} ${glowClass}">
+                
+                <!-- Card Header -->
+                <div class="p-3 bg-[#FAF8F5] border-b border-[#E8DFD3] flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-base font-black font-body text-[#1E130D]">${order.order_number}</span>
+                            ${isPreparing ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">قيد الطهي</span>' : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">جديد</span>'}
+                        </div>
+                        <span class="block text-[11px] font-bold text-[#6E5D4F] mt-0.5">
+                            ${order.created_at_time} • ${order.customer_name}
+                        </span>
+                    </div>
+                    <div class="text-left space-y-1">
+                        <span class="rounded px-2 py-0.5 text-[10px] font-black inline-block
+                            ${isTakeaway ? 'bg-[#F3EFE6] border border-[#E8DFD3] text-[#1E130D]' : (isDelivery ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300')}">
+                            ${order.order_type_display}
+                        </span>
+                        <div class="flex items-center justify-end gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border ${timerColorClass}">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>${order.elapsed_minutes} د</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-[#E8DFD3] h-1.5">
+                    <div class="bg-emerald-600 h-1.5 transition-all duration-300" style="width: ${progressPct}%"></div>
+                </div>
+
+                <!-- Items Checklist -->
+                <div class="p-3.5 flex-1 space-y-2">
+                    <div class="flex items-center justify-between text-[11px] font-black text-[#6E5D4F] mb-1">
+                        <span>الوجبات المطلوبة (${totalItems}):</span>
+                        <span class="text-[10px] text-[#144D3B] font-bold">${checkedCount}/${totalItems} منجز</span>
+                    </div>
+
+                    ${itemsHtml}
+
+                    ${order.notes ? `
+                        <div class="mt-2.5 rounded-xl bg-amber-50 border border-amber-300 p-2 text-xs font-bold text-amber-900 flex items-start gap-1.5">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>ملاحظات الشيف: ${order.notes}</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Action Button Container -->
+                <div class="p-3 bg-[#FAF8F5] border-t border-[#E8DFD3]">
+                    ${actionBtnHtml}
+                </div>
+
+            </div>
+        `;
+    }
+
+    // ----------------------------------------------------------------
+    // 5. Item Checklist & In-Place Status Updates
+    // ----------------------------------------------------------------
+    function toggleItemCheck(orderId, itemId) {
+        initAudio();
+        const key = `order_${orderId}_item_${itemId}`;
+        checkedItemsState[key] = !checkedItemsState[key];
+        localStorage.setItem('kura_kds_checked', JSON.stringify(checkedItemsState));
+        renderOrdersGrid();
+    }
+
+    async function updateOrderStatusInPlace(orderId, nextStatus) {
+        initAudio();
+        const btn = document.getElementById(`btn-action-${orderId}`);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>جاري المعالجة...</span>`;
+        }
+
         try {
             const res = await fetch(`/api/orders/${orderId}/`, {
                 method: 'POST',
@@ -139,14 +688,122 @@
             });
             const data = await res.json();
             if (data.ok) {
-                showToast(nextStatus === 'ready' ? 'تم تجهيز الوجبة بنجاح! جاهزة للتسليم' : 'تم بدء تحضير الوجبة');
-                setTimeout(() => location.reload(), 400);
+                // If ready, card will fade out smoothly
+                if (nextStatus === 'ready') {
+                    handleOrderRemoved(orderId, 'تم تجهيز الوجبة بنجاح! جاهزة للتسليم 🚀');
+                } else {
+                    const idx = activeOrders.findIndex(o => o.id === orderId);
+                    if (idx >= 0) {
+                        activeOrders[idx].status = nextStatus;
+                        renderOrdersGrid();
+                    }
+                    showKdsToast('بدء تجهيز الطلب في المطبخ 🔥');
+                }
             } else {
-                showToast('تعذر تحديث حالة الطلب', 'error');
+                showKdsToast('تعذر تحديث حالة الطلب', 'error');
+                if (btn) btn.disabled = false;
             }
         } catch (e) {
-            showToast('خطأ في الاتصال', 'error');
+            console.error("Order status update failed:", e);
+            showKdsToast('خطأ في الاتصال بالخادم', 'error');
+            if (btn) btn.disabled = false;
         }
     }
+
+    // ----------------------------------------------------------------
+    // 6. Branch Switcher & Fullscreen Helpers
+    // ----------------------------------------------------------------
+    function changeBranchFilter(branchId) {
+        const url = new URL(window.location.href);
+        if (branchId) {
+            url.searchParams.set('branch_id', branchId);
+        } else {
+            url.searchParams.delete('branch_id');
+        }
+        window.location.href = url.toString();
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn("Fullscreen request error:", err);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    function manualRefresh() {
+        const icon = document.getElementById('refresh-icon');
+        if (icon) icon.classList.add('animate-spin');
+        
+        fetch(`/api/kitchen/live/${TARGET_BRANCH_ID ? '?branch_id=' + TARGET_BRANCH_ID : ''}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok && Array.isArray(data.orders)) {
+                    activeOrders = data.orders;
+                    recalculateStationCounts();
+                    renderOrdersGrid();
+                    showKdsToast("تم تحديث شاشة المطبخ بنجاح");
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => {
+                setTimeout(() => {
+                    if (icon) icon.classList.remove('animate-spin');
+                }, 400);
+            });
+    }
+
+    function showKdsToast(msg, type = 'info') {
+        const container = document.getElementById('kds-toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `p-3 rounded-xl shadow-xl border text-xs font-black flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 text-white ${type === 'error' ? 'bg-rose-800 border-rose-600' : 'bg-[#0E382A] border-[#D2AB6B]'}`;
+        toast.innerHTML = `<span>${msg}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.remove('translate-y-2', 'opacity-0');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3200);
+    }
+
+    // Local elapsed minutes updater every 60 seconds
+    setInterval(() => {
+        const now = new Date();
+        activeOrders.forEach(o => {
+            if (o.created_at_iso) {
+                const created = new Date(o.created_at_iso);
+                const diffMin = Math.max(0, Math.floor((now - created) / 60000));
+                o.elapsed_minutes = diffMin;
+            }
+        });
+        renderOrdersGrid();
+    }, 60000);
+
+    // Initial setup on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSoundUI();
+        recalculateStationCounts();
+        renderOrdersGrid();
+        initSSE();
+
+        // Unlock Web Audio Context on first chef touch/click anywhere
+        const unlockAudio = () => {
+            initAudio();
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+    });
 </script>
 {% endblock %}

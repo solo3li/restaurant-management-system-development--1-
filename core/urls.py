@@ -12,6 +12,8 @@ urlpatterns = [
     path("branch/", views.branch_dashboard_view, name="branch_dashboard"),
     path("branch/switch/<str:branch_id>/", views.switch_branch_view, name="switch_branch"),
     path("kitchen/", views.kitchen_view, name="kitchen"),
+    path("api/kitchen/stream/", views.kitchen_stream_view, name="kitchen_stream"),
+    path("api/kitchen/live/", views.kitchen_live_view, name="kitchen_live"),
     path("branch/orders/", views.branch_orders_view, name="branch_orders"),
     path("branch/menu/", views.branch_menu_view, name="branch_menu"),
 
