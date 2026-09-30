@@ -1,6 +1,6 @@
-<div class="card p-3 shadow-sm border-line text-xs">
+<div class="classic-card p-3.5 text-xs font-body hover:border-[#D2AB6B] transition shadow-xs">
     <div class="flex items-center justify-between">
-        <span class="font-extrabold text-ink">{{ order.order_number }}</span>
+        <span class="font-extrabold text-ink font-body">{{ order.order_number }}</span>
         <span class="text-[10px] text-soft font-bold">{{ order.created_at|time:"H:i" }}</span>
     </div>
 
@@ -9,7 +9,10 @@
     <p class="text-[11px] text-soft font-mono" dir="ltr">{{ order.customer_phone }}</p>
     {% endif %}
     {% if order.address %}
-    <p class="text-[11px] text-soft line-clamp-2 mt-0.5">📍 {{ order.address }}</p>
+    <p class="text-[11px] text-soft line-clamp-2 mt-0.5 flex items-start gap-1">
+        <svg class="w-3.5 h-3.5 text-[#B88B46] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span>{{ order.address }}</span>
+    </p>
     {% endif %}
 
     <div class="mt-2 flex items-center justify-between border-t border-line/60 pt-1.5">
@@ -20,7 +23,7 @@
     <p class="text-[10px] text-soft mt-0.5">{{ order.branch.name|default:"—" }}</p>
 
     {% if order.notes %}
-    <p class="mt-1 rounded bg-warn-100/70 px-2 py-0.5 text-[10px] font-bold text-warn-700">
+    <p class="mt-1 rounded bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800">
         {{ order.notes }}
     </p>
     {% endif %}
@@ -40,16 +43,19 @@
         </select>
     </div>
     {% elif order.driver %}
-    <p class="text-[11px] font-bold text-ink mt-1">🛵 السائق: {{ order.driver.name }}</p>
+    <p class="text-[11px] font-bold text-ink mt-1 flex items-center gap-1">
+        <svg class="w-3.5 h-3.5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>السائق: {{ order.driver.name }}</span>
+    </p>
     {% endif %}
 
     <!-- Action Buttons -->
-    <div class="mt-2 flex items-center gap-1.5">
+    <div class="mt-2.5 flex items-center gap-1.5">
         {% if next_status %}
         <button 
             type="button" 
             onclick="advanceOrderStatus({{ order.id }}, '{{ next_status }}', {% if need_driver %}true{% else %}false{% endif %})" 
-            class="flex-1 rounded-lg bg-brand-600 py-1.5 text-center text-[11px] font-bold text-white hover:bg-brand-700 transition"
+            class="flex-1 rounded-lg bg-brand-700 py-1.5 text-center text-[11px] font-black text-white hover:bg-brand-800 hover:border-[#D2AB6B] transition shadow-2xs"
         >
             {{ next_label }}
         </button>
@@ -60,9 +66,9 @@
             type="button" 
             onclick="cancelOrder({{ order.id }})" 
             title="إلغاء الطلب"
-            class="rounded-lg bg-bad-100 px-2 py-1.5 text-[11px] font-bold text-bad-700 hover:bg-bad-200 transition"
+            class="rounded-lg bg-bad-100 border border-bad-300 px-2 py-1.5 text-[11px] font-bold text-bad-700 hover:bg-bad-200 transition"
         >
-            ✕
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
         {% endif %}
     </div>

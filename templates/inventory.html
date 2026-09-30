@@ -3,31 +3,33 @@
 {% block title %}إدارة المخزون — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-5 font-body">
     <!-- Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black font-display text-ink">إدارة المخزون والمستودعات</h1>
+            <h1 class="text-2xl font-bold font-royal text-ink">إدارة المخزون والمستودعات</h1>
             <p class="text-xs font-bold text-soft mt-1">متابعة الكميات المتوفرة، حدود الأمان، وتوريدات الفروع</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2.5">
             {% if low_count > 0 %}
-            <span class="rounded-xl bg-bad-100 border border-bad-600/30 px-3.5 py-1.5 text-xs font-bold text-bad-700">
-                ⚠️ {{ low_count }} صنف تحت حد الأمان
+            <span class="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-xs font-bold text-amber-800 shadow-2xs">
+                <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>{{ low_count }} صنف تحت حد الأمان</span>
             </span>
             {% else %}
-            <span class="rounded-xl bg-good-100 border border-good-600/30 px-3.5 py-1.5 text-xs font-bold text-good-700">
-                ✓ كافة المواد فوق حد الأمان
+            <span class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs">
+                <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>كافة المواد فوق حد الأمان</span>
             </span>
             {% endif %}
-            <button onclick="openAddInvModal()" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
+            <button onclick="openAddInvModal()" class="btn-gold-pill px-4 py-2 text-xs font-black shadow-sm">
                 + إضافة مادة جديدة
             </button>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card p-4 mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div class="classic-card p-4 flex flex-wrap items-center justify-between gap-3">
         <form method="GET" action="{% url 'inventory' %}" class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-soft">الفرع:</span>

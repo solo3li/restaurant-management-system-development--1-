@@ -3,7 +3,7 @@
 {% block title %}تعديل الطلب {{ order.order_number }} — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div class="space-y-6 max-w-5xl mx-auto">
+<div class="space-y-6 max-w-5xl mx-auto font-body">
     <!-- Breadcrumbs & Navigation -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="flex items-center gap-2 text-xs text-soft font-bold">
@@ -16,7 +16,7 @@
             <span class="text-ink font-black">تعديل</span>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{% url 'order_detail' order.id %}" class="rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft hover:text-ink shadow-sm transition">
+            <a href="{% url 'order_detail' order.id %}" class="rounded-xl bg-card border border-line px-3.5 py-2 text-xs font-bold text-soft hover:text-ink shadow-2xs hover:border-[#D2AB6B] transition">
                 ← إلغاء والعودة للتفاصيل
             </a>
         </div>
@@ -28,20 +28,21 @@
         <input type="hidden" name="items_json" id="items-json-input">
 
         <!-- Header Card -->
-        <div class="card p-6 border-r-4 border-r-brand-600 shadow-sm">
+        <div class="classic-card p-6 border-r-4 border-r-[#D2AB6B] shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="rounded-lg bg-brand-100 px-2.5 py-1 text-xs font-black text-brand-700">تعديل شامل</span>
-                        <h1 class="text-2xl font-black font-display text-ink">تعديل الطلب {{ order.order_number }}</h1>
+                        <span class="rounded-lg bg-[#D2AB6B]/20 border border-[#D2AB6B]/40 px-2.5 py-1 text-xs font-bold text-brand-800">تعديل شامل</span>
+                        <h1 class="text-2xl font-bold font-royal text-ink">تعديل الطلب {{ order.order_number }}</h1>
                     </div>
                     <p class="text-xs font-bold text-soft mt-1">
                         يمكنك تعديل بيانات العميل، السائق، الحالة، والتحكم في أصناف الوجبات والكميات وإعادة احتساب الإجمالي
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="submit" class="rounded-xl bg-brand-600 px-5 py-2.5 text-xs font-black text-white hover:bg-brand-700 shadow-md transition flex items-center gap-1.5">
-                        <span>💾</span> حفظ كافة التعديلات
+                    <button type="submit" class="btn-gold-pill inline-flex items-center gap-2 px-5 py-2.5 text-xs font-black shadow-md transition">
+                        <svg class="w-4 h-4 text-[#1E130D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                        <span>حفظ كافة التعديلات</span>
                     </button>
                 </div>
             </div>
@@ -51,15 +52,21 @@
             <!-- Left 2 Cols: Form Sections -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- 1. Order Status & Branch -->
-                <div class="card p-5 space-y-4">
-                    <h2 class="text-xs font-black text-ink border-b border-line pb-2 flex items-center gap-2">
-                        <span>⚙️</span> البيانات الأساسية والتشغيل
+                <div class="classic-card p-5 space-y-4">
+                    <h2 class="text-xs font-bold font-royal text-ink border-b border-line pb-2 flex items-center gap-2">
+                        <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
+                            <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </span>
+                        <span>البيانات الأساسية والتشغيل</span>
                     </h2>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                         <!-- Branch -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">🏢 الفرع:</label>
+                            <label class="block font-bold text-soft mb-1 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span>الفرع:</span>
+                            </label>
                             <select name="branch_id" class="input font-bold">
                                 <option value="none" {% if not order.branch %}selected{% endif %}>غير محدد</option>
                                 {% for b in branches %}
@@ -72,7 +79,7 @@
 
                         <!-- Status -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">📌 حالة الطلب:</label>
+                            <label class="block font-bold text-soft mb-1">حالة الطلب:</label>
                             <select name="status" class="input font-bold">
                                 {% for st_val, st_lbl in statuses %}
                                 <option value="{{ st_val }}" {% if order.status == st_val %}selected{% endif %}>{{ st_lbl }}</option>
@@ -82,7 +89,7 @@
 
                         <!-- Order Type -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">🍽️ نوع الطلب:</label>
+                            <label class="block font-bold text-soft mb-1">نوع الطلب:</label>
                             <select name="order_type" id="order-type-select" onchange="handleOrderTypeChange()" class="input font-bold">
                                 {% for t_val, t_lbl in order_types %}
                                 <option value="{{ t_val }}" {% if order.order_type == t_val %}selected{% endif %}>{{ t_lbl }}</option>
@@ -92,7 +99,7 @@
 
                         <!-- Channel -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">📡 القناة:</label>
+                            <label class="block font-bold text-soft mb-1">القناة:</label>
                             <select name="channel" class="input font-bold">
                                 <option value="cashier" {% if order.channel == 'cashier' %}selected{% endif %}>الكاشير</option>
                                 <option value="call_center" {% if order.channel == 'call_center' %}selected{% endif %}>الكول سنتر</option>
@@ -101,7 +108,10 @@
 
                         <!-- Driver -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">🛵 سائق التوصيل:</label>
+                            <label class="block font-bold text-soft mb-1 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                <span>سائق التوصيل:</span>
+                            </label>
                             <select name="driver_id" class="input font-bold">
                                 <option value="none" {% if not order.driver %}selected{% endif %}>بدون سائق</option>
                                 {% for drv in drivers %}
@@ -114,16 +124,19 @@
 
                         <!-- Cashier -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">💻 الكاشير:</label>
+                            <label class="block font-bold text-soft mb-1">الكاشير:</label>
                             <input type="text" name="cashier" value="{{ order.cashier }}" class="input font-bold">
                         </div>
                     </div>
                 </div>
 
                 <!-- 2. Customer Information -->
-                <div class="card p-5 space-y-4">
-                    <h2 class="text-xs font-black text-ink border-b border-line pb-2 flex items-center gap-2">
-                        <span>👤</span> بيانات العميل والتوصيل
+                <div class="classic-card p-5 space-y-4">
+                    <h2 class="text-xs font-bold font-royal text-ink border-b border-line pb-2 flex items-center gap-2">
+                        <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
+                            <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </span>
+                        <span>بيانات العميل والتوصيل</span>
                     </h2>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -147,11 +160,14 @@
                 </div>
 
                 <!-- 3. Interactive Items Editor -->
-                <div class="card p-5 space-y-4">
+                <div class="classic-card p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-line pb-3">
                         <div>
-                            <h2 class="text-xs font-black text-ink flex items-center gap-2">
-                                <span>🛒</span> إدارة أصناف الطلب والكميات
+                            <h2 class="text-xs font-bold font-royal text-ink flex items-center gap-2">
+                                <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
+                                    <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                </span>
+                                <span>إدارة أصناف الطلب والكميات</span>
                             </h2>
                             <p class="text-[11px] text-soft">عدّل الكميات أو احذف الأصناف أو اختر أصنافاً جديدة لإضافتها للطلب</p>
                         </div>
@@ -165,12 +181,12 @@
                                 <option value="">-- اختر صنفاً لإضافته --</option>
                                 {% for m in menu_items %}
                                 <option value="{{ m.id }}" data-name="{{ m.name }}" data-price="{{ m.price }}">
-                                    {{ m.emoji|default:"🍽️" }} {{ m.name }} — {{ m.price|floatformat:2 }} ر.س ({{ m.category }})
+                                    {{ m.name }} — {{ m.price|floatformat:2 }} ر.س ({{ m.category }})
                                 </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <button type="button" onclick="addItemToOrder()" class="w-full sm:w-auto mt-2 sm:mt-4 rounded-xl bg-night px-4 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow shrink-0">
+                        <button type="button" onclick="addItemToOrder()" class="btn-gold-pill w-full sm:w-auto mt-2 sm:mt-4 px-4 py-2 text-xs font-black shadow shrink-0">
                             + إضافة للطلب
                         </button>
                     </div>
@@ -178,77 +194,52 @@
                     <!-- Current Items Table -->
                     <div class="border border-line rounded-xl overflow-hidden">
                         <table class="w-full text-right text-xs">
-                            <thead class="bg-paper/80 border-b border-line text-soft text-[11px]">
+                            <thead class="bg-paper/70 border-b border-line font-bold">
                                 <tr>
-                                    <th class="p-2.5">الصنف</th>
-                                    <th class="p-2.5 text-center">الكمية</th>
-                                    <th class="p-2.5 text-left">السعر</th>
-                                    <th class="p-2.5 text-left">الإجمالي</th>
-                                    <th class="p-2.5 text-center">حذف</th>
+                                    <th class="p-2.5 text-ink">الصنف</th>
+                                    <th class="p-2.5 text-center text-ink">الكمية</th>
+                                    <th class="p-2.5 text-left text-ink">السعر الفردي</th>
+                                    <th class="p-2.5 text-left text-ink">المجموع</th>
+                                    <th class="p-2.5 text-center text-ink w-12">حذف</th>
                                 </tr>
                             </thead>
                             <tbody id="items-table-body" class="divide-y divide-line/60">
-                                <!-- Rendered dynamically by JS -->
+                                <!-- Dynamic JS render -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Right 1 Col: Payment & Recalculated Financial Summary -->
+            <!-- Right 1 Col: Financial Summary -->
             <div class="space-y-5">
-                <!-- Financial Card -->
-                <div class="card p-5 shadow-md border-t-4 border-t-brand-600 space-y-4">
-                    <h2 class="text-sm font-black font-display text-ink border-b border-line pb-2.5">
-                        الحساب المالي والمدفوعات
+                <div class="classic-card p-5 shadow-md border-t-4 border-t-brand-600">
+                    <h2 class="text-sm font-bold font-royal text-ink border-b border-line pb-2.5 mb-4">
+                        الحسابات المالية والتسعير
                     </h2>
 
-                    <!-- Delivery & Discount Inputs -->
                     <div class="space-y-3 text-xs">
-                        <div>
-                            <label class="block font-bold text-soft mb-1">رسوم التوصيل (ر.س):</label>
-                            <input 
-                                type="number" 
-                                step="0.5" 
-                                min="0" 
-                                name="delivery_fee" 
-                                id="delivery-fee-input" 
-                                value="{{ order.delivery_fee|floatformat:2 }}" 
-                                oninput="recalcFinancials()" 
-                                class="input font-bold"
-                            >
-                        </div>
-                        <div>
-                            <label class="block font-bold text-soft mb-1">الخصم المطبق (ر.س):</label>
-                            <input 
-                                type="number" 
-                                step="0.5" 
-                                min="0" 
-                                name="discount" 
-                                id="discount-input" 
-                                value="{{ order.discount|floatformat:2 }}" 
-                                oninput="recalcFinancials()" 
-                                class="input font-bold"
-                            >
+                        <div class="flex justify-between text-soft">
+                            <span>المجموع الفرعي:</span>
+                            <span id="display-subtotal" class="font-bold text-ink">0.00 ر.س</span>
                         </div>
 
-                        <!-- Live Summary Display -->
-                        <div class="border-t border-line pt-3 space-y-2">
-                            <div class="flex justify-between text-soft">
-                                <span>المجموع الفرعي للأصناف:</span>
-                                <span id="display-subtotal" class="font-bold text-ink">0.00 ر.س</span>
-                            </div>
-                            <div class="flex justify-between text-soft">
-                                <span>رسوم التوصيل:</span>
-                                <span id="display-delivery" class="font-bold text-ink">0.00 ر.س</span>
-                            </div>
-                            <div class="flex justify-between text-soft">
-                                <span>الخصم:</span>
-                                <span id="display-discount" class="font-bold text-bad-700">-0.00 ر.س</span>
-                            </div>
-                            <div class="border-t-2 border-dashed border-line pt-2 flex justify-between items-center text-sm font-black">
+                        <!-- Delivery Fee -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">رسوم التوصيل (ر.س):</label>
+                            <input type="number" step="0.5" min="0" name="delivery_fee" id="delivery-fee-input" value="{{ order.delivery_fee|stringformat:'.2f' }}" oninput="recalcFinancials()" class="input font-bold">
+                        </div>
+
+                        <!-- Discount -->
+                        <div>
+                            <label class="block font-bold text-soft mb-1">الخصم المطبق (ر.س):</label>
+                            <input type="number" step="0.5" min="0" name="discount" id="discount-input" value="{{ order.discount|stringformat:'.2f' }}" oninput="recalcFinancials()" class="input font-bold">
+                        </div>
+
+                        <div class="border-t-2 border-dashed border-line pt-3">
+                            <div class="flex justify-between items-center text-sm font-black">
                                 <span class="text-ink">المبلغ الإجمالي النهائي:</span>
-                                <span id="display-total" class="text-brand-700 text-lg font-display">0.00 ر.س</span>
+                                <span id="display-total" class="text-brand-700 text-lg font-body font-black">0.00 ر.س</span>
                             </div>
                         </div>
 
@@ -271,10 +262,11 @@
 
                     <!-- Submit Buttons -->
                     <div class="pt-4 border-t border-line space-y-2">
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-600 py-3 text-xs font-black text-white hover:bg-brand-700 transition shadow-md">
-                            <span>💾</span> حفظ التعديلات
+                        <button type="submit" class="btn-gold-pill w-full flex items-center justify-center gap-2 py-3 text-xs font-black shadow-md">
+                            <svg class="w-4 h-4 text-[#1E130D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                            <span>حفظ التعديلات</span>
                         </button>
-                        <a href="{% url 'order_detail' order.id %}" class="w-full flex items-center justify-center rounded-xl bg-paper border border-line py-2.5 text-xs font-bold text-soft hover:text-ink transition">
+                        <a href="{% url 'order_detail' order.id %}" class="w-full flex items-center justify-center rounded-xl bg-paper border border-line py-2.5 text-xs font-bold text-soft hover:text-ink hover:border-[#D2AB6B] transition">
                             إلغاء
                         </a>
                     </div>
@@ -302,7 +294,7 @@
         tbody.innerHTML = '';
 
         if (orderItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-soft">السلة فارغة، أضف أصنافاً للطلب</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-soft font-bold">السلة فارغة، أضف أصنافاً للطلب</td></tr>';
             recalcFinancials();
             return;
         }
@@ -323,8 +315,8 @@
                 <td class="p-2.5 text-left text-soft font-bold">${item.price.toFixed(2)} ر.س</td>
                 <td class="p-2.5 text-left font-black text-brand-700">${lineTotal} ر.س</td>
                 <td class="p-2.5 text-center">
-                    <button type="button" onclick="removeItem(${index})" class="rounded-lg p-1 text-bad-600 hover:bg-bad-100 hover:text-bad-700 font-bold text-sm" title="حذف الصنف">
-                        ✕
+                    <button type="button" onclick="removeItem(${index})" class="rounded-lg p-1.5 text-bad-600 hover:bg-bad-100 transition inline-flex items-center justify-center" title="حذف الصنف">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </td>
             `;
@@ -351,15 +343,14 @@
 
     function addItemToOrder() {
         const select = document.getElementById('new-item-select');
-        const opt = select.selectedOptions[0];
-        if (!opt || !opt.value) return;
+        const selectedOpt = select.options[select.selectedIndex];
+        if (!selectedOpt || !selectedOpt.value) return;
 
-        const itemId = parseInt(opt.value);
-        const name = opt.getAttribute('data-name');
-        const price = parseFloat(opt.getAttribute('data-price')) || 0;
+        const itemId = parseInt(selectedOpt.value);
+        const name = selectedOpt.getAttribute('data-name');
+        const price = parseFloat(selectedOpt.getAttribute('data-price')) || 0;
 
-        // Check if item already in order, if so increment qty
-        const existing = orderItems.find(i => i.menu_item_id === itemId);
+        const existing = orderItems.find(it => it.menu_item_id === itemId);
         if (existing) {
             existing.qty += 1;
         } else {
@@ -371,54 +362,40 @@
             });
         }
 
-        select.value = '';
+        select.selectedIndex = 0;
         renderItemsTable();
-    }
-
-    function handleOrderTypeChange() {
-        const typeSelect = document.getElementById('order-type-select');
-        const deliveryInput = document.getElementById('delivery-fee-input');
-        if (typeSelect.value === 'delivery') {
-            if (parseFloat(deliveryInput.value) === 0) {
-                deliveryInput.value = '8.00';
-            }
-        } else {
-            deliveryInput.value = '0.00';
-        }
-        recalcFinancials();
     }
 
     function recalcFinancials() {
         let subtotal = 0;
         orderItems.forEach(it => {
-            subtotal += it.price * it.qty;
+            subtotal += (it.price * it.qty);
         });
 
         const deliveryFee = parseFloat(document.getElementById('delivery-fee-input').value) || 0;
         const discount = parseFloat(document.getElementById('discount-input').value) || 0;
+
         const total = Math.max(0, subtotal + deliveryFee - discount);
 
-        document.getElementById('display-subtotal').textContent = subtotal.toFixed(2) + ' ر.س';
-        document.getElementById('display-delivery').textContent = deliveryFee.toFixed(2) + ' ر.س';
-        document.getElementById('display-discount').textContent = '-' + discount.toFixed(2) + ' ر.س';
-        document.getElementById('display-total').textContent = total.toFixed(2) + ' ر.س';
+        document.getElementById('display-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
+        document.getElementById('display-total').textContent = `${total.toFixed(2)} ر.س`;
 
-        // Update hidden JSON input
         document.getElementById('items-json-input').value = JSON.stringify(orderItems);
     }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        renderItemsTable();
-    });
-
-    document.getElementById('order-edit-form').addEventListener('submit', function(e) {
-        if (orderItems.length === 0) {
-            e.preventDefault();
-            alert('لا يمكن حفظ الطلب بدون أي أصناف! يرجى إضافة صنف واحد على الأقل.');
-            return false;
+    function handleOrderTypeChange() {
+        const type = document.getElementById('order-type-select').value;
+        const feeInput = document.getElementById('delivery-fee-input');
+        if (type !== 'delivery') {
+            feeInput.value = '0.00';
+        } else if (parseFloat(feeInput.value) === 0) {
+            feeInput.value = '8.00';
         }
-        document.getElementById('items-json-input').value = JSON.stringify(orderItems);
+        recalcFinancials();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderItemsTable();
     });
 </script>
 {% endblock %}

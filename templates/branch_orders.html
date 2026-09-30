@@ -3,24 +3,27 @@
 {% block title %}طلبات وفواتير الفرع — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-5 font-body">
     <!-- Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black font-display text-ink">سجل طلبات وفواتير الفرع</h1>
-            <p class="text-xs font-bold text-soft mt-1">
-                {% if branch %}📍 {{ branch.name }}{% else %}كل الفروع{% endif %} • استعراض الفواتير ومتابعة الحالات والمدفوعات
+            <h1 class="text-2xl font-bold font-royal text-ink">سجل طلبات وفواتير الفرع</h1>
+            <p class="text-xs font-bold text-soft mt-1 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>{% if branch %}{{ branch.name }}{% else %}كل الفروع{% endif %}</span>
+                <span>• استعراض الفواتير ومتابعة الحالات والمدفوعات</span>
             </p>
         </div>
         <div>
-            <a href="{% url 'pos' %}" class="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm">
-                + فاتورة كاشير جديدة
+            <a href="{% url 'pos' %}" class="btn-gold-pill inline-flex items-center gap-2 px-4 py-2 text-xs font-black shadow-sm">
+                <svg class="w-4 h-4 text-[#1E130D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>فاتورة كاشير جديدة</span>
             </a>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card p-4 mb-5">
+    <div class="classic-card p-4">
         <form method="GET" action="{% url 'branch_orders' %}" class="flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-1.5">
                 <span class="text-xs font-bold text-soft">الحالة:</span>
@@ -52,7 +55,7 @@
                 >
             </div>
 
-            <button type="submit" class="rounded-lg bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink">
+            <button type="submit" class="rounded-lg bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink hover:border-[#D2AB6B] transition">
                 بحث وتصفية
             </button>
             {% if status_filter != 'all' or type_filter != 'all' or search_query %}
@@ -62,10 +65,10 @@
     </div>
 
     <!-- Orders Table -->
-    <div class="card overflow-hidden shadow-md">
+    <div class="classic-card overflow-hidden shadow-md">
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs">
-                <thead class="border-b border-line bg-paper/70">
+                <thead class="border-b border-line bg-paper/70 font-bold">
                     <tr>
                         <th class="th">رقم الطلب</th>
                         <th class="th">النوع</th>
@@ -89,7 +92,7 @@
                             <span class="rounded px-2 py-0.5 text-[11px] font-bold
                                 {% if o.order_type == 'dine_in' %}bg-brand-100 text-brand-700
                                 {% elif o.order_type == 'takeaway' %}bg-paper border border-line text-ink
-                                {% else %}bg-info-100 text-info-700{% endif %}">
+                                {% else %}bg-sky-100 text-sky-800{% endif %}">
                                 {{ o.get_order_type_display }}
                             </span>
                         </td>
@@ -104,12 +107,12 @@
                         <td class="td font-extrabold text-brand-700 font-mono text-sm">{{ o.total|floatformat:2 }} ر.س</td>
                         <td class="td">
                             <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold
-                                {% if o.status == 'delivered' %}bg-good-100 text-good-700
-                                {% elif o.status == 'ready' %}bg-good-100 text-good-700
+                                {% if o.status == 'delivered' %}bg-emerald-100 text-emerald-800
+                                {% elif o.status == 'ready' %}bg-emerald-100 text-emerald-800
                                 {% elif o.status == 'out_for_delivery' %}bg-brand-100 text-brand-700
-                                {% elif o.status == 'preparing' %}bg-warn-100 text-warn-700
-                                {% elif o.status == 'cancelled' %}bg-bad-100 text-bad-700
-                                {% else %}bg-info-100 text-info-700{% endif %}">
+                                {% elif o.status == 'preparing' %}bg-amber-100 text-amber-800
+                                {% elif o.status == 'cancelled' %}bg-rose-100 text-rose-800
+                                {% else %}bg-sky-100 text-sky-800{% endif %}">
                                 {{ o.get_status_display }}
                             </span>
                         </td>
@@ -122,32 +125,34 @@
                                 <a 
                                     href="{% url 'order_detail' o.id %}"
                                     title="تفاصيل الطلب والفاتورة"
-                                    class="rounded-lg bg-paper border border-line px-2 py-1 text-xs font-bold text-ink hover:bg-line transition shadow-sm"
+                                    class="inline-flex items-center gap-1 rounded-lg bg-paper border border-line px-2.5 py-1 text-xs font-bold text-ink hover:bg-white hover:border-[#D2AB6B] transition shadow-2xs"
                                 >
-                                    🔍 تفاصيل
+                                    <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>تفاصيل</span>
                                 </a>
                                 <a 
                                     href="{% url 'order_edit' o.id %}"
                                     title="تعديل الطلب"
-                                    class="rounded-lg bg-brand-50 border border-brand-200 px-2 py-1 text-xs font-bold text-brand-700 hover:bg-brand-100 transition shadow-sm"
+                                    class="inline-flex items-center gap-1 rounded-lg bg-brand-50 border border-brand-200 px-2.5 py-1 text-xs font-bold text-brand-700 hover:bg-brand-100 transition shadow-2xs"
                                 >
-                                    ✏️ تعديل
+                                    <svg class="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <span>تعديل</span>
                                 </a>
                                 <button 
                                     type="button" 
                                     onclick="cancelOrder({{ o.id }}, '{{ o.order_number }}')"
                                     title="إلغاء الطلب"
-                                    class="rounded-lg bg-warn-50 border border-warn-200 px-1.5 py-1 text-xs font-bold text-warn-700 hover:bg-warn-100 transition shadow-sm"
+                                    class="rounded-lg bg-amber-50 border border-amber-300 p-1.5 text-amber-700 hover:bg-amber-100 transition shadow-2xs"
                                 >
-                                    ⚠️
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 </button>
                                 <button 
                                     type="button" 
                                     onclick="deleteOrder({{ o.id }}, '{{ o.order_number }}')"
                                     title="حذف نهائي"
-                                    class="rounded-lg bg-bad-50 border border-bad-200 px-1.5 py-1 text-xs font-bold text-bad-700 hover:bg-bad-100 transition shadow-sm"
+                                    class="rounded-lg bg-rose-50 border border-rose-300 p-1.5 text-rose-700 hover:bg-rose-100 transition shadow-2xs"
                                 >
-                                    🗑️
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </div>
                         </td>
@@ -162,10 +167,12 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_scripts %}
 <script>
     async function cancelOrder(orderId, orderNumber) {
-        if (!confirm(`هل أنت متأكد من رغبتك في إلغاء الطلب ${orderNumber}؟\nسيتم الاحتفاظ بالسجل وتغيير الحالة إلى "ملغي".`)) return;
+        if (!confirm(`هل أنت متأكد من إلغاء الطلب ${orderNumber}؟`)) return;
         try {
             const res = await fetch(`/api/orders/${orderId}/cancel/`, {
                 method: 'POST',
@@ -176,7 +183,7 @@
             });
             const data = await res.json();
             if (res.ok) {
-                alert(data.message || 'تم إلغاء الطلب');
+                alert(data.message || 'تم إلغاء الطلب بنجاح');
                 location.reload();
             } else {
                 alert(data.error || 'حدث خطأ أثناء إلغاء الطلب');
@@ -188,7 +195,7 @@
     }
 
     async function deleteOrder(orderId, orderNumber) {
-        if (!confirm(`⚠️ تحذير أمني:\nهل أنت متأكد من الحذف النهائي للطلب ${orderNumber}؟\nلا يمكن التراجع عن هذه الخطوة!`)) return;
+        if (!confirm(`تحذير أمني:\nهل أنت متأكد من الحذف النهائي للطلب ${orderNumber}؟\nلا يمكن التراجع عن هذه الخطوة!`)) return;
         try {
             const res = await fetch(`/api/orders/${orderId}/delete/`, {
                 method: 'POST',

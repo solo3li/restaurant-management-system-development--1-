@@ -3,31 +3,36 @@
 {% block title %}لوحة تشغيل {{ branch.name }} — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-6">
     <!-- Branch Header Banner -->
-    <div class="card p-5 mb-6 bg-gradient-to-r from-night via-night-2 to-night text-white border-night-3 shadow-lg">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="p-5 rounded-2xl bg-gradient-to-r from-[#0E382A] via-[#144D3B] to-[#0A261C] text-white border border-[#D2AB6B]/30 shadow-xl relative overflow-hidden">
+        <div class="absolute -left-10 -bottom-10 w-40 h-40 rounded-full bg-[#D2AB6B]/10 blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-3">
-                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white text-2xl shadow-lg shadow-brand-600/40">
-                    🏢
+                <span class="medallion-icon flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
+                    <svg class="w-6 h-6 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </span>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-xl font-black font-display text-white">{{ branch.name }}</h1>
-                        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold {% if branch.status == 'active' %}bg-good-600/30 text-good-100 border border-good-600/50{% else %}bg-bad-600/30 text-bad-100 border border-bad-600/50{% endif %}">
+                        <h1 class="text-xl sm:text-2xl font-bold font-royal text-white tracking-wide">{{ branch.name }}</h1>
+                        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold font-body {% if branch.status == 'active' %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/40{% else %}bg-rose-500/20 text-rose-300 border border-rose-500/40{% endif %}">
                             {% if branch.status == 'active' %}الفرع يعمل ومتاح{% else %}مغلق مؤقتاً{% endif %}
                         </span>
                     </div>
-                    <p class="text-xs text-gold-300/80 mt-0.5">
-                        📍 {{ branch.address|default:branch.city|default:"الرياض" }} • هاتف: <span dir="ltr">{{ branch.phone|default:"—" }}</span>
+                    <p class="text-xs text-[#E2D9CE]/80 mt-1 flex items-center gap-1 font-body">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>{{ branch.address|default:branch.city|default:"الرياض" }}</span>
+                        <span>• هاتف: <span dir="ltr">{{ branch.phone|default:"—" }}</span></span>
                     </p>
                 </div>
             </div>
 
             {% if can_switch_branches %}
             <div>
-                <a href="{% url 'switch_branch' 'all' %}" class="inline-flex items-center gap-2 rounded-xl bg-night-3 border border-gold-300/20 px-3.5 py-2 text-xs font-bold text-gold-300 hover:bg-gold-300/10 transition">
-                    <span>🏢</span> العودة إلى لوحة الإدارة العامة (HQ)
+                <a href="{% url 'switch_branch' 'all' %}" class="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-3.5 py-2 text-xs font-bold text-[#E6C898] transition font-body">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>العودة إلى لوحة الإدارة العامة (HQ)</span>
                 </a>
             </div>
             {% endif %}
@@ -35,125 +40,138 @@
     </div>
 
     <!-- 4 Branch KPI Cards -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 font-body">
         <!-- Branch Sales -->
-        <div class="card p-5 border-l-4 border-l-brand-600">
+        <div class="classic-card p-5 border-t-4 border-t-[#D2AB6B]">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">مبيعات الفرع اليوم</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">💰</span>
+                <span class="medallion-icon-light flex h-9 w-9 items-center justify-center rounded-xl shadow-xs">
+                    <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></p>
+            <p class="mt-2 text-2xl font-black font-body text-brand-700">{{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></p>
             <p class="mt-1 text-xs font-bold text-soft">{{ orders_today }} طلباً مسجلاً اليوم</p>
         </div>
 
         <!-- Kitchen Pending Orders -->
-        <a href="{% url 'kitchen' %}" class="card p-5 border-l-4 border-l-warn-600 hover:border-brand-500 transition group block">
+        <a href="{% url 'kitchen' %}" class="classic-card p-5 border-t-4 border-t-warn-600 hover:border-[#D2AB6B] transition group block">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">طلبات المطبخ قيد التحضير</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-warn-100 text-warn-700 text-base group-hover:scale-110 transition">🍳</span>
+                <span class="medallion-icon-light flex h-9 w-9 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-warn-700">{{ kitchen_pending_count }} <span class="text-xs font-bold text-soft">وجبة للتحضير</span></p>
+            <p class="mt-2 text-2xl font-black font-body text-warn-700">{{ kitchen_pending_count }} <span class="text-xs font-bold text-soft">وجبة للتحضير</span></p>
             <p class="mt-1 text-xs font-bold text-brand-600 group-hover:underline">فتح شاشة المطبخ (KDS) ←</p>
         </a>
 
         <!-- Active Deliveries -->
-        <a href="{% url 'delivery' %}" class="card p-5 border-l-4 border-l-info-600 hover:border-brand-500 transition group block">
+        <a href="{% url 'delivery' %}" class="classic-card p-5 border-t-4 border-t-brand-600 hover:border-[#D2AB6B] transition group block">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">توصيلات الفرع النشطة</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info-100 text-info-700 text-base group-hover:scale-110 transition">🛵</span>
+                <span class="medallion-icon-light flex h-9 w-9 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-info-700">{{ active_deliveries_count }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="mt-2 text-2xl font-black font-body text-brand-700">{{ active_deliveries_count }} <span class="text-xs font-bold text-soft">طلب</span></p>
             <p class="mt-1 text-xs font-bold text-brand-600 group-hover:underline">متابعة مسارات السائقين ←</p>
         </a>
 
         <!-- Branch Low Stock -->
-        <a href="{% url 'inventory' %}" class="card p-5 border-l-4 {% if low_stock_count > 0 %}border-l-bad-600{% else %}border-l-good-600{% endif %} hover:border-brand-500 transition group block">
+        <a href="{% url 'inventory' %}" class="classic-card p-5 border-t-4 {% if low_stock_count > 0 %}border-t-bad-600{% else %}border-t-emerald-600{% endif %} hover:border-[#D2AB6B] transition group block">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">نواقص مخزون الفرع</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl {% if low_stock_count > 0 %}bg-bad-100 text-bad-700{% else %}bg-good-100 text-good-700{% endif %} text-base">📦</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl {% if low_stock_count > 0 %}bg-bad-100 text-bad-700 border border-bad-300{% else %}bg-emerald-100 text-emerald-700 border border-emerald-300{% endif %} shadow-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display {% if low_stock_count > 0 %}text-bad-700{% else %}text-good-700{% endif %}">{{ low_stock_count }} <span class="text-xs font-bold text-soft">مادة</span></p>
+            <p class="mt-2 text-2xl font-black font-body {% if low_stock_count > 0 %}text-bad-700{% else %}text-emerald-700{% endif %}">{{ low_stock_count }} <span class="text-xs font-bold text-soft">مادة</span></p>
             <p class="mt-1 text-xs font-bold text-soft">من أصل {{ employees_count }} موظف مسجل بالفرع</p>
         </a>
     </div>
 
     <!-- Branch Operational Modules Hub (7 Cards) -->
-    <div class="mt-7">
-        <h2 class="text-sm font-black font-display text-ink mb-3">الأنظمة التشغيلية للفرع</h2>
+    <div class="mt-7 font-body">
+        <h2 class="text-base font-bold font-royal text-ink mb-3.5 flex items-center gap-2">
+            <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
+                <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            </span>
+            <span>الأنظمة التشغيلية للفرع</span>
+        </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <!-- 1. POS Cashier -->
-            <a href="{% url 'pos' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-xl group-hover:scale-105 transition">
-                    💳
+            <a href="{% url 'pos' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">كاشير الفرع (POS)</h3>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">كاشير الفرع (POS)</h3>
                     <p class="text-[11px] text-soft mt-0.5">تسجيل الطلبات، الفواتير الفورية، والتحصيل</p>
                 </div>
             </a>
 
             <!-- 2. Kitchen KDS -->
-            <a href="{% url 'kitchen' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warn-100 text-warn-700 text-xl group-hover:scale-105 transition">
-                    🍳
+            <a href="{% url 'kitchen' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">شاشة المطبخ (KDS)</h3>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">شاشة المطبخ (KDS)</h3>
                     <p class="text-[11px] text-soft mt-0.5">أوامر التحضير الحية ومؤقتات الوجبات</p>
                 </div>
             </a>
 
             <!-- 3. Branch Orders -->
-            <a href="{% url 'branch_orders' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-paper text-ink text-xl group-hover:scale-105 transition">
-                    🧾
+            <a href="{% url 'branch_orders' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">طلبات وفواتير الفرع</h3>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">طلبات وفواتير الفرع</h3>
                     <p class="text-[11px] text-soft mt-0.5">أرشيف المعاملات ومتابعة الحالات</p>
                 </div>
             </a>
 
             <!-- 4. Branch Delivery -->
-            <a href="{% url 'delivery' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-info-100 text-info-700 text-xl group-hover:scale-105 transition">
-                    🛵
+            <a href="{% url 'delivery' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">توصيل وسائقي الفرع</h3>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">توصيل وسائقي الفرع</h3>
                     <p class="text-[11px] text-soft mt-0.5">توزيع الطلبات وتعيين السائقين</p>
                 </div>
             </a>
 
             <!-- 5. Branch Menu Availability -->
-            <a href="{% url 'branch_menu' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-good-100 text-good-700 text-xl group-hover:scale-105 transition">
-                    📋
+            <a href="{% url 'branch_menu' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">منيو وتوفر الوجبات</h3>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">منيو وتوفر الوجبات</h3>
                     <p class="text-[11px] text-soft mt-0.5">تفعيل أو إيقاف توفر الأطباق بمطبخ الفرع</p>
                 </div>
             </a>
 
             <!-- 6. Branch Inventory -->
-            <a href="{% url 'inventory' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-800 text-xl group-hover:scale-105 transition">
-                    📦
+            <a href="{% url 'inventory' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">مخزون الفرع</h3>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">مخزون الفرع</h3>
                     <p class="text-[11px] text-soft mt-0.5">كميات المواد الغذائية، النواقص، والتوريد</p>
                 </div>
             </a>
 
             <!-- 7. Branch Employees -->
-            <a href="{% url 'employees' %}" class="card p-4 hover:border-brand-500 hover:shadow-md transition flex items-start gap-3 group">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-night text-gold-300 text-xl group-hover:scale-105 transition">
-                    👥
+            <a href="{% url 'employees' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-black font-display text-ink group-hover:text-brand-700">موظفو الفرع</h3>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">موظفو الفرع</h3>
                     <p class="text-[11px] text-soft mt-0.5">طاقم العمل (كاشير، طهاة، سائقون، نُدُل)</p>
                 </div>
             </a>
@@ -161,66 +179,74 @@
     </div>
 
     <!-- Live Kitchen Queue & Recent Orders for Branch -->
-    <div class="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
+    <div class="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3 font-body">
         <!-- Live Kitchen Queue Preview -->
-        <div class="card p-5 xl:col-span-2">
+        <div class="classic-card p-5 xl:col-span-2">
             <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
                 <div class="flex items-center gap-2">
-                    <span class="text-base">🍳</span>
+                    <span class="medallion-icon-light flex h-7 w-7 items-center justify-center rounded-lg">
+                        <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                    </span>
                     <div>
-                        <h2 class="text-sm font-black font-display text-ink">مطبخ الفرع — أوامر الطهي الحالية</h2>
+                        <h2 class="text-sm font-bold font-royal text-ink">مطبخ الفرع — أوامر الطهي الحالية</h2>
                         <p class="text-[11px] text-soft">الطلبات قيد الإعداد الآن في صالة المطبخ</p>
                     </div>
                 </div>
-                <a href="{% url 'kitchen' %}" class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700">
+                <a href="{% url 'kitchen' %}" class="btn-gold-pill text-xs font-black">
                     شاشة المطبخ الكاملة ←
                 </a>
             </div>
 
             <div class="space-y-3">
                 {% for item in kitchen_preview_data %}
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-line bg-paper/30 gap-2">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-line bg-paper/40 hover:bg-white hover:border-[#D2AB6B] transition gap-2">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-sm text-ink">{{ item.order.order_number }}</span>
-                            <span class="rounded px-2 py-0.5 text-[10px] font-bold {% if item.order.status == 'new' %}bg-info-100 text-info-700{% else %}bg-warn-100 text-warn-700{% endif %}">
+                            <span class="rounded px-2 py-0.5 text-[10px] font-bold {% if item.order.status == 'new' %}bg-info-100 text-info-700 border border-info-200{% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
                                 {{ item.order.get_status_display }}
                             </span>
-                            <span class="text-[11px] font-bold text-soft font-mono">⏱️ منذ {{ item.elapsed_minutes }} دقيقة</span>
+                            <span class="text-[11px] font-bold text-soft inline-flex items-center gap-1">
+                                <svg class="w-3 h-3 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>منذ {{ item.elapsed_minutes }} دقيقة</span>
+                            </span>
                         </div>
                         <div class="mt-2 flex flex-wrap gap-1.5 text-xs">
                             {% for oi in item.order.items.all %}
-                            <span class="rounded bg-card border border-line px-2 py-0.5 font-bold text-ink">
+                            <span class="rounded bg-white border border-line px-2 py-0.5 font-bold text-ink shadow-2xs">
                                 {{ oi.qty }}x {{ oi.name }}
                             </span>
                             {% endfor %}
                         </div>
                     </div>
                     <div>
-                        <a href="{% url 'kitchen' %}" class="rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">
+                        <a href="{% url 'kitchen' %}" class="rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-bold text-soft hover:text-ink hover:border-[#D2AB6B] transition shadow-xs">
                             تحديث الحالة
                         </a>
                     </div>
                 </div>
                 {% empty %}
                 <div class="py-10 text-center text-xs text-soft">
-                    <p class="text-2xl mb-1">🎉</p>
-                    <p>لا توجد طلبات في قائمة الانتظار، المطبخ جاهز للطلبات القادمة</p>
+                    <span class="medallion-icon mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs">
+                        <svg class="w-6 h-6 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </span>
+                    <p class="font-bold text-ink">لا توجد طلبات في قائمة الانتظار</p>
+                    <p class="mt-0.5 text-soft">المطبخ جاهز بالكامل لاستقبال الطلبات القادمة</p>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Recent Branch Orders -->
-        <div class="card p-5">
+        <div class="classic-card p-5">
             <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
-                <h3 class="text-xs font-black font-display text-ink">أحدث فواتير الفرع</h3>
+                <h3 class="text-xs font-bold font-royal text-ink">أحدث فواتير الفرع</h3>
                 <a href="{% url 'branch_orders' %}" class="text-xs font-bold text-brand-600 hover:underline">الكل</a>
             </div>
 
             <div class="space-y-2.5 max-h-80 overflow-y-auto">
                 {% for o in recent_orders %}
-                <div class="rounded-lg border border-line p-2.5 bg-paper/40 text-xs">
+                <div class="rounded-lg border border-line p-2.5 bg-paper/40 hover:bg-white hover:border-[#D2AB6B] transition text-xs">
                     <div class="flex items-center justify-between">
                         <span class="font-extrabold text-ink">{{ o.order_number }}</span>
                         <span class="font-extrabold text-brand-700">{{ o.total|floatformat:2 }} ر.س</span>
@@ -231,7 +257,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-center py-6 text-xs text-soft">لا توجد طلبات مسجلة</p>
+                <p class="text-center py-6 text-xs text-soft font-bold">لا توجد طلبات مسجلة</p>
                 {% endfor %}
             </div>
         </div>

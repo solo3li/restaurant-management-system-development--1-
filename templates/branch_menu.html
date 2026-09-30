@@ -3,31 +3,35 @@
 {% block title %}قائمة أصناف الفرع والتوفر — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div id="branchMenuApp">
+<div id="branchMenuApp" class="space-y-5 font-body">
     <!-- Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black font-display text-ink">قائمة أطعمة الفرع وإدارة التوفر</h1>
-            <p class="text-xs font-bold text-soft mt-1">
+            <h1 class="text-2xl font-bold font-royal text-ink">قائمة أطعمة الفرع وإدارة التوفر</h1>
+            <p class="text-xs font-bold text-soft mt-1 flex items-center gap-1.5">
                 {% if branch %}
-                    📍 فرع: <span class="text-ink font-extrabold">{{ branch.name }}</span> • التحكم في توفر الأطباق في مطبخ الفرع ونقاط البيع
+                    <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>فرع: <span class="text-ink font-extrabold">{{ branch.name }}</span> • التحكم في توفر الأطباق في مطبخ الفرع ونقاط البيع</span>
                 {% else %}
-                    🏢 كل الفروع • التعديل هنا يؤثر على الحالة العامة للأصناف
+                    <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>كل الفروع • التعديل هنا يؤثر على الحالة العامة للأصناف</span>
                 {% endif %}
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <span class="rounded-xl bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft">
-                إجمالي الأصناف: <span class="font-extrabold text-ink">{{ items_data|length }}</span>
+            <span class="rounded-xl bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-soft shadow-2xs">
+                إجمالي الأصناف: <span class="font-extrabold text-ink font-body">{{ items_data|length }}</span>
             </span>
         </div>
     </div>
 
     <!-- Notice Banner -->
-    <div class="rounded-2xl bg-amber-50 border border-amber-200/80 p-4 mb-5 flex items-start gap-3 text-amber-900">
-        <span class="text-xl">💡</span>
+    <div class="rounded-2xl bg-amber-50/70 border border-amber-300 p-4 flex items-start gap-3 text-amber-900 shadow-2xs">
+        <span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        </span>
         <div class="text-xs space-y-1">
-            <p class="font-black text-amber-950">ملاحظة تشغيلية لمطبخ الفرع:</p>
+            <p class="font-bold text-amber-950">ملاحظة تشغيلية لمطبخ الفرع:</p>
             <p class="text-amber-800 leading-relaxed">
                 الأصناف المحددة كـ <strong class="text-amber-950">"غير متوفر"</strong> تُستبعد فوراً وبشكل تلقائي من شاشات الكاشير (POS) ومركز الاتصال عند إسناد الطلب لهذا الفرع، لتفادي إحراج العملاء عند نفاد المكونات اليومية بالمطبخ.
             </p>
@@ -35,14 +39,14 @@
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="card p-4 mb-5 space-y-3">
+    <div class="classic-card p-4 space-y-3">
         <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-3">
             <!-- Category Pills -->
             <div class="flex flex-wrap gap-1.5">
                 {% for c in categories %}
                 <a 
                     href="?cat={{ c }}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-xl px-3.5 py-1.5 text-xs font-black transition-all {% if selected_cat == c %}bg-brand-600 text-white shadow-sm{% else %}bg-paper text-soft hover:text-ink border border-line{% endif %}"
+                    class="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all {% if selected_cat == c %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}bg-paper text-soft hover:text-ink border border-line hover:border-[#D2AB6B]{% endif %}"
                 >
                     {{ c }}
                 </a>
@@ -56,14 +60,16 @@
                     name="cat" 
                     value="{{ selected_cat }}"
                 >
-                <input 
-                    type="text" 
-                    name="q" 
-                    value="{{ search_query }}" 
-                    placeholder="ابحث عن وجبة أو مشروب…" 
-                    class="input text-xs w-full sm:w-64"
-                >
-                <button type="submit" class="rounded-xl bg-ink text-white px-3.5 py-2 text-xs font-bold hover:bg-black transition">
+                <div class="relative w-full sm:w-64">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        value="{{ search_query }}" 
+                        placeholder="ابحث عن وجبة أو مشروب…" 
+                        class="input text-xs w-full"
+                    >
+                </div>
+                <button type="submit" class="btn-gold-pill px-4 py-2 text-xs font-black shadow-2xs">
                     بحث
                 </button>
                 {% if search_query or selected_cat != 'الكل' %}
@@ -78,20 +84,22 @@
         {% for row in items_data %}
         <div 
             id="item-card-{{ row.item.id }}" 
-            class="card p-4 flex flex-col justify-between transition-all duration-200 hover:shadow-md {% if not row.is_available %}opacity-70 bg-paper/60 border-bad-200{% endif %}"
+            class="classic-card p-4 flex flex-col justify-between transition-all duration-200 hover:border-[#D2AB6B] hover:shadow-md {% if not row.is_available %}opacity-70 bg-paper/60 border-bad-200{% endif %}"
         >
             <div>
                 <div class="flex items-start justify-between gap-2 mb-2">
                     <div class="flex items-center gap-2.5">
-                        <span class="text-3xl filter drop-shadow-sm">{{ row.item.emoji }}</span>
+                        <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                            <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </span>
                         <div>
-                            <h3 class="font-black text-sm text-ink leading-tight">{{ row.item.name }}</h3>
+                            <h3 class="font-bold text-sm text-ink leading-tight">{{ row.item.name }}</h3>
                             <span class="text-[10px] font-bold text-soft">{{ row.item.category }}</span>
                         </div>
                     </div>
                     <span 
                         id="badge-{{ row.item.id }}" 
-                        class="rounded-lg px-2 py-0.5 text-[10px] font-black {% if row.is_available %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}"
+                        class="rounded-lg px-2 py-0.5 text-[10px] font-bold {% if row.is_available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
                     >
                         {% if row.is_available %}متوفر بالفرع{% else %}غير متوفر (نافد){% endif %}
                     </span>
@@ -99,7 +107,7 @@
 
                 <div class="flex items-center justify-between text-xs py-2 my-2 border-y border-line/60">
                     <span class="text-soft font-bold">سعر البيع:</span>
-                    <span class="font-extrabold text-ink font-mono text-sm">{{ row.item.price }} <span class="text-[10px] font-bold text-soft">ر.س</span></span>
+                    <span class="font-extrabold text-ink font-body text-sm">{{ row.item.price }} <span class="text-[10px] font-bold text-soft">ر.س</span></span>
                 </div>
             </div>
 
@@ -109,20 +117,24 @@
                     type="button" 
                     id="btn-{{ row.item.id }}"
                     onclick="toggleItemAvailability({{ row.item.id }}, '{{ row.item.name|escapejs }}')"
-                    class="w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm {% if row.is_available %}bg-bad-50 text-bad-700 border border-bad-200 hover:bg-bad-100{% else %}bg-good-600 text-white hover:bg-good-700{% endif %}"
+                    class="w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs {% if row.is_available %}bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100{% else %}bg-emerald-700 text-white hover:bg-emerald-800{% endif %}"
                 >
                     {% if row.is_available %}
-                        <span>⛔ تعطيل من المطبخ</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                        <span>تعطيل من المطبخ</span>
                     {% else %}
-                        <span>✅ إعادة التفعيل بالفرع</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>إعادة التفعيل بالفرع</span>
                     {% endif %}
                 </button>
             </div>
         </div>
         {% empty %}
-        <div class="col-span-full py-12 text-center text-soft">
-            <span class="text-4xl block mb-2">🔍</span>
-            <p class="font-bold text-sm">لا توجد أصناف مطابقة للبحث أو التصنيف الحالي</p>
+        <div class="col-span-full py-16 text-center text-soft classic-card p-8">
+            <span class="medallion-icon-light mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
+                <svg class="w-6 h-6 text-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </span>
+            <p class="font-bold text-sm text-ink">لا توجد أصناف مطابقة للبحث أو التصنيف الحالي</p>
         </div>
         {% endfor %}
     </div>
@@ -141,7 +153,6 @@ async function toggleItemAvailability(itemId, itemName) {
     
     if (!btn) return;
     btn.disabled = true;
-    const oldText = btn.innerHTML;
     btn.innerHTML = '<span>جاري التحديث…</span>';
 
     try {
@@ -161,31 +172,29 @@ async function toggleItemAvailability(itemId, itemName) {
         if (data.ok) {
             if (data.isAvailable) {
                 // Now available
-                badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-black bg-good-100 text-good-700';
+                badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
                 badge.innerText = 'متوفر بالفرع';
 
-                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm bg-bad-50 text-bad-700 border border-bad-200 hover:bg-bad-100';
-                btn.innerHTML = '<span>⛔ تعطيل من المطبخ</span>';
+                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100';
+                btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>تعطيل من المطبخ</span>';
 
                 card.classList.remove('opacity-70', 'bg-paper/60', 'border-bad-200');
             } else {
                 // Now unavailable
-                badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-black bg-bad-100 text-bad-700';
+                badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300';
                 badge.innerText = 'غير متوفر (نافد)';
 
-                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm bg-good-600 text-white hover:bg-good-700';
-                btn.innerHTML = '<span>✅ إعادة التفعيل بالفرع</span>';
+                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs bg-emerald-700 text-white hover:bg-emerald-800';
+                btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>إعادة التفعيل بالفرع</span>';
 
                 card.classList.add('opacity-70', 'bg-paper/60', 'border-bad-200');
             }
+            showToast(`تم تحديث توفر «${itemName}» بنجاح`);
         } else {
-            alert(data.error || 'تعذر تغيير حالة الصنف');
-            btn.innerHTML = oldText;
+            showToast('تعذر تحديث حالة الصنف', 'error');
         }
-    } catch (err) {
-        console.error(err);
-        alert('حدث خطأ أثناء الاتصال بالخادم.');
-        btn.innerHTML = oldText;
+    } catch (e) {
+        showToast('خطأ في الاتصال بالسيرفر', 'error');
     } finally {
         btn.disabled = false;
     }

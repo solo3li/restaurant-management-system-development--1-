@@ -3,52 +3,60 @@
 {% block title %}شاشة المطبخ (KDS) — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-6">
     <!-- Kitchen Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-night p-4 rounded-xl text-white shadow-md">
-        <div class="flex items-center gap-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-warn-600 text-white text-xl font-bold">
-                🍳
-            </span>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="text-lg font-black font-display text-white">شاشة تحضير المطبخ (KDS)</h1>
-                    <span class="rounded-full bg-warn-600/30 border border-warn-600/60 px-2.5 py-0.5 text-xs font-bold text-gold-300">
-                        {{ total_pending }} طلب قيد الإعداد
-                    </span>
-                </div>
-                <p class="text-xs text-gold-300/70">
-                    {% if branch %}📍 {{ branch.name }}{% else %}كل الفروع{% endif %} • متابعة مباشرة لأوامر الطهي والتجهيز
-                </p>
-            </div>
-        </div>
+    <div class="p-5 rounded-2xl bg-gradient-to-r from-[#0E382A] via-[#144D3B] to-[#0A261C] text-white border border-[#D2AB6B]/30 shadow-xl relative overflow-hidden">
+        <div class="absolute -left-10 -bottom-10 w-40 h-40 rounded-full bg-[#D2AB6B]/10 blur-2xl pointer-events-none"></div>
 
-        <div class="flex items-center gap-2">
-            <button onclick="location.reload()" class="rounded-lg bg-night-2 border border-night-3 px-3 py-1.5 text-xs font-bold text-gold-300 hover:bg-night-3 transition">
-                🔄 تحديث فوري (<span id="refresh-countdown">12</span> ث)
-            </button>
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="medallion-icon flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
+                    <svg class="w-6 h-6 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl sm:text-2xl font-bold font-royal text-white tracking-wide">شاشة تحضير المطبخ (KDS)</h1>
+                        <span class="rounded-full bg-[#D2AB6B]/20 border border-[#D2AB6B]/40 px-3 py-0.5 text-xs font-bold text-[#E6C898] font-body">
+                            {{ total_pending }} طلب قيد الإعداد
+                        </span>
+                    </div>
+                    <p class="text-xs text-[#E2D9CE]/80 mt-1 flex items-center gap-1 font-body">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>{% if branch %}{{ branch.name }}{% else %}كل الفروع{% endif %}</span>
+                        <span>• متابعة مباشرة لأوامر الطهي والتجهيز</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="location.reload()" class="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-3.5 py-2 text-xs font-bold text-[#E6C898] hover:bg-white/20 transition font-body">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>تحديث فوري (<span id="refresh-countdown">12</span> ث)</span>
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Kitchen Orders Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 font-body">
         {% for item in kitchen_orders %}
-        <div class="card overflow-hidden shadow-md border-line flex flex-col justify-between {% if item.elapsed_minutes > 15 %}border-t-4 border-t-bad-600{% elif item.elapsed_minutes > 8 %}border-t-4 border-t-warn-600{% else %}border-t-4 border-t-good-600{% endif %}">
+        <div class="classic-card overflow-hidden shadow-md flex flex-col justify-between {% if item.elapsed_minutes > 15 %}border-t-4 border-t-bad-600{% elif item.elapsed_minutes > 8 %}border-t-4 border-t-warn-600{% else %}border-t-4 border-t-emerald-600{% endif %}">
             <!-- Card Header -->
             <div class="p-3.5 bg-paper/50 border-b border-line flex items-center justify-between">
                 <div>
-                    <span class="text-base font-black font-display text-ink">{{ item.order.order_number }}</span>
+                    <span class="text-base font-black font-body text-ink">{{ item.order.order_number }}</span>
                     <span class="block text-[11px] font-bold text-soft">{{ item.order.created_at|time:"H:i" }}</span>
                 </div>
                 <div class="text-left">
                     <span class="rounded px-2 py-0.5 text-[11px] font-black
                         {% if item.order.order_type == 'dine_in' %}bg-brand-100 text-brand-700
                         {% elif item.order.order_type == 'takeaway' %}bg-paper border border-line text-ink
-                        {% else %}bg-info-100 text-info-700{% endif %}">
+                        {% else %}bg-sky-100 text-sky-800{% endif %}">
                         {{ item.order.get_order_type_display }}
                     </span>
-                    <p class="text-[11px] font-bold font-mono mt-1 {% if item.elapsed_minutes > 15 %}text-bad-700 font-black animate-pulse{% elif item.elapsed_minutes > 8 %}text-warn-700{% else %}text-good-700{% endif %}">
-                        ⏱️ {{ item.elapsed_minutes }} دقيقة
+                    <p class="text-[11px] font-bold font-mono mt-1 flex items-center justify-end gap-1 {% if item.elapsed_minutes > 15 %}text-bad-700 font-black animate-pulse{% elif item.elapsed_minutes > 8 %}text-warn-700{% else %}text-emerald-700{% endif %}">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ item.elapsed_minutes }} دقيقة</span>
                     </p>
                 </div>
             </div>
@@ -57,8 +65,8 @@
             <div class="p-4 flex-1 space-y-2">
                 <p class="text-[11px] font-black text-soft uppercase tracking-wider mb-1">الوجبات المطلوبة:</p>
                 {% for oi in item.items %}
-                <label class="flex items-center gap-2.5 p-2 rounded-lg bg-card border border-line/60 hover:bg-paper/30 transition cursor-pointer">
-                    <input type="checkbox" class="w-4 h-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                <label class="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-line/70 hover:bg-paper/40 transition cursor-pointer">
+                    <input type="checkbox" class="w-4 h-4 rounded border-[#D2AB6B] text-brand-600 focus:ring-[#D2AB6B]">
                     <span class="text-xs font-black text-ink flex-1 leading-snug">
                         <span class="text-brand-700 text-sm font-black">{{ oi.qty }}x</span> {{ oi.name }}
                     </span>
@@ -66,8 +74,9 @@
                 {% endfor %}
 
                 {% if item.order.notes %}
-                <div class="mt-2 rounded-lg bg-warn-100/80 border border-warn-600/30 p-2 text-xs font-bold text-warn-700">
-                    ⚠️ ملاحظات: {{ item.order.notes }}
+                <div class="mt-2 rounded-lg bg-amber-50 border border-amber-300 p-2 text-xs font-bold text-amber-800 flex items-start gap-1.5">
+                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>ملاحظات: {{ item.order.notes }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -77,24 +86,28 @@
                 {% if item.order.status == 'new' %}
                 <button 
                     onclick="updateKitchenOrder({{ item.order.id }}, 'preparing')" 
-                    class="w-full rounded-xl bg-warn-600 py-2.5 text-xs font-black text-white hover:bg-warn-700 transition shadow"
+                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 py-2.5 text-xs font-black text-white hover:bg-amber-700 transition shadow"
                 >
-                    🔥 بدء التحضير
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+                    <span>بدء التحضير</span>
                 </button>
                 {% elif item.order.status == 'preparing' %}
                 <button 
                     onclick="updateKitchenOrder({{ item.order.id }}, 'ready')" 
-                    class="w-full rounded-xl bg-good-600 py-2.5 text-xs font-black text-white hover:bg-good-700 transition shadow"
+                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 py-2.5 text-xs font-black text-white hover:bg-emerald-800 transition shadow"
                 >
-                    ✓ جاهز للتسليم
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>جاهز للتسليم</span>
                 </button>
                 {% endif %}
             </div>
         </div>
         {% empty %}
-        <div class="col-span-full py-16 text-center card p-8">
-            <span class="text-4xl mb-2 block">🍳</span>
-            <h3 class="text-base font-black font-display text-ink">المطبخ هادئ الآن</h3>
+        <div class="col-span-full py-16 text-center classic-card p-8">
+            <span class="medallion-icon mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl shadow-xs">
+                <svg class="w-7 h-7 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            </span>
+            <h3 class="text-base font-bold font-royal text-ink">المطبخ هادئ الآن</h3>
             <p class="text-xs text-soft mt-1">لا توجد طلبات جديدة بانتظار الطهي أو التحضير.</p>
         </div>
         {% endfor %}

@@ -8,31 +8,38 @@
     <!-- ========================================== -->
     <!-- HEADER & BREADCRUMB                        -->
     <!-- ========================================== -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#D2AB6B]/30 pb-5">
         <div>
-            <div class="flex items-center gap-2 text-xs font-bold text-soft mb-1">
-                <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">الإدارة العامة (HQ)</a>
+            <div class="flex items-center gap-2 text-xs font-bold text-[#666666] mb-1">
+                <a href="{% url 'dashboard' %}" class="hover:text-[#0E382A] transition">الإدارة العامة (HQ)</a>
                 <span>/</span>
-                <span class="text-ink">الاشتراك واستهلاك الباقة</span>
+                <span class="text-[#0E382A]">الاشتراك واستهلاك الباقة</span>
             </div>
-            <h1 class="font-display text-2xl sm:text-3xl font-black text-ink flex items-center gap-3">
-                <span>💎 اشتراك باقة منشأة: {{ tenant.name }}</span>
+            <h1 class="font-royal text-2xl sm:text-3xl font-bold text-[#0E382A] flex items-center gap-3">
+                <span class="medallion-icon w-9 h-9 inline-flex">
+                    <svg class="w-5 h-5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                </span>
+                اشتراك باقة منشأة: {{ tenant.name }}
             </h1>
-            <p class="text-xs font-bold text-soft mt-1">متابعة حدود الاستهلاك (الفروع والموظفين)، الصلاحيات المفعلة، وتقديم طلبات الترقية</p>
+            <p class="text-xs font-semibold text-[#666666] mt-1">متابعة حدود الاستهلاك (الفروع والموظفين)، الصلاحيات المفعلة، وتقديم طلبات الترقية</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="#ai-fastmcp-section" class="px-4 py-2.5 rounded-xl border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-800 text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
-                <span>🤖</span> مفاتيح الذكاء الاصطناعي (MCP)
+            <a href="#ai-fastmcp-section" class="px-4 py-2.5 rounded-xl border border-[#D2AB6B]/50 bg-white hover:bg-[#F9F6F0] text-[#0E382A] text-xs font-bold transition flex items-center gap-2 shadow-xs">
+                <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                مفاتيح الذكاء الاصطناعي (MCP)
             </a>
             <button 
                 type="button" 
                 onclick="openUpgradeModal()" 
-                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white text-xs font-black shadow-lg shadow-brand-600/30 transition hover:-translate-y-0.5 flex items-center gap-2"
+                class="btn-gold-pill px-5 py-2.5 text-xs font-bold shadow-sm flex items-center gap-2"
             >
-                <span>⚡ طلب ترقية أو تجديد الباقة</span>
+                <svg class="w-4 h-4 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                طلب ترقية أو تجديد الباقة
             </button>
-            <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-xl border border-line bg-card hover:bg-paper text-ink text-xs font-bold transition">
+            <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-xl border border-[#D2AB6B]/40 bg-white hover:bg-[#F9F6F0] text-[#1E130D] text-xs font-bold transition">
                 ← عودة للوحة HQ
             </a>
         </div>
@@ -42,70 +49,74 @@
     <!-- PENDING UPGRADE BANNER (IF ANY)            -->
     <!-- ========================================== -->
     {% if has_pending_request %}
-    <div class="rounded-2xl border border-warn-300 bg-warn-50/90 p-4 shadow-sm flex items-center justify-between">
+    <div class="rounded-2xl border border-amber-300 bg-amber-50/90 p-4 shadow-sm flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <span class="text-2xl">⏳</span>
+            <span class="medallion-icon w-8 h-8 shrink-0">
+                <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"/></svg>
+            </span>
             <div>
-                <p class="font-black text-xs text-warn-900">لديك طلب ترقية باقة قيد المراجعة حالياً من قبل إدارة المنصة</p>
-                <p class="text-[11px] text-warn-700">سيتم تفعيل الميزات والمحددات الجديدة فور مراجعة وموافقة المسؤول، ويمكنك متابعة حالة الطلب في الجدول أسفل الصفحة.</p>
+                <p class="font-bold text-xs text-amber-900">لديك طلب ترقية باقة قيد المراجعة حالياً من قبل إدارة المنصة</p>
+                <p class="text-[11px] text-amber-800">سيتم تفعيل الميزات والمحددات الجديدة فور مراجعة وموافقة المسؤول، ويمكنك متابعة حالة الطلب في الجدول أسفل الصفحة.</p>
             </div>
         </div>
-        <span class="px-3 py-1 rounded-full bg-warn-600 text-white text-[10px] font-black">قيد المراجعة</span>
+        <span class="px-3 py-1 rounded-full bg-amber-600 text-white text-[10px] font-bold">قيد المراجعة</span>
     </div>
     {% endif %}
 
     <!-- ========================================== -->
     <!-- CURRENT PLAN SUMMARY CARD                  -->
     <!-- ========================================== -->
-    <div class="card p-6 sm:p-7 relative overflow-hidden shadow-sm border-line">
+    <div class="classic-card p-6 sm:p-7 relative overflow-hidden shadow-sm">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div class="flex items-start gap-4">
-                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-gold-500 text-white text-3xl font-black shadow-xl shadow-brand-600/20">
-                    {{ tenant.logo_emoji|default:"💎" }}
+                <div class="medallion-icon w-16 h-16 shrink-0 shadow-md">
+                    <svg class="w-8 h-8 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
                 </div>
                 <div>
                     <div class="flex items-center gap-3 flex-wrap">
-                        <h2 class="font-display text-2xl font-black text-ink">
+                        <h2 class="font-royal text-2xl font-bold text-[#0E382A]">
                             باقة {{ plan.name|default:"الخطة الأساسية" }}
                         </h2>
                         {% if tenant.subscription_status == 'active' %}
-                            <span class="px-3 py-0.5 rounded-full bg-good-100 text-good-700 text-xs font-black border border-good-600/30">
-                                ● نشط
+                            <span class="px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300">
+                                نشط
                             </span>
                         {% elif tenant.subscription_status == 'past_due' %}
-                            <span class="px-3 py-0.5 rounded-full bg-warn-100 text-warn-700 text-xs font-black border border-warn-600/30">
-                                ⏳ متأخر السداد
+                            <span class="px-3 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-300">
+                                متأخر السداد
                             </span>
                         {% else %}
-                            <span class="px-3 py-0.5 rounded-full bg-bad-100 text-bad-700 text-xs font-black border border-bad-600/30">
-                                ⚠️ {{ tenant.get_subscription_status_display }}
+                            <span class="px-3 py-0.5 rounded-full bg-rose-100 text-rose-800 text-xs font-bold border border-rose-300">
+                                {{ tenant.get_subscription_status_display }}
                             </span>
                         {% endif %}
-                        <span class="px-2.5 py-0.5 rounded-md bg-paper text-soft text-xs font-bold border border-line">
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#F9F6F0] text-[#666666] text-xs font-bold border border-[#D2AB6B]/30">
                             دورة الفوترة: {{ tenant.get_billing_cycle_display }}
                         </span>
                     </div>
 
-                    <p class="text-xs text-soft mt-1.5 max-w-xl">
+                    <p class="text-xs text-[#666666] mt-1.5 max-w-xl">
                         {{ plan.description|default:"تتيح تشغيل فروع المطعم والوصول إلى كافة المميزات المضمنة في باقتك الحالية." }}
                     </p>
 
-                    <div class="flex items-center gap-6 mt-4 text-xs font-bold text-soft flex-wrap">
+                    <div class="flex items-center gap-6 mt-4 text-xs font-bold text-[#666666] flex-wrap">
                         <div>
                             تاريخ انتهاء الصلاحية: 
-                            <strong class="text-ink">
+                            <strong class="text-[#0E382A]">
                                 {% if tenant.subscription_end %}{{ tenant.subscription_end|date:"Y-m-d" }}{% else %}مستمر{% endif %}
                             </strong>
                         </div>
-                        <div class="border-r border-line pr-4">
+                        <div class="border-r border-[#D2AB6B]/30 pr-4">
                             الأيام المتبقية: 
-                            <strong class="{% if days_left < 7 %}text-bad-600{% else %}text-good-700{% endif %}">
+                            <strong class="{% if days_left < 7 %}text-rose-700{% else %}text-[#0E382A]{% endif %}">
                                 {% if days_left != 999 %}{{ days_left }} يوم{% else %}غير محدد{% endif %}
                             </strong>
                         </div>
-                        <div class="border-r border-line pr-4">
+                        <div class="border-r border-[#D2AB6B]/30 pr-4">
                             السعر: 
-                            <strong class="text-ink">
+                            <strong class="text-[#0E382A]">
                                 {% if tenant.billing_cycle == 'yearly' %}{{ plan.price_yearly|floatformat:0 }} ر.س / سنوياً{% else %}{{ plan.price_monthly|floatformat:0 }} ر.س / شهرياً{% endif %}
                             </strong>
                         </div>
@@ -118,11 +129,11 @@
                 <button 
                     type="button" 
                     onclick="openUpgradeModal()" 
-                    class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-black text-xs shadow-md transition text-center"
+                    class="btn-gold-pill px-5 py-2.5 text-xs font-bold shadow-md text-center"
                 >
                     ترقية الباقة الآن
                 </button>
-                <a href="#plans-comparison" class="px-5 py-2.5 rounded-xl border border-line bg-paper hover:bg-line text-ink font-bold text-xs transition text-center">
+                <a href="#plans-comparison" class="px-5 py-2.5 rounded-xl border border-[#D2AB6B]/40 bg-white hover:bg-[#F9F6F0] text-[#0E382A] font-bold text-xs transition text-center">
                     مقارنة كافة الخطط
                 </a>
             </div>
@@ -134,93 +145,102 @@
     <!-- ========================================== -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         <!-- Metric 1: Branches Usage -->
-        <div class="card p-5 border-line shadow-xs">
+        <div class="classic-card p-5 shadow-2xs">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2.5">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 font-bold text-base">🏢</span>
+                    <span class="medallion-icon w-9 h-9">
+                        <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </span>
                     <div>
-                        <h4 class="text-xs font-black text-ink">الفروع المشغلة</h4>
-                        <span class="text-[10px] text-soft">المحدد في الباقة</span>
+                        <h4 class="text-xs font-bold text-[#0E382A]">الفروع المشغلة</h4>
+                        <span class="text-[10px] text-[#666666]">المحدد في الباقة</span>
                     </div>
                 </div>
-                <span class="font-mono text-sm font-black {% if branches_count >= max_branches %}text-bad-600{% else %}text-ink{% endif %}">
+                <span class="font-mono text-sm font-bold {% if branches_count >= max_branches %}text-rose-700{% else %}text-[#0E382A]{% endif %}">
                     {{ branches_count }} / {{ max_branches }}
                 </span>
             </div>
 
             <!-- Progress Bar -->
-            <div class="w-full bg-paper rounded-full h-2.5 overflow-hidden mb-2 border border-line">
+            <div class="w-full bg-[#F9F6F0] rounded-full h-2.5 overflow-hidden mb-2 border border-[#D2AB6B]/30">
                 <div 
-                    class="h-full rounded-full transition-all {% if branches_pct >= 100 %}bg-bad-600{% elif branches_pct >= 80 %}bg-warn-600{% else %}bg-good-600{% endif %}" 
+                    class="h-full rounded-full transition-all {% if branches_pct >= 100 %}bg-rose-600{% elif branches_pct >= 80 %}bg-amber-600{% else %}bg-[#0E382A]{% endif %}" 
                     style="width: {{ branches_pct }}%;"
                 ></div>
             </div>
 
             <div class="flex items-center justify-between text-[11px] font-bold">
-                <span class="text-soft">نسبة الاستهلاك: {{ branches_pct }}%</span>
+                <span class="text-[#666666]">نسبة الاستهلاك: {{ branches_pct }}%</span>
                 {% if branches_count >= max_branches %}
-                <span class="text-bad-600 font-black">وصلت للحد الأقصى</span>
+                <span class="text-rose-700 font-bold">وصلت للحد الأقصى</span>
                 {% else %}
-                <span class="text-good-700">متاح {{ max_branches|add:"-"|add:branches_count }} فروع</span>
+                <span class="text-[#0E382A]">متاح {{ max_branches|add:"-"|add:branches_count }} فروع</span>
                 {% endif %}
             </div>
         </div>
 
         <!-- Metric 2: Employees Usage -->
-        <div class="card p-5 border-line shadow-xs">
+        <div class="classic-card p-5 shadow-2xs">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2.5">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gold-50 text-gold-600 font-bold text-base">👥</span>
+                    <span class="medallion-icon w-9 h-9">
+                        <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </span>
                     <div>
-                        <h4 class="text-xs font-black text-ink">الموظفون المسجلون</h4>
-                        <span class="text-[10px] text-soft">المحدد في الباقة</span>
+                        <h4 class="text-xs font-bold text-[#0E382A]">الموظفون المسجلون</h4>
+                        <span class="text-[10px] text-[#666666]">المحدد في الباقة</span>
                     </div>
                 </div>
-                <span class="font-mono text-sm font-black {% if employees_count >= max_employees %}text-bad-600{% else %}text-ink{% endif %}">
+                <span class="font-mono text-sm font-bold {% if employees_count >= max_employees %}text-rose-700{% else %}text-[#0E382A]{% endif %}">
                     {{ employees_count }} / {{ max_employees }}
                 </span>
             </div>
 
             <!-- Progress Bar -->
-            <div class="w-full bg-paper rounded-full h-2.5 overflow-hidden mb-2 border border-line">
+            <div class="w-full bg-[#F9F6F0] rounded-full h-2.5 overflow-hidden mb-2 border border-[#D2AB6B]/30">
                 <div 
-                    class="h-full rounded-full transition-all {% if employees_pct >= 100 %}bg-bad-600{% elif employees_pct >= 80 %}bg-warn-600{% else %}bg-gold-500{% endif %}" 
+                    class="h-full rounded-full transition-all {% if employees_pct >= 100 %}bg-rose-600{% elif employees_pct >= 80 %}bg-amber-600{% else %}bg-[#D2AB6B]{% endif %}" 
                     style="width: {{ employees_pct }}%;"
                 ></div>
             </div>
 
             <div class="flex items-center justify-between text-[11px] font-bold">
-                <span class="text-soft">نسبة الاستهلاك: {{ employees_pct }}%</span>
+                <span class="text-[#666666]">نسبة الاستهلاك: {{ employees_pct }}%</span>
                 {% if employees_count >= max_employees %}
-                <span class="text-bad-600 font-black">وصلت للحد الأقصى</span>
+                <span class="text-rose-700 font-bold">وصلت للحد الأقصى</span>
                 {% else %}
-                <span class="text-good-700">متاح إضافة موظفين</span>
+                <span class="text-[#0E382A]">متاح إضافة موظفين</span>
                 {% endif %}
             </div>
         </div>
 
         <!-- Metric 3: Total Orders -->
-        <div class="card p-5 border-line shadow-xs">
+        <div class="classic-card p-5 shadow-2xs">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2.5">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-good-50 text-good-600 font-bold text-base">🧾</span>
+                    <span class="medallion-icon w-9 h-9">
+                        <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </span>
                     <div>
-                        <h4 class="text-xs font-black text-ink">الطلبات المنفذة</h4>
-                        <span class="text-[10px] text-soft">عبر كل الفروع</span>
+                        <h4 class="text-xs font-bold text-[#0E382A]">الطلبات المنفذة</h4>
+                        <span class="text-[10px] text-[#666666]">عبر كل الفروع</span>
                     </div>
                 </div>
-                <span class="font-mono text-sm font-black text-ink">
+                <span class="font-mono text-sm font-bold text-[#0E382A]">
                     {{ orders_count }} طلب
                 </span>
             </div>
 
-            <div class="w-full bg-paper rounded-full h-2.5 overflow-hidden mb-2 border border-line">
-                <div class="h-full rounded-full bg-brand-500 w-full"></div>
+            <div class="w-full bg-[#F9F6F0] rounded-full h-2.5 overflow-hidden mb-2 border border-[#D2AB6B]/30">
+                <div class="h-full rounded-full bg-[#0E382A] w-full"></div>
             </div>
 
-            <div class="flex items-center justify-between text-[11px] font-bold text-soft">
+            <div class="flex items-center justify-between text-[11px] font-bold text-[#666666]">
                 <span>استيعاب الطلبات:</span>
-                <span class="text-good-700 font-black">غير محدود ✓</span>
+                <span class="text-[#0E382A] font-bold flex items-center gap-1">
+                    <span>غير محدود</span>
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </span>
             </div>
         </div>
     </div>
@@ -228,38 +248,51 @@
     <!-- ========================================== -->
     <!-- FEATURES CATALOG STATUS IN CURRENT PLAN    -->
     <!-- ========================================== -->
-    <div class="card p-6 border-line shadow-sm">
-        <div class="flex items-center justify-between pb-4 border-b border-line mb-5">
+    <div class="classic-card p-6 shadow-sm">
+        <div class="flex items-center justify-between pb-4 border-b border-[#D2AB6B]/30 mb-5">
             <div>
-                <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                    <span>📋 الميزات والأنظمة المضمنة في باقتك الحالية</span>
+                <h3 class="font-royal text-lg font-bold text-[#0E382A] flex items-center gap-2">
+                    <span class="medallion-icon w-7 h-7">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </span>
+                    الميزات والأنظمة المضمنة في باقتك الحالية
                 </h3>
-                <p class="text-xs text-soft mt-0.5">تفصيل الصلاحيات والأنظمة المتاحة أو المغلقة بناءً على باقة «{{ plan.name }}»</p>
+                <p class="text-xs text-[#666666] mt-0.5">تفصيل الصلاحيات والأنظمة المتاحة أو المغلقة بناءً على باقة «{{ plan.name }}»</p>
             </div>
-            <span class="text-xs font-bold text-soft">
-                مفعل: <strong class="text-good-700">{{ plan.features|length }}</strong> ميزات
+            <span class="text-xs font-bold text-[#666666]">
+                مفعل: <strong class="text-[#0E382A]">{{ plan.features|length }}</strong> ميزات
             </span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for feat in features_with_status %}
-            <div class="p-4 rounded-xl border {% if feat.is_enabled %}border-good-600/30 bg-good-50/40{% else %}border-line bg-paper/50 opacity-70{% endif %} flex items-start gap-3">
-                <span class="text-2xl shrink-0 mt-0.5">{{ feat.icon }}</span>
+            <div class="p-4 rounded-xl border {% if feat.is_enabled %}border-[#D2AB6B]/40 bg-[#F9F6F0]/60{% else %}border-gray-200 bg-gray-50/50 opacity-70{% endif %} flex items-start gap-3">
+                <span class="medallion-icon w-8 h-8 shrink-0">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                </span>
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between gap-2">
-                        <h4 class="text-xs font-black text-ink truncate">{{ feat.name }}</h4>
+                        <h4 class="text-xs font-bold text-[#0E382A] truncate">{{ feat.name }}</h4>
                         {% if feat.is_enabled %}
-                        <span class="px-2 py-0.5 rounded-md bg-good-100 text-good-700 text-[10px] font-black shrink-0">مفعل ✓</span>
+                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold shrink-0 flex items-center gap-1 border border-emerald-300">
+                            <span>مفعل</span>
+                            <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        </span>
                         {% else %}
-                        <span class="px-2 py-0.5 rounded-md bg-bad-100 text-bad-700 text-[10px] font-black shrink-0">مغلق 🔒</span>
+                        <span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-bold shrink-0 flex items-center gap-1 border border-rose-300">
+                            <span>مغلق</span>
+                            <svg class="w-3 h-3 text-rose-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </span>
                         {% endif %}
                     </div>
-                    <p class="text-[11px] text-soft mt-1 leading-relaxed">{{ feat.desc }}</p>
+                    <p class="text-[11px] text-[#666666] mt-1 leading-relaxed">{{ feat.desc }}</p>
                     {% if not feat.is_enabled %}
                     <button 
                         type="button" 
                         onclick="openUpgradeModal()" 
-                        class="mt-2 text-[10.5px] font-black text-brand-600 hover:text-brand-700 hover:underline"
+                        class="mt-2 text-[10.5px] font-bold text-[#0E382A] hover:underline"
                     >
                         + ترقية لفتح هذه الميزة
                     </button>
@@ -273,59 +306,64 @@
     <!-- ========================================== -->
     <!-- UPGRADE PLANS COMPARISON                   -->
     <!-- ========================================== -->
-    <div id="plans-comparison" class="card p-6 border-line shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-line mb-6">
+    <div id="plans-comparison" class="classic-card p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-[#D2AB6B]/30 mb-6">
             <div>
-                <h3 class="font-display text-lg font-black text-ink">🚀 باقات الترقية المتاحة</h3>
-                <p class="text-xs text-soft mt-0.5">اختر الباقة المناسبة للتوسع وإضافة فروع وموظفين أكثر</p>
+                <h3 class="font-royal text-lg font-bold text-[#0E382A] flex items-center gap-2">
+                    <span class="medallion-icon w-7 h-7">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </span>
+                    باقات الترقية المتاحة
+                </h3>
+                <p class="text-xs text-[#666666] mt-0.5">اختر الباقة المناسبة للتوسع وإضافة فروع وموظفين أكثر</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {% for p in available_plans %}
-            <div class="rounded-2xl border {% if p.id == plan.id %}border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/20{% elif p.is_popular %}border-gold-400 bg-card shadow-md{% else %}border-line bg-card{% endif %} p-6 flex flex-col justify-between">
+            <div class="rounded-2xl border {% if p.id == plan.id %}border-[#0E382A] ring-2 ring-[#0E382A]/20 bg-[#F9F6F0]/80{% elif p.is_popular %}border-[#D2AB6B] bg-white shadow-md{% else %}border-[#D2AB6B]/30 bg-white{% endif %} p-6 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <h4 class="font-display text-lg font-black text-ink">{{ p.name }}</h4>
+                        <h4 class="font-royal text-lg font-bold text-[#0E382A]">{{ p.name }}</h4>
                         {% if p.id == plan.id %}
-                        <span class="px-2.5 py-0.5 rounded-full bg-brand-600 text-white text-[10px] font-black">باقتك الحالية</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#0E382A] text-[#D2AB6B] border border-[#D2AB6B]/40 text-[10px] font-bold">باقتك الحالية</span>
                         {% elif p.is_popular %}
-                        <span class="px-2.5 py-0.5 rounded-full bg-gold-400 text-night text-[10px] font-black">الأكثر طلباً</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#D2AB6B] text-[#0E382A] text-[10px] font-bold">الأكثر طلباً</span>
                         {% endif %}
                     </div>
-                    <p class="text-xs text-soft mb-4">{{ p.description }}</p>
+                    <p class="text-xs text-[#666666] mb-4">{{ p.description }}</p>
 
-                    <div class="p-3 rounded-xl bg-paper border border-line mb-4 text-center">
-                        <span class="font-display text-2xl font-black text-ink">{{ p.price_monthly|floatformat:0 }}</span>
-                        <span class="text-xs font-bold text-soft">ر.س / شهرياً</span>
-                        <p class="text-[11px] text-brand-600 font-bold mt-0.5">{{ p.price_yearly|floatformat:0 }} ر.س / سنوياً</p>
+                    <div class="p-3.5 rounded-xl bg-[#F9F6F0] border border-[#D2AB6B]/30 mb-4 text-center">
+                        <span class="font-royal text-2xl font-bold text-[#0E382A]">{{ p.price_monthly|floatformat:0 }}</span>
+                        <span class="text-xs font-bold text-[#666666]">ر.س / شهرياً</span>
+                        <p class="text-[11px] text-[#0E382A] font-bold mt-0.5">{{ p.price_yearly|floatformat:0 }} ر.س / سنوياً</p>
                     </div>
 
-                    <ul class="space-y-2 text-xs font-bold text-soft mb-6">
+                    <ul class="space-y-2.5 text-xs font-semibold text-[#666666] mb-6">
                         <li class="flex items-center gap-2">
-                            <span class="text-good-600">✓</span>
-                            <span>الحد الأقصى للفروع: <strong class="text-ink">{% if p.max_branches >= 999 %}غير محدود{% else %}{{ p.max_branches }}{% endif %}</strong></span>
+                            <svg class="w-3.5 h-3.5 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>الحد الأقصى للفروع: <strong class="text-[#0E382A]">{% if p.max_branches >= 999 %}غير محدود{% else %}{{ p.max_branches }}{% endif %}</strong></span>
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="text-good-600">✓</span>
-                            <span>الحد الأقصى للموظفين: <strong class="text-ink">{% if p.max_employees >= 999 %}غير محدود{% else %}{{ p.max_employees }}{% endif %}</strong></span>
+                            <svg class="w-3.5 h-3.5 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>الحد الأقصى للموظفين: <strong class="text-[#0E382A]">{% if p.max_employees >= 999 %}غير محدود{% else %}{{ p.max_employees }}{% endif %}</strong></span>
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="text-good-600">✓</span>
-                            <span>عدد الميزات المضمنة: <strong class="text-ink">{{ p.features|length }} ميزات</strong></span>
+                            <svg class="w-3.5 h-3.5 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>عدد الميزات المضمنة: <strong class="text-[#0E382A]">{{ p.features|length }} ميزات</strong></span>
                         </li>
                     </ul>
                 </div>
 
                 {% if p.id == plan.id %}
-                <button disabled class="w-full py-2.5 rounded-xl bg-paper text-soft text-xs font-bold cursor-not-allowed border border-line">
+                <button disabled class="w-full py-2.5 rounded-xl bg-gray-100 text-[#666666] text-xs font-bold cursor-not-allowed border border-gray-200">
                     الباقة الحالية النشطة
                 </button>
                 {% else %}
                 <button 
                     type="button" 
                     onclick="selectPlanForUpgrade({{ p.id }}, '{{ p.name }}')" 
-                    class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-sm transition"
+                    class="btn-gold-pill w-full py-2.5 text-xs font-bold shadow-sm"
                 >
                     طلب ترقية لهذه الباقة
                 </button>
@@ -338,16 +376,21 @@
     <!-- ========================================== -->
     <!-- UPGRADE REQUESTS HISTORY TABLE             -->
     <!-- ========================================== -->
-    <div class="card p-6 border-line shadow-sm">
-        <div class="pb-4 border-b border-line mb-4">
-            <h3 class="font-display text-lg font-black text-ink">📜 سجل طلبات الترقية السابقة</h3>
-            <p class="text-xs text-soft mt-0.5">تتبع حالة طلبات الترقية وتاريخ مراجعتها من إدارة المنصة</p>
+    <div class="classic-card p-6 shadow-sm">
+        <div class="pb-4 border-b border-[#D2AB6B]/30 mb-4">
+            <h3 class="font-royal text-lg font-bold text-[#0E382A] flex items-center gap-2">
+                <span class="medallion-icon w-7 h-7">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </span>
+                سجل طلبات الترقية السابقة
+            </h3>
+            <p class="text-xs text-[#666666] mt-0.5">تتبع حالة طلبات الترقية وتاريخ مراجعتها من إدارة المنصة</p>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs">
                 <thead>
-                    <tr class="border-b border-line bg-paper/60 text-soft">
+                    <tr class="border-b border-[#D2AB6B]/30 bg-[#F9F6F0] text-[#666666] font-bold">
                         <th class="p-3">#</th>
                         <th class="p-3">الباقة المطلوبة</th>
                         <th class="p-3">دورة الفوترة</th>
@@ -357,30 +400,36 @@
                         <th class="p-3">تاريخ المراجعة</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line">
+                <tbody class="divide-y divide-[#D2AB6B]/20">
                     {% for req in upgrade_requests %}
-                    <tr class="hover:bg-paper/30 transition">
-                        <td class="p-3 font-mono font-bold text-soft">#{{ req.id }}</td>
-                        <td class="p-3 font-black text-ink">{{ req.requested_plan.name }}</td>
-                        <td class="p-3 font-bold text-soft">{{ req.get_billing_cycle_display }}</td>
-                        <td class="p-3 font-medium text-soft">{{ req.created_at|date:"Y-m-d H:i" }}</td>
-                        <td class="p-3 text-soft max-w-xs truncate">{{ req.notes|default:"—" }}</td>
+                    <tr class="hover:bg-[#F9F6F0]/50 transition">
+                        <td class="p-3 font-mono font-bold text-[#666666]">#{{ req.id }}</td>
+                        <td class="p-3 font-bold text-[#0E382A]">{{ req.requested_plan.name }}</td>
+                        <td class="p-3 font-semibold text-[#666666]">{{ req.get_billing_cycle_display }}</td>
+                        <td class="p-3 text-[#666666]">{{ req.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="p-3 text-[#666666] max-w-xs truncate">{{ req.notes|default:"—" }}</td>
                         <td class="p-3">
                             {% if req.status == 'pending' %}
-                            <span class="px-2.5 py-1 rounded-md bg-warn-100 text-warn-700 font-black text-[11px] border border-warn-600/30">قيد المراجعة</span>
+                            <span class="px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 font-bold text-[11px] border border-amber-300">قيد المراجعة</span>
                             {% elif req.status == 'approved' %}
-                            <span class="px-2.5 py-1 rounded-md bg-good-100 text-good-700 font-black text-[11px] border border-good-600/30">تمت الموافقة ✓</span>
+                            <span class="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[11px] border border-emerald-300 inline-flex items-center gap-1">
+                                <span>تمت الموافقة</span>
+                                <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </span>
                             {% else %}
-                            <span class="px-2.5 py-1 rounded-md bg-bad-100 text-bad-700 font-black text-[11px] border border-bad-600/30">مرفوض ✕</span>
+                            <span class="px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 font-bold text-[11px] border border-rose-300 inline-flex items-center gap-1">
+                                <span>مرفوض</span>
+                                <svg class="w-3 h-3 text-rose-700" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
                             {% endif %}
                         </td>
-                        <td class="p-3 font-medium text-soft">
+                        <td class="p-3 text-[#666666]">
                             {% if req.reviewed_at %}{{ req.reviewed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="p-6 text-center text-soft font-bold">
+                        <td colspan="7" class="p-6 text-center text-[#666666] font-semibold">
                             لا توجد طلبات ترقية سابقة. يمكنك تقديم طلب جديد في أي وقت!
                         </td>
                     </tr>
@@ -393,28 +442,31 @@
     <!-- ========================================== -->
     <!-- AI & FASTMCP CALL CENTER INTEGRATION       -->
     <!-- ========================================== -->
-    <div id="ai-fastmcp-section" class="card p-6 border-line shadow-sm scroll-mt-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-line mb-4">
+    <div id="ai-fastmcp-section" class="classic-card p-6 shadow-sm scroll-mt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#D2AB6B]/30 mb-4">
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 text-purple-700 text-lg">🤖</span>
-                    <h3 class="font-display text-lg font-black text-ink">مفاتيح الذكاء الاصطناعي وتكامل الكول سنتر (FastMCP)</h3>
+                    <span class="medallion-icon w-8 h-8">
+                        <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </span>
+                    <h3 class="font-royal text-lg font-bold text-[#0E382A]">مفاتيح الذكاء الاصطناعي وتكامل الكول سنتر (FastMCP)</h3>
                 </div>
-                <p class="text-xs text-soft mt-1">ربط نماذج الذكاء الاصطناعي (Claude Desktop، Cursor، أو وكلاء مخصصين) بمطعمك كمشرف كول سنتر يعرف المنيو والتغطية ويضرب ويتابع الأوردرات</p>
+                <p class="text-xs text-[#666666] mt-1">ربط نماذج الذكاء الاصطناعي (Claude Desktop، Cursor، أو وكلاء مخصصين) بمطعمك كمشرف كول سنتر يعرف المنيو والتغطية ويضرب ويتابع الأوردرات</p>
             </div>
             <button 
                 type="button" 
                 onclick="openCreateKeyModal()" 
-                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition flex items-center gap-1.5"
+                class="btn-gold-pill px-4 py-2 text-xs font-bold shadow-sm flex items-center gap-1.5"
             >
-                <span>+</span> إنشاء مفتاح ذكاء اصطناعي جديد
+                <svg class="w-4 h-4 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                إنشاء مفتاح ذكاء اصطناعي جديد
             </button>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs">
                 <thead>
-                    <tr class="border-b border-line bg-paper/60 text-soft font-bold">
+                    <tr class="border-b border-[#D2AB6B]/30 bg-[#F9F6F0] text-[#666666] font-bold">
                         <th class="p-3">اسم المفتاح / البوت</th>
                         <th class="p-3">مفتاح الدخول (Access Key)</th>
                         <th class="p-3">الفرع المخصص</th>
@@ -424,45 +476,49 @@
                         <th class="p-3 text-center">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line">
+                <tbody class="divide-y divide-[#D2AB6B]/20">
                     {% for k in api_keys %}
-                    <tr class="hover:bg-paper/30 transition">
-                        <td class="p-3 font-bold text-ink">
-                            <span class="mr-1">🤖</span> {{ k.name }}
+                    <tr class="hover:bg-[#F9F6F0]/50 transition">
+                        <td class="p-3 font-bold text-[#0E382A]">
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                {{ k.name }}
+                            </span>
                         </td>
                         <td class="p-3">
                             <div class="flex items-center gap-2">
-                                <code class="font-mono bg-paper border border-line px-2 py-1 rounded-md text-[11px] font-bold text-brand-700 select-all" id="key-text-{{ k.id }}">
+                                <code class="font-mono bg-[#F9F6F0] border border-[#D2AB6B]/30 px-2.5 py-1 rounded-md text-[11px] font-bold text-[#0E382A] select-all" id="key-text-{{ k.id }}">
                                     {{ k.key|slice:":12" }}••••••••••••••••••••
                                 </code>
                                 <button 
                                     type="button" 
                                     onclick="copyToClipboard('{{ k.key }}', 'تم نسخ مفتاح الدخول بالكامل!')" 
-                                    class="px-2 py-1 rounded bg-card border border-line text-soft hover:text-ink text-[11px] font-bold"
+                                    class="px-2.5 py-1 rounded-lg bg-white border border-[#D2AB6B]/40 text-[#0E382A] hover:bg-[#F9F6F0] text-[11px] font-bold flex items-center gap-1"
                                     title="نسخ المفتاح بالكامل"
                                 >
-                                    📋 نسخ
+                                    <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    نسخ
                                 </button>
                             </div>
                         </td>
-                        <td class="p-3 text-soft font-medium">
+                        <td class="p-3 text-[#666666] font-semibold">
                             {% if k.assigned_branch %}
-                            🏢 {{ k.assigned_branch.name }}
+                            {{ k.assigned_branch.name }}
                             {% else %}
-                            <span class="text-good-700 font-bold">🌐 كافة الفروع</span>
+                            <span class="text-[#0E382A] font-bold">كافة الفروع</span>
                             {% endif %}
                         </td>
-                        <td class="p-3 text-center font-mono font-bold text-ink">
-                            <span class="px-2 py-0.5 rounded-full bg-paper border border-line text-xs font-black">{{ k.total_orders_placed }}</span>
+                        <td class="p-3 text-center font-mono font-bold text-[#0E382A]">
+                            <span class="px-2.5 py-0.5 rounded-full bg-[#F9F6F0] border border-[#D2AB6B]/30 text-xs font-bold">{{ k.total_orders_placed }}</span>
                         </td>
-                        <td class="p-3 text-soft font-medium">
+                        <td class="p-3 text-[#666666]">
                             {% if k.last_used_at %}{{ k.last_used_at|date:"Y-m-d H:i" }}{% else %}لم يُستخدم بعد{% endif %}
                         </td>
                         <td class="p-3">
                             {% if k.is_active %}
-                            <span class="px-2.5 py-0.5 rounded-full bg-good-100 text-good-700 text-[10px] font-black border border-good-600/30">مفعل ✓</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">مفعل</span>
                             {% else %}
-                            <span class="px-2.5 py-0.5 rounded-full bg-bad-100 text-bad-700 text-[10px] font-black border border-bad-600/30">معطل ✕</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold border border-rose-300">معطل</span>
                             {% endif %}
                         </td>
                         <td class="p-3 text-center">
@@ -470,22 +526,23 @@
                                 <button 
                                     type="button" 
                                     onclick="showMcpConfigModal('{{ k.key }}', '{{ k.name }}')" 
-                                    class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-800 dark:text-purple-300 text-[11px] font-bold shadow-2xs transition flex items-center gap-1"
+                                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F9F6F0] border border-[#D2AB6B]/50 text-[#0E382A] text-[11px] font-bold shadow-2xs transition flex items-center gap-1"
                                     title="عرض إعدادات وكود ربط الذكاء الاصطناعي (MCP)"
                                 >
-                                    ⚙️ إعدادات الذكاء الاصطناعي (MCP)
+                                    <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    إعدادات MCP
                                 </button>
                                 <button 
                                     type="button" 
                                     onclick="toggleApiKey({{ k.id }}, {{ k.is_active|yesno:'true,false' }})" 
-                                    class="px-2 py-1 rounded-lg {% if k.is_active %}text-warn-700 hover:bg-warn-50{% else %}text-good-700 hover:bg-good-50{% endif %} border border-line text-[11px] font-bold transition"
+                                    class="px-2.5 py-1 rounded-lg {% if k.is_active %}text-amber-800 hover:bg-amber-50 border-amber-300{% else %}text-emerald-800 hover:bg-emerald-50 border-emerald-300{% endif %} border text-[11px] font-bold transition"
                                 >
                                     {% if k.is_active %}تعطيل{% else %}تفعيل{% endif %}
                                 </button>
                                 <button 
                                     type="button" 
                                     onclick="deleteApiKey({{ k.id }}, '{{ k.name }}')" 
-                                    class="px-2 py-1 rounded-lg text-bad-700 hover:bg-bad-50 border border-bad-200 text-[11px] font-bold transition"
+                                    class="px-2.5 py-1 rounded-lg text-rose-700 hover:bg-rose-50 border border-rose-300 text-[11px] font-bold transition"
                                     title="حذف المفتاح"
                                 >
                                     حذف
@@ -495,7 +552,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="p-6 text-center text-soft font-bold">
+                        <td colspan="7" class="p-6 text-center text-[#666666] font-semibold">
                             لم تقم بإنشاء أي مفاتيح ذكاء اصطناعي بعد. انقر على «إنشاء مفتاح ذكاء اصطناعي جديد» لربط بوت الكول سنتر فوراً!
                         </td>
                     </tr>
@@ -510,19 +567,24 @@
 <!-- ========================================== -->
 <!-- UPGRADE REQUEST MODAL                      -->
 <!-- ========================================== -->
-<div id="upgrade-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="card w-full max-w-md p-6 shadow-2xl border-line animate-modal">
-        <div class="flex items-center justify-between pb-4 border-b border-line mb-5">
-            <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                <span>⚡ تقديم طلب ترقية باقة</span>
+<div id="upgrade-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="classic-card w-full max-w-md p-6 shadow-2xl border border-[#D2AB6B]">
+        <div class="flex items-center justify-between pb-4 border-b border-[#D2AB6B]/30 mb-5">
+            <h3 class="font-royal text-lg font-bold text-[#0E382A] flex items-center gap-2">
+                <span class="medallion-icon w-6 h-6">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </span>
+                تقديم طلب ترقية باقة
             </h3>
-            <button type="button" onclick="closeUpgradeModal()" class="text-soft hover:text-ink text-xl font-bold">✕</button>
+            <button type="button" onclick="closeUpgradeModal()" class="text-[#666666] hover:text-[#0E382A] p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
         <form id="form-upgrade" onsubmit="submitUpgradeRequest(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-bold text-ink mb-1.5">الباقة المستهدفة:</label>
-                <select id="modal-plan-id" required class="input text-xs font-bold">
+                <label class="block text-xs font-bold text-[#666666] mb-1.5">الباقة المستهدفة:</label>
+                <select id="modal-plan-id" required class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                     {% for p in available_plans %}
                     <option value="{{ p.id }}" {% if p.id != plan.id and forloop.first %}selected{% endif %}>
                         {{ p.name }} ({{ p.price_monthly|floatformat:0 }} ر.س شهرياً • حتى {{ p.max_branches }} فروع)
@@ -532,29 +594,29 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-ink mb-1.5">دورة الدفع المرغوبة:</label>
+                <label class="block text-xs font-bold text-[#666666] mb-1.5">دورة الدفع المرغوبة:</label>
                 <div class="grid grid-cols-2 gap-2">
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-line bg-paper/60 cursor-pointer">
-                        <input type="radio" name="modal-cycle" value="monthly" checked class="accent-brand-600">
-                        <span class="text-xs font-bold text-ink">شهري</span>
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-[#D2AB6B]/30 bg-[#F9F6F0] cursor-pointer">
+                        <input type="radio" name="modal-cycle" value="monthly" checked class="accent-[#0E382A]">
+                        <span class="text-xs font-bold text-[#0E382A]">شهري</span>
                     </label>
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-line bg-paper/60 cursor-pointer">
-                        <input type="radio" name="modal-cycle" value="yearly" class="accent-brand-600">
-                        <span class="text-xs font-bold text-ink">سنوي (خصم 20%)</span>
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-[#D2AB6B]/30 bg-[#F9F6F0] cursor-pointer">
+                        <input type="radio" name="modal-cycle" value="yearly" class="accent-[#0E382A]">
+                        <span class="text-xs font-bold text-[#0E382A]">سنوي (خصم 20%)</span>
                     </label>
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-ink mb-1.5">ملاحظات إضافية أو طلب توسع خاص:</label>
-                <textarea id="modal-notes" rows="3" class="input text-xs" placeholder="اكتب أي استفسار أو طلب لفروع إضافية لإدارة المنصة..."></textarea>
+                <label class="block text-xs font-bold text-[#666666] mb-1.5">ملاحظات إضافية أو طلب توسع خاص:</label>
+                <textarea id="modal-notes" rows="3" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs" placeholder="اكتب أي استفسار أو طلب لفروع إضافية لإدارة المنصة..."></textarea>
             </div>
 
-            <div class="pt-3 border-t border-line flex items-center justify-end gap-3">
-                <button type="button" onclick="closeUpgradeModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-soft hover:text-ink">
+            <div class="pt-3 border-t border-[#D2AB6B]/30 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeUpgradeModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-[#666666] hover:text-[#0E382A]">
                     إلغاء
                 </button>
-                <button type="submit" id="btn-submit-upgrade" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md transition">
+                <button type="submit" id="btn-submit-upgrade" class="btn-gold-pill px-5 py-2.5 text-xs font-bold shadow-md">
                     إرسال طلب الترقية
                 </button>
             </div>
@@ -727,7 +789,6 @@
         const origin = window.location.origin;
         currentMcpUrl = `${origin}/mcp?access_key=${accessKey}`;
 
-        // 1. JSON Config (Antigravity IDE / Cursor / Claude Desktop)
         const configObj = {
             "mcpServers": {
                 "restaurant-callcenter": {
@@ -739,8 +800,7 @@
         const jsonPre = document.getElementById('mcp-config-json');
         if (jsonPre) jsonPre.innerText = currentConfigText;
 
-        // 2. Pipecat Voice AI Python snippet
-        currentPipecatText = `# تثبيت الحزمة أولاً: pip install "pipecat-ai[mcp]"
+        currentPipecatText = `# تثبيت الحزمة: pip install "pipecat-ai[mcp]"
 from mcp.client.session_group import StreamableHttpParameters
 from pipecat.services.mcp_service import MCPClient
 
@@ -756,36 +816,32 @@ restaurant_tools = await mcp_client.tools()`;
         const pipecatPre = document.getElementById('mcp-pipecat-code');
         if (pipecatPre) pipecatPre.innerText = currentPipecatText;
 
-        // 3. Direct URL Input
         const urlInput = document.getElementById('mcp-url-input');
         if (urlInput) urlInput.value = currentMcpUrl;
 
-        // Reset to first tab
         switchMcpTab('json');
 
         const modal = document.getElementById('mcp-config-modal');
         if (modal) modal.classList.remove('hidden');
     }
 
-    // Alias for backward compatibility
     window.showClaudeConfig = showMcpConfigModal;
 
     function switchMcpTab(tabName) {
-        // Tab buttons
         const tabs = ['json', 'pipecat', 'url'];
         tabs.forEach(t => {
             const btn = document.getElementById(`mcp-tab-btn-${t}`);
             const content = document.getElementById(`mcp-tab-content-${t}`);
             if (t === tabName) {
                 if (btn) {
-                    btn.classList.add('bg-purple-600', 'text-white', 'shadow-xs');
-                    btn.classList.remove('text-soft', 'hover:text-ink', 'hover:bg-paper');
+                    btn.classList.add('bg-[#0E382A]', 'text-[#D2AB6B]', 'border', 'border-[#D2AB6B]/60', 'shadow-xs');
+                    btn.classList.remove('text-[#666666]', 'hover:text-[#0E382A]', 'hover:bg-[#F9F6F0]');
                 }
                 if (content) content.classList.remove('hidden');
             } else {
                 if (btn) {
-                    btn.classList.remove('bg-purple-600', 'text-white', 'shadow-xs');
-                    btn.classList.add('text-soft', 'hover:text-ink', 'hover:bg-paper');
+                    btn.classList.remove('bg-[#0E382A]', 'text-[#D2AB6B]', 'border', 'border-[#D2AB6B]/60', 'shadow-xs');
+                    btn.classList.add('text-[#666666]', 'hover:text-[#0E382A]', 'hover:bg-[#F9F6F0]');
                 }
                 if (content) content.classList.add('hidden');
             }
@@ -797,7 +853,6 @@ restaurant_tools = await mcp_client.tools()`;
         if (modal) modal.classList.add('hidden');
     }
 
-    // Alias
     window.closeClaudeConfigModal = closeMcpModal;
 
     function copyMcpJson() {
@@ -827,7 +882,6 @@ restaurant_tools = await mcp_client.tools()`;
         });
     }
 
-    // Aliases
     window.copyConfigJson = copyMcpJson;
     window.copySseUrl = copyMcpUrl;
 
@@ -843,37 +897,42 @@ restaurant_tools = await mcp_client.tools()`;
 <!-- ========================================== -->
 <!-- CREATE API KEY MODAL                       -->
 <!-- ========================================== -->
-<div id="create-key-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="card w-full max-w-md p-6 shadow-2xl border-line animate-modal">
-        <div class="flex items-center justify-between pb-4 border-b border-line mb-5">
-            <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                <span>🤖 إنشاء مفتاح ذكاء اصطناعي جديد</span>
+<div id="create-key-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="classic-card w-full max-w-md p-6 shadow-2xl border border-[#D2AB6B]">
+        <div class="flex items-center justify-between pb-4 border-b border-[#D2AB6B]/30 mb-5">
+            <h3 class="font-royal text-lg font-bold text-[#0E382A] flex items-center gap-2">
+                <span class="medallion-icon w-6 h-6">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </span>
+                إنشاء مفتاح ذكاء اصطناعي جديد
             </h3>
-            <button type="button" onclick="closeCreateKeyModal()" class="text-soft hover:text-ink text-xl font-bold">✕</button>
+            <button type="button" onclick="closeCreateKeyModal()" class="text-[#666666] hover:text-[#0E382A] p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
         <form id="form-create-key" onsubmit="submitCreateApiKey(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-bold text-ink mb-1.5">اسم البوت أو الغرض:</label>
-                <input type="text" id="modal-key-name" required placeholder="مثال: بوت الكول سنتر - السيرفر السحابي" class="input text-xs font-bold">
+                <label class="block text-xs font-bold text-[#666666] mb-1.5">اسم البوت أو الغرض:</label>
+                <input type="text" id="modal-key-name" required placeholder="مثال: بوت الكول سنتر - السيرفر السحابي" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-ink mb-1.5">الفرع المخصص:</label>
-                <select id="modal-key-branch" class="input text-xs font-bold">
-                    <option value="">🌐 كافة فروع المنشأة (موصى به للكول سنتر)</option>
+                <label class="block text-xs font-bold text-[#666666] mb-1.5">الفرع المخصص:</label>
+                <select id="modal-key-branch" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
+                    <option value="">كافة فروع المنشأة (موصى به للكول سنتر)</option>
                     {% for b in branches %}
-                    <option value="{{ b.id }}">🏢 {{ b.name }} ({{ b.city }})</option>
+                    <option value="{{ b.id }}">{{ b.name }} ({{ b.city }})</option>
                     {% endfor %}
                 </select>
-                <p class="text-[10.5px] text-soft mt-1">إذا خصصت فرعاً محدداً، فلن يستطيع البوت الاطلاع أو طلب أوردرات إلا من هذا الفرع.</p>
+                <p class="text-[10.5px] text-[#666666] mt-1">إذا خصصت فرعاً محدداً، فلن يستطيع البوت الاطلاع أو طلب أوردرات إلا من هذا الفرع.</p>
             </div>
 
-            <div class="pt-3 border-t border-line flex items-center justify-end gap-3">
-                <button type="button" onclick="closeCreateKeyModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-soft hover:text-ink">
+            <div class="pt-3 border-t border-[#D2AB6B]/30 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeCreateKeyModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-[#666666] hover:text-[#0E382A]">
                     إلغاء
                 </button>
-                <button type="submit" id="btn-submit-create-key" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition">
+                <button type="submit" id="btn-submit-create-key" class="btn-gold-pill px-5 py-2.5 text-xs font-bold shadow-md">
                     إنشاء المفتاح فوراً
                 </button>
             </div>
@@ -884,143 +943,148 @@ restaurant_tools = await mcp_client.tools()`;
 <!-- ========================================== -->
 <!-- ENHANCED FASTMCP CLOUD 24/7 CONFIG MODAL   -->
 <!-- ========================================== -->
-<div id="mcp-config-modal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <!-- Keep alias ID for safety -->
+<div id="mcp-config-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
     <span id="claude-config-modal" class="hidden"></span>
 
-    <div class="card w-full max-w-xl p-6 shadow-2xl border-line animate-modal max-h-[92vh] overflow-y-auto">
-        <div class="flex items-center justify-between pb-3 border-b border-line mb-4">
-            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
-                <span>📡 ربط الذكاء الاصطناعي والكول سنتر (FastMCP 24/7)</span>
+    <div class="classic-card w-full max-w-xl p-6 shadow-2xl border border-[#D2AB6B] max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-[#D2AB6B]/30 mb-4">
+            <h3 class="font-royal text-base font-bold text-[#0E382A] flex items-center gap-2">
+                <span class="medallion-icon w-6 h-6">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </span>
+                ربط الذكاء الاصطناعي والكول سنتر (FastMCP 24/7)
             </h3>
-            <button type="button" onclick="closeMcpModal()" class="text-soft hover:text-ink text-xl font-bold p-1">✕</button>
+            <button type="button" onclick="closeMcpModal()" class="text-[#666666] hover:text-[#0E382A] p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
         <!-- Hero info banner -->
-        <div class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-900 dark:text-purple-200 mb-4 leading-relaxed">
-            <p class="font-bold flex items-center gap-1.5 mb-1">
-                <span>⚡</span> يعمل على مدار 24 ساعة سحابياً دون الحاجة لتشغيل أي برامج محلية:
+        <div class="p-3.5 rounded-xl bg-[#0E382A]/10 border border-[#D2AB6B]/40 text-xs text-[#0E382A] mb-4 leading-relaxed">
+            <p class="font-bold flex items-center gap-1.5 mb-1 text-[#0E382A]">
+                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                يعمل على مدار 24 ساعة سحابياً دون الحاجة لتشغيل أي برامج محلية:
             </p>
-            خادم FastMCP يتيح للوكلاء الأذكياء (المحررات البرمجية وبوتات الكول سنتر الصوتية) استعراض الفروع، جلب المنيو، فحص تغطية الكومبوندات، وضرب الأوردرات مباشرة في النظام.
+            خادم FastMCP يتيح للوكلاء الأذكياء (المحررات البرمجية وبوتات الكول سنتر الصوتية) استعراض الفروع، جلب المنيو، فحص تغطية الكومبوندات، وتسجيل الأوردرات مباشرة في النظام.
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="flex items-center gap-1.5 p-1 rounded-xl bg-paper border border-line mb-4 text-xs font-bold">
+        <div class="flex items-center gap-1.5 p-1 rounded-xl bg-[#F9F6F0] border border-[#D2AB6B]/30 mb-4 text-xs font-bold">
             <button 
                 type="button" 
                 id="mcp-tab-btn-json" 
                 onclick="switchMcpTab('json')" 
-                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 bg-purple-600 text-white shadow-xs"
+                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 bg-[#0E382A] text-[#D2AB6B] border border-[#D2AB6B]/60 shadow-xs"
             >
-                <span>⚙️</span> إعدادات JSON
+                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                إعدادات JSON
             </button>
             <button 
                 type="button" 
                 id="mcp-tab-btn-pipecat" 
                 onclick="switchMcpTab('pipecat')" 
-                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 text-soft hover:text-ink hover:bg-paper"
+                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 text-[#666666] hover:text-[#0E382A] hover:bg-white"
             >
-                <span>🎙️</span> Pipecat Voice AI
+                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+                Pipecat Voice AI
             </button>
             <button 
                 type="button" 
                 id="mcp-tab-btn-url" 
                 onclick="switchMcpTab('url')" 
-                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 text-soft hover:text-ink hover:bg-paper"
+                class="flex-1 py-2 px-3 rounded-lg text-center transition flex items-center justify-center gap-1.5 text-[#666666] hover:text-[#0E382A] hover:bg-white"
             >
-                <span>🌐</span> الرابط المباشر
+                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                الرابط المباشر
             </button>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 1: JSON CONFIG (Antigravity, Claude, Cursor) -->
-        <!-- ============================================== -->
+        <!-- TAB 1: JSON CONFIG -->
         <div id="mcp-tab-content-json" class="space-y-4">
             <div>
                 <div class="flex items-center justify-between mb-1.5">
-                    <label class="text-xs font-bold text-ink">
+                    <label class="text-xs font-bold text-[#0E382A]">
                         كود ملف الإعدادات لـ Antigravity IDE / Cursor / Claude Desktop:
                     </label>
-                    <span class="text-[10.5px] text-purple-700 font-bold">JSON Schema</span>
+                    <span class="text-[10.5px] text-[#0E382A] font-bold">JSON Schema</span>
                 </div>
                 <div class="relative">
                     <pre 
                         id="mcp-config-json" 
                         dir="ltr" 
                         style="direction: ltr; text-align: left; unicode-bidi: isolate;"
-                        class="bg-night text-gold-300 font-mono text-[11.5px] p-4 rounded-xl overflow-x-auto border border-night-3 max-h-48 leading-relaxed select-all"
+                        class="bg-[#0E382A] text-[#E6C898] font-mono text-[11.5px] p-4 rounded-xl overflow-x-auto border border-[#D2AB6B]/40 max-h-48 leading-relaxed select-all"
                     ></pre>
-                    <!-- Fallback hidden pre for legacy JS -->
                     <pre id="claude-config-json" class="hidden"></pre>
                     <button 
                         type="button" 
                         onclick="copyMcpJson()" 
-                        class="absolute top-2.5 right-2.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition flex items-center gap-1"
+                        class="btn-gold-pill absolute top-2.5 right-2.5 px-3 py-1.5 text-xs font-bold shadow-md flex items-center gap-1"
                     >
-                        <span>📋</span> نسخ الكود
+                        <svg class="w-3 h-3 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        نسخ الكود
                     </button>
                 </div>
             </div>
 
             <!-- Path Help -->
-            <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5">
-                <p class="font-bold text-ink flex items-center gap-1.5">
-                    <span>💡</span> أين تضع هذا الكود في برامجك؟
+            <div class="rounded-xl bg-[#F9F6F0] p-3.5 border border-[#D2AB6B]/30 text-[11.5px] text-[#666666] space-y-1.5">
+                <p class="font-bold text-[#0E382A] flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    أين تضع هذا الكود في برامجك؟
                 </p>
                 <div class="space-y-1 text-[11px]">
-                    <div>• <b>Antigravity IDE:</b> ضع الكود في الملف: <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-ink bg-card px-1.5 py-0.5 rounded">%USERPROFILE%\.gemini\config\mcp_config.json</code></div>
-                    <div>• <b>Claude Desktop:</b> ضع الكود في: <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-ink bg-card px-1.5 py-0.5 rounded">%APPDATA%\Claude\claude_desktop_config.json</code></div>
-                    <div>• <b>Cursor:</b> في إعدادات Features > MCP > Add New Server أو في <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-ink bg-card px-1.5 py-0.5 rounded">.cursor/mcp.json</code></div>
+                    <div>• <b>Antigravity IDE:</b> ضع الكود في الملف: <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-[#0E382A] bg-white px-1.5 py-0.5 rounded border border-[#D2AB6B]/30">%USERPROFILE%\.gemini\config\mcp_config.json</code></div>
+                    <div>• <b>Claude Desktop:</b> ضع الكود في: <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-[#0E382A] bg-white px-1.5 py-0.5 rounded border border-[#D2AB6B]/30">%APPDATA%\Claude\claude_desktop_config.json</code></div>
+                    <div>• <b>Cursor:</b> في إعدادات Features > MCP > Add New Server أو في <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-[#0E382A] bg-white px-1.5 py-0.5 rounded border border-[#D2AB6B]/30">.cursor/mcp.json</code></div>
                 </div>
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 2: PIPECAT VOICE AI (Voice Call Center Bot) -->
-        <!-- ============================================== -->
+        <!-- TAB 2: PIPECAT VOICE AI -->
         <div id="mcp-tab-content-pipecat" class="space-y-4 hidden">
             <div>
                 <div class="flex items-center justify-between mb-1.5">
-                    <label class="text-xs font-bold text-ink">
+                    <label class="text-xs font-bold text-[#0E382A]">
                         كود بايثون للبوت الصوتي (Pipecat Voice Pipeline):
                     </label>
-                    <span class="text-[10.5px] text-purple-700 font-bold">Python 3.10+</span>
+                    <span class="text-[10.5px] text-[#0E382A] font-bold">Python 3.10+</span>
                 </div>
                 <div class="relative">
                     <pre 
                         id="mcp-pipecat-code" 
                         dir="ltr" 
                         style="direction: ltr; text-align: left; unicode-bidi: isolate;"
-                        class="bg-night text-emerald-300 font-mono text-[11.5px] p-4 rounded-xl overflow-x-auto border border-night-3 max-h-56 leading-relaxed select-all"
+                        class="bg-[#0E382A] text-emerald-300 font-mono text-[11.5px] p-4 rounded-xl overflow-x-auto border border-[#D2AB6B]/40 max-h-56 leading-relaxed select-all"
                     ></pre>
                     <button 
                         type="button" 
                         onclick="copyMcpPipecat()" 
-                        class="absolute top-2.5 right-2.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition flex items-center gap-1"
+                        class="btn-gold-pill absolute top-2.5 right-2.5 px-3 py-1.5 text-xs font-bold shadow-md flex items-center gap-1"
                     >
-                        <span>📋</span> نسخ كود البايثون
+                        <svg class="w-3 h-3 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        نسخ كود البايثون
                     </button>
                 </div>
             </div>
 
-            <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5">
-                <p class="font-bold text-ink flex items-center gap-1.5">
-                    <span>🎙️</span> كيف يعمل مع مكالمات هاتف المطعم؟
+            <div class="rounded-xl bg-[#F9F6F0] p-3.5 border border-[#D2AB6B]/30 text-[11.5px] text-[#666666] space-y-1.5">
+                <p class="font-bold text-[#0E382A] flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+                    كيف يعمل مع مكالمات هاتف المطعم؟
                 </p>
-                <div class="text-[11px] leading-relaxed text-soft">
+                <div class="text-[11px] leading-relaxed text-[#666666]">
                     عندما يتصل العميل تليفونياً (Twilio أو SIP)، يقوم Pipecat بتحويل صوته لنص، ثم يستدعي أدوات الـ FastMCP الخاصة بمطعمك (تحديد أقرب فرع، الأسعار الحية، وفحص الكومبوند)، ويقوم بإنشاء الأوردر في شاشة المطبخ ثم يرد بصوت الذكاء الاصطناعي لتأكيد الطلب مع العميل.
                 </div>
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- TAB 3: DIRECT CLOUD URL                        -->
-        <!-- ============================================== -->
+        <!-- TAB 3: DIRECT CLOUD URL -->
         <div id="mcp-tab-content-url" class="space-y-4 hidden">
             <div>
-                <label class="block text-xs font-bold text-ink mb-1.5 flex items-center justify-between">
-                    <span>🌐 الرابط السحابي المباشر (Cloud Server URL):</span>
-                    <span class="text-[10.5px] text-good-700 font-black">نشط 24/7 ✓</span>
+                <label class="block text-xs font-bold text-[#0E382A] mb-1.5 flex items-center justify-between">
+                    <span>الرابط السحابي المباشر (Cloud Server URL):</span>
+                    <span class="text-[10.5px] text-emerald-800 font-bold">نشط 24/7</span>
                 </label>
                 <div class="flex gap-2">
                     <input 
@@ -1029,38 +1093,38 @@ restaurant_tools = await mcp_client.tools()`;
                         readonly 
                         dir="ltr"
                         style="direction: ltr; text-align: left;"
-                        class="input font-mono text-[11px] bg-paper select-all flex-1"
+                        class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-[#F9F6F0] font-mono text-[11px] select-all flex-1"
                     >
-                    <!-- Fallback hidden input for legacy scripts -->
                     <input type="hidden" id="claude-sse-url-input">
                     <button 
                         type="button" 
                         onclick="copyMcpUrl()" 
-                        class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition shrink-0 flex items-center gap-1"
+                        class="btn-gold-pill px-4 py-2 text-xs font-bold shadow-xs shrink-0 flex items-center gap-1.5"
                     >
-                        <span>📋</span> نسخ الرابط
+                        <svg class="w-3.5 h-3.5 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        نسخ الرابط
                     </button>
                 </div>
             </div>
 
-            <div class="rounded-xl bg-paper p-3 border border-line text-[11.5px] text-soft space-y-1.5">
-                <p class="font-bold text-ink flex items-center gap-1.5">
-                    <span>ℹ️</span> البروتوكولات المدعومة على هذا الرابط:
+            <div class="rounded-xl bg-[#F9F6F0] p-3.5 border border-[#D2AB6B]/30 text-[11.5px] text-[#666666] space-y-1.5">
+                <p class="font-bold text-[#0E382A] flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    البروتوكولات المدعومة على هذا الرابط:
                 </p>
-                <div class="space-y-1 text-[11px] text-soft">
+                <div class="space-y-1 text-[11px] text-[#666666]">
                     <div>• <b>Streamable-HTTP (/mcp):</b> البروتوكول الحديث والموصى به لجميع الوكلاء والـ IDEs.</div>
                     <div>• <b>SSE Legacy (/sse):</b> يعمل تلقائياً وبشكل متوافق مع أي تطبيق يعتمد على Server-Sent Events.</div>
-                    <div>• <b>الأمان:</b> مفتاح <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-purple-700">access_key</code> محمي ومربوط بمنشأتك لمنع الوصول غير المصرح به.</div>
+                    <div>• <b>الأمان:</b> مفتاح <code dir="ltr" style="direction: ltr; display: inline-block;" class="font-mono text-[#0E382A] font-bold">access_key</code> محمي ومربوط بمنشأتك لمنع الوصول غير المصرح به.</div>
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-end pt-4 border-t border-line mt-4">
-            <button type="button" onclick="closeMcpModal()" class="px-5 py-2 rounded-xl bg-card border border-line text-ink text-xs font-bold hover:bg-paper transition">
+        <div class="flex justify-end pt-4 border-t border-[#D2AB6B]/30 mt-4">
+            <button type="button" onclick="closeMcpModal()" class="px-5 py-2 rounded-xl bg-white border border-[#D2AB6B]/40 text-[#0E382A] text-xs font-bold hover:bg-[#F9F6F0] transition">
                 إغلاق
             </button>
         </div>
     </div>
 </div>
 {% endblock %}
-

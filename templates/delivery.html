@@ -3,16 +3,17 @@
 {% block title %}إدارة التوصيل — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-5 font-body">
     <!-- Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black font-display text-ink">إدارة وتوزيع طلبات التوصيل</h1>
+            <h1 class="text-2xl font-bold font-royal text-ink">إدارة وتوزيع طلبات التوصيل</h1>
             <p class="text-xs font-bold text-soft mt-1">متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين</p>
         </div>
         <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1 rounded-xl bg-brand-100 px-3.5 py-1.5 text-xs font-bold text-brand-700">
-                🛵 {{ active_count }} طلب قيد المتابعة والتوصيل
+            <span class="inline-flex items-center gap-2 rounded-xl bg-brand-100/70 border border-[#D2AB6B]/40 px-3.5 py-1.5 text-xs font-bold text-brand-800 shadow-2xs">
+                <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>{{ active_count }} طلب قيد المتابعة والتوصيل</span>
             </span>
         </div>
     </div>
@@ -98,18 +99,23 @@
         </div>
 
         <!-- Drivers Panel -->
-        <div class="card p-4 h-fit sticky top-4 shadow-md">
+        <div class="classic-card p-4 h-fit sticky top-4 shadow-md font-body">
             <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
-                <h2 class="text-sm font-black font-display text-ink">أسطول السائقين</h2>
-                <span class="rounded-full bg-night px-2 py-0.5 text-xs font-bold text-gold-300">{{ driver_stats|length }} سائقين</span>
+                <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span>أسطول السائقين</span>
+                </h2>
+                <span class="rounded-full bg-[#0E382A] px-2.5 py-0.5 text-xs font-bold text-[#E6C898] border border-[#D2AB6B]/30">{{ driver_stats|length }} سائقين</span>
             </div>
 
             <div class="space-y-3">
                 {% for d in driver_stats %}
-                <div class="rounded-xl border border-line p-3 bg-paper/50">
+                <div class="rounded-xl border border-line p-3 bg-paper/50 hover:bg-white hover:border-[#D2AB6B] transition shadow-2xs">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-night text-gold-300 text-xs font-bold">🛵</span>
+                        <div class="flex items-center gap-2.5">
+                            <span class="medallion-icon flex h-8 w-8 items-center justify-center rounded-xl shadow-2xs">
+                                <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </span>
                             <div>
                                 <p class="text-xs font-bold text-ink">{{ d.name }}</p>
                                 <p class="text-[11px] text-soft font-mono" dir="ltr">{{ d.phone|default:"—" }}</p>

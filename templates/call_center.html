@@ -3,16 +3,17 @@
 {% block title %}الكول سنتر — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-5 font-body">
     <!-- Header -->
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black font-display text-ink">الكول سنتر وخدمة العملاء</h1>
+            <h1 class="text-2xl font-bold font-royal text-ink">الكول سنتر وخدمة العملاء</h1>
             <p class="text-xs font-bold text-soft mt-1">استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل</p>
         </div>
         <div>
-            <span class="inline-flex items-center gap-1.5 rounded-xl bg-good-100 border border-good-600/30 px-3.5 py-1.5 text-xs font-bold text-good-700">
-                <span>🟢</span> الخطوط جاهزة لاستقبال الاتصالات
+            <span class="inline-flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>الخطوط جاهزة لاستقبال الاتصالات</span>
             </span>
         </div>
     </div>
@@ -21,10 +22,13 @@
         <!-- Left: Customer Lookup & Menu Picker -->
         <div class="space-y-5">
             <!-- 1. Customer Search Card -->
-            <div class="card p-5">
+            <div class="classic-card p-5">
                 <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
-                    <h2 class="text-sm font-black font-display text-ink flex items-center gap-2">
-                        <span>📞</span> البحث عن العميل المتصل
+                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-2">
+                        <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
+                            <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                        </span>
+                        <span>البحث عن العميل المتصل</span>
                     </h2>
                     <span class="text-xs text-soft">أدخل رقم الجوال أو الاسم</span>
                 </div>
@@ -41,7 +45,7 @@
                     <button 
                         type="button" 
                         onclick="searchCustomer()" 
-                        class="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700"
+                        class="btn-gold-pill shrink-0 px-4 py-2 text-xs font-black shadow-2xs"
                     >
                         بحث
                     </button>
@@ -51,9 +55,9 @@
                 <div id="customer-results-box" class="hidden mt-3 space-y-2 border-t border-line pt-3"></div>
 
                 <!-- Active Customer Details Form -->
-                <div id="active-customer-box" class="mt-4 rounded-xl border border-brand-500/30 bg-brand-50/50 p-4 space-y-3">
+                <div id="active-customer-box" class="mt-4 rounded-xl border border-brand-500/30 bg-paper/60 p-4 space-y-3">
                     <div class="flex items-center justify-between">
-                        <span id="cust-status-badge" class="rounded bg-brand-200 px-2 py-0.5 text-[11px] font-bold text-brand-800">عميل جديد</span>
+                        <span id="cust-status-badge" class="rounded bg-brand-100 border border-brand-300 px-2 py-0.5 text-[11px] font-bold text-brand-800">عميل جديد</span>
                         <span id="cust-stats-badge" class="text-xs font-bold text-brand-700">0 طلبات سابقة</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -77,8 +81,7 @@
                                 <option value="">-- اختر المنطقة أو الكومبوند لتوجيه الفرع --</option>
                                 {% for a in delivery_areas %}
                                 <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.name }}">
-                                    {% if a.area_type == 'compound' %}🏰{% elif a.area_type == 'district' %}🏘️{% elif a.area_type == 'commercial' %}🏬{% else %}📍{% endif %}
-                                    {{ a.name }} (فرع: {{ a.branch.name }} • {{ a.delivery_fee }} ر.س)
+                                    [{{ a.get_area_type_display|default:"منطقة" }}] {{ a.name }} (فرع: {{ a.branch.name }} • {{ a.delivery_fee }} ر.س)
                                 </option>
                                 {% endfor %}
                             </select>
@@ -92,10 +95,13 @@
             </div>
 
             <!-- 2. Menu Item Picker -->
-            <div class="card p-5">
+            <div class="classic-card p-5">
                 <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
-                    <h2 class="text-sm font-black font-display text-ink flex items-center gap-2">
-                        <span>🍽️</span> اختيار أصناف الوجبات
+                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-2">
+                        <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
+                            <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </span>
+                        <span>اختيار أصناف الوجبات</span>
                     </h2>
                     <input 
                         type="text" 
@@ -109,18 +115,20 @@
                 <div id="call-menu-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto">
                     {% for m in menu_items %}
                     <div 
-                        class="call-menu-card flex items-center justify-between rounded-xl border border-line p-3 hover:border-brand-400 hover:bg-paper/40 transition cursor-pointer"
+                        class="call-menu-card flex items-center justify-between rounded-xl border border-line p-3 hover:border-[#D2AB6B] hover:bg-white transition cursor-pointer"
                         data-name="{{ m.name }}"
                         onclick="addCallItem({{ m.id }}, '{{ m.name }}', {{ m.price }})"
                     >
                         <div class="flex items-center gap-2.5">
-                            <span class="text-xl">{{ m.emoji|default:"🍛" }}</span>
+                            <span class="medallion-icon-light flex h-8 w-8 items-center justify-center rounded-lg shadow-2xs">
+                                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            </span>
                             <div>
                                 <p class="text-xs font-bold text-ink">{{ m.name }}</p>
                                 <p class="text-[10px] text-soft">{{ m.category }}</p>
                             </div>
                         </div>
-                        <span class="text-xs font-extrabold text-brand-700">{{ m.price }} ر.س</span>
+                        <span class="text-xs font-black text-brand-700 font-body">{{ m.price }} ر.س</span>
                     </div>
                     {% endfor %}
                 </div>
@@ -130,14 +138,17 @@
         <!-- Right: Current Order Invoice & Recent Calls -->
         <div class="space-y-5">
             <!-- Delivery Invoice Card -->
-            <div class="card p-5 shadow-lg border-line">
+            <div class="classic-card p-5 shadow-lg border-line">
                 <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
-                    <h2 class="text-sm font-black font-display text-ink">طلب التوصيل</h2>
+                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span>طلب التوصيل</span>
+                    </h2>
                     <span id="call-cart-count" class="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
                 </div>
 
                 <div id="call-cart-items" class="max-h-52 min-h-[100px] overflow-y-auto divide-y divide-line/60">
-                    <div id="call-cart-empty" class="py-6 text-center text-xs text-soft">
+                    <div id="call-cart-empty" class="py-6 text-center text-xs text-soft font-bold">
                         لم يتم اختيار وجبات بعد
                     </div>
                 </div>
@@ -145,7 +156,7 @@
                 <div class="space-y-3 border-t border-line pt-3 mt-3 text-xs">
                     <div>
                         <label class="mb-1 block font-bold text-soft">الفرع المنفذ للطلب</label>
-                        <select id="call-order-branch" class="input text-xs">
+                        <select id="call-order-branch" class="input text-xs font-bold">
                             {% for b in branches %}
                             <option value="{{ b.id }}">{{ b.name }}</option>
                             {% endfor %}
@@ -155,7 +166,7 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="mb-1 block font-bold text-soft">طريقة الدفع</label>
-                            <select id="call-order-pay" class="input text-xs">
+                            <select id="call-order-pay" class="input text-xs font-bold">
                                 <option value="cash">عند الاستلام (نقداً)</option>
                                 <option value="card">مدى / بطاقة</option>
                                 <option value="wallet">محفظة</option>
@@ -180,9 +191,9 @@
                             </span>
                             <span id="call-delivery-fee" class="font-bold text-brand-700">8.00 ر.س</span>
                         </div>
-                        <div class="flex justify-between border-t border-line pt-2 font-display text-sm font-black text-ink">
+                        <div class="flex justify-between border-t border-line pt-2 text-sm font-bold text-ink">
                             <span>المجموع الكلي</span>
-                            <span id="call-total" class="text-base text-brand-700 font-black">8.00 ر.س</span>
+                            <span id="call-total" class="text-base text-brand-700 font-black font-body">8.00 ر.س</span>
                         </div>
                     </div>
 
@@ -190,7 +201,7 @@
                         type="button" 
                         id="call-submit-btn" 
                         onclick="submitCallOrder()" 
-                        class="w-full rounded-xl bg-brand-600 py-3 text-sm font-extrabold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700"
+                        class="btn-gold-pill w-full py-3 text-sm font-black shadow-lg"
                     >
                         اعتماد طلب التوصيل
                     </button>
@@ -198,19 +209,19 @@
             </div>
 
             <!-- Recent Call Center Orders -->
-            <div class="card p-5">
-                <h3 class="text-xs font-black font-display text-ink mb-3 border-b border-line pb-2">آخر طلبات الكول سنتر</h3>
+            <div class="classic-card p-5">
+                <h3 class="text-xs font-bold font-royal text-ink mb-3 border-b border-line pb-2">آخر طلبات الكول سنتر</h3>
                 <div class="space-y-2.5 max-h-60 overflow-y-auto">
                     {% for o in recent_orders %}
-                    <div class="rounded-lg border border-line p-2.5 bg-paper/40 text-xs">
+                    <div class="rounded-lg border border-line p-2.5 bg-paper/40 hover:bg-white hover:border-[#D2AB6B] transition text-xs">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-ink">{{ o.order_number }}</span>
-                            <span class="font-extrabold text-brand-700">{{ o.total|floatformat:2 }} ر.س</span>
+                            <span class="font-black text-brand-700 font-body">{{ o.total|floatformat:2 }} ر.س</span>
                         </div>
                         <p class="text-[11px] text-soft mt-0.5">{{ o.customer_name }} • {{ o.created_at|time:"H:i" }}</p>
                     </div>
                     {% empty %}
-                    <p class="text-center py-4 text-xs text-soft">لا توجد طلبات سابقة</p>
+                    <p class="text-center py-4 text-xs text-soft font-bold">لا توجد طلبات سابقة</p>
                     {% endfor %}
                 </div>
             </div>
@@ -244,10 +255,10 @@
 
             // Update delivery fee & time
             callDeliveryFee = fee;
-            routeBadge.textContent = `📍 موجه لـ: ${branchName}`;
+            routeBadge.textContent = `موجه لـ: ${branchName}`;
             routeBadge.classList.remove('hidden');
 
-            timeBadge.textContent = `⏱️ ${timeMin} دقيقة`;
+            timeBadge.textContent = `${timeMin} دقيقة`;
             timeBadge.classList.remove('hidden');
 
             showToast(`تم توجيه الطلب تلقائياً لـ «${branchName}» برسم توصيل ${fee} ر.س`);
@@ -286,19 +297,19 @@
                 let html = '<p class="text-xs font-bold text-ink mb-1">النتائج المطابقة:</p>';
                 data.customers.forEach(c => {
                     html += `
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-card border border-line hover:border-brand-400 cursor-pointer" onclick='selectCustomer(${JSON.stringify(c)})'>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-card border border-line hover:border-[#D2AB6B] cursor-pointer" onclick='selectCustomer(${JSON.stringify(c)})'>
                             <div>
                                 <p class="text-xs font-bold text-ink">${c.name} (${c.phone})</p>
                                 <p class="text-[11px] text-soft">${c.address || 'بدون عنوان مسجل'}</p>
                             </div>
-                            <span class="text-[11px] font-bold text-brand-700">${c.ordersCount} طلبات • ${c.lifetime} ر.س</span>
+                            <span class="text-[11px] font-bold text-brand-700 font-body">${c.ordersCount} طلبات • ${c.lifetime} ر.س</span>
                         </div>
                     `;
                 });
                 resBox.innerHTML = html;
             } else {
                 resBox.innerHTML = `
-                    <div class="flex items-center justify-between p-2 rounded-lg bg-warn-100/60 border border-warn-600/30 text-xs text-warn-700">
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-amber-50 border border-amber-300 text-xs text-amber-800">
                         <span>لم يتم العثور على عميل سابق بهذا الرقم. تم تجهيز نموذج عميل جديد.</span>
                     </div>
                 `;
@@ -350,7 +361,7 @@
         document.getElementById('call-delivery-fee').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
 
         if (keys.length === 0) {
-            container.innerHTML = `<div id="call-cart-empty" class="py-6 text-center text-xs text-soft">لم يتم اختيار وجبات بعد</div>`;
+            container.innerHTML = `<div id="call-cart-empty" class="py-6 text-center text-xs text-soft font-bold">لم يتم اختيار وجبات بعد</div>`;
             document.getElementById('call-subtotal').textContent = '0.00 ر.س';
             document.getElementById('call-total').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
             return;
@@ -365,14 +376,14 @@
                 <div class="flex items-center justify-between py-2 text-xs">
                     <div class="min-w-0 flex-1">
                         <p class="font-bold text-ink truncate">${it.name}</p>
-                        <p class="text-[11px] text-soft">${it.price} ر.س × ${it.qty}</p>
+                        <p class="text-[11px] text-soft font-body">${it.price} ر.س × ${it.qty}</p>
                     </div>
                     <div class="flex items-center gap-1 mx-2 border border-line rounded-lg p-0.5 bg-paper/50">
                         <button onclick="updateCallItemQty(${it.id}, 1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-brand-100 font-bold text-brand-700">+</button>
-                        <span class="w-5 text-center font-bold">${it.qty}</span>
+                        <span class="w-5 text-center font-bold font-body">${it.qty}</span>
                         <button onclick="updateCallItemQty(${it.id}, -1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-bad-100 font-bold text-bad-700">-</button>
                     </div>
-                    <span class="font-extrabold text-brand-700 w-14 text-left">${(it.price * it.qty).toFixed(2)}</span>
+                    <span class="font-black text-brand-700 w-14 text-left font-body">${(it.price * it.qty).toFixed(2)}</span>
                 </div>
             `;
         });

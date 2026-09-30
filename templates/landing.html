@@ -190,8 +190,8 @@
                 <div class="flex items-center gap-2.5 sm:gap-4">
                     
                     <!-- Discreet Language Switcher Pill -->
-                    <button id="lang-toggle-btn" onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-[#D2AB6B]/40 bg-[#0B2E24]/60 hover:bg-[#0B2E24] text-xs font-bold text-[#EAD8B8] hover:text-white transition flex items-center gap-1 shadow-inner cursor-pointer" title="تغيير اللغة / Switch Language">
-                        <span class="text-xs">🌐</span>
+                    <button id="lang-toggle-btn" onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-[#D2AB6B]/40 bg-[#0B2E24]/60 hover:bg-[#0B2E24] text-xs font-bold text-[#EAD8B8] hover:text-white transition flex items-center gap-1.5 shadow-inner cursor-pointer" title="تغيير اللغة / Switch Language">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                         <span id="lang-label" class="tracking-wider">English</span>
                     </button>
 
@@ -218,7 +218,7 @@
                 
                 <!-- Royal Ribbon / Badge -->
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1B634D]/10 border border-[#D2AB6B]/50 text-[#1B634D] text-xs font-bold">
-                    <span class="text-[#D2AB6B]">⚜️</span>
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L12 2z"/></svg>
                     <span data-i18n="hero_badge">الجيل الجديد: نظام إدارة المطاعم الراقية وسلاسل الضيافة</span>
                 </div>
 
@@ -250,7 +250,7 @@
                 <div class="pt-3 flex flex-wrap items-center gap-4">
                     <a href="{% url 'register' %}" class="btn-gold-pill px-8 py-3.5 rounded-full text-sm sm:text-base font-extrabold shadow-lg flex items-center gap-2" data-i18n="hero_cta_primary">
                         <span>ابدأ تجربتك المجانية</span>
-                        <span class="text-xs">✦</span>
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                     </a>
                     <a href="#pricing" class="px-7 py-3.5 rounded-full text-sm sm:text-base font-bold text-[#144D3B] bg-white hover:bg-[#F3EFE6] border border-[#144D3B]/30 hover:border-[#D2AB6B] transition shadow-xs" data-i18n="hero_cta_secondary">
                         استكشف الباقات والأسعار
@@ -260,15 +260,21 @@
                 <!-- Trust Guarantees -->
                 <div class="pt-4 flex flex-wrap items-center gap-6 text-xs text-[#5C4B3F] font-bold">
                     <div class="flex items-center gap-2">
-                        <span class="h-5 w-5 rounded-full bg-[#1B634D]/15 text-[#1B634D] flex items-center justify-center text-xs">✓</span>
+                        <span class="h-5 w-5 rounded-full bg-[#1B634D]/15 text-[#1B634D] flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </span>
                         <span data-i18n="trust_1">تفعيل فوري لجميع الفروع</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="h-5 w-5 rounded-full bg-[#1B634D]/15 text-[#1B634D] flex items-center justify-center text-xs">✓</span>
+                        <span class="h-5 w-5 rounded-full bg-[#1B634D]/15 text-[#1B634D] flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </span>
                         <span data-i18n="trust_2">دعم فني استشاري 24/7</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="h-5 w-5 rounded-full bg-[#1B634D]/15 text-[#1B634D] flex items-center justify-center text-xs">✓</span>
+                        <span class="h-5 w-5 rounded-full bg-[#1B634D]/15 text-[#1B634D] flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </span>
                         <span data-i18n="trust_3">تكامل تام مع FastMCP</span>
                     </div>
                 </div>
@@ -310,8 +316,8 @@
 
                 <!-- Floating Accent Stat Card -->
                 <div class="hidden sm:flex absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-[#D2AB6B] shadow-xl items-center gap-3.5 z-20">
-                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-[#1B634D] to-[#144D3B] text-white flex items-center justify-center text-2xl font-bold shadow-md">
-                        ⚡
+                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-[#1B634D] to-[#144D3B] text-white flex items-center justify-center shadow-md">
+                        <svg class="w-6 h-6 text-[#D2AB6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <div>
                         <div class="text-xs text-[#5C4B3F] font-bold" data-i18n="hero_stat_label">معدل سرعة الطلب</div>
@@ -324,10 +330,12 @@
     </section>
 
     <!-- Ornate Divider -->
-    <div class="ornate-divider">
-        <span>❖</span>
-        <span>⚜️</span>
-        <span>❖</span>
+    <div class="ornate-divider flex items-center justify-center gap-3 text-[#D2AB6B] my-8">
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L12 2z"/></svg>
+        <div class="w-24 h-px bg-[#D2AB6B]/40"></div>
+        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L12 2z"/></svg>
+        <div class="w-24 h-px bg-[#D2AB6B]/40"></div>
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L12 2z"/></svg>
     </div>
 
     <!-- ======================================================== -->
@@ -351,8 +359,8 @@
             <div class="classic-card p-8 text-center flex flex-col justify-between items-center group">
                 <div class="w-full">
                     <!-- Icon in Antique Emerald Ring -->
-                    <div class="h-16 w-16 mx-auto mb-6 rounded-2xl bg-[#F3EFE6] border border-[#D2AB6B]/60 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition">
-                        📖
+                    <div class="h-16 w-16 mx-auto mb-6 rounded-2xl bg-[#F3EFE6] border border-[#D2AB6B]/60 flex items-center justify-center shadow-inner group-hover:scale-110 transition">
+                        <svg class="w-8 h-8 text-[#144D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </div>
 
                     <!-- Title -->
@@ -370,8 +378,8 @@
                 </div>
 
                 <!-- Seal / Medal (Exact stamp from Design #1) -->
-                <div class="wax-seal">
-                    <span>🎖️</span>
+                <div class="wax-seal flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#8C6527]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     <span data-i18n="card1_seal">AUTHENTICITY • أصالة معتمدة</span>
                 </div>
             </div>
@@ -380,8 +388,8 @@
             <div class="classic-card p-8 text-center flex flex-col justify-between items-center group">
                 <div class="w-full">
                     <!-- Icon in Antique Emerald Ring -->
-                    <div class="h-16 w-16 mx-auto mb-6 rounded-2xl bg-[#F3EFE6] border border-[#D2AB6B]/60 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition">
-                        👨‍🍳
+                    <div class="h-16 w-16 mx-auto mb-6 rounded-2xl bg-[#F3EFE6] border border-[#D2AB6B]/60 flex items-center justify-center shadow-inner group-hover:scale-110 transition">
+                        <svg class="w-8 h-8 text-[#144D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 14v6m-3-6v6M7 10h10a4 4 0 004-4c0-2.21-1.79-4-4-4a4.002 4.002 0 00-7.874 1.002A4 4 0 003 6a4 4 0 004 4z"/></svg>
                     </div>
 
                     <!-- Title -->
@@ -399,8 +407,8 @@
                 </div>
 
                 <!-- Seal / Medal (Exact stamp from Design #1) -->
-                <div class="wax-seal">
-                    <span>👑</span>
+                <div class="wax-seal flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#8C6527]" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
                     <span data-i18n="card2_seal">LUXURY CUISINE • مطبخ ملكي</span>
                 </div>
             </div>
@@ -409,8 +417,8 @@
             <div class="classic-card p-8 text-center flex flex-col justify-between items-center group">
                 <div class="w-full">
                     <!-- Icon in Antique Emerald Ring -->
-                    <div class="h-16 w-16 mx-auto mb-6 rounded-2xl bg-[#F3EFE6] border border-[#D2AB6B]/60 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition">
-                        🌐
+                    <div class="h-16 w-16 mx-auto mb-6 rounded-2xl bg-[#F3EFE6] border border-[#D2AB6B]/60 flex items-center justify-center shadow-inner group-hover:scale-110 transition">
+                        <svg class="w-8 h-8 text-[#144D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                     </div>
 
                     <!-- Title -->
@@ -428,8 +436,8 @@
                 </div>
 
                 <!-- Seal / Medal (Exact stamp from Design #1) -->
-                <div class="wax-seal">
-                    <span>⚜️</span>
+                <div class="wax-seal flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#8C6527]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L12 2z"/></svg>
                     <span data-i18n="card3_seal">CERTIFIED HERITAGE • اعتماد ضيافة</span>
                 </div>
             </div>
@@ -456,23 +464,23 @@
             <!-- Tab Buttons Container -->
             <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-8">
                 <button onclick="switchTab('pos')" id="tab-btn-pos" class="tab-btn px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#144D3B] text-white border border-[#D2AB6B] shadow-sm flex items-center gap-2 transition">
-                    <span>🖥️</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     <span data-i18n="tab_pos">الكاشير ونقاط البيع (POS)</span>
                 </button>
                 <button onclick="switchTab('kds')" id="tab-btn-kds" class="tab-btn px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-white text-[#5C4B3F] hover:bg-white/80 border border-[#E8DFD3] flex items-center gap-2 transition">
-                    <span>👨‍🍳</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
                     <span data-i18n="tab_kds">شاشة المطبخ (KDS)</span>
                 </button>
                 <button onclick="switchTab('ai')" id="tab-btn-ai" class="tab-btn px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-white text-[#5C4B3F] hover:bg-white/80 border border-[#E8DFD3] flex items-center gap-2 transition">
-                    <span>🤖</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
                     <span data-i18n="tab_ai">كول سنتر الذكاء الاصطناعي</span>
                 </button>
                 <button onclick="switchTab('delivery')" id="tab-btn-delivery" class="tab-btn px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-white text-[#5C4B3F] hover:bg-white/80 border border-[#E8DFD3] flex items-center gap-2 transition">
-                    <span>🛵</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a2 2 0 104 0m-4 0a2 2 0 114 0m-9 1a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
                     <span data-i18n="tab_delivery">إدارة التوصيل والمناطق</span>
                 </button>
                 <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="tab-btn px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-white text-[#5C4B3F] hover:bg-white/80 border border-[#E8DFD3] flex items-center gap-2 transition">
-                    <span>📦</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <span data-i18n="tab_inventory">المخزون والمستودعات</span>
                 </button>
             </div>
@@ -500,7 +508,10 @@
                         <div class="md:col-span-8 space-y-4">
                             <!-- Categories Bar -->
                             <div class="flex gap-2 overflow-x-auto pb-1 text-xs font-bold">
-                                <span class="px-4 py-2 rounded-xl bg-[#1B634D] text-white">🔥 الأكثر طلباً</span>
+                                <span class="px-4 py-2 rounded-xl bg-[#1B634D] text-white inline-flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 fill-[#D2AB6B]" viewBox="0 0 20 20"><path d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.527.82-1.14 1.985-1.56 3.125a16.038 16.038 0 00-.776 2.875C7.266 8.528 7 7.747 7 7a1 1 0 00-1.802-.6c-1.34 2.146-1.948 4.67-1.048 7.086C4.847 15.344 6.784 17 9 17c3.866 0 7-3.134 7-7 0-3.08-1.742-5.748-3.605-7.447z"/></svg>
+                                    <span>الأكثر طلباً</span>
+                                </span>
                                 <span class="px-4 py-2 rounded-xl bg-[#F9F6F0] text-[#1E130D] border border-[#E8DFD3]">أطباق رئيسية</span>
                                 <span class="px-4 py-2 rounded-xl bg-[#F9F6F0] text-[#1E130D] border border-[#E8DFD3]">مشويات</span>
                                 <span class="px-4 py-2 rounded-xl bg-[#F9F6F0] text-[#1E130D] border border-[#E8DFD3]">مقبلات وشوربات</span>
@@ -508,17 +519,23 @@
                             <!-- Menu Items Grid -->
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <div class="p-3.5 rounded-xl border border-[#E8DFD3] bg-[#F9F6F0] hover:border-[#1B634D] cursor-pointer transition">
-                                    <div class="text-2xl mb-1">🍖</div>
+                                    <div class="h-8 w-8 rounded-lg bg-[#FAF5EC] border border-[#D2AB6B]/40 flex items-center justify-center text-[#8C6527] mb-1">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4a8 8 0 00-8 8h16a8 8 0 00-8-8zm-8 12h16m-12 3h8"/></svg>
+                                    </div>
                                     <div class="font-bold text-xs text-[#1E130D]">مندي لحم بلدي</div>
                                     <div class="text-[11px] font-extrabold text-[#1B634D]">68.00 ر.س</div>
                                 </div>
                                 <div class="p-3.5 rounded-xl border border-[#E8DFD3] bg-[#F9F6F0] hover:border-[#1B634D] cursor-pointer transition">
-                                    <div class="text-2xl mb-1">🍗</div>
+                                    <div class="h-8 w-8 rounded-lg bg-[#FAF5EC] border border-[#D2AB6B]/40 flex items-center justify-center text-[#8C6527] mb-1">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4a8 8 0 00-8 8h16a8 8 0 00-8-8zm-8 12h16m-12 3h8"/></svg>
+                                    </div>
                                     <div class="font-bold text-xs text-[#1E130D]">كبسة دجاج تراثية</div>
                                     <div class="text-[11px] font-extrabold text-[#1B634D]">38.00 ر.س</div>
                                 </div>
                                 <div class="p-3.5 rounded-xl border border-[#E8DFD3] bg-[#F9F6F0] hover:border-[#1B634D] cursor-pointer transition">
-                                    <div class="text-2xl mb-1">🍢</div>
+                                    <div class="h-8 w-8 rounded-lg bg-[#FAF5EC] border border-[#D2AB6B]/40 flex items-center justify-center text-[#8C6527] mb-1">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4a8 8 0 00-8 8h16a8 8 0 00-8-8zm-8 12h16m-12 3h8"/></svg>
+                                    </div>
                                     <div class="font-bold text-xs text-[#1E130D]">مشاوي مشكلة فاخرة</div>
                                     <div class="text-[11px] font-extrabold text-[#1B634D]">85.00 ر.س</div>
                                 </div>
@@ -538,8 +555,9 @@
                                     <span class="text-[#1B634D]">154.00 ر.س</span>
                                 </div>
                             </div>
-                            <button class="w-full py-2.5 rounded-xl btn-gold-pill text-xs font-black">
-                                💳 إصدار الفاتورة الفورية (طباعة)
+                            <button class="w-full py-2.5 rounded-xl btn-gold-pill text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                <span>إصدار الفاتورة الفورية (طباعة)</span>
                             </button>
                         </div>
                     </div>
@@ -551,7 +569,7 @@
                         <div class="p-4 rounded-xl border-2 border-[#C53030] bg-[#FFF5F5] space-y-2">
                             <div class="flex justify-between text-xs font-bold text-[#C53030]">
                                 <span>تذكرة #3114 (سفري)</span>
-                                <span>⏱️ 14:20 د</span>
+                                <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>14:20 د</span></span>
                             </div>
                             <div class="text-xs font-bold text-[#1E130D] space-y-1">
                                 <div>• 1x كبسة لحم ضيافة (بدون بصل)</div>
@@ -564,7 +582,7 @@
                         <div class="p-4 rounded-xl border-2 border-[#D2AB6B] bg-[#FFFBF0] space-y-2">
                             <div class="flex justify-between text-xs font-bold text-[#B88B46]">
                                 <span>تذكرة #3115 (صالة - طاولة 2)</span>
-                                <span>⏱️ 05:10 د</span>
+                                <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>05:10 د</span></span>
                             </div>
                             <div class="text-xs font-bold text-[#1E130D] space-y-1">
                                 <div>• 1x أوصال لحم نعيمي</div>
@@ -577,7 +595,7 @@
                         <div class="p-4 rounded-xl border-2 border-[#1B634D] bg-[#F0FDF4] space-y-2">
                             <div class="flex justify-between text-xs font-bold text-[#1B634D]">
                                 <span>تذكرة #3112 (توصيل هاتف)</span>
-                                <span>⏱️ جاهز للتسليم</span>
+                                <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>جاهز للتسليم</span></span>
                             </div>
                             <div class="text-xs font-bold text-[#1E130D] space-y-1">
                                 <div>• 1x مدفون دجاج كامل</div>
@@ -613,7 +631,10 @@
                 <div id="tab-content-delivery" class="tab-content hidden space-y-3">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                         <div class="p-4 rounded-xl bg-[#F9F6F0] border border-[#E8DFD3] space-y-2">
-                            <div class="font-bold text-[#1E130D]">📍 خريطة التغطية الجغرافية للفرع:</div>
+                            <div class="font-bold text-[#1E130D] inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-[#8C6527]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                <span>خريطة التغطية الجغرافية للفرع:</span>
+                            </div>
                             <div class="space-y-1 text-[#5C4B3F]">
                                 <div>• حي العليا (رسوم: 10 ر.س - وقت: 25 دقيقة)</div>
                                 <div>• حي النرجس (رسوم: 15 ر.س - وقت: 35 دقيقة)</div>
@@ -621,7 +642,10 @@
                             </div>
                         </div>
                         <div class="p-4 rounded-xl bg-[#F9F6F0] border border-[#E8DFD3] space-y-2">
-                            <div class="font-bold text-[#1E130D]">🛵 أسطول السائقين المتاح:</div>
+                            <div class="font-bold text-[#1E130D] inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-[#8C6527]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a2 2 0 104 0m-4 0a2 2 0 114 0m-9 1a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                                <span>أسطول السائقين المتاح:</span>
+                            </div>
                             <div class="space-y-1 text-[#5C4B3F]">
                                 <div>• الكابتن سامر (في الطريق لحي العليا - طلب #3110)</div>
                                 <div>• الكابتن عمر (متاح بالفرع - جاهز لإسناد الطلب)</div>
@@ -643,19 +667,19 @@
                             <span>لحم نعيمي بلدي (طازج)</span>
                             <span class="font-bold">42.5 كجم</span>
                             <span>15.0 كجم</span>
-                            <span class="text-[#166534] font-bold">✓ ممتاز</span>
+                            <span class="text-[#166534] font-bold inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span>ممتاز</span></span>
                         </div>
                         <div class="flex justify-between items-center py-1">
                             <span>أرز عنبر بشاور درجة أولى</span>
                             <span class="font-bold">85.0 كجم</span>
                             <span>30.0 كجم</span>
-                            <span class="text-[#166534] font-bold">✓ ممتاز</span>
+                            <span class="text-[#166534] font-bold inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span>ممتاز</span></span>
                         </div>
                         <div class="flex justify-between items-center py-1 bg-[#FFF5F5] px-2 rounded">
                             <span>هيل حب فاخر وزعفران</span>
                             <span class="font-bold text-[#C53030]">2.1 كجم</span>
                             <span>3.0 كجم</span>
-                            <span class="text-[#C53030] font-bold">⚠️ تنبيه نقص</span>
+                            <span class="text-[#C53030] font-bold inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span>تنبيه نقص</span></span>
                         </div>
                     </div>
                 </div>
@@ -678,7 +702,7 @@
                 <div class="lg:col-span-6 space-y-5 text-right">
                     
                     <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#D2AB6B]/20 border border-[#D2AB6B]/40 text-[#E8D3B0] text-xs font-bold">
-                        <span>🎙️</span>
+                        <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
                         <span data-i18n="ai_sim_badge">تجربة وكيل الهاتف الذكي المباشر</span>
                     </div>
 
@@ -784,8 +808,9 @@
                 {% for plan in plans %}
                 <div class="classic-card p-8 flex flex-col justify-between relative {% if plan.is_popular %}border-2 border-[#D2AB6B] ring-2 ring-[#D2AB6B]/20{% endif %}">
                     {% if plan.is_popular %}
-                    <div class="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full bg-[#144D3B] border border-[#D2AB6B] text-[#D2AB6B] text-[11px] font-black tracking-wider uppercase">
-                        ⭐ الأكثر طلباً
+                    <div class="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full bg-[#144D3B] border border-[#D2AB6B] text-[#D2AB6B] text-[11px] font-black tracking-wider uppercase inline-flex items-center gap-1">
+                        <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <span>الأكثر طلباً</span>
                     </div>
                     {% endif %}
 
@@ -807,27 +832,28 @@
                                 <span class="text-xs font-bold text-[#5C4B3F]">ر.س / سنوياً</span>
                                 <span class="block text-[10px] font-bold text-[#166534] mt-0.5">يشمل خصم الدفع السنوي</span>
                             </div>
-                            <div class="text-[11px] text-[#8C6527] font-bold mt-1">
-                                🎁 تجربة مجانية لمدة {{ plan.trial_days }} يوماً
+                            <div class="text-[11px] text-[#8C6527] font-bold mt-1 inline-flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#8C6527]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V4a2 2 0 114 0v4m-4-4a2 2 0 10-4 0v4m-5 4h18M5 12a2 2 0 012-2h10a2 2 0 012 2v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7z"/></svg>
+                                <span>تجربة مجانية لمدة {{ plan.trial_days }} يوماً</span>
                             </div>
                         </div>
 
                         <!-- Limits -->
                         <div class="space-y-2.5 text-xs text-[#1E130D] font-bold mb-6">
                             <div class="flex items-center gap-2">
-                                <span class="text-[#1B634D]">✓</span>
+                                <svg class="w-3.5 h-3.5 text-[#1B634D] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 <span>الفروع المسموحة: {% if plan.max_branches == 0 or plan.max_branches >= 999 %}غير محدود ∞{% else %}{{ plan.max_branches }} فروع{% endif %}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-[#1B634D]">✓</span>
+                                <svg class="w-3.5 h-3.5 text-[#1B634D] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 <span>الموظفين والكاشيرات: {% if plan.max_employees == 0 or plan.max_employees >= 999 %}غير محدود ∞{% else %}{{ plan.max_employees }} موظف{% endif %}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-[#1B634D]">✓</span>
+                                <svg class="w-3.5 h-3.5 text-[#1B634D] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 <span>شاشات المطبخ السحابية KDS</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-[#1B634D]">✓</span>
+                                <svg class="w-3.5 h-3.5 text-[#1B634D] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 <span>تكامل FastMCP الذكي وكول سنتر الهاتف</span>
                             </div>
                         </div>
@@ -880,7 +906,9 @@
     <!-- CLASSICAL HERITAGE QUOTE                                -->
     <!-- ======================================================== -->
     <section class="py-16 px-4 max-w-4xl mx-auto text-center space-y-4">
-        <div class="text-3xl text-[#D2AB6B]">❝</div>
+        <div class="w-8 h-8 mx-auto text-[#D2AB6B]/70">
+            <svg class="w-full h-full" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+        </div>
         <p class="font-headline text-xl sm:text-2xl font-bold text-[#1E130D] leading-relaxed" data-i18n="quote_text">
             "الضيافة ليست مجرد تقديم طعام؛ بل هي إحياء لتراث أصيل وروح كرم تمتد عبر الأجيال، ممزوجة بدقة التقنية الحديثة."
         </p>
@@ -946,8 +974,8 @@
             <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-white/50">
                 <div data-i18n="footer_rights">© 2026 جميع الحقوق محفوظة لمنصة ضيافة لإدارة سلاسل المطاعم.</div>
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleLanguage()" class="hover:text-[#D2AB6B] font-bold transition flex items-center gap-1">
-                        <span>🌐</span>
+                    <button onclick="toggleLanguage()" class="hover:text-[#D2AB6B] font-bold transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                         <span id="footer-lang-label">Switch to English</span>
                     </button>
                     <span>•</span>
@@ -1234,11 +1262,11 @@
             if (statusBox) statusBox.innerText = currentLang === 'ar' ? 'جاري فحص التغطية والمنيو...' : 'Checking address coverage & menu...';
             if (logBox) {
                 logBox.innerHTML = `
-                    <div class="text-[#D2AB6B]">⚡ [Call Received]: Customer (055-998877) connected</div>
+                    <div class="text-[#D2AB6B]">[Call Received]: Customer (055-998877) connected</div>
                     <div class="text-white">• FastMCP Tool: check_delivery_coverage(branch_id=1, area='النرجس')</div>
-                    <div class="text-emerald-300">✓ Result: Covered by Olaya Branch | Fee: 15.00 SAR | ETA: 35 mins</div>
+                    <div class="text-emerald-300">[OK Result]: Covered by Olaya Branch | Fee: 15.00 SAR | ETA: 35 mins</div>
                     <div class="text-white">• FastMCP Tool: preview_order(items=[{"name": "مندي لحم", "qty": 2}])</div>
-                    <div class="text-emerald-300">✓ Result: Subtotal: 136.00 SAR + 15.00 SAR Delivery = 151.00 SAR</div>
+                    <div class="text-emerald-300">[OK Result]: Subtotal: 136.00 SAR + 15.00 SAR Delivery = 151.00 SAR</div>
                 `;
             }
             if (speechBox) {
@@ -1250,9 +1278,9 @@
             if (statusBox) statusBox.innerText = currentLang === 'ar' ? 'جاري جلب قائمة الأصناف والأسعار...' : 'Fetching active menu & prices...';
             if (logBox) {
                 logBox.innerHTML = `
-                    <div class="text-[#D2AB6B]">⚡ [Call Received]: Menu Inquiry from Caller</div>
+                    <div class="text-[#D2AB6B]">[Call Received]: Menu Inquiry from Caller</div>
                     <div class="text-white">• FastMCP Tool: get_menu(category='مشروبات وحلويات')</div>
-                    <div class="text-emerald-300">✓ Result: Karak Tea (8.00 SAR - Available) | Baklava Platter (24.00 SAR - Available)</div>
+                    <div class="text-emerald-300">[OK Result]: Karak Tea (8.00 SAR - Available) | Baklava Platter (24.00 SAR - Available)</div>
                 `;
             }
             if (speechBox) {
@@ -1264,9 +1292,9 @@
             if (statusBox) statusBox.innerText = currentLang === 'ar' ? 'جاري تتبع الطلب في المطبخ...' : 'Tracking order in KDS system...';
             if (logBox) {
                 logBox.innerHTML = `
-                    <div class="text-[#D2AB6B]">⚡ [Call Received]: Order Tracking Request</div>
+                    <div class="text-[#D2AB6B]">[Call Received]: Order Tracking Request</div>
                     <div class="text-white">• FastMCP Tool: track_order(order_number='DIY-3114')</div>
-                    <div class="text-emerald-300">✓ Result: Order #DIY-3114 | Status: جاهز مع السائق (Out for Delivery) | Driver: سامر</div>
+                    <div class="text-emerald-300">[OK Result]: Order #DIY-3114 | Status: جاهز مع السائق (Out for Delivery) | Driver: سامر</div>
                 `;
             }
             if (speechBox) {

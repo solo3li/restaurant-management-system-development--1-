@@ -3,22 +3,23 @@
 {% block title %}الكاشير ونقاط البيع — مطاعم ضيافة{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-5">
     <!-- Header -->
-    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black font-display text-ink">الكاشير — نقطة البيع</h1>
-            <p class="text-xs font-bold text-soft mt-1">تسجيل الطلبات، إصدار الفواتير الفورية، والتحصيل</p>
+            <h1 class="text-2xl font-bold font-royal text-ink">الكاشير — نقطة البيع الذكية</h1>
+            <p class="text-xs font-bold text-soft mt-1 font-body">تسجيل الطلبات، إصدار الفواتير الفورية، والتحصيل المباشر</p>
         </div>
         <div>
-            <button onclick="openMenuManager()" class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-card px-3.5 py-2 text-xs font-bold text-ink shadow-sm hover:border-brand-300">
-                <span>📋</span> إدارة أصناف القائمة
+            <button onclick="openMenuManager()" class="inline-flex items-center gap-2 rounded-xl border border-line bg-card px-4 py-2 text-xs font-bold text-ink shadow-sm hover:border-[#D2AB6B] transition font-body">
+                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span>إدارة أصناف القائمة</span>
             </button>
         </div>
     </div>
 
     <!-- Main Layout: Menu Left + Invoice Right -->
-    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_390px]">
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_390px] font-body">
         <!-- Menu Section -->
         <div>
             <!-- Categories & Search -->
@@ -28,20 +29,22 @@
                     <button 
                         onclick="setCategory('{{ c }}')" 
                         id="cat-btn-{{ forloop.counter }}"
-                        class="cat-btn rounded-full px-3 py-1 text-xs font-bold transition {% if forloop.first %}bg-night text-gold-300 shadow{% else %}border border-line bg-card text-soft hover:text-ink{% endif %}"
+                        class="cat-btn rounded-full px-3.5 py-1 text-xs font-bold transition {% if forloop.first %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}border border-line bg-card text-soft hover:text-ink hover:border-[#D2AB6B]{% endif %}"
                         data-cat="{{ c }}"
                     >
                         {{ c }}
                     </button>
                     {% endfor %}
                 </div>
-                <div class="relative w-full sm:w-60">
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-soft">🔍</span>
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-soft pointer-events-none">
+                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
                     <input 
                         type="text" 
                         id="menu-search" 
                         placeholder="ابحث عن وجبة أو مشروب…" 
-                        class="input pr-8 text-xs"
+                        class="input pr-9 text-xs"
                         oninput="filterMenu()"
                     >
                 </div>
@@ -51,19 +54,19 @@
             <div id="menu-grid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
                 {% for m in menu_items %}
                 <div 
-                    class="menu-item group relative rounded-xl border border-line bg-card p-3.5 text-right transition hover:border-brand-400 hover:shadow-md cursor-pointer {% if not m.available %}opacity-45 pointer-events-none{% endif %}"
+                    class="menu-item classic-card group relative p-3.5 text-right transition hover:border-[#D2AB6B] hover:shadow-md cursor-pointer {% if not m.available %}opacity-45 pointer-events-none{% endif %}"
                     data-id="{{ m.id }}"
                     data-name="{{ m.name }}"
                     data-price="{{ m.price }}"
                     data-category="{{ m.category }}"
                     onclick="addToCart({{ m.id }}, '{{ m.name }}', {{ m.price }})"
                 >
-                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100/60 text-2xl mb-2">
-                        {{ m.emoji|default:"🍽️" }}
+                    <span class="medallion-icon-light flex h-12 w-12 items-center justify-center rounded-xl mb-2.5">
+                        <svg class="w-6 h-6 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </span>
-                    <p class="truncate text-xs font-black text-ink">{{ m.name }}</p>
+                    <p class="truncate text-xs font-black text-ink group-hover:text-brand-700 transition">{{ m.name }}</p>
                     <div class="mt-1 flex items-center justify-between">
-                        <span class="text-xs font-extrabold text-brand-700">{{ m.price|floatformat:0 }} ر.س</span>
+                        <span class="text-xs font-black text-brand-700">{{ m.price|floatformat:0 }} ر.س</span>
                         <span class="text-[10px] font-bold text-soft">{{ m.category }}</span>
                     </div>
                     {% if not m.available %}
@@ -77,32 +80,40 @@
 
         <!-- Invoice / Cart Section -->
         <div>
-            <div class="card sticky top-4 shadow-lg border-line">
-                <div class="flex items-center justify-between border-b border-line px-5 py-3.5 bg-paper/30 rounded-t-xl">
-                    <h2 class="text-sm font-black font-display text-ink">الفاتورة الحالية</h2>
+            <div class="classic-card sticky top-4 shadow-xl border-line">
+                <div class="flex items-center justify-between border-b border-line px-5 py-3.5 bg-paper/40 rounded-t-2xl">
+                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>الفاتورة الحالية</span>
+                    </h2>
                     <span id="cart-badge" class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
                 </div>
 
                 <!-- Items list -->
                 <div id="cart-items-container" class="max-h-56 min-h-[120px] overflow-y-auto p-4 divide-y divide-line/60">
                     <div id="cart-empty" class="py-8 text-center text-xs text-soft">
-                        <p class="text-2xl mb-1">🛒</p>
-                        <p>اضغط على أي صنف لإضافته إلى الفاتورة</p>
+                        <span class="medallion-icon-light mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl">
+                            <svg class="w-5 h-5 text-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        </span>
+                        <p class="font-bold">اضغط على أي صنف لإضافته إلى الفاتورة</p>
                     </div>
                 </div>
 
                 <!-- Order Controls -->
-                <div class="space-y-3 border-t border-line p-4 bg-paper/10">
+                <div class="space-y-3 border-t border-line p-4 bg-paper/20">
                     <!-- Order Type Selector -->
                     <div class="grid grid-cols-3 gap-1.5">
-                        <button type="button" onclick="setOrderType('dine_in')" id="btn-type-dine_in" class="type-btn rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition">
-                            🍽️ محلي
+                        <button type="button" onclick="setOrderType('dine_in')" id="btn-type-dine_in" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            <span>محلي</span>
                         </button>
-                        <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="type-btn rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-brand-300">
-                            🥡 سفري
+                        <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-[#D2AB6B]">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                            <span>سفري</span>
                         </button>
-                        <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="type-btn rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-brand-300">
-                            🛵 توصيل
+                        <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-[#D2AB6B]">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span>توصيل</span>
                         </button>
                     </div>
 
@@ -127,8 +138,8 @@
                     </div>
 
                     <!-- Delivery info (conditionally shown) -->
-                    <div id="delivery-fields" class="hidden space-y-2 rounded-xl border border-info-600/30 bg-info-100/40 p-3 text-xs">
-                        <p class="font-bold text-info-700">بيانات التوصيل:</p>
+                    <div id="delivery-fields" class="hidden space-y-2 rounded-xl border border-sky-300 bg-sky-50/60 p-3 text-xs">
+                        <p class="font-bold text-sky-800">بيانات التوصيل:</p>
                         <div class="grid grid-cols-2 gap-2">
                             <input type="text" id="cust-name" placeholder="اسم العميل" class="input text-xs">
                             <input type="text" id="cust-phone" placeholder="رقم الجوال" dir="ltr" class="input text-xs">
@@ -156,7 +167,7 @@
                             <span>الخصم</span>
                             <span id="sum-discount" class="font-bold">- 0.00 ر.س</span>
                         </div>
-                        <div class="flex justify-between border-t border-line pt-2 font-display text-sm font-black text-ink">
+                        <div class="flex justify-between border-t border-line pt-2 text-sm font-bold text-ink">
                             <span>الإجمالي المستحق</span>
                             <span id="sum-total" class="text-base text-brand-700 font-black">0.00 ر.س</span>
                         </div>
@@ -167,7 +178,7 @@
                         id="submit-order-btn"
                         type="button" 
                         onclick="submitOrder()" 
-                        class="w-full rounded-xl bg-brand-600 py-3 text-sm font-extrabold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none"
+                        class="btn-gold-pill w-full py-3 text-sm font-black shadow-lg disabled:opacity-50 disabled:pointer-events-none"
                         disabled
                     >
                         تحصيل الفاتورة
@@ -179,29 +190,29 @@
 </div>
 
 <!-- Success Modal -->
-<div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-sm w-full p-6 text-center shadow-2xl">
-        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-good-100 text-good-700 text-2xl mb-3">
-            ✓
+<div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 font-body">
+    <div class="classic-card max-w-sm w-full p-6 text-center shadow-2xl">
+        <div class="wax-seal-gold mx-auto mb-3">
+            <svg class="w-6 h-6 text-[#1E130D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
-        <h3 class="text-base font-black font-display text-ink">تم إصدار الطلب بنجاح</h3>
-        <p id="modal-order-number" class="text-2xl font-black font-display text-brand-700 my-2">ORD-1000</p>
+        <h3 class="text-base font-bold font-royal text-ink">تم إصدار الطلب بنجاح</h3>
+        <p id="modal-order-number" class="text-2xl font-black font-body text-brand-700 my-2">ORD-1000</p>
         <p class="text-xs text-soft mb-5">تم إرسال الطلب للمطبخ وحفظ الفاتورة في النظام</p>
-        <button onclick="closeOrderModal()" class="w-full rounded-xl bg-brand-600 py-2.5 text-xs font-bold text-white hover:bg-brand-700">
+        <button onclick="closeOrderModal()" class="btn-gold-pill w-full py-2.5 text-xs font-black">
             فاتورة جديدة
         </button>
     </div>
 </div>
 
 <!-- Menu Manager Modal -->
-<div id="menu-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-xl w-full p-6 shadow-2xl">
+<div id="menu-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 font-body">
+    <div class="classic-card max-w-xl w-full p-6 shadow-2xl">
         <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
             <div>
-                <h3 class="text-sm font-black font-display text-ink">إدارة أصناف القائمة</h3>
+                <h3 class="text-sm font-bold font-royal text-ink">إدارة أصناف القائمة</h3>
                 <p class="text-xs text-soft">تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة</p>
             </div>
-            <button onclick="openAddMenuModal()" class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700">
+            <button onclick="openAddMenuModal()" class="btn-gold-pill px-3.5 py-1.5 text-xs font-black">
                 + صنف جديد
             </button>
         </div>
@@ -209,8 +220,10 @@
         <div class="max-h-72 overflow-y-auto divide-y divide-line/60 border border-line rounded-lg">
             {% for m in menu_items %}
             <div class="flex items-center justify-between p-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">{{ m.emoji|default:"🍽️" }}</span>
+                <div class="flex items-center gap-2.5">
+                    <span class="medallion-icon-light flex h-8 w-8 items-center justify-center rounded-lg">
+                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </span>
                     <div>
                         <p class="text-xs font-bold text-ink">{{ m.name }}</p>
                         <p class="text-[10px] text-soft">{{ m.category }} • {{ m.price }} ر.س</p>
@@ -218,7 +231,7 @@
                 </div>
                 <button 
                     onclick="toggleMenuItem({{ m.id }}, this)" 
-                    class="rounded-full px-3 py-1 text-[11px] font-bold transition {% if m.available %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}"
+                    class="rounded-full px-3 py-1 text-[11px] font-bold transition {% if m.available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
                 >
                     {% if m.available %}متوفر{% else %}غير متوفر{% endif %}
                 </button>
@@ -235,13 +248,13 @@
 </div>
 
 <!-- Add Menu Item Modal -->
-<div id="add-menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-sm font-black font-display text-ink mb-4">إضافة صنف جديد للمنيو</h3>
+<div id="add-menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 font-body">
+    <div class="classic-card max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-sm font-bold font-royal text-ink mb-4">إضافة صنف جديد للمنيو</h3>
         <div class="space-y-3 text-xs">
             <div>
                 <label class="mb-1 block font-bold text-soft">اسم الصنف</label>
-                <input type="text" id="new-item-name" placeholder="مثال: مقلوبة دجاج" class="input text-xs">
+                <input type="text" id="new-item-name" placeholder="مثال: مقلوبة دجاج فاخرة" class="input text-xs">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
@@ -256,8 +269,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">رمز تعبيري (Emoji)</label>
-                    <input type="text" id="new-item-emoji" placeholder="🍗" class="input text-xs">
+                    <label class="mb-1 block font-bold text-soft">التصنيف</label>
+                    <input type="text" id="new-item-emoji" placeholder="طبق رئيسي" class="input text-xs">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -274,7 +287,7 @@
 
         <div class="mt-5 flex items-center justify-end gap-2">
             <button onclick="closeAddMenuModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">إلغاء</button>
-            <button onclick="saveNewMenuItem()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ الصنف</button>
+            <button onclick="saveNewMenuItem()" class="btn-gold-pill px-4 py-1.5 text-xs font-black">حفظ الصنف</button>
         </div>
     </div>
 </div>
@@ -290,9 +303,9 @@
         currentCategory = cat;
         document.querySelectorAll('.cat-btn').forEach(btn => {
             if (btn.dataset.cat === cat) {
-                btn.className = 'cat-btn rounded-full px-3 py-1 text-xs font-bold transition bg-night text-gold-300 shadow';
+                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-bold transition bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs';
             } else {
-                btn.className = 'cat-btn rounded-full px-3 py-1 text-xs font-bold transition border border-line bg-card text-soft hover:text-ink';
+                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-bold transition border border-line bg-card text-soft hover:text-ink hover:border-[#D2AB6B]';
             }
         });
         filterMenu();
@@ -303,21 +316,26 @@
         const items = document.querySelectorAll('.menu-item');
         let visibleCount = 0;
 
-        items.forEach(item => {
-            const name = item.dataset.name.toLowerCase();
-            const cat = item.dataset.category;
-            const matchesCat = (currentCategory === 'الكل' || cat === currentCategory);
-            const matchesSearch = (!query || name.includes(query));
+        items.forEach(el => {
+            const name = el.dataset.name.toLowerCase();
+            const cat = el.dataset.category;
+            const matchesCat = currentCategory === 'الكل' || cat === currentCategory;
+            const matchesQuery = !query || name.includes(query);
 
-            if (matchesCat && matchesSearch) {
-                item.style.display = 'block';
+            if (matchesCat && matchesQuery) {
+                el.classList.remove('hidden');
                 visibleCount++;
             } else {
-                item.style.display = 'none';
+                el.classList.add('hidden');
             }
         });
 
-        document.getElementById('no-items-msg').style.display = visibleCount === 0 ? 'block' : 'none';
+        const noItems = document.getElementById('no-items-msg');
+        if (visibleCount === 0) {
+            noItems.classList.remove('hidden');
+        } else {
+            noItems.classList.add('hidden');
+        }
     }
 
     function setOrderType(type) {
@@ -326,21 +344,22 @@
         types.forEach(t => {
             const btn = document.getElementById(`btn-type-${t}`);
             if (t === type) {
-                btn.className = 'type-btn rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition';
+                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition';
             } else {
-                btn.className = 'type-btn rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-brand-300';
+                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-[#D2AB6B]';
             }
         });
 
-        const deliveryBox = document.getElementById('delivery-fields');
-        const deliveryFeeRow = document.getElementById('row-delivery-fee');
+        const delFields = document.getElementById('delivery-fields');
+        const delFeeRow = document.getElementById('row-delivery-fee');
         if (type === 'delivery') {
-            deliveryBox.classList.remove('hidden');
-            deliveryFeeRow.classList.remove('hidden');
+            delFields.classList.remove('hidden');
+            delFeeRow.classList.remove('hidden');
         } else {
-            deliveryBox.classList.add('hidden');
-            deliveryFeeRow.classList.add('hidden');
+            delFields.classList.add('hidden');
+            delFeeRow.classList.add('hidden');
         }
+
         updateTotals();
     }
 
@@ -371,8 +390,10 @@
         if (keys.length === 0) {
             container.innerHTML = `
                 <div id="cart-empty" class="py-8 text-center text-xs text-soft">
-                    <p class="text-2xl mb-1">🛒</p>
-                    <p>اضغط على أي صنف لإضافته إلى الفاتورة</p>
+                    <span class="medallion-icon-light mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl">
+                        <svg class="w-5 h-5 text-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    </span>
+                    <p class="font-bold">اضغط على أي صنف لإضافته إلى الفاتورة</p>
                 </div>
             `;
             document.getElementById('submit-order-btn').disabled = true;
@@ -520,11 +541,11 @@
             });
             const data = await res.json();
             if (data.available) {
-                btn.className = 'rounded-full px-3 py-1 text-[11px] font-bold transition bg-good-100 text-good-700';
+                btn.className = 'rounded-full px-3 py-1 text-[11px] font-bold transition bg-emerald-100 text-emerald-800 border border-emerald-300';
                 btn.textContent = 'متوفر';
                 showToast(`تم تفعيل «${data.name}»`);
             } else {
-                btn.className = 'rounded-full px-3 py-1 text-[11px] font-bold transition bg-bad-100 text-bad-700';
+                btn.className = 'rounded-full px-3 py-1 text-[11px] font-bold transition bg-rose-100 text-rose-800 border border-rose-300';
                 btn.textContent = 'غير متوفر';
                 showToast(`تم إيقاف «${data.name}» مؤقتاً`);
             }
@@ -545,7 +566,7 @@
     async function saveNewMenuItem() {
         const name = document.getElementById('new-item-name').value.trim();
         const cat = document.getElementById('new-item-cat').value;
-        const emoji = document.getElementById('new-item-emoji').value.trim() || '🍽️';
+        const emoji = document.getElementById('new-item-emoji').value.trim() || 'طبق';
         const price = parseFloat(document.getElementById('new-item-price').value);
         const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
 

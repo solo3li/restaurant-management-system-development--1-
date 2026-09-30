@@ -3,89 +3,105 @@
 {% block title %}لوحة إدارة المنصة العامة (SaaS Platform) — إدارة المطاعم والباقات{% endblock %}
 
 {% block content %}
-<div>
+<div class="space-y-6">
     <!-- Platform Banner -->
-    <div class="card p-5 mb-6 bg-gradient-to-r from-night via-night-2 to-night text-white border-night-3 shadow-xl">
+    <div class="classic-card p-6 bg-gradient-to-r from-[#0E382A] via-[#144D3B] to-[#0E382A] text-white border-b-2 border-[#D2AB6B] shadow-xl">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-center gap-3.5">
-                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white text-2xl shadow-lg shadow-brand-600/40">
-                    🌐
+            <div class="flex items-center gap-4">
+                <span class="medallion-icon w-12 h-12 shadow-lg">
+                    <svg class="w-6 h-6 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                    </svg>
                 </span>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-xl font-black font-display text-white">إدارة منصة المطاعم السحابية (SaaS Admin)</h1>
-                        <span class="rounded-full bg-brand-600/40 border border-brand-500/50 px-2.5 py-0.5 text-[10px] font-bold text-gold-300">
+                    <div class="flex items-center gap-2.5">
+                        <h1 class="text-xl font-bold font-royal text-[#E6C898]">إدارة منصة المطاعم السحابية (SaaS Admin)</h1>
+                        <span class="rounded-full bg-[#0E382A]/80 border border-[#D2AB6B]/60 px-3 py-0.5 text-[10px] font-bold text-[#D2AB6B]">
                             Super Admin
                         </span>
                     </div>
-                    <p class="text-xs text-gold-300/80 mt-0.5">
+                    <p class="text-xs text-[#F9F6F0]/80 mt-1">
                         إدارة باقات وخطط الاشتراك، ومتابعة حدود المنشآت والمطاعم وصلاحية تشغيلها
                     </p>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-                <a href="#plans-section" class="rounded-xl border border-gold-300/30 bg-night-3 px-3 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
-                    💎 باقات الاشتراك
+            <div class="flex flex-wrap items-center gap-2.5">
+                <a href="#plans-section" class="rounded-xl border border-[#D2AB6B]/50 bg-[#0E382A]/60 px-3.5 py-2 text-xs font-bold text-[#E6C898] hover:bg-[#0E382A] transition shadow-xs flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                    باقات الاشتراك
                 </a>
-                <a href="#owners-section" class="rounded-xl border border-gold-300/30 bg-night-3 px-3 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
-                    👑 سجل الملاك
+                <a href="#owners-section" class="rounded-xl border border-[#D2AB6B]/50 bg-[#0E382A]/60 px-3.5 py-2 text-xs font-bold text-[#E6C898] hover:bg-[#0E382A] transition shadow-xs flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    سجل الملاك
                 </a>
-                <a href="/admin/core/restaurantowner/" class="rounded-xl border border-gold-300/30 bg-night-3 px-3 py-2 text-xs font-bold text-gold-300 hover:bg-night-2 transition shadow-sm">
-                    ⚙️ لوحة السوبر ادمن
+                <a href="/admin/core/restaurantowner/" class="rounded-xl border border-[#D2AB6B]/50 bg-[#0E382A]/60 px-3.5 py-2 text-xs font-bold text-[#E6C898] hover:bg-[#0E382A] transition shadow-xs flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    لوحة السوبر ادمن
                 </a>
-                <button onclick="openAddTenantModal()" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-black text-white hover:bg-brand-700 shadow-md transition">
-                    + تسجيل مطعم جديد
+                <button onclick="openAddTenantModal()" class="btn-gold-pill px-4 py-2 text-xs font-bold shadow-md flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    تسجيل مطعم جديد
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Platform KPI Stats -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 mb-6">
-        <div class="card p-5 border-l-4 border-l-brand-600">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="classic-card p-5 border-t-4 border-t-[#0E382A]">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">سلاسل المطاعم</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 text-base">🍽️</span>
+                <span class="text-xs font-bold text-[#666666]">سلاسل المطاعم</span>
+                <span class="medallion-icon w-8 h-8">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-brand-700">{{ total_tenants }} <span class="text-xs font-bold text-soft">منشأة</span></p>
-            <p class="mt-1 text-xs font-bold text-soft">مشتركون فعالون في النظام</p>
+            <p class="mt-2 text-2xl font-bold font-royal text-[#0E382A]">{{ total_tenants }} <span class="text-xs font-semibold text-[#666666]">منشأة</span></p>
+            <p class="mt-1 text-xs text-[#666666]">مشتركون فعالون في النظام</p>
         </div>
 
-        <div class="card p-5 border-l-4 border-l-gold-500">
+        <div class="classic-card p-5 border-t-4 border-t-[#D2AB6B]">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">ملاك المنشآت</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700 text-base">👑</span>
+                <span class="text-xs font-bold text-[#666666]">ملاك المنشآت</span>
+                <span class="medallion-icon w-8 h-8">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-amber-700">{{ total_owners }} <span class="text-xs font-bold text-soft">مالك</span></p>
-            <p class="mt-1 text-xs font-bold text-soft">حسابات أصحاب المطاعم</p>
+            <p class="mt-2 text-2xl font-bold font-royal text-[#0E382A]">{{ total_owners }} <span class="text-xs font-semibold text-[#666666]">مالك</span></p>
+            <p class="mt-1 text-xs text-[#666666]">حسابات أصحاب المطاعم</p>
         </div>
 
-        <div class="card p-5 border-l-4 border-l-info-600">
+        <div class="classic-card p-5 border-t-4 border-t-[#0E382A]">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">الفروع التشغيلية</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-info-100 text-info-700 text-base">🏢</span>
+                <span class="text-xs font-bold text-[#666666]">الفروع التشغيلية</span>
+                <span class="medallion-icon w-8 h-8">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-info-700">{{ total_branches }} <span class="text-xs font-bold text-soft">فرع</span></p>
-            <p class="mt-1 text-xs font-bold text-soft">عبر كافة المدن</p>
+            <p class="mt-2 text-2xl font-bold font-royal text-[#0E382A]">{{ total_branches }} <span class="text-xs font-semibold text-[#666666]">فرع</span></p>
+            <p class="mt-1 text-xs text-[#666666]">عبر كافة المدن</p>
         </div>
 
-        <div class="card p-5 border-l-4 border-l-good-600">
+        <div class="classic-card p-5 border-t-4 border-t-emerald-700">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">كادر الموظفين</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-good-100 text-good-700 text-base">👥</span>
+                <span class="text-xs font-bold text-[#666666]">كادر الموظفين</span>
+                <span class="medallion-icon w-8 h-8">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-good-700">{{ total_employees }} <span class="text-xs font-bold text-soft">موظف</span></p>
-            <p class="mt-1 text-xs font-bold text-soft">مسجلين برمز PIN وحسابات</p>
+            <p class="mt-2 text-2xl font-bold font-royal text-[#0E382A]">{{ total_employees }} <span class="text-xs font-semibold text-[#666666]">موظف</span></p>
+            <p class="mt-1 text-xs text-[#666666]">مسجلين برمز PIN وحسابات</p>
         </div>
 
-        <div class="card p-5 border-l-4 border-l-warn-600">
+        <div class="classic-card p-5 border-t-4 border-t-[#D2AB6B]">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">الطلبات المنفذة</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-warn-100 text-warn-700 text-base">🧾</span>
+                <span class="text-xs font-bold text-[#666666]">الطلبات المنفذة</span>
+                <span class="medallion-icon w-8 h-8">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </span>
             </div>
-            <p class="mt-2 text-2xl font-black font-display text-warn-700">{{ total_orders }} <span class="text-xs font-bold text-soft">طلب</span></p>
-            <p class="mt-1 text-xs font-bold text-soft">مبيعات المنصة الإجمالية</p>
+            <p class="mt-2 text-2xl font-bold font-royal text-[#0E382A]">{{ total_orders }} <span class="text-xs font-semibold text-[#666666]">طلب</span></p>
+            <p class="mt-1 text-xs text-[#666666]">مبيعات المنصة الإجمالية</p>
         </div>
     </div>
 
@@ -93,210 +109,208 @@
     <!-- SECTION 1: SAAS SUBSCRIPTION PLANS (TIERS & LIMITS)    -->
     <!-- ======================================================== -->
     <div id="plans-section" class="mb-8 scroll-mt-6">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3">
             <div>
-                <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
-                    <span>💎</span> باقات وخطط اشتراك المنصة (SaaS Pricing Plans)
+                <h2 class="text-base font-bold font-royal text-[#0E382A] flex items-center gap-2">
+                    <span class="medallion-icon w-7 h-7">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                    </span>
+                    باقات وخطط اشتراك المنصة (SaaS Pricing Plans)
                 </h2>
-                <p class="text-xs text-soft mt-0.5">تحديد أسعار الباقات، حدود الفروع والموظفين، وتفعيل الميزات لكل خطة</p>
+                <p class="text-xs text-[#666666] mt-0.5">تحديد الأسعار، الميزات المفعلة، وأقصى عدد للفروع والموظفين المسموح به لكل باقة</p>
             </div>
-            <button onclick="openCreatePlanModal()" class="rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 transition shadow-sm flex items-center gap-1.5">
-                <span>+</span> إضافة باقة جديدة
+            <button onclick="openCreatePlanModal()" class="btn-gold-pill px-4 py-2 text-xs font-bold shadow-sm flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                + إنشاء باقة جديدة
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {% for item in plans_data %}
-            {% with p=item.plan %}
-            <div class="card p-4 relative overflow-hidden flex flex-col justify-between border-line hover:border-brand-500 transition shadow-sm {% if p.is_popular %}ring-2 ring-brand-600 bg-brand-50/20{% endif %}">
-                {% if p.is_popular %}
-                <div class="absolute top-0 left-0 bg-brand-600 text-white text-[9px] font-black px-3 py-0.5 rounded-br-lg uppercase tracking-wider">
-                    الأكثر طلباً ⭐
-                </div>
-                {% endif %}
-
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {% for plan in plans %}
+            <div class="classic-card p-5 flex flex-col justify-between hover:shadow-lg transition">
                 <div>
-                    <!-- Plan Header -->
-                    <div class="flex items-start justify-between gap-2 mb-2">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-3 border-b border-[#D2AB6B]/20 pb-3">
                         <div>
-                            <h3 class="font-black text-sm text-ink">{{ p.name }}</h3>
-                            <p class="text-[10px] text-soft font-mono">code: {{ p.code }}</p>
+                            <div class="flex items-center gap-1.5">
+                                <h3 class="font-royal text-base font-bold text-[#0E382A]">{{ plan.name }}</h3>
+                                {% if plan.is_popular %}
+                                <span class="rounded bg-[#D2AB6B] text-[#0E382A] text-[9px] px-1.5 py-0.5 font-bold">شائعة</span>
+                                {% endif %}
+                            </div>
+                            <span class="font-mono text-[10px] text-[#666666]">code: {{ plan.code }}</span>
                         </div>
-                        <span class="rounded-full px-2 py-0.5 text-[9px] font-bold {% if p.is_active %}bg-good-100 text-good-800{% else %}bg-bad-100 text-bad-800{% endif %}">
-                            {% if p.is_active %}مفعلة{% else %}معطلة{% endif %}
+                        <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {% if plan.is_active %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}">
+                            {% if plan.is_active %}نشطة{% else %}موقوفة{% endif %}
                         </span>
                     </div>
 
-                    <p class="text-[11px] text-soft mb-3 line-clamp-2">{{ p.description|default:"—" }}</p>
+                    <p class="text-xs text-[#666666] mb-4 min-h-[32px]">{{ plan.description|default:"باقة تشغيلية متكاملة للمطاعم" }}</p>
 
-                    <!-- Price -->
-                    <div class="rounded-xl bg-paper p-2.5 mb-3 text-center border border-line/60">
-                        <div class="flex items-baseline justify-center gap-1">
-                            <span class="text-xl font-black text-brand-700">{{ p.price_monthly }}</span>
-                            <span class="text-[10px] text-soft font-bold">ر.س / شهر</span>
+                    <!-- Price Box -->
+                    <div class="rounded-xl bg-[#F9F6F0] p-3 border border-[#D2AB6B]/30 mb-4 text-center">
+                        <div class="font-royal text-2xl font-bold text-[#0E382A]">
+                            {{ plan.price_monthly|floatformat:0 }} <span class="text-xs font-semibold text-[#666666]">ر.س / شهر</span>
                         </div>
-                        <p class="text-[10px] text-soft mt-0.5 font-bold">
-                            {{ p.price_yearly }} ر.س / سنوياً
-                        </p>
+                        <div class="text-[11px] font-bold text-[#0E382A] mt-0.5">
+                            {{ plan.price_yearly|floatformat:0 }} ر.س / سنوياً
+                        </div>
                     </div>
 
-                    <!-- Limits Badges -->
-                    <div class="space-y-1.5 text-xs mb-3">
-                        <div class="flex items-center justify-between p-1.5 rounded-lg bg-card border border-line/50 text-[11px]">
-                            <span class="font-bold text-soft flex items-center gap-1">🏢 الحد الأقصى للفروع:</span>
-                            <span class="font-black text-ink">
-                                {% if p.max_branches <= 0 %}<span class="text-good-700">غير محدود (∞)</span>{% else %}{{ p.max_branches }} فروع{% endif %}
+                    <!-- Limits & Metrics -->
+                    <div class="space-y-2 text-xs mb-4">
+                        <div class="flex items-center justify-between border-b border-[#D2AB6B]/20 pb-1.5">
+                            <span class="font-semibold text-[#666666] flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                الحد الأقصى للفروع:
                             </span>
+                            <span class="font-bold text-[#0E382A]">{% if plan.max_branches <= 0 %}غير محدود{% else %}{{ plan.max_branches }} فروع{% endif %}</span>
                         </div>
-                        <div class="flex items-center justify-between p-1.5 rounded-lg bg-card border border-line/50 text-[11px]">
-                            <span class="font-bold text-soft flex items-center gap-1">👥 الحد الأقصى للموظفين:</span>
-                            <span class="font-black text-ink">
-                                {% if p.max_employees <= 0 %}<span class="text-good-700">غير محدود (∞)</span>{% else %}{{ p.max_employees }} موظف{% endif %}
+                        <div class="flex items-center justify-between border-b border-[#D2AB6B]/20 pb-1.5">
+                            <span class="font-semibold text-[#666666] flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                الحد الأقصى للموظفين:
                             </span>
+                            <span class="font-bold text-[#0E382A]">{% if plan.max_employees <= 0 %}غير محدود{% else %}{{ plan.max_employees }} موظف{% endif %}</span>
                         </div>
-                        {% if p.trial_days > 0 %}
-                        <div class="flex items-center justify-between p-1.5 rounded-lg bg-card border border-line/50 text-[11px]">
-                            <span class="font-bold text-soft flex items-center gap-1">🎁 التجربة المجانية:</span>
-                            <span class="font-black text-brand-700">{{ p.trial_days }} يوماً</span>
+                        <div class="flex items-center justify-between border-b border-[#D2AB6B]/20 pb-1.5">
+                            <span class="font-semibold text-[#666666] flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                التجربة المجانية:
+                            </span>
+                            <span class="font-bold text-[#0E382A]">{{ plan.trial_days }} يوم</span>
                         </div>
-                        {% endif %}
                     </div>
 
-                    <!-- Included Features Checklist -->
-                    <div class="border-t border-line/80 pt-2.5 mb-3">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-soft mb-1.5">الميزات المشمولة:</p>
-                        <ul class="space-y-1 text-[11px]">
-                            {% for feat in features_catalog %}
-                            <li class="flex items-center gap-1.5 {% if feat.key in p.features %}text-ink font-bold{% else %}text-soft/40 line-through{% endif %}">
-                                {% if feat.key in p.features %}
-                                <span class="text-good-600 font-black">✓</span>
-                                {% else %}
-                                <span class="text-soft/40">✕</span>
-                                {% endif %}
-                                <span class="truncate">{{ feat.label }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
+                    <!-- Features Checklist Preview -->
+                    <div class="space-y-1 mb-5 text-[11px]">
+                        <span class="block text-[10px] font-bold text-[#666666] mb-1">الميزات المشمولة:</span>
+                        {% for feat in features_catalog|slice:":6" %}
+                        <div class="flex items-center gap-1.5">
+                            {% if feat.key in plan.features %}
+                                <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-[#0E382A] font-semibold">{{ feat.label }}</span>
+                            {% else %}
+                                <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span class="text-gray-400 line-through">{{ feat.label }}</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 
-                <!-- Footer / Subscribers & Actions -->
-                <div class="border-t border-line pt-3 mt-auto">
-                    <div class="flex items-center justify-between mb-2 text-xs">
-                        <span class="text-[11px] text-soft font-bold">المشتركون:</span>
-                        <span class="rounded-full bg-brand-100 text-brand-800 px-2 py-0.5 text-[10px] font-extrabold">
-                            {{ item.tenants_count }} مطعم
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <button onclick="openEditPlanModal({{ p.id }})" class="flex-1 rounded-lg border border-line bg-paper hover:bg-paper/80 py-1.5 text-[11px] font-bold text-ink transition">
-                            ⚙️ تعديل الباقة
-                        </button>
-                        {% if item.tenants_count == 0 %}
-                        <button onclick="deletePlan({{ p.id }}, '{{ p.name }}')" class="rounded-lg border border-bad-300 bg-bad-50 hover:bg-bad-100 px-2.5 py-1.5 text-[11px] font-bold text-bad-700 transition">
-                            حذف
-                        </button>
-                        {% endif %}
-                    </div>
+                <!-- Card Actions -->
+                <div class="border-t border-[#D2AB6B]/20 pt-3 flex items-center gap-2">
+                    <button 
+                        type="button" 
+                        onclick="openEditPlanModal({{ plan.id }})" 
+                        class="flex-1 rounded-lg border border-[#D2AB6B]/40 bg-white hover:bg-[#F9F6F0] py-1.5 text-center text-xs font-bold text-[#0E382A] transition flex items-center justify-center gap-1"
+                    >
+                        <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        تعديل الباقة
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="deletePlan({{ plan.id }}, '{{ plan.name }}')" 
+                        class="rounded-lg border border-rose-300 bg-rose-50 hover:bg-rose-100 p-1.5 text-rose-700 transition"
+                        title="حذف الباقة"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
                 </div>
             </div>
-            {% endwith %}
             {% endfor %}
         </div>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- SECTION: UPGRADE REQUESTS REVIEW (FROM TENANT OWNERS)   -->
-    <!-- ======================================================== -->
-    <div class="mb-8 card p-5 border-line shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-line mb-4">
+    <!-- UPGRADE REQUESTS SECTION -->
+    <div class="classic-card p-5 mb-8 shadow-sm">
+        <div class="flex items-center justify-between pb-3 border-b border-[#D2AB6B]/30 mb-4">
             <div>
-                <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
-                    <span>⚡</span> طلبات ترقية الباقات المقدمة من الملاك
-                    {% if pending_requests_count > 0 %}
-                    <span class="px-2.5 py-0.5 rounded-full bg-warn-100 text-warn-700 text-xs font-black border border-warn-600/30">
-                        {{ pending_requests_count }} طلب قيد الانتظار
+                <h3 class="font-royal text-base font-bold text-[#0E382A] flex items-center gap-2">
+                    <span class="medallion-icon w-6 h-6">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </span>
-                    {% endif %}
-                </h2>
-                <p class="text-xs text-soft mt-0.5">مراجعة طلبات الترقية المقدمة من أصحاب المطاعم، الموافقة عليها لتحديث خططهم تلقائياً أو رفضها</p>
+                    طلبات ترقية الباقات المقدمة من الملاك
+                </h3>
+                <p class="text-xs text-[#666666]">مراجعة طلبات الترقية واعتماد الباقة الجديدة فورياً</p>
             </div>
+            <span class="rounded-full bg-[#0E382A]/10 text-[#0E382A] border border-[#D2AB6B]/40 px-3 py-0.5 text-xs font-bold">
+                {{ upgrade_requests|length }} طلبات مسجلة
+            </span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs">
                 <thead>
-                    <tr class="border-b border-line bg-paper/60 text-soft font-bold">
+                    <tr class="border-b border-[#D2AB6B]/30 bg-[#F9F6F0] text-[#666666] font-bold">
                         <th class="p-3">#</th>
-                        <th class="p-3">المطعم / المنشأة</th>
+                        <th class="p-3">المنشأة والمطعم</th>
                         <th class="p-3">الباقة المطلوبة</th>
                         <th class="p-3">دورة الفوترة</th>
-                        <th class="p-3">طالب الترقية</th>
                         <th class="p-3">تاريخ الطلب</th>
                         <th class="p-3">ملاحظات العميل</th>
                         <th class="p-3">الحالة</th>
-                        <th class="p-3 text-center">إجراءات المراجعة</th>
+                        <th class="p-3 text-center">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line">
-                    {% for req in all_upgrade_requests %}
-                    <tr class="hover:bg-paper/30 transition {% if req.status == 'pending' %}bg-warn-50/20{% endif %}">
-                        <td class="p-3 font-mono font-bold text-soft">#{{ req.id }}</td>
-                        <td class="p-3 font-black text-ink">
-                            <span class="text-base mr-1">{{ req.tenant.logo_emoji|default:"🍽️" }}</span>
-                            {{ req.tenant.name }}
+                <tbody class="divide-y divide-[#D2AB6B]/20">
+                    {% for req in upgrade_requests %}
+                    <tr class="hover:bg-[#F9F6F0]/50 transition">
+                        <td class="p-3 font-mono font-bold text-[#666666]">#{{ req.id }}</td>
+                        <td class="p-3 font-bold text-[#0E382A]">
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="medallion-icon w-5 h-5"><svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></span>
+                                {{ req.tenant.name }}
+                            </span>
                         </td>
-                        <td class="p-3">
-                            <span class="font-black text-brand-700">{{ req.requested_plan.name }}</span>
-                            <span class="text-[10px] text-soft block">حتى {{ req.requested_plan.max_branches }} فروع</span>
-                        </td>
-                        <td class="p-3 font-bold text-soft">{{ req.get_billing_cycle_display }}</td>
-                        <td class="p-3 font-bold text-ink">{{ req.requested_by.username|default:"—" }}</td>
-                        <td class="p-3 text-soft font-medium">{{ req.created_at|date:"Y-m-d H:i" }}</td>
-                        <td class="p-3 text-soft max-w-xs truncate" title="{{ req.notes }}">{{ req.notes|default:"—" }}</td>
+                        <td class="p-3 font-bold text-[#0E382A]">{{ req.requested_plan.name }}</td>
+                        <td class="p-3 font-semibold text-[#666666]">{{ req.get_billing_cycle_display }}</td>
+                        <td class="p-3 text-[#666666]">{{ req.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="p-3 text-[#666666] max-w-xs truncate">{{ req.notes|default:"—" }}</td>
                         <td class="p-3">
                             {% if req.status == 'pending' %}
-                            <span class="px-2.5 py-1 rounded-md bg-warn-100 text-warn-700 font-black text-[11px] border border-warn-600/30">
-                                قيد الانتظار ⏳
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300">
+                                قيد الانتظار
                             </span>
                             {% elif req.status == 'approved' %}
-                            <span class="px-2.5 py-1 rounded-md bg-good-100 text-good-700 font-black text-[11px] border border-good-600/30">
-                                معتمد ومفعل ✓
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">
+                                معتمد ومفعل
                             </span>
                             {% else %}
-                            <span class="px-2.5 py-1 rounded-md bg-bad-100 text-bad-700 font-black text-[11px] border border-bad-600/30">
-                                مرفوض ✕
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold border border-rose-300">
+                                مرفوض
                             </span>
                             {% endif %}
                         </td>
                         <td class="p-3 text-center">
                             {% if req.status == 'pending' %}
-                            <div class="flex items-center justify-center gap-2">
+                            <div class="flex items-center justify-center gap-1.5">
                                 <button 
                                     type="button" 
-                                    onclick="reviewUpgradeRequest({{ req.id }}, 'approve', '{{ req.tenant.name }}', '{{ req.requested_plan.name }}')" 
-                                    class="px-3 py-1.5 rounded-lg bg-good-600 hover:bg-good-700 text-white font-black text-[11px] shadow-xs transition"
+                                    onclick="reviewUpgradeRequest({{ req.id }}, 'approve', '{{ req.tenant.name|escapejs }}', '{{ req.requested_plan.name|escapejs }}')" 
+                                    class="btn-gold-pill px-3 py-1 text-[11px] font-bold shadow-xs flex items-center gap-1"
                                 >
-                                    ✓ موافقة وتفعيل
+                                    <svg class="w-3 h-3 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    موافقة وتفعيل
                                 </button>
                                 <button 
                                     type="button" 
-                                    onclick="reviewUpgradeRequest({{ req.id }}, 'reject', '{{ req.tenant.name }}', '{{ req.requested_plan.name }}')" 
-                                    class="px-3 py-1.5 rounded-lg bg-bad-600 hover:bg-bad-700 text-white font-black text-[11px] shadow-xs transition"
+                                    onclick="reviewUpgradeRequest({{ req.id }}, 'reject', '{{ req.tenant.name|escapejs }}', '{{ req.requested_plan.name|escapejs }}')" 
+                                    class="rounded-lg border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 text-[11px] font-bold transition flex items-center gap-1"
                                 >
-                                    ✕ رفض
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    رفض
                                 </button>
                             </div>
                             {% else %}
-                            <span class="text-soft text-[11px]">تمت المراجعة {% if req.reviewed_at %}({{ req.reviewed_at|date:"Y-m-d" }}){% endif %}</span>
+                            <span class="text-soft text-[11px]">مكتمل</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="p-6 text-center text-soft font-bold">
-                            لا توجد طلبات ترقية مسجلة حالياً.
-                        </td>
+                        <td colspan="8" class="p-6 text-center text-[#666666] font-semibold">لا توجد طلبات ترقية معلقة حالياً</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -307,34 +321,41 @@
     <!-- ======================================================== -->
     <!-- SECTION 2: TENANTS LIST & SUBSCRIPTION MANAGEMENT       -->
     <!-- ======================================================== -->
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3">
         <div>
-            <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
-                <span>🍽️</span> سجل المطاعم والمنشآت المشتركة (Tenants)
+            <h2 class="text-base font-bold font-royal text-[#0E382A] flex items-center gap-2">
+                <span class="medallion-icon w-7 h-7">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </span>
+                سجل المطاعم والمنشآت المشتركة (Tenants)
             </h2>
-            <p class="text-xs text-soft mt-0.5">متابعة باقات كل مطعم، تواريخ الانتهاء، ومعدلات استهلاك حدود الفروع والموظفين</p>
+            <p class="text-xs text-[#666666] mt-0.5">متابعة باقات كل مطعم، تواريخ الانتهاء، ومعدلات استهلاك حدود الفروع والموظفين</p>
         </div>
-        <span class="text-xs font-bold text-soft">{{ tenants_data|length }} منشأة مسجلة</span>
+        <span class="text-xs font-bold text-[#666666]">{{ tenants_data|length }} منشأة مسجلة</span>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {% for t in tenants_data %}
-        <div class="card overflow-hidden shadow-md border-line flex flex-col justify-between hover:border-brand-400 transition">
+        <div class="classic-card overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
             <div>
                 <!-- Header -->
-                <div class="p-4 bg-night text-white flex items-center justify-between">
+                <div class="p-4 bg-gradient-to-r from-[#0E382A] to-[#144D3B] text-white flex items-center justify-between border-b border-[#D2AB6B]/40">
                     <div class="flex items-center gap-3">
-                        <span class="text-3xl filter drop-shadow">{{ t.tenant.logo_emoji|default:"🍽️" }}</span>
+                        <span class="medallion-icon w-10 h-10 shadow-sm">
+                            <svg class="w-5 h-5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </span>
                         <div>
-                            <h3 class="font-black text-sm text-white font-display">{{ t.tenant.name }}</h3>
-                            <p class="text-[11px] text-gold-300/70 font-mono">slug: {{ t.tenant.slug }}</p>
+                            <h3 class="font-bold text-sm text-[#E6C898] font-royal">{{ t.tenant.name }}</h3>
+                            <p class="text-[11px] text-[#F9F6F0]/70 font-mono">slug: {{ t.tenant.slug }}</p>
                         </div>
                     </div>
                     <div class="text-left">
-                        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold {% if t.tenant.is_active %}bg-good-100 text-good-700{% else %}bg-bad-100 text-bad-700{% endif %}">
+                        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold border {% if t.tenant.is_active %}bg-emerald-900/60 text-emerald-200 border-emerald-500/40{% else %}bg-rose-900/60 text-rose-200 border-rose-500/40{% endif %}">
                             {% if t.tenant.is_active %}نشط{% else %}معطل{% endif %}
                         </span>
-                        <span class="block text-[9px] text-gold-300/80 mt-1 font-bold">
+                        <span class="block text-[9px] text-[#D2AB6B] mt-1 font-bold">
                             {{ t.status_display }}
                         </span>
                     </div>
@@ -343,19 +364,19 @@
                 <!-- Info Body -->
                 <div class="p-4 space-y-3 text-xs">
                     <!-- Current Plan & Expiry Details -->
-                    <div class="rounded-xl border border-line bg-paper/60 p-2.5 space-y-1.5">
+                    <div class="rounded-xl border border-[#D2AB6B]/30 bg-[#F9F6F0] p-3 space-y-1.5">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-soft">الباقة الحالية:</span>
-                            <span class="rounded-full bg-brand-100 text-brand-800 px-2 py-0.5 text-[10px] font-black">
-                                💎 {{ t.plan_name }}
+                            <span class="text-[11px] font-bold text-[#666666]">الباقة الحالية:</span>
+                            <span class="rounded-full bg-[#0E382A]/10 text-[#0E382A] border border-[#D2AB6B]/40 px-2.5 py-0.5 text-[10px] font-bold">
+                                {{ t.plan_name }}
                             </span>
                         </div>
-                        <div class="flex items-center justify-between text-[11px] text-soft">
+                        <div class="flex items-center justify-between text-[11px] text-[#666666]">
                             <span>انتهاء الاشتراك:</span>
-                            <span class="font-bold text-ink">
+                            <span class="font-bold text-[#0E382A]">
                                 {% if t.tenant.subscription_end %}
                                     {{ t.tenant.subscription_end|date:"Y-m-d" }}
-                                    <span class="text-brand-700">({{ t.days_left }} يوم)</span>
+                                    <span class="text-[#D2AB6B]">({{ t.days_left }} يوم)</span>
                                 {% else %}
                                     غير محدد
                                 {% endif %}
@@ -363,54 +384,62 @@
                         </div>
                     </div>
 
-                    <!-- Consumption Metrics (Branches & Employees) -->
+                    <!-- Consumption Metrics -->
                     <div class="grid grid-cols-3 gap-2 text-center pt-1">
-                        <div class="rounded-lg bg-paper p-2 border border-line/60">
-                            <span class="block text-sm font-black text-ink">
+                        <div class="rounded-lg bg-white p-2 border border-[#D2AB6B]/20">
+                            <span class="block text-sm font-bold text-[#0E382A]">
                                 {{ t.branches_count }}
-                                <span class="text-[10px] text-soft font-normal">/ {% if t.max_branches <= 0 %}∞{% else %}{{ t.max_branches }}{% endif %}</span>
+                                <span class="text-[10px] text-[#666666] font-normal">/ {% if t.max_branches <= 0 %}∞{% else %}{{ t.max_branches }}{% endif %}</span>
                             </span>
-                            <span class="text-[10px] text-soft font-bold">الفروع</span>
+                            <span class="text-[10px] text-[#666666] font-semibold">الفروع</span>
                         </div>
-                        <div class="rounded-lg bg-paper p-2 border border-line/60">
-                            <span class="block text-sm font-black text-ink">
+                        <div class="rounded-lg bg-white p-2 border border-[#D2AB6B]/20">
+                            <span class="block text-sm font-bold text-[#0E382A]">
                                 {{ t.employees_count }}
-                                <span class="text-[10px] text-soft font-normal">/ {% if t.max_employees <= 0 %}∞{% else %}{{ t.max_employees }}{% endif %}</span>
+                                <span class="text-[10px] text-[#666666] font-normal">/ {% if t.max_employees <= 0 %}∞{% else %}{{ t.max_employees }}{% endif %}</span>
                             </span>
-                            <span class="text-[10px] text-soft font-bold">الموظفون</span>
+                            <span class="text-[10px] text-[#666666] font-semibold">الموظفون</span>
                         </div>
-                        <div class="rounded-lg bg-paper p-2 border border-line/60">
-                            <span class="block text-sm font-black text-brand-700">{{ t.orders_count }}</span>
-                            <span class="text-[10px] text-soft font-bold">الطلبات</span>
+                        <div class="rounded-lg bg-white p-2 border border-[#D2AB6B]/20">
+                            <span class="block text-sm font-bold text-[#0E382A]">{{ t.orders_count }}</span>
+                            <span class="text-[10px] text-[#666666] font-semibold">الطلبات</span>
                         </div>
                     </div>
 
-                    <div class="text-[11px] text-soft space-y-0.5 pt-1">
-                        <p>📍 المقر: {{ t.tenant.address|default:"غير محدد" }}</p>
-                        <p>📞 الهاتف: <span dir="ltr">{{ t.tenant.phone|default:"—" }}</span></p>
+                    <div class="text-[11px] text-[#666666] space-y-1 pt-1">
+                        <p class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            المقر: {{ t.tenant.address|default:"غير محدد" }}
+                        </p>
+                        <p class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            الهاتف: <span dir="ltr">{{ t.tenant.phone|default:"—" }}</span>
+                        </p>
                     </div>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="p-3 bg-paper/50 border-t border-line flex items-center gap-2">
+            <div class="p-3 bg-[#F9F6F0]/60 border-t border-[#D2AB6B]/30 flex items-center gap-2">
                 <button 
                     onclick="openTenantSubModal({{ t.tenant.id }}, '{{ t.tenant.name }}', {{ t.tenant.subscription_plan_id|default:'null' }}, '{{ t.tenant.subscription_status }}', '{{ t.tenant.billing_cycle }}', '{{ t.tenant.subscription_end|date:'Y-m-d'|default:'' }}')" 
-                    class="rounded-xl border border-brand-600/30 bg-brand-50 hover:bg-brand-100 py-2 px-3 text-xs font-bold text-brand-800 transition"
+                    class="rounded-xl border border-[#D2AB6B]/40 bg-white hover:bg-[#F9F6F0] py-2 px-3 text-xs font-bold text-[#0E382A] transition"
                 >
-                    🔄 تعديل الاشتراك
+                    تعديل الاشتراك
                 </button>
                 <a 
                     href="{% url 'switch_tenant' t.tenant.id %}" 
-                    class="flex-1 text-center rounded-xl bg-brand-600 py-2 text-xs font-black text-white hover:bg-brand-700 shadow-sm transition"
+                    class="btn-gold-pill flex-1 text-center py-2 text-xs font-bold shadow-xs inline-flex items-center justify-center gap-1"
                 >
-                    🏢 الدخول للمطعم ←
+                    الدخول للمطعم ←
                 </a>
             </div>
         </div>
         {% empty %}
-        <div class="col-span-full py-12 text-center text-soft card">
-            <span class="text-4xl block mb-2">🔍</span>
+        <div class="col-span-full py-12 text-center text-[#666666] classic-card">
+            <div class="medallion-icon w-12 h-12 mx-auto mb-2">
+                <svg class="w-6 h-6 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
             <p class="font-bold text-sm">لا توجد منشآت مسجلة حتى الآن</p>
         </div>
         {% endfor %}
@@ -419,20 +448,24 @@
     <!-- ======================================================== -->
     <!-- SECTION 3: RESTAURANT OWNERS DIRECTORY (سجل الملاك)      -->
     <!-- ======================================================== -->
-    <div id="owners-section" class="mt-8 card p-5 border-line shadow-sm scroll-mt-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-line mb-4">
+    <div id="owners-section" class="mt-8 classic-card p-6 shadow-sm scroll-mt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-[#D2AB6B]/30 mb-4">
             <div>
-                <h2 class="text-base font-black font-display text-ink flex items-center gap-2">
-                    <span>👑</span> سجل ملاك المطاعم والمنشآت (Restaurant Owners)
-                    <span class="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 text-xs font-black border border-brand-600/30">
+                <h2 class="text-base font-bold font-royal text-[#0E382A] flex items-center gap-2">
+                    <span class="medallion-icon w-7 h-7">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </span>
+                    سجل ملاك المطاعم والمنشآت (Restaurant Owners)
+                    <span class="px-2.5 py-0.5 rounded-full bg-[#0E382A]/10 text-[#0E382A] text-xs font-bold border border-[#D2AB6B]/40">
                         {{ total_owners }} مالك مسجل
                     </span>
                 </h2>
-                <p class="text-xs text-soft mt-0.5">قائمة بجميع حسابات ملاك المنشآت (Owners)، المطعم المرتبط، الباقة الحالية، ووسائل التواصل وحالة الحساب</p>
+                <p class="text-xs text-[#666666] mt-0.5">قائمة بجميع حسابات ملاك المنشآت (Owners)، المطعم المرتبط، الباقة الحالية، ووسائل التواصل وحالة الحساب</p>
             </div>
             <div class="flex items-center gap-2">
-                <a href="/admin/core/restaurantowner/" class="rounded-xl border border-brand-600/30 bg-paper px-3.5 py-2 text-xs font-bold text-brand-800 hover:bg-brand-50 transition flex items-center gap-1.5 shadow-xs">
-                    <span>⚙️</span> فتح قائمة الملاك في Django Admin
+                <a href="/admin/core/restaurantowner/" class="rounded-xl border border-[#D2AB6B]/40 bg-white px-3.5 py-2 text-xs font-bold text-[#0E382A] hover:bg-[#F9F6F0] transition flex items-center gap-1.5 shadow-xs">
+                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    فتح قائمة الملاك في Django Admin
                 </a>
             </div>
         </div>
@@ -440,7 +473,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs">
                 <thead>
-                    <tr class="border-b border-line bg-paper/60 text-soft font-bold">
+                    <tr class="border-b border-[#D2AB6B]/30 bg-[#F9F6F0] text-[#666666] font-bold">
                         <th class="p-3">#</th>
                         <th class="p-3">المالك (Owner)</th>
                         <th class="p-3">اسم المستخدم</th>
@@ -453,88 +486,97 @@
                         <th class="p-3 text-center">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line">
+                <tbody class="divide-y divide-[#D2AB6B]/20">
                     {% for o in owners_data %}
-                    <tr class="hover:bg-paper/30 transition">
-                        <td class="p-3 font-mono font-bold text-soft">#{{ o.profile.id }}</td>
+                    <tr class="hover:bg-[#F9F6F0]/50 transition">
+                        <td class="p-3 font-mono font-bold text-[#666666]">#{{ o.profile.id }}</td>
                         <td class="p-3">
-                            <div class="font-black text-ink flex items-center gap-2">
-                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-700 text-xs font-bold">
+                            <div class="font-bold text-[#0E382A] flex items-center gap-2">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#0E382A]/10 text-[#0E382A] border border-[#D2AB6B]/40 text-xs font-bold">
                                     {{ o.user.first_name|first|default:o.user.username|first|upper }}
                                 </span>
                                 <div>
                                     <span>{{ o.user.get_full_name|default:o.user.username }}</span>
                                     {% if o.user.is_superuser %}
-                                    <span class="mr-1 rounded bg-night text-gold-300 text-[9px] px-1 py-0.5 font-mono font-bold">Super</span>
+                                    <span class="mr-1 rounded bg-[#0E382A] text-[#D2AB6B] border border-[#D2AB6B]/40 text-[9px] px-1.5 py-0.2 font-mono font-bold">Super</span>
                                     {% endif %}
                                 </div>
                             </div>
                         </td>
-                        <td class="p-3 font-mono text-soft font-bold">{{ o.user.username }}</td>
-                        <td class="p-3 font-bold text-ink">
+                        <td class="p-3 font-mono text-[#666666] font-bold">{{ o.user.username }}</td>
+                        <td class="p-3 font-bold text-[#0E382A]">
                             {% if o.tenant %}
-                            <span class="text-base mr-1">{{ o.tenant.logo_emoji|default:"🍽️" }}</span>
-                            {{ o.tenant.name }}
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="medallion-icon w-5 h-5"><svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></span>
+                                {{ o.tenant.name }}
+                            </span>
                             {% else %}
-                            <span class="text-soft italic">غير مرتبط بمنشأة</span>
+                            <span class="text-[#666666] italic">غير مرتبط بمنشأة</span>
                             {% endif %}
                         </td>
                         <td class="p-3">
                             {% if o.tenant and o.tenant.subscription_plan %}
-                            <span class="rounded-full bg-brand-100 text-brand-800 px-2.5 py-0.5 text-[10px] font-black border border-brand-500/20">
-                                💎 {{ o.plan_name }}
+                            <span class="rounded-full bg-[#0E382A]/10 text-[#0E382A] px-2.5 py-0.5 text-[10px] font-bold border border-[#D2AB6B]/40">
+                                {{ o.plan_name }}
                             </span>
                             {% else %}
-                            <span class="text-soft text-[11px]">—</span>
+                            <span class="text-[#666666] text-[11px]">—</span>
                             {% endif %}
                         </td>
                         <td class="p-3">
                             {% if o.status_code == 'active' %}
-                            <span class="px-2 py-0.5 rounded-full bg-good-100 text-good-700 font-bold text-[10px]">
-                                نشط ✓
+                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-300">
+                                نشط
                             </span>
                             {% elif o.status_code == 'trial' %}
-                            <span class="px-2 py-0.5 rounded-full bg-info-100 text-info-700 font-bold text-[10px]">
-                                تجريبي 🎁
+                            <span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold text-[10px] border border-sky-300">
+                                تجريبي
                             </span>
                             {% elif o.status_code == 'past_due' %}
-                            <span class="px-2 py-0.5 rounded-full bg-warn-100 text-warn-700 font-bold text-[10px]">
-                                متأخر ⚠️
+                            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px] border border-amber-300">
+                                متأخر
                             </span>
                             {% elif o.status_code == 'expired' or o.status_code == 'canceled' %}
-                            <span class="px-2 py-0.5 rounded-full bg-bad-100 text-bad-700 font-bold text-[10px]">
-                                منتهي ✕
+                            <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300">
+                                منتهي
                             </span>
                             {% else %}
-                            <span class="text-soft text-[10px]">{{ o.subscription_status }}</span>
+                            <span class="text-[#666666] text-[10px]">{{ o.subscription_status }}</span>
                             {% endif %}
                         </td>
-                        <td class="p-3 text-center font-bold text-ink">
+                        <td class="p-3 text-center font-bold text-[#0E382A]">
                             {{ o.branches_count }}
                         </td>
-                        <td class="p-3 text-[11px] text-soft space-y-0.5">
-                            <div dir="ltr" class="text-right">📞 {{ o.phone }}</div>
-                            <div class="truncate max-w-[150px]" title="{{ o.email }}">✉️ {{ o.email }}</div>
+                        <td class="p-3 text-[11px] text-[#666666] space-y-0.5">
+                            <div dir="ltr" class="text-right flex items-center justify-end gap-1">
+                                <span>{{ o.phone }}</span>
+                                <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            </div>
+                            <div class="truncate max-w-[150px] flex items-center gap-1" title="{{ o.email }}">
+                                <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                <span>{{ o.email }}</span>
+                            </div>
                         </td>
-                        <td class="p-3 text-soft font-medium text-[11px]">
+                        <td class="p-3 text-[#666666] font-medium text-[11px]">
                             {{ o.date_joined|date:"Y-m-d" }}
                         </td>
                         <td class="p-3 text-center">
                             {% if o.tenant %}
                             <a 
                                 href="{% url 'switch_tenant' o.tenant.id %}" 
-                                class="inline-flex items-center gap-1 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold text-[11px] px-2.5 py-1 shadow-xs transition"
+                                class="inline-flex items-center gap-1 rounded-lg bg-[#0E382A] hover:bg-[#144D3B] text-[#D2AB6B] border border-[#D2AB6B]/50 font-bold text-[11px] px-2.5 py-1 shadow-2xs transition"
                             >
-                                <span>🏢</span> الدخول كمنشأة
+                                <span>الدخول كمنشأة</span>
+                                <span>←</span>
                             </a>
                             {% else %}
-                            <span class="text-soft text-[10px]">—</span>
+                            <span class="text-[#666666] text-[10px]">—</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="p-6 text-center text-soft font-bold">
+                        <td colspan="10" class="p-6 text-center text-[#666666] font-semibold">
                             لا يوجد ملاك مسجلون حالياً.
                         </td>
                     </tr>
@@ -548,16 +590,21 @@
 <!-- ======================================================== -->
 <!-- MODAL: ADD / EDIT SUBSCRIPTION PLAN                     -->
 <!-- ======================================================== -->
-<div id="plan-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
-        <div class="flex items-center justify-between border-b border-line pb-3 mb-4 shrink-0">
+<div id="plan-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-[#D2AB6B]">
+        <div class="flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3 mb-4 shrink-0">
             <div>
-                <h3 id="plan-modal-title" class="text-base font-black font-display text-ink flex items-center gap-2">
-                    <span>💎</span> تفاصيل باقة الاشتراك
+                <h3 id="plan-modal-title" class="text-base font-bold font-royal text-[#0E382A] flex items-center gap-2">
+                    <span class="medallion-icon w-6 h-6">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                    </span>
+                    تفاصيل باقة الاشتراك
                 </h3>
-                <p class="text-[11px] text-soft">حدد اسم الباقة، الأسعار، الحدود التشغيلية والميزات المشمولة</p>
+                <p class="text-[11px] text-[#666666]">حدد اسم الباقة، الأسعار، الحدود التشغيلية والميزات المشمولة</p>
             </div>
-            <button onclick="closePlanModal()" class="text-soft hover:text-ink text-lg font-bold">✕</button>
+            <button onclick="closePlanModal()" class="text-[#666666] hover:text-[#0E382A] p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
         <input type="hidden" id="plan-id">
@@ -565,89 +612,90 @@
         <form id="plan-form" onsubmit="submitPlanForm(event)" class="space-y-4 overflow-y-auto pr-1 text-xs flex-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">اسم الباقة *</label>
-                    <input type="text" id="plan-name" required placeholder="مثال: الباقة الذهبية" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">اسم الباقة *</label>
+                    <input type="text" id="plan-name" required placeholder="مثال: الباقة الذهبية" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">كود الباقة (Slug) *</label>
-                    <input type="text" id="plan-code" required placeholder="golden" dir="ltr" class="input text-xs font-mono">
+                    <label class="mb-1 block font-bold text-[#666666]">كود الباقة (Slug) *</label>
+                    <input type="text" id="plan-code" required placeholder="golden" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
                 </div>
             </div>
 
             <div>
-                <label class="mb-1 block font-bold text-soft">وصف الباقة</label>
-                <input type="text" id="plan-desc" placeholder="وصف مميزات وخيارات الباقة..." class="input text-xs">
+                <label class="mb-1 block font-bold text-[#666666]">وصف الباقة</label>
+                <input type="text" id="plan-desc" placeholder="وصف مميزات وخيارات الباقة..." class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs">
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-paper/50 p-3 rounded-xl border border-line">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[#F9F6F0] p-3 rounded-xl border border-[#D2AB6B]/30">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">السعر الشهري (ر.س)</label>
-                    <input type="number" id="plan-price-m" step="0.01" min="0" value="0" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">السعر الشهري (ر.س)</label>
+                    <input type="number" id="plan-price-m" step="0.01" min="0" value="0" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">السعر السنوي (ر.س)</label>
-                    <input type="number" id="plan-price-y" step="0.01" min="0" value="0" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">السعر السنوي (ر.س)</label>
+                    <input type="number" id="plan-price-y" step="0.01" min="0" value="0" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">أقصى فروع (0=غير محدود)</label>
-                    <input type="number" id="plan-max-branches" min="0" value="1" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">أقصى فروع (0=غير محدود)</label>
+                    <input type="number" id="plan-max-branches" min="0" value="1" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">أقصى موظفين (0=غير محدود)</label>
-                    <input type="number" id="plan-max-emp" min="0" value="5" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">أقصى موظفين (0=غير محدود)</label>
+                    <input type="number" id="plan-max-emp" min="0" value="5" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                 </div>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">أيام التجربة المجانية</label>
-                    <input type="number" id="plan-trial-days" min="0" value="0" class="input text-xs">
+                    <label class="mb-1 block font-bold text-[#666666]">أيام التجربة المجانية</label>
+                    <input type="number" id="plan-trial-days" min="0" value="0" class="w-full px-3 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">ترتيب العرض</label>
-                    <input type="number" id="plan-ordering" min="0" value="1" class="input text-xs">
+                    <label class="mb-1 block font-bold text-[#666666]">ترتيب العرض</label>
+                    <input type="number" id="plan-ordering" min="0" value="1" class="w-full px-3 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
                 </div>
                 <div class="flex items-center gap-4 pt-4">
-                    <label class="flex items-center gap-1.5 font-bold text-ink cursor-pointer select-none">
-                        <input type="checkbox" id="plan-popular" class="rounded text-brand-600 focus:ring-brand-500">
-                        <span>الأكثر طلباً ⭐</span>
+                    <label class="flex items-center gap-1.5 font-bold text-[#0E382A] cursor-pointer select-none">
+                        <input type="checkbox" id="plan-popular" class="rounded border-[#D2AB6B]/60 text-[#0E382A] focus:ring-[#0E382A]">
+                        <span>الأكثر طلباً</span>
                     </label>
-                    <label class="flex items-center gap-1.5 font-bold text-ink cursor-pointer select-none">
-                        <input type="checkbox" id="plan-active" checked class="rounded text-brand-600 focus:ring-brand-500">
+                    <label class="flex items-center gap-1.5 font-bold text-[#0E382A] cursor-pointer select-none">
+                        <input type="checkbox" id="plan-active" checked class="rounded border-[#D2AB6B]/60 text-[#0E382A] focus:ring-[#0E382A]">
                         <span>مفعلة</span>
                     </label>
                 </div>
             </div>
 
             <!-- Features Checklist -->
-            <div class="border-t border-line pt-3">
+            <div class="border-t border-[#D2AB6B]/30 pt-3">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="font-black text-ink flex items-center gap-1.5">
-                        <span>🧩</span> الميزات المفعلة في هذه الباقة:
+                    <span class="font-bold text-[#0E382A] flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        الميزات المفعلة في هذه الباقة:
                     </span>
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="toggleAllPlanFeatures(true)" class="text-[10px] text-brand-800 font-bold hover:underline">تحديد الكل</button>
-                        <span class="text-soft">|</span>
-                        <button type="button" onclick="toggleAllPlanFeatures(false)" class="text-[10px] text-soft font-bold hover:underline">إلغاء التحديد</button>
+                        <button type="button" onclick="toggleAllPlanFeatures(true)" class="text-[10px] text-[#0E382A] font-bold hover:underline">تحديد الكل</button>
+                        <span class="text-[#666666]">|</span>
+                        <button type="button" onclick="toggleAllPlanFeatures(false)" class="text-[10px] text-[#666666] font-bold hover:underline">إلغاء التحديد</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {% for feat in features_catalog %}
-                    <label class="flex items-start gap-2 p-2 rounded-lg border border-line/60 hover:bg-paper/40 cursor-pointer select-none">
-                        <input type="checkbox" value="{{ feat.key }}" class="plan-feat-cb mt-0.5 rounded border-line text-brand-600 focus:ring-brand-500">
+                    <label class="flex items-start gap-2 p-2 rounded-lg border border-[#D2AB6B]/20 hover:bg-[#F9F6F0]/60 cursor-pointer select-none">
+                        <input type="checkbox" value="{{ feat.key }}" class="plan-feat-cb mt-0.5 rounded border-[#D2AB6B]/60 text-[#0E382A] focus:ring-[#0E382A]">
                         <div>
-                            <p class="font-bold text-ink text-xs">{{ feat.label }}</p>
-                            <p class="text-[10px] text-soft">{{ feat.desc }}</p>
+                            <p class="font-bold text-[#0E382A] text-xs">{{ feat.label }}</p>
+                            <p class="text-[10px] text-[#666666]">{{ feat.desc }}</p>
                         </div>
                     </label>
                     {% endfor %}
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-3 border-t border-line shrink-0">
-                <button type="button" onclick="closePlanModal()" class="rounded-xl border border-line bg-paper px-4 py-2 text-xs font-bold text-soft hover:text-ink">إلغاء</button>
-                <button type="submit" id="save-plan-btn" class="rounded-xl bg-brand-600 px-5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-md transition">حفظ الباقة</button>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#D2AB6B]/30 shrink-0">
+                <button type="button" onclick="closePlanModal()" class="rounded-xl border border-[#D2AB6B]/40 bg-white px-4 py-2 text-xs font-bold text-[#666666] hover:text-[#0E382A]">إلغاء</button>
+                <button type="submit" id="save-plan-btn" class="btn-gold-pill px-5 py-2 text-xs font-bold shadow-md">حفظ الباقة</button>
             </div>
         </form>
     </div>
@@ -656,24 +704,27 @@
 <!-- ======================================================== -->
 <!-- MODAL: TENANT SUBSCRIPTION UPGRADE & RENEWAL            -->
 <!-- ======================================================== -->
-<div id="tenant-sub-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-md w-full p-6 shadow-2xl">
-        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+<div id="tenant-sub-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-md w-full p-6 shadow-2xl border border-[#D2AB6B]">
+        <div class="flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3 mb-4">
             <div>
-                <h3 class="text-sm font-black font-display text-ink flex items-center gap-1.5">
-                    <span>🔄</span> تعديل اشتراك: <span id="sub-modal-tenant-name" class="text-brand-700"></span>
+                <h3 class="text-sm font-bold font-royal text-[#0E382A] flex items-center gap-1.5">
+                    <span class="medallion-icon w-6 h-6"><svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></span>
+                    تعديل اشتراك: <span id="sub-modal-tenant-name" class="text-[#D2AB6B]"></span>
                 </h3>
-                <p class="text-[11px] text-soft">ترقية باقة المطعم وتمديد تاريخ الصلاحية وحالة الاشتراك</p>
+                <p class="text-[11px] text-[#666666]">ترقية باقة المطعم وتمديد تاريخ الصلاحية وحالة الاشتراك</p>
             </div>
-            <button onclick="closeTenantSubModal()" class="text-soft hover:text-ink text-sm">✕</button>
+            <button onclick="closeTenantSubModal()" class="text-[#666666] hover:text-[#0E382A] p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
         <input type="hidden" id="sub-modal-tenant-id">
 
         <form id="tenant-sub-form" onsubmit="submitTenantSubForm(event)" class="space-y-3.5 text-xs">
             <div>
-                <label class="mb-1 block font-bold text-soft">باقة الاشتراك المخصصة</label>
-                <select id="sub-modal-plan" class="input text-xs font-bold">
+                <label class="mb-1 block font-bold text-[#666666]">باقة الاشتراك المخصصة</label>
+                <select id="sub-modal-plan" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                     {% for p in plans %}
                     <option value="{{ p.id }}">{{ p.name }} ({{ p.price_monthly }} ر.س/شهر - {{ p.max_branches }} فروع)</option>
                     {% endfor %}
@@ -682,8 +733,8 @@
 
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">حالة الاشتراك</label>
-                    <select id="sub-modal-status" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">حالة الاشتراك</label>
+                    <select id="sub-modal-status" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                         <option value="active">نشط (Active)</option>
                         <option value="trial">فترة تجريبية (Trial)</option>
                         <option value="expired">منتهي (Expired)</option>
@@ -691,8 +742,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">دورة الفوترة</label>
-                    <select id="sub-modal-cycle" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">دورة الفوترة</label>
+                    <select id="sub-modal-cycle" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                         <option value="monthly">شهري</option>
                         <option value="yearly">سنوي</option>
                         <option value="trial">تجريبي</option>
@@ -701,31 +752,31 @@
             </div>
 
             <div>
-                <label class="mb-1 block font-bold text-soft">تاريخ انتهاء الاشتراك الحالي</label>
-                <input type="date" id="sub-modal-end-date" class="input text-xs font-bold">
+                <label class="mb-1 block font-bold text-[#666666]">تاريخ انتهاء الاشتراك الحالي</label>
+                <input type="date" id="sub-modal-end-date" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
             </div>
 
             <!-- Quick Extend Days Buttons -->
-            <div class="rounded-xl bg-paper p-3 border border-line space-y-1.5">
-                <span class="block text-[11px] font-bold text-soft">تمديد سريع للاشتراك:</span>
+            <div class="rounded-xl bg-[#F9F6F0] p-3 border border-[#D2AB6B]/30 space-y-1.5">
+                <span class="block text-[11px] font-bold text-[#666666]">تمديد سريع للاشتراك:</span>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="quickExtendDays(30)" class="flex-1 rounded-lg border border-line bg-card py-1.5 text-[11px] font-bold text-ink hover:bg-brand-50 hover:text-brand-800 transition">
+                    <button type="button" onclick="quickExtendDays(30)" class="flex-1 rounded-lg border border-[#D2AB6B]/30 bg-white py-1.5 text-[11px] font-bold text-[#0E382A] hover:bg-[#F9F6F0] transition">
                         + 30 يوم
                     </button>
-                    <button type="button" onclick="quickExtendDays(90)" class="flex-1 rounded-lg border border-line bg-card py-1.5 text-[11px] font-bold text-ink hover:bg-brand-50 hover:text-brand-800 transition">
+                    <button type="button" onclick="quickExtendDays(90)" class="flex-1 rounded-lg border border-[#D2AB6B]/30 bg-white py-1.5 text-[11px] font-bold text-[#0E382A] hover:bg-[#F9F6F0] transition">
                         + 3 شهور
                     </button>
-                    <button type="button" onclick="quickExtendDays(365)" class="flex-1 rounded-lg border border-line bg-card py-1.5 text-[11px] font-bold text-ink hover:bg-brand-50 hover:text-brand-800 transition">
+                    <button type="button" onclick="quickExtendDays(365)" class="flex-1 rounded-lg border border-[#D2AB6B]/30 bg-white py-1.5 text-[11px] font-bold text-[#0E382A] hover:bg-[#F9F6F0] transition">
                         + سنة كاملة
                     </button>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 pt-3 border-t border-line mt-4">
-                <button type="submit" id="save-tenant-sub-btn" class="flex-1 rounded-xl bg-brand-600 py-2.5 text-xs font-bold text-white hover:bg-brand-700 transition">
+            <div class="flex items-center gap-2 pt-3 border-t border-[#D2AB6B]/30 mt-4">
+                <button type="submit" id="save-tenant-sub-btn" class="btn-gold-pill flex-1 py-2.5 text-xs font-bold shadow-sm">
                     حفظ وتحديث الاشتراك
                 </button>
-                <button type="button" onclick="closeTenantSubModal()" class="rounded-xl border border-line bg-paper px-4 py-2.5 text-xs font-bold text-soft hover:text-ink">
+                <button type="button" onclick="closeTenantSubModal()" class="rounded-xl border border-[#D2AB6B]/40 bg-white px-4 py-2.5 text-xs font-bold text-[#666666] hover:text-[#0E382A]">
                     إلغاء
                 </button>
             </div>
@@ -736,87 +787,109 @@
 <!-- ======================================================== -->
 <!-- MODAL: ADD NEW TENANT                                   -->
 <!-- ======================================================== -->
-<div id="add-tenant-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-md w-full p-6 shadow-2xl">
-        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
-            <h3 class="text-sm font-black font-display text-ink">تسجيل مطعم / منشأة جديدة بالمنصة</h3>
-            <button onclick="closeAddTenantModal()" class="text-soft hover:text-ink text-sm">✕</button>
+<div id="add-tenant-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-md w-full p-6 shadow-2xl border border-[#D2AB6B]">
+        <div class="flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3 mb-4">
+            <h3 class="text-sm font-bold font-royal text-[#0E382A]">تسجيل مطعم / منشأة جديدة بالمنصة</h3>
+            <button onclick="closeAddTenantModal()" class="text-[#666666] hover:text-[#0E382A] p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
         <form id="add-tenant-form" onsubmit="submitNewTenant(event)" class="space-y-3 text-xs">
             <div>
-                <label class="mb-1 block font-bold text-soft">اسم المطعم / الشركة *</label>
-                <input type="text" id="tenant-name" required placeholder="مثال: شاورما بلس" class="input text-xs font-bold">
+                <label class="mb-1 block font-bold text-[#666666]">اسم المطعم / الشركة *</label>
+                <input type="text" id="tenant-name" required placeholder="مثال: شاورما بلس" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
             </div>
 
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">المعرف اللاتيني (Slug) *</label>
-                    <input type="text" id="tenant-slug" required placeholder="shawarma-plus" dir="ltr" class="input text-xs font-mono">
+                    <label class="mb-1 block font-bold text-[#666666]">المعرف البرمجي (Slug) *</label>
+                    <input type="text" id="tenant-slug" required placeholder="shawarma-plus" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">أيقونة الشعار</label>
-                    <input type="text" id="tenant-emoji" value="🥙" class="input text-xs text-center text-base">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="mb-1 block font-bold text-soft">رقم الهاتف</label>
-                    <input type="text" id="tenant-phone" placeholder="0501234567" dir="ltr" class="input text-xs font-mono">
-                </div>
-                <div>
-                    <label class="mb-1 block font-bold text-soft">باقة الاشتراك المبدئية</label>
-                    <select id="tenant-plan" class="input text-xs font-bold">
+                    <label class="mb-1 block font-bold text-[#666666]">باقة الاشتراك *</label>
+                    <select id="tenant-plan" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                         {% for p in plans %}
-                        <option value="{{ p.code }}">{{ p.name }} ({{ p.price_monthly }} ر.س)</option>
+                        <option value="{{ p.id }}">{{ p.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
             </div>
 
-            <div>
-                <label class="mb-1 block font-bold text-soft">المقر الرئيسي / العنوان</label>
-                <input type="text" id="tenant-address" placeholder="الرياض، حي السليمانية" class="input text-xs">
+            <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-2">
+                    <label class="mb-1 block font-bold text-[#666666]">رقم الهاتف</label>
+                    <input type="text" id="tenant-phone" placeholder="05xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs">
+                </div>
+                <div>
+                    <label class="mb-1 block font-bold text-[#666666]">رمز المطعم</label>
+                    <input type="text" id="tenant-emoji" value="" placeholder="رمز" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs text-center font-bold text-[#0E382A]">
+                </div>
             </div>
 
-            <div class="border-t border-line pt-3 mt-3">
-                <p class="font-bold text-ink mb-2">بيانات حساب المالك الأول للمطعم:</p>
+            <div>
+                <label class="mb-1 block font-bold text-[#666666]">العنوان والمقر الرئيسي</label>
+                <input type="text" id="tenant-address" placeholder="الرياض، حي السليمانية" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs">
+            </div>
+
+            <div class="rounded-xl bg-[#F9F6F0] p-3 border border-[#D2AB6B]/30 space-y-2">
+                <span class="block text-[11px] font-bold text-[#0E382A]">حساب مالك المنشأة (Super Admin للمطعم):</span>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="mb-1 block font-bold text-soft">اسم المستخدم *</label>
-                        <input type="text" id="tenant-owner-user" required placeholder="owner_shawarma" dir="ltr" class="input text-xs font-mono">
+                        <label class="mb-1 block text-[10px] font-bold text-[#666666]">اسم المالك *</label>
+                        <input type="text" id="owner-name" required placeholder="محمد الدوسري" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
                     </div>
                     <div>
-                        <label class="mb-1 block font-bold text-soft">كلمة المرور *</label>
-                        <input type="password" id="tenant-owner-pass" required placeholder="••••••••" class="input text-xs">
+                        <label class="mb-1 block text-[10px] font-bold text-[#666666]">اسم المستخدم للدخول *</label>
+                        <input type="text" id="owner-username" required placeholder="mdosari" dir="ltr" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs font-mono">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="mb-1 block text-[10px] font-bold text-[#666666]">كلمة المرور *</label>
+                        <input type="password" id="owner-password" required placeholder="••••••••" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-[10px] font-bold text-[#666666]">البريد الإلكتروني</label>
+                        <input type="email" id="owner-email" placeholder="owner@domain.com" dir="ltr" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 pt-3 border-t border-line mt-4">
-                <button type="submit" class="flex-1 rounded-xl bg-brand-600 py-2.5 text-xs font-bold text-white hover:bg-brand-700 transition">
-                    حفظ وتدشين المنشأة
-                </button>
-                <button type="button" onclick="closeAddTenantModal()" class="rounded-xl border border-line bg-paper px-4 py-2.5 text-xs font-bold text-soft hover:text-ink">
-                    إلغاء
-                </button>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#D2AB6B]/30 mt-3">
+                <button type="button" onclick="closeAddTenantModal()" class="rounded-xl border border-[#D2AB6B]/40 bg-white px-4 py-2 text-xs font-bold text-[#666666] hover:text-[#0E382A]">إلغاء</button>
+                <button type="submit" id="save-tenant-btn" class="btn-gold-pill px-5 py-2 text-xs font-bold shadow-md">تسجيل وافتتاح المنشأة</button>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_scripts %}
 <script>
 let cachedPlans = [];
 
-// ==========================================
-// TENANT REGISTRATION & SWITCH
-// ==========================================
+// Auto Slugify Name
+document.getElementById('tenant-name')?.addEventListener('input', function(e) {
+    const slugInput = document.getElementById('tenant-slug');
+    if (slugInput && !slugInput.dataset.touched) {
+        slugInput.value = e.target.value
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '');
+    }
+});
+document.getElementById('tenant-slug')?.addEventListener('input', function() {
+    this.dataset.touched = "true";
+});
+
+// Modals
 function openAddTenantModal() {
     document.getElementById('add-tenant-modal').classList.remove('hidden');
     document.getElementById('add-tenant-modal').classList.add('flex');
 }
-
 function closeAddTenantModal() {
     document.getElementById('add-tenant-modal').classList.add('hidden');
     document.getElementById('add-tenant-modal').classList.remove('flex');
@@ -824,29 +897,39 @@ function closeAddTenantModal() {
 
 async function submitNewTenant(e) {
     e.preventDefault();
-    const data = {
-        name: document.getElementById('tenant-name').value,
-        slug: document.getElementById('tenant-slug').value,
-        emoji: document.getElementById('tenant-emoji').value,
-        phone: document.getElementById('tenant-phone').value,
-        plan: document.getElementById('tenant-plan').value,
-        address: document.getElementById('tenant-address').value,
-        owner_username: document.getElementById('tenant-owner-user').value,
-        owner_password: document.getElementById('tenant-owner-pass').value,
+    const btn = document.getElementById('save-tenant-btn');
+    btn.disabled = true;
+    btn.textContent = 'جارٍ التسجيل...';
+
+    const payload = {
+        name: document.getElementById('tenant-name').value.trim(),
+        slug: document.getElementById('tenant-slug').value.trim().toLowerCase(),
+        plan_id: document.getElementById('tenant-plan').value,
+        phone: document.getElementById('tenant-phone').value.trim(),
+        emoji: document.getElementById('tenant-emoji').value.trim(),
+        address: document.getElementById('tenant-address').value.trim(),
+        owner_name: document.getElementById('owner-name').value.trim(),
+        owner_username: document.getElementById('owner-username').value.trim(),
+        owner_password: document.getElementById('owner-password').value,
+        owner_email: document.getElementById('owner-email').value.trim(),
     };
 
     try {
-        const res = await fetch('/api/tenants/create/', {
+        const res = await fetch('/api/platform/tenants/create/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
         const resData = await res.json();
-        if (res.ok && resData.ok) {
-            showToast('تم إنشاء المنشأة وتعيين الباقة وحساب المالك بنجاح!');
+        btn.disabled = false;
+        btn.textContent = 'تسجيل وافتتاح المنشأة';
+
+        if (res.ok) {
+            showToast('تم تسجيل المطعم وإنشاء حساب المالك بنجاح!');
+            closeAddTenantModal();
             setTimeout(() => location.reload(), 500);
         } else {
             showToast(resData.error || 'حدث خطأ أثناء الإنشاء', 'error');
@@ -861,7 +944,10 @@ async function submitNewTenant(e) {
 // ==========================================
 function openCreatePlanModal() {
     document.getElementById('plan-id').value = '';
-    document.getElementById('plan-modal-title').innerHTML = '<span>✨</span> إضافة باقة اشتراك جديدة بالمنصة';
+    document.getElementById('plan-modal-title').innerHTML = `
+        <span class="medallion-icon w-6 h-6 inline-flex"><svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg></span>
+        إضافة باقة اشتراك جديدة بالمنصة
+    `;
     document.getElementById('plan-name').value = '';
     document.getElementById('plan-code').value = '';
     document.getElementById('plan-desc').value = '';
@@ -890,7 +976,10 @@ async function openEditPlanModal(planId) {
         if (!plan) return;
 
         document.getElementById('plan-id').value = plan.id;
-        document.getElementById('plan-modal-title').innerHTML = `<span>⚙️</span> تعديل باقة: <span class="text-brand-700">${plan.name}</span>`;
+        document.getElementById('plan-modal-title').innerHTML = `
+            <span class="medallion-icon w-6 h-6 inline-flex"><svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></span>
+            تعديل باقة: <span class="text-[#D2AB6B]">${plan.name}</span>
+        `;
         document.getElementById('plan-name').value = plan.name;
         document.getElementById('plan-code').value = plan.code;
         document.getElementById('plan-desc').value = plan.description || '';
@@ -1019,7 +1108,6 @@ function openTenantSubModal(tenantId, tenantName, planId, status, cycle, endDate
     if (endDate) {
         document.getElementById('sub-modal-end-date').value = endDate;
     } else {
-        // default 30 days from now
         const d = new Date();
         d.setDate(d.getDate() + 30);
         document.getElementById('sub-modal-end-date').value = d.toISOString().split('T')[0];
