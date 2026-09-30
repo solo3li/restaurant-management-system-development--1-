@@ -123,8 +123,18 @@
             {% endfor %}
         </div>
 
-        <!-- Quick Search & Order Count Indicator -->
+        <!-- Quick Search & Station Actions Indicator -->
         <div class="flex items-center gap-2 shrink-0">
+            <button 
+                type="button" 
+                id="toggle-completed-btn"
+                onclick="toggleShowCompleted()" 
+                class="px-2.5 py-1.5 rounded-xl border border-[#E8DFD3] bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#5C4B3F] text-xs font-bold transition shrink-0 flex items-center gap-1.5 cursor-pointer"
+                title="إظهار أو إخفاء الطلبات المكتملة في هذا القسم"
+            >
+                <span id="toggle-completed-icon">👁️</span>
+                <span class="hidden sm:inline" id="toggle-completed-text">المكتملة</span>
+            </button>
             <div class="relative w-full sm:w-56">
                 <input 
                     type="text" 
@@ -159,8 +169,8 @@
         <div class="h-16 w-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#1B634D]/10 to-[#D2AB6B]/20 border border-[#D2AB6B]/40 flex items-center justify-center text-[#B88B46] shadow-sm">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
-        <h3 class="text-lg font-bold font-royal text-[#1E130D]">المطبخ هادئ الآن — جميع الطلبات منجزة</h3>
-        <p class="text-xs text-[#6E5D4F] mt-1 max-w-sm mx-auto">
+        <h3 id="empty-state-title" class="text-lg font-bold font-royal text-[#1E130D]">المطبخ هادئ الآن — جميع الطلبات منجزة</h3>
+        <p id="empty-state-desc" class="text-xs text-[#6E5D4F] mt-1 max-w-sm mx-auto">
             ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر بدون الحاجة لتحديث الصفحة.
         </p>
     </div>
@@ -188,6 +198,7 @@
     let activeOrders = [...INITIAL_ORDERS];
     let activeStationFilter = 'all';
     let searchQuery = '';
+    let showCompletedInStation = false;
     let isSoundEnabled = localStorage.getItem('kura_kds_sound') !== 'false';
     let checkedItemsState = JSON.parse(localStorage.getItem('kura_kds_checked') || '{}');
     let sseEventSource = null;
@@ -418,7 +429,7 @@
     }
 
     // ----------------------------------------------------------------
-    // 4. Station Filtering & Rendering Logic
+    // 4. Station Filtering, Strict Isolation & Rendering Logic
     // ----------------------------------------------------------------
     function setStationFilter(stationName) {
         activeStationFilter = stationName;
@@ -441,15 +452,49 @@
         renderOrdersGrid();
     }
 
+    function toggleShowCompleted() {
+        showCompletedInStation = !showCompletedInStation;
+        const btn = document.getElementById('toggle-completed-btn');
+        const txt = document.getElementById('toggle-completed-text');
+        if (showCompletedInStation) {
+            if (btn) {
+                btn.classList.add('bg-[#144D3B]', 'text-white', 'border-[#D2AB6B]');
+                btn.classList.remove('bg-[#FAF8F5]', 'text-[#5C4B3F]', 'border-[#E8DFD3]');
+            }
+            if (txt) txt.textContent = 'إخفاء المكتملة';
+            showKdsToast("تم إظهار الطلبات المكتملة في هذا القسم");
+        } else {
+            if (btn) {
+                btn.classList.remove('bg-[#144D3B]', 'text-white', 'border-[#D2AB6B]');
+                btn.classList.add('bg-[#FAF8F5]', 'text-[#5C4B3F]', 'border-[#E8DFD3]');
+            }
+            if (txt) txt.textContent = 'المكتملة';
+            showKdsToast("تم إخفاء الطلبات المكتملة في هذا القسم");
+        }
+        renderOrdersGrid();
+    }
+
     function recalculateStationCounts() {
         const counts = {};
         activeOrders.forEach(o => {
-            (o.categories || []).forEach(cat => {
-                counts[cat] = (counts[cat] || 0) + 1;
+            // Group items by category
+            const catMap = {};
+            (o.items || []).forEach(it => {
+                const cat = it.category || 'عام';
+                if (!catMap[cat]) catMap[cat] = [];
+                catMap[cat].push(it);
+            });
+
+            // A station has pending work only if at least one item in that station is NOT checked
+            Object.entries(catMap).forEach(([cat, items]) => {
+                const hasUnfinished = items.some(it => !checkedItemsState[`order_${o.id}_item_${it.id}`]);
+                if (hasUnfinished) {
+                    counts[cat] = (counts[cat] || 0) + 1;
+                }
             });
         });
 
-        // Update total pending
+        // Update total pending in "All" view
         const totalPendingEl = document.getElementById('total-pending-count');
         const badgeAllEl = document.getElementById('badge-station-all');
         if (totalPendingEl) totalPendingEl.textContent = activeOrders.length;
@@ -478,17 +523,28 @@
 
     function getFilteredOrders() {
         return activeOrders.filter(order => {
-            // Station Filter
+            // STRICT STATION FILTER:
             if (activeStationFilter !== 'all') {
-                const hasCategory = (order.categories || []).includes(activeStationFilter);
-                if (!hasCategory) return false;
+                const stationItems = (order.items || []).filter(it => it.category === activeStationFilter);
+                
+                // 1. Order has NO items in this station -> strictly hidden!
+                if (stationItems.length === 0) return false;
+
+                // 2. If all station items are completed and showCompletedInStation is false -> hide!
+                if (!showCompletedInStation) {
+                    const allStationDone = stationItems.every(it => !!checkedItemsState[`order_${order.id}_item_${it.id}`]);
+                    if (allStationDone) return false;
+                }
             }
 
             // Search Query Filter
             if (searchQuery) {
                 const numMatch = (order.order_number || '').toLowerCase().includes(searchQuery);
                 const custMatch = (order.customer_name || '').toLowerCase().includes(searchQuery);
-                const itemMatch = (order.items || []).some(it => (it.name || '').toLowerCase().includes(searchQuery));
+                const itemMatch = (order.items || []).some(it => {
+                    if (activeStationFilter !== 'all' && it.category !== activeStationFilter) return false;
+                    return (it.name || '').toLowerCase().includes(searchQuery);
+                });
                 if (!numMatch && !custMatch && !itemMatch) return false;
             }
 
@@ -499,11 +555,22 @@
     function renderOrdersGrid(highlightNew = false) {
         const grid = document.getElementById('kitchen-orders-grid');
         const emptyState = document.getElementById('kitchen-empty-state');
+        const emptyTitle = document.getElementById('empty-state-title');
+        const emptyDesc = document.getElementById('empty-state-desc');
         const filtered = getFilteredOrders();
 
         if (filtered.length === 0) {
             grid.innerHTML = '';
-            if (emptyState) emptyState.classList.remove('hidden');
+            if (emptyState) {
+                emptyState.classList.remove('hidden');
+                if (activeStationFilter !== 'all') {
+                    if (emptyTitle) emptyTitle.textContent = `قسم (${activeStationFilter}) هادئ الآن — لا توجد طلبات قيد التحضير`;
+                    if (emptyDesc) emptyDesc.textContent = `ستظهر تذاكر أصناف (${activeStationFilter}) هنا فورياً بمجرد طلبها من الكاشير أو الطاولات.`;
+                } else {
+                    if (emptyTitle) emptyTitle.textContent = 'المطبخ هادئ الآن — جميع الطلبات منجزة';
+                    if (emptyDesc) emptyDesc.textContent = 'ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر.';
+                }
+            }
             return;
         }
 
@@ -521,6 +588,13 @@
         const isPreparing = order.status === 'preparing';
         const isTakeaway = order.order_type === 'takeaway';
         const isDelivery = order.order_type === 'delivery';
+        const isStationMode = activeStationFilter !== 'all';
+
+        // STRICT STATION ISOLATION:
+        // When a station is selected, filter items strictly for this station only!
+        const relevantItems = isStationMode 
+            ? (order.items || []).filter(it => it.category === activeStationFilter)
+            : (order.items || []);
 
         // Timer badge color thresholds
         let timerColorClass = 'text-emerald-700 bg-emerald-50 border-emerald-200';
@@ -536,27 +610,26 @@
         // Glow on freshly received SSE order
         const glowClass = isNewGlow ? 'ring-4 ring-[#D2AB6B] shadow-2xl scale-[1.02] transition-transform duration-500' : '';
 
-        // Calculate item check progress
-        const totalItems = (order.items || []).length;
-        let checkedCount = 0;
-        (order.items || []).forEach(it => {
+        // Calculate item check progress for items visible in this ticket
+        const totalItemsInView = relevantItems.length;
+        let checkedCountInView = 0;
+        relevantItems.forEach(it => {
             if (checkedItemsState[`order_${order.id}_item_${it.id}`]) {
-                checkedCount++;
+                checkedCountInView++;
             }
         });
-        const progressPct = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
+        const progressPct = totalItemsInView > 0 ? Math.round((checkedCountInView / totalItemsInView) * 100) : 0;
+        const isStationAllDone = totalItemsInView > 0 && checkedCountInView === totalItemsInView;
 
-        // Items list HTML
+        // Items list HTML - Strictly showing relevant items only!
         let itemsHtml = '';
-        (order.items || []).forEach(it => {
+        relevantItems.forEach(it => {
             const isChecked = !!checkedItemsState[`order_${order.id}_item_${it.id}`];
-            const isStationMatch = (activeStationFilter === 'all') || (it.category === activeStationFilter);
-            const itemHighlight = isStationMatch && activeStationFilter !== 'all' ? 'bg-[#FAF5EC] border-[#D2AB6B]/60' : 'bg-white border-line/70';
 
             itemsHtml += `
                 <div 
                     onclick="toggleItemCheck(${order.id}, ${it.id})" 
-                    class="flex items-center gap-2.5 p-2 rounded-xl border ${itemHighlight} hover:border-[#D2AB6B] transition cursor-pointer select-none ${isChecked ? 'opacity-50 line-through bg-emerald-50/50' : ''}"
+                    class="flex items-center gap-2.5 p-2 rounded-xl border ${isChecked ? 'opacity-50 line-through bg-emerald-50/50 border-emerald-200' : 'bg-white border-[#E8DFD3] hover:border-[#D2AB6B]'} transition cursor-pointer select-none"
                 >
                     <div class="h-4 w-4 rounded border ${isChecked ? 'bg-emerald-600 border-emerald-600' : 'border-[#D2AB6B] bg-white'} flex items-center justify-center shrink-0">
                         ${isChecked ? '<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
@@ -565,40 +638,81 @@
                         <span class="text-xs font-black text-[#1E130D] leading-snug truncate">
                             <span class="text-[#144D3B] text-sm font-black">${it.qty}x</span> ${it.name}
                         </span>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FAF8F5] border border-[#E8DFD3] text-[#8C6527] shrink-0">
-                            ${it.category}
-                        </span>
+                        ${isStationMode ? `
+                            <span class="text-[10px] font-bold text-[#8C6527]">
+                                ${it.qty > 1 ? (it.qty * it.price) + ' ج.م' : it.price + ' ج.م'}
+                            </span>
+                        ` : `
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FAF8F5] border border-[#E8DFD3] text-[#8C6527] shrink-0">
+                                ${it.category}
+                            </span>
+                        `}
                     </div>
                 </div>
             `;
         });
 
-        // Action button (Optimistic UI)
+        // Action button
         let actionBtnHtml = '';
-        if (order.status === 'new') {
-            actionBtnHtml = `
-                <button 
-                    id="btn-action-${order.id}" 
-                    type="button" 
-                    onclick="updateOrderStatusInPlace(${order.id}, 'preparing')" 
-                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 py-2.5 text-xs font-black text-white transition shadow cursor-pointer active:scale-95"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-                    <span>بدء التحضير</span>
-                </button>
-            `;
-        } else if (order.status === 'preparing') {
-            actionBtnHtml = `
-                <button 
-                    id="btn-action-${order.id}" 
-                    type="button" 
-                    onclick="updateOrderStatusInPlace(${order.id}, 'ready')" 
-                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 py-2.5 text-xs font-black text-white transition shadow cursor-pointer active:scale-95"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    <span>جاهز للتسليم</span>
-                </button>
-            `;
+        if (isStationMode) {
+            // Station Mode Action
+            if (isStationAllDone) {
+                actionBtnHtml = `
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 py-2 px-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-black text-center flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>أصناف القسم مكتملة ✓</span>
+                        </div>
+                        <button 
+                            type="button" 
+                            onclick="undoStationCompletion(${order.id}, '${activeStationFilter}')" 
+                            class="px-3 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#F3EFE6] border border-[#E8DFD3] text-[#5C4B3F] text-xs font-bold transition cursor-pointer"
+                            title="تراجع عن الإنجاز"
+                        >
+                            ↩
+                        </button>
+                    </div>
+                `;
+            } else {
+                actionBtnHtml = `
+                    <button 
+                        id="btn-station-${order.id}" 
+                        type="button" 
+                        onclick="completeStationForOrder(${order.id}, '${activeStationFilter}')" 
+                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#144D3B] to-[#1E6B52] hover:from-[#0E382A] hover:to-[#144D3B] py-2.5 text-xs font-black text-white transition shadow cursor-pointer active:scale-95"
+                    >
+                        <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span>جاهز في قسم ${activeStationFilter} ✓</span>
+                    </button>
+                `;
+            }
+        } else {
+            // Expo Mode Action
+            if (order.status === 'new') {
+                actionBtnHtml = `
+                    <button 
+                        id="btn-action-${order.id}" 
+                        type="button" 
+                        onclick="updateOrderStatusInPlace(${order.id}, 'preparing')" 
+                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 py-2.5 text-xs font-black text-white transition shadow cursor-pointer active:scale-95"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+                        <span>بدء التحضير العام</span>
+                    </button>
+                `;
+            } else if (order.status === 'preparing') {
+                actionBtnHtml = `
+                    <button 
+                        id="btn-action-${order.id}" 
+                        type="button" 
+                        onclick="updateOrderStatusInPlace(${order.id}, 'ready')" 
+                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 py-2.5 text-xs font-black text-white transition shadow cursor-pointer active:scale-95"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>جاهز للتسليم النهائي 🚀</span>
+                    </button>
+                `;
+            }
         }
 
         return `
@@ -607,9 +721,16 @@
                 <!-- Card Header -->
                 <div class="p-3 bg-[#FAF8F5] border-b border-[#E8DFD3] flex items-center justify-between">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-base font-black font-body text-[#1E130D]">${order.order_number}</span>
-                            ${isPreparing ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">قيد الطهي</span>' : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">جديد</span>'}
+                            ${isStationMode ? `
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-[#144D3B]/10 text-[#144D3B] border border-[#144D3B]/20">
+                                    قسم ${activeStationFilter}
+                                </span>
+                                ${isStationAllDone ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">مكتمل ✓</span>' : ''}
+                            ` : `
+                                ${isPreparing ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">قيد الطهي</span>' : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">جديد</span>'}
+                            `}
                         </div>
                         <span class="block text-[11px] font-bold text-[#6E5D4F] mt-0.5">
                             ${order.created_at_time} • ${order.customer_name}
@@ -635,8 +756,8 @@
                 <!-- Items Checklist -->
                 <div class="p-3.5 flex-1 space-y-2">
                     <div class="flex items-center justify-between text-[11px] font-black text-[#6E5D4F] mb-1">
-                        <span>الوجبات المطلوبة (${totalItems}):</span>
-                        <span class="text-[10px] text-[#144D3B] font-bold">${checkedCount}/${totalItems} منجز</span>
+                        <span>${isStationMode ? `أصناف قسم ${activeStationFilter} (${totalItemsInView}):` : `الوجبات المطلوبة (${totalItemsInView}):`}</span>
+                        <span class="text-[10px] text-[#144D3B] font-bold">${checkedCountInView}/${totalItemsInView} ${isStationMode ? 'جاهز' : 'منجز'}</span>
                     </div>
 
                     ${itemsHtml}
@@ -659,14 +780,111 @@
     }
 
     // ----------------------------------------------------------------
-    // 5. Item Checklist & In-Place Status Updates
+    // 5. Item Checklist & Strict Station Completion
     // ----------------------------------------------------------------
     function toggleItemCheck(orderId, itemId) {
         initAudio();
         const key = `order_${orderId}_item_${itemId}`;
         checkedItemsState[key] = !checkedItemsState[key];
         localStorage.setItem('kura_kds_checked', JSON.stringify(checkedItemsState));
+
+        const order = activeOrders.find(o => o.id === orderId);
+        if (order && activeStationFilter !== 'all') {
+            const stationItems = (order.items || []).filter(it => it.category === activeStationFilter);
+            const allStationDone = stationItems.length > 0 && stationItems.every(it => !!checkedItemsState[`order_${orderId}_item_${it.id}`]);
+
+            // If checking this item completed the entire station
+            if (allStationDone && !showCompletedInStation) {
+                renderOrdersGrid();
+                setTimeout(() => {
+                    completeStationForOrder(orderId, activeStationFilter);
+                }, 300);
+                return;
+            }
+        }
+
+        recalculateStationCounts();
         renderOrdersGrid();
+    }
+
+    function completeStationForOrder(orderId, stationName) {
+        initAudio();
+        const order = activeOrders.find(o => o.id === orderId);
+        if (!order) return;
+
+        // 1. Mark all items of this station in this order as checked
+        const stationItems = (order.items || []).filter(it => it.category === stationName);
+        stationItems.forEach(it => {
+            checkedItemsState[`order_${orderId}_item_${it.id}`] = true;
+        });
+        localStorage.setItem('kura_kds_checked', JSON.stringify(checkedItemsState));
+
+        // 2. Play hotel chime bell
+        playKitchenBell();
+
+        // 3. Smooth fade-out animation if not in "show completed" mode
+        const cardEl = document.getElementById(`order-card-${orderId}`);
+        if (cardEl && !showCompletedInStation) {
+            cardEl.style.transition = 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+            cardEl.style.opacity = '0';
+            cardEl.style.transform = 'scale(0.92) translateY(8px)';
+        }
+
+        // 4. Check if all items across ALL stations in the entire order are done
+        const allOrderItemsCompleted = (order.items || []).every(it => !!checkedItemsState[`order_${orderId}_item_${it.id}`]);
+
+        if (allOrderItemsCompleted) {
+            // Entire order is ready across all kitchen stations! Update status to ready
+            fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: 'ready' })
+            }).catch(err => console.error("Error updating order to ready:", err));
+
+            showKdsToast(`تم اكتمال كافة أقسام الطلب #${order.order_number}! جاهز للتسليم 🚀`, 'success');
+
+            setTimeout(() => {
+                activeOrders = activeOrders.filter(o => o.id !== orderId);
+                recalculateStationCounts();
+                renderOrdersGrid();
+            }, 360);
+        } else {
+            // If order was new, update status to preparing so expo knows kitchen is working
+            if (order.status === 'new') {
+                order.status = 'preparing';
+                fetch(`/api/orders/${orderId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ status: 'preparing' })
+                }).catch(err => console.error("Error updating status to preparing:", err));
+            }
+
+            showKdsToast(`تم إنجاز أصناف قسم (${stationName}) للطلب #${order.order_number} بنجاح ✓`, 'success');
+
+            setTimeout(() => {
+                recalculateStationCounts();
+                renderOrdersGrid();
+            }, 360);
+        }
+    }
+
+    function undoStationCompletion(orderId, stationName) {
+        const order = activeOrders.find(o => o.id === orderId);
+        if (!order) return;
+        const stationItems = (order.items || []).filter(it => it.category === stationName);
+        stationItems.forEach(it => {
+            delete checkedItemsState[`order_${orderId}_item_${it.id}`];
+        });
+        localStorage.setItem('kura_kds_checked', JSON.stringify(checkedItemsState));
+        recalculateStationCounts();
+        renderOrdersGrid();
+        showKdsToast(`تم إعادة أصناف (${stationName}) للطلب #${order.order_number}`);
     }
 
     async function updateOrderStatusInPlace(orderId, nextStatus) {
