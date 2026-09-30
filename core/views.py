@@ -2862,7 +2862,21 @@ def ai_callcenter_management_view(request):
     owner_password = tenant.voice_password or reg_info.get("password") or "Diyafa@2026!"
 
     # 1. Fetch live data from Partner API
-    profile_data = ps.get_profile(client_id).get("profile") or ps.get_profile(client_id).get("active_profile") or {}
+    prof_resp = ps.get_profile(client_id)
+    profile_data = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
+    profiles_data = prof_resp.get("profiles") or ([profile_data] if profile_data else [])
+    
+    # Allow switching active view/edit context to a specific profile
+    req_profile_id = request.GET.get("profile_id")
+    if req_profile_id and profiles_data:
+        try:
+            req_id_int = int(req_profile_id)
+            matched = next((p for p in profiles_data if p.get("id") == req_id_int), None)
+            if matched:
+                profile_data = matched
+        except Exception:
+            pass
+
     hours_data = ps.get_business_hours(client_id).get("schedule") or {}
     docs_data = ps.get_documents(client_id).get("documents") or []
     employees_data = ps.get_employees(client_id).get("employees") or []
@@ -2945,6 +2959,7 @@ def ai_callcenter_management_view(request):
         "owner_password": owner_password,
         "voice_portal_url": "https://app.169.58.32.179.nip.io",
         "profile": profile_data,
+        "profiles": profiles_data,
         "hours": hours_data,
         "documents": docs_data,
         "employees": employees_data,
@@ -2974,7 +2989,7 @@ def ai_callcenter_management_view(request):
 
 
 @login_required
-def api_ai_callcenter_update_profile(request):
+def api_ai_callcenter_create_profile(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
@@ -2984,14 +2999,80 @@ def api_ai_callcenter_update_profile(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
-        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+        return JsonResponse({"status": "error", "message": "بيانات JSON غير صالحة"}, status=400)
 
-    # Fetch profile ID
-    prof_resp = ps.get_profile(client_id)
-    prof = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
-    prof_id = prof.get("id") or 66
+    # Set smart default for off_topic_response based on dialect if omitted
+    dialect = data.get("dialect", "egyptian")
+    if not data.get("off_topic_response"):
+        defaults_by_dialect = {
+            "saudi": "أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو مطاعم كُـورَا فقط، تحب تطلب شيء من عروضنا اليوم؟",
+            "emirati": "السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو مطاعم كُـورَا فقط، حاب تطلب شي الحين؟",
+            "kuwaiti": "السموحة يا غالي، أنا مخصص لطلبات ومنيو مطاعم كُـورَا فقط، تبي تطلب شي من المنيو؟",
+            "modern_standard": "أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات مطاعم كُـورَا فقط، هل ترغب بطلب أي وجبة؟",
+            "egyptian": "بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات مطاعم كُـورَا فقط، تؤمر بأي صنف النهارده؟",
+        }
+        data["off_topic_response"] = defaults_by_dialect.get(dialect, defaults_by_dialect["egyptian"])
 
-    resp = ps.update_profile(client_id, prof_id, data)
+    resp = ps.create_profile(client_id, data)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_update_profile(request, profile_id=None):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "بيانات JSON غير صالحة"}, status=400)
+
+    target_profile_id = profile_id or data.get("profile_id")
+    if not target_profile_id:
+        prof_resp = ps.get_profile(client_id)
+        prof = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
+        target_profile_id = prof.get("id") or 66
+
+    # Set smart default for off_topic_response based on dialect if empty
+    dialect = data.get("dialect", "egyptian")
+    if "off_topic_response" in data and not str(data["off_topic_response"]).strip():
+        defaults_by_dialect = {
+            "saudi": "أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو مطاعم كُـورَا فقط، تحب تطلب شيء من عروضنا اليوم؟",
+            "emirati": "السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو مطاعم كُـورَا فقط، حاب تطلب شي الحين؟",
+            "kuwaiti": "السموحة يا غالي، أنا مخصص لطلبات ومنيو مطاعم كُـورَا فقط، تبي تطلب شي من المنيو؟",
+            "modern_standard": "أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات مطاعم كُـورَا فقط، هل ترغب بطلب أي وجبة؟",
+            "egyptian": "بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات مطاعم كُـورَا فقط، تؤمر بأي صنف النهارده؟",
+        }
+        data["off_topic_response"] = defaults_by_dialect.get(dialect, defaults_by_dialect["egyptian"])
+
+    resp = ps.update_profile(client_id, int(target_profile_id), data)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_activate_profile(request, profile_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    resp = ps.activate_profile(client_id, profile_id)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_delete_profile(request, profile_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    resp = ps.delete_profile(client_id, profile_id)
     return JsonResponse(resp)
 
 

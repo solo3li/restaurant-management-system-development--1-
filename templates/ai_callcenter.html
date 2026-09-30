@@ -100,14 +100,16 @@
         <!-- Active Dialect & Persona -->
         <div class="card p-5 border-t-4 border-t-brand-600 hover:shadow-md transition relative group">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">اللهجة والشخصية الحالية</span>
-                <span class="px-2 py-0.5 rounded-full bg-[#FAF5EC] border border-[#D2AB6B]/40 text-[#8C6527] text-xs font-bold">EG</span>
+                <span class="text-xs font-bold text-soft">الشخصية والصوت الحالي</span>
+                <span class="px-2 py-0.5 rounded-full bg-[#FAF5EC] border border-[#D2AB6B]/40 text-[#8C6527] text-xs font-bold">
+                    {% if profile.dialect == 'saudi' %}SA{% elif profile.dialect == 'emirati' %}AE{% elif profile.dialect == 'kuwaiti' %}KW{% else %}EG{% endif %}
+                </span>
             </div>
             <p class="font-display text-sm font-black text-ink mt-2 truncate">
-                {{ profile.dialect_display|default:"لهجة مصرية عامية (مصر)" }}
+                {{ profile.name|default:"مساعد كورا الصوتي" }}
             </p>
             <p class="text-[11px] font-bold text-soft mt-1 truncate">
-                صوت: <span class="font-black text-brand-700">{{ profile.voice_name|default:"Aoede" }}</span> • {{ profile.speaking_style_display|default:"ودود ولطيف ومرح" }}
+                {{ profile.dialect_display|default:"لهجة عامية" }} • <span class="font-black text-brand-700">{{ profile.voice_name|default:"Aoede" }}</span>
             </p>
         </div>
     </div>
@@ -142,70 +144,214 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- ========================================== -->
     <!-- TAB 1: PERSONA & SCRIPT STUDIO             -->
     <!-- ========================================== -->
     <div id="tab-content-persona" class="tab-content space-y-6">
+
+        <!-- Multi-Profile Header & Selector -->
+        <div class="card p-5 border-line bg-gradient-to-r from-card to-paper">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
+                        <h3 class="font-display text-base font-black text-ink">بروفايلات المساعد الصوتي (Persona Profiles)</h3>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
+                            {{ profiles|length }} بروفايل
+                        </span>
+                    </div>
+                    <p class="text-xs text-soft font-bold mt-1">
+                        يمكنك إنشاء عدة شخصيات ولهجات للمساعد الصوتي والتبديل بينها أو تفعيل بروفايل مخصص للمناسبات وساعات الذروة.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="openCreateProfileModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg> إضافة بروفايل جديد
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Cards Carousel/Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-4 pt-4 border-t border-line">
+                {% for p in profiles %}
+                <div class="relative rounded-xl border transition p-3.5 flex flex-col justify-between {% if p.id == profile.id %}border-brand-500/60 bg-brand-50/20 shadow-xs ring-1 ring-brand-500/30{% else %}border-line bg-card hover:border-brand-300{% endif %}">
+                    <div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-display text-xs font-black text-ink truncate">{{ p.name|default:"مساعد صوتي" }}</span>
+                            {% if p.is_active %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-700 border border-emerald-500/30 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> نشط حالياً
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600 border border-zinc-200">
+                                غير نشط
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px]">
+                            <span class="px-2 py-0.5 rounded-md bg-paper border border-line text-ink font-bold">
+                                {% if p.dialect == 'saudi' %}🇸🇦 سعودي
+                                {% elif p.dialect == 'egyptian' %}🇪🇬 مصري
+                                {% elif p.dialect == 'emirati' %}🇦🇪 إماراتي
+                                {% elif p.dialect == 'kuwaiti' %}🇰🇼 كويتي
+                                {% elif p.dialect == 'levantine' %}🇱🇧 شامي
+                                {% else %}🌐 فصحى{% endif %}
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md bg-paper border border-line text-soft font-bold">
+                                {% if p.gender == 'male' %}♂ ذكوري{% else %}♀ أنثوي{% endif %} ({{ p.voice_name|default:'Aoede' }})
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md bg-paper border border-line text-brand-700 font-bold">
+                                {% if p.persona_role == 'sales_advisor' %}مستشار مبيعات
+                                {% elif p.persona_role == 'customer_service' %}خدمة عملاء
+                                {% else %}استقبال طلبات{% endif %}
+                            </span>
+                        </div>
+
+                        {% if p.off_topic_response %}
+                        <p class="text-[11px] text-soft line-clamp-1 mt-2 bg-paper/60 p-1.5 rounded border border-line/60" title="{{ p.off_topic_response }}">
+                            <span class="font-bold text-ink">الرد الاستبعادي:</span> {{ p.off_topic_response }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-line/60">
+                        <a href="?profile_id={{ p.id }}" class="text-xs font-black text-brand-600 hover:text-brand-700 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            {% if p.id == profile.id %}قيد التعديل الآن{% else %}تعديل هذا البروفايل{% endif %}
+                        </a>
+
+                        {% if not p.is_active %}
+                        <button type="button" onclick="activateProfile({{ p.id }})" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black transition cursor-pointer">
+                            تفعيل كبروفايل رئيسي
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full py-4 text-center text-xs text-soft font-bold">
+                    لا توجد بروفايلات مسجلة بعد، اضغط على زر "إضافة بروفايل جديد" للبدء.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Active / Selected Profile Edit Form -->
         <form id="persona-form" onsubmit="savePersona(event)" class="card p-6 sm:p-7 border-line space-y-6">
             {% csrf_token %}
+            <input type="hidden" name="profile_id" id="edit-profile-id" value="{{ profile.id }}">
+
             <div class="border-b border-line pb-4 flex items-center justify-between">
                 <div>
                     <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg> إعدادات شخصية وهوية المساعد الصوتي
+                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg> تعديل البروفايل: <span class="text-brand-600">{{ profile.name|default:'كول سنتر منظومة كورا' }}</span>
                     </h3>
-                    <p class="text-xs text-soft font-bold mt-0.5">تحديد اللهجة، النبرة، رسالة الترحيب الأولى للمتصل، وعروض اليوم الخاصة</p>
+                    <p class="text-xs text-soft font-bold mt-0.5">تحديد الدور الوظيفي، الجنس، اللهجة، رسالة الاستبعاد (Off-Topic)، والترحيب الأولى</p>
                 </div>
-                <span class="text-xs px-3 py-1 rounded-full font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                    تحديث فوري للسيرفر
-                </span>
+                <div class="flex items-center gap-2">
+                    {% if profile.is_active %}
+                    <span class="text-xs px-3 py-1 rounded-full font-black bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> البروفايل النشط حالياً
+                    </span>
+                    {% else %}
+                    <button type="button" onclick="activateProfile({{ profile.id }})" class="text-xs px-3 py-1 rounded-xl font-black bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer">
+                        تفعيل هذا البروفايل
+                    </button>
+                    {% endif %}
+                </div>
             </div>
 
+            <!-- Row 1: Name, Role, Gender -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                     <label class="block text-xs font-black text-ink mb-1.5">اسم المساعد الصوتي</label>
-                    <input type="text" name="name" value="{{ profile.name|default:'كول سنتر منظومة كورا' }}" required class="input">
+                    <input type="text" name="name" id="edit-profile-name" value="{{ profile.name|default:'كول سنتر منظومة كورا' }}" required class="input">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة</label>
-                    <select name="dialect" class="input font-bold cursor-pointer">
+                    <label class="block text-xs font-black text-ink mb-1.5">الدور الوظيفي (Persona Role)</label>
+                    <select name="persona_role" id="edit-profile-role" class="input font-bold cursor-pointer">
+                        <option value="order_taker" {% if profile.persona_role == 'order_taker' or not profile.persona_role %}selected{% endif %}>استقبال وتسجيل الطلبات (Order Taker)</option>
+                        <option value="sales_advisor" {% if profile.persona_role == 'sales_advisor' %}selected{% endif %}>مستشار مبيعات وترويج العروض (Sales Advisor)</option>
+                        <option value="customer_service" {% if profile.persona_role == 'customer_service' %}selected{% endif %}>خدمة عملاء واستفسارات (Customer Service)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الجنس الصوتي (Gender)</label>
+                    <select name="gender" id="edit-profile-gender" class="input font-bold cursor-pointer">
+                        <option value="female" {% if profile.gender == 'female' or not profile.gender %}selected{% endif %}>أنثوي (Female)</option>
+                        <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>ذكوري (Male)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Dialect, Voice, Speaking Style, Verbosity -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة (Dialect)</label>
+                    <select name="dialect" id="edit-profile-dialect" onchange="onDialectChange('edit')" class="input font-bold cursor-pointer">
                         <option value="egyptian" {% if profile.dialect == 'egyptian' or not profile.dialect %}selected{% endif %}>لهجة مصرية عامية (مصر)</option>
                         <option value="saudi" {% if profile.dialect == 'saudi' %}selected{% endif %}>لهجة سعودية / نجدية وحجازية</option>
                         <option value="emirati" {% if profile.dialect == 'emirati' %}selected{% endif %}>لهجة إماراتية / خليجية</option>
                         <option value="kuwaiti" {% if profile.dialect == 'kuwaiti' %}selected{% endif %}>لهجة كويتية</option>
+                        <option value="levantine" {% if profile.dialect == 'levantine' %}selected{% endif %}>لهجة شامية (لبنان / سوريا / الأردن)</option>
+                        <option value="modern_standard" {% if profile.dialect == 'modern_standard' %}selected{% endif %}>لغة عربية فصحى مبسطة</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الصوت المعتمد (Voice Name)</label>
+                    <select name="voice_name" id="edit-profile-voice" class="input font-bold cursor-pointer">
+                        <option value="Aoede" {% if profile.voice_name == 'Aoede' or not profile.voice_name %}selected{% endif %}>Aoede (أنثوي — ناعم وواضح ولطيف)</option>
+                        <option value="Fenrir" {% if profile.voice_name == 'Fenrir' %}selected{% endif %}>Fenrir (ذكوري — دافئ وقوي وموثوق)</option>
+                        <option value="Kore" {% if profile.voice_name == 'Kore' %}selected{% endif %}>Kore (أنثوي — هادئ ومهذب)</option>
+                        <option value="Puck" {% if profile.voice_name == 'Puck' %}selected{% endif %}>Puck (ذكوري — نشيط وسريع)</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-black text-ink mb-1.5">أسلوب الحديث والنبرة</label>
-                    <select name="speaking_style" class="input font-bold cursor-pointer">
-                        <option value="ودود ولطيف ومرح" selected>ودود ولطيف ومرح (ترحيب دافئ وأسلوب خدوم)</option>
-                        <option value="رسمي ومحترف ولبق">رسمي ومحترف ولبق (مناسب للشركات الراقية)</option>
-                        <option value="سريع ومباشر">سريع ومباشر (مفضل لأوقات الذروة)</option>
+                    <select name="speaking_style" id="edit-profile-style" class="input font-bold cursor-pointer">
+                        <option value="friendly" {% if profile.speaking_style == 'friendly' or profile.speaking_style == 'ودود ولطيف ومرح' %}selected{% endif %}>ودود ولطيف ومرح</option>
+                        <option value="formal" {% if profile.speaking_style == 'formal' or profile.speaking_style == 'رسمي ومحترف ولبق' %}selected{% endif %}>رسمي ومحترف ولبق</option>
+                        <option value="concise" {% if profile.speaking_style == 'concise' or profile.speaking_style == 'سريع ومباشر' %}selected{% endif %}>سريع ومباشر (للذروة)</option>
                     </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">الصوت المعتمد (Gemini Live / TTS)</label>
-                    <div class="flex items-center gap-2">
-                        <select name="voice_name" class="input font-bold cursor-pointer">
-                            <option value="Aoede" selected>Aoede (أنثوي — ناعم وواضح ولطيف)</option>
-                            <option value="Fenrir">Fenrir (ذكوري — دافئ وقوي وموثوق)</option>
-                            <option value="Kore">Kore (أنثوي — هادئ ومهذب)</option>
-                            <option value="Puck">Puck (ذكوري — نشيط وسريع)</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-black text-ink mb-1.5">مستوى الإسهاب (Verbosity)</label>
-                    <select name="verbosity" class="input font-bold cursor-pointer">
-                        <option value="balanced" selected>متوازن (طبيعي ومهذب في 2-3 جمل)</option>
-                        <option value="concise">مختصر جداً (إجابات مباشرة ومقتضبة)</option>
-                        <option value="detailed">مفصل (شرح الوجبات ومكوناتها بالتفصيل)</option>
+                    <select name="verbosity" id="edit-profile-verbosity" class="input font-bold cursor-pointer">
+                        <option value="balanced" {% if profile.verbosity == 'balanced' or not profile.verbosity %}selected{% endif %}>متوازن (طبيعي ومهذب)</option>
+                        <option value="concise" {% if profile.verbosity == 'concise' %}selected{% endif %}>مختصر جداً (إجابات مقتضبة)</option>
+                        <option value="detailed" {% if profile.verbosity == 'detailed' %}selected{% endif %}>مفصل (شرح تفصيلي للمنيو)</option>
                     </select>
                 </div>
+            </div>
+
+            <!-- Missing Field: Off-Topic Response (OpenAPI v1 Spec) -->
+            <div class="rounded-xl border border-line bg-card p-4 space-y-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                        <label class="block text-xs font-black text-ink flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                            الرد على الأسئلة الخارجة عن السياق (Off-Topic Response)
+                        </label>
+                        <p class="text-[11px] text-soft font-bold mt-0.5">
+                            الرسالة التي يعتذر بها المساعد بلباقة ويوجه العميل مجدداً لمنيو وخدمات المطعم عند سؤاله عن مواضيع غير ذات صلة (حسب معيار OpenAPI v1).
+                        </p>
+                    </div>
+                    <button type="button" onclick="applyOffTopicSuggestion('edit')" class="px-2.5 py-1 rounded-lg border border-line bg-paper hover:bg-card text-brand-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> اقتراح نص ذكي حسب اللهجة
+                    </button>
+                </div>
+                <textarea 
+                    name="off_topic_response" 
+                    id="edit-off-topic-response" 
+                    rows="2" 
+                    class="input font-bold text-ink bg-paper"
+                    placeholder="مثال: بعتذر جداً يا فندم، أنا بساعدك بس في منيو وطلبات مطاعم كورا، تؤمر بحاجة من عروضنا النهارده؟"
+                >{{ profile.off_topic_response|default:"" }}</textarea>
             </div>
 
             <!-- Welcome Message -->
@@ -215,7 +361,7 @@
                         رسالة الترحيب الأولى المباشرة (Welcome Message)
                     </label>
                     <label class="flex items-center gap-2 text-xs font-bold text-soft cursor-pointer">
-                        <input type="checkbox" name="is_welcome_message_enabled" checked class="rounded border-line text-brand-600">
+                        <input type="checkbox" name="is_welcome_message_enabled" {% if profile.is_welcome_message_enabled != False %}checked{% endif %} class="rounded border-line text-brand-600">
                         تفعيل الترحيب الفوري عند فتح الخط
                     </label>
                 </div>
@@ -242,9 +388,9 @@
                 </p>
             </div>
 
-            <div class="pt-3 border-t border-line flex items-center justify-end">
-                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition">
-                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> حفظ إعدادات الشخصية
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-3">
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer flex items-center gap-2">
+                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> حفظ تعديلات البروفايل
                 </button>
             </div>
         </form>
@@ -1438,7 +1584,131 @@ restaurant_tools = await mcp_client.tools()</pre>
 </div>
 
 <!-- ========================================== -->
-    <!-- MODAL: ADD DOCUMENT (RAG)                  -->
+<!-- MODAL: CREATE AI VOICE PROFILE             -->
+<!-- ========================================== -->
+<div id="create-profile-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-xl w-full p-6 border-line shadow-2xl space-y-5 animate-toast max-h-[90vh] overflow-y-auto" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <svg class="w-5 h-5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg> إنشاء بروفايل صوتي وشخصية جديدة
+            </h3>
+            <button type="button" onclick="closeCreateProfileModal()" class="text-soft hover:text-ink text-xl cursor-pointer">
+                <svg class="w-5 h-5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <form id="create-profile-form" onsubmit="createProfile(event)" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-black text-ink mb-1.5">اسم البروفايل الصوتي</label>
+                <input type="text" name="name" id="create-prof-name" placeholder="مثال: مساعد المبيعات السعودي أو مسؤولة خدمة العملاء" required class="input">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الدور الوظيفي (Persona Role)</label>
+                    <select name="persona_role" id="create-prof-role" class="input font-bold cursor-pointer">
+                        <option value="order_taker" selected>استقبال وتسجيل الطلبات (Order Taker)</option>
+                        <option value="sales_advisor">مستشار مبيعات وترويج العروض (Sales Advisor)</option>
+                        <option value="customer_service">خدمة عملاء واستفسارات (Customer Service)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الجنس الصوتي (Gender)</label>
+                    <select name="gender" id="create-prof-gender" class="input font-bold cursor-pointer">
+                        <option value="female" selected>أنثوي (Female)</option>
+                        <option value="male">ذكوري (Male)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة (Dialect)</label>
+                    <select name="dialect" id="create-prof-dialect" onchange="onDialectChange('create')" class="input font-bold cursor-pointer">
+                        <option value="egyptian" selected>لهجة مصرية عامية (مصر)</option>
+                        <option value="saudi">لهجة سعودية / نجدية وحجازية</option>
+                        <option value="emirati">لهجة إماراتية / خليجية</option>
+                        <option value="kuwaiti">لهجة كويتية</option>
+                        <option value="levantine">لهجة شامية (لبنان / سوريا / الأردن)</option>
+                        <option value="modern_standard">لغة عربية فصحى مبسطة</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">الصوت المعتمد (Voice Name)</label>
+                    <select name="voice_name" id="create-prof-voice" class="input font-bold cursor-pointer">
+                        <option value="Aoede" selected>Aoede (أنثوي — ناعم وواضح)</option>
+                        <option value="Fenrir">Fenrir (ذكوري — دافئ وقوي)</option>
+                        <option value="Kore">Kore (أنثوي — هادئ ومهذب)</option>
+                        <option value="Puck">Puck (ذكوري — نشيط وسريع)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">أسلوب الحديث والنبرة</label>
+                    <select name="speaking_style" id="create-prof-style" class="input font-bold cursor-pointer">
+                        <option value="friendly" selected>ودود ولطيف ومرح</option>
+                        <option value="formal">رسمي ومحترف ولبق</option>
+                        <option value="concise">سريع ومباشر</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">مستوى الإسهاب (Verbosity)</label>
+                    <select name="verbosity" id="create-prof-verbosity" class="input font-bold cursor-pointer">
+                        <option value="balanced" selected>متوازن (طبيعي ومهذب)</option>
+                        <option value="concise">مختصر جداً</option>
+                        <option value="detailed">مفصل</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Off-Topic Response in Modal -->
+            <div class="rounded-xl border border-line bg-paper/60 p-3 space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-black text-ink">
+                        الرد على الأسئلة الخارجة عن السياق (Off-Topic Response)
+                    </label>
+                    <button type="button" onclick="applyOffTopicSuggestion('create')" class="text-[11px] text-brand-600 hover:text-brand-700 font-bold cursor-pointer">
+                        ⚡ اقتراح تلقائي حسب اللهجة
+                    </button>
+                </div>
+                <textarea name="off_topic_response" id="create-prof-off-topic" rows="2" class="input text-xs font-bold" placeholder="الرد اللبق عند السؤال عن مواضيع خارج المطعم والمنيو"></textarea>
+            </div>
+
+            <!-- Welcome Message in Modal -->
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">رسالة الترحيب الأولى (Welcome Message)</label>
+                <textarea name="welcome_message" id="create-prof-welcome" rows="2" class="input text-xs font-bold" placeholder="أهلاً بحضرتك في مطاعم كورا! كيف أساعدك اليوم؟"></textarea>
+            </div>
+
+            <!-- Custom Instructions in Modal -->
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">التعليمات المخصصة وعروض اليوم</label>
+                <textarea name="custom_instructions" id="create-prof-instructions" rows="3" class="input text-xs font-mono" placeholder="تعليمات وسياق عمل المساعد..."></textarea>
+            </div>
+
+            <div class="pt-2 flex items-center justify-between border-t border-line">
+                <label class="flex items-center gap-2 text-xs font-bold text-ink cursor-pointer">
+                    <input type="checkbox" name="is_active" checked class="rounded border-line text-brand-600">
+                    تفعيل هذا البروفايل فوراً بعد الإنشاء
+                </label>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeCreateProfileModal()" class="px-4 py-2 rounded-xl text-soft hover:bg-paper text-xs font-bold transition cursor-pointer">
+                        إلغاء
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
+                        حفظ وإنشاء البروفايل
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: ADD DOCUMENT (RAG)                  -->
 <!-- ========================================== -->
 <div id="add-doc-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="{{ DIR|default:'rtl' }}">
@@ -2003,16 +2273,145 @@ async function toggleMasterStatus() {
     }
 }
 
+// Dialect Smart Defaults for Off-Topic
+const DIALECT_OFF_TOPIC_DEFAULTS = {
+    'saudi': 'أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو مطاعم كُـورَا فقط، تحب تطلب شيء من عروضنا اليوم؟',
+    'emirati': 'السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو مطاعم كُـورَا فقط، حاب تطلب شي الحين؟',
+    'kuwaiti': 'السموحة يا غالي، أنا مخصص لطلبات ومنيو مطاعم كُـورَا فقط، تبي تطلب شي من المنيو؟',
+    'levantine': 'بعتذر منك يا غالي، أنا هون لمساعدتك بطلبات وقائمة مطاعم كُـورَا بس، بتحب تطلب شي هلأ؟',
+    'modern_standard': 'أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات مطاعم كُـورَا فقط، هل ترغب بطلب أي وجبة؟',
+    'egyptian': 'بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات مطاعم كُـورَا فقط، تؤمر بأي صنف النهارده؟'
+};
+
+function applyOffTopicSuggestion(formType) {
+    if (formType === 'create') {
+        const dialect = document.getElementById('create-prof-dialect').value || 'egyptian';
+        const txt = document.getElementById('create-prof-off-topic');
+        if (txt) txt.value = DIALECT_OFF_TOPIC_DEFAULTS[dialect] || DIALECT_OFF_TOPIC_DEFAULTS['egyptian'];
+    } else {
+        const form = document.getElementById('persona-form');
+        const dialect = (form && form.dialect) ? form.dialect.value : 'egyptian';
+        const txt = document.getElementById('edit-off-topic-response');
+        if (txt) txt.value = DIALECT_OFF_TOPIC_DEFAULTS[dialect] || DIALECT_OFF_TOPIC_DEFAULTS['egyptian'];
+    }
+    showNotification('تم إدراج الرد المقترح المتناسب مع اللهجة');
+}
+
+function onDialectChange(formType) {
+    if (formType === 'create') {
+        const txt = document.getElementById('create-prof-off-topic');
+        if (txt && !txt.value.trim()) {
+            const dialect = document.getElementById('create-prof-dialect').value || 'egyptian';
+            txt.value = DIALECT_OFF_TOPIC_DEFAULTS[dialect] || DIALECT_OFF_TOPIC_DEFAULTS['egyptian'];
+        }
+    } else {
+        const txt = document.getElementById('edit-off-topic-response');
+        if (txt && !txt.value.trim()) {
+            const form = document.getElementById('persona-form');
+            const dialect = (form && form.dialect) ? form.dialect.value : 'egyptian';
+            txt.value = DIALECT_OFF_TOPIC_DEFAULTS[dialect] || DIALECT_OFF_TOPIC_DEFAULTS['egyptian'];
+        }
+    }
+}
+
+function openCreateProfileModal() {
+    const modal = document.getElementById('create-profile-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        const txt = document.getElementById('create-prof-off-topic');
+        if (txt && !txt.value.trim()) {
+            txt.value = DIALECT_OFF_TOPIC_DEFAULTS['egyptian'];
+        }
+    }
+}
+
+function closeCreateProfileModal() {
+    const modal = document.getElementById('create-profile-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function createProfile(e) {
+    e.preventDefault();
+    const form = e.target;
+    const payload = {
+        name: form.name.value,
+        persona_role: form.persona_role.value,
+        gender: form.gender.value,
+        dialect: form.dialect.value,
+        voice_name: form.voice_name.value,
+        speaking_style: form.speaking_style.value,
+        verbosity: form.verbosity.value,
+        off_topic_response: form.off_topic_response.value,
+        welcome_message: form.welcome_message.value,
+        custom_instructions: form.custom_instructions.value,
+        is_active: form.is_active.checked
+    };
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_create_profile' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.status === 'success' || data.profile || data.id) {
+            showNotification('تم إنشاء البروفايل الصوتي والشخصية الجديدة بنجاح');
+            closeCreateProfileModal();
+            setTimeout(() => {
+                const newId = (data.profile && data.profile.id) ? data.profile.id : (data.id || '');
+                if (newId) {
+                    window.location.href = window.location.pathname + '?profile_id=' + newId;
+                } else {
+                    window.location.reload();
+                }
+            }, 800);
+        } else {
+            showNotification(data.message || 'حدث خطأ في إنشاء البروفايل', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+async function activateProfile(profileId) {
+    if (!profileId) return;
+    try {
+        const res = await fetch(`/api/ai-callcenter/profiles/${profileId}/activate/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification('تم اعتماد وتفعيل هذا البروفايل بنجاح');
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            showNotification(data.message || 'حدث خطأ في التفعيل', true);
+        }
+    } catch (err) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
 // Save Persona
 async function savePersona(e) {
     e.preventDefault();
     const form = e.target;
     const payload = {
+        profile_id: form.profile_id ? form.profile_id.value : null,
         name: form.name.value,
+        persona_role: form.persona_role ? form.persona_role.value : 'order_taker',
+        gender: form.gender ? form.gender.value : 'female',
         dialect: form.dialect.value,
         speaking_style: form.speaking_style.value,
         voice_name: form.voice_name.value,
         verbosity: form.verbosity.value,
+        off_topic_response: form.off_topic_response ? form.off_topic_response.value : '',
         welcome_message: form.welcome_message.value,
         is_welcome_message_enabled: form.is_welcome_message_enabled.checked,
         custom_instructions: form.custom_instructions.value
@@ -2029,7 +2428,8 @@ async function savePersona(e) {
         });
         const data = await res.json();
         if (data.status === 'success') {
-            showNotification('تم حفظ إعدادات الشخصية واللهجة المصرية بنجاح');
+            showNotification('تم حفظ إعدادات الشخصية والردود بنجاح');
+            setTimeout(() => window.location.reload(), 800);
         } else {
             showNotification(data.message || 'حدث خطأ في الحفظ', true);
         }

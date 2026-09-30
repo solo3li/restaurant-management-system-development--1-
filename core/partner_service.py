@@ -116,8 +116,47 @@ def get_profile(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/profiles/")
 
 
+def create_profile(client_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a new AI voice profile via POST /clients/{client_id}/profiles/"""
+    payload = {
+        "name": (data.get("name") or "مساعد صوتي جديد").strip(),
+        "voice_name": data.get("voice_name", "Aoede"),
+        "gender": data.get("gender", "female"),
+        "dialect": data.get("dialect", "egyptian"),
+        "persona_role": data.get("persona_role", "order_taker"),
+        "speaking_style": data.get("speaking_style", "friendly"),
+        "custom_instructions": (data.get("custom_instructions") or "").strip(),
+        "off_topic_response": (data.get("off_topic_response") or "").strip(),
+        "welcome_message": (data.get("welcome_message") or "").strip(),
+        "is_welcome_message_enabled": data.get("is_welcome_message_enabled", True),
+        "is_active": data.get("is_active", True),
+    }
+    if "verbosity" in data:
+        payload["verbosity"] = data["verbosity"]
+    res = _request(f"/clients/{client_id}/profiles/", method="POST", data=payload)
+    prof_id = (res.get("profile") or {}).get("id") or res.get("id")
+    if prof_id and payload.get("off_topic_response"):
+        try:
+            patch_res = update_profile(client_id, prof_id, {"off_topic_response": payload["off_topic_response"]})
+            if patch_res.get("status") == "success" and patch_res.get("profile"):
+                res["profile"] = patch_res["profile"]
+        except Exception:
+            pass
+    return res
+
+
 def update_profile(client_id: int, profile_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/profiles/{profile_id}/", method="PATCH", data=data)
+
+
+def activate_profile(client_id: int, profile_id: int) -> Dict[str, Any]:
+    """Activate a specific AI voice profile as current for the client."""
+    return _request(f"/clients/{client_id}/profiles/{profile_id}/", method="PATCH", data={"is_active": True})
+
+
+def delete_profile(client_id: int, profile_id: int) -> Dict[str, Any]:
+    """Delete an AI voice profile via DELETE /clients/{client_id}/profiles/{profile_id}/"""
+    return _request(f"/clients/{client_id}/profiles/{profile_id}/", method="DELETE")
 
 
 def get_business_hours(client_id: int) -> Dict[str, Any]:
