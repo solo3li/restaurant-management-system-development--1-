@@ -97,6 +97,24 @@
         background: linear-gradient(90deg, transparent, #D2AB6B, transparent);
     }
 
+    /* Continuous Architectural Cartouche Navbar (Zero Seams, Zero Gaps) */
+    .cartouche-bg {
+        background-image: url('{% static "img/navbar_cartouche_full.png" %}');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100% 100%;
+        filter: drop-shadow(0 14px 28px rgba(17, 66, 50, 0.35));
+    }
+    @supports (border-image-source: none) {
+        .cartouche-bg {
+            background-image: none;
+            border-style: solid;
+            border-width: 0 84px 0 84px;
+            border-image: url('{% static "img/navbar_cartouche_full.png" %}') 0 95 0 95 fill stretch;
+            box-sizing: border-box;
+        }
+    }
+
     /* Gold Pill Button matching mockup */
     .btn-gold-pill {
         background: linear-gradient(135deg, #E6C898 0%, #D2AB6B 50%, #B88B46 100%);
@@ -110,13 +128,6 @@
         background: linear-gradient(135deg, #F0D7AE 0%, #DCB779 50%, #C49852 100%);
         box-shadow: 0 6px 20px rgba(184, 139, 70, 0.45);
         transform: translateY(-1px);
-    }
-
-    /* Emerald Pill Header Container */
-    .header-emerald-pill {
-        background: linear-gradient(180deg, #165340 0%, #114232 100%);
-        border: 1.5px solid #D2AB6B;
-        box-shadow: 0 12px 35px -8px rgba(17, 66, 50, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
 
     /* Soundwave animation for AI simulator */
@@ -153,79 +164,44 @@
     </svg>
 
     <!-- ======================================================== -->
-    <!-- TOP NAVIGATION: EXACT CLASSIC CARTOUCHE (MATCHING PHOTO) -->
+    <!-- TOP NAVIGATION: SEAMLESS ARCHITECTURAL CARTOUCHE (MATCHING PHOTO) -->
     <!-- ======================================================== -->
-    <header class="sticky top-3 sm:top-5 z-50 px-2 sm:px-4 max-w-6xl mx-auto w-full">
-        <!-- Floating Architectural Cartouche Ribbon -->
-        <div class="classic-navbar-cartouche flex items-stretch h-[64px] relative select-none">
+    <header class="sticky top-3 sm:top-5 z-50 px-2 sm:px-6 max-w-6xl mx-auto w-full">
+        <!-- Main Cartouche Navigation Bar Container -->
+        <div class="relative h-[66px] w-full select-none">
             
-            <!-- Left Pointed Bracket Endcap with Gold Filigree (Exact from Mockup) -->
-            <div class="flex-shrink-0 h-[64px] w-[46px] relative overflow-hidden pointer-events-none">
-                <img src="{% static 'img/navbar_tip_left.png' %}" alt="" class="h-full w-full object-fill" />
-            </div>
+            <!-- Seamless Cartouche Background (Zero Seams, Zero Gaps, Mathematical Precision) -->
+            <div class="cartouche-bg absolute inset-0 pointer-events-none"></div>
 
-            <!-- Center Emerald Banner Body -->
-            <div class="flex-1 bg-[#155240] h-[64px] relative flex items-center justify-between px-2 sm:px-6">
+            <!-- Foreground Content: Navigation Links & Actions -->
+            <div class="relative z-10 w-full h-full flex items-center justify-between px-6 sm:px-12">
                 
-                <!-- Inner Gold Horizontal Pinstripes (Top and Bottom running between endcaps) -->
-                <div class="absolute top-[6px] left-0 right-0 h-[1.5px] bg-[#D2AB6B]/80 pointer-events-none"></div>
-                <div class="absolute bottom-[6px] left-0 right-0 h-[1.5px] bg-[#D2AB6B]/80 pointer-events-none"></div>
-
                 <!-- Navigation Links (Matching Exact Typography & Links in Reference) -->
-                <nav class="flex items-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-[14px] font-medium tracking-wide relative z-10 font-serif">
-                    <a href="#hero" class="nav-link-active text-[#D2AB6B] font-bold border-b-2 border-[#D2AB6B] pb-0.5 transition" data-i18n="nav_home">Home</a>
-                    <a href="#heritage" class="nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_heritage">Culinary Heritage</a>
-                    <a href="#systems" class="hidden md:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_systems">Restaurant Network</a>
-                    <a href="#systems" class="hidden sm:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_services">Services</a>
-                    <a href="#about" class="hidden lg:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_about">About Us</a>
-                    <a href="#contact" class="hidden sm:inline-block nav-link text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_contact">Contact</a>
+                <nav class="flex items-center gap-3 sm:gap-6 md:gap-8 text-xs sm:text-[14px] font-medium tracking-wide font-serif">
+                    <a href="#hero" class="text-[#D2AB6B] font-bold border-b border-[#D2AB6B] pb-0.5 transition" data-i18n="nav_home">الرئيسية</a>
+                    <a href="#heritage" class="text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_heritage">التراث المطبخي</a>
+                    <a href="#systems" class="hidden md:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_systems">شبكة المطاعم</a>
+                    <a href="#systems" class="hidden sm:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_services">الخدمات</a>
+                    <a href="#about" class="hidden lg:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_about">من نحن</a>
+                    <a href="#contact" class="hidden sm:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_contact">تواصل معنا</a>
                 </nav>
 
-                <!-- Actions: Language Toggle & Exact Gold Cartouche Button ("ابدأ الآن") -->
-                <div class="flex items-center gap-2.5 sm:gap-4 relative z-10">
+                <!-- Actions: Language Toggle & Authentic Gold Plaque CTA Button -->
+                <div class="flex items-center gap-2.5 sm:gap-4">
                     
-                    <!-- Language Switcher Pill Button -->
-                    <button id="lang-toggle-btn" onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-[#D2AB6B]/60 bg-[#0B2920]/80 hover:bg-[#0B2920] text-xs font-bold text-[#E8D3B0] transition flex items-center gap-1.5 shadow-inner" title="Switch Language / تغيير اللغة">
+                    <!-- Discreet Language Switcher Pill -->
+                    <button id="lang-toggle-btn" onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-[#D2AB6B]/40 bg-[#0B2E24]/60 hover:bg-[#0B2E24] text-xs font-bold text-[#EAD8B8] hover:text-white transition flex items-center gap-1 shadow-inner cursor-pointer" title="تغيير اللغة / Switch Language">
                         <span class="text-xs">🌐</span>
                         <span id="lang-label" class="tracking-wider">English</span>
                     </button>
 
-                    <!-- Login Link -->
-                    <a href="{% url 'login' %}" class="hidden xl:inline-block text-xs font-bold text-[#EAE5DB] hover:text-[#D2AB6B] transition" data-i18n="nav_login">
-                        تسجيل الدخول
-                    </a>
-
-                    <!-- The Exact Gold Cartouche Plaque Button with Pointed Bracket Notches -->
-                    <a href="{% url 'login' %}" class="classic-gold-cartouche-btn group relative flex items-center justify-center px-6 sm:px-8 h-[44px]">
-                        <!-- Gold Cartouche SVG Background -->
-                        <svg class="absolute inset-0 w-full h-full pointer-events-none drop-shadow-md" viewBox="0 0 140 44" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="goldPlaqueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#F4DC9E"/>
-                                    <stop offset="48%" stop-color="#D4A759"/>
-                                    <stop offset="100%" stop-color="#BA8B42"/>
-                                </linearGradient>
-                            </defs>
-                            <!-- Pointed bracket notches at both sides matching navbar_btn_gold.png -->
-                            <path d="M 16,1 L 124,1 C 130,1 133,5 133,12 C 133,16 137,19 140,22 C 137,25 133,28 133,32 C 133,39 130,43 124,43 L 16,43 C 10,43 7,39 7,32 C 7,28 3,25 0,22 C 3,19 7,16 7,12 C 7,5 10,1 16,1 Z" 
-                                  fill="url(#goldPlaqueGrad)" 
-                                  stroke="#FFF1D6" 
-                                  stroke-width="1.2"/>
-                        </svg>
-
-                        <!-- Calligraphic Gold Button Text (Exact Arabic "ابدأ الآن" from image) -->
-                        <span class="relative z-10 font-headline text-sm sm:text-base font-black text-[#1E130D] tracking-tight group-hover:scale-105 transition-transform" data-i18n="nav_cta">
-                            ابدأ الآن
-                        </span>
+                    <!-- Exact Royal Gold Cartouche Plaque Button matching Mockup -->
+                    <a href="{% url 'login' %}" class="inline-flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 drop-shadow-md cursor-pointer group" title="ابدأ الآن">
+                        <img id="nav-cta-img" src="{% static 'img/btn_plaque_arabic.png' %}" alt="ابدأ الآن" class="h-[42px] sm:h-[45px] w-auto drop-shadow-sm select-none" />
                     </a>
 
                 </div>
 
-            </div>
-
-            <!-- Right Pointed Bracket Endcap with Gold Filigree (Exact from Mockup) -->
-            <div class="flex-shrink-0 h-[64px] w-[46px] relative overflow-hidden pointer-events-none">
-                <img src="{% static 'img/navbar_tip_right_clean.png' %}" alt="" class="h-full w-full object-fill" />
             </div>
 
         </div>
@@ -1175,12 +1151,23 @@
             }
         });
 
-        // Update Button Labels
+        // Update Button Labels & Nav CTA Plaque
         const langLabel = document.getElementById('lang-label');
         if (langLabel) langLabel.innerText = I18N[lang].lang_button;
 
         const footerLangLabel = document.getElementById('footer-lang-label');
         if (footerLangLabel) footerLangLabel.innerText = I18N[lang].footer_lang;
+
+        const navCtaImg = document.getElementById('nav-cta-img');
+        if (navCtaImg) {
+            if (isAr) {
+                navCtaImg.src = "{% static 'img/btn_plaque_arabic.png' %}";
+                navCtaImg.alt = "ابدأ الآن";
+            } else {
+                navCtaImg.src = "{% static 'img/btn_plaque_english.png' %}";
+                navCtaImg.alt = "Start Now";
+            }
+        }
     }
 
     // Toggle Language
