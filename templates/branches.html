@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}إدارة الفروع ونطاقات التوصيل — مطاعم ضيافة{% endblock %}
+{% block title %}{{ t.branch_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block extra_head %}
 <!-- Leaflet CSS & JS for Interactive Map and Polygon Geofencing -->
@@ -36,16 +36,16 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </span>
-                فروع السلسلة ونطاقات التوصيل
+                {{ t.branch_title }}
             </h1>
-            <p class="text-xs font-semibold text-[#666666] mt-1">تحديد مواقع الفروع، رسم زون التوصيل الجغرافي، وإدارة الأحياء والكمبوندات التابعة لكل فرع</p>
+            <p class="text-xs font-semibold text-[#666666] mt-1">{{ t.branch_subtitle }}</p>
         </div>
         <div>
             <button onclick="openAddBranchModal()" class="btn-gold-pill flex items-center gap-2 text-xs font-bold py-2.5 px-5 shadow-sm">
                 <svg class="w-4 h-4 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
-                افتتاح فرع وتحديد النطاق
+                + {{ t.create }}
             </button>
         </div>
     </div>

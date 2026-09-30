@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}سجل كل الطلبات — الإدارة العامة (HQ){% endblock %}
+{% block title %}{{ t.hq_orders_title|default:"سجل كل الطلبات — الإدارة العامة (HQ)" }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6 font-body">
@@ -8,11 +8,11 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <div class="flex items-center gap-2">
-                <span class="rounded-lg bg-[#0E382A] border border-[#D2AB6B]/40 px-2.5 py-1 text-xs font-bold text-[#E6C898]">HQ • الإدارة العامة</span>
-                <h1 class="text-2xl font-bold font-royal text-ink">سجل كافة طلبات وفواتير الفروع</h1>
+                <span class="rounded-lg bg-[#0E382A] border border-[#D2AB6B]/40 px-2.5 py-1 text-xs font-bold text-[#E6C898]">{% if IS_RTL %}HQ • الإدارة العامة{% else %}HQ • Central Operations{% endif %}</span>
+                <h1 class="text-2xl font-bold font-royal text-ink">{{ t.hq_orders_heading|default:"سجل كافة طلبات وفواتير الفروع" }}</h1>
             </div>
             <p class="text-xs font-bold text-soft mt-1">
-                متابعة مركزية فورية لجميع المعاملات، الفواتير، وحالات الطلبات عبر كل فروع المنشأة
+                {{ t.hq_orders_subtitle|default:"متابعة مركزية فورية لجميع المعاملات، الفواتير، وحالات الطلبات عبر كل فروع المنشأة" }}
             </p>
         </div>
         <div class="flex items-center gap-2">
@@ -664,7 +664,7 @@
 
         const printWin = window.open('', '', 'width=450,height=600');
         printWin.document.write(`
-            <html dir="rtl">
+            <html dir="${document.documentElement.getAttribute('dir') || 'rtl'}">
             <head>
                 <title>فاتورة ${o.order_number}</title>
                 <style>

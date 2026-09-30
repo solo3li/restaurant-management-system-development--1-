@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}إدارة التوصيل — مطاعم ضيافة{% endblock %}
+{% block title %}{{ t.deliv_title|default:"إدارة التوصيل — مطاعم ضيافة" }}{% endblock %}
 
 {% block content %}
 <div class="space-y-5 font-body">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">إدارة وتوزيع طلبات التوصيل</h1>
-            <p class="text-xs font-bold text-soft mt-1">متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين</p>
+            <h1 class="text-2xl font-bold font-royal text-ink">{{ t.deliv_heading|default:"إدارة وتوزيع طلبات التوصيل" }}</h1>
+            <p class="text-xs font-bold text-soft mt-1">{{ t.deliv_subtitle|default:"متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين" }}</p>
         </div>
         <div class="flex items-center gap-2">
             <span class="inline-flex items-center gap-2 rounded-xl bg-brand-100/70 border border-[#D2AB6B]/40 px-3.5 py-1.5 text-xs font-bold text-brand-800 shadow-2xs">
                 <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span>{{ active_count }} طلب قيد المتابعة والتوصيل</span>
+                <span>{{ active_count }} {% if IS_RTL %}طلب قيد المتابعة والتوصيل{% else %}Orders in Tracking & Dispatch{% endif %}</span>
             </span>
         </div>
     </div>

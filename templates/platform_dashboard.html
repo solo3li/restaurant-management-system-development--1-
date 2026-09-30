@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة إدارة المنصة العامة (SaaS Platform) — إدارة المطاعم والباقات{% endblock %}
+{% block title %}{{ t.plat_title|default:"لوحة إدارة المنصة العامة (SaaS Platform) — إدارة المطاعم والباقات" }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -15,13 +15,13 @@
                 </span>
                 <div>
                     <div class="flex items-center gap-2.5">
-                        <h1 class="text-xl font-bold font-royal text-[#E6C898]">إدارة منصة المطاعم السحابية (SaaS Admin)</h1>
+                        <h1 class="text-xl font-bold font-royal text-[#E6C898]">{{ t.plat_title|default:"إدارة منصة المطاعم السحابية (SaaS Admin)" }}</h1>
                         <span class="rounded-full bg-[#0E382A]/80 border border-[#D2AB6B]/60 px-3 py-0.5 text-[10px] font-bold text-[#D2AB6B]">
                             Super Admin
                         </span>
                     </div>
                     <p class="text-xs text-[#F9F6F0]/80 mt-1">
-                        إدارة باقات وخطط الاشتراك، ومتابعة حدود المنشآت والمطاعم وصلاحية تشغيلها
+                        {{ t.plat_subtitle|default:"إدارة باقات وخطط الاشتراك، ومتابعة حدود المنشآت والمطاعم وصلاحية تشغيلها" }}
                     </p>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}الموظفون — إدارة الكادر والمسميات الوظيفية والصلاحيات{% endblock %}
+{% block title %}{{ t.emp_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -13,10 +13,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                 </span>
-                فريق العمل والموظفون
+                {{ t.emp_title }}
             </h1>
             <p class="text-xs font-semibold text-[#666666] mt-1">
-                إدارة الكادر التشغيلي، المسميات الوظيفية، مصفوفة الصلاحيات الشاملة، والرواتب
+                {{ t.emp_subtitle }}
             </p>
         </div>
         <div class="flex items-center gap-2.5">
@@ -24,13 +24,13 @@
                 <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
-                إدارة المسميات والصلاحيات
+                {{ t.emp_manage_roles|default:"إدارة المسميات والصلاحيات" }}
             </button>
             <button onclick="openAddEmpModal()" class="btn-gold-pill flex items-center gap-2 text-xs font-bold py-2.5 px-5 shadow-sm">
                 <svg class="w-4 h-4 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
-                إضافة موظف جديد
+                + {{ t.create }}
             </button>
         </div>
     </div>

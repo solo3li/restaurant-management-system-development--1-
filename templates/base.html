@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="{{ CURRENT_LANG|default:'ar' }}" dir="{{ DIR|default:'rtl' }}">
 <head>
@@ -1203,6 +1204,8 @@
             }
         });
     </script>
+    <!-- Diyafa Master Bilingual Translation Engine (100% Arabic & English across all views) -->
+    <script src="{% static 'js/diyafa_i18n_engine.js' %}"></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

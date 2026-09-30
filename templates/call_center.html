@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}الكول سنتر — مطاعم ضيافة{% endblock %}
+{% block title %}{{ t.cc_title|default:"الكول سنتر — مطاعم ضيافة" }}{% endblock %}
 
 {% block content %}
 <div class="space-y-5 font-body">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">الكول سنتر وخدمة العملاء</h1>
-            <p class="text-xs font-bold text-soft mt-1">استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل</p>
+            <h1 class="text-2xl font-bold font-royal text-ink">{{ t.cc_heading|default:"الكول سنتر وخدمة العملاء" }}</h1>
+            <p class="text-xs font-bold text-soft mt-1">{{ t.cc_subtitle|default:"استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل" }}</p>
         </div>
         <div>
             <span class="inline-flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs">
                 <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>الخطوط جاهزة لاستقبال الاتصالات</span>
+                <span>{{ t.cc_lines_ready|default:"الخطوط جاهزة لاستقبال الاتصالات" }}</span>
             </span>
         </div>
     </div>

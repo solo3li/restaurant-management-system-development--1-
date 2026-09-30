@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}شاشة المطبخ (KDS) — مطاعم ضيافة{% endblock %}
+{% block title %}{{ t.kds_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -15,14 +15,14 @@
                 </span>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-xl sm:text-2xl font-bold font-royal text-white tracking-wide">شاشة تحضير المطبخ (KDS)</h1>
+                        <h1 class="text-xl sm:text-2xl font-bold font-royal text-white tracking-wide">{{ t.kds_title }}</h1>
                         <span class="rounded-full bg-[#D2AB6B]/20 border border-[#D2AB6B]/40 px-3 py-0.5 text-xs font-bold text-[#E6C898] font-body">
-                            {{ total_pending }} طلب قيد الإعداد
+                            {{ total_pending }} {% if IS_RTL %}طلب قيد الإعداد{% else %}Active Orders{% endif %}
                         </span>
                     </div>
                     <p class="text-xs text-[#E2D9CE]/80 mt-1 flex items-center gap-1 font-body">
                         <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <span>{% if branch %}{{ branch.name }}{% else %}كل الفروع{% endif %}</span>
+                        <span>{% if branch %}{{ branch.name }}{% else %}{{ t.all_branches_label }}{% endif %}</span>
                         <span>• متابعة مباشرة لأوامر الطهي والتجهيز</span>
                     </p>
                 </div>

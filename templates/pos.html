@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}الكاشير ونقاط البيع — مطاعم ضيافة{% endblock %}
+{% block title %}{{ t.pos_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
 <div class="space-y-5">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">الكاشير — نقطة البيع الذكية</h1>
-            <p class="text-xs font-bold text-soft mt-1 font-body">تسجيل الطلبات، إصدار الفواتير الفورية، والتحصيل المباشر</p>
+            <h1 class="text-2xl font-bold font-royal text-ink">{{ t.pos_title }}</h1>
+            <p class="text-xs font-bold text-soft mt-1 font-body">{{ t.pos_subtitle }}</p>
         </div>
         <div>
             <button onclick="openMenuManager()" class="inline-flex items-center gap-2 rounded-xl border border-line bg-card px-4 py-2 text-xs font-bold text-ink shadow-sm hover:border-[#D2AB6B] transition font-body">
                 <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                <span>إدارة أصناف القائمة</span>
+                <span>{{ t.pos_manage_menu }}</span>
             </button>
         </div>
     </div>
@@ -37,14 +37,14 @@
                     {% endfor %}
                 </div>
                 <div class="relative w-full sm:w-64">
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-soft pointer-events-none">
+                    <span class="absolute {% if IS_RTL %}right-3{% else %}left-3{% endif %} top-1/2 -translate-y-1/2 text-xs text-soft pointer-events-none">
                         <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </span>
                     <input 
                         type="text" 
                         id="menu-search" 
-                        placeholder="ابحث عن وجبة أو مشروب…" 
-                        class="input pr-9 text-xs"
+                        placeholder="{{ t.pos_search_ph }}" 
+                        class="input {% if IS_RTL %}pr-9{% else %}pl-9{% endif %} text-xs"
                         oninput="filterMenu()"
                     >
                 </div>

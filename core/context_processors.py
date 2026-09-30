@@ -129,9 +129,11 @@ def i18n_context(request):
     if lang not in ["ar", "en"]:
         lang = "ar"
 
+    from .i18n_catalog import I18N_CATALOG
+
     is_rtl = (lang == "ar")
 
-    t = {
+    base_t = {
         # App & Brand
         "app_title": "نظام مطاعم ضيافة" if is_rtl else "Diyafa Restaurant Management",
         "brand_name": "ضِيَافَة" if is_rtl else "DIYAFA",
@@ -229,7 +231,81 @@ def i18n_context(request):
         "language_english": "English",
         "switch_to_arabic": "التبديل إلى العربية",
         "switch_to_english": "Switch to English",
+
+        # Operational Domains
+        "dash_command_center": "مركز القيادة والعمليات" if is_rtl else "Command & Operations Center",
+        "dash_subtitle": "متابعة حية للتدفق المالي، توزيع الطلبات، أداء الفروع، وكول سنتر الذكاء الاصطناعي في شاشة موحدة." if is_rtl else "Live monitoring of cash flow, order distribution, branch performance, and AI Call Center.",
+        "dash_unified_system": "النظام الموحد للإدارة العليا" if is_rtl else "Unified Executive Management System",
+        "dash_live_monitoring": "متابعة فورية ومباشرة لكافة الفروع" if is_rtl else "Live Real-Time Monitoring of All Branches",
+        "dash_chain_sales_today": "إجمالي مبيعات السلسلة اليوم" if is_rtl else "Total Chain Revenue Today",
+        "dash_net_revenue": "صافي الإيراد المحصل" if is_rtl else "Net Collected Revenue",
+        "dash_completed_orders": "عدد الطلبات المكتملة" if is_rtl else "Completed Orders Count",
+        "dash_active_orders": "الطلبات النشطة حالياً" if is_rtl else "Currently Active Orders",
+        "dash_branches_performance": "أداء الفروع المباشر" if is_rtl else "Live Branch Performance",
+        "dash_sales_by_channel": "توزيع المبيعات حسب القنوات" if is_rtl else "Sales Distribution by Channel",
+        "dash_top_dishes": "أكثر الأطباق طلباً بالسلسلة" if is_rtl else "Top Selling Dishes Across Chain",
+        "dash_sales_last_7_days": "مبيعات آخر 7 أيام" if is_rtl else "Sales - Last 7 Days",
+
+        "pos_title": "الكاشير — نقطة البيع الذكية" if is_rtl else "Smart Cashier & POS Terminal",
+        "pos_subtitle": "تسجيل الطلبات، إصدار الفواتير الفورية، والتحصيل المباشر" if is_rtl else "Fast order entry, instant receipt printing, and live checkout",
+        "pos_manage_menu": "إدارة أصناف القائمة" if is_rtl else "Manage Menu Items",
+        "pos_search_ph": "ابحث عن وجبة أو مشروب…" if is_rtl else "Search meal or beverage…",
+        "pos_cart_details": "تفاصيل الفاتورة والحساب" if is_rtl else "Invoice & Bill Details",
+        "pos_checkout_btn": "إتمام الطلب والدفع" if is_rtl else "Complete Order & Checkout",
+
+        "kds_title": "شاشات المطبخ الذكية (KDS)" if is_rtl else "Smart Kitchen Display System (KDS)",
+        "kds_subtitle": "تتبع فوري لأوامر الطهي والتحضير بالمطابخ والأقسام" if is_rtl else "Real-time kitchen order tickets, timers, and cooking workflow",
+
+        "branch_title": "إدارة الفروع والمواقع" if is_rtl else "Manage Branches & Locations",
+        "branch_subtitle": "شبكة الفروع والمواقع التشغيلية" if is_rtl else "Operational Branches & Locations Network",
+
+        "inv_title": "المستودعات والمخزون" if is_rtl else "Inventory & Warehouses",
+        "inv_subtitle": "إدارة المخزون والمستودعات" if is_rtl else "Inventory & Stock Management",
+
+        "emp_title": "الموظفون والرواتب" if is_rtl else "Staff & Payroll",
+        "emp_subtitle": "إدارة الكادر والمسميات الوظيفية والصلاحيات" if is_rtl else "Manage Staff, Job Roles & Permissions",
+
+        "sub_title": "الاشتراك والتقارير المالية" if is_rtl else "Subscription & Financial Reports",
+        "sub_subtitle": "إدارة الاشتراك واستهلاك الحساب" if is_rtl else "Manage Subscription & Account Consumption",
+
+        "plat_title": "لوحة الإدارة المركزية للمنصة (SaaS Superadmin)" if is_rtl else "SaaS Platform Central Management",
+        "plat_subtitle": "إدارة المطاعم المشتركة، الباقات والاشتراكات، والتحكم بالمنظومة" if is_rtl else "Manage subscribed restaurants, plans & subscriptions, and platform controls",
+
+        "cc_title": "الكول سنتر — مطاعم ضيافة" if is_rtl else "Call Center — Diyafa Dining",
+        "cc_heading": "الكول سنتر وخدمة العملاء" if is_rtl else "Call Center & Customer Care",
+        "cc_subtitle": "استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل" if is_rtl else "Incoming customer calls, rapid customer lookup, and delivery order dispatch",
+        "cc_lines_ready": "الخطوط جاهزة لاستقبال الاتصالات" if is_rtl else "Lines Ready for Inbound Calls",
+
+        "deliv_title": "إدارة التوصيل — مطاعم ضيافة" if is_rtl else "Delivery Fleet — Diyafa Dining",
+        "deliv_heading": "إدارة وتوزيع طلبات التوصيل" if is_rtl else "Delivery Dispatch & Fleet Management",
+        "deliv_subtitle": "متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين" if is_rtl else "Step-by-step order tracking and live driver fleet dispatching",
+
+        "hq_orders_title": "سجل كافة الطلبات والفواتير — الإدارة العامة" if is_rtl else "Chain Orders & Invoices — Central HQ",
+        "hq_orders_heading": "سجل كافة الطلبات والفواتير الموحد" if is_rtl else "Unified Orders & Invoices Record",
+        "hq_orders_subtitle": "متابعة مباشرة لتدفق طلبات وفواتير كافة الفروع في شاشة واحدة" if is_rtl else "Live monitoring of incoming orders and bills across all branches in one screen",
     }
+
+    # Safe lookup dictionary that provides translations for any string
+    class SafeI18nDict(dict):
+        def __init__(self, data, rtl):
+            super().__init__(data)
+            self._is_rtl = rtl
+
+        def __getitem__(self, key):
+            if key in self:
+                return super().__getitem__(key)
+            if self._is_rtl:
+                return key
+            return I18N_CATALOG.get(key, key)
+
+        def get(self, key, default=None):
+            if key in self:
+                return super().get(key, default)
+            if self._is_rtl:
+                return key
+            return I18N_CATALOG.get(key, default if default is not None else key)
+
+    t = SafeI18nDict(base_t, is_rtl)
 
     return {
         "CURRENT_LANG": lang,

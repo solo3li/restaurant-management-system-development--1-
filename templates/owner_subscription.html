@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}إدارة الاشتراك واستهلاك الحساب — {{ tenant.name }}{% endblock %}
+{% block title %}{{ t.sub_title }} — {{ tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="space-y-7 pb-12" dir="rtl">
+<div class="space-y-7 pb-12" dir="{{ DIR|default:'rtl' }}">
 
     <!-- ========================================== -->
     <!-- HEADER & BREADCRUMB                        -->
