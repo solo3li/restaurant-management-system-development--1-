@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ t.deliv_title|default:"إدارة التوصيل — مطاعم ضيافة" }}{% endblock %}
+{% block title %}{{ t.deliv_title|default:"إدارة التوصيل — منظومة كُـورَا" }}{% endblock %}
 
 {% block content %}
 <div class="space-y-5 font-body">
@@ -19,11 +19,11 @@
     </div>
 
     <!-- Board & Drivers Layout -->
-    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_300px]">
-        <!-- Kanban Delivery Columns -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_300px]">
+        <!-- Kanban Delivery Columns (Horizontal Snap-Scroll on Mobile, Grid on Tablet/Desktop) -->
+        <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:pb-0 sm:overflow-visible">
             <!-- 1. New (جديد) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
                 <div class="flex items-center justify-between border-b-2 border-info-600 bg-card px-3 py-2.5 rounded-t-xl">
                     <span class="text-xs font-black font-display text-ink">1. جديد</span>
                     <span class="rounded-full bg-info-100 px-2 py-0.5 text-[11px] font-bold text-info-700">{{ orders_by_status.new|length }}</span>
@@ -38,7 +38,7 @@
             </div>
 
             <!-- 2. Preparing (قيد التحضير) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
                 <div class="flex items-center justify-between border-b-2 border-warn-600 bg-card px-3 py-2.5 rounded-t-xl">
                     <span class="text-xs font-black font-display text-ink">2. قيد التحضير</span>
                     <span class="rounded-full bg-warn-100 px-2 py-0.5 text-[11px] font-bold text-warn-700">{{ orders_by_status.preparing|length }}</span>
@@ -53,7 +53,7 @@
             </div>
 
             <!-- 3. Ready (جاهز للتسليم) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
                 <div class="flex items-center justify-between border-b-2 border-good-600 bg-card px-3 py-2.5 rounded-t-xl">
                     <span class="text-xs font-black font-display text-ink">3. جاهز للتسليم</span>
                     <span class="rounded-full bg-good-100 px-2 py-0.5 text-[11px] font-bold text-good-700">{{ orders_by_status.ready|length }}</span>
@@ -68,7 +68,7 @@
             </div>
 
             <!-- 4. Out for delivery (في الطريق) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
                 <div class="flex items-center justify-between border-b-2 border-brand-600 bg-card px-3 py-2.5 rounded-t-xl">
                     <span class="text-xs font-black font-display text-ink">4. في الطريق</span>
                     <span class="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">{{ orders_by_status.out_for_delivery|length }}</span>
@@ -83,7 +83,7 @@
             </div>
 
             <!-- 5. Delivered (تم التسليم) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px]">
+            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
                 <div class="flex items-center justify-between border-b-2 border-night bg-card px-3 py-2.5 rounded-t-xl">
                     <span class="text-xs font-black font-display text-ink">5. تم التسليم</span>
                     <span class="rounded-full bg-night-2 text-gold-300 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.delivered|length }}</span>

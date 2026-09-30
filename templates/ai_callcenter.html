@@ -19,7 +19,7 @@
                     HQ • كول سنتر الذكاء الاصطناعي 24/7
                 </span>
                 <span class="text-xs text-[#E2D9CE]/70 hidden sm:inline">|</span>
-                <span class="text-xs text-[#E2D9CE]/80 font-bold hidden sm:inline">{{ tenant.name|default:"مطاعم ضيافة" }}</span>
+                <span class="text-xs text-[#E2D9CE]/80 font-bold hidden sm:inline">{{ tenant.name|default:"منظومة كورا" }}</span>
             </div>
             <h1 class="text-xl sm:text-2xl font-black font-display text-white tracking-wide flex items-center gap-3">
                 <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-xl border border-white/15 text-[#D2AB6B]"><svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg></span>
@@ -162,7 +162,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                     <label class="block text-xs font-black text-ink mb-1.5">اسم المساعد الصوتي</label>
-                    <input type="text" name="name" value="{{ profile.name|default:'كول سنتر مطاعم ضيافة' }}" required class="input">
+                    <input type="text" name="name" value="{{ profile.name|default:'كول سنتر منظومة كورا' }}" required class="input">
                 </div>
 
                 <div>
@@ -223,7 +223,7 @@
                     name="welcome_message" 
                     rows="2" 
                     class="input font-bold text-brand-900 bg-brand-50/20"
-                >{{ profile.welcome_message|default:"أهلاً بحضرتك في مطاعم ضيافة! معاك خدمة العملاء لتسجيل طلبك، تؤمر بإيه النهارده يا فندم؟" }}</textarea>
+                >{{ profile.welcome_message|default:"أهلاً بحضرتك في مطاعم كورا! معاك خدمة العملاء لتسجيل طلبك، تؤمر بإيه النهارده يا فندم؟" }}</textarea>
                 <p class="text-[11px] text-soft mt-1">هذه أول جملة ينطقها المساعد الصوتي فور رد السنترال على العميل لبدء استقبال طلبه.</p>
             </div>
 
@@ -236,7 +236,7 @@
                     name="custom_instructions" 
                     rows="4" 
                     class="input text-xs font-mono"
-                >{{ profile.custom_instructions|default:"أنت موظف كول سنتر واستقبال طلبات ذكي في مطاعم ضيافة. تتحدث باللهجة المصرية العامية اللبقة والمهذبة (مثال: أهلاً بحضرتك يا فندم، تؤمر بأيه النهارده؟، حاضر من عينينا). تستخدم أدوات FastMCP المتاحة للبحث عن بيانات العميل وعناوينه وتوفر الأصناف وضرب الأوردر فوراً في النظام." }}</textarea>
+                >{{ profile.custom_instructions|default:"أنت موظف كول سنتر واستقبال طلبات ذكي في مطاعم كورا. تتحدث باللهجة المصرية العامية اللبقة والمهذبة (مثال: أهلاً بحضرتك يا فندم، تؤمر بأيه النهارده؟، حاضر من عينينا). تستخدم أدوات FastMCP المتاحة للبحث عن بيانات العميل وعناوينه وتوفر الأصناف وضرب الأوردر فوراً في النظام." }}</textarea>
                 <p class="text-[11px] text-soft mt-1">
                     يمكنك إضافة ملاحظات يومية هنا مثل: "عرض اليوم: كبسة اللحم مع بيبسي مجاناً"، "الشاورما غير متوفرة اليوم"، أو "التوصيل مجاني للطلبات فوق 150 ريال".
                 </p>
@@ -278,7 +278,7 @@
                     name="ai_message" 
                     rows="2" 
                     class="input bg-white font-bold text-xs"
-                >{{ hours.ai_message|default:"مرحباً بك، نتأسف لاتصالك خارج أوقات العمل الرسمية لمطاعم ضيافة. نسعد بتواصلك معنا مجدداً يومياً من 12 ظهراً وحتى 1 صباحاً." }}</textarea>
+                >{{ hours.ai_message|default:"مرحباً بك، نتأسف لاتصالك خارج أوقات العمل الرسمية لمطاعم كورا. نسعد بتواصلك معنا مجدداً يومياً من 12 ظهراً وحتى 1 صباحاً." }}</textarea>
                 <p class="text-[10.5px] text-amber-800">
                     يقوم المساعد بنطق هذه الرسالة بصوت ودود ثم إنهاء المكالمة لعدم استنزاف دقائق بلا جدوى.
                 </p>

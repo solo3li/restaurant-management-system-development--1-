@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}ضيافة | Diyafa — المنظومة السحابية لإدارة المطاعم وتراث الضيافة الأصيلة{% endblock %}
+{% block title %}كُـورَا | KURA — المنظومة السحابية لإدارة سلاسل المطاعم والضيافة العريقة{% endblock %}
 
 {% block unauth_content %}
 <!-- Google Fonts: Classical Arabic & English Luxury Typography -->
@@ -164,30 +164,44 @@
     </svg>
 
     <!-- ======================================================== -->
-    <!-- TOP NAVIGATION: SEAMLESS ARCHITECTURAL CARTOUCHE (MATCHING PHOTO) -->
+    <!-- TOP NAVIGATION: SEAMLESS ARCHITECTURAL CARTOUCHE          -->
     <!-- ======================================================== -->
-    <header class="sticky top-3 sm:top-5 z-50 px-2 sm:px-6 max-w-6xl mx-auto w-full">
+    <header class="sticky top-2 sm:top-5 z-50 px-2 sm:px-6 max-w-6xl mx-auto w-full">
         <!-- Main Cartouche Navigation Bar Container -->
-        <div class="relative h-[66px] w-full select-none">
+        <div class="relative h-[60px] sm:h-[66px] w-full select-none">
             
-            <!-- Seamless Cartouche Background (Zero Seams, Zero Gaps, Mathematical Precision) -->
+            <!-- Seamless Cartouche Background -->
             <div class="cartouche-bg absolute inset-0 pointer-events-none"></div>
 
             <!-- Foreground Content: Navigation Links & Actions -->
-            <div class="relative z-10 w-full h-full flex items-center justify-between px-6 sm:px-12">
+            <div class="relative z-10 w-full h-full flex items-center justify-between px-3 sm:px-8 md:px-12">
                 
-                <!-- Navigation Links (Matching Exact Typography & Links in Reference) -->
-                <nav class="flex items-center gap-3 sm:gap-6 md:gap-8 text-xs sm:text-[14px] font-medium tracking-wide font-serif">
-                    <a href="#hero" class="text-[#D2AB6B] font-bold border-b border-[#D2AB6B] pb-0.5 transition" data-i18n="nav_home">الرئيسية</a>
-                    <a href="#heritage" class="text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_heritage">التراث المطبخي</a>
-                    <a href="#systems" class="hidden md:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_systems">شبكة المطاعم</a>
-                    <a href="#systems" class="hidden sm:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_services">الخدمات</a>
-                    <a href="#about" class="hidden lg:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_about">من نحن</a>
-                    <a href="#contact" class="hidden sm:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_contact">تواصل معنا</a>
-                </nav>
+                <!-- Start: Mobile Menu Toggle Button (on small screens) + Desktop Links -->
+                <div class="flex items-center gap-2">
+                    <button 
+                        type="button" 
+                        onclick="toggleLandingMobileMenu(true)" 
+                        id="landing-menu-toggle"
+                        class="md:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-[#0B2E24]/80 text-[#D2AB6B] border border-[#D2AB6B]/40 shadow-xs hover:bg-[#0E382A] transition cursor-pointer"
+                        title="القائمة / Menu"
+                        aria-label="Open Mobile Menu"
+                    >
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    </button>
+
+                    <!-- Navigation Links (Desktop & Tablet) -->
+                    <nav class="hidden md:flex items-center gap-4 lg:gap-7 text-xs sm:text-[14px] font-medium tracking-wide font-serif">
+                        <a href="#hero" class="text-[#D2AB6B] font-bold border-b border-[#D2AB6B] pb-0.5 transition" data-i18n="nav_home">الرئيسية</a>
+                        <a href="#heritage" class="text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_heritage">التراث المطبخي</a>
+                        <a href="#systems" class="text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_systems">شبكة المطاعم</a>
+                        <a href="#systems" class="hidden lg:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_services">الخدمات</a>
+                        <a href="#pricing" class="text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_pricing">الأسعار</a>
+                        <a href="#contact" class="hidden lg:inline-block text-[#EAE5DB] hover:text-[#D2AB6B] transition py-1" data-i18n="nav_contact">تواصل معنا</a>
+                    </nav>
+                </div>
 
                 <!-- Actions: Language Toggle & Authentic Gold Plaque CTA Button -->
-                <div class="flex items-center gap-2.5 sm:gap-4">
+                <div class="flex items-center gap-1.5 sm:gap-3">
                     
                     <!-- Discreet Language Switcher Pill -->
                     <button id="lang-toggle-btn" onclick="toggleLanguage()" class="px-2.5 py-1 rounded-full border border-[#D2AB6B]/40 bg-[#0B2E24]/60 hover:bg-[#0B2E24] text-xs font-bold text-[#EAD8B8] hover:text-white transition flex items-center gap-1.5 shadow-inner cursor-pointer" title="تغيير اللغة / Switch Language">
@@ -197,7 +211,7 @@
 
                     <!-- Exact Royal Gold Cartouche Plaque Button matching Mockup -->
                     <a href="{% url 'login' %}" class="inline-flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 drop-shadow-md cursor-pointer group" title="ابدأ الآن">
-                        <img id="nav-cta-img" src="{% static 'img/btn_plaque_arabic.png' %}" alt="ابدأ الآن" class="h-[42px] sm:h-[45px] w-auto drop-shadow-sm select-none" />
+                        <img id="nav-cta-img" src="{% static 'img/btn_plaque_arabic.png' %}" alt="ابدأ الآن" class="h-[36px] sm:h-[45px] w-auto drop-shadow-sm select-none" />
                     </a>
 
                 </div>
@@ -206,6 +220,67 @@
 
         </div>
     </header>
+
+    <!-- ======================================================== -->
+    <!-- LANDING MOBILE SLIDE-OUT DRAWER                           -->
+    <!-- ======================================================== -->
+    <div id="landing-drawer-backdrop" onclick="toggleLandingMobileMenu(false)" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs transition-opacity duration-300"></div>
+
+    <aside id="landing-mobile-drawer" class="fixed inset-y-0 {% if IS_RTL %}right-0 translate-x-full border-l{% else %}left-0 -translate-x-full border-r{% endif %} z-50 w-72 max-w-[85vw] bg-gradient-to-b from-[#0A261C] via-[#0E382A] to-[#082218] border-[#D2AB6B]/30 p-5 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out font-body text-white">
+        <div>
+            <!-- Header with Logo and Close Button -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div class="flex items-center gap-2.5">
+                    <img src="{% static 'img/kura_symbol.png' %}" alt="كورا" class="h-9 w-auto drop-shadow-sm">
+                    <div>
+                        <span class="font-royal text-xl font-bold text-[#D2AB6B]">كُـورَا</span>
+                        <span class="block text-[9px] text-[#E4C79C]/80 font-bold uppercase tracking-wider">KURA Cloud OS</span>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleLandingMobileMenu(false)" class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#E4C79C] hover:bg-white/20 transition cursor-pointer">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Drawer Links -->
+            <nav class="mt-5 space-y-1.5 text-sm font-bold">
+                <a href="#hero" onclick="toggleLandingMobileMenu(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-white/10 text-[#D2AB6B] transition">
+                    <span class="text-xs">◆</span>
+                    <span data-i18n="nav_home">الرئيسية</span>
+                </a>
+                <a href="#heritage" onclick="toggleLandingMobileMenu(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-white/10 text-[#EAE5DB] transition">
+                    <span class="text-xs">◆</span>
+                    <span data-i18n="nav_heritage">التراث المطبخي</span>
+                </a>
+                <a href="#systems" onclick="toggleLandingMobileMenu(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-white/10 text-[#EAE5DB] transition">
+                    <span class="text-xs">◆</span>
+                    <span data-i18n="nav_systems">شبكة المطاعم السحابية</span>
+                </a>
+                <a href="#pricing" onclick="toggleLandingMobileMenu(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-white/10 text-[#EAE5DB] transition">
+                    <span class="text-xs">◆</span>
+                    <span data-i18n="nav_pricing">الباقات والأسعار</span>
+                </a>
+                <a href="#about" onclick="toggleLandingMobileMenu(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-white/10 text-[#EAE5DB] transition">
+                    <span class="text-xs">◆</span>
+                    <span data-i18n="nav_about">من نحن</span>
+                </a>
+                <a href="#contact" onclick="toggleLandingMobileMenu(false)" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-white/10 text-[#EAE5DB] transition">
+                    <span class="text-xs">◆</span>
+                    <span data-i18n="nav_contact">تواصل معنا</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Drawer Footer with CTAs -->
+        <div class="border-t border-white/10 pt-4 space-y-2.5">
+            <a href="{% url 'register' %}" class="btn-gold-pill w-full py-2.5 rounded-xl text-center text-xs font-black shadow-md block" data-i18n="hero_cta_primary">
+                ابدأ تجربتك المجانية
+            </a>
+            <a href="{% url 'login' %}" class="w-full py-2 rounded-xl text-center text-xs font-bold text-[#EAE5DB] hover:text-white bg-white/10 hover:bg-white/20 transition block" data-i18n="nav_login">
+                تسجيل الدخول للنظام
+            </a>
+        </div>
+    </aside>
 
     <!-- ======================================================== -->
     <!-- HERO SECTION: CLASSIC ELEVATING HERITAGE (Exact Design #1) -->
@@ -224,7 +299,7 @@
 
                 <!-- Main Classical Title (Exact wording from Design #1) -->
                 <h1 class="font-headline text-3xl sm:text-5xl lg:text-[3.25rem] font-black text-[#1E130D] leading-[1.2] tracking-tight">
-                    <span data-i18n="hero_title_1">ضيافة: الارتقاء بتراث</span>
+                    <span data-i18n="hero_title_1">كُـورَا: الارتقاء بتراث</span>
                     <span class="block text-[#1B634D] mt-1" data-i18n="hero_title_2">المطبخ الشرقي والضيافة الأصيلة</span>
                 </h1>
 
@@ -235,10 +310,10 @@
 
                 <!-- Calligraphic Brand Stamp with Golden Monogram Logo #3 -->
                 <div class="py-2 flex items-center gap-4">
-                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="شعار ضيافة" class="h-16 sm:h-20 w-auto drop-shadow-md select-none" />
+                    <img src="{% static 'img/kura_symbol.png' %}" alt="شعار كورا" class="h-16 sm:h-20 w-auto drop-shadow-md select-none" />
                     <div>
                         <div class="font-royal text-3xl sm:text-4xl font-black text-[#1B634D] tracking-tight select-none border-b-2 border-[#D2AB6B] pb-0.5 inline-block">
-                            ضِيَافَة
+                            كُـورَا
                         </div>
                         <div class="text-[11px] font-bold text-[#8C6527] uppercase tracking-wider mt-1" data-i18n="hero_trademark">
                             Authentic Culinary Heritage<br>& Modern Cloud Excellence
@@ -438,7 +513,7 @@
                 <!-- Seal / Medal (Exact stamp from Design #1) -->
                 <div class="wax-seal flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-[#8C6527]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L12 2z"/></svg>
-                    <span data-i18n="card3_seal">CERTIFIED HERITAGE • اعتماد ضيافة</span>
+                    <span data-i18n="card3_seal">CERTIFIED HERITAGE • اعتماد كورا</span>
                 </div>
             </div>
 
@@ -457,7 +532,7 @@
                     جولة تفاعلية في منظومة التشغيل اليومي
                 </h2>
                 <p class="text-sm sm:text-base text-[#5C4B3F]" data-i18n="tour_desc">
-                    تنقّل بين الشاشات الحية لاكتشاف كيف تدير ضيافة الكاشير والمطبخ والذكاء الاصطناعي والتوصيل من واجهة واحدة.
+                    تنقّل بين الشاشات الحية لاكتشاف كيف تدير منظومة كورا الكاشير والمطبخ والذكاء الاصطناعي والتوصيل من واجهة واحدة.
                 </p>
             </div>
 
@@ -498,7 +573,7 @@
                     </div>
                     <div class="flex items-center gap-2 font-mono text-[11px] bg-[#F9F6F0] px-3 py-1 rounded-md border border-[#E8DFD3]">
                         <span class="h-2 w-2 rounded-full bg-[#1B634D] animate-ping"></span>
-                        <span>DIYAFA OS • ONLINE</span>
+                        <span>KURA OS • ONLINE</span>
                     </div>
                 </div>
 
@@ -572,7 +647,7 @@
                                 <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>14:20 د</span></span>
                             </div>
                             <div class="text-xs font-bold text-[#1E130D] space-y-1">
-                                <div>• 1x كبسة لحم ضيافة (بدون بصل)</div>
+                                <div>• 1x كبسة لحم كورا الخاصة (بدون بصل)</div>
                                 <div>• 2x شوربة عدس أصيلة</div>
                             </div>
                             <div class="pt-2">
@@ -711,7 +786,7 @@
                     </h2>
 
                     <p class="text-sm sm:text-base text-[#F9F6F0]/80 leading-relaxed font-medium" data-i18n="ai_sim_desc">
-                        لا داعي لتفويت أي مكالمة في أوقات الذروة. يرتبط روبوت ضيافة بقاعدة بيانات فروعك لحظياً عبر بروتوكول FastMCP لفحص الحي، احتساب التوصيل، وتسجيل الطلب في المطبخ مباشرة.
+                        لا داعي لتفويت أي مكالمة في أوقات الذروة. يرتبط روبوت كورا بقاعدة بيانات فروعك لحظياً عبر بروتوكول FastMCP لفحص الحي، احتساب التوصيل، وتسجيل الطلب في المطبخ مباشرة.
                     </p>
 
                     <!-- Interactive Voice Prompts to Try -->
@@ -755,7 +830,7 @@
 
                     <!-- Steps Execution Log -->
                     <div id="sim-log" class="text-xs font-mono space-y-1.5 min-h-[140px] text-white/80 p-3 rounded-xl bg-black/30 border border-white/5">
-                        <div class="text-[#D2AB6B]">● النظام متصل بمفتاح المنشأة: ak_live_diyafa_***</div>
+                        <div class="text-[#D2AB6B]">● النظام متصل بمفتاح المنشأة: ak_live_kura_***</div>
                         <div class="text-white/50">اختر سيناريو من القائمة لتشغيل المحاكاة وقراءة أدوات MCP الحية...</div>
                     </div>
 
@@ -765,7 +840,7 @@
                             رد الوكيل الصوتي (طبيعي وودود):
                         </div>
                         <div id="sim-speech" class="text-xs sm:text-sm font-bold text-white leading-relaxed">
-                            "أهلاً بحضرتك في مطاعم ضيافة! كيف نقدر نخدمك اليوم؟"
+                            "أهلاً بحضرتك في مطاعم كورا! كيف نقدر نخدمك اليوم؟"
                         </div>
                     </div>
                 </div>
@@ -913,7 +988,7 @@
             "الضيافة ليست مجرد تقديم طعام؛ بل هي إحياء لتراث أصيل وروح كرم تمتد عبر الأجيال، ممزوجة بدقة التقنية الحديثة."
         </p>
         <div class="text-xs font-bold text-[#8C6527] uppercase tracking-widest" data-i18n="quote_author">
-            — فلسفة منصة ضيافة السحابية
+            — فلسفة منصة كُـورَا السحابية
         </div>
     </section>
 
@@ -927,8 +1002,8 @@
                 <!-- Col 1: Brand -->
                 <div class="space-y-3">
                     <div class="flex items-center gap-3">
-                        <img src="{% static 'img/diyafa_symbol.png' %}" alt="شعار ضيافة" class="h-8 w-auto drop-shadow-sm select-none" />
-                        <span class="font-royal text-2xl font-bold text-white tracking-tight">ضِيَافَة</span>
+                        <img src="{% static 'img/kura_symbol.png' %}" alt="شعار كورا" class="h-8 w-auto drop-shadow-sm select-none" />
+                        <span class="font-royal text-2xl font-bold text-white tracking-tight">كُـورَا</span>
                     </div>
                     <p class="text-xs text-white/70 leading-relaxed" data-i18n="footer_about">
                         المنظومة السحابية الأولى المتخصصة في حفظ وإدارة تراث المطاعم وسلاسل الضيافة العربية بأحدث تقنيات الـ AI والتشغيل السريع.
@@ -972,7 +1047,7 @@
 
             <!-- Bottom Bar -->
             <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-white/50">
-                <div data-i18n="footer_rights">© 2026 جميع الحقوق محفوظة لمنصة ضيافة لإدارة سلاسل المطاعم.</div>
+                <div data-i18n="footer_rights">© 2026 جميع الحقوق محفوظة لمنصة كُـورَا لإدارة سلاسل المطاعم.</div>
                 <div class="flex items-center gap-4">
                     <button onclick="toggleLanguage()" class="hover:text-[#D2AB6B] font-bold transition flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
@@ -994,8 +1069,8 @@
     // Complete Comprehensive Bilingual Translation Dictionary
     const I18N = {
         ar: {
-            brand_name: "ضِيَافَة",
-            brand_subtitle: "Heritage Culinary OS",
+            brand_name: "كُـورَا",
+            brand_subtitle: "KURA Culinary OS",
             nav_home: "الرئيسية",
             nav_heritage: "التراث المطبخي",
             nav_systems: "شبكة المطاعم",
@@ -1007,7 +1082,7 @@
             nav_login: "تسجيل الدخول",
             nav_cta: "ابدأ الآن",
             hero_badge: "نظام إدارة المطاعم الراقية وسلاسل الضيافة",
-            hero_title_1: "ضيافة: الارتقاء بتراث",
+            hero_title_1: "كُـورَا: الارتقاء بتراث",
             hero_title_2: "المطبخ الشرقي والضيافة الأصيلة",
             hero_subtitle: "اكتشف، حافظ، وأدِر فن النكهات التقليدية بأحدث الحلول السحابية ونظام كول سنتر الذكاء الاصطناعي 24/7 لربط الفروع وشاشات المطبخ والمخزون في تجربة موحدة.",
             hero_trademark: "Authentic Culinary Heritage\n& Modern Cloud Excellence",
@@ -1031,10 +1106,10 @@
             card2_seal: "LUXURY CUISINE • مطبخ ملكي",
             card3_title: "HERITAGE MANAGEMENT & AI",
             card3_desc: "وكيل صوتي ذكي (AI Call Center) يعمل 24/7 عبر FastMCP للرد على مكالمات العملاء، فهم اللهجات، وفحص مناطق التغطية وتوجيه الفروع آلياً.",
-            card3_seal: "CERTIFIED HERITAGE • اعتماد ضيافة",
+            card3_seal: "CERTIFIED HERITAGE • اعتماد كورا",
             tour_subtitle: "Complete Operational Suite",
             tour_title: "جولة تفاعلية في منظومة التشغيل اليومي",
-            tour_desc: "تنقّل بين الشاشات الحية لاكتشاف كيف تدير ضيافة الكاشير والمطبخ والذكاء الاصطناعي والتوصيل من واجهة واحدة.",
+            tour_desc: "تنقّل بين الشاشات الحية لاكتشاف كيف تدير منظومة كورا الكاشير والمطبخ والذكاء الاصطناعي والتوصيل من واجهة واحدة.",
             tab_pos: "الكاشير ونقاط البيع (POS)",
             tab_kds: "شاشة المطبخ (KDS)",
             tab_ai: "كول سنتر الذكاء الاصطناعي",
@@ -1042,7 +1117,7 @@
             tab_inventory: "المخزون والمستودعات",
             ai_sim_badge: "تجربة وكيل الهاتف الذكي المباشر",
             ai_sim_title: "خدمة عملاء وطلبات صوتية بلهجة سعودية وعربية متقنة 24/7",
-            ai_sim_desc: "لا داعي لتفويت أي مكالمة في أوقات الذروة. يرتبط روبوت ضيافة بقاعدة بيانات فروعك لحظياً عبر بروتوكول FastMCP لفحص الحي، احتساب التوصيل، وتسجيل الطلب في المطبخ مباشرة.",
+            ai_sim_desc: "لا داعي لتفويت أي مكالمة في أوقات الذروة. يرتبط روبوت كورا بقاعدة بيانات فروعك لحظياً عبر بروتوكول FastMCP لفحص الحي، احتساب التوصيل، وتسجيل الطلب في المطبخ مباشرة.",
             ai_sim_prompts_title: "اضغط لاختبار استجابة الذكاء الاصطناعي الفورية:",
             ai_q1: "«ألو، بدي أطلب مندي لحم لشخصين لحي النرجس»",
             ai_q2: "«عندكم شاي كرك وبقلاوة؟ وكم أسعارهم؟»",
@@ -1060,20 +1135,20 @@
             stat_uptime: "استقرار سحابي متواصل",
             stat_ai: "جاهزية الذكاء الاصطناعي",
             quote_text: "\"الضيافة ليست مجرد تقديم طعام؛ بل هي إحياء لتراث أصيل وروح كرم تمتد عبر الأجيال، ممزوجة بدقة التقنية الحديثة.\"",
-            quote_author: "— فلسفة منصة ضيافة السحابية",
+            quote_author: "— فلسفة منصة كُـورَا السحابية",
             footer_about: "المنظومة السحابية الأولى المتخصصة في حفظ وإدارة تراث المطاعم وسلاسل الضيافة العربية بأحدث تقنيات الـ AI والتشغيل السريع.",
             footer_links_title: "روابط سريعة",
             footer_systems_title: "الأنظمة المضمنة",
             footer_contact_title: "الدخول والدعم الفني",
             footer_contact_desc: "فريق الاستشارات التقنية متاح على مدار الساعة لمساعدة أصحاب المطاعم.",
             footer_login_cta: "بوابة دخول المنشآت",
-            footer_rights: "© 2026 جميع الحقوق محفوظة لمنصة ضيافة لإدارة سلاسل المطاعم.",
+            footer_rights: "© 2026 جميع الحقوق محفوظة لمنصة كُـورَا لإدارة سلاسل المطاعم.",
             lang_button: "English",
             footer_lang: "Switch to English"
         },
         en: {
-            brand_name: "DIYAFA",
-            brand_subtitle: "Heritage Culinary OS",
+            brand_name: "KURA",
+            brand_subtitle: "KURA Culinary OS",
             nav_home: "Home",
             nav_heritage: "Culinary Heritage",
             nav_systems: "Restaurant Network",
@@ -1085,7 +1160,7 @@
             nav_login: "Sign In",
             nav_cta: "Start Now",
             hero_badge: "Premium Restaurant Management & Hospitality OS",
-            hero_title_1: "Diyafa: Elevating Authentic",
+            hero_title_1: "KURA: Elevating Authentic",
             hero_title_2: "Middle Eastern Culinary Heritage",
             hero_subtitle: "Discover, preserve, and manage the timeless craft of traditional flavors with state-of-the-art cloud POS, kitchen display workflows, and 24/7 AI Voice Phone Ordering.",
             hero_trademark: "Authentic Culinary Heritage\n& Modern Cloud Excellence",
@@ -1112,7 +1187,7 @@
             card3_seal: "CERTIFIED HERITAGE • ACCREDITED",
             tour_subtitle: "Complete Operational Suite",
             tour_title: "Interactive Live Platform Walkthrough",
-            tour_desc: "Explore live operational screens showing how Diyafa orchestrates cashiers, kitchens, AI phone agents, and inventory seamlessly.",
+            tour_desc: "Explore live operational screens showing how KURA orchestrates cashiers, kitchens, AI phone agents, and inventory seamlessly.",
             tab_pos: "POS Cashier System",
             tab_kds: "Kitchen Display (KDS)",
             tab_ai: "AI Voice Call Center",
@@ -1120,7 +1195,7 @@
             tab_inventory: "Inventory & Stores",
             ai_sim_badge: "Interactive Voice Agent Sandbox",
             ai_sim_title: "Natural Voice Customer Service & Ordering 24/7",
-            ai_sim_desc: "Never miss a customer call during peak hours. Diyafa's AI agent connects in real-time via FastMCP to check address coverage, calculate totals, and place orders directly into branch kitchens.",
+            ai_sim_desc: "Never miss a customer call during peak hours. KURA's AI agent connects in real-time via FastMCP to check address coverage, calculate totals, and place orders directly into branch kitchens.",
             ai_sim_prompts_title: "Click to test instant AI responses:",
             ai_q1: "«Hello, I want to order Lamb Mandi for 2 to Al-Narjis»",
             ai_q2: "«Do you have Karak Tea and Baklava? How much are they?»",
@@ -1138,14 +1213,14 @@
             stat_uptime: "Continuous Cloud Uptime",
             stat_ai: "AI Agent Availability",
             quote_text: "\"Hospitality is never just serving food; it is breathing life into timeless heritage and generosity across generations, enhanced by precision technology.\"",
-            quote_author: "— Diyafa Cloud Platform Philosophy",
+            quote_author: "— KURA Cloud Platform Philosophy",
             footer_about: "The premier cloud operating system dedicated to preserving and scaling authentic restaurant heritage with modern AI and rapid workflows.",
             footer_links_title: "Quick Navigation",
             footer_systems_title: "Integrated Systems",
             footer_contact_title: "Support & Access",
             footer_contact_desc: "Our restaurant operations and engineering consultants are on standby 24/7.",
             footer_login_cta: "Restaurant Portal Login",
-            footer_rights: "© 2026 Diyafa Restaurant Management Cloud. All rights reserved.",
+            footer_rights: "© 2026 KURA Restaurant Management Cloud. All rights reserved.",
             lang_button: "العربية",
             footer_lang: "التحويل إلى العربية"
         }
@@ -1308,9 +1383,35 @@
         }
     }
 
+    // Mobile Slide-out Menu Controller
+    function toggleLandingMobileMenu(forceOpen) {
+        const drawer = document.getElementById('landing-mobile-drawer');
+        const backdrop = document.getElementById('landing-drawer-backdrop');
+        if (!drawer || !backdrop) return;
+        const isLtr = document.documentElement.dir === 'ltr' || document.body.dir === 'ltr';
+        const hideClass = isLtr ? '-translate-x-full' : 'translate-x-full';
+        const isOpen = !drawer.classList.contains(hideClass);
+        const open = forceOpen !== undefined ? forceOpen : !isOpen;
+        if (open) {
+            drawer.classList.remove(hideClass);
+            backdrop.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            drawer.classList.add(hideClass);
+            backdrop.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
     // Initialize on DOM load
     document.addEventListener('DOMContentLoaded', () => {
         setLanguage(currentLang);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            toggleLandingMobileMenu(false);
+        }
     });
 </script>
 {% endblock %}

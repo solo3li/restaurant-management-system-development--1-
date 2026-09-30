@@ -135,11 +135,11 @@ def i18n_context(request):
 
     base_t = {
         # App & Brand
-        "app_title": "نظام مطاعم ضيافة" if is_rtl else "Diyafa Restaurant Management",
-        "brand_name": "ضِيَافَة" if is_rtl else "DIYAFA",
+        "app_title": "منظومة كُـورَا لإدارة المطاعم" if is_rtl else "KURA Restaurant Management OS",
+        "brand_name": "كُـورَا" if is_rtl else "KURA",
         "brand_hq": "HQ",
         "brand_subtitle": "نظام إدارة المطاعم" if is_rtl else "Restaurant Management System",
-        "brand_tagline": "نظام التشغيل السحابي للمطاعم والضيافة" if is_rtl else "Cloud Operating System for Hospitality & Dining",
+        "brand_tagline": "النظام السحابي لإدارة سلاسل المطاعم والضيافة العريقة" if is_rtl else "Cloud Operating System for Hospitality & Dining",
         "online_system": "متصل بالنظام السحابي" if is_rtl else "Connected to Cloud OS",
         "all_branches_label": "الإدارة العامة (كافة الفروع)" if is_rtl else "Central HQ (All Branches)",
         "branch_prefix": "فرع" if is_rtl else "Branch",
@@ -271,12 +271,12 @@ def i18n_context(request):
         "plat_title": "لوحة الإدارة المركزية للمنصة (SaaS Superadmin)" if is_rtl else "SaaS Platform Central Management",
         "plat_subtitle": "إدارة المطاعم المشتركة، الباقات والاشتراكات، والتحكم بالمنظومة" if is_rtl else "Manage subscribed restaurants, plans & subscriptions, and platform controls",
 
-        "cc_title": "الكول سنتر — مطاعم ضيافة" if is_rtl else "Call Center — Diyafa Dining",
+        "cc_title": "الكول سنتر — منظومة كورا" if is_rtl else "Call Center — KURA Dining OS",
         "cc_heading": "الكول سنتر وخدمة العملاء" if is_rtl else "Call Center & Customer Care",
         "cc_subtitle": "استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل" if is_rtl else "Incoming customer calls, rapid customer lookup, and delivery order dispatch",
         "cc_lines_ready": "الخطوط جاهزة لاستقبال الاتصالات" if is_rtl else "Lines Ready for Inbound Calls",
 
-        "deliv_title": "إدارة التوصيل — مطاعم ضيافة" if is_rtl else "Delivery Fleet — Diyafa Dining",
+        "deliv_title": "إدارة التوصيل — منظومة كورا" if is_rtl else "Delivery Fleet — KURA Dining OS",
         "deliv_heading": "إدارة وتوزيع طلبات التوصيل" if is_rtl else "Delivery Dispatch & Fleet Management",
         "deliv_subtitle": "متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين" if is_rtl else "Step-by-step order tracking and live driver fleet dispatching",
 

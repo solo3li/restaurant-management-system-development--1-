@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}طلبات وفواتير الفرع — مطاعم ضيافة{% endblock %}
+{% block title %}طلبات وفواتير الفرع — منظومة كُـورَا{% endblock %}
 
 {% block content %}
 <div class="space-y-5 font-body">
@@ -67,7 +67,7 @@
     <!-- Orders Table -->
     <div class="classic-card overflow-hidden shadow-md">
         <div class="overflow-x-auto">
-            <table class="w-full text-right text-xs">
+            <table class="w-full text-right text-xs table-responsive-cards">
                 <thead class="border-b border-line bg-paper/70 font-bold">
                     <tr>
                         <th class="th">رقم الطلب</th>
@@ -84,11 +84,11 @@
                 <tbody class="divide-y divide-line/70">
                     {% for o in orders %}
                     <tr class="hover:bg-paper/30 transition">
-                        <td class="td">
+                        <td class="td" data-label="رقم الطلب">
                             <span class="font-extrabold text-ink text-sm">{{ o.order_number }}</span>
                             <span class="block text-[10px] text-soft">الكاشير: {{ o.cashier|default:"—" }}</span>
                         </td>
-                        <td class="td">
+                        <td class="td" data-label="النوع">
                             <span class="rounded px-2 py-0.5 text-[11px] font-bold
                                 {% if o.order_type == 'dine_in' %}bg-brand-100 text-brand-700
                                 {% elif o.order_type == 'takeaway' %}bg-paper border border-line text-ink
@@ -96,16 +96,16 @@
                                 {{ o.get_order_type_display }}
                             </span>
                         </td>
-                        <td class="td">
+                        <td class="td" data-label="العميل">
                             <p class="font-bold text-ink">{{ o.customer_name }}</p>
                             {% if o.customer_phone %}
                             <p class="text-[10px] text-soft font-mono" dir="ltr">{{ o.customer_phone }}</p>
                             {% endif %}
                         </td>
-                        <td class="td text-soft">{{ o.get_pay_method_display }}</td>
-                        <td class="td text-soft">{{ o.driver.name|default:"—" }}</td>
-                        <td class="td font-extrabold text-brand-700 font-mono text-sm">{{ o.total|floatformat:2 }} ر.س</td>
-                        <td class="td">
+                        <td class="td text-soft" data-label="طريقة الدفع">{{ o.get_pay_method_display }}</td>
+                        <td class="td text-soft" data-label="السائق">{{ o.driver.name|default:"—" }}</td>
+                        <td class="td font-extrabold text-brand-700 font-mono text-sm" data-label="الإجمالي">{{ o.total|floatformat:2 }} ر.س</td>
+                        <td class="td" data-label="الحالة">
                             <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold
                                 {% if o.status == 'delivered' %}bg-emerald-100 text-emerald-800
                                 {% elif o.status == 'ready' %}bg-emerald-100 text-emerald-800
@@ -116,11 +116,11 @@
                                 {{ o.get_status_display }}
                             </span>
                         </td>
-                        <td class="td text-soft">
+                        <td class="td text-soft" data-label="التاريخ والوقت">
                             <span>{{ o.created_at|date:"j M Y" }}</span>
                             <span class="block text-[10px] font-mono">{{ o.created_at|time:"H:i" }}</span>
                         </td>
-                        <td class="td text-center">
+                        <td class="td text-center" data-label="الإجراءات">
                             <div class="flex items-center justify-center gap-1.5 flex-wrap">
                                 <a 
                                     href="{% url 'order_detail' o.id %}"

@@ -246,9 +246,123 @@
         }
 
         /* ============================================================ */
+        /* RESPONSIVE TABLE-TO-CARD TRANSFORMATION (< 768px)             */
+        /* ============================================================ */
+        @media (max-width: 767px) {
+            .table-responsive-cards thead {
+                display: none !important;
+            }
+            .table-responsive-cards tbody,
+            .table-responsive-cards tr,
+            .table-responsive-cards td {
+                display: block !important;
+                width: 100% !important;
+            }
+            .table-responsive-cards tr {
+                background: #FFFFFF !important;
+                border: 1px solid #E8DFD3 !important;
+                border-radius: 1rem !important;
+                padding: 0.875rem 1rem !important;
+                margin-bottom: 0.875rem !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+            }
+            .table-responsive-cards td {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding: 0.5rem 0 !important;
+                border-bottom: 1px solid #F4EFE6 !important;
+                font-size: 0.8125rem !important;
+            }
+            .table-responsive-cards td:last-child {
+                border-bottom: none !important;
+                padding-top: 0.75rem !important;
+                justify-content: flex-end !important;
+            }
+            .table-responsive-cards td[data-label]::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: #6E5D4F;
+                font-size: 0.75rem;
+                flex-shrink: 0;
+                margin-inline-end: 1rem;
+            }
+        }
+
+        /* ============================================================ */
         /* SMART COMPACT SIDEBAR (MINI RAIL MODE - 80px)                */
         /* ============================================================ */
-        @media (min-width: 768px) {
+        @media (min-width: 768px) and (max-width: 1023px) {
+            /* Automatically apply mini rail mode on tablets (iPads) */
+            html:not(.sidebar-expanded) #app-sidebar,
+            body:not(.sidebar-expanded) #app-sidebar {
+                width: 5rem !important; /* 80px */
+            }
+            html[dir="rtl"]:not(.sidebar-expanded) #app-header,
+            body[dir="rtl"]:not(.sidebar-expanded) #app-header {
+                right: 5rem !important; /* 80px */
+                left: 0 !important;
+            }
+            html[dir="ltr"]:not(.sidebar-expanded) #app-header,
+            body[dir="ltr"]:not(.sidebar-expanded) #app-header {
+                left: 5rem !important; /* 80px */
+                right: 0 !important;
+            }
+            html[dir="rtl"]:not(.sidebar-expanded) #main-content,
+            body[dir="rtl"]:not(.sidebar-expanded) #main-content {
+                margin-right: 5rem !important; /* 80px */
+                margin-left: 0 !important;
+            }
+            html[dir="ltr"]:not(.sidebar-expanded) #main-content,
+            body[dir="ltr"]:not(.sidebar-expanded) #main-content {
+                margin-left: 5rem !important; /* 80px */
+                margin-right: 0 !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar .sidebar-text,
+            body:not(.sidebar-expanded) #app-sidebar .sidebar-text {
+                display: none !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar .brand-header,
+            body:not(.sidebar-expanded) #app-sidebar .brand-header {
+                padding: 0.75rem 0.25rem !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar .brand-link,
+            body:not(.sidebar-expanded) #app-sidebar .brand-link {
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar .context-pill,
+            body:not(.sidebar-expanded) #app-sidebar .context-pill {
+                padding: 0.5rem !important;
+                justify-content: center !important;
+                background: rgba(0,0,0,0.2) !important;
+                border: none !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar nav,
+            body:not(.sidebar-expanded) #app-sidebar nav {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar nav a,
+            html:not(.sidebar-expanded) #app-sidebar nav button {
+                justify-content: center !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar nav .medallion-icon,
+            body:not(.sidebar-expanded) #app-sidebar nav .medallion-icon {
+                margin: 0 !important;
+            }
+            html:not(.sidebar-expanded) #app-sidebar [id$="-content"],
+            body:not(.sidebar-expanded) #app-sidebar [id$="-content"] {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 1024px) {
             html.sidebar-mini #app-sidebar,
             body.sidebar-mini #app-sidebar {
                 width: 5rem !important; /* 80px */
@@ -273,14 +387,10 @@
                 margin-left: 5rem !important; /* 80px */
                 margin-right: 0 !important;
             }
-            
-            /* Hide textual elements inside mini sidebar */
             html.sidebar-mini #app-sidebar .sidebar-text,
             body.sidebar-mini #app-sidebar .sidebar-text {
                 display: none !important;
             }
-            
-            /* Center logo in header */
             html.sidebar-mini #app-sidebar .brand-header,
             body.sidebar-mini #app-sidebar .brand-header {
                 padding: 0.75rem 0.25rem !important;
@@ -293,8 +403,6 @@
                 justify-content: center !important;
                 width: 100% !important;
             }
-            
-            /* Compact active context indicator */
             html.sidebar-mini #app-sidebar .context-pill,
             body.sidebar-mini #app-sidebar .context-pill {
                 padding: 0.5rem !important;
@@ -302,8 +410,6 @@
                 background: rgba(0,0,0,0.2) !important;
                 border: none !important;
             }
-            
-            /* Center nav buttons and remove side padding */
             html.sidebar-mini #app-sidebar nav,
             body.sidebar-mini #app-sidebar nav {
                 padding-left: 0.5rem !important;
@@ -319,13 +425,11 @@
             body.sidebar-mini #app-sidebar nav .medallion-icon {
                 margin: 0 !important;
             }
-            
-            /* Accordion child items hidden in sidebar (shown in flyout) */
             html.sidebar-mini #app-sidebar [id$="-content"],
             body.sidebar-mini #app-sidebar [id$="-content"] {
                 display: none !important;
             }
-            
+
             /* User profile footer mini */
             html.sidebar-mini #app-sidebar .user-card,
             body.sidebar-mini #app-sidebar .user-card {
@@ -383,7 +487,7 @@
             <div class="brand-header flex items-center justify-between">
                 <a href="{% if is_hq_mode %}{% url 'dashboard' %}{% else %}{% url 'branch_dashboard' %}{% endif %}" class="brand-link flex items-center gap-3 group">
                     <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1B634D] to-[#0B2E22] border border-[#D2AB6B]/40 shadow-lg shadow-black/30 group-hover:border-[#D2AB6B] transition">
-                        <img src="/static/img/diyafa_symbol.png" alt="{{ t.brand_name }}" class="h-8 w-8 object-contain drop-shadow-[0_2px_8px_rgba(210,171,107,0.35)]">
+                        <img src="/static/img/kura_symbol.png" alt="{{ t.brand_name }}" class="h-8 w-8 object-contain drop-shadow-[0_2px_8px_rgba(210,171,107,0.35)]">
                     </div>
                     <div class="min-w-0 sidebar-text">
                         <div class="flex items-center gap-1.5">
@@ -762,9 +866,9 @@
 
         <!-- End Side: Actions, Language Switcher & Profile Menu -->
         <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <!-- Branch Switcher Dropdown (HQ vs Branches) -->
+            <!-- Branch Switcher Dropdown (HQ vs Branches) - hidden on mobile phones to prevent header overflow (accessible in mobile menu) -->
             {% if can_switch_branches and all_branches %}
-            <div class="relative flex items-center shrink-0">
+            <div class="relative hidden sm:flex items-center shrink-0">
                 <select 
                     onchange="location.href='/branch/switch/' + this.value + '/';" 
                     class="h-9 bg-white text-[#1E130D] border border-[#E8DFD3] rounded-xl px-2.5 text-xs font-bold focus:border-[#1B634D] outline-none cursor-pointer shadow-xs max-w-[125px] sm:max-w-[160px] truncate font-body hover:border-[#D2AB6B] transition"
@@ -783,10 +887,10 @@
             <!-- Quick Action CTA: + Cashier / POS -->
             {% if 'pos_access' in user_perms %}
             <a href="{% url 'pos' %}" 
-               class="btn-gold-pill h-9 inline-flex items-center gap-1.5 px-3 rounded-xl text-xs font-black shadow-xs font-body whitespace-nowrap shrink-0 hover:scale-[1.02] active:scale-[0.98] transition"
+               class="btn-gold-pill h-9 inline-flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-black shadow-xs font-body whitespace-nowrap shrink-0 hover:scale-[1.02] active:scale-[0.98] transition"
                title="{{ t.nav_pos }}">
                 <svg class="w-3.5 h-3.5 text-[#1E130D]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                <span>{% if IS_RTL %}+ كاشير (POS){% else %}+ POS{% endif %}</span>
+                <span>{% if IS_RTL %}+ كاشير<span class="hidden sm:inline"> (POS)</span>{% else %}+ POS{% endif %}</span>
             </a>
             {% endif %}
 

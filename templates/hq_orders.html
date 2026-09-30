@@ -199,7 +199,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-right text-xs">
+            <table class="w-full text-right text-xs table-responsive-cards">
                 <thead class="border-b border-line bg-paper/80 font-bold">
                     <tr>
                         <th class="th">رقم الطلب / القناة</th>
@@ -218,7 +218,7 @@
                     {% for o in orders %}
                     <tr class="hover:bg-paper/50 transition cursor-pointer" onclick="openOrderModal('order-{{ o.id }}')">
                         <!-- Order Number & Channel -->
-                        <td class="td">
+                        <td class="td" data-label="رقم الطلب والقناة">
                             <span class="font-extrabold text-ink text-sm block">{{ o.order_number }}</span>
                             <span class="text-[10px] text-soft font-bold inline-flex items-center gap-1">
                                 {% if o.channel == 'call_center' %}
@@ -232,7 +232,7 @@
                         </td>
 
                         <!-- Branch -->
-                        <td class="td">
+                        <td class="td" data-label="الفرع">
                             <span class="inline-flex items-center gap-1 rounded-md bg-paper px-2 py-1 text-xs font-bold text-ink border border-line">
                                 <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                 <span>{{ o.branch.name|default:"غير محدد" }}</span>
@@ -240,7 +240,7 @@
                         </td>
 
                         <!-- Order Type -->
-                        <td class="td">
+                        <td class="td" data-label="النوع">
                             <span class="rounded-md px-2 py-0.5 text-[11px] font-bold
                                 {% if o.order_type == 'dine_in' %}bg-brand-100 text-brand-700
                                 {% elif o.order_type == 'takeaway' %}bg-paper border border-line text-ink
@@ -250,7 +250,7 @@
                         </td>
 
                         <!-- Customer -->
-                        <td class="td">
+                        <td class="td" data-label="العميل">
                             <p class="font-bold text-ink">{{ o.customer_name }}</p>
                             {% if o.customer_phone %}
                             <p class="text-[10px] text-soft font-mono" dir="ltr">{{ o.customer_phone }}</p>
@@ -258,7 +258,7 @@
                         </td>
 
                         <!-- Staff / Driver -->
-                        <td class="td">
+                        <td class="td" data-label="الكاشير / السائق">
                             <p class="text-ink font-bold">{{ o.cashier|default:"—" }}</p>
                             {% if o.driver %}
                             <p class="text-[10px] text-brand-700 font-bold inline-flex items-center gap-1">
@@ -269,7 +269,7 @@
                         </td>
 
                         <!-- Payment -->
-                        <td class="td">
+                        <td class="td" data-label="طريقة الدفع">
                             <span class="font-bold text-ink block">{{ o.get_pay_method_display }}</span>
                             <span class="text-[10px] {% if o.paid %}text-emerald-700 font-bold{% else %}text-rose-700{% endif %}">
                                 {% if o.paid %}تم الدفع{% else %}معلق{% endif %}
@@ -277,13 +277,13 @@
                         </td>
 
                         <!-- Total -->
-                        <td class="td">
+                        <td class="td" data-label="الإجمالي">
                             <span class="font-black text-brand-700 text-sm block font-body">{{ o.total|floatformat:2 }}</span>
                             <span class="text-[10px] font-bold text-soft">ر.س</span>
                         </td>
 
                         <!-- Status Badge -->
-                        <td class="td">
+                        <td class="td" data-label="الحالة">
                             <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold
                                 {% if o.status == 'delivered' %}bg-emerald-100 text-emerald-800
                                 {% elif o.status == 'out_for_delivery' %}bg-brand-100 text-brand-700
@@ -296,13 +296,13 @@
                         </td>
 
                         <!-- Date/Time -->
-                        <td class="td text-soft">
+                        <td class="td text-soft" data-label="التاريخ والوقت">
                             <p class="font-bold text-ink">{{ o.created_at|date:"Y-m-d" }}</p>
                             <p class="text-[10px] font-mono">{{ o.created_at|time:"H:i" }}</p>
                         </td>
 
                         <!-- Action Buttons -->
-                        <td class="td text-center" onclick="event.stopPropagation()">
+                        <td class="td text-center" data-label="الإجراءات" onclick="event.stopPropagation()">
                             <div class="flex items-center justify-center gap-1.5 flex-wrap">
                                 <button 
                                     type="button" 
@@ -678,7 +678,7 @@
             </head>
             <body>
                 <div class="header">
-                    <div class="title">مطاعم ضيافة</div>
+                    <div class="title">مطاعم كُـورَا</div>
                     <div>فرع: ${o.branch}</div>
                     <div>رقم الطلب: ${o.order_number}</div>
                     <div>التاريخ: ${o.created_at}</div>
@@ -705,7 +705,7 @@
                 <div class="row total-row"><span>المبلغ الإجمالي:</span><span>${o.total} ر.س</span></div>
                 <div class="row"><span>طريقة الدفع:</span><span>${o.pay_method}</span></div>
                 <div style="text-align: center; margin-top: 15px; font-size: 11px;">
-                    شكراً لاختياركم مطاعم ضيافة!
+                    شكراً لاختياركم مطاعم كُـورَا!
                 </div>
             </body>
             </html>

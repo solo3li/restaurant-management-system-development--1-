@@ -2,8 +2,12 @@
 # Total entries: 1160
 
 I18N_CATALOG = {
-    "ضِيَافَة": "DIYAFA",
-    "نظام مطاعم ضيافة": "Diyafa Restaurant Management",
+    "كُـورَا": "KURA",
+    "كورا": "KURA",
+    "ضِيَافَة": "KURA",
+    "منظومة كُـورَا لإدارة المطاعم": "KURA Restaurant Management OS",
+    "منظومة كورا لإدارة المطاعم": "KURA Restaurant Management OS",
+    "نظام مطاعم ضيافة": "KURA Restaurant Management OS",
     "نظام إدارة المطاعم": "Restaurant Management System",
     "نظام التشغيل السحابي للمطاعم والضيافة": "Cloud Operating System for Hospitality & Dining",
     "مركز القيادة والعمليات": "Command & Operations Center",
@@ -1042,7 +1046,8 @@ I18N_CATALOG = {
     "مصفوفة الصلاحيات الممنوحة": "Matrix of granted powers",
     "مضلع الزون الجغرافي للفرع": "Geozone polygon for the branch",
     "مطابقة للفلتر المحدد": "Matches the selected filter",
-    "مطاعم ضيافة": "Hospitality restaurants",
+    "مطاعم ضيافة": "KURA Dining Chain",
+    "مطاعم كورا": "KURA Dining Chain",
     "مطبخ الفرع": "Branch kitchen",
     "معاينة": "Preview",
     "معاينة سريعة للفاتورة": "Quick preview of the invoice",

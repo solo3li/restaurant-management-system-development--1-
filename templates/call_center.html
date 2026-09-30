@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ t.cc_title|default:"الكول سنتر — مطاعم ضيافة" }}{% endblock %}
+{% block title %}{{ t.cc_title|default:"الكول سنتر — منظومة كورا" }}{% endblock %}
 
 {% block content %}
 <div class="space-y-5 font-body">
@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_420px]">
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_420px] pb-24 lg:pb-0">
         <!-- Left: Customer Lookup & Menu Picker -->
         <div class="space-y-5">
             <!-- 1. Customer Search Card -->
@@ -138,7 +138,7 @@
         <!-- Right: Current Order Invoice & Recent Calls -->
         <div class="space-y-5">
             <!-- Delivery Invoice Card -->
-            <div class="classic-card p-5 shadow-lg border-line">
+            <div id="call-order-ticket-container" class="classic-card p-5 shadow-lg border-line transition-all duration-300">
                 <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
                     <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -226,6 +226,24 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Floating Bottom Ticket Bar for Mobile & Small Tablets (< lg) -->
+    <div id="call-mobile-ticket-bar" class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0E382A] text-white border-t border-[#D2AB6B]/40 shadow-[0_-6px_25px_rgba(0,0,0,0.35)] px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 border border-[#D2AB6B]/30 text-[#D2AB6B]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span id="call-mobile-badge" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#D2AB6B] text-[10px] font-black text-[#1E130D]">0</span>
+            </span>
+            <div>
+                <p class="text-[11px] text-[#E6C898] font-bold">تذكرة التوصيل</p>
+                <p id="call-mobile-total" class="text-sm font-black text-white">8.00 ر.س</p>
+            </div>
+        </div>
+        <button type="button" onclick="scrollToCallTicket()" class="btn-gold-pill px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-md">
+            <span>مراجعة واعتماد الطلب</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
     </div>
 </div>
 {% endblock %}
@@ -358,12 +376,17 @@
         const count = keys.reduce((s, k) => s + callCart[k].qty, 0);
         document.getElementById('call-cart-count').textContent = `${count} أصناف`;
 
+        const mobileBadge = document.getElementById('call-mobile-badge');
+        const mobileTotal = document.getElementById('call-mobile-total');
+        if (mobileBadge) mobileBadge.textContent = count;
+
         document.getElementById('call-delivery-fee').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
 
         if (keys.length === 0) {
             container.innerHTML = `<div id="call-cart-empty" class="py-6 text-center text-xs text-soft font-bold">لم يتم اختيار وجبات بعد</div>`;
             document.getElementById('call-subtotal').textContent = '0.00 ر.س';
             document.getElementById('call-total').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
+            if (mobileTotal) mobileTotal.textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
             return;
         }
 
@@ -388,8 +411,19 @@
             `;
         });
         container.innerHTML = html;
+        const finalTotal = subtotal + callDeliveryFee;
         document.getElementById('call-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
-        document.getElementById('call-total').textContent = `${(subtotal + callDeliveryFee).toFixed(2)} ر.س`;
+        document.getElementById('call-total').textContent = `${finalTotal.toFixed(2)} ر.س`;
+        if (mobileTotal) mobileTotal.textContent = `${finalTotal.toFixed(2)} ر.س`;
+    }
+
+    function scrollToCallTicket() {
+        const el = document.getElementById('call-order-ticket-container');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            el.classList.add('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl');
+            setTimeout(() => el.classList.remove('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl'), 1500);
+        }
     }
 
     async function submitCallOrder() {

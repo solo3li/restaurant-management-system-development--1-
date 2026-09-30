@@ -83,7 +83,7 @@
     <!-- Employees Table -->
     <div class="classic-card overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
-            <table class="w-full text-right text-xs">
+            <table class="w-full text-right text-xs table-responsive-cards">
                 <thead class="border-b border-[#D2AB6B]/30 bg-[#F9F6F0] text-[#666666] font-bold">
                     <tr>
                         <th class="p-3.5">الموظف</th>
@@ -99,11 +99,11 @@
                 <tbody class="divide-y divide-[#D2AB6B]/20">
                     {% for emp in employees %}
                     <tr class="hover:bg-[#F9F6F0]/50 transition">
-                        <td class="p-3.5">
+                        <td class="p-3.5" data-label="الموظف">
                             <p class="font-bold text-[#0E382A] text-sm">{{ emp.name }}</p>
                             <p class="text-[11px] text-[#666666] font-mono" dir="ltr">{{ emp.phone|default:"—" }}</p>
                         </td>
-                        <td class="p-3.5">
+                        <td class="p-3.5" data-label="كود الدخول وPIN">
                             <div class="flex items-center gap-1.5">
                                 <span class="rounded bg-[#0E382A]/10 border border-[#D2AB6B]/40 px-2 py-0.5 font-mono text-xs font-bold text-[#0E382A]">
                                     #{{ emp.employee_code|default:"—" }}
@@ -115,7 +115,7 @@
                                 {% endif %}
                             </div>
                         </td>
-                        <td class="p-3.5">
+                        <td class="p-3.5" data-label="المسمى والصلاحيات">
                             <span class="rounded-lg bg-white px-2.5 py-1 font-bold text-[#0E382A] inline-flex items-center gap-1.5 border border-[#D2AB6B]/30 shadow-2xs">
                                 <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -127,7 +127,7 @@
                                 {% endif %}
                             </span>
                         </td>
-                        <td class="p-3.5">
+                        <td class="p-3.5" data-label="نطاق العمل">
                             {% if emp.job_role %}
                                 {% if emp.job_role.scope == 'hq' %}
                                     <span class="rounded-full bg-[#0E382A]/10 text-[#0E382A] border border-[#D2AB6B]/40 px-2.5 py-0.5 text-[10px] font-bold">إدارة عامة (HQ)</span>
@@ -140,18 +140,18 @@
                                 <span class="text-[#666666] text-[11px]">تشغيلي</span>
                             {% endif %}
                         </td>
-                        <td class="p-3.5 text-[#666666] font-semibold">
+                        <td class="p-3.5 text-[#666666] font-semibold" data-label="الفرع">
                             {{ emp.branch.name|default:"الإدارة العامة" }}
                         </td>
-                        <td class="p-3.5 font-mono font-bold text-[#0E382A]">
+                        <td class="p-3.5 font-mono font-bold text-[#0E382A]" data-label="الراتب الأساسي">
                             {{ emp.salary }} <span class="text-[10px] text-[#666666]">ر.س</span>
                         </td>
-                        <td class="p-3.5">
+                        <td class="p-3.5" data-label="الحالة">
                             <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold border {% if emp.status == 'active' %}bg-emerald-50 text-emerald-700 border-emerald-300{% elif emp.status == 'vacation' %}bg-amber-50 text-amber-700 border-amber-300{% else %}bg-rose-50 text-rose-700 border-rose-300{% endif %}">
                                 {{ emp.get_status_display }}
                             </span>
                         </td>
-                        <td class="p-3.5 text-center">
+                        <td class="p-3.5 text-center" data-label="الإجراءات">
                             <button 
                                 onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.phone|escapejs }}', '{{ emp.job_role_id|default:'' }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}', '{{ emp.employee_code|default:'' }}')" 
                                 class="rounded-lg border border-[#D2AB6B]/40 bg-white px-3 py-1.5 text-xs font-bold text-[#0E382A] hover:bg-[#F9F6F0] hover:border-[#0E382A] transition shadow-2xs"

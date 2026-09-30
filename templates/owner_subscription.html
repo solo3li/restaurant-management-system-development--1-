@@ -388,7 +388,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-right text-xs">
+            <table class="w-full text-right text-xs table-responsive-cards">
                 <thead>
                     <tr class="border-b border-[#D2AB6B]/30 bg-[#F9F6F0] text-[#666666] font-bold">
                         <th class="p-3">#</th>
@@ -403,12 +403,12 @@
                 <tbody class="divide-y divide-[#D2AB6B]/20">
                     {% for req in upgrade_requests %}
                     <tr class="hover:bg-[#F9F6F0]/50 transition">
-                        <td class="p-3 font-mono font-bold text-[#666666]">#{{ req.id }}</td>
-                        <td class="p-3 font-bold text-[#0E382A]">{{ req.requested_plan.name }}</td>
-                        <td class="p-3 font-semibold text-[#666666]">{{ req.get_billing_cycle_display }}</td>
-                        <td class="p-3 text-[#666666]">{{ req.created_at|date:"Y-m-d H:i" }}</td>
-                        <td class="p-3 text-[#666666] max-w-xs truncate">{{ req.notes|default:"—" }}</td>
-                        <td class="p-3">
+                        <td class="p-3 font-mono font-bold text-[#666666]" data-label="#">#{{ req.id }}</td>
+                        <td class="p-3 font-bold text-[#0E382A]" data-label="الباقة المطلوبة">{{ req.requested_plan.name }}</td>
+                        <td class="p-3 font-semibold text-[#666666]" data-label="دورة الفوترة">{{ req.get_billing_cycle_display }}</td>
+                        <td class="p-3 text-[#666666]" data-label="تاريخ الطلب">{{ req.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="p-3 text-[#666666] max-w-xs truncate" data-label="ملاحظات">{{ req.notes|default:"—" }}</td>
+                        <td class="p-3" data-label="الحالة">
                             {% if req.status == 'pending' %}
                             <span class="px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 font-bold text-[11px] border border-amber-300">قيد المراجعة</span>
                             {% elif req.status == 'approved' %}
@@ -423,7 +423,7 @@
                             </span>
                             {% endif %}
                         </td>
-                        <td class="p-3 text-[#666666]">
+                        <td class="p-3 text-[#666666]" data-label="تاريخ المراجعة">
                             {% if req.reviewed_at %}{{ req.reviewed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
                         </td>
                     </tr>
@@ -464,7 +464,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-right text-xs">
+            <table class="w-full text-right text-xs table-responsive-cards">
                 <thead>
                     <tr class="border-b border-[#D2AB6B]/30 bg-[#F9F6F0] text-[#666666] font-bold">
                         <th class="p-3">اسم المفتاح / البوت</th>
@@ -479,13 +479,13 @@
                 <tbody class="divide-y divide-[#D2AB6B]/20">
                     {% for k in api_keys %}
                     <tr class="hover:bg-[#F9F6F0]/50 transition">
-                        <td class="p-3 font-bold text-[#0E382A]">
+                        <td class="p-3 font-bold text-[#0E382A]" data-label="اسم المفتاح">
                             <span class="inline-flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                 {{ k.name }}
                             </span>
                         </td>
-                        <td class="p-3">
+                        <td class="p-3" data-label="مفتاح الدخول">
                             <div class="flex items-center gap-2">
                                 <code class="font-mono bg-[#F9F6F0] border border-[#D2AB6B]/30 px-2.5 py-1 rounded-md text-[11px] font-bold text-[#0E382A] select-all" id="key-text-{{ k.id }}">
                                     {{ k.key|slice:":12" }}••••••••••••••••••••
@@ -501,27 +501,27 @@
                                 </button>
                             </div>
                         </td>
-                        <td class="p-3 text-[#666666] font-semibold">
+                        <td class="p-3 text-[#666666] font-semibold" data-label="الفرع المخصص">
                             {% if k.assigned_branch %}
                             {{ k.assigned_branch.name }}
                             {% else %}
                             <span class="text-[#0E382A] font-bold">كافة الفروع</span>
                             {% endif %}
                         </td>
-                        <td class="p-3 text-center font-mono font-bold text-[#0E382A]">
+                        <td class="p-3 text-center font-mono font-bold text-[#0E382A]" data-label="الطلبات المنفذة">
                             <span class="px-2.5 py-0.5 rounded-full bg-[#F9F6F0] border border-[#D2AB6B]/30 text-xs font-bold">{{ k.total_orders_placed }}</span>
                         </td>
-                        <td class="p-3 text-[#666666]">
+                        <td class="p-3 text-[#666666]" data-label="آخر استخدام">
                             {% if k.last_used_at %}{{ k.last_used_at|date:"Y-m-d H:i" }}{% else %}لم يُستخدم بعد{% endif %}
                         </td>
-                        <td class="p-3">
+                        <td class="p-3" data-label="الحالة">
                             {% if k.is_active %}
                             <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">مفعل</span>
                             {% else %}
                             <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold border border-rose-300">معطل</span>
                             {% endif %}
                         </td>
-                        <td class="p-3 text-center">
+                        <td class="p-3 text-center" data-label="الإجراءات">
                             <div class="flex items-center justify-center gap-2">
                                 <button 
                                     type="button" 

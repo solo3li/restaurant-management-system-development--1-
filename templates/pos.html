@@ -19,7 +19,7 @@
     </div>
 
     <!-- Main Layout: Menu Left + Invoice Right -->
-    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_390px] font-body">
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_390px] font-body pb-24 lg:pb-0">
         <!-- Menu Section -->
         <div>
             <!-- Categories & Search -->
@@ -51,7 +51,7 @@
             </div>
 
             <!-- Menu Items Grid -->
-            <div id="menu-grid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            <div id="menu-grid" class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4">
                 {% for m in menu_items %}
                 <div 
                     class="menu-item classic-card group relative p-3.5 text-right transition hover:border-[#D2AB6B] hover:shadow-md cursor-pointer {% if not m.available %}opacity-45 pointer-events-none{% endif %}"
@@ -79,14 +79,20 @@
         </div>
 
         <!-- Invoice / Cart Section -->
-        <div>
+        <div id="cart-section-container" class="transition-all duration-300">
             <div class="classic-card sticky top-4 shadow-xl border-line">
                 <div class="flex items-center justify-between border-b border-line px-5 py-3.5 bg-paper/40 rounded-t-2xl">
                     <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <span>الفاتورة الحالية</span>
                     </h2>
-                    <span id="cart-badge" class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="scrollToMenu()" class="lg:hidden text-[11px] font-bold text-soft hover:text-ink px-2 py-1 rounded-lg border border-line bg-card flex items-center gap-1">
+                            <span>الأصناف</span>
+                            <span>↑</span>
+                        </button>
+                        <span id="cart-badge" class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
+                    </div>
                 </div>
 
                 <!-- Items list -->
@@ -186,6 +192,24 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Floating Bottom Cart Bar for Mobile & Tablets (< lg) -->
+    <div id="pos-mobile-cart-bar" class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0E382A] text-white border-t border-[#D2AB6B]/40 shadow-[0_-6px_25px_rgba(0,0,0,0.35)] px-4 py-3 transition-transform duration-300 translate-y-full flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 border border-[#D2AB6B]/30 text-[#D2AB6B]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                <span id="mobile-cart-badge" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#D2AB6B] text-[10px] font-black text-[#1E130D]">0</span>
+            </span>
+            <div>
+                <p class="text-[11px] text-[#E6C898] font-bold">الفاتورة الحالية</p>
+                <p id="mobile-cart-total" class="text-sm font-black text-white">0.00 ر.س</p>
+            </div>
+        </div>
+        <button type="button" onclick="scrollToCart()" class="btn-gold-pill px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-md">
+            <span>عرض الفاتورة والتحصيل</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
     </div>
 </div>
 
@@ -387,6 +411,17 @@
         const totalCount = keys.reduce((sum, k) => sum + cart[k].qty, 0);
         document.getElementById('cart-badge').textContent = `${totalCount} أصناف`;
 
+        const mobileBar = document.getElementById('pos-mobile-cart-bar');
+        const mobileBadge = document.getElementById('mobile-cart-badge');
+        if (mobileBar) {
+            if (totalCount > 0) {
+                mobileBar.classList.remove('translate-y-full');
+                if (mobileBadge) mobileBadge.textContent = totalCount;
+            } else {
+                mobileBar.classList.add('translate-y-full');
+            }
+        }
+
         if (keys.length === 0) {
             container.innerHTML = `
                 <div id="cart-empty" class="py-8 text-center text-xs text-soft">
@@ -424,6 +459,19 @@
         updateTotals();
     }
 
+    function scrollToCart() {
+        const cartEl = document.getElementById('cart-section-container');
+        if (cartEl) {
+            cartEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            cartEl.classList.add('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl');
+            setTimeout(() => cartEl.classList.remove('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl'), 1500);
+        }
+    }
+
+    function scrollToMenu() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function updateTotals() {
         const keys = Object.keys(cart);
         let subtotal = 0;
@@ -438,6 +486,11 @@
 
         document.getElementById('sum-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
         document.getElementById('sum-total').textContent = `${total.toFixed(2)} ر.س`;
+
+        const mobileTotal = document.getElementById('mobile-cart-total');
+        if (mobileTotal) {
+            mobileTotal.textContent = `${total.toFixed(2)} ر.س`;
+        }
 
         const discRow = document.getElementById('row-discount');
         if (discount > 0) {

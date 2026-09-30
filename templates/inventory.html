@@ -61,7 +61,7 @@
     <!-- Inventory Table -->
     <div class="card overflow-hidden shadow-md">
         <div class="overflow-x-auto">
-            <table class="w-full text-right text-xs">
+            <table class="w-full text-right text-xs table-responsive-cards">
                 <thead class="border-b border-line bg-paper/70">
                     <tr>
                         <th class="th">المادة الغذائية</th>
@@ -76,12 +76,12 @@
                 <tbody class="divide-y divide-line/70">
                     {% for it in items %}
                     <tr class="hover:bg-paper/30 transition">
-                        <td class="td font-bold text-ink">
+                        <td class="td font-bold text-ink" data-label="المادة الغذائية">
                             <p class="text-sm font-extrabold">{{ it.name }}</p>
                             <p class="text-[10px] text-soft">الوحدة: {{ it.unit }}</p>
                         </td>
-                        <td class="td text-soft">{{ it.branch.name }}</td>
-                        <td class="td">
+                        <td class="td text-soft" data-label="الفرع">{{ it.branch.name }}</td>
+                        <td class="td" data-label="الكمية الحالية">
                             <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-black text-xs
                                 {% if it.quantity == 0 %}bg-bad-100 text-bad-700
                                 {% elif it.quantity <= it.min_quantity %}bg-warn-100 text-warn-700
@@ -92,16 +92,16 @@
                                 {% endif %}
                             </span>
                         </td>
-                        <td class="td font-mono">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
-                        <td class="td text-soft">{{ it.supplier|default:"—" }}</td>
-                        <td class="td">
+                        <td class="td font-mono" data-label="حد الأمان">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
+                        <td class="td text-soft" data-label="المورد">{{ it.supplier|default:"—" }}</td>
+                        <td class="td" data-label="تعديل سريع">
                             <div class="flex items-center gap-1">
                                 <button onclick="adjustStock({{ it.id }}, 5)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-brand-100 text-brand-700">+5</button>
                                 <button onclick="adjustStock({{ it.id }}, 1)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-brand-100 text-brand-700">+1</button>
                                 <button onclick="adjustStock({{ it.id }}, -1)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-bad-100 text-bad-700">-1</button>
                             </div>
                         </td>
-                        <td class="td text-center">
+                        <td class="td text-center" data-label="الإجراءات">
                             <div class="flex items-center justify-center gap-2">
                                 <button onclick="openEditInvModal({{ it.id }}, '{{ it.name }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier }}')" class="text-brand-600 hover:text-brand-700 font-bold">
                                     تعديل
