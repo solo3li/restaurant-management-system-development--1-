@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة تشغيل {{ branch.name }} — مطاعم ضيافة{% endblock %}
+{% block title %}{% if IS_RTL %}لوحة تشغيل {{ branch.name }}{% else %}{{ branch.name }} Operations{% endif %} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -17,13 +17,13 @@
                     <div class="flex items-center gap-2">
                         <h1 class="text-xl sm:text-2xl font-bold font-royal text-white tracking-wide">{{ branch.name }}</h1>
                         <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold font-body {% if branch.status == 'active' %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/40{% else %}bg-rose-500/20 text-rose-300 border border-rose-500/40{% endif %}">
-                            {% if branch.status == 'active' %}الفرع يعمل ومتاح{% else %}مغلق مؤقتاً{% endif %}
+                            {% if branch.status == 'active' %}{% if IS_RTL %}الفرع يعمل ومتاح{% else %}Branch Active &amp; Open{% endif %}{% else %}{% if IS_RTL %}مغلق مؤقتاً{% else %}Temporarily Closed{% endif %}{% endif %}
                         </span>
                     </div>
                     <p class="text-xs text-[#E2D9CE]/80 mt-1 flex items-center gap-1 font-body">
                         <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span>{{ branch.address|default:branch.city|default:"الرياض" }}</span>
-                        <span>• هاتف: <span dir="ltr">{{ branch.phone|default:"—" }}</span></span>
+                        <span>• {% if IS_RTL %}هاتف:{% else %}Tel:{% endif %} <span dir="ltr">{{ branch.phone|default:"—" }}</span></span>
                     </p>
                 </div>
             </div>
@@ -32,7 +32,7 @@
             <div>
                 <a href="{% url 'switch_branch' 'all' %}" class="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-3.5 py-2 text-xs font-bold text-[#E6C898] transition font-body">
                     <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    <span>العودة إلى لوحة الإدارة العامة (HQ)</span>
+                    <span>{% if IS_RTL %}العودة إلى لوحة الإدارة العامة (HQ){% else %}Return to HQ Dashboard{% endif %}</span>
                 </a>
             </div>
             {% endif %}
