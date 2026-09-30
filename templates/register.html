@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}تسجيل منشأة جديدة — منصة ضيافة لإدارة المطاعم التراثية{% endblock %}
+
+{% block unauth_content %}
+<!-- Google Fonts: Classical Arabic & English Luxury Typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    .font-royal { font-family: 'Amiri', serif; }
+    .font-headline { font-family: 'Cairo', sans-serif; }
+    .font-body { font-family: 'Tajawal', sans-serif; }
+
+    /* Luxury Gold Plaque Button */
+    .btn-gold-pill {
+        background: linear-gradient(135deg, #F4DC9E 0%, #D4A759 50%, #BA8B42 100%);
+        color: #1E130D;
+        border: 1px solid #FFF1D6;
+        box-shadow: 0 6px 18px rgba(186, 139, 66, 0.35);
+        font-weight: 800;
+        transition: all 0.25s ease;
+    }
+    .btn-gold-pill:hover {
+        background: linear-gradient(135deg, #F9E7BA 0%, #DCB267 50%, #C4954A 100%);
+        box-shadow: 0 8px 24px rgba(186, 139, 66, 0.45);
+        transform: translateY(-2px);
+    }
+    .btn-gold-pill:active {
+        transform: translateY(0);
+    }
+
+    /* Ambient Arabesque Pattern Background */
+    .bg-arabesque-emerald {
+        background-color: #0E382A;
+        background-image: 
+            radial-gradient(circle at 50% 20%, rgba(27, 99, 77, 0.7) 0%, transparent 70%),
+            radial-gradient(circle at 80% 80%, rgba(210, 171, 107, 0.15) 0%, transparent 50%),
+            linear-gradient(180deg, #134A38 0%, #0A291F 100%);
+    }
+
+    /* Plan Selection Radio Cards */
+    .plan-card-option {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .plan-card-option:hover {
+        border-color: #D2AB6B;
+        background-color: #FFFDF9;
+    }
+    .plan-radio:checked + .plan-content {
+        border-color: #D2AB6B;
+        background-color: #FAF4E8;
+        box-shadow: 0 4px 12px rgba(210, 171, 107, 0.25);
+    }
+</style>
+
+<div class="min-h-screen bg-[#F9F6F0] font-body text-[#1E130D] flex flex-col justify-center selection:bg-[#1B634D] selection:text-white" dir="rtl">
+    
+    <!-- Full-Width Split-Screen Container -->
+    <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 overflow-hidden shadow-2xl">
+        
+        <!-- ======================================================== -->
+        <!-- RIGHT PANEL: OPULENT HERITAGE SHOWCASE                   -->
+        <!-- ======================================================== -->
+        <div class="lg:col-span-5 xl:col-span-5 bg-arabesque-emerald relative flex flex-col justify-between p-8 sm:p-12 lg:p-14 text-white overflow-hidden order-2 lg:order-1">
+            
+            <!-- Ambient Islamic Geometric Lattice Overlay -->
+            <svg class="absolute inset-0 w-full h-full opacity-10 pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <defs>
+                    <pattern id="regGrid" width="60" height="60" patternUnits="userSpaceOnUse">
+                        <path d="M30 0 L60 30 L30 60 L0 30 Z" fill="none" stroke="#D2AB6B" stroke-width="1"/>
+                        <circle cx="30" cy="30" r="10" fill="none" stroke="#D2AB6B" stroke-width="0.8"/>
+                        <circle cx="0" cy="0" r="8" fill="none" stroke="#D2AB6B" stroke-width="0.6"/>
+                        <circle cx="60" cy="0" r="8" fill="none" stroke="#D2AB6B" stroke-width="0.6"/>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#regGrid)"/>
+            </svg>
+
+            <!-- Top Header in Showcase -->
+            <div class="relative z-10 flex items-center justify-between">
+                <a href="{% url 'landing' %}" class="inline-flex items-center gap-3 group">
+                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="شعار ضيافة" class="h-10 sm:h-12 w-auto drop-shadow-md group-hover:scale-105 transition-transform" />
+                    <div>
+                        <span class="font-royal text-2xl sm:text-3xl font-bold text-white tracking-tight">ضِيَافَة</span>
+                        <span class="block text-[10px] font-bold text-[#D2AB6B] tracking-widest uppercase">Heritage Culinary OS</span>
+                    </div>
+                </a>
+
+                <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-[#D2AB6B]/40 bg-white/5 hover:bg-white/10 text-xs font-bold text-[#E8D3B0] hover:text-white transition flex items-center gap-1.5 backdrop-blur-xs">
+                    <span>← العودة للرئيسية</span>
+                </a>
+            </div>
+
+            <!-- Middle Core: Brand Title & Framed Traditional Feast Image -->
+            <div class="relative z-10 my-6 sm:my-8 space-y-5 max-w-lg mx-auto text-center lg:text-right">
+                
+                <!-- Royal Monogram & Title Banner -->
+                <div class="space-y-2.5">
+                    <div class="inline-block mx-auto lg:mx-0">
+                        <img src="{% static 'img/diyafa_symbol.png' %}" alt="Diyafa Emblem" class="h-16 sm:h-20 w-auto mx-auto lg:mx-0 drop-shadow-xl" />
+                    </div>
+
+                    <h2 class="font-royal text-3xl sm:text-4xl font-black text-white leading-tight">
+                        انضم إلى ضِيَافَة
+                    </h2>
+                    
+                    <p class="font-headline text-base sm:text-xl font-bold text-[#EAD8B8] tracking-tight">
+                        حوّل مطعمك إلى منظومة تشغيل سحابية متطورة
+                    </p>
+                    
+                    <p class="text-xs text-white/75 leading-relaxed font-medium">
+                        سجّل منشأتك خلال دقيقتين فقط واستمتع بتجربة مجانية كاملة الميزات تشمل نقاط البيع، شاشات المطبخ، ومساعد الكول سنتر الذكي.
+                    </p>
+                </div>
+
+                <!-- Ornate Framed Feast Photo -->
+                <div class="relative mx-auto lg:mx-0 max-w-sm pt-2">
+                    <div class="relative rounded-2xl overflow-hidden border-2 border-[#D2AB6B]/60 shadow-2xl p-1 bg-gradient-to-b from-[#D2AB6B]/30 to-transparent">
+                        <img 
+                            src="{% static 'img/classic_feast_hero.jpg' %}" 
+                            alt="مائدة الضيافة العربية" 
+                            class="w-full h-44 sm:h-48 object-cover rounded-xl shadow-inner"
+                        />
+                        <!-- Subtle Inset Gold Glow -->
+                        <div class="absolute inset-1 rounded-xl pointer-events-none ring-1 ring-inset ring-[#D2AB6B]/30"></div>
+                        
+                        <!-- Floating Badge -->
+                        <div class="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto px-3.5 py-1.5 rounded-full bg-[#082119]/85 border border-[#D2AB6B]/50 backdrop-blur-md text-[10px] font-bold text-[#EAD8B8] flex items-center gap-1.5 shadow-lg">
+                            <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                            <span>تجربة مجانية 14 يوماً بكامل الصلاحيات</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Highlights in Showcase -->
+            <div class="relative z-10 pt-4 border-t border-[#D2AB6B]/20 space-y-2 text-xs font-bold text-white/80">
+                <div class="flex items-center gap-2">
+                    <span class="text-[#D2AB6B]">✓</span>
+                    <span>بدون بطاقة ائتمانية وبدون رسوم تأسيس خفية</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[#D2AB6B]">✓</span>
+                    <span>تجهيز وإطلاق فوري لفرعك وقائمتك من اليوم الأول</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[#D2AB6B]">✓</span>
+                    <span>دعم فني استشاري معتمد 24/7 عبر الهاتف والواتساب</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- LEFT PANEL: PARCHMENT ONBOARDING REGISTRATION CARD       -->
+        <!-- ======================================================== -->
+        <div class="lg:col-span-7 xl:col-span-7 bg-[#F9F6F0] flex items-center justify-center p-6 sm:p-10 lg:p-12 order-1 lg:order-2 relative overflow-y-auto">
+            
+            <!-- Subtle Corner Arabesque Accents -->
+            <div class="absolute top-4 left-4 text-[#D2AB6B]/30 select-none text-2xl">⚜️</div>
+            <div class="absolute bottom-4 right-4 text-[#D2AB6B]/30 select-none text-2xl">⚜️</div>
+
+            <!-- Registration Card -->
+            <div class="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-9 shadow-2xl border border-[#E8DFD3] relative my-6">
+                
+                <!-- Golden Dallah Monogram at top of Card -->
+                <div class="text-center mb-5">
+                    <img 
+                        src="{% static 'img/diyafa_symbol.png' %}" 
+                        alt="شعار ضيافة" 
+                        class="h-14 w-auto mx-auto mb-2 drop-shadow-md select-none hover:scale-105 transition-transform"
+                    />
+                    
+                    <!-- 3-Step Breadcrumb Progress Bar (Matching UI Design) -->
+                    <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FAF5EC] border border-[#D2AB6B]/40 text-[11px] font-bold text-[#8C6527] mb-2">
+                        <span class="text-[#1B634D] font-extrabold">1. بيانات المنشأة</span>
+                        <span>←</span>
+                        <span>2. باقة الاشتراك</span>
+                        <span>←</span>
+                        <span>3. تفعيل الفروع</span>
+                    </div>
+
+                    <h1 class="font-headline text-2xl sm:text-3xl font-black text-[#1E130D] tracking-tight">
+                        تسجيل منشأة ومطعم جديد
+                    </h1>
+                    <p class="text-xs font-bold text-[#6E5D4F] mt-1">
+                        أنشئ حساب مطعمك الآن واستمتع بفترة تجريبية مجانية 14 يوماً
+                    </p>
+                </div>
+
+                <!-- Error Alert (if any) -->
+                {% if error %}
+                <div class="mb-5 flex items-center gap-2.5 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs font-bold text-red-800 shadow-xs">
+                    <span class="text-base">⚠️</span>
+                    <span>{{ error }}</span>
+                </div>
+                {% endif %}
+
+                <!-- Registration Form -->
+                <form method="POST" action="{% url 'register' %}" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <!-- Row 1: Restaurant Name & Cuisine Type -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label for="restaurant_name" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                اسم المطعم / المنشأة <span class="text-red-600">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#8C6527] pointer-events-none text-xs">
+                                    🍽️
+                                </span>
+                                <input 
+                                    type="text" 
+                                    id="restaurant_name" 
+                                    name="restaurant_name" 
+                                    required 
+                                    class="w-full pr-9 pl-3 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                    placeholder="مثال: مطعم قصر الضيافة التراثي"
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="cuisine_type" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                نوع المطبخ والتخصص
+                            </label>
+                            <div class="relative">
+                                <select 
+                                    id="cuisine_type" 
+                                    name="cuisine_type" 
+                                    class="w-full px-3 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition cursor-pointer appearance-none"
+                                >
+                                    <option value="شعبي وتراثي">مأكولات شعبية وتراثية (مندي، حنيذ، كبسة)</option>
+                                    <option value="بخاري ورز">مطابخ الرز البخاري والشواية</option>
+                                    <option value="مشويات ومقبلات">مشويات وشاورما ومقبلات شامية</option>
+                                    <option value="مأكولات بحرية">مأكولات وأسماك بحرية طازجة</option>
+                                    <option value="كافيه وحلويات">حلويات شرقية، شاي كرك، ومقاهي</option>
+                                    <option value="سلسلة عامة">سلسلة مطاعم متعددة الأقسام</option>
+                                </select>
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#8C6527] pointer-events-none text-xs">
+                                    ▼
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Owner Name & Phone Number -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label for="owner_name" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                اسم المالك / المسؤول
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#8C6527] pointer-events-none text-xs">
+                                    👤
+                                </span>
+                                <input 
+                                    type="text" 
+                                    id="owner_name" 
+                                    name="owner_name" 
+                                    class="w-full pr-9 pl-3 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                    placeholder="مثال: سلطان القحطاني"
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="phone" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                رقم الجوال السعودي <span class="text-red-600">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#8C6527] pointer-events-none text-xs">
+                                    📱
+                                </span>
+                                <input 
+                                    type="tel" 
+                                    id="phone" 
+                                    name="phone" 
+                                    required 
+                                    class="w-full pr-9 pl-3 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition font-mono" 
+                                    placeholder="05XXXXXXXX"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Account Credentials (Username, Email, Password) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label for="email" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                البريد الإلكتروني
+                            </label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                class="w-full px-3 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                placeholder="name@restaurant.sa"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="username" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                اسم المستخدم <span class="text-red-600">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                required 
+                                class="w-full px-3 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition font-mono" 
+                                placeholder="owner_qasr"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="password" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                كلمة المرور <span class="text-red-600">*</span>
+                            </label>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                required 
+                                minlength="6"
+                                class="w-full px-3 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition font-mono" 
+                                placeholder="••••••••"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Interactive Subscription Plan Selection (Matching UI Photo) -->
+                    <div class="pt-2">
+                        <label class="mb-2 block text-xs font-extrabold text-[#1E130D] flex items-center justify-between">
+                            <span>اختر باقة الاشتراك المبدئية:</span>
+                            <span class="text-[11px] font-bold text-[#8C6527]">كل الباقات تشمل 14 يوماً مجاناً</span>
+                        </label>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            
+                            <!-- Plan 1: Starter -->
+                            <label class="plan-card-option relative block">
+                                <input type="radio" name="plan_code" value="starter" class="plan-radio sr-only">
+                                <div class="plan-content p-3 rounded-xl border border-[#E5DDD0] bg-[#FAF8F5] text-center transition">
+                                    <div class="font-headline text-xs font-black text-[#1E130D]">باقة البداية</div>
+                                    <div class="text-sm font-extrabold text-[#144D3B] mt-0.5">299 <span class="text-[10px]">ر.س/ش</span></div>
+                                    <div class="text-[10px] text-[#6E5D4F] mt-0.5 font-bold">فرع واحد • كاشير ومطبخ</div>
+                                </div>
+                            </label>
+
+                            <!-- Plan 2: Growth (Default / Popular with Ribbon) -->
+                            <label class="plan-card-option relative block">
+                                <input type="radio" name="plan_code" value="growth" class="plan-radio sr-only" checked>
+                                <div class="plan-content p-3 rounded-xl border-2 border-[#D2AB6B] bg-[#FFFBF2] text-center relative shadow-xs transition">
+                                    <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-[#1B634D] text-[#FFF] text-[9px] font-black uppercase tracking-wider">
+                                        ⭐ الأكثر طلباً
+                                    </div>
+                                    <div class="font-headline text-xs font-black text-[#1E130D]">باقة النمو</div>
+                                    <div class="text-sm font-extrabold text-[#144D3B] mt-0.5">599 <span class="text-[10px]">ر.س/ش</span></div>
+                                    <div class="text-[10px] text-[#6E5D4F] mt-0.5 font-bold">حتى 5 فروع • كول سنتر AI</div>
+                                </div>
+                            </label>
+
+                            <!-- Plan 3: Enterprise -->
+                            <label class="plan-card-option relative block">
+                                <input type="radio" name="plan_code" value="enterprise" class="plan-radio sr-only">
+                                <div class="plan-content p-3 rounded-xl border border-[#E5DDD0] bg-[#FAF8F5] text-center transition">
+                                    <div class="font-headline text-xs font-black text-[#1E130D]">باقة السلاسل</div>
+                                    <div class="text-sm font-extrabold text-[#144D3B] mt-0.5">1,299 <span class="text-[10px]">ر.س/ش</span></div>
+                                    <div class="text-[10px] text-[#6E5D4F] mt-0.5 font-bold">فروع غير محدودة • ربط مخصص</div>
+                                </div>
+                            </label>
+
+                        </div>
+                    </div>
+
+                    <!-- Grand Gold Plaque Button (Matching UI Photo) -->
+                    <div class="pt-2">
+                        <button 
+                            type="submit" 
+                            class="w-full btn-gold-pill py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                        >
+                            <span>ابدأ التجربة المجانية 14 يوماً</span>
+                            <span class="text-xs">←</span>
+                        </button>
+                    </div>
+
+                    <!-- Trust Guarantees at Bottom (From UI Design) -->
+                    <div class="pt-1 flex items-center justify-center gap-3 text-[11px] font-bold text-[#6E5D4F] text-center">
+                        <span>بدون بطاقة ائتمانية</span>
+                        <span>•</span>
+                        <span>تفعيل فوري</span>
+                        <span>•</span>
+                        <span>دعم فني 24/7</span>
+                    </div>
+
+                </form>
+
+                <!-- Switch Link: Back to Login -->
+                <div class="mt-5 pt-4 border-t border-[#E8DFD3] text-center">
+                    <p class="text-xs font-bold text-[#5C4B3F]">
+                        لديك حساب منشأة مسجل بالفعل؟ 
+                        <a href="{% url 'login' %}" class="text-[#1B634D] hover:text-[#8C6527] underline font-extrabold transition">
+                            تسجيل الدخول إلى النظام ←
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

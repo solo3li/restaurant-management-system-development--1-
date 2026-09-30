@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.utils import timezone
+from django.utils.text import slugify
 from django.db.models import Sum, Count, F, Q
 
 from .models import (
@@ -198,6 +199,93 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect("login")
+
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
+    error_message = None
+    plans = SubscriptionPlan.objects.filter(is_active=True).order_by("ordering")
+
+    if request.method == "POST":
+        restaurant_name = request.POST.get("restaurant_name", "").strip()
+        cuisine_type = request.POST.get("cuisine_type", "شعبي وتراثي").strip()
+        owner_name = request.POST.get("owner_name", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        email = request.POST.get("email", "").strip()
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "").strip()
+        plan_code = request.POST.get("plan_code", "starter").strip()
+
+        if not restaurant_name or not username or not password:
+            error_message = "يرجى تعبئة الحقول الإلزامية: اسم المطعم، اسم المستخدم، وكلمة المرور."
+        elif User.objects.filter(username=username).exists():
+            error_message = f"اسم المستخدم '{username}' مسجل مسبقاً، يرجى اختيار اسم مستخدم آخر."
+        elif len(password) < 6:
+            error_message = "كلمة المرور يجب أن لا تقل عن 6 خانات."
+        else:
+            try:
+                # 1. Create User Account
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=owner_name or restaurant_name
+                )
+
+                # 2. Pick Selected Plan
+                plan = SubscriptionPlan.objects.filter(code=plan_code).first() or plans.first()
+
+                # 3. Generate unique slug
+                base_slug = slugify(restaurant_name) or f"restaurant-{user.id}"
+                slug = base_slug
+                counter = 1
+                while Tenant.objects.filter(slug=slug).exists():
+                    slug = f"{base_slug}-{counter}"
+                    counter += 1
+
+                # 4. Create Tenant
+                tenant = Tenant.objects.create(
+                    name=restaurant_name,
+                    slug=slug,
+                    phone=phone,
+                    email=email,
+                    plan="trial",
+                    subscription_plan=plan,
+                    subscription_status="trial",
+                    subscription_start=timezone.now(),
+                    subscription_end=timezone.now() + timedelta(days=plan.trial_days if plan else 14),
+                    is_active=True,
+                )
+
+                # 5. Create Owner Profile
+                UserProfile.objects.create(
+                    user=user,
+                    tenant=tenant,
+                    role="owner"
+                )
+
+                # 6. Create Initial Main Branch
+                Branch.objects.create(
+                    tenant=tenant,
+                    name=f"الفرع الرئيسي — {restaurant_name}",
+                    phone=phone,
+                    is_active=True
+                )
+
+                # 7. Authenticate and redirect
+                login(request, user)
+                request.session["active_tenant_id"] = tenant.id
+                return redirect("dashboard")
+
+            except Exception as e:
+                error_message = f"حدث خطأ أثناء إنشاء الحساب: {str(e)}"
+
+    return render(request, "register.html", {
+        "error": error_message,
+        "plans": plans
+    })
 
 
 @login_required

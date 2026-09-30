@@ -1,155 +1,359 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}تسجيل الدخول — نظام إدارة المطاعم المتعددة{% endblock %}
+{% block title %}تسجيل الدخول — منصة ضيافة لإدارة المطاعم التراثية{% endblock %}
 
 {% block unauth_content %}
-<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-paper via-brand-50 to-paper">
-    <div class="w-full max-w-md">
-        <!-- Logo & Header -->
-        <div class="text-center mb-6">
-            <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-white text-3xl shadow-xl shadow-brand-600/30 mb-3">
-                🔥
+<!-- Google Fonts: Classical Arabic & English Luxury Typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    .font-royal { font-family: 'Amiri', serif; }
+    .font-headline { font-family: 'Cairo', sans-serif; }
+    .font-body { font-family: 'Tajawal', sans-serif; }
+
+    /* Luxury Gold Plaque Button */
+    .btn-gold-pill {
+        background: linear-gradient(135deg, #F4DC9E 0%, #D4A759 50%, #BA8B42 100%);
+        color: #1E130D;
+        border: 1px solid #FFF1D6;
+        box-shadow: 0 6px 18px rgba(186, 139, 66, 0.35);
+        font-weight: 800;
+        transition: all 0.25s ease;
+    }
+    .btn-gold-pill:hover {
+        background: linear-gradient(135deg, #F9E7BA 0%, #DCB267 50%, #C4954A 100%);
+        box-shadow: 0 8px 24px rgba(186, 139, 66, 0.45);
+        transform: translateY(-2px);
+    }
+    .btn-gold-pill:active {
+        transform: translateY(0);
+    }
+
+    /* Ambient Arabesque Pattern Background */
+    .bg-arabesque-emerald {
+        background-color: #0E382A;
+        background-image: 
+            radial-gradient(circle at 50% 20%, rgba(27, 99, 77, 0.7) 0%, transparent 70%),
+            radial-gradient(circle at 80% 80%, rgba(210, 171, 107, 0.15) 0%, transparent 50%),
+            linear-gradient(180deg, #134A38 0%, #0A291F 100%);
+    }
+
+    /* Architectural Mihrab Arch SVG */
+    .arch-frame {
+        border-top-left-radius: 9999px;
+        border-top-right-radius: 9999px;
+    }
+</style>
+
+<div class="min-h-screen bg-[#F9F6F0] font-body text-[#1E130D] flex flex-col justify-center selection:bg-[#1B634D] selection:text-white" dir="rtl">
+    
+    <!-- Full-Width Split-Screen Container -->
+    <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 overflow-hidden shadow-2xl">
+        
+        <!-- ======================================================== -->
+        <!-- RIGHT PANEL: OPULENT HERITAGE SHOWCASE (From Selected UI) -->
+        <!-- ======================================================== -->
+        <div class="lg:col-span-6 xl:col-span-7 bg-arabesque-emerald relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 text-white overflow-hidden order-2 lg:order-1">
+            
+            <!-- Ambient Islamic Geometric Lattice Overlay -->
+            <svg class="absolute inset-0 w-full h-full opacity-10 pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <defs>
+                    <pattern id="loginGrid" width="60" height="60" patternUnits="userSpaceOnUse">
+                        <path d="M30 0 L60 30 L30 60 L0 30 Z" fill="none" stroke="#D2AB6B" stroke-width="1"/>
+                        <circle cx="30" cy="30" r="10" fill="none" stroke="#D2AB6B" stroke-width="0.8"/>
+                        <circle cx="0" cy="0" r="8" fill="none" stroke="#D2AB6B" stroke-width="0.6"/>
+                        <circle cx="60" cy="0" r="8" fill="none" stroke="#D2AB6B" stroke-width="0.6"/>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#loginGrid)"/>
+            </svg>
+
+            <!-- Top Header in Showcase -->
+            <div class="relative z-10 flex items-center justify-between">
+                <a href="{% url 'landing' %}" class="inline-flex items-center gap-3 group">
+                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="شعار ضيافة" class="h-10 sm:h-12 w-auto drop-shadow-md group-hover:scale-105 transition-transform" />
+                    <div>
+                        <span class="font-royal text-2xl sm:text-3xl font-bold text-white tracking-tight">ضِيَافَة</span>
+                        <span class="block text-[10px] font-bold text-[#D2AB6B] tracking-widest uppercase">Heritage Culinary OS</span>
+                    </div>
+                </a>
+
+                <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-[#D2AB6B]/40 bg-white/5 hover:bg-white/10 text-xs font-bold text-[#E8D3B0] hover:text-white transition flex items-center gap-1.5 backdrop-blur-xs">
+                    <span>← العودة للرئيسية</span>
+                </a>
             </div>
-            <h1 class="text-2xl font-black text-ink font-display">منصة ضيافة لإدارة المطاعم</h1>
-            <p class="text-xs font-bold text-soft mt-1">نظام SaaS متعدد المنشآت • الفروع، الكاشير والمطابخ</p>
+
+            <!-- Middle Core: Brand Title & Framed Traditional Feast Image -->
+            <div class="relative z-10 my-8 sm:my-12 space-y-6 max-w-xl mx-auto text-center lg:text-right">
+                
+                <!-- Royal Monogram & Title Banner (Matching Photo) -->
+                <div class="space-y-3">
+                    <div class="inline-block mx-auto lg:mx-0">
+                        <img src="{% static 'img/diyafa_symbol.png' %}" alt="Diyafa Emblem" class="h-20 sm:h-24 w-auto mx-auto lg:mx-0 drop-shadow-xl" />
+                    </div>
+
+                    <h2 class="font-royal text-3xl sm:text-5xl font-black text-white leading-tight">
+                        ضِيَافَة
+                    </h2>
+                    
+                    <p class="font-headline text-lg sm:text-2xl font-bold text-[#EAD8B8] tracking-tight">
+                        بوابتك لإدارة التراث السحابي والضيافة الراقية
+                    </p>
+                    
+                    <p class="text-xs sm:text-sm text-white/75 leading-relaxed font-medium">
+                        المنظومة السحابية الموحدة لربط فروع المطاعم الشعبية والتراثية، شاشات الكاشير، تنظيم المطبخ الفوري، وكول سنتر الذكاء الاصطناعي 24/7.
+                    </p>
+                </div>
+
+                <!-- Ornate Framed Feast Photo (Matching Selected Design) -->
+                <div class="relative mx-auto lg:mx-0 max-w-md pt-2">
+                    <div class="relative rounded-2xl overflow-hidden border-2 border-[#D2AB6B]/60 shadow-2xl p-1 bg-gradient-to-b from-[#D2AB6B]/30 to-transparent">
+                        <img 
+                            src="{% static 'img/classic_feast_hero.jpg' %}" 
+                            alt="مائدة الضيافة العربية" 
+                            class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-inner"
+                        />
+                        <!-- Subtle Inset Gold Glow -->
+                        <div class="absolute inset-1 rounded-xl pointer-events-none ring-1 ring-inset ring-[#D2AB6B]/30"></div>
+                        
+                        <!-- Floating Badge -->
+                        <div class="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto px-3.5 py-1.5 rounded-full bg-[#082119]/85 border border-[#D2AB6B]/50 backdrop-blur-md text-[11px] font-bold text-[#EAD8B8] flex items-center gap-2 shadow-lg">
+                            <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>المنظومة السحابية متصلة ولحظية 24/7</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Highlights in Showcase -->
+            <div class="relative z-10 pt-4 border-t border-[#D2AB6B]/20 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-white/70">
+                <div class="flex items-center gap-2">
+                    <span class="text-[#D2AB6B]">⚜️</span>
+                    <span>كاشير POS سريع وفواتير إلكترونية</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[#D2AB6B]">🍳</span>
+                    <span>شاشات مطبخ KDS فورية</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[#D2AB6B]">🤖</span>
+                    <span>كول سنتر AI ببروتوكول FastMCP</span>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Login Card -->
-        <div class="card p-6 shadow-xl border-line">
-            <!-- Tabs -->
-            <div class="flex items-center gap-2 p-1 bg-paper rounded-xl mb-5 border border-line">
-                <button 
-                    type="button" 
-                    id="tab-btn-credentials" 
-                    onclick="switchTab('credentials')" 
-                    class="flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-brand-700 shadow-sm"
-                >
-                    👤 حساب الإدارة
-                </button>
-                <button 
-                    type="button" 
-                    id="tab-btn-pin" 
-                    onclick="switchTab('pin')" 
-                    class="flex-1 py-2 rounded-lg text-xs font-black transition-all text-soft hover:text-ink"
-                >
-                    🔢 دخول سريع للموظفين (PIN)
-                </button>
-            </div>
+        <!-- ======================================================== -->
+        <!-- LEFT PANEL: PARCHMENT LOGIN CARD (From Selected UI)      -->
+        <!-- ======================================================== -->
+        <div class="lg:col-span-6 xl:col-span-5 bg-[#F9F6F0] flex items-center justify-center p-6 sm:p-10 lg:p-14 order-1 lg:order-2 relative">
+            
+            <!-- Subtle Corner Arabesque Accents -->
+            <div class="absolute top-4 left-4 text-[#D2AB6B]/30 select-none text-2xl">⚜️</div>
+            <div class="absolute bottom-4 right-4 text-[#D2AB6B]/30 select-none text-2xl">⚜️</div>
 
-            {% if error %}
-            <div class="mb-4 flex items-center gap-2 rounded-xl border border-bad-600/30 bg-bad-100/80 p-3 text-xs font-bold text-bad-700">
-                <span>⚠️</span>
-                <span>{{ error }}</span>
-            </div>
-            {% endif %}
+            <!-- Login Card (Matching Selected UI Card) -->
+            <div class="w-full max-w-md bg-white rounded-3xl p-7 sm:p-9 shadow-2xl border border-[#E8DFD3] relative">
+                
+                <!-- Golden Dallah Monogram at top of Card (Exact UI match) -->
+                <div class="text-center mb-6">
+                    <img 
+                        src="{% static 'img/diyafa_symbol.png' %}" 
+                        alt="شعار ضيافة" 
+                        class="h-16 w-auto mx-auto mb-2 drop-shadow-md select-none hover:scale-105 transition-transform"
+                    />
+                    <h1 class="font-headline text-2xl sm:text-3xl font-black text-[#1E130D] tracking-tight">
+                        تسجيل الدخول إلى النظام
+                    </h1>
+                    <p class="text-xs font-bold text-[#6E5D4F] mt-1.5">
+                        أدخل بيانات الاعتماد لإدارة مطعمك وفروعك
+                    </p>
+                </div>
 
-            <!-- Form 1: Standard Username & Password -->
-            <form id="form-credentials" method="POST" action="{% url 'login' %}">
-                {% csrf_token %}
-                <input type="hidden" name="auth_type" value="credentials">
-                <div class="space-y-3.5">
-                    <div>
-                        <label for="username" class="mb-1 block text-xs font-bold text-ink/80">اسم المستخدم</label>
-                        <input 
-                            type="text" 
-                            id="username" 
-                            name="username" 
-                            required 
-                            class="input font-medium text-xs" 
-                            placeholder="admin أو manager_olaya"
-                            value="admin"
-                        >
-                    </div>
-
-                    <div>
-                        <label for="password" class="mb-1 block text-xs font-bold text-ink/80">كلمة المرور</label>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            required 
-                            class="input font-medium text-xs" 
-                            placeholder="••••••••"
-                            value="admin123"
-                        >
-                    </div>
-
+                <!-- Role / Method Tabs -->
+                <div class="flex items-center gap-1.5 p-1 bg-[#F5EFE6] rounded-xl mb-6 border border-[#E8DFD3]">
                     <button 
-                        type="submit" 
-                        class="w-full mt-2 rounded-xl bg-brand-600 py-2.5 text-xs font-black text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700 active:scale-[0.99]"
+                        type="button" 
+                        id="tab-btn-credentials" 
+                        onclick="switchTab('credentials')" 
+                        class="flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-[#1B634D] shadow-sm border border-[#D2AB6B]/30"
                     >
-                        دخول لوحة التحكم ←
+                        👤 حساب المالك والإدارة
                     </button>
-                </div>
-            </form>
-
-            <!-- Form 2: Quick Shift PIN Login for Staff -->
-            <form id="form-pin" method="POST" action="{% url 'login' %}" class="hidden">
-                {% csrf_token %}
-                <input type="hidden" name="auth_type" value="pin">
-                <div class="space-y-3.5">
-                    <div>
-                        <label for="employee_code" class="mb-1 block text-xs font-bold text-ink/80">كود الموظف (Badge / ID)</label>
-                        <input 
-                            type="text" 
-                            id="employee_code" 
-                            name="employee_code" 
-                            required 
-                            class="input font-mono font-black text-center text-sm tracking-wider" 
-                            placeholder="مثال: 104 للكاشير أو 106 للشيف"
-                        >
-                    </div>
-
-                    <div>
-                        <label for="pin" class="mb-1 block text-xs font-bold text-ink/80">رمز PIN السريع (4 أرقام)</label>
-                        <input 
-                            type="password" 
-                            id="pin" 
-                            name="pin" 
-                            maxlength="6"
-                            required 
-                            class="input font-mono font-black text-center text-lg tracking-[0.3em]" 
-                            placeholder="••••"
-                        >
-                    </div>
-
                     <button 
-                        type="submit" 
-                        class="w-full mt-2 rounded-xl bg-good-600 py-2.5 text-xs font-black text-white shadow-lg shadow-good-600/30 transition hover:bg-good-700 active:scale-[0.99]"
+                        type="button" 
+                        id="tab-btn-pin" 
+                        onclick="switchTab('pin')" 
+                        class="flex-1 py-2 rounded-lg text-xs font-black transition-all text-[#6E5D4F] hover:text-[#1E130D]"
                     >
-                        🔓 بدء الوردية والدخول
+                        🔢 كود الموظف السريع (PIN)
                     </button>
                 </div>
-            </form>
 
-            <!-- Quick Demo Helper -->
-            <div class="mt-5 pt-4 border-t border-line text-[11px] text-soft space-y-2">
-                <p class="font-bold text-ink text-center">حسابات تجريبية جاهزة للاختبار بنقرة واحدة:</p>
-                <div class="grid grid-cols-2 gap-1.5 font-bold">
-                    <button type="button" onclick="fillCreds('superadmin', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
-                        🏢 مدير المنصة (SaaS)
-                    </button>
-                    <button type="button" onclick="fillCreds('admin', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
-                        👑 مالك مطاعم ضيافة
-                    </button>
-                    <button type="button" onclick="fillCreds('owner_burger', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
-                        🍔 مالك برجر كلاسيك
-                    </button>
-                    <button type="button" onclick="fillCreds('manager_olaya', 'admin123')" class="p-1.5 rounded-lg bg-paper hover:bg-brand-100 text-ink text-right border border-line">
-                        📍 مدير فرع العليا
-                    </button>
-                    <button type="button" onclick="fillPin('104', '1234')" class="p-1.5 rounded-lg bg-good-50 hover:bg-good-100 text-good-800 text-right border border-good-200">
-                        💳 كاشير ضيافة (104 / 1234)
-                    </button>
-                    <button type="button" onclick="fillPin('106', '5678')" class="p-1.5 rounded-lg bg-good-50 hover:bg-good-100 text-good-800 text-right border border-good-200">
-                        🍳 شيف ضيافة (106 / 5678)
-                    </button>
+                <!-- Error Alert (if any) -->
+                {% if error %}
+                <div class="mb-5 flex items-center gap-2.5 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs font-bold text-red-800 shadow-xs">
+                    <span class="text-base">⚠️</span>
+                    <span>{{ error }}</span>
                 </div>
+                {% endif %}
+
+                <!-- Form 1: Standard Username & Password -->
+                <form id="form-credentials" method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="auth_type" value="credentials">
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="username" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                اسم المستخدم أو البريد الإلكتروني
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#8C6527] pointer-events-none text-sm">
+                                    👤
+                                </span>
+                                <input 
+                                    type="text" 
+                                    id="username" 
+                                    name="username" 
+                                    required 
+                                    class="w-full pr-10 pl-3.5 py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                    placeholder="مثال: admin أو owner_burger"
+                                    value="admin"
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="password" class="block text-xs font-bold text-[#1E130D]">
+                                    كلمة المرور
+                                </label>
+                                <a href="javascript:void(0)" onclick="alert('يرجى التواصل مع مدير النظام أو استخدام أحد الحسابات التجريبية بالأسفل.')" class="text-[11px] font-bold text-[#8C6527] hover:underline">
+                                    نسيت كلمة المرور؟
+                                </a>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#8C6527] pointer-events-none text-sm">
+                                    🔒
+                                </span>
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    name="password" 
+                                    required 
+                                    class="w-full pr-10 pl-3.5 py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition font-mono" 
+                                    placeholder="••••••••"
+                                    value="admin123"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Remember Me -->
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-[#5C4B3F]">
+                                <input type="checkbox" checked class="rounded border-[#D2AB6B] text-[#1B634D] focus:ring-[#D2AB6B]">
+                                <span>تذكرني على هذا الجهاز</span>
+                            </label>
+                        </div>
+
+                        <!-- Grand Gold Plaque Button (Matching UI Photo) -->
+                        <button 
+                            type="submit" 
+                            class="w-full mt-2 btn-gold-pill py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                        >
+                            <span>دخول إلى المنظومة</span>
+                            <span class="text-xs">←</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Form 2: Quick Shift PIN Login for Staff -->
+                <form id="form-pin" method="POST" action="{% url 'login' %}" class="hidden">
+                    {% csrf_token %}
+                    <input type="hidden" name="auth_type" value="pin">
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="employee_code" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                كود الموظف (ID / Badge Code)
+                            </label>
+                            <input 
+                                type="text" 
+                                id="employee_code" 
+                                name="employee_code" 
+                                required 
+                                class="w-full py-3 px-3.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-center text-sm font-black font-mono tracking-wider focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                placeholder="مثال: 104 للكاشير أو 106 للشيف"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="pin" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                                رمز الـ PIN السريع (4 أرقام)
+                            </label>
+                            <input 
+                                type="password" 
+                                id="pin" 
+                                name="pin" 
+                                maxlength="6"
+                                required 
+                                class="w-full py-3 px-3.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-center text-xl font-black font-mono tracking-[0.3em] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                placeholder="••••"
+                            >
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="w-full mt-2 btn-gold-pill py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                        >
+                            <span>🔓 بدء الوردية والدخول</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Switch Link: Register New Restaurant (From UI design) -->
+                <div class="mt-6 pt-5 border-t border-[#E8DFD3] text-center">
+                    <p class="text-xs font-bold text-[#5C4B3F]">
+                        ليس لديك حساب منشأة؟ 
+                        <a href="{% url 'register' %}" class="text-[#1B634D] hover:text-[#8C6527] underline font-extrabold transition">
+                            تسجيل منشأة ومطعم جديد ←
+                        </a>
+                    </p>
+                </div>
+
+                <!-- 1-Click Demo Helper Accordion -->
+                <div class="mt-5 pt-4 border-t border-dashed border-[#E8DFD3] text-[11px] text-[#5C4B3F]">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-extrabold text-[#1E130D]">⚡ حسابات تجريبية جاهزة للاختبار:</span>
+                        <span class="text-[10px] text-[#8C6527] font-bold">نقرة واحدة للملء</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 font-bold">
+                        <button type="button" onclick="fillCreds('superadmin', 'admin123')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#1E130D] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px]">
+                            🏢 مدير المنصة (SaaS)
+                        </button>
+                        <button type="button" onclick="fillCreds('admin', 'admin123')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#1E130D] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px]">
+                            👑 مالك مطاعم ضيافة
+                        </button>
+                        <button type="button" onclick="fillCreds('owner_burger', 'admin123')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#1E130D] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px]">
+                            🍔 مالك برجر كلاسيك
+                        </button>
+                        <button type="button" onclick="fillPin('104', '1234')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#144D3B] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px]">
+                            💳 كاشير (104 / 1234)
+                        </button>
+                    </div>
+                </div>
+
             </div>
+
         </div>
 
-        <p class="mt-6 text-center text-xs font-bold text-soft/70">منصة إدارة المطاعم المتعددة © 2026</p>
     </div>
+
 </div>
 
 <script>
@@ -162,13 +366,13 @@ function switchTab(mode) {
     if (mode === 'credentials') {
         credForm.classList.remove('hidden');
         pinForm.classList.add('hidden');
-        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-brand-700 shadow-sm';
-        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-soft hover:text-ink';
+        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-[#1B634D] shadow-sm border border-[#D2AB6B]/30';
+        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-[#6E5D4F] hover:text-[#1E130D]';
     } else {
         credForm.classList.add('hidden');
         pinForm.classList.remove('hidden');
-        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-good-700 shadow-sm';
-        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-soft hover:text-ink';
+        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-[#1B634D] shadow-sm border border-[#D2AB6B]/30';
+        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-[#6E5D4F] hover:text-[#1E130D]';
     }
 }
 

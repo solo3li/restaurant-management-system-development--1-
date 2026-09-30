@@ -248,7 +248,7 @@
 
                 <!-- Action Buttons -->
                 <div class="pt-3 flex flex-wrap items-center gap-4">
-                    <a href="{% url 'login' %}" class="btn-gold-pill px-8 py-3.5 rounded-full text-sm sm:text-base font-extrabold shadow-lg flex items-center gap-2" data-i18n="hero_cta_primary">
+                    <a href="{% url 'register' %}" class="btn-gold-pill px-8 py-3.5 rounded-full text-sm sm:text-base font-extrabold shadow-lg flex items-center gap-2" data-i18n="hero_cta_primary">
                         <span>ابدأ تجربتك المجانية</span>
                         <span class="text-xs">✦</span>
                     </a>
@@ -834,7 +834,7 @@
                     </div>
 
                     <!-- Action Button -->
-                    <a href="{% url 'login' %}" class="w-full py-3 rounded-full text-center text-xs font-black transition {% if plan.is_popular %}btn-gold-pill{% else %}bg-[#144D3B] hover:bg-[#1B634D] text-white{% endif %} shadow-md">
+                    <a href="{% url 'register' %}" class="w-full py-3 rounded-full text-center text-xs font-black transition {% if plan.is_popular %}btn-gold-pill{% else %}bg-[#144D3B] hover:bg-[#1B634D] text-white{% endif %} shadow-md">
                         ابدأ التجربة المجانية الآن
                     </a>
                 </div>
