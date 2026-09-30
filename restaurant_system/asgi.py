@@ -1,8 +1,11 @@
 import os
 from django.core.asgi import get_asgi_application
+from django.conf import settings
+from django.contrib.staticfiles.handlers import ASGIStaticFilesHandler
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'restaurant_system.settings')
-django_application = get_asgi_application()
+_raw_django_app = get_asgi_application()
+django_application = ASGIStaticFilesHandler(_raw_django_app) if settings.DEBUG else _raw_django_app
 
 from core.mcp_server import get_mcp_asgi_app
 mcp_application = get_mcp_asgi_app()
