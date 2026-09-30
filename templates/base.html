@@ -243,7 +243,110 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #1B634D;
         }
+
+        /* ============================================================ */
+        /* SMART COMPACT SIDEBAR (MINI RAIL MODE - 80px)                */
+        /* ============================================================ */
+        @media (min-width: 768px) {
+            html.sidebar-mini #app-sidebar,
+            body.sidebar-mini #app-sidebar {
+                width: 5rem !important; /* 80px */
+            }
+            html.sidebar-mini #app-header,
+            body.sidebar-mini #app-header {
+                right: 5rem !important; /* 80px */
+            }
+            html.sidebar-mini #main-content,
+            body.sidebar-mini #main-content {
+                margin-right: 5rem !important; /* 80px */
+            }
+            
+            /* Hide textual elements inside mini sidebar */
+            html.sidebar-mini #app-sidebar .sidebar-text,
+            body.sidebar-mini #app-sidebar .sidebar-text {
+                display: none !important;
+            }
+            
+            /* Center logo in header */
+            html.sidebar-mini #app-sidebar .brand-header,
+            body.sidebar-mini #app-sidebar .brand-header {
+                padding: 0.75rem 0.25rem !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+            }
+            html.sidebar-mini #app-sidebar .brand-link,
+            body.sidebar-mini #app-sidebar .brand-link {
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            
+            /* Compact active context indicator */
+            html.sidebar-mini #app-sidebar .context-pill,
+            body.sidebar-mini #app-sidebar .context-pill {
+                padding: 0.5rem !important;
+                justify-content: center !important;
+                background: rgba(0,0,0,0.2) !important;
+                border: none !important;
+            }
+            
+            /* Center nav buttons and remove side padding */
+            html.sidebar-mini #app-sidebar nav,
+            body.sidebar-mini #app-sidebar nav {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+            html.sidebar-mini #app-sidebar nav a,
+            html.sidebar-mini #app-sidebar nav button {
+                justify-content: center !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+            html.sidebar-mini #app-sidebar nav .medallion-icon,
+            body.sidebar-mini #app-sidebar nav .medallion-icon {
+                margin: 0 !important;
+            }
+            
+            /* Accordion child items hidden in sidebar (shown in flyout) */
+            html.sidebar-mini #app-sidebar [id$="-content"],
+            body.sidebar-mini #app-sidebar [id$="-content"] {
+                display: none !important;
+            }
+            
+            /* User profile footer mini */
+            html.sidebar-mini #app-sidebar .user-card,
+            body.sidebar-mini #app-sidebar .user-card {
+                justify-content: center !important;
+                padding: 0.5rem !important;
+                background: transparent !important;
+                border: none !important;
+            }
+            
+            /* Arrow indicators flipped */
+            html.sidebar-mini #collapse-icon,
+            body.sidebar-mini #collapse-icon {
+                transform: rotate(180deg) !important;
+            }
+            html.sidebar-mini #nav-toggle-arrow,
+            body.sidebar-mini #nav-toggle-arrow {
+                transform: rotate(180deg) !important;
+                transform-origin: center !important;
+            }
+        }
     </style>
+    <!-- Early sidebar state check to prevent layout shift / flicker -->
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('diyafa_sidebar_collapsed') === 'true') {
+                    document.documentElement.classList.add('sidebar-mini');
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('sidebar-mini');
+                    });
+                }
+            } catch(e) {}
+        })();
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen bg-paper text-ink font-body">
@@ -260,25 +363,38 @@
     <!-- ============================================================ -->
     <!-- LUXURY EMERALD SIDEBAR WITH NESTED ACCORDIONS (RTL RIGHT)    -->
     <!-- ============================================================ -->
-    <aside id="app-sidebar" class="fixed inset-y-0 right-0 z-50 w-72 bg-gradient-to-b from-[#0A261C] via-[#0E382A] to-[#082218] text-white border-l border-[#D2AB6B]/25 shadow-2xl flex flex-col justify-between transform translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+    <aside id="app-sidebar" class="fixed inset-y-0 right-0 z-50 w-72 bg-gradient-to-b from-[#0A261C] via-[#0E382A] to-[#082218] text-white border-l border-[#D2AB6B]/25 shadow-2xl flex flex-col justify-between transform translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out">
         
         <!-- TOP: Brand Cartouche & Logo -->
-        <div class="p-4 border-b border-white/10 shrink-0">
-            <div class="flex items-center justify-between">
-                <a href="{% if is_hq_mode %}{% url 'dashboard' %}{% else %}{% url 'branch_dashboard' %}{% endif %}" class="flex items-center gap-3 group">
+        <div class="p-3.5 border-b border-white/10 shrink-0">
+            <div class="brand-header flex items-center justify-between">
+                <a href="{% if is_hq_mode %}{% url 'dashboard' %}{% else %}{% url 'branch_dashboard' %}{% endif %}" class="brand-link flex items-center gap-3 group">
                     <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1B634D] to-[#0B2E22] border border-[#D2AB6B]/40 shadow-lg shadow-black/30 group-hover:border-[#D2AB6B] transition">
                         <img src="/static/img/diyafa_symbol.png" alt="ضيافة" class="h-8 w-8 object-contain drop-shadow-[0_2px_8px_rgba(210,171,107,0.35)]">
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 sidebar-text">
                         <div class="flex items-center gap-1.5">
                             <span class="font-royal text-xl font-bold text-[#D2AB6B] tracking-wide">ضِيَافَة</span>
                             <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#E4C79C] border border-[#D2AB6B]/30 font-body">HQ</span>
                         </div>
-                        <p class="text-[11px] font-bold text-[#E2D9CE]/80 truncate max-w-[155px]">
+                        <p class="text-[11px] font-bold text-[#E2D9CE]/80 truncate max-w-[145px]">
                             {{ tenant_name|default:"نظام إدارة المطاعم" }}
                         </p>
                     </div>
                 </a>
+
+                <!-- Desktop Collapse Button -->
+                <button 
+                    type="button" 
+                    id="sidebar-collapse-btn" 
+                    onclick="toggleSidebarCollapse()" 
+                    class="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#D2AB6B] hover:bg-white/15 hover:text-white transition shadow-xs" 
+                    title="تصغير / توسيع الشريط الجانبي (Ctrl + B)"
+                >
+                    <svg id="collapse-icon" class="w-4 h-4 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
 
                 <!-- Mobile Close Button -->
                 <button type="button" onclick="toggleSidebar(false)" class="md:hidden flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#E4C79C] hover:bg-white/20 transition">
@@ -287,15 +403,15 @@
             </div>
 
             <!-- Active Context Pill (HQ vs Branch) -->
-            <div class="mt-3.5 p-2 rounded-xl bg-black/30 border border-white/10 flex items-center justify-between text-xs">
+            <div class="context-pill mt-3 p-2 rounded-xl bg-black/30 border border-white/10 flex items-center justify-between text-xs">
                 <div class="flex items-center gap-2 truncate">
                     <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-                    <span class="font-bold text-[#E2D9CE] truncate font-display text-[13px]">
+                    <span class="context-pill-text font-bold text-[#E2D9CE] truncate font-display text-[13px] sidebar-text">
                         {% if is_hq_mode %}الإدارة العامة (كافة الفروع){% else %}فرع {{ current_branch.name }}{% endif %}
                     </span>
                 </div>
                 {% if can_switch_branches and not is_hq_mode %}
-                <a href="{% url 'switch_branch' 'all' %}" class="text-[10px] font-extrabold text-[#D2AB6B] hover:underline shrink-0">
+                <a href="{% url 'switch_branch' 'all' %}" class="context-pill-text text-[10px] font-extrabold text-[#D2AB6B] hover:underline shrink-0 sidebar-text">
                     HQ
                 </a>
                 {% endif %}
@@ -305,16 +421,16 @@
         <!-- MIDDLE: Scrollable Navigation Menu with Accordions & Medallions -->
         <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-xs">
             <!-- 1. General Dashboard (HQ / Branch) -->
-            <div>
+            <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
                 <a href="{% url 'dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'dashboard' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
                         </span>
-                        <span class="font-display text-sm">لوحة الإدارة العامة (HQ)</span>
+                        <span class="font-display text-sm sidebar-text">لوحة الإدارة العامة (HQ)</span>
                     </div>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#D2AB6B] font-extrabold font-body">مباشر</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#D2AB6B] font-extrabold font-body sidebar-text">مباشر</span>
                 </a>
                 {% else %}
                 <a href="{% url 'branch_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'branch_dashboard' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
@@ -322,7 +438,7 @@
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3L2 7h20L12 3z"/></svg>
                         </span>
-                        <span class="font-display text-sm">لوحة تشغيل الفرع</span>
+                        <span class="font-display text-sm sidebar-text">لوحة تشغيل الفرع</span>
                     </div>
                 </a>
                 {% endif %}
@@ -330,15 +446,15 @@
 
             <!-- 2. Branches & Locations (Nested Accordion) -->
             {% if is_hq_mode and 'manage_branches' in user_perms %}
-            <div class="space-y-1">
+            <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-branches')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3L2 7h20L12 3z"/></svg>
                         </span>
-                        <span class="font-display text-sm">إدارة الفروع والمواقع</span>
+                        <span class="font-display text-sm sidebar-text">إدارة الفروع والمواقع</span>
                     </div>
-                    <span id="acc-branches-arrow" class="text-[10px] text-[#D2AB6B] transition-transform">▼</span>
+                    <span id="acc-branches-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
                 </button>
                 <div id="acc-branches-content" class="{% if request.resolver_match.url_name == 'branches' %}{% else %}hidden{% endif %} pr-8 pl-2 space-y-1 border-r border-[#D2AB6B]/30 mr-4 my-1">
                     <a href="{% url 'branches' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'branches' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
@@ -357,15 +473,15 @@
 
             <!-- 3. POS & Menu (Nested Accordion) -->
             {% if 'pos_access' in user_perms or 'manage_menu' in user_perms %}
-            <div class="space-y-1">
+            <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-pos')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="7" cy="15" r="1.5"/><circle cx="12" cy="15" r="1.5"/><line x1="16" y1="15" x2="18" y2="15"/></svg>
                         </span>
-                        <span class="font-display text-sm">نقاط البيع وقائمة الطعام</span>
+                        <span class="font-display text-sm sidebar-text">نقاط البيع وقائمة الطعام</span>
                     </div>
-                    <span id="acc-pos-arrow" class="text-[10px] text-[#D2AB6B] transition-transform">▼</span>
+                    <span id="acc-pos-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
                 </button>
                 <div id="acc-pos-content" class="{% if request.resolver_match.url_name in 'pos,branch_menu' %}{% else %}hidden{% endif %} pr-8 pl-2 space-y-1 border-r border-[#D2AB6B]/30 mr-4 my-1">
                     {% if 'pos_access' in user_perms %}
@@ -386,30 +502,30 @@
 
             <!-- 4. Kitchen Display System (KDS) -->
             {% if 'kds_access' in user_perms %}
-            <div>
+            <div class="nav-item-wrapper relative">
                 <a href="{% url 'kitchen' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'kitchen' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.8a4.5 4.5 0 1 1 2.6-8.2 5 5 0 0 1 6.8 0 4.5 4.5 0 1 1 2.6 8.2v4.2H6v-4.2zM6 18h12v3H6z"/></svg>
                         </span>
-                        <span class="font-display text-sm">شاشات المطبخ (KDS)</span>
+                        <span class="font-display text-sm sidebar-text">شاشات المطبخ (KDS)</span>
                     </div>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-extrabold font-body">مباشر</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-extrabold font-body sidebar-text">مباشر</span>
                 </a>
             </div>
             {% endif %}
 
             <!-- 5. AI Call Center (Nested Accordion) -->
             {% if 'call_center_access' in user_perms %}
-            <div class="space-y-1">
+            <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-ai')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/><circle cx="12" cy="11" r="1"/></svg>
                         </span>
-                        <span class="font-display text-sm">كول سنتر الذكاء الاصطناعي</span>
+                        <span class="font-display text-sm sidebar-text">كول سنتر الذكاء الاصطناعي</span>
                     </div>
-                    <span id="acc-ai-arrow" class="text-[10px] text-[#D2AB6B] transition-transform">▼</span>
+                    <span id="acc-ai-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
                 </button>
                 <div id="acc-ai-content" class="{% if request.resolver_match.url_name in 'call_center,ai_callcenter_management' %}{% else %}hidden{% endif %} pr-8 pl-2 space-y-1 border-r border-[#D2AB6B]/30 mr-4 my-1">
                     <a href="{% url 'call_center' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'call_center' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
@@ -426,15 +542,15 @@
 
             <!-- 6. Inventory & Warehouses (Nested Accordion) -->
             {% if 'manage_inventory' in user_perms %}
-            <div class="space-y-1">
+            <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-inventory')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
                         </span>
-                        <span class="font-display text-sm">المستودعات والمخزون</span>
+                        <span class="font-display text-sm sidebar-text">المستودعات والمخزون</span>
                     </div>
-                    <span id="acc-inventory-arrow" class="text-[10px] text-[#D2AB6B] transition-transform">▼</span>
+                    <span id="acc-inventory-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
                 </button>
                 <div id="acc-inventory-content" class="{% if request.resolver_match.url_name == 'inventory' %}{% else %}hidden{% endif %} pr-8 pl-2 space-y-1 border-r border-[#D2AB6B]/30 mr-4 my-1">
                     <a href="{% url 'inventory' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'inventory' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
@@ -447,13 +563,13 @@
 
             <!-- 7. Delivery & Dispatch -->
             {% if 'delivery_access' in user_perms %}
-            <div>
+            <div class="nav-item-wrapper relative">
                 <a href="{% url 'delivery' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'delivery' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><path d="M15 6h-3l-3 6h7.5l2-3.5L15 6zM5.5 17.5l3.5-5.5h6l3.5 5.5"/><path d="M9 12H4l2-4h4"/></svg>
                         </span>
-                        <span class="font-display text-sm">أسطول التوصيل والمناديب</span>
+                        <span class="font-display text-sm sidebar-text">أسطول التوصيل والمناديب</span>
                     </div>
                 </a>
             </div>
@@ -461,14 +577,14 @@
 
             <!-- 8. Orders Archive -->
             {% if 'view_orders' in user_perms %}
-            <div>
+            <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
                 <a href="{% url 'hq_orders' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'hq_orders' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         </span>
-                        <span class="font-display text-sm">سجل كافة الطلبات والفواتير</span>
+                        <span class="font-display text-sm sidebar-text">سجل كافة الطلبات والفواتير</span>
                     </div>
                 </a>
                 {% else %}
@@ -477,7 +593,7 @@
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         </span>
-                        <span class="font-display text-sm">طلبات وفواتير الفرع</span>
+                        <span class="font-display text-sm sidebar-text">طلبات وفواتير الفرع</span>
                     </div>
                 </a>
                 {% endif %}
@@ -486,42 +602,42 @@
 
             <!-- 9. Staff & Payroll -->
             {% if 'manage_employees' in user_perms %}
-            <div>
+            <div class="nav-item-wrapper relative">
                 <a href="{% url 'employees' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'employees' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </span>
-                        <span class="font-display text-sm">الموظفون والرواتب</span>
+                        <span class="font-display text-sm sidebar-text">الموظفون والرواتب</span>
                     </div>
                 </a>
             </div>
             {% endif %}
 
             <!-- 10. Subscription & Billing -->
-            <div>
+            <div class="nav-item-wrapper relative">
                 <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'owner_subscription' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-6h14l3 6-10 13L2 9z"/><path d="M2 9h20M12 22 8 9l2-6h4l2 6-4 13z"/></svg>
                         </span>
-                        <span class="font-display text-sm">الاشتراك والتقارير المالية</span>
+                        <span class="font-display text-sm sidebar-text">الاشتراك والتقارير المالية</span>
                     </div>
                     {% if tenant_subscription %}
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold font-body">{{ tenant_subscription.plan_name }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold font-body sidebar-text">{{ tenant_subscription.plan_name }}</span>
                     {% endif %}
                 </a>
             </div>
 
             <!-- 11. SaaS Platform SuperAdmin -->
             {% if is_platform_admin %}
-            <div>
+            <div class="nav-item-wrapper relative">
                 <a href="{% url 'platform_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'platform_dashboard' %}bg-[#1B634D] text-white border-r-4 border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                         </span>
-                        <span class="font-display text-sm">إدارة منصة SaaS العامة</span>
+                        <span class="font-display text-sm sidebar-text">إدارة منصة SaaS العامة</span>
                     </div>
                 </a>
             </div>
@@ -529,35 +645,35 @@
 
             <!-- 12. Django Admin Staff -->
             {% if user.is_staff %}
-            <div>
+            <div class="nav-item-wrapper relative">
                 <a href="/admin/" target="_blank" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE]/70 hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
                         <span class="medallion-icon">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                         </span>
-                        <span class="font-display text-sm">لوحة Django Admin</span>
+                        <span class="font-display text-sm sidebar-text">لوحة Django Admin</span>
                     </div>
-                    <span class="text-[10px] text-[#D2AB6B]">↗</span>
+                    <span class="text-[10px] text-[#D2AB6B] sidebar-text">↗</span>
                 </a>
             </div>
             {% endif %}
         </nav>
 
         <!-- BOTTOM: User Quick Profile & Logout -->
-        <div class="p-3 border-t border-white/10 shrink-0 bg-black/25">
-            <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-white/5 border border-white/10">
+        <div class="user-card-wrapper nav-item-wrapper relative p-3 border-t border-white/10 shrink-0 bg-black/25">
+            <div class="user-card flex items-center justify-between gap-2 p-2 rounded-xl bg-white/5 border border-white/10">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#D2AB6B] to-[#B88B46] text-[#1E130D] text-xs font-black shadow">
                         {{ user.username|slice:":1"|upper }}
                     </span>
-                    <div class="min-w-0 text-right">
+                    <div class="min-w-0 text-right sidebar-text">
                         <p class="text-xs font-bold text-white truncate leading-tight font-display">{{ user.first_name|default:user.username }}</p>
                         <p class="text-[10px] text-[#D2AB6B] truncate mt-0.5">
                             {% if is_owner %}مالك المنشأة (HQ){% elif user_profile and user_profile.job_role %}{{ user_profile.job_role.name }}{% elif user_profile %}{{ user_profile.get_role_display }}{% else %}مسؤول النظام{% endif %}
                         </p>
                     </div>
                 </div>
-                <a href="{% url 'logout' %}" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition text-xs" title="تسجيل الخروج">
+                <a href="{% url 'logout' %}" class="sidebar-text flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition text-xs" title="تسجيل الخروج">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </a>
             </div>
@@ -567,8 +683,8 @@
     <!-- ============================================================ -->
     <!-- TOP UTILITY HEADER BAR                                       -->
     <!-- ============================================================ -->
-    <header class="fixed top-0 left-0 right-0 md:right-72 h-16 bg-[#F9F6F0]/95 backdrop-blur-md border-b border-[#E8DFD3] z-30 px-3 sm:px-6 flex items-center justify-between shadow-xs transition-all">
-        <!-- Right (RTL Start): Mobile Hamburger + Breadcrumb + Status -->
+    <header id="app-header" class="fixed top-0 left-0 right-0 md:right-72 h-16 bg-[#F9F6F0]/95 backdrop-blur-md border-b border-[#E8DFD3] z-30 px-3 sm:px-6 flex items-center justify-between shadow-xs transition-all duration-300">
+        <!-- Right (RTL Start): Mobile Hamburger + Desktop Sidebar Toggle + Breadcrumb + Status -->
         <div class="flex items-center gap-3">
             <!-- Mobile Menu Toggle Button -->
             <button 
@@ -578,6 +694,21 @@
                 title="فتح القائمة الرئيسية"
             >
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+
+            <!-- Desktop Sidebar Collapse Toggle Button -->
+            <button 
+                type="button" 
+                onclick="toggleSidebarCollapse()" 
+                id="navbar-sidebar-toggle"
+                class="hidden md:flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#1B634D] hover:bg-[#0E382A] hover:text-[#D2AB6B] border border-[#D2AB6B]/40 shadow-xs hover:border-[#D2AB6B] transition group"
+                title="تصغير / توسيع القائمة الجانبية (Ctrl + B)"
+            >
+                <svg class="w-4 h-4 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="3" x2="16" y2="21"/>
+                    <polyline points="9 9 12 12 9 15" id="nav-toggle-arrow" class="transition-transform duration-300"/>
+                </svg>
             </button>
 
             <!-- Breadcrumb / Location Badge -->
@@ -707,7 +838,7 @@
     <!-- ============================================================ -->
     <!-- MAIN CONTENT CANVAS WITH SIDEBAR MARGIN                      -->
     <!-- ============================================================ -->
-    <main class="mr-0 md:mr-72 pt-20 px-3 sm:px-6 lg:px-8 pb-16 min-h-screen bg-paper text-ink transition-all duration-300">
+    <main id="main-content" class="mr-0 md:mr-72 pt-20 px-3 sm:px-6 lg:px-8 pb-16 min-h-screen bg-paper text-ink transition-all duration-300">
         <div class="w-full max-w-7xl mx-auto">
             <!-- Subscription Warning Banner -->
             {% if tenant_subscription and not is_platform_admin %}
@@ -743,6 +874,27 @@
             {% block content %}{% endblock %}
         </div>
     </main>
+
+    <!-- ============================================================ -->
+    <!-- LUXURY FLOATING FLYOUT POPOVER (MINI SIDEBAR MODE)           -->
+    <!-- ============================================================ -->
+    <div id="sidebar-flyout-card" class="hidden fixed z-50 pointer-events-auto bg-[#0A261C]/95 border border-[#D2AB6B]/50 rounded-2xl shadow-2xl p-3 min-w-[210px] max-w-[280px] text-white backdrop-blur-md transition-opacity duration-150 opacity-0 font-body">
+        <!-- Header: Title + Badge -->
+        <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-white/10">
+            <div class="flex items-center gap-2 min-w-0">
+                <span id="flyout-icon" class="medallion-icon scale-90 shrink-0"></span>
+                <span id="flyout-title" class="font-royal text-sm font-bold text-[#E4C79C] truncate"></span>
+            </div>
+            <span id="flyout-badge" class="hidden text-[10px] px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#D2AB6B] font-extrabold shrink-0"></span>
+        </div>
+        <!-- Sublinks container -->
+        <div id="flyout-sublinks" class="space-y-1"></div>
+        <!-- Direct action button (for single pages) -->
+        <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-2 px-3 rounded-xl text-xs font-bold bg-[#1B634D] text-white hover:bg-[#257a4e] transition mt-1">
+            <span>فتح الصفحة</span>
+            <span class="text-xs">←</span>
+        </a>
+    </div>
 
     {% else %}
     <!-- Unauthenticated Page Layout (Login, Landing, etc.) -->
@@ -803,6 +955,175 @@
             }
         }
 
+        // ============================================================
+        // SMART SIDEBAR COLLAPSE (MINI RAIL MODE)
+        // ============================================================
+        function toggleSidebarCollapse() {
+            const isMini = document.body.classList.toggle('sidebar-mini');
+            document.documentElement.classList.toggle('sidebar-mini', isMini);
+            try {
+                localStorage.setItem('diyafa_sidebar_collapsed', isMini ? 'true' : 'false');
+            } catch(e) {}
+            
+            hideFlyoutCard();
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        // ============================================================
+        // SMART FLYOUT POPOVER MANAGER
+        // ============================================================
+        const flyoutCard = document.getElementById('sidebar-flyout-card');
+        const flyoutTitle = document.getElementById('flyout-title');
+        const flyoutIcon = document.getElementById('flyout-icon');
+        const flyoutBadge = document.getElementById('flyout-badge');
+        const flyoutSublinks = document.getElementById('flyout-sublinks');
+        const flyoutDirectLink = document.getElementById('flyout-direct-link');
+        let flyoutHideTimeout = null;
+
+        function isMiniMode() {
+            return (document.body.classList.contains('sidebar-mini') || document.documentElement.classList.contains('sidebar-mini')) && window.innerWidth >= 768;
+        }
+
+        function hideFlyoutCard() {
+            if (!flyoutCard) return;
+            flyoutCard.classList.add('opacity-0');
+            flyoutHideTimeout = setTimeout(() => {
+                flyoutCard.classList.add('hidden');
+            }, 120);
+        }
+
+        function cancelHideFlyout() {
+            if (flyoutHideTimeout) {
+                clearTimeout(flyoutHideTimeout);
+                flyoutHideTimeout = null;
+            }
+        }
+
+        if (flyoutCard) {
+            flyoutCard.addEventListener('mouseenter', cancelHideFlyout);
+            flyoutCard.addEventListener('mouseleave', hideFlyoutCard);
+        }
+
+        function initFlyoutListeners() {
+            if (!flyoutCard) return;
+            const wrappers = document.querySelectorAll('.nav-item-wrapper');
+            wrappers.forEach(wrapper => {
+                wrapper.addEventListener('mouseenter', function() {
+                    if (!isMiniMode()) return;
+                    cancelHideFlyout();
+
+                    // 1. Title
+                    const titleEl = wrapper.querySelector('.font-display') || wrapper.querySelector('.font-royal');
+                    const title = titleEl ? titleEl.textContent.trim() : (wrapper.getAttribute('data-title') || '');
+                    flyoutTitle.textContent = title;
+
+                    // 2. Icon clone
+                    const iconSource = wrapper.querySelector('.medallion-icon svg') || wrapper.querySelector('svg');
+                    if (iconSource) {
+                        flyoutIcon.innerHTML = iconSource.outerHTML;
+                        flyoutIcon.classList.remove('hidden');
+                    } else {
+                        flyoutIcon.classList.add('hidden');
+                    }
+
+                    // 3. Badge
+                    const badgeEl = wrapper.querySelector('.font-body.sidebar-text');
+                    if (badgeEl && badgeEl.textContent.trim()) {
+                        flyoutBadge.textContent = badgeEl.textContent.trim();
+                        flyoutBadge.classList.remove('hidden');
+                    } else {
+                        flyoutBadge.classList.add('hidden');
+                    }
+
+                    // 4. Sublinks or Direct Link
+                    flyoutSublinks.innerHTML = '';
+                    const accordionContent = wrapper.querySelector('[id$="-content"]');
+                    const directLinkEl = wrapper.querySelector('a');
+
+                    if (accordionContent) {
+                        const links = accordionContent.querySelectorAll('a');
+                        if (links.length > 0) {
+                            flyoutDirectLink.classList.add('hidden');
+                            links.forEach(link => {
+                                const a = document.createElement('a');
+                                a.href = link.href;
+                                a.className = 'flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition ' + 
+                                    (link.classList.contains('text-[#D2AB6B]') || link.classList.contains('bg-white/10')
+                                        ? 'bg-[#1B634D] text-white shadow-xs' 
+                                        : 'text-[#E2D9CE] hover:text-white hover:bg-white/10');
+                                a.innerHTML = `<span class="text-[8px] text-[#D2AB6B]">◆</span><span>${link.querySelector('span:last-child')?.textContent.trim() || link.textContent.trim()}</span>`;
+                                flyoutSublinks.appendChild(a);
+                            });
+                        }
+                    } else if (wrapper.classList.contains('user-card-wrapper')) {
+                        // User Profile Flyout
+                        flyoutDirectLink.classList.add('hidden');
+                        const userName = wrapper.querySelector('.font-display')?.textContent.trim() || '';
+                        const userRole = wrapper.querySelector('p:last-child')?.textContent.trim() || '';
+                        const logoutLink = wrapper.querySelector('a[href*="logout"]')?.href || '/logout/';
+                        
+                        flyoutTitle.textContent = userName;
+                        flyoutBadge.textContent = userRole;
+                        flyoutBadge.classList.remove('hidden');
+
+                        flyoutSublinks.innerHTML = `
+                            <div class="pt-1">
+                                <a href="${logoutLink}" class="flex items-center justify-between py-2 px-3 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition">
+                                    <span>تسجيل الخروج</span>
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                </a>
+                            </div>
+                        `;
+                    } else if (directLinkEl) {
+                        flyoutSublinks.innerHTML = '';
+                        flyoutDirectLink.href = directLinkEl.href;
+                        if (directLinkEl.target) flyoutDirectLink.target = directLinkEl.target;
+                        else flyoutDirectLink.removeAttribute('target');
+                        flyoutDirectLink.classList.remove('hidden');
+                    }
+
+                    // Position the flyout
+                    const rect = wrapper.getBoundingClientRect();
+                    let topPos = rect.top;
+                    
+                    flyoutCard.style.right = '88px';
+                    flyoutCard.classList.remove('hidden');
+                    
+                    const actualHeight = flyoutCard.offsetHeight || 120;
+                    if (topPos + actualHeight > window.innerHeight - 20) {
+                        topPos = Math.max(10, window.innerHeight - actualHeight - 20);
+                    }
+                    flyoutCard.style.top = `${topPos}px`;
+
+                    requestAnimationFrame(() => {
+                        flyoutCard.classList.remove('opacity-0');
+                    });
+                });
+
+                wrapper.addEventListener('mouseleave', function() {
+                    if (!isMiniMode()) return;
+                    hideFlyoutCard();
+                });
+            });
+        }
+
+        // Initialize flyout on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFlyoutListeners);
+        } else {
+            initFlyoutListeners();
+        }
+
+        // Keyboard Shortcut: Ctrl + B / Cmd + B to toggle sidebar
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+                    e.preventDefault();
+                    toggleSidebarCollapse();
+                }
+            }
+        });
+
         function toggleAccordion(id) {
             const content = document.getElementById(id + '-content');
             const arrow = document.getElementById(id + '-arrow');
@@ -827,6 +1148,7 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 toggleSidebar(false);
+                hideFlyoutCard();
                 const menu = document.getElementById('profile-dropdown-menu');
                 if (menu) menu.classList.add('hidden');
             }
