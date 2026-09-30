@@ -2,6 +2,7 @@ from datetime import timedelta
 from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.urls import path, reverse
 from django.shortcuts import redirect, get_object_or_404
 from .models import (
@@ -102,10 +103,10 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
     @admin.display(description="حالة الطلب")
     def status_badge(self, obj):
         if obj.status == "approved":
-            return format_html('<span style="color: #257a4e; font-weight: bold;">● تمت الموافقة ✓</span>')
+            return mark_safe('<span style="color: #257a4e; font-weight: bold;">● تمت الموافقة ✓</span>')
         elif obj.status == "rejected":
-            return format_html('<span style="color: #b53a2b; font-weight: bold;">✕ مرفوض</span>')
-        return format_html('<span style="color: #a26a0d; font-weight: bold;">⏳ قيد المراجعة</span>')
+            return mark_safe('<span style="color: #b53a2b; font-weight: bold;">✕ مرفوض</span>')
+        return mark_safe('<span style="color: #a26a0d; font-weight: bold;">⏳ قيد المراجعة</span>')
 
     @admin.display(description="إجراءات سريعة")
     def quick_actions(self, obj):
@@ -125,8 +126,8 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
                 reject_url, safe_tenant
             )
         elif obj.status == "approved":
-            return format_html('<span style="color: #257a4e; font-weight: bold; font-size: 11px;">مفعل ومعتمد ✓</span>')
-        return format_html('<span style="color: #b53a2b; font-weight: bold; font-size: 11px;">مرفوض ✕</span>')
+            return mark_safe('<span style="color: #257a4e; font-weight: bold; font-size: 11px;">مفعل ومعتمد ✓</span>')
+        return mark_safe('<span style="color: #b53a2b; font-weight: bold; font-size: 11px;">مرفوض ✕</span>')
 
     def get_urls(self):
         urls = super().get_urls()
@@ -237,9 +238,9 @@ class TenantAdmin(admin.ModelAdmin):
     @admin.display(description="حالة الاشتراك")
     def subscription_status_badge(self, obj):
         if obj.subscription_status == "active":
-            return format_html('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
+            return mark_safe('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
         elif obj.subscription_status == "trial":
-            return format_html('<span style="color: #1f6e7e; font-weight: bold;">تجريبي</span>')
+            return mark_safe('<span style="color: #1f6e7e; font-weight: bold;">تجريبي</span>')
         return format_html('<span style="color: #b53a2b; font-weight: bold;">{}</span>', obj.get_subscription_status_display())
 
     @admin.display(description="الفروع")
@@ -380,7 +381,7 @@ class RestaurantOwnerAdmin(admin.ModelAdmin):
     @admin.display(description="الباقة الحالية")
     def plan_display(self, obj):
         if not obj.tenant or not obj.tenant.subscription_plan:
-            return format_html('<span style="color: #7d6c59;">بدون باقة</span>')
+            return mark_safe('<span style="color: #7d6c59;">بدون باقة</span>')
         return format_html('<span style="color: #ac4a1a; font-weight: bold;">💎 {}</span>', obj.tenant.subscription_plan.name)
 
     @admin.display(description="حالة الاشتراك")
@@ -389,9 +390,9 @@ class RestaurantOwnerAdmin(admin.ModelAdmin):
             return "—"
         st = obj.tenant.subscription_status
         if st == "active":
-            return format_html('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
+            return mark_safe('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
         elif st == "trial":
-            return format_html('<span style="color: #1f6e7e; font-weight: bold;">تجريبي</span>')
+            return mark_safe('<span style="color: #1f6e7e; font-weight: bold;">تجريبي</span>')
         return format_html('<span style="color: #b53a2b; font-weight: bold;">{}</span>', obj.tenant.get_subscription_status_display())
 
     @admin.display(description="الفروع")
@@ -419,8 +420,8 @@ class RestaurantOwnerAdmin(admin.ModelAdmin):
     @admin.display(description="الحساب")
     def is_active_badge(self, obj):
         if obj.user.is_active:
-            return format_html('<span style="color: #257a4e;">فعال</span>')
-        return format_html('<span style="color: #b53a2b;">معطل</span>')
+            return mark_safe('<span style="color: #257a4e;">فعال</span>')
+        return mark_safe('<span style="color: #b53a2b;">معطل</span>')
 
 
 @admin.register(TenantSubscription)
@@ -461,17 +462,17 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
     @admin.display(description="باقة الاشتراك")
     def plan_badge(self, obj):
         if not obj.subscription_plan:
-            return format_html('<span style="color: #7d6c59;">بدون باقة</span>')
+            return mark_safe('<span style="color: #7d6c59;">بدون باقة</span>')
         return format_html('<span style="color: #ac4a1a; font-weight: bold;">💎 {}</span>', obj.subscription_plan.name)
 
     @admin.display(description="حالة الاشتراك")
     def status_badge(self, obj):
         if obj.subscription_status == "active":
-            return format_html('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
+            return mark_safe('<span style="color: #257a4e; font-weight: bold;">نشط ✓</span>')
         elif obj.subscription_status == "trial":
-            return format_html('<span style="color: #1f6e7e; font-weight: bold;">فترة تجريبية</span>')
+            return mark_safe('<span style="color: #1f6e7e; font-weight: bold;">فترة تجريبية</span>')
         elif obj.subscription_status == "past_due":
-            return format_html('<span style="color: #a26a0d; font-weight: bold;">متأخر السداد ⏳</span>')
+            return mark_safe('<span style="color: #a26a0d; font-weight: bold;">متأخر السداد ⏳</span>')
         return format_html('<span style="color: #b53a2b; font-weight: bold;">{}</span>', obj.get_subscription_status_display())
 
     @admin.display(description="دورة الفوترة")
@@ -505,8 +506,8 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
     @admin.display(description="حالة المنشأة")
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html('<span style="color: #257a4e;">نشطة</span>')
-        return format_html('<span style="color: #b53a2b;">معطلة</span>')
+            return mark_safe('<span style="color: #257a4e;">نشطة</span>')
+        return mark_safe('<span style="color: #b53a2b;">معطلة</span>')
 
 
 @admin.register(TenantApiKey)
@@ -533,7 +534,7 @@ class TenantApiKeyAdmin(admin.ModelAdmin):
     @admin.display(description="الحالة")
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html('<span style="color: #257a4e; font-weight: bold;">مفعل ✓</span>')
-        return format_html('<span style="color: #b53a2b; font-weight: bold;">معطل ✕</span>')
+            return mark_safe('<span style="color: #257a4e; font-weight: bold;">مفعل ✓</span>')
+        return mark_safe('<span style="color: #b53a2b; font-weight: bold;">معطل ✕</span>')
 
 
