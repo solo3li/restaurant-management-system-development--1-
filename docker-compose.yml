@@ -1,0 +1,102 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: motaem_traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=false"
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOCKER_API_VERSION=1.44
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik_data/acme.json:/letsencrypt/acme.json"
+    networks:
+      - motaem_network
+
+  db:
+    image: postgres:16-alpine
+    container_name: motaem_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - motaem_network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: motaem_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - motaem_network
+    labels:
+      - "traefik.enable=true"
+
+      # Middleware: Redirect HTTP to HTTPS
+      - "traefik.http.middlewares.motaem-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.motaem-redirect-https.redirectscheme.permanent=true"
+
+      # Security Headers Middleware
+      - "traefik.http.middlewares.motaem-sec-headers.headers.sslredirect=true"
+      - "traefik.http.middlewares.motaem-sec-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.motaem-sec-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.motaem-sec-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.motaem-sec-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.motaem-sec-headers.headers.contentTypeNosniff=true"
+
+      # Router: HTTP for uggu.space (Redirects to HTTPS)
+      - "traefik.http.routers.motaem-http.rule=Host(`uggu.space`) || Host(`www.uggu.space`)"
+      - "traefik.http.routers.motaem-http.entrypoints=web"
+      - "traefik.http.routers.motaem-http.middlewares=motaem-redirect-https"
+
+      # Router: HTTPS for uggu.space (SSL via Let's Encrypt)
+      - "traefik.http.routers.motaem-https.rule=Host(`uggu.space`) || Host(`www.uggu.space`)"
+      - "traefik.http.routers.motaem-https.entrypoints=websecure"
+      - "traefik.http.routers.motaem-https.tls=true"
+      - "traefik.http.routers.motaem-https.tls.certresolver=myresolver"
+      - "traefik.http.routers.motaem-https.middlewares=motaem-sec-headers"
+
+      # Router: Direct IP & Localhost access (allows testing before DNS propagates)
+      - "traefik.http.routers.motaem-direct.rule=Host(`169.58.32.179`) || Host(`localhost`)"
+      - "traefik.http.routers.motaem-direct.entrypoints=web"
+
+      # Target Service
+      - "traefik.http.services.motaem.loadbalancer.server.port=8000"
+
+volumes:
+  postgres_data:
+  media_data:
+
+networks:
+  motaem_network:
+    driver: bridge
