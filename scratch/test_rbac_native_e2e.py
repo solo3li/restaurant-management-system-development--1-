@@ -465,6 +465,81 @@ assert_test(res_dash_redirect.status_code == 302 and res_dash_redirect.url in ["
 
 second_branch.delete()
 
+print("\n--- SUITE 8: Deep Operational Integrity & Multi-Branch Hardenings ---")
+second_branch = Branch.objects.create(tenant=tenant, name="Suite8 Extra Branch", status="active")
+
+# 1. KDS Cross-Branch Leakage Prevention
+test_role.set_permissions(["kds_access"])
+res_kds_leak = client.get(f"/api/kitchen/live/?branch_id={second_branch.id}")
+assert_test(res_kds_leak.status_code == 200 and res_kds_leak.json().get("target_branch_id") == branch.id, "Branch-locked chef blocked from viewing foreign branch KDS (target_branch_id locked to assigned branch)")
+
+# 2. Inventory Cross-Branch Isolation & Delete Protection
+inv_branch2 = InventoryItem.objects.create(tenant=tenant, branch=second_branch, name="Branch2 Rice", quantity=50, min_quantity=10)
+test_role.set_permissions(["inventory_adjust_stock"])
+res_inv_cross_adjust = client.post(f"/api/inventory/adjust/{inv_branch2.id}/", data=json.dumps({"quantity": 100}), content_type="application/json")
+assert_test(res_inv_cross_adjust.status_code == 403, "Staff blocked from adjusting inventory of another branch (HTTP 403)")
+
+res_inv_delete_adjust_stock = client.post(f"/api/inventory/delete/{inv_branch2.id}/")
+assert_test(res_inv_delete_adjust_stock.status_code == 403, "Staff with only inventory_adjust_stock blocked from deleting inventory items (HTTP 403, requires manage_inventory)")
+
+test_role.set_permissions(["manage_inventory"])
+res_inv_delete_cross = client.post(f"/api/inventory/delete/{inv_branch2.id}/")
+assert_test(res_inv_delete_cross.status_code == 403, "Branch-locked manager blocked from deleting inventory of another branch (HTTP 403)")
+
+inv_branch2.delete()
+
+# 3. Global Menu Toggle Protection
+test_role.set_permissions(["menu_toggle_availability", "branch_switch_branches"])
+client_hq = Client()
+client_hq.force_login(test_user)
+s_hq = client_hq.session
+s_hq["active_branch_id"] = None
+s_hq.save()
+test_menu_item = MenuItem.objects.filter(tenant=tenant).first()
+res_global_menu = client_hq.post(f"/api/branch-menu/toggle/{test_menu_item.id}/")
+assert_test(res_global_menu.status_code == 403, "Staff with menu_toggle_availability blocked from globally toggling item across all branches (HTTP 403)")
+
+# 4. Cashier Spoofing Prevention
+test_role.set_permissions(["pos_access", "pos_create_order"])
+order_spoof_payload = {
+    "branchId": branch.id,
+    "items": [{"menuItemId": test_menu_item.id, "qty": 1}],
+    "type": "dine_in",
+    "channel": "cashier",
+    "cashier": "MaliciousSpoofedCashierName"
+}
+res_spoof_order = client.post("/api/orders/", data=json.dumps(order_spoof_payload), content_type="application/json")
+assert_test(res_spoof_order.status_code == 201, "Order created successfully (HTTP 201)")
+created_order_id = res_spoof_order.json()["order"]["id"]
+created_order = Order.objects.get(id=created_order_id)
+assert_test(created_order.cashier == test_emp.name, f"Cashier field strictly bound to authenticated employee ({created_order.cashier} == {test_emp.name}), spoofed name rejected")
+
+# 5. Cross-Branch Order Deletion Protection
+test_role.set_permissions(["delete_orders"])
+order_branch2 = Order.objects.create(tenant=tenant, branch=second_branch, order_number="B2-DEL-TEST", total=50)
+res_del_cross_order = client.post(f"/api/orders/{order_branch2.id}/delete/")
+assert_test(res_del_cross_order.status_code == 403, "Branch-locked user blocked from deleting order belonging to another branch (HTTP 403)")
+order_branch2.delete()
+
+# 6. KDS Recall Protection
+test_role.set_permissions(["kds_access", "kds_update_status"])  # lacks kds_recall_order
+created_order.status = "ready"
+created_order.save()
+res_recall_blocked = client.post(f"/api/orders/{created_order.id}/", data=json.dumps({"status": "preparing"}), content_type="application/json")
+assert_test(res_recall_blocked.status_code == 403, "Chef lacking kds_recall_order blocked from recalling ready order back to preparing (HTTP 403)")
+
+test_role.set_permissions(["kds_access", "kds_recall_order"])
+res_recall_allowed = client.post(f"/api/orders/{created_order.id}/", data=json.dumps({"status": "preparing"}), content_type="application/json")
+assert_test(res_recall_allowed.status_code == 200, "Chef with kds_recall_order successfully recalls ready order back to preparing (HTTP 200)")
+
+# 7. Forced Employee Deletion Protection
+test_role.set_permissions(["manage_employees", "hr_deactivate_employee"])
+res_force_del = client.post(f"/api/employees/{test_emp.id}/delete/", data=json.dumps({"force": True}), content_type="application/json")
+assert_test(res_force_del.status_code == 200 and res_force_del.json().get("action") == "archived", "Non-owner passing force=True on employee with order history safely archived instead of hard deleted")
+
+created_order.delete()
+second_branch.delete()
+
 # Clean up test artifacts
 test_emp.delete()
 test_user.delete()

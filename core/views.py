@@ -861,8 +861,22 @@ def kitchen_view(request):
 
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
+    profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+
     q_branch = request.GET.get("branch_id")
-    target_branch_id = int(q_branch) if (q_branch and q_branch.isdigit()) else (branch.id if branch else None)
+    if can_cross and q_branch and q_branch.isdigit():
+        target_branch_id = int(q_branch)
+    else:
+        target_branch_id = branch.id if branch else None
 
     orders_qs = Order.objects.filter(
         tenant=tenant,
@@ -927,10 +941,17 @@ async def kitchen_stream_view(request):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى شاشة المطبخ (KDS)")
 
     branch = await sync_to_async(get_active_branch)(request)
-    branch_id = branch.id if branch else None
+    profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    has_switch = await sync_to_async(user_has_perm)(request.user, "branch_switch_branches")
+    has_manage_b = await sync_to_async(user_has_perm)(request.user, "manage_branches")
+    has_hq_scope = (profile and profile.job_role and profile.job_role.scope in ["hq", "both"]) or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    can_cross = is_owner or has_switch or has_manage_b or has_hq_scope
 
+    branch_id = branch.id if branch else None
     q_branch = request.GET.get("branch_id")
-    if q_branch and q_branch.isdigit():
+    if can_cross and q_branch and q_branch.isdigit():
         branch_id = int(q_branch)
 
     queue = await kitchen_broadcaster.register(tenant.id, branch_id)
@@ -976,8 +997,22 @@ def kitchen_live_view(request):
 
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
+    profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+
     q_branch = request.GET.get("branch_id")
-    target_branch_id = int(q_branch) if (q_branch and q_branch.isdigit()) else (branch.id if branch else None)
+    if can_cross and q_branch and q_branch.isdigit():
+        target_branch_id = int(q_branch)
+    else:
+        target_branch_id = branch.id if branch else None
 
     orders_qs = Order.objects.filter(
         tenant=tenant,
@@ -996,6 +1031,7 @@ def kitchen_live_view(request):
 
     return JsonResponse({
         "ok": True,
+        "target_branch_id": target_branch_id,
         "orders": orders_data,
         "total_pending": len(orders_data),
         "station_counts": station_counts,
@@ -1344,6 +1380,11 @@ def api_delete_order(request, order_id):
         return JsonResponse({"error": "غير مصرح لك بحذف الفواتير نهائياً. هذه العملية مقتصرة على الإدارة العامة."}, status=403)
 
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
+    emp = getattr(request.user, "employee_profile", None)
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    if not is_owner and user_branch and order.branch and order.branch != user_branch:
+        return JsonResponse({"error": "غير مصرح لك بحذف فواتير الفروع الأخرى"}, status=403)
+
     order_number = order.order_number
     notify_kitchen_order_event(order, "order_cancelled")
     order.delete()
@@ -1811,7 +1852,7 @@ def api_create_order(request):
         delivery_fee=delivery_fee,
         discount=discount,
         total=total,
-        cashier=str(data.get("cashier") or request.user.first_name or request.user.username),
+        cashier=getattr(request.user, "employee_profile", None).name if getattr(request.user, "employee_profile", None) else (request.user.get_full_name() or request.user.first_name or request.user.username),
         notes=str(data.get("notes") or ""),
     )
 
@@ -1871,7 +1912,11 @@ def api_update_order(request, order_id):
             if not is_owner_or_super and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
                 return JsonResponse({"error": "غير مصرح لك بإلغاء الفواتير أو الطلبات"}, status=403)
         elif new_status in ["preparing", "ready", "completed"]:
-            if not is_owner_or_super and not (user_has_perm(request.user, "kds_update_status") or user_has_perm(request.user, "kds_access") or user_has_perm(request.user, "edit_orders")):
+            # Recalling an already completed or ready order back to preparing/new
+            if old_status in ["ready", "completed", "delivered"] and new_status in ["new", "preparing"]:
+                if not is_owner_or_super and not (user_has_perm(request.user, "kds_recall_order") or user_has_perm(request.user, "edit_orders")):
+                    return JsonResponse({"error": "غير مصرح لك باسترجاع طلب تم إنجازه إلى شاشة الطهي (يتطلب صلاحية استرجاع الطلبات)"}, status=403)
+            elif not is_owner_or_super and not (user_has_perm(request.user, "kds_update_status") or user_has_perm(request.user, "kds_access") or user_has_perm(request.user, "edit_orders")):
                 return JsonResponse({"error": "غير مصرح لك بتحديث حالة تحضير الطلب في المطبخ"}, status=403)
         elif new_status in ["out_for_delivery", "delivered"]:
             if not is_owner_or_super and not (
@@ -1930,6 +1975,8 @@ def api_toggle_branch_menu(request, item_id):
         avail.save()
         return JsonResponse({"ok": True, "isAvailable": avail.is_available, "itemName": item.name, "branch": branch.name})
     else:
+        if not is_owner_or_super and not user_has_perm(request.user, "manage_menu"):
+            return JsonResponse({"error": "تعطيل الصنف عن كافة الفروع يتطلب صلاحية إدارة المنيو الشاملة أو صفة المالك"}, status=403)
         item.available = not item.available
         item.save()
         return JsonResponse({"ok": True, "isAvailable": item.available, "itemName": item.name, "branch": "كل الفروع"})
@@ -2088,12 +2135,17 @@ def api_adjust_inventory(request, item_id):
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
     profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
     if not is_owner_or_super and not (user_has_perm(request.user, "inventory_adjust_stock") or user_has_perm(request.user, "manage_inventory")):
         return JsonResponse({"error": "غير مصرح لك بتسوية أو تعديل كميات المخزون"}, status=403)
 
     item = get_object_or_404(InventoryItem, tenant=tenant, id=item_id)
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    if not is_owner_or_super and user_branch and item.branch and item.branch != user_branch:
+        return JsonResponse({"error": "غير مصرح لك بتسوية مخزون الفروع الأخرى"}, status=403)
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -2120,6 +2172,7 @@ def api_create_inventory(request):
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
     profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
     if not is_owner_or_super and not (user_has_perm(request.user, "inventory_add_stock") or user_has_perm(request.user, "manage_inventory")):
@@ -2136,6 +2189,10 @@ def api_create_inventory(request):
         return JsonResponse({"error": "اسم المادة والفرع مطلوبان"}, status=400)
 
     branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    if not is_owner_or_super and user_branch and branch != user_branch:
+        return JsonResponse({"error": "غير مصرح لك بإضافة مخزون في الفروع الأخرى"}, status=403)
+
     item = InventoryItem.objects.create(
         tenant=tenant,
         branch=branch,
@@ -2154,12 +2211,17 @@ def api_delete_inventory(request, item_id):
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
     profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner_or_super and not (user_has_perm(request.user, "inventory_adjust_stock") or user_has_perm(request.user, "manage_inventory")):
-        return JsonResponse({"error": "غير مصرح لك بحذف مواد من المخزون"}, status=403)
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_inventory"):
+        return JsonResponse({"error": "غير مصرح لك بحذف مواد من المخزون (يتطلب صلاحية إدارة المخزون)"}, status=403)
 
     item = get_object_or_404(InventoryItem, tenant=tenant, id=item_id)
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    if not is_owner_or_super and user_branch and item.branch and item.branch != user_branch:
+        return JsonResponse({"error": "غير مصرح لك بحذف مخزون الفروع الأخرى"}, status=403)
+
     item.delete()
     return JsonResponse({"ok": True})
 
@@ -2649,7 +2711,7 @@ def api_delete_employee(request, emp_id):
     except Exception:
         body = {}
 
-    force_delete = body.get("force", False)
+    force_delete = bool(body.get("force", False)) and is_owner_or_super
 
     # Check if this employee has any linked orders or historical financial records
     has_driver_orders = Order.objects.filter(driver=emp).exists()
