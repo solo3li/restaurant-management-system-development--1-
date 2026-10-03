@@ -879,10 +879,13 @@ def kitchen_view(request):
     Renders the Kitchen Display Screen with category stations, live counters,
     item-level checklists, and real-time SSE streaming.
     """
+    tenant = get_active_tenant(request)
+    if tenant and not tenant.has_feature("kds"):
+        return HttpResponseForbidden("ميزة شاشة المطبخ (KDS) غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+
     if not user_has_perm(request.user, "kds_access"):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى شاشة المطبخ (KDS)")
 
-    tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     profile = getattr(request.user, "profile", None)
     emp = getattr(request.user, "employee_profile", None)
@@ -1263,11 +1266,20 @@ def order_edit_view(request, order_id):
     menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name") if tenant else MenuItem.objects.none()
 
     if request.method == "POST":
-        branch_id = request.POST.get("branch_id")
-        if branch_id and branch_id != "none":
-            order.branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+        can_cross = (
+            is_owner
+            or user_has_perm(request.user, "branch_switch_branches")
+            or user_has_perm(request.user, "manage_branches")
+            or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        )
+        if not can_cross and profile and profile.branch:
+            order.branch = profile.branch
         else:
-            order.branch = None
+            branch_id = request.POST.get("branch_id")
+            if branch_id and branch_id != "none":
+                order.branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+            else:
+                order.branch = None
 
         order.order_type = request.POST.get("order_type", order.order_type)
         order.channel = request.POST.get("channel", order.channel)
@@ -1535,10 +1547,13 @@ def call_center_view(request):
 @login_required
 @ensure_csrf_cookie
 def delivery_view(request):
+    tenant = get_active_tenant(request)
+    if tenant and not (tenant.has_feature("delivery_management") or tenant.has_feature("delivery")):
+        return HttpResponseForbidden("ميزة إدارة التوصيل غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+
     if not user_has_perm(request.user, "delivery_access"):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى قسم التوصيل")
 
-    tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     start_of_today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -1729,6 +1744,7 @@ def employees_view(request):
 
     profile = getattr(request.user, "profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    can_manage_salaries = is_owner_or_super or user_has_perm(request.user, "hr_manage_salaries") or user_has_perm(request.user, "manage_employees")
 
     context = {
         "tenant": tenant,
@@ -1743,6 +1759,7 @@ def employees_view(request):
         "search_query": search,
         "roles_summary": roles_summary,
         "can_edit_id": is_owner_or_super,
+        "can_manage_salaries": can_manage_salaries,
         "suggested_next_code": suggested_next_code,
     }
     return render(request, "employees.html", context)
@@ -2357,11 +2374,25 @@ def api_branch_delivery_areas(request, branch_id):
         })
 
     elif request.method == "POST":
+        if tenant and not (tenant.has_feature("delivery_management") or tenant.has_feature("delivery")):
+            return JsonResponse({"error": "ميزة إدارة مناطق التوصيل غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها."}, status=403)
+
         profile = getattr(request.user, "profile", None)
+        emp = getattr(request.user, "employee_profile", None)
         is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
         if not is_owner_or_super and not (user_has_perm(request.user, "delivery_manage_zones") or user_has_perm(request.user, "manage_branches")):
             return JsonResponse({"error": "غير مصرح لك بإدارة وتعديل مناطق التوصيل"}, status=403)
+
+        can_cross = (
+            is_owner_or_super
+            or user_has_perm(request.user, "branch_switch_branches")
+            or user_has_perm(request.user, "manage_branches")
+            or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+            or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+        )
+        if not can_cross and profile and profile.branch and branch != profile.branch:
+            return JsonResponse({"error": "غير مصرح لك بتعديل مناطق التوصيل لفرع آخر"}, status=403)
 
         try:
             data = json.loads(request.body.decode("utf-8"))
@@ -2431,6 +2462,17 @@ def api_toggle_branch(request, branch_id):
         return JsonResponse({"error": "غير مصرح لك بتغيير حالة الفرع"}, status=403)
 
     branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
+    emp = getattr(request.user, "employee_profile", None)
+    can_cross = (
+        is_owner_or_super
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_cross and profile and profile.branch and branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح لك بتغيير حالة فرع آخر"}, status=403)
+
     branch.status = "closed" if branch.status == "active" else "active"
     branch.save()
     return JsonResponse({"ok": True, "status": branch.status})
@@ -2600,6 +2642,12 @@ def api_update_employee(request, emp_id):
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
     emp = get_object_or_404(Employee, tenant=tenant, id=emp_id)
+
+    # Protect Owner Account from subordinate tampering
+    is_target_owner = emp.user and (emp.user.is_superuser or (hasattr(emp.user, "profile") and emp.user.profile.role in ["owner", "platform_admin"]))
+    if is_target_owner and not is_owner_or_super:
+        return JsonResponse({"error": "غير مصرح لك بتعديل بيانات أو صلاحيات حساب مالك المنشأة"}, status=403)
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -2740,6 +2788,15 @@ def api_delete_employee(request, emp_id):
 
     emp = get_object_or_404(Employee, tenant=tenant, id=emp_id)
 
+    # 1. Prevent self-deletion
+    if emp.user and emp.user == request.user:
+        return JsonResponse({"error": "لا يمكنك حذف أو تجميد حسابك الشخصي"}, status=400)
+
+    # 2. Prevent subordinate from deleting/archiving restaurant owner or platform admin
+    is_target_owner = emp.user and (emp.user.is_superuser or (hasattr(emp.user, "profile") and emp.user.profile.role in ["owner", "platform_admin"]))
+    if is_target_owner and not is_owner_or_super:
+        return JsonResponse({"error": "غير مصرح لك بحذف أو تجميد حساب مالك المنشأة"}, status=403)
+
     # Branch managers can only delete/archive employees in their branch
     if not is_owner_or_super and profile and profile.branch and emp.branch != profile.branch:
         return JsonResponse({"error": "غير مصرح لك بإدارة موظفي الفروع الأخرى"}, status=403)
@@ -2799,6 +2856,15 @@ def api_toggle_employee_status(request, emp_id):
         return JsonResponse({"error": "غير مصرح لك بتعديل حالة الموظف"}, status=403)
 
     emp = get_object_or_404(Employee, tenant=tenant, id=emp_id)
+
+    # 1. Prevent self-toggle
+    if emp.user and emp.user == request.user:
+        return JsonResponse({"error": "لا يمكنك تعديل حالة حسابك الشخصي"}, status=400)
+
+    # 2. Prevent subordinate from toggling owner account status
+    is_target_owner = emp.user and (emp.user.is_superuser or (hasattr(emp.user, "profile") and emp.user.profile.role in ["owner", "platform_admin"]))
+    if is_target_owner and not is_owner_or_super:
+        return JsonResponse({"error": "غير مصرح لك بتعديل حالة حساب مالك المنشأة"}, status=403)
 
     if not is_owner_or_super and profile and profile.branch and emp.branch != profile.branch:
         return JsonResponse({"error": "غير مصرح لك بإدارة موظفي الفروع الأخرى"}, status=403)
@@ -3721,6 +3787,9 @@ def ai_callcenter_management_view(request):
     if not tenant:
         return HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
 
+    if not tenant.has_feature("call_center"):
+        return HttpResponseForbidden("ميزة المساعد الصوتي والكول سنتر غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+
     from core import partner_service as ps
     # Ensure tenant has voice partner registration and credentials
     reg_info = ps.ensure_tenant_registered(tenant, password=tenant.voice_password or "Diyafa@2026!")
@@ -3857,6 +3926,9 @@ def ai_callcenter_management_view(request):
 
 
 def _check_callcenter_admin(request):
+    tenant = get_active_tenant(request)
+    if tenant and not tenant.has_feature("call_center"):
+        return JsonResponse({"status": "error", "message": "ميزة المساعد الصوتي والكول سنتر غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها."}, status=403)
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
     if not is_owner and not user_has_perm(request.user, "call_center_manage_ai"):

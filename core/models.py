@@ -143,6 +143,10 @@ class Tenant(models.Model):
             f_set.update(["kds", "kds_kitchen"])
         if f_set & {"menu", "menu_management"}:
             f_set.update(["menu", "menu_management"])
+        if f_set & {"call_center", "ai_call_center"}:
+            f_set.update(["call_center", "ai_call_center"])
+        if f_set & {"custom_roles", "manage_roles"}:
+            f_set.update(["custom_roles", "manage_roles"])
         return feature_key in f_set
 
     def is_subscription_active(self):

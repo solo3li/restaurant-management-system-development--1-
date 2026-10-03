@@ -20,6 +20,12 @@ def normalize_plan_features(features):
     if f_set & {"menu", "menu_management"}:
         f_set.add("menu")
         f_set.add("menu_management")
+    if f_set & {"call_center", "ai_call_center"}:
+        f_set.add("call_center")
+        f_set.add("ai_call_center")
+    if f_set & {"custom_roles", "manage_roles"}:
+        f_set.add("custom_roles")
+        f_set.add("manage_roles")
     return f_set
 
 
@@ -27,8 +33,8 @@ def branch_context(request):
     if not request.user.is_authenticated:
         return {}
 
-    tenant = getattr(request, "tenant", None)
     profile = getattr(request.user, "profile", None)
+    tenant = getattr(request, "tenant", None) or (profile.tenant if profile else None)
     is_platform_admin = getattr(request, "is_platform_admin", False)
 
     # Scoped branches for the active tenant
@@ -92,15 +98,31 @@ def branch_context(request):
         if "call_center" not in plan_features:
             user_perms.discard("call_center_access")
             user_perms.discard("call_center_create_order")
+            user_perms.discard("call_center_manage_ai")
+            user_perms.discard("call_center_view_logs")
+            user_perms.discard("call_center_view_customers")
         if "inventory" not in plan_features:
             user_perms.discard("manage_inventory")
             user_perms.discard("inventory_view")
             user_perms.discard("inventory_add_stock")
             user_perms.discard("inventory_adjust_stock")
-        if "custom_roles" not in plan_features:
+            user_perms.discard("inventory_record_waste")
+            user_perms.discard("inventory_transfer_stock")
+            user_perms.discard("inventory_manage_suppliers")
+        if "custom_roles" not in plan_features and "manage_roles" not in plan_features:
             user_perms.discard("manage_roles")
-        if "delivery_management" not in plan_features and "delivery_zones" not in plan_features:
+            user_perms.discard("system_manage_roles")
+        if "delivery_management" not in plan_features and "delivery_zones" not in plan_features and "delivery" not in plan_features:
             user_perms.discard("delivery_access")
+            user_perms.discard("delivery_assign_driver")
+            user_perms.discard("delivery_track_drivers")
+            user_perms.discard("delivery_manage_zones")
+            user_perms.discard("delivery_override_status")
+        if "kds" not in plan_features and "kds_kitchen" not in plan_features:
+            user_perms.discard("kds_access")
+            user_perms.discard("kds_update_status")
+            user_perms.discard("kds_recall_order")
+            user_perms.discard("kds_pause_item")
 
     # 2. Branch Scoping:
     # Cross-branch scope is allowed ONLY for owners, managers with manage_branches,

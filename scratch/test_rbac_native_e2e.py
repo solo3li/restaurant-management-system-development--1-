@@ -533,9 +533,16 @@ res_recall_allowed = client.post(f"/api/orders/{created_order.id}/", data=json.d
 assert_test(res_recall_allowed.status_code == 200, "Chef with kds_recall_order successfully recalls ready order back to preparing (HTTP 200)")
 
 # 7. Forced Employee Deletion Protection
+hist_user = User.objects.create_user(username="hist_user_s8", password="password123")
+hist_emp = Employee.objects.create(tenant=tenant, branch=branch, user=hist_user, name="History Emp S8", employee_code="555")
+hist_order = Order.objects.create(tenant=tenant, branch=branch, order_number="ORD-HIST-001", cashier="History Emp S8", subtotal=Decimal("10.00"), total=Decimal("10.00"))
+
 test_role.set_permissions(["manage_employees", "hr_deactivate_employee"])
-res_force_del = client.post(f"/api/employees/{test_emp.id}/delete/", data=json.dumps({"force": True}), content_type="application/json")
+res_force_del = client.post(f"/api/employees/{hist_emp.id}/delete/", data=json.dumps({"force": True}), content_type="application/json")
 assert_test(res_force_del.status_code == 200 and res_force_del.json().get("action") == "archived", "Non-owner passing force=True on employee with order history safely archived instead of hard deleted")
+hist_order.delete()
+hist_emp.delete()
+hist_user.delete()
 
 # Clean up test artifacts
 created_order.delete()
@@ -663,6 +670,146 @@ assert_test(res_inv_gated.status_code == 403, "API rejects inventory creation wh
 # Try creating custom role on plan lacking custom_roles -> 403 Forbidden!
 res_role_gated = c_gated.post("/api/job-roles/", data=json.dumps({"name": "Custom Cashier", "scope": "branch"}), content_type="application/json")
 assert_test(res_role_gated.status_code == 403, "API rejects custom role creation when plan lacks 'custom_roles' feature (HTTP 403)")
+
+# ----------------------------------------------------------------------------------
+# SUITE 10: Advanced Security: Salary Masking, Owner Protection, Cross-Branch & Plan Gating
+# ----------------------------------------------------------------------------------
+print("\n--- SUITE 10: Advanced Security: Salary Masking, Owner Protection, Cross-Branch & Plan Gating ---")
+
+# 1. Salary Masking in HTML View
+test_role.set_permissions(["hr_view_employees"])
+test_emp.salary = Decimal("7500.00")
+test_emp.save()
+
+client.force_login(test_user)
+res_emp_html = client.get("/employees/")
+assert_test(res_emp_html.status_code == 200, "HR Viewer accesses /employees/ (HTTP 200)")
+content_emp_html = res_emp_html.content.decode("utf-8")
+assert_test("7500" not in content_emp_html and "••••" in content_emp_html, "Salary strictly masked with '••••' in HTML table for user lacking hr_manage_salaries")
+
+# Owner accesses /employees/ -> unmasked salary
+client.force_login(owner_user)
+res_owner_html = client.get("/employees/")
+content_owner_html = res_owner_html.content.decode("utf-8")
+assert_test("7500" in content_owner_html, "Owner sees unmasked salary in /employees/ HTML table")
+
+# 2. Owner Account Protection & Self-Lockout Prevention
+owner_emp, _ = Employee.objects.get_or_create(
+    tenant=tenant,
+    user=owner_user,
+    defaults={"name": "Owner Emp", "employee_code": "001", "role": "manager", "status": "active"}
+)
+
+# Manager user with manage_employees
+mgr_user = User.objects.create_user(username="mgr_user_suite10", password="password123")
+mgr_role = JobRole.objects.create(tenant=tenant, name="Branch Manager Suite10", scope="branch")
+mgr_role.set_permissions(["manage_employees", "hr_edit_employee", "hr_deactivate_employee", "delivery_manage_zones", "edit_orders"])
+mgr_emp = Employee.objects.create(tenant=tenant, branch=branch, user=mgr_user, job_role=mgr_role, name="Manager Suite10", employee_code="777")
+UserProfile.objects.update_or_create(user=mgr_user, defaults={"tenant": tenant, "branch": branch, "job_role": mgr_role, "role": "manager"})
+mgr_user.groups.set([mgr_role.group])
+
+c_mgr = Client()
+c_mgr.login(username="mgr_user_suite10", password="password123")
+s_mgr = c_mgr.session
+s_mgr["active_tenant_id"] = tenant.id
+s_mgr["active_branch_id"] = branch.id
+s_mgr.save()
+
+# Manager tries self-deletion -> HTTP 400
+res_self_del = c_mgr.post(f"/api/employees/{mgr_emp.id}/delete/")
+assert_test(res_self_del.status_code == 400 and "شخصي" in res_self_del.json().get("error", ""), "Self-deletion blocked with HTTP 400")
+
+# Manager tries self-toggle -> HTTP 400
+res_self_tog = c_mgr.post(f"/api/employees/{mgr_emp.id}/toggle-status/")
+assert_test(res_self_tog.status_code == 400 and "شخصي" in res_self_tog.json().get("error", ""), "Self-toggle blocked with HTTP 400")
+
+# Manager tries to delete Owner -> HTTP 403
+res_del_owner = c_mgr.post(f"/api/employees/{owner_emp.id}/delete/")
+assert_test(res_del_owner.status_code == 403 and "مالك" in res_del_owner.json().get("error", ""), "Subordinate blocked from deleting owner account (HTTP 403)")
+
+# Manager tries to toggle Owner -> HTTP 403
+res_tog_owner = c_mgr.post(f"/api/employees/{owner_emp.id}/toggle-status/")
+assert_test(res_tog_owner.status_code == 403 and "مالك" in res_tog_owner.json().get("error", ""), "Subordinate blocked from toggling owner account (HTTP 403)")
+
+# Manager tries to edit Owner -> HTTP 403
+res_edit_owner = c_mgr.post(f"/api/employees/{owner_emp.id}/", data=json.dumps({"name": "Hacked Owner"}), content_type="application/json")
+assert_test(res_edit_owner.status_code == 403 and "مالك" in res_edit_owner.json().get("error", ""), "Subordinate blocked from modifying owner account (HTTP 403)")
+
+# 3. Cross-Branch Boundary Isolation
+branch_secondary = Branch.objects.create(tenant=tenant, name="Secondary Branch Suite10")
+
+# Manager locked to branch tries to modify delivery areas of branch_secondary -> HTTP 403!
+res_cross_area = c_mgr.post(f"/api/branches/{branch_secondary.id}/areas/", data=json.dumps({"action": "add", "name": "Zone B"}), content_type="application/json")
+assert_test(res_cross_area.status_code == 403 and "آخر" in res_cross_area.json().get("error", ""), "Branch-locked manager blocked from modifying delivery areas of foreign branch (HTTP 403)")
+
+# Manager locked to branch tries to toggle branch_secondary -> HTTP 403!
+res_cross_toggle = c_mgr.post(f"/api/branches/toggle/{branch_secondary.id}/")
+assert_test(res_cross_toggle.status_code == 403, "Branch-locked manager blocked from toggling foreign branch (HTTP 403)")
+
+# Manager locked to branch tries to reassign order branch via order_edit_view
+order_branch_test = Order.objects.create(
+    tenant=tenant,
+    branch=branch,
+    order_number="TEST-SW-001",
+    subtotal=Decimal("50.00"),
+    total=Decimal("50.00")
+)
+c_mgr.post(f"/orders/{order_branch_test.id}/edit/", data={
+    "branch_id": str(branch_secondary.id),
+    "status": "new",
+    "order_type": "dine_in",
+    "customer_name": "Test Customer",
+    "cashier": "Mgr"
+})
+order_branch_test.refresh_from_db()
+assert_test(order_branch_test.branch == branch, "Branch-locked staff blocked from transferring order branch in order_edit_view (stays locked to assigned branch)")
+order_branch_test.delete()
+branch_secondary.delete()
+mgr_emp.delete()
+mgr_user.delete()
+mgr_role.delete()
+owner_emp.delete()
+
+# 4. SaaS Plan Feature Gating for KDS, Call Center & Delivery
+# Basic plan has features=["pos", "menu"], NO kds, NO call_center, NO delivery
+c_gated_client = Client()
+c_gated_client.login(username="gated_user", password="password123")
+session_g = c_gated_client.session
+session_g["active_tenant_id"] = gated_tenant.id
+session_g["active_branch_id"] = gated_branch.id
+session_g.save()
+
+# Gated tenant accesses kitchen_view -> 403!
+res_gated_kds = c_gated_client.get("/kitchen/")
+assert_test(res_gated_kds.status_code == 403, "KDS screen rejected when plan lacks 'kds' feature (HTTP 403)")
+
+# Gated tenant accesses delivery_view -> 403!
+res_gated_del = c_gated_client.get("/delivery/")
+assert_test(res_gated_del.status_code == 403, "Delivery screen rejected when plan lacks 'delivery' feature (HTTP 403)")
+
+# Gated tenant accesses ai-callcenter -> 403!
+res_gated_ai = c_gated_client.get("/ai-callcenter/")
+assert_test(res_gated_ai.status_code == 403, "AI Call Center studio rejected when plan lacks 'call_center' feature (HTTP 403)")
+
+# Gated tenant calls api_ai_callcenter_create_profile -> 403!
+res_gated_ai_api = c_gated_client.post("/api/ai-callcenter/profiles/create/", data=json.dumps({"name": "Test"}), content_type="application/json")
+assert_test(res_gated_ai_api.status_code == 403, "AI Call Center API rejected when plan lacks 'call_center' feature (HTTP 403)")
+
+# Gated tenant calls api_branch_delivery_areas POST -> 403!
+res_gated_del_api = c_gated_client.post(f"/api/branches/{gated_branch.id}/areas/", data=json.dumps({"action": "add", "name": "Compound 1"}), content_type="application/json")
+assert_test(res_gated_del_api.status_code == 403, "Delivery areas API rejected when plan lacks 'delivery' feature (HTTP 403)")
+
+# Context processor discards all sub-permissions when parent feature missing
+req_gated = factory.get("/branch/")
+req_gated.user = gated_user
+req_gated.session = session_g
+req_gated.tenant = gated_tenant
+ctx_gated = branch_context(req_gated)
+gated_perms = ctx_gated.get("user_perms", set())
+assert_test("kds_access" not in gated_perms, "Context processor discards 'kds_access' when plan lacks KDS")
+assert_test("delivery_access" not in gated_perms, "Context processor discards 'delivery_access' when plan lacks delivery")
+assert_test("call_center_manage_ai" not in gated_perms, "Context processor discards 'call_center_manage_ai' when plan lacks call center")
+assert_test("system_manage_roles" not in gated_perms, "Context processor discards 'system_manage_roles' when plan lacks custom roles")
 
 gated_emp.delete()
 gated_user.delete()
