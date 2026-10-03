@@ -490,12 +490,11 @@
     let addMapMode = 'pin'; // 'pin' or 'polygon'
     let stagedAreas = [];
 
-    // Map Tile Configuration (OpenStreetMap Standard - Free & No API key needed)
-    const MAP_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    // Map Tile Configuration (Esri ArcGIS World Street Map - High Performance CDN & Free)
+    const MAP_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
     const MAP_TILE_OPTIONS = {
         maxZoom: 19,
-        subdomains: 'abc',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+        attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom'
     };
 
     function getBranchDefaultCoordinates(city) {
