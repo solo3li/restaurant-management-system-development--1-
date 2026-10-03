@@ -169,7 +169,7 @@
                                 </button>
                                 <button 
                                     type="button"
-                                    onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.phone|escapejs }}', '{{ emp.job_role_id|default:'' }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}', '{{ emp.employee_code|default:'' }}')" 
+                                    onclick="openEditEmpModal({{ emp.id }})" 
                                     title="تعديل الموظف ورمز PIN" 
                                     class="rounded-lg border border-[#D2AB6B]/40 bg-white p-2 text-xs font-bold text-[#0E382A] hover:bg-[#F9F6F0] hover:border-[#0E382A] transition shadow-2xs"
                                 >
@@ -384,8 +384,8 @@
             </div>
 
             <div>
-                <label class="mb-1 block font-bold text-[#666666]">الراتب (ر.س)</label>
-                <input type="number" id="edit-emp-salary" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
+                <label class="mb-1 block font-bold text-[#666666]">الراتب (ر.س) *</label>
+                <input type="number" step="0.01" min="0" id="edit-emp-salary" autocomplete="off" placeholder="الراتب الأساسي بالريال (إلزامي)" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
             </div>
 
             <!-- Employee ID & PIN Management Section -->
@@ -400,6 +400,7 @@
                     <input 
                         type="text" 
                         id="edit-emp-code" 
+                        autocomplete="off"
                         {% if not can_edit_id %}readonly disabled class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-100 text-gray-500 font-mono font-bold cursor-not-allowed text-xs"{% else %}class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono font-bold text-[#0E382A]"{% endif %}
                     >
                 </div>
@@ -413,6 +414,7 @@
                         type="password" 
                         id="edit-emp-pin" 
                         maxlength="6" 
+                        autocomplete="new-password"
                         placeholder="اتركه فارغاً للإبقاء على الرمز الحالي" 
                         class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono tracking-widest text-center"
                     >
@@ -426,6 +428,7 @@
                     <input 
                         type="password" 
                         id="edit-emp-password" 
+                        autocomplete="new-password"
                         placeholder="اتركها فارغة للإبقاء على كلمة المرور الحالية" 
                         class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono"
                     >
@@ -812,31 +815,56 @@
         }
     }
 
-    // Modal Edit
-    function openEditEmpModal(id, name, phone, jobRoleId, roleLegacy, branchId, salary, status, empCode) {
-        document.getElementById('edit-emp-id').value = id;
-        document.getElementById('edit-emp-name').value = name;
-        document.getElementById('edit-emp-phone').value = phone;
-        document.getElementById('edit-emp-salary').value = salary;
-        document.getElementById('edit-emp-status').value = status;
-        document.getElementById('edit-emp-code').value = empCode;
+    // Modal Edit (Server-driven data hydration)
+    async function openEditEmpModal(empId) {
+        document.getElementById('edit-emp-id').value = empId;
+        document.getElementById('edit-emp-name').value = '';
+        document.getElementById('edit-emp-phone').value = '';
+        document.getElementById('edit-emp-salary').value = '';
+        document.getElementById('edit-emp-status').value = 'active';
+        document.getElementById('edit-emp-code').value = '';
         document.getElementById('edit-emp-pin').value = '';
         if (document.getElementById('edit-emp-password')) {
             document.getElementById('edit-emp-password').value = '';
         }
 
-        document.getElementById('edit-emp-title').textContent = `${name} (كود #${empCode || id})`;
-
-        // Set Branch
-        const branchSel = document.getElementById('edit-emp-branch');
-        if (branchSel) branchSel.value = branchId || '';
-
-        // Set Job Role
-        const roleSel = document.getElementById('edit-emp-job-role');
-        if (roleSel) roleSel.value = jobRoleId || '';
-
+        document.getElementById('edit-emp-title').textContent = 'جارٍ تحميل البيانات...';
         document.getElementById('edit-emp-modal').classList.remove('hidden');
         document.getElementById('edit-emp-modal').classList.add('flex');
+
+        try {
+            const res = await fetch(`/api/employees/${empId}/detail/`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'تعذر تحميل بيانات الموظف');
+
+            const emp = data.employee;
+            document.getElementById('edit-emp-name').value = emp.name || '';
+            document.getElementById('edit-emp-phone').value = emp.phone || '';
+            document.getElementById('edit-emp-salary').value = (emp.salary !== undefined && emp.salary !== null) ? emp.salary : '';
+            document.getElementById('edit-emp-status').value = emp.status || 'active';
+            document.getElementById('edit-emp-code').value = emp.employee_code || '';
+            document.getElementById('edit-emp-pin').value = '';
+            if (document.getElementById('edit-emp-password')) {
+                document.getElementById('edit-emp-password').value = '';
+            }
+
+            document.getElementById('edit-emp-title').textContent = `${emp.name} (كود #${emp.employee_code || emp.id})`;
+
+            // Set Branch
+            const branchSel = document.getElementById('edit-emp-branch');
+            if (branchSel) {
+                branchSel.value = emp.branch ? emp.branch.id : '';
+            }
+
+            // Set Job Role
+            const roleSel = document.getElementById('edit-emp-job-role');
+            if (roleSel) {
+                roleSel.value = emp.job_role ? emp.job_role.id : '';
+            }
+        } catch (e) {
+            showToast(e.message || 'فشل تحميل بيانات الموظف', 'error');
+            closeEditEmpModal();
+        }
     }
 
     function closeEditEmpModal() {
@@ -851,7 +879,7 @@
         const job_role_id = document.getElementById('edit-emp-job-role').value;
         const branch_id = document.getElementById('edit-emp-branch').value;
         const status = document.getElementById('edit-emp-status').value;
-        const salary = parseFloat(document.getElementById('edit-emp-salary').value) || 0;
+        const salaryRaw = document.getElementById('edit-emp-salary').value.trim();
         const employee_code = document.getElementById('edit-emp-code').value.trim();
         const pin_code = document.getElementById('edit-emp-pin').value.trim();
         const new_password = document.getElementById('edit-emp-password') ? document.getElementById('edit-emp-password').value.trim() : '';
@@ -864,9 +892,43 @@
             showToast('يرجى اختيار المسمى الوظيفي', 'error');
             return;
         }
+
+        // Mandatory salary check as requested by user
+        if (!salaryRaw || isNaN(salaryRaw) || parseFloat(salaryRaw) < 0) {
+            showToast('يرجى إدخال الراتب الأساسي للموظف (قيمة عددية صحيحة)', 'error');
+            document.getElementById('edit-emp-salary').focus();
+            return;
+        }
+        const salary = parseFloat(salaryRaw);
+
+        if (pin_code && pin_code.length < 4) {
+            showToast('رمز PIN يجب أن يتكون من 4 أرقام على الأقل', 'error');
+            return;
+        }
+
         if (new_password && new_password.length < 6) {
             showToast('كلمة المرور يجب أن لا تقل عن 6 أحرف', 'error');
             return;
+        }
+
+        const payload = {
+            name,
+            phone,
+            job_role_id,
+            branch_id,
+            status,
+            salary,
+            employee_code
+        };
+
+        // Only send PIN if user intentionally entered a new one
+        if (pin_code) {
+            payload.pin_code = pin_code;
+        }
+
+        // Only send password if user intentionally entered a new one
+        if (new_password) {
+            payload.password = new_password;
         }
 
         try {
@@ -876,9 +938,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({
-                    name, phone, job_role_id, branch_id, status, salary, employee_code, pin_code, password: new_password
-                })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
@@ -949,17 +1009,7 @@
             const editBtn = document.getElementById('view-emp-edit-btn');
             editBtn.onclick = () => {
                 closeViewEmpModal();
-                openEditEmpModal(
-                    emp.id,
-                    emp.name,
-                    emp.phone,
-                    emp.job_role ? emp.job_role.id : '',
-                    emp.role,
-                    emp.branch ? emp.branch.id : '',
-                    emp.salary,
-                    emp.status,
-                    emp.employee_code
-                );
+                openEditEmpModal(emp.id);
             };
 
             document.getElementById('view-emp-modal').classList.remove('hidden');

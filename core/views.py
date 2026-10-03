@@ -2218,14 +2218,23 @@ def api_update_employee(request, emp_id):
         emp.status = data["status"]
 
     if "salary" in data:
+        salary_str = str(data["salary"]).strip()
+        if not salary_str:
+            return JsonResponse({"error": "يرجى إدخال الراتب الأساسي للموظف"}, status=400)
         try:
-            emp.salary = Decimal(str(data["salary"]))
+            val = Decimal(salary_str)
+            if val < 0:
+                return JsonResponse({"error": "الراتب لا يمكن أن يكون سالباً"}, status=400)
+            emp.salary = val
         except Exception:
-            pass
+            return JsonResponse({"error": "قيمة الراتب المدخلة غير صالحة"}, status=400)
 
     if ("branchId" in data or "branch_id" in data) and is_owner_or_super:
         b_id = data.get("branchId") if "branchId" in data else data.get("branch_id")
-        emp.branch = Branch.objects.filter(tenant=tenant, id=b_id).first() if b_id else None
+        if b_id and str(b_id).isdigit():
+            emp.branch = Branch.objects.filter(tenant=tenant, id=int(b_id)).first()
+        else:
+            emp.branch = None
         if emp.user and hasattr(emp.user, "profile"):
             emp.user.profile.branch = emp.branch
             emp.user.profile.save()

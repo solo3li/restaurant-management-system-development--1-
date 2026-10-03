@@ -103,6 +103,40 @@ def run_tests():
     assert updated_emp.user.check_password("newSecurePassword123") is True
     print("✓ Employee updated successfully (name, salary, PIN, and dashboard password).")
 
+    # 5.1 Test Update with OMITTED pin and password (Must preserve existing values)
+    print("\n--- 4.1 Testing Update without PIN or Password (Preservation) ---")
+    partial_payload = {
+        "name": "موظف اختبار بدون تغيير كلمة السر",
+        "salary": 7500,
+        "job_role_id": job_role.id if job_role else None
+    }
+    res = client.post(
+        f'/api/employees/update/{emp_id}/',
+        data=json.dumps(partial_payload),
+        content_type='application/json'
+    )
+    assert res.status_code == 200, f"Partial update failed: {res.content}"
+    updated_emp.refresh_from_db()
+    assert updated_emp.name == "موظف اختبار بدون تغيير كلمة السر"
+    assert updated_emp.salary == 7500
+    assert updated_emp.check_pin("9876") is True, "PIN was overwritten when omitted!"
+    assert updated_emp.user.check_password("newSecurePassword123") is True, "Password was overwritten when omitted!"
+    print("✓ Omitted PIN and Password were preserved 100% without system overwriting.")
+
+    # 5.2 Test Update with empty salary (Must reject with 400)
+    print("\n--- 4.2 Testing Update with empty salary (Validation) ---")
+    bad_salary_payload = {
+        "name": "اختبار راتب فارغ",
+        "salary": ""
+    }
+    res = client.post(
+        f'/api/employees/update/{emp_id}/',
+        data=json.dumps(bad_salary_payload),
+        content_type='application/json'
+    )
+    assert res.status_code == 400, f"Expected 400 for empty salary, got {res.status_code}"
+    print("✓ Empty salary rejected with 400 as expected.")
+
     # 6. Test POST /api/employees/<id>/toggle-status/ (TOGGLE)
     print("\n--- 5. Testing Employee Status Toggle (DEACTIVATE / ACTIVATE) ---")
     # Toggle to inactive
@@ -134,7 +168,7 @@ def run_tests():
     assert csv_bytes.startswith(b'\xef\xbb\xbf'), "UTF-8 BOM missing from CSV output"
     csv_text = csv_bytes.decode('utf-8-sig')
     assert "كود الموظف" in csv_text
-    assert "موظف اختبار معدل" in csv_text
+    assert "موظف اختبار بدون تغيير كلمة السر" in csv_text
     print("✓ CSV Export generated with UTF-8 BOM and correct employee data.")
 
     # 8. Test POST /api/employees/<id>/delete/ (DELETE - Clean Hard Delete)
