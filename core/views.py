@@ -111,6 +111,11 @@ def login_view(request):
             code = request.POST.get("employee_code", "").strip()
             pin = request.POST.get("pin", "").strip()
 
+            # Normalize Arabic digits (٠١٢٣٤٥٦٧٨٩ -> 0123456789)
+            trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+            code = code.translate(trans_table).strip()
+            pin = pin.translate(trans_table).strip()
+
             if not code or not pin:
                 error_message = "يرجى إدخال كود الموظف ورمز PIN المكون من 4 أرقام"
             else:
@@ -122,6 +127,13 @@ def login_view(request):
                         break
 
                 if matched_emp:
+                    # Auto-assign default branch if none is set
+                    effective_branch = matched_emp.branch
+                    if not effective_branch and matched_emp.tenant:
+                        effective_branch = matched_emp.tenant.branches.filter(status="active").first() or matched_emp.tenant.branches.first()
+                        matched_emp.branch = effective_branch
+                        matched_emp.save(update_fields=["branch"])
+
                     # Auto-provision user account if missing
                     user_to_login = matched_emp.user
                     if not user_to_login:
@@ -131,23 +143,24 @@ def login_view(request):
                         user_to_login.set_password("admin123")
                         user_to_login.save()
                         matched_emp.user = user_to_login
-                        matched_emp.save()
+                        matched_emp.save(update_fields=["user"])
 
                     # Ensure UserProfile matches employee
                     UserProfile.objects.update_or_create(
                         user=user_to_login,
                         defaults={
                             "tenant": matched_emp.tenant,
-                            "branch": matched_emp.branch,
+                            "branch": effective_branch,
                             "role": matched_emp.role,
+                            "job_role": matched_emp.job_role,
                         }
                     )
 
                     login(request, user_to_login)
                     if matched_emp.tenant:
                         request.session["active_tenant_id"] = matched_emp.tenant.id
-                    if matched_emp.branch:
-                        request.session["active_branch_id"] = matched_emp.branch.id
+                    if effective_branch:
+                        request.session["active_branch_id"] = effective_branch.id
                     request.session["active_employee_id"] = matched_emp.id
 
                     # Route by shift role
@@ -169,6 +182,15 @@ def login_view(request):
             username = request.POST.get("username", "").strip()
             password = request.POST.get("password", "")
             user = authenticate(request, username=username, password=password)
+
+            # Fallback: if username is employee_code (e.g. "104"), resolve via Employee
+            if user is None and username:
+                trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+                clean_code = username.translate(trans_table).strip()
+                emp_candidate = Employee.objects.filter(employee_code=clean_code, status="active").select_related("user").first()
+                if emp_candidate and emp_candidate.user:
+                    user = authenticate(request, username=emp_candidate.user.username, password=password)
+
             if user is not None:
                 login(request, user)
                 profile = getattr(user, "profile", None)
@@ -182,8 +204,13 @@ def login_view(request):
                     request.session["active_tenant_id"] = profile.tenant.id
 
                 # Route branch-locked staff
-                if profile and profile.role != "owner" and profile.branch:
-                    request.session["active_branch_id"] = profile.branch.id
+                if profile and profile.role != "owner":
+                    if not profile.branch and profile.tenant:
+                        profile.branch = profile.tenant.branches.filter(status="active").first() or profile.tenant.branches.first()
+                        profile.save(update_fields=["branch"])
+                    if profile.branch:
+                        request.session["active_branch_id"] = profile.branch.id
+
                     if profile.role == "cashier":
                         return redirect("pos")
                     elif profile.role == "chef":
@@ -2082,14 +2109,15 @@ def api_update_employee(request, emp_id):
         except Exception:
             pass
 
-    if "branchId" in data and is_owner_or_super:
-        emp.branch = Branch.objects.filter(tenant=tenant, id=data["branchId"]).first() if data["branchId"] else None
+    if ("branchId" in data or "branch_id" in data) and is_owner_or_super:
+        b_id = data.get("branchId") if "branchId" in data else data.get("branch_id")
+        emp.branch = Branch.objects.filter(tenant=tenant, id=b_id).first() if b_id else None
         if emp.user and hasattr(emp.user, "profile"):
             emp.user.profile.branch = emp.branch
             emp.user.profile.save()
 
     # Employee Code (ID) update - restricted to Superadmin and Owner
-    new_code = str(data.get("employeeCode") or "").strip()
+    new_code = str(data.get("employeeCode") or data.get("employee_code") or "").strip()
     if new_code and new_code != emp.employee_code:
         if not is_owner_or_super:
             return JsonResponse({"error": "تعديل كود الموظف مقتصر على المالك ومدير النظام فقط"}, status=403)
@@ -2098,11 +2126,27 @@ def api_update_employee(request, emp_id):
         emp.employee_code = new_code
 
     # PIN change / reset - allowed for Owner, Superadmin, and Branch Manager
-    new_pin = str(data.get("pin") or "").strip()
+    new_pin = str(data.get("pin") or data.get("pin_code") or "").strip()
     if new_pin:
         if len(new_pin) < 4:
             return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
         emp.set_pin(new_pin)
+
+    # Ensure linked User exists
+    if not emp.user and emp.employee_code:
+        tenant_slug = emp.tenant.slug if emp.tenant else "sys"
+        username = f"emp_{tenant_slug}_{emp.employee_code}"
+        user_obj, _ = User.objects.get_or_create(username=username, defaults={"first_name": emp.name})
+        user_obj.set_password("admin123")
+        user_obj.save()
+        emp.user = user_obj
+
+    if emp.user and hasattr(emp.user, "profile"):
+        emp.user.profile.tenant = emp.tenant
+        emp.user.profile.branch = emp.branch
+        emp.user.profile.role = emp.role
+        emp.user.profile.job_role = emp.job_role
+        emp.user.profile.save()
 
     emp.save()
     return JsonResponse({"ok": True, "employeeCode": emp.employee_code, "hasPin": bool(emp.pin_code)})

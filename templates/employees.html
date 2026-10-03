@@ -667,7 +667,7 @@
         }
 
         try {
-            const res = await fetch(`/api/employees/${empId}/`, {
+            const res = await fetch(`/api/employees/update/${empId}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
