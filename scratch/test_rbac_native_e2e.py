@@ -823,10 +823,228 @@ test_emp.delete()
 test_user.delete()
 test_role.delete()
 
+# ----------------------------------------------------------------------------------
+# SUITE 11: Deep Hardening: Privilege Escalation, Password Security, Takeover, HQ Scoping
+# ----------------------------------------------------------------------------------
+print("\n--- SUITE 11: Deep Hardening: Privilege Escalation, Password Security, Takeover, HQ Scoping ---")
+
+# 1. Privilege Escalation Prevention on Employee Creation
+hr_creator_user = User.objects.create_user(username="hr_creator_user", password="password123")
+hr_creator_role = JobRole.objects.create(tenant=tenant, name="HR Creator Role", scope="branch")
+hr_creator_role.set_permissions(["hr_create_employee"])
+hr_creator_emp = Employee.objects.create(tenant=tenant, branch=branch, user=hr_creator_user, job_role=hr_creator_role, name="HR Creator", employee_code="901")
+UserProfile.objects.update_or_create(user=hr_creator_user, defaults={"tenant": tenant, "branch": branch, "job_role": hr_creator_role, "role": "cashier"})
+hr_creator_user.groups.set([hr_creator_role.group])
+
+c_hr = Client()
+c_hr.login(username="hr_creator_user", password="password123")
+s_hr = c_hr.session
+s_hr["active_tenant_id"] = tenant.id
+s_hr["active_branch_id"] = branch.id
+s_hr.save()
+
+high_role = JobRole.objects.create(tenant=tenant, name="Super Role Suite11", scope="branch")
+high_role.set_permissions(["system_manage_billing", "manage_roles", "manage_employees"])
+
+# Attempt to assign high_role without manage_roles -> 403 Forbidden!
+res_esc_role = c_hr.post("/api/employees/create/", data=json.dumps({
+    "name": "Escalated User",
+    "employeeCode": "902",
+    "jobRoleId": high_role.id
+}), content_type="application/json")
+assert_test(res_esc_role.status_code == 403, "Subordinate lacking manage_roles blocked from assigning job role on creation (HTTP 403)")
+
+# Attempt to assign custom salary (15000) without hr_manage_salaries -> 403 Forbidden!
+res_esc_sal = c_hr.post("/api/employees/create/", data=json.dumps({
+    "name": "Overpaid User",
+    "employeeCode": "903",
+    "salary": 15000
+}), content_type="application/json")
+assert_test(res_esc_sal.status_code == 403, "Subordinate lacking hr_manage_salaries blocked from setting custom salary on creation (HTTP 403)")
+
+# Attempt to set password without hr_manage_credentials -> 403 Forbidden!
+res_esc_pwd = c_hr.post("/api/employees/create/", data=json.dumps({
+    "name": "Passworded User",
+    "employeeCode": "904",
+    "password": "mypassword123"
+}), content_type="application/json")
+assert_test(res_esc_pwd.status_code == 403, "Subordinate lacking hr_manage_credentials blocked from setting password on creation (HTTP 403)")
+
+# Normal creation: User account created with UNUSABLE password (no default admin123)
+res_norm_create = c_hr.post("/api/employees/create/", data=json.dumps({
+    "name": "Safe PIN User",
+    "employeeCode": "905",
+    "pin": "5555"
+}), content_type="application/json")
+assert_test(res_norm_create.status_code == 200, "Normal employee created successfully (HTTP 200)")
+created_emp = Employee.objects.filter(employee_code="905", tenant=tenant).select_related("user").first()
+assert_test(created_emp and created_emp.user and not created_emp.user.has_usable_password(), "New PIN employee created with strictly unusable password (No default admin123)")
+
+# 2. Account Takeover Protection in api_create_tenant
+platform_super = User.objects.filter(is_superuser=True).first()
+if not platform_super:
+    platform_super = User.objects.create_superuser(username="admin_super", password="password123", email="admin@motaem.local")
+c_super = Client()
+c_super.force_login(platform_super)
+
+# Attempt to create tenant with already taken owner username
+Tenant.objects.filter(slug="takeover-tenant").delete()
+res_takeover = c_super.post("/api/tenants/create/", data=json.dumps({
+    "name": "Takeover Tenant",
+    "slug": "takeover-tenant",
+    "owner_username": owner_user.username,
+    "owner_password": "newpassword123"
+}), content_type="application/json")
+assert_test(res_takeover.status_code == 400 and "محجوز مسبقاً" in res_takeover.json().get("error", ""), "Tenant creation rejects colliding owner username with HTTP 400")
+
+# 3. Global Menu Tampering Protection in api_toggle_menu_item
+menu_item_test = MenuItem.objects.create(tenant=tenant, name="Global Test Item", price=Decimal("25.00"), available=True)
+cashier_user = User.objects.create_user(username="cashier_suite11", password="password123")
+cashier_role = JobRole.objects.create(tenant=tenant, name="Cashier Suite11", scope="branch")
+cashier_role.set_permissions(["menu_toggle_availability"]) # Lacks manage_menu
+cashier_emp = Employee.objects.create(tenant=tenant, branch=branch, user=cashier_user, job_role=cashier_role, name="Cashier Suite11", employee_code="906")
+UserProfile.objects.update_or_create(user=cashier_user, defaults={"tenant": tenant, "branch": branch, "job_role": cashier_role, "role": "cashier"})
+cashier_user.groups.set([cashier_role.group])
+
+c_cashier = Client()
+c_cashier.login(username="cashier_suite11", password="password123")
+s_cashier = c_cashier.session
+s_cashier["active_tenant_id"] = tenant.id
+s_cashier["active_branch_id"] = branch.id
+s_cashier.save()
+
+# Cashier tries to globally toggle menu item -> HTTP 403
+res_global_menu = c_cashier.post(f"/api/menu/toggle/{menu_item_test.id}/")
+assert_test(res_global_menu.status_code == 403, "Staff lacking manage_menu blocked from global menu toggle via api_toggle_menu_item (HTTP 403)")
+
+# 4. KDS & POS Plan Feature Gating
+plan_no_kds_pos = SubscriptionPlan.objects.create(name="No KDS POS Plan", features=["menu_management"], max_branches=1, max_employees=5)
+tenant_gated2 = Tenant.objects.create(name="No KDS Tenant", slug="no-kds-tenant", subscription_plan=plan_no_kds_pos, is_active=True)
+branch_gated2 = Branch.objects.create(tenant=tenant_gated2, name="No KDS Branch")
+role_gated2 = JobRole.objects.create(tenant=tenant_gated2, name="Full Op Role", scope="branch")
+role_gated2.set_permissions(["kds_access", "pos_access"])
+user_gated2 = User.objects.create_user(username="user_gated2", password="password123")
+emp_gated2 = Employee.objects.create(tenant=tenant_gated2, branch=branch_gated2, user=user_gated2, job_role=role_gated2, name="Gated2 Emp", employee_code="907")
+UserProfile.objects.update_or_create(user=user_gated2, defaults={"tenant": tenant_gated2, "branch": branch_gated2, "job_role": role_gated2, "role": "cashier"})
+user_gated2.groups.set([role_gated2.group])
+
+c_gated2 = Client()
+c_gated2.login(username="user_gated2", password="password123")
+s_g2 = c_gated2.session
+s_g2["active_tenant_id"] = tenant_gated2.id
+s_g2["active_branch_id"] = branch_gated2.id
+s_g2.save()
+
+# Check /api/kitchen/live/ on plan lacking kds -> 403
+res_kds_live = c_gated2.get("/api/kitchen/live/")
+assert_test(res_kds_live.status_code == 403, "Kitchen live snapshot API rejected when plan lacks 'kds' (HTTP 403)")
+
+# Check /pos/ on plan lacking pos -> 403
+res_pos_gated = c_gated2.get("/pos/")
+assert_test(res_pos_gated.status_code == 403, "POS screen rejected when plan lacks 'pos' (HTTP 403)")
+
+# 5. Cross-Branch Delivery Area & Driver Enforcement
+branch_b = Branch.objects.create(tenant=tenant, name="Branch B Suite11")
+area_b = DeliveryArea.objects.create(branch=branch_b, name="Area B", delivery_fee=Decimal("12.00"))
+driver_b = Employee.objects.create(tenant=tenant, branch=branch_b, name="Driver B", role="driver")
+
+# Cashier in branch trying to create order with deliveryAreaId from branch_b -> 403!
+cashier_role.set_permissions(["pos_access", "pos_create_order"])
+res_cross_order = c_cashier.post("/api/orders/", data=json.dumps({
+    "type": "delivery",
+    "deliveryAreaId": area_b.id,
+    "items": [{"menuItemId": menu_item_test.id, "qty": 1}]
+}), content_type="application/json")
+assert_test(res_cross_order.status_code == 403, "Branch-locked cashier blocked from creating order in foreign delivery area (HTTP 403)")
+
+# Order in branch: trying to assign driver_b (from branch_b) -> 403!
+order_in_a = Order.objects.create(tenant=tenant, branch=branch, order_number="ORD-A-101", subtotal=Decimal("25.00"), total=Decimal("25.00"), order_type="delivery")
+cashier_role.set_permissions(["edit_orders", "delivery_assign_driver"])
+res_cross_driver = c_cashier.post(f"/api/orders/{order_in_a.id}/", data=json.dumps({
+    "driverId": driver_b.id
+}), content_type="application/json")
+assert_test(res_cross_driver.status_code == 403, "Staff blocked from assigning driver from foreign branch to order (HTTP 403)")
+
+# 6. HQ Scoped Manager Cross-Branch Authority
+hq_user = User.objects.create_user(username="hq_auditor_suite11", password="password123")
+hq_role = JobRole.objects.create(tenant=tenant, name="HQ Auditor", scope="hq")
+hq_role.set_permissions(["view_orders", "edit_orders", "manage_inventory", "inventory_adjust_stock"])
+hq_emp = Employee.objects.create(tenant=tenant, branch=branch, user=hq_user, job_role=hq_role, name="HQ Auditor", employee_code="908")
+UserProfile.objects.update_or_create(user=hq_user, defaults={"tenant": tenant, "branch": branch, "job_role": hq_role, "role": "manager"})
+hq_user.groups.set([hq_role.group])
+
+c_hq = Client()
+c_hq.login(username="hq_auditor_suite11", password="password123")
+s_hq = c_hq.session
+s_hq["active_tenant_id"] = tenant.id
+s_hq["active_branch_id"] = branch.id
+s_hq.save()
+
+order_in_b = Order.objects.create(tenant=tenant, branch=branch_b, order_number="ORD-B-102", subtotal=Decimal("30.00"), total=Decimal("30.00"))
+inv_in_b = InventoryItem.objects.create(tenant=tenant, branch=branch_b, name="Coffee Beans B", quantity=Decimal("10.00"))
+
+# HQ auditor views order_detail_view for order_in_b -> 200 OK!
+res_hq_view = c_hq.get(f"/orders/{order_in_b.id}/")
+assert_test(res_hq_view.status_code == 200, "HQ scoped auditor with assigned home branch allowed to view foreign branch order (HTTP 200)")
+
+# HQ auditor views order_edit_view for order_in_b -> 200 OK!
+res_hq_edit = c_hq.get(f"/orders/{order_in_b.id}/edit/")
+assert_test(res_hq_edit.status_code == 200, "HQ scoped auditor allowed to access foreign branch order edit (HTTP 200)")
+
+# HQ auditor adjusts inventory in branch_b -> 200 OK!
+res_hq_adj = c_hq.post(f"/api/inventory/adjust/{inv_in_b.id}/", data=json.dumps({"delta": 5}), content_type="application/json")
+assert_test(res_hq_adj.status_code == 200, "HQ scoped auditor allowed to adjust foreign branch inventory (HTTP 200)")
+
+# 7. Anti-Self-Lockout and User Status Sync in api_update_employee
+# Cashier tries to deactivate self -> 400 Bad Request!
+cashier_role.set_permissions(["hr_edit_employee", "manage_employees"])
+res_self_inact = c_cashier.post(f"/api/employees/{cashier_emp.id}/", data=json.dumps({"status": "inactive"}), content_type="application/json")
+assert_test(res_self_inact.status_code == 400 and "شخصي" in res_self_inact.json().get("error", ""), "Self-deactivation via api_update_employee blocked with HTTP 400")
+
+# Deactivating another employee synchronizes user.is_active = False
+target_user = User.objects.create_user(username="target_user_suite11", password="password123")
+target_emp = Employee.objects.create(tenant=tenant, branch=branch, user=target_user, name="Target Emp", employee_code="909", status="active")
+res_deact_target = c_cashier.post(f"/api/employees/{target_emp.id}/", data=json.dumps({"status": "inactive"}), content_type="application/json")
+assert_test(res_deact_target.status_code == 200, "Employee deactivated successfully (HTTP 200)")
+target_user.refresh_from_db()
+assert_test(target_user.is_active is False, "Deactivating employee in api_update_employee synchronizes User.is_active = False")
+
+# Clean up Suite 11 artifacts
+target_emp.delete()
+target_user.delete()
+order_in_b.delete()
+inv_in_b.delete()
+order_in_a.delete()
+driver_b.delete()
+area_b.delete()
+branch_b.delete()
+hq_emp.delete()
+hq_user.delete()
+hq_role.delete()
+emp_gated2.delete()
+user_gated2.delete()
+role_gated2.delete()
+branch_gated2.delete()
+tenant_gated2.delete()
+plan_no_kds_pos.delete()
+cashier_emp.delete()
+cashier_user.delete()
+cashier_role.delete()
+menu_item_test.delete()
+if created_emp:
+    if created_emp.user:
+        created_emp.user.delete()
+    created_emp.delete()
+high_role.delete()
+hr_creator_emp.delete()
+hr_creator_user.delete()
+hr_creator_role.delete()
+
 print("\n======================================================================")
 print(f"  VERIFICATION FINISHED: {passed_tests} PASSED, {failed_tests} FAILED")
 print("======================================================================")
 
 if failed_tests > 0:
     sys.exit(1)
+
 

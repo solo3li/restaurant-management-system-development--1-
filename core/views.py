@@ -283,7 +283,7 @@ def login_view(request):
                         tenant_slug = matched_emp.tenant.slug if matched_emp.tenant else "sys"
                         username = f"emp_{tenant_slug}_{matched_emp.employee_code}"
                         user_to_login, _ = User.objects.get_or_create(username=username, defaults={"first_name": matched_emp.name})
-                        user_to_login.set_password("admin123")
+                        user_to_login.set_unusable_password()
                         user_to_login.save()
                         matched_emp.user = user_to_login
                         matched_emp.save(update_fields=["user"])
@@ -636,14 +636,17 @@ def api_create_tenant(request):
     # Provision Initial Owner
     owner_username = str(data.get("owner_username", "")).strip()
     owner_password = str(data.get("owner_password", "")).strip()
-    if owner_username and owner_password:
-        owner_user, _ = User.objects.get_or_create(username=owner_username, defaults={"first_name": name})
-        owner_user.set_password(owner_password)
-        owner_user.save()
-        UserProfile.objects.update_or_create(
-            user=owner_user,
-            defaults={"tenant": tenant, "role": "owner", "branch": None}
-        )
+    if owner_username:
+        if User.objects.filter(username=owner_username).exists():
+            return JsonResponse({"error": f"اسم المستخدم «{owner_username}» محجوز مسبقاً في النظام"}, status=400)
+        if owner_password:
+            owner_user = User.objects.create_user(username=owner_username, password=owner_password, first_name=name)
+            UserProfile.objects.create(
+                user=owner_user,
+                tenant=tenant,
+                role="owner",
+                branch=None
+            )
 
     return JsonResponse({"ok": True, "tenantId": tenant.id})
 
@@ -962,6 +965,10 @@ async def kitchen_stream_view(request):
     if not tenant:
         return HttpResponseForbidden("المنشأة غير موجودة")
 
+    has_kds_feat = await sync_to_async(tenant.has_feature)("kds")
+    if not has_kds_feat:
+        return HttpResponseForbidden("ميزة شاشة المطبخ (KDS) غير مفعلة في باقة اشتراك هذا المطعم")
+
     has_perm = await sync_to_async(user_has_perm)(request.user, "kds_access")
     if not has_perm:
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى شاشة المطبخ (KDS)")
@@ -1018,10 +1025,12 @@ def kitchen_live_view(request):
     Returns JSON snapshot of all active kitchen orders (new & preparing)
     along with calculated category stations and counts.
     """
+    tenant = get_active_tenant(request)
+    if tenant and not tenant.has_feature("kds"):
+        return JsonResponse({"error": "ميزة شاشة المطبخ (KDS) غير مفعلة في باقة اشتراك هذا المطعم"}, status=403)
+
     if not user_has_perm(request.user, "kds_access"):
         return JsonResponse({"error": "غير مصرح لك بالوصول"}, status=403)
-
-    tenant = get_active_tenant(request)
     branch = get_active_branch(request)
     profile = getattr(request.user, "profile", None)
     emp = getattr(request.user, "employee_profile", None)
@@ -1226,8 +1235,17 @@ def order_detail_view(request, order_id):
         id=order_id
     )
 
-    # If branch-locked and not owner, verify branch
-    if not is_owner and profile and profile.branch and order.branch != profile.branch:
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (getattr(request.user, "employee_profile", None) and getattr(request.user, "employee_profile", None).job_role and getattr(request.user, "employee_profile", None).job_role.scope in ["hq", "both"])
+    )
+
+    # If branch-locked and cannot cross, verify branch
+    if not can_cross and profile and profile.branch and order.branch and order.branch != profile.branch:
         return HttpResponseForbidden("غير مصرح لك بمشاهدة طلبات هذا الفرع")
 
     can_reprint = is_owner or user_has_perm(request.user, "pos_reprint_receipt") or user_has_perm(request.user, "pos_access")
@@ -1258,7 +1276,17 @@ def order_edit_view(request, order_id):
     if not is_owner and not user_has_perm(request.user, "edit_orders"):
         return HttpResponseForbidden("غير مصرح لك بتعديل الطلبات")
 
-    if not is_owner and profile and profile.branch and order.branch != profile.branch:
+    emp = getattr(request.user, "employee_profile", None)
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+
+    if not can_cross and profile and profile.branch and order.branch and order.branch != profile.branch:
         return HttpResponseForbidden("غير مصرح لك بتعديل طلبات هذا الفرع")
 
     branches = Branch.objects.filter(tenant=tenant) if tenant else Branch.objects.none()
@@ -1266,12 +1294,6 @@ def order_edit_view(request, order_id):
     menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name") if tenant else MenuItem.objects.none()
 
     if request.method == "POST":
-        can_cross = (
-            is_owner
-            or user_has_perm(request.user, "branch_switch_branches")
-            or user_has_perm(request.user, "manage_branches")
-            or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
-        )
         if not can_cross and profile and profile.branch:
             order.branch = profile.branch
         else:
@@ -1298,7 +1320,10 @@ def order_edit_view(request, order_id):
 
         driver_id = request.POST.get("driver_id")
         if driver_id and driver_id != "none":
-            order.driver = Employee.objects.filter(tenant=tenant, id=driver_id, role="driver").first()
+            driver_obj = Employee.objects.filter(tenant=tenant, id=driver_id, role="driver").first()
+            if driver_obj and not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
+                return HttpResponseForbidden("لا يمكن إسناد سائق يتبع فرعاً آخر لهذا الطلب")
+            order.driver = driver_obj
         else:
             order.driver = None
 
@@ -1417,7 +1442,15 @@ def api_delete_order(request, order_id):
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
     emp = getattr(request.user, "employee_profile", None)
     user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
-    if not is_owner and user_branch and order.branch and order.branch != user_branch:
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بحذف فواتير الفروع الأخرى"}, status=403)
 
     order_number = order.order_number
@@ -1488,6 +1521,10 @@ def branch_menu_view(request):
 @login_required
 @ensure_csrf_cookie
 def pos_view(request):
+    tenant = get_active_tenant(request)
+    if tenant and not tenant.has_feature("pos"):
+        return HttpResponseForbidden("ميزة نقطة البيع (POS) غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+
     if not user_has_perm(request.user, "pos_access"):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى نقطة البيع (POS)")
 
@@ -1806,9 +1843,23 @@ def api_create_order(request):
     order_type = data.get("type", "dine_in")
     channel = data.get("channel", "cashier")
 
+    emp = getattr(request.user, "employee_profile", None)
+    can_cross = (
+        is_owner_or_super
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+
     active_branch = get_active_branch(request)
     branch_id = active_branch.id if active_branch else data.get("branchId")
     branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
+
+    if not can_cross and user_branch:
+        branch = user_branch
 
     # Resolve items scoped to tenant
     menu_ids = [int(i.get("menuItemId")) for i in items_data if i.get("menuItemId")]
@@ -1844,7 +1895,10 @@ def api_create_order(request):
     if delivery_area_id:
         delivery_area = DeliveryArea.objects.filter(branch__tenant=tenant, id=delivery_area_id).first()
         if delivery_area:
-            branch = delivery_area.branch
+            if not can_cross and user_branch and delivery_area.branch and delivery_area.branch != user_branch:
+                return JsonResponse({"error": "غير مصرح لك باختيار منطقة توصيل تتبع فرعاً آخر"}, status=403)
+            if can_cross:
+                branch = delivery_area.branch
 
     if order_type == "delivery":
         if delivery_area:
@@ -1978,7 +2032,17 @@ def api_update_order(request, order_id):
             return JsonResponse({"error": "غير مصرح لك بإسناد السائقين للطلبات"}, status=403)
         drv_id = data["driverId"]
         if drv_id:
-            order.driver = Employee.objects.filter(tenant=tenant, id=drv_id, role="driver").first()
+            driver_obj = Employee.objects.filter(tenant=tenant, id=drv_id, role="driver").first()
+            if driver_obj and not is_owner_or_super:
+                can_cross = (
+                    user_has_perm(request.user, "branch_switch_branches")
+                    or user_has_perm(request.user, "manage_branches")
+                    or user_has_perm(request.user, "view_hq_dashboard")
+                    or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+                )
+                if not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
+                    return JsonResponse({"error": "لا يمكن إسناد سائق يتبع فرعاً آخر لهذا الطلب"}, status=403)
+            order.driver = driver_obj
         else:
             order.driver = None
 
@@ -2071,8 +2135,8 @@ def api_toggle_menu_item(request, item_id):
     profile = getattr(request.user, "profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner_or_super and not (user_has_perm(request.user, "menu_toggle_availability") or user_has_perm(request.user, "manage_menu")):
-        return JsonResponse({"error": "غير مصرح لك بتعديل توفر الأصناف"}, status=403)
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_menu"):
+        return JsonResponse({"error": "تعطيل أو تفعيل الصنف عن كامل المطعم مقتصر على إدارة المنيو العامة أو المالك"}, status=403)
 
     item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
     item.available = not item.available
@@ -2192,7 +2256,15 @@ def api_adjust_inventory(request, item_id):
 
     item = get_object_or_404(InventoryItem, tenant=tenant, id=item_id)
     user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
-    if not is_owner_or_super and user_branch and item.branch and item.branch != user_branch:
+    can_cross = (
+        is_owner_or_super
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_cross and user_branch and item.branch and item.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بتسوية مخزون الفروع الأخرى"}, status=403)
 
     try:
@@ -2242,7 +2314,15 @@ def api_create_inventory(request):
 
     branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
     user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
-    if not is_owner_or_super and user_branch and branch != user_branch:
+    can_cross = (
+        is_owner_or_super
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_cross and user_branch and branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بإضافة مخزون في الفروع الأخرى"}, status=403)
 
     item = InventoryItem.objects.create(
@@ -2274,7 +2354,15 @@ def api_delete_inventory(request, item_id):
 
     item = get_object_or_404(InventoryItem, tenant=tenant, id=item_id)
     user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
-    if not is_owner_or_super and user_branch and item.branch and item.branch != user_branch:
+    can_cross = (
+        is_owner_or_super
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_cross and user_branch and item.branch and item.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بحذف مخزون الفروع الأخرى"}, status=403)
 
     item.delete()
@@ -2478,7 +2566,7 @@ def api_toggle_branch(request, branch_id):
     return JsonResponse({"ok": True, "status": branch.status})
 
 
-def get_or_create_employee_user(tenant, employee_code, name, exclude_emp_id=None):
+def get_or_create_employee_user(tenant, employee_code, name, exclude_emp_id=None, password=None):
     """
     Safely find or create a dedicated Django User account for an employee without
     ever colliding with another employee's OneToOne User relationship.
@@ -2493,7 +2581,10 @@ def get_or_create_employee_user(tenant, employee_code, name, exclude_emp_id=None
         existing_user = User.objects.filter(username=username).first()
         if not existing_user:
             user_obj = User.objects.create(username=username, first_name=name)
-            user_obj.set_password("admin123")
+            if password:
+                user_obj.set_password(password)
+            else:
+                user_obj.set_unusable_password()
             user_obj.save()
             return user_obj
 
@@ -2507,7 +2598,8 @@ def get_or_create_employee_user(tenant, employee_code, name, exclude_emp_id=None
             username = f"{base_username}_{suffix}"
         else:
             existing_user.first_name = name
-            existing_user.set_password("admin123")
+            if password:
+                existing_user.set_password(password)
             existing_user.save()
             return existing_user
 
@@ -2539,7 +2631,7 @@ def api_create_employee(request):
         return JsonResponse({"error": "غير مصرح لك بإضافة موظفين"}, status=403)
 
     branch_id = data.get("branchId") if "branchId" in data else data.get("branch_id")
-    branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
+    branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else (profile.branch if profile and profile.branch else None)
 
     # Branch managers can only create employees in their branch
     if not is_owner_or_super and profile and profile.branch and branch != profile.branch:
@@ -2566,7 +2658,35 @@ def api_create_employee(request):
     job_role = None
     job_role_id = data.get("jobRoleId") if "jobRoleId" in data else data.get("job_role_id")
     if job_role_id and str(job_role_id).isdigit():
+        if not is_owner_or_super and not (
+            user_has_perm(request.user, "manage_roles") or
+            user_has_perm(request.user, "system_manage_roles") or
+            user_has_perm(request.user, "manage_employees")
+        ):
+            return JsonResponse({"error": "غير مصرح لك بتعيين المسمى الوظيفي والصلاحيات للموظف"}, status=403)
         job_role = JobRole.objects.filter(tenant=tenant, id=int(job_role_id)).first()
+
+    salary_val = Decimal("4000")
+    if "salary" in data and str(data["salary"]).strip():
+        try:
+            custom_salary = Decimal(str(data["salary"]))
+            if custom_salary < 0:
+                return JsonResponse({"error": "الراتب لا يمكن أن يكون سالباً"}, status=400)
+            if custom_salary != salary_val and not is_owner_or_super and not (
+                user_has_perm(request.user, "hr_manage_salaries") or
+                user_has_perm(request.user, "manage_employees")
+            ):
+                return JsonResponse({"error": "غير مصرح لك بتحديد راتب مخصص للموظف"}, status=403)
+            salary_val = custom_salary
+        except Exception:
+            return JsonResponse({"error": "قيمة الراتب غير صالحة"}, status=400)
+
+    password = str(data.get("password") or "").strip() or None
+    if password:
+        if not is_owner_or_super and not (user_has_perm(request.user, "hr_manage_credentials") or user_has_perm(request.user, "manage_employees")):
+            return JsonResponse({"error": "غير مصرح لك بتعيين كلمة مرور لحساب الموظف"}, status=403)
+        if len(password) < 6:
+            return JsonResponse({"error": "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل"}, status=400)
 
     raw_role = str(data.get("role") or "").strip()
     if not raw_role and job_role:
@@ -2589,7 +2709,7 @@ def api_create_employee(request):
     legacy_role = raw_role if raw_role in dict(Employee.ROLE_CHOICES) else "cashier"
 
     with transaction.atomic():
-        user_obj = get_or_create_employee_user(tenant, code, name)
+        user_obj = get_or_create_employee_user(tenant, code, name, password=password)
 
         emp = Employee.objects.create(
             tenant=tenant,
@@ -2598,7 +2718,7 @@ def api_create_employee(request):
             role=legacy_role,
             job_role=job_role,
             branch=branch,
-            salary=Decimal(str(data.get("salary") or 4000)),
+            salary=salary_val,
             employee_code=code,
             user=user_obj,
         )
@@ -2699,7 +2819,16 @@ def api_update_employee(request, emp_id):
             emp.user.profile.save()
 
     if "status" in data and data["status"] in dict(Employee.STATUS_CHOICES):
-        emp.status = data["status"]
+        new_status = data["status"]
+        if new_status == "inactive":
+            if emp.user and request.user == emp.user:
+                return JsonResponse({"error": "لا يمكنك تعطيل أو إلغاء تفعيل حسابك الشخصي لمنع قفل النظام"}, status=400)
+            if is_target_owner and not is_owner_or_super:
+                return JsonResponse({"error": "غير مصرح لك بتعطيل حساب مالك المنشأة"}, status=403)
+        emp.status = new_status
+        if emp.user:
+            emp.user.is_active = (new_status == "active")
+            emp.user.save(update_fields=["is_active"])
 
     if "salary" in data:
         if not is_owner_or_super and not (
