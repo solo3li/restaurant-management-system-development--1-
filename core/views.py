@@ -1163,7 +1163,11 @@ def order_edit_view(request, order_id):
 
         order.order_type = request.POST.get("order_type", order.order_type)
         order.channel = request.POST.get("channel", order.channel)
-        order.status = request.POST.get("status", order.status)
+        new_status = request.POST.get("status", order.status)
+        if new_status == "cancelled" and order.status != "cancelled":
+            if not is_owner and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
+                return HttpResponseForbidden("غير مصرح لك بإلغاء الفواتير أو الطلبات")
+        order.status = new_status
         order.customer_name = request.POST.get("customer_name", order.customer_name).strip()
         order.customer_phone = request.POST.get("customer_phone", order.customer_phone).strip()
         order.address = request.POST.get("address", order.address).strip()
@@ -1820,6 +1824,13 @@ def api_update_order(request, order_id):
         elif new_status in ["preparing", "ready", "completed"]:
             if not is_owner_or_super and not (user_has_perm(request.user, "kds_update_status") or user_has_perm(request.user, "kds_access") or user_has_perm(request.user, "edit_orders")):
                 return JsonResponse({"error": "غير مصرح لك بتحديث حالة تحضير الطلب في المطبخ"}, status=403)
+        elif new_status in ["out_for_delivery", "delivered"]:
+            if not is_owner_or_super and not (
+                user_has_perm(request.user, "delivery_access") or
+                user_has_perm(request.user, "delivery_override_status") or
+                user_has_perm(request.user, "edit_orders")
+            ):
+                return JsonResponse({"error": "غير مصرح لك بتحديث مسار وحالة توصيل الطلب"}, status=403)
         order.status = new_status
 
     if "driverId" in data:
@@ -2463,6 +2474,12 @@ def api_update_employee(request, emp_id):
         emp.phone = str(data["phone"]).strip()
 
     if "jobRoleId" in data or "job_role_id" in data:
+        if not is_owner_or_super and not (
+            user_has_perm(request.user, "manage_roles") or
+            user_has_perm(request.user, "system_manage_roles") or
+            user_has_perm(request.user, "manage_employees")
+        ):
+            return JsonResponse({"error": "غير مصرح لك بتعديل المسمى الوظيفي والصلاحيات للموظف"}, status=403)
         jr_id = data.get("jobRoleId") or data.get("job_role_id")
         if jr_id and str(jr_id).isdigit():
             emp.job_role = JobRole.objects.filter(tenant=tenant, id=int(jr_id)).first()
@@ -2488,6 +2505,11 @@ def api_update_employee(request, emp_id):
         emp.status = data["status"]
 
     if "salary" in data:
+        if not is_owner_or_super and not (
+            user_has_perm(request.user, "hr_manage_salaries") or
+            user_has_perm(request.user, "manage_employees")
+        ):
+            return JsonResponse({"error": "غير مصرح لك بتعديل الراتب الأساسي للموظف"}, status=403)
         salary_str = str(data["salary"]).strip()
         if not salary_str:
             return JsonResponse({"error": "يرجى إدخال الراتب الأساسي للموظف"}, status=400)
@@ -2518,16 +2540,26 @@ def api_update_employee(request, emp_id):
             return JsonResponse({"error": f"كود الموظف ({new_code}) مستخدم مسبقاً لموظف آخر"}, status=400)
         emp.employee_code = new_code
 
-    # PIN change / reset - allowed for Owner, Superadmin, and Branch Manager
+    # PIN change / reset - requires hr_manage_credentials
     new_pin = str(data.get("pin") or data.get("pin_code") or "").strip()
     if new_pin:
+        if not is_owner_or_super and not (
+            user_has_perm(request.user, "hr_manage_credentials") or
+            user_has_perm(request.user, "manage_employees")
+        ):
+            return JsonResponse({"error": "غير مصرح لك بتعيين أو تغيير رمز PIN للموظف"}, status=403)
         if len(new_pin) < 4:
             return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
         emp.set_pin(new_pin)
 
-    # Password update (for dashboard login)
+    # Password update (for dashboard login) - requires hr_manage_credentials
     new_password = str(data.get("password") or data.get("new_password") or "").strip()
     if new_password:
+        if not is_owner_or_super and not (
+            user_has_perm(request.user, "hr_manage_credentials") or
+            user_has_perm(request.user, "manage_employees")
+        ):
+            return JsonResponse({"error": "غير مصرح لك بتعيين أو تغيير كلمة مرور حساب الموظف"}, status=403)
         if len(new_password) < 6:
             return JsonResponse({"error": "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل"}, status=400)
         if emp.user:
@@ -2751,12 +2783,17 @@ def api_export_employees_csv(request):
         "تاريخ التعيين"
     ])
 
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    can_view_salary = is_owner_or_super or user_has_perm(request.user, "hr_manage_salaries") or user_has_perm(request.user, "manage_employees")
+
     for emp in employees:
         role_label = emp.job_role.name if emp.job_role else emp.get_role_display()
         scope_label = emp.job_role.get_scope_display() if emp.job_role else "تشغيل فرع"
         branch_name = emp.branch.name if emp.branch else "الإدارة العامة"
         username = emp.user.username if emp.user else "غير مربوط"
         hire_date_str = emp.hire_date.strftime("%Y-%m-%d") if emp.hire_date else ""
+        salary_str = str(emp.salary) if can_view_salary else "••••"
 
         writer.writerow([
             emp.employee_code or str(emp.id),
@@ -2765,7 +2802,7 @@ def api_export_employees_csv(request):
             role_label,
             scope_label,
             branch_name,
-            str(emp.salary),
+            salary_str,
             emp.get_status_display(),
             username,
             hire_date_str
@@ -2785,6 +2822,14 @@ def api_job_roles(request):
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
     if request.method == "GET":
+        if not is_owner_or_super and not (
+            user_has_perm(request.user, "hr_view_employees") or
+            user_has_perm(request.user, "manage_employees") or
+            user_has_perm(request.user, "manage_roles") or
+            user_has_perm(request.user, "system_manage_roles")
+        ):
+            return JsonResponse({"error": "غير مصرح لك باستعراض المسميات الوظيفية وهيكل الصلاحيات"}, status=403)
+
         roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("ordering", "id")
         data = []
         for r in roles:

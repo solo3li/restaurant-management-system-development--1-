@@ -57,6 +57,29 @@ def branch_context(request):
         else:
             user_perms = native_perms
 
+        # Expand synonyms for seamless template access across granular and legacy keys
+        expanded = set(user_perms)
+        synonyms = [
+            ("manage_branches", "branch_manage_branches"),
+            ("manage_roles", "system_manage_roles"),
+            ("view_hq_dashboard", "hq_view_master_dashboard"),
+            ("view_branch_dashboard", "branch_view_dashboard"),
+            ("cancel_orders", "pos_cancel_order"),
+        ]
+        for a, b in synonyms:
+            if a in user_perms:
+                expanded.add(b)
+            if b in user_perms:
+                expanded.add(a)
+        # Implied read access
+        if "manage_menu" in user_perms:
+            expanded.add("menu_view")
+        if "manage_inventory" in user_perms:
+            expanded.add("inventory_view")
+        if "manage_employees" in user_perms:
+            expanded.add("hr_view_employees")
+        user_perms = expanded
+
     # Filter by subscription plan features
     if tenant and tenant.subscription_plan and not is_platform_admin:
         plan_features = normalize_plan_features(tenant.subscription_plan.features)
@@ -85,7 +108,7 @@ def branch_context(request):
 
     if can_operate_cross_branches:
         can_switch = True
-        active_id = request.session.get("active_branch_id")
+        active_id = request.session.get("active_branch_id") if hasattr(request, "session") else None
         if active_id and tenant:
             current_branch = Branch.objects.filter(id=active_id, tenant=tenant).first()
         elif active_id:

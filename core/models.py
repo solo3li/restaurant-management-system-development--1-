@@ -623,6 +623,13 @@ class JobRole(models.Model):
 
         return self.group
 
+    def delete(self, *args, **kwargs):
+        grp = self.group
+        res = super().delete(*args, **kwargs)
+        if grp:
+            grp.delete()
+        return res
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.tenant_id:

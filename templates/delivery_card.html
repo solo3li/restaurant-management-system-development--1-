@@ -61,6 +61,7 @@
         </button>
         {% endif %}
 
+        {% if is_owner or 'pos_cancel_order' in user_perms or 'cancel_orders' in user_perms %}
         {% if order.status == 'new' or order.status == 'preparing' %}
         <button 
             type="button" 
@@ -70,6 +71,7 @@
         >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
+        {% endif %}
         {% endif %}
     </div>
 </div>

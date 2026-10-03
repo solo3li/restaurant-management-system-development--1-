@@ -351,6 +351,77 @@ test_emp.save()
 test_user.refresh_from_db()
 assert_test(test_user.is_active is True, "Reactivating employee automatically sets User.is_active = True")
 
+# -----------------------------------------------------------------------------
+# TEST SUITE 6: Deep Security & Granular API Hardening
+# -----------------------------------------------------------------------------
+print("\n--- SUITE 6: Deep Security & Granular API Hardening ---")
+
+# 1. Salary masking in CSV export for HR viewer lacking hr_manage_salaries
+test_role.set_permissions(["hr_view_employees"])
+csv_res = client.get("/api/employees/export-csv/")
+assert_test(csv_res.status_code == 200, "HR viewer can export CSV (HTTP 200)")
+csv_content = csv_res.content.decode("utf-8-sig")
+assert_test("••••" in csv_content, "Employee salary is masked with '••••' in CSV for user lacking hr_manage_salaries")
+
+# Owner gets unmasked salary in CSV
+owner_csv_res = owner_client.get("/api/employees/export-csv/")
+assert_test(owner_csv_res.status_code == 200, "Owner can export CSV (HTTP 200)")
+owner_csv_content = owner_csv_res.content.decode("utf-8-sig")
+assert_test(str(test_emp.salary) in owner_csv_content, "Owner receives unmasked salary in CSV")
+
+# 2. Prevent order cancellation via order_edit_view without cancel_orders
+test_order = Order.objects.create(
+    tenant=tenant,
+    order_number="SEC-TEST-999",
+    status="new",
+    total=Decimal("100.00")
+)
+test_role.set_permissions(["edit_orders"])  # has edit_orders, lacks cancel_orders
+res_cancel_bypass = client.post(f"/orders/{test_order.id}/edit/", data={"status": "cancelled"})
+assert_test(res_cancel_bypass.status_code == 403, "User with edit_orders but lacking cancel_orders blocked from cancelling via order_edit_view (HTTP 403)")
+
+# 3. Granular employee update checks: salary, jobRoleId, PIN
+res_update_salary = client.post(f"/api/employees/{test_emp.id}/", data=json.dumps({"salary": "99999"}), content_type="application/json")
+assert_test(res_update_salary.status_code == 403, "User lacking hr_manage_salaries blocked from modifying salary (HTTP 403)")
+
+res_update_role = client.post(f"/api/employees/{test_emp.id}/", data=json.dumps({"jobRoleId": 1}), content_type="application/json")
+assert_test(res_update_role.status_code == 403, "User lacking manage_roles blocked from modifying job_role (HTTP 403)")
+
+res_update_pin = client.post(f"/api/employees/{test_emp.id}/", data=json.dumps({"pin": "9999"}), content_type="application/json")
+assert_test(res_update_pin.status_code == 403, "User lacking hr_manage_credentials blocked from modifying PIN (HTTP 403)")
+
+# 4. Status update to out_for_delivery / delivered requires delivery permissions
+test_role.set_permissions(["kds_access", "kds_update_status"])  # chef
+res_chef_delivery = client.post(f"/api/orders/{test_order.id}/", data=json.dumps({"status": "delivered"}), content_type="application/json")
+assert_test(res_chef_delivery.status_code == 403, "Chef lacking delivery permissions blocked from marking order as delivered (HTTP 403)")
+
+test_order.delete()
+
+# 5. GET /api/job-roles/ is restricted to HR / Role managers
+res_roles_chef = client.get("/api/job-roles/")
+assert_test(res_roles_chef.status_code == 403, "Chef lacking HR/Role management blocked from GET /api/job-roles/ (HTTP 403)")
+
+# 6. Orphaned Group cleanup on JobRole.delete()
+from django.contrib.auth.models import Group
+orphan_role = JobRole.objects.create(tenant=tenant, name="Temp Orphan Test Role")
+orphan_grp = orphan_role.group
+orphan_grp_id = orphan_grp.id
+assert_test(Group.objects.filter(id=orphan_grp_id).exists(), "Temporary group created for test role")
+orphan_role.delete()
+assert_test(not Group.objects.filter(id=orphan_grp_id).exists(), "Deleting JobRole cleanly deletes linked Django Group (No orphaned groups)")
+
+# 7. Context processor synonym expansion
+from core.context_processors import branch_context
+from django.test import RequestFactory
+factory = RequestFactory()
+rf_req = factory.get("/branch/menu/")
+rf_req.user = test_user
+rf_req.tenant = tenant
+rf_req.session = {}
+test_role.set_permissions(["branch_manage_branches"])
+ctx = branch_context(rf_req)
+assert_test("manage_branches" in ctx["user_perms"], "context_processors branch_context expands 'branch_manage_branches' -> 'manage_branches'")
+
 # Clean up test artifacts
 test_emp.delete()
 test_user.delete()
