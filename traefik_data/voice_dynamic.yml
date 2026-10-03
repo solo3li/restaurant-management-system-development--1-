@@ -1,0 +1,72 @@
+http:
+  routers:
+    voice-django-router:
+      rule: "Host(`app.169.58.32.179.nip.io`) || Host(`169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+        - "websecure"
+      service: "voice-django-service"
+      tls:
+        certResolver: "myresolver"
+
+    voice-livekit-router:
+      rule: "Host(`livekit.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+        - "websecure"
+      service: "voice-livekit-service"
+      tls:
+        certResolver: "myresolver"
+
+    voice-centrifugo-router:
+      rule: "Host(`centrifugo.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+        - "websecure"
+      service: "voice-centrifugo-service"
+      tls:
+        certResolver: "myresolver"
+
+    voice-inngest-router:
+      rule: "Host(`inngest.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+        - "websecure"
+      service: "voice-inngest-service"
+      tls:
+        certResolver: "myresolver"
+
+    voice-minio-router:
+      rule: "Host(`minio.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+        - "websecure"
+      service: "voice-minio-service"
+      tls:
+        certResolver: "myresolver"
+
+  services:
+    voice-django-service:
+      loadBalancer:
+        servers:
+          - url: "http://voice_django:8000"
+
+    voice-livekit-service:
+      loadBalancer:
+        servers:
+          - url: "http://voice_livekit:7880"
+
+    voice-centrifugo-service:
+      loadBalancer:
+        servers:
+          - url: "http://voice_centrifugo:8000"
+
+    voice-inngest-service:
+      loadBalancer:
+        servers:
+          - url: "http://voice_inngest:8288"
+
+    voice-minio-service:
+      loadBalancer:
+        servers:
+          - url: "http://voice_minio:9000"

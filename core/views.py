@@ -2942,9 +2942,10 @@ def ai_callcenter_management_view(request):
         api_key_obj = TenantApiKey.objects.create(tenant=tenant, name="مفتاح FastMCP الموحد للمساعد الصوتي")
     access_key = api_key_obj.key if api_key_obj else ""
 
-    host_name = "169.58.32.179"
-    mcp_sse_url = f"http://{host_name}:8000/sse?access_key={access_key}"
-    mcp_streamable_url = f"http://{host_name}:8000/mcp?access_key={access_key}"
+    base_host = request.get_host().split(":")[0]
+    effective_domain = "uggu.space" if base_host in ("169.58.32.179", "127.0.0.1", "localhost") else base_host
+    mcp_sse_url = f"https://{effective_domain}/sse?access_key={access_key}"
+    mcp_streamable_url = f"https://{effective_domain}/mcp?access_key={access_key}"
 
     # 3. Live Structured Context (Redis Cache)
     live_context_resp = ps.get_client_live_context(client_id)

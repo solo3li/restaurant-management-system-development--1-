@@ -14,6 +14,8 @@ services:
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
       - "--log.level=INFO"
     ports:
       - "80:80"
@@ -23,8 +25,10 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./traefik_data/acme.json:/letsencrypt/acme.json"
+      - "./traefik_data/voice_dynamic.yml:/etc/traefik/dynamic/voice_dynamic.yml:ro"
     networks:
       - motaem_network
+      - test-calll-ai_voice_net
 
   db:
     image: postgres:16-alpine
@@ -100,3 +104,5 @@ volumes:
 networks:
   motaem_network:
     driver: bridge
+  test-calll-ai_voice_net:
+    external: true
