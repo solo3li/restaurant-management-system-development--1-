@@ -91,16 +91,52 @@ def user_has_perm(user, perm_key):
     return False
 
 
+def get_post_login_redirect(user):
+    """Determine the optimal starting view dynamically based on user roles and permissions."""
+    if not user or not user.is_authenticated:
+        return "login"
+
+    profile = getattr(user, "profile", None)
+    if user.is_superuser or (profile and profile.is_platform_admin):
+        return "platform_dashboard"
+
+    is_owner = (profile and profile.role == "owner")
+    if is_owner or user_has_perm(user, "view_hq_dashboard"):
+        return "dashboard"
+
+    if user_has_perm(user, "view_branch_dashboard"):
+        return "branch_dashboard"
+
+    # Route by operational permission priority
+    if user_has_perm(user, "pos_access"):
+        return "pos"
+    if user_has_perm(user, "kds_access"):
+        return "kitchen"
+    if user_has_perm(user, "call_center_access"):
+        return "call_center"
+    if user_has_perm(user, "delivery_access"):
+        return "delivery"
+    if user_has_perm(user, "view_orders"):
+        return "branch_orders"
+    if user_has_perm(user, "manage_menu"):
+        return "branch_menu"
+    if user_has_perm(user, "manage_inventory"):
+        return "inventory"
+    if user_has_perm(user, "manage_employees"):
+        return "employees"
+    if user_has_perm(user, "manage_branches"):
+        return "branches"
+
+    return "branch_dashboard"
+
+
 # ==========================================
 # AUTHENTICATION & LOGIN (DUAL MODE)
 # ==========================================
 
 def login_view(request):
     if request.user.is_authenticated:
-        profile = getattr(request.user, "profile", None)
-        if profile and profile.is_platform_admin and not request.session.get("active_tenant_id"):
-            return redirect("platform_dashboard")
-        return redirect("dashboard")
+        return redirect(get_post_login_redirect(request.user))
 
     error_message = None
     if request.method == "POST":
@@ -127,7 +163,7 @@ def login_view(request):
                         break
 
                 if matched_emp:
-                    # Auto-assign default branch if none is set
+                    # Auto-assign default branch if none is set and role is branch-scoped
                     effective_branch = matched_emp.branch
                     if not effective_branch and matched_emp.tenant:
                         effective_branch = matched_emp.tenant.branches.filter(status="active").first() or matched_emp.tenant.branches.first()
@@ -146,12 +182,13 @@ def login_view(request):
                         matched_emp.save(update_fields=["user"])
 
                     # Ensure UserProfile matches employee
+                    user_profile_role = "branch_manager" if matched_emp.role == "manager" else matched_emp.role
                     UserProfile.objects.update_or_create(
                         user=user_to_login,
                         defaults={
                             "tenant": matched_emp.tenant,
                             "branch": effective_branch,
-                            "role": matched_emp.role,
+                            "role": user_profile_role,
                             "job_role": matched_emp.job_role,
                         }
                     )
@@ -163,17 +200,7 @@ def login_view(request):
                         request.session["active_branch_id"] = effective_branch.id
                     request.session["active_employee_id"] = matched_emp.id
 
-                    # Route by shift role
-                    if matched_emp.role == "cashier":
-                        return redirect("pos")
-                    elif matched_emp.role == "chef":
-                        return redirect("kitchen")
-                    elif matched_emp.role == "driver":
-                        return redirect("delivery")
-                    elif matched_emp.role == "manager":
-                        return redirect("branch_dashboard")
-                    else:
-                        return redirect("branch_dashboard")
+                    return redirect(get_post_login_redirect(user_to_login))
                 else:
                     error_message = "كود الموظف أو رمز PIN غير صحيح"
 
@@ -211,15 +238,7 @@ def login_view(request):
                     if profile.branch:
                         request.session["active_branch_id"] = profile.branch.id
 
-                    if profile.role == "cashier":
-                        return redirect("pos")
-                    elif profile.role == "chef":
-                        return redirect("kitchen")
-                    elif profile.role == "driver":
-                        return redirect("delivery")
-                    return redirect("branch_dashboard")
-
-                return redirect("dashboard")
+                return redirect(get_post_login_redirect(user))
             else:
                 error_message = "اسم المستخدم أو كلمة المرور غير صحيحة"
 
@@ -500,6 +519,9 @@ def dashboard_view(request):
     if not is_owner and not user_has_perm(request.user, "view_hq_dashboard"):
         if user_has_perm(request.user, "view_branch_dashboard"):
             return redirect("branch_dashboard")
+        target_view = get_post_login_redirect(request.user)
+        if target_view and target_view != "dashboard":
+            return redirect(target_view)
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى لوحة الإدارة العامة")
 
     # If branch-locked or active branch selected, redirect to branch dashboard
@@ -2012,10 +2034,25 @@ def api_create_employee(request):
     if job_role_id and str(job_role_id).isdigit():
         job_role = JobRole.objects.filter(tenant=tenant, id=int(job_role_id)).first()
 
-    raw_role = data.get("role", "cashier")
-    legacy_role = raw_role
-    if job_role and raw_role not in dict(Employee.ROLE_CHOICES):
-        legacy_role = "cashier"
+    raw_role = str(data.get("role") or "").strip()
+    if not raw_role and job_role:
+        perms = set(job_role.permissions or [])
+        if "pos_access" in perms:
+            raw_role = "cashier"
+        elif "kds_access" in perms:
+            raw_role = "chef"
+        elif "delivery_access" in perms:
+            raw_role = "driver"
+        elif "call_center_access" in perms:
+            raw_role = "call_center"
+        elif "manage_employees" in perms or "manage_branches" in perms:
+            raw_role = "manager"
+        else:
+            raw_role = "cashier"
+    elif not raw_role:
+        raw_role = "cashier"
+
+    legacy_role = raw_role if raw_role in dict(Employee.ROLE_CHOICES) else "cashier"
 
     emp = Employee.objects.create(
         tenant=tenant,
@@ -2038,11 +2075,12 @@ def api_create_employee(request):
     emp.user = user_obj
     emp.save()
 
+    user_profile_role = "branch_manager" if legacy_role == "manager" else legacy_role
     UserProfile.objects.update_or_create(
         user=user_obj,
         defaults={
             "tenant": tenant,
-            "role": emp.role,
+            "role": user_profile_role,
             "job_role": emp.job_role,
             "branch": emp.branch,
         }
@@ -2550,10 +2588,7 @@ def api_update_tenant_subscription(request, tenant_id):
 def landing_view(request):
     """Public Landing Page. If authenticated, redirect to appropriate workspace."""
     if request.user.is_authenticated:
-        profile = getattr(request.user, "profile", None)
-        if (request.user.is_superuser or (profile and profile.is_platform_admin)) and not request.session.get("active_tenant_id"):
-            return redirect("platform_dashboard")
-        return redirect("dashboard")
+        return redirect(get_post_login_redirect(request.user))
 
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("ordering", "price_monthly")
     total_tenants = Tenant.objects.filter(is_active=True).count()

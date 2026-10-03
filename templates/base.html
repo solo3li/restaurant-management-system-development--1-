@@ -527,7 +527,7 @@
                         {% if is_hq_mode %}{{ t.all_branches_label }}{% else %}{{ t.branch_prefix }} {{ current_branch.name }}{% endif %}
                     </span>
                 </div>
-                {% if can_switch_branches and not is_hq_mode %}
+                {% if can_switch_branches and not is_hq_mode and 'manage_branches' in user_perms %}
                 <a href="{% url 'switch_branch' 'all' %}" class="context-pill-text text-[10px] font-extrabold text-[#D2AB6B] hover:underline shrink-0 sidebar-text">
                     HQ
                 </a>
@@ -538,6 +538,7 @@
         <!-- MIDDLE: Scrollable Navigation Menu with Accordions & Medallions -->
         <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-xs">
             <!-- 1. General Dashboard (HQ / Branch) -->
+            {% if is_hq_mode and 'view_hq_dashboard' in user_perms or not is_hq_mode and 'view_branch_dashboard' in user_perms %}
             <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
                 <a href="{% url 'dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'dashboard' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
@@ -560,6 +561,7 @@
                 </a>
                 {% endif %}
             </div>
+            {% endif %}
 
             <!-- 2. Branches & Locations (Nested Accordion) -->
             {% if is_hq_mode and 'manage_branches' in user_perms %}
@@ -732,6 +734,7 @@
             {% endif %}
 
             <!-- 10. Subscription & Billing -->
+            {% if is_owner %}
             <div class="nav-item-wrapper relative">
                 <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'owner_subscription' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
@@ -745,6 +748,7 @@
                     {% endif %}
                 </a>
             </div>
+            {% endif %}
 
             <!-- 11. SaaS Platform SuperAdmin -->
             {% if is_platform_admin %}

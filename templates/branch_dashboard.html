@@ -42,6 +42,7 @@
     <!-- 4 Branch KPI Cards -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 font-body">
         <!-- Branch Sales -->
+        {% if 'view_financials' in user_perms %}
         <div class="classic-card p-5 border-t-4 border-t-[#D2AB6B]">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">مبيعات الفرع اليوم</span>
@@ -52,8 +53,21 @@
             <p class="mt-2 text-2xl font-black font-body text-brand-700">{{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></p>
             <p class="mt-1 text-xs font-bold text-soft">{{ orders_today }} طلباً مسجلاً اليوم</p>
         </div>
+        {% elif 'view_orders' in user_perms %}
+        <div class="classic-card p-5 border-t-4 border-t-[#D2AB6B]">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-soft">طلبات الفرع اليوم</span>
+                <span class="medallion-icon-light flex h-9 w-9 items-center justify-center rounded-xl shadow-xs">
+                    <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </span>
+            </div>
+            <p class="mt-2 text-2xl font-black font-body text-brand-700">{{ orders_today }} <span class="text-xs font-bold text-soft">طلب</span></p>
+            <p class="mt-1 text-xs font-bold text-soft">إجمالي طلبات اليوم المسجلة</p>
+        </div>
+        {% endif %}
 
         <!-- Kitchen Pending Orders -->
+        {% if 'kds_access' in user_perms %}
         <a href="{% url 'kitchen' %}" class="classic-card p-5 border-t-4 border-t-warn-600 hover:border-[#D2AB6B] transition group block">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">طلبات المطبخ قيد التحضير</span>
@@ -64,8 +78,10 @@
             <p class="mt-2 text-2xl font-black font-body text-warn-700">{{ kitchen_pending_count }} <span class="text-xs font-bold text-soft">وجبة للتحضير</span></p>
             <p class="mt-1 text-xs font-bold text-brand-600 group-hover:underline">فتح شاشة المطبخ (KDS) ←</p>
         </a>
+        {% endif %}
 
         <!-- Active Deliveries -->
+        {% if 'delivery_access' in user_perms %}
         <a href="{% url 'delivery' %}" class="classic-card p-5 border-t-4 border-t-brand-600 hover:border-[#D2AB6B] transition group block">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">توصيلات الفرع النشطة</span>
@@ -76,8 +92,10 @@
             <p class="mt-2 text-2xl font-black font-body text-brand-700">{{ active_deliveries_count }} <span class="text-xs font-bold text-soft">طلب</span></p>
             <p class="mt-1 text-xs font-bold text-brand-600 group-hover:underline">متابعة مسارات السائقين ←</p>
         </a>
+        {% endif %}
 
         <!-- Branch Low Stock -->
+        {% if 'manage_inventory' in user_perms %}
         <a href="{% url 'inventory' %}" class="classic-card p-5 border-t-4 {% if low_stock_count > 0 %}border-t-bad-600{% else %}border-t-emerald-600{% endif %} hover:border-[#D2AB6B] transition group block">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-soft">نواقص مخزون الفرع</span>
@@ -88,9 +106,10 @@
             <p class="mt-2 text-2xl font-black font-body {% if low_stock_count > 0 %}text-bad-700{% else %}text-emerald-700{% endif %}">{{ low_stock_count }} <span class="text-xs font-bold text-soft">مادة</span></p>
             <p class="mt-1 text-xs font-bold text-soft">من أصل {{ employees_count }} موظف مسجل بالفرع</p>
         </a>
+        {% endif %}
     </div>
 
-    <!-- Branch Operational Modules Hub (7 Cards) -->
+    <!-- Branch Operational Modules Hub (Cards) -->
     <div class="mt-7 font-body">
         <h2 class="text-base font-bold font-royal text-ink mb-3.5 flex items-center gap-2">
             <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
@@ -99,6 +118,7 @@
             <span>الأنظمة التشغيلية للفرع</span>
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {% if 'pos_access' in user_perms %}
             <!-- 1. POS Cashier -->
             <a href="{% url 'pos' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
                 <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
@@ -109,7 +129,9 @@
                     <p class="text-[11px] text-soft mt-0.5">تسجيل الطلبات، الفواتير الفورية، والتحصيل</p>
                 </div>
             </a>
+            {% endif %}
 
+            {% if 'kds_access' in user_perms %}
             <!-- 2. Kitchen KDS -->
             <a href="{% url 'kitchen' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
                 <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
@@ -120,7 +142,9 @@
                     <p class="text-[11px] text-soft mt-0.5">أوامر التحضير الحية ومؤقتات الوجبات</p>
                 </div>
             </a>
+            {% endif %}
 
+            {% if 'view_orders' in user_perms %}
             <!-- 3. Branch Orders -->
             <a href="{% url 'branch_orders' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
                 <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
@@ -131,7 +155,9 @@
                     <p class="text-[11px] text-soft mt-0.5">أرشيف المعاملات ومتابعة الحالات</p>
                 </div>
             </a>
+            {% endif %}
 
+            {% if 'delivery_access' in user_perms %}
             <!-- 4. Branch Delivery -->
             <a href="{% url 'delivery' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
                 <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
@@ -142,7 +168,9 @@
                     <p class="text-[11px] text-soft mt-0.5">توزيع الطلبات وتعيين السائقين</p>
                 </div>
             </a>
+            {% endif %}
 
+            {% if 'manage_menu' in user_perms %}
             <!-- 5. Branch Menu Availability -->
             <a href="{% url 'branch_menu' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
                 <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
@@ -153,7 +181,9 @@
                     <p class="text-[11px] text-soft mt-0.5">تفعيل أو إيقاف توفر الأطباق بمطبخ الفرع</p>
                 </div>
             </a>
+            {% endif %}
 
+            {% if 'manage_inventory' in user_perms %}
             <!-- 6. Branch Inventory -->
             <a href="{% url 'inventory' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
                 <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
@@ -164,7 +194,9 @@
                     <p class="text-[11px] text-soft mt-0.5">كميات المواد الغذائية، النواقص، والتوريد</p>
                 </div>
             </a>
+            {% endif %}
 
+            {% if 'manage_employees' in user_perms %}
             <!-- 7. Branch Employees -->
             <a href="{% url 'employees' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
                 <span class="medallion-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
@@ -175,13 +207,29 @@
                     <p class="text-[11px] text-soft mt-0.5">طاقم العمل (كاشير، طهاة، سائقون، نُدُل)</p>
                 </div>
             </a>
+            {% endif %}
+
+            {% if 'call_center_access' in user_perms %}
+            <!-- 8. Call Center -->
+            <a href="{% url 'call_center' %}" class="classic-card p-4 hover:border-[#D2AB6B] transition flex items-start gap-3 group">
+                <span class="medallion-icon-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                </span>
+                <div>
+                    <h3 class="text-xs font-bold text-ink group-hover:text-brand-700">الكول سنتر والمكالمات</h3>
+                    <p class="text-[11px] text-soft mt-0.5">استقبال الطلبات الهاتفية والمكالمات الواردة</p>
+                </div>
+            </a>
+            {% endif %}
         </div>
     </div>
 
+    {% if 'kds_access' in user_perms or 'view_orders' in user_perms %}
     <!-- Live Kitchen Queue & Recent Orders for Branch -->
-    <div class="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3 font-body">
+    <div class="mt-6 grid grid-cols-1 gap-5 {% if 'kds_access' in user_perms and 'view_orders' in user_perms %}xl:grid-cols-3{% endif %} font-body">
+        {% if 'kds_access' in user_perms %}
         <!-- Live Kitchen Queue Preview -->
-        <div class="classic-card p-5 xl:col-span-2">
+        <div class="classic-card p-5 {% if 'view_orders' in user_perms %}xl:col-span-2{% endif %}">
             <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
                 <div class="flex items-center gap-2">
                     <span class="medallion-icon-light flex h-7 w-7 items-center justify-center rounded-lg">
@@ -236,7 +284,9 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
 
+        {% if 'view_orders' in user_perms %}
         <!-- Recent Branch Orders -->
         <div class="classic-card p-5">
             <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
@@ -249,7 +299,11 @@
                 <div class="rounded-lg border border-line p-2.5 bg-paper/40 hover:bg-white hover:border-[#D2AB6B] transition text-xs">
                     <div class="flex items-center justify-between">
                         <span class="font-extrabold text-ink">{{ o.order_number }}</span>
+                        {% if 'view_financials' in user_perms %}
                         <span class="font-extrabold text-brand-700">{{ o.total|floatformat:2 }} ر.س</span>
+                        {% else %}
+                        <span class="font-bold text-soft">{{ o.get_status_display }}</span>
+                        {% endif %}
                     </div>
                     <div class="mt-1 flex items-center justify-between text-[11px] text-soft">
                         <span>{{ o.customer_name }}</span>
@@ -261,6 +315,8 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
     </div>
+    {% endif %}
 </div>
 {% endblock %}
