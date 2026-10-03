@@ -14,6 +14,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse
 from django.utils import timezone
 from django.utils.text import slugify
+from django.db import transaction
 from django.db.models import Sum, Count, F, Q
 from asgiref.sync import sync_to_async
 from .kitchen_events import kitchen_broadcaster, serialize_kitchen_order, notify_kitchen_order_event
@@ -1517,11 +1518,11 @@ def employees_view(request):
     }
 
     # Calculate next suggested employee code for tenant
-    last_emp = Employee.objects.filter(tenant=tenant, employee_code__regex=r'^\d+$').order_by("-id").first()
-    if last_emp and last_emp.employee_code and last_emp.employee_code.isdigit():
-        suggested_next_code = str(int(last_emp.employee_code) + 1)
-    else:
-        suggested_next_code = str(101 + Employee.objects.filter(tenant=tenant).count())
+    max_numeric = 100
+    for ec in Employee.objects.filter(tenant=tenant).values_list("employee_code", flat=True):
+        if ec and ec.isdigit():
+            max_numeric = max(max_numeric, int(ec))
+    suggested_next_code = str(max_numeric + 1)
 
     profile = getattr(request.user, "profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
@@ -2003,6 +2004,40 @@ def api_toggle_branch(request, branch_id):
     return JsonResponse({"ok": True, "status": branch.status})
 
 
+def get_or_create_employee_user(tenant, employee_code, name, exclude_emp_id=None):
+    """
+    Safely find or create a dedicated Django User account for an employee without
+    ever colliding with another employee's OneToOne User relationship.
+    """
+    tenant_slug = tenant.slug if tenant else "sys"
+    clean_code = str(employee_code or "emp").strip()
+    base_username = f"emp_{tenant_slug}_{clean_code}"
+    username = base_username
+    suffix = 1
+
+    while True:
+        existing_user = User.objects.filter(username=username).first()
+        if not existing_user:
+            user_obj = User.objects.create(username=username, first_name=name)
+            user_obj.set_password("admin123")
+            user_obj.save()
+            return user_obj
+
+        # Check if user is already attached to another employee
+        emp_qs = Employee.objects.filter(user=existing_user)
+        if exclude_emp_id:
+            emp_qs = emp_qs.exclude(id=exclude_emp_id)
+
+        if emp_qs.exists():
+            suffix += 1
+            username = f"{base_username}_{suffix}"
+        else:
+            existing_user.first_name = name
+            existing_user.set_password("admin123")
+            existing_user.save()
+            return existing_user
+
+
 @login_required
 def api_create_employee(request):
     if request.method != "POST":
@@ -2029,7 +2064,7 @@ def api_create_employee(request):
     if not is_owner_or_super and not (user_has_perm(request.user, "hr_create_employee") or user_has_perm(request.user, "manage_employees")):
         return JsonResponse({"error": "غير مصرح لك بإضافة موظفين"}, status=403)
 
-    branch_id = data.get("branchId")
+    branch_id = data.get("branchId") if "branchId" in data else data.get("branch_id")
     branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
 
     # Branch managers can only create employees in their branch
@@ -2037,18 +2072,17 @@ def api_create_employee(request):
         return JsonResponse({"error": "غير مصرح لك بإضافة موظف في فرع آخر"}, status=403)
 
     # Generate or validate employee code
-    code = str(data.get("employeeCode") or "").strip()
+    code = str(data.get("employeeCode") or data.get("employee_code") or "").strip()
     if not code:
-        last_emp = Employee.objects.filter(tenant=tenant, employee_code__regex=r'^\d+$').order_by("-id").first()
-        if last_emp and last_emp.employee_code and last_emp.employee_code.isdigit():
-            code = str(int(last_emp.employee_code) + 1)
-        else:
-            code = str(101 + Employee.objects.filter(tenant=tenant).count())
-
-    if Employee.objects.filter(tenant=tenant, employee_code=code).exists():
+        max_numeric = 100
+        for ec in Employee.objects.filter(tenant=tenant).values_list("employee_code", flat=True):
+            if ec and ec.isdigit():
+                max_numeric = max(max_numeric, int(ec))
+        code = str(max_numeric + 1)
+    elif Employee.objects.filter(tenant=tenant, employee_code=code).exists():
         return JsonResponse({"error": f"كود الموظف ({code}) مستخدم مسبقاً في هذا المطعم، يرجى اختيار كود آخر"}, status=400)
 
-    pin = str(data.get("pin") or "").strip()
+    pin = str(data.get("pin") or data.get("pin_code") or "").strip()
     if not pin:
         pin = "1234"
     elif len(pin) < 4:
@@ -2056,7 +2090,7 @@ def api_create_employee(request):
 
     # Job Role resolution
     job_role = None
-    job_role_id = data.get("jobRoleId") or data.get("job_role_id")
+    job_role_id = data.get("jobRoleId") if "jobRoleId" in data else data.get("job_role_id")
     if job_role_id and str(job_role_id).isdigit():
         job_role = JobRole.objects.filter(tenant=tenant, id=int(job_role_id)).first()
 
@@ -2080,43 +2114,41 @@ def api_create_employee(request):
 
     legacy_role = raw_role if raw_role in dict(Employee.ROLE_CHOICES) else "cashier"
 
-    emp = Employee.objects.create(
-        tenant=tenant,
-        name=name,
-        phone=data.get("phone", ""),
-        role=legacy_role,
-        job_role=job_role,
-        branch=branch,
-        salary=Decimal(str(data.get("salary") or 4000)),
-        employee_code=code,
-    )
-    emp.set_pin(pin)
+    with transaction.atomic():
+        user_obj = get_or_create_employee_user(tenant, code, name)
 
-    # Auto-link user account
-    tenant_slug = tenant.slug if tenant else "sys"
-    username = f"emp_{tenant_slug}_{code}"
-    user_obj, _ = User.objects.get_or_create(username=username, defaults={"first_name": name})
-    user_obj.set_password("admin123")
-    user_obj.save()
-    emp.user = user_obj
-    emp.save()
+        emp = Employee.objects.create(
+            tenant=tenant,
+            name=name,
+            phone=str(data.get("phone", "")).strip(),
+            role=legacy_role,
+            job_role=job_role,
+            branch=branch,
+            salary=Decimal(str(data.get("salary") or 4000)),
+            employee_code=code,
+            user=user_obj,
+        )
+        emp.set_pin(pin)
+        emp.save()
 
-    user_profile_role = "branch_manager" if legacy_role == "manager" else legacy_role
-    UserProfile.objects.update_or_create(
-        user=user_obj,
-        defaults={
-            "tenant": tenant,
-            "role": user_profile_role,
-            "job_role": emp.job_role,
-            "branch": emp.branch,
-        }
-    )
+        user_profile_role = "branch_manager" if legacy_role == "manager" else legacy_role
+        UserProfile.objects.update_or_create(
+            user=user_obj,
+            defaults={
+                "tenant": tenant,
+                "role": user_profile_role,
+                "job_role": emp.job_role,
+                "branch": emp.branch,
+            }
+        )
 
-    # Sync with Django auth Group
-    if emp.job_role:
-        grp = emp.job_role.sync_with_django_group()
-        if grp:
-            user_obj.groups.set([grp])
+        # Sync with Django auth Group
+        if emp.job_role:
+            grp = emp.job_role.sync_with_django_group()
+            if grp:
+                user_obj.groups.set([grp])
+        else:
+            user_obj.groups.clear()
 
     return JsonResponse({
         "ok": True,
@@ -2212,14 +2244,9 @@ def api_update_employee(request, emp_id):
             return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
         emp.set_pin(new_pin)
 
-    # Ensure linked User exists
+    # Ensure linked User exists safely
     if not emp.user and emp.employee_code:
-        tenant_slug = emp.tenant.slug if emp.tenant else "sys"
-        username = f"emp_{tenant_slug}_{emp.employee_code}"
-        user_obj, _ = User.objects.get_or_create(username=username, defaults={"first_name": emp.name})
-        user_obj.set_password("admin123")
-        user_obj.save()
-        emp.user = user_obj
+        emp.user = get_or_create_employee_user(emp.tenant, emp.employee_code, emp.name, exclude_emp_id=emp.id)
 
     if emp.user and hasattr(emp.user, "profile"):
         emp.user.profile.tenant = emp.tenant
