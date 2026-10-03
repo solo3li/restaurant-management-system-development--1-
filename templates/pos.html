@@ -156,7 +156,14 @@
                     <!-- Cashier and Discount -->
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="cashier-name" placeholder="اسم الكاشير" value="{{ user.username }}" class="input text-xs">
+                        {% if perms.core.pos_apply_discount or "pos_apply_discount" in user_perms %}
                         <input type="number" id="order-discount" placeholder="خصم (ر.س)" min="0" step="1" oninput="updateTotals()" class="input text-xs">
+                        {% else %}
+                        <div class="flex items-center justify-between text-xs text-muted px-2.5 border border-line rounded-lg bg-surface/60" title="غير مصرح لك بتطبيق خصومات على الفاتورة">
+                            <span class="text-2xs font-semibold text-soft flex items-center gap-1">🔒 الخصم مقفل</span>
+                            <input type="hidden" id="order-discount" value="0">
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Invoice Totals Box -->

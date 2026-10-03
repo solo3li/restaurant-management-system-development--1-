@@ -2,6 +2,27 @@ from django.utils import translation
 from .models import Tenant, Branch, UserProfile, RESTAURANT_PERMISSIONS
 
 
+def normalize_plan_features(features):
+    f_set = set(features or [])
+    if f_set & {"inventory", "inventory_mgmt"}:
+        f_set.add("inventory")
+        f_set.add("inventory_mgmt")
+    if f_set & {"delivery", "delivery_management", "delivery_zones"}:
+        f_set.add("delivery")
+        f_set.add("delivery_management")
+        f_set.add("delivery_zones")
+    if f_set & {"pos", "pos_billing"}:
+        f_set.add("pos")
+        f_set.add("pos_billing")
+    if f_set & {"kds", "kds_kitchen"}:
+        f_set.add("kds")
+        f_set.add("kds_kitchen")
+    if f_set & {"menu", "menu_management"}:
+        f_set.add("menu")
+        f_set.add("menu_management")
+    return f_set
+
+
 def branch_context(request):
     if not request.user.is_authenticated:
         return {}
@@ -32,7 +53,7 @@ def branch_context(request):
         # Django built-in permissions from User.groups and User.user_permissions
         native_perms = {p.split(".")[-1] for p in request.user.get_all_permissions()}
         if effective_job_role is not None:
-            user_perms = set(effective_job_role.permissions or []) | native_perms
+            user_perms = set(effective_job_role.get_permissions_list()) | native_perms
         elif native_perms:
             user_perms = native_perms
         elif profile:
@@ -50,14 +71,18 @@ def branch_context(request):
 
     # Filter by subscription plan features
     if tenant and tenant.subscription_plan and not is_platform_admin:
-        plan_features = set(tenant.subscription_plan.features or [])
+        plan_features = normalize_plan_features(tenant.subscription_plan.features)
         if "call_center" not in plan_features:
             user_perms.discard("call_center_access")
+            user_perms.discard("call_center_create_order")
         if "inventory" not in plan_features:
             user_perms.discard("manage_inventory")
+            user_perms.discard("inventory_view")
+            user_perms.discard("inventory_add_stock")
+            user_perms.discard("inventory_adjust_stock")
         if "custom_roles" not in plan_features:
             user_perms.discard("manage_roles")
-        if "delivery_management" not in plan_features:
+        if "delivery_management" not in plan_features and "delivery_zones" not in plan_features:
             user_perms.discard("delivery_access")
 
     # 2. Branch Scoping:
@@ -94,16 +119,20 @@ def branch_context(request):
 
     tenant_subscription = None
     if tenant and tenant.subscription_plan:
-        plan_features = set(tenant.subscription_plan.features or [])
+        plan_features = normalize_plan_features(tenant.subscription_plan.features)
         # If tenant plan does not include certain modules, filter them from user perms unless platform superadmin
         if not is_platform_admin:
             if "call_center" not in plan_features:
                 user_perms.discard("call_center_access")
+                user_perms.discard("call_center_create_order")
             if "inventory" not in plan_features:
                 user_perms.discard("manage_inventory")
+                user_perms.discard("inventory_view")
+                user_perms.discard("inventory_add_stock")
+                user_perms.discard("inventory_adjust_stock")
             if "custom_roles" not in plan_features:
                 user_perms.discard("manage_roles")
-            if "delivery_management" not in plan_features:
+            if "delivery_management" not in plan_features and "delivery_zones" not in plan_features:
                 user_perms.discard("delivery_access")
 
         tenant_subscription = {

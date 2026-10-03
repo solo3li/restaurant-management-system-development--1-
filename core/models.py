@@ -575,7 +575,15 @@ class JobRole(models.Model):
         return f"{self.name} ({self.get_scope_display()})"
 
     def has_perm(self, perm_key):
-        return perm_key in (self.permissions or [])
+        clean_key = perm_key.split(".")[-1]
+        if self.group:
+            return self.group.permissions.filter(codename=clean_key).exists()
+        return clean_key in (self.permissions or [])
+
+    def get_permissions_list(self):
+        if self.group:
+            return list(self.group.permissions.values_list("codename", flat=True))
+        return self.permissions or []
 
     def sync_with_django_group(self):
         """Synchronize this JobRole with a Django auth Group and its Permission objects."""
@@ -597,6 +605,21 @@ class JobRole(models.Model):
             self.group.permissions.set(perm_objs)
         else:
             self.group.permissions.clear()
+
+        # Keep JSONField in sync with real Group permissions
+        db_perms = list(self.group.permissions.values_list("codename", flat=True))
+        if set(self.permissions or []) != set(db_perms):
+            self.permissions = db_perms
+            JobRole.objects.filter(id=self.id).update(permissions=db_perms)
+
+        # Update and invalidate cache for all linked employees
+        for emp in self.employees.select_related("user"):
+            if emp.user:
+                emp.user.groups.set([self.group])
+                for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                    if hasattr(emp.user, cache_field):
+                        delattr(emp.user, cache_field)
+
         return self.group
 
     def save(self, *args, **kwargs):
@@ -718,22 +741,59 @@ class Employee(models.Model):
         return check_password(str(raw_pin).strip(), self.pin_code)
 
     def has_perm(self, perm_key):
-        if self.user and self.user.has_perm(f"core.{perm_key}"):
-            return True
+        clean_key = perm_key.split(".")[-1]
+        if self.user:
+            if self.user.has_perm(f"core.{clean_key}"):
+                return True
+            if self.user.groups.filter(permissions__codename=clean_key).exists():
+                return True
         if self.job_role:
-            return self.job_role.has_perm(perm_key)
+            return self.job_role.has_perm(clean_key)
         # Fallback for legacy role choices
         if self.role == "manager":
-            return perm_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
+            return clean_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
         if self.role == "cashier":
-            return perm_key in ["pos_access", "view_orders"]
+            return clean_key in ["pos_access", "view_orders"]
         if self.role == "chef":
-            return perm_key in ["kds_access"]
+            return clean_key in ["kds_access"]
         if self.role == "driver":
-            return perm_key in ["delivery_access"]
+            return clean_key in ["delivery_access"]
         if self.role == "call_center":
-            return perm_key in ["call_center_access", "view_orders"]
+            return clean_key in ["call_center_access", "view_orders"]
         return False
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.user:
+            # Sync user is_active with employee status
+            expected_active = (self.status == "active")
+            if self.user.is_active != expected_active:
+                self.user.is_active = expected_active
+                self.user.save(update_fields=["is_active"])
+
+            # Keep UserProfile in sync for tenant/branch scoping
+            from django.apps import apps
+            UserProfileModel = apps.get_model("core", "UserProfile")
+            if UserProfileModel:
+                UserProfileModel.objects.update_or_create(
+                    user=self.user,
+                    defaults={
+                        "tenant": self.tenant,
+                        "branch": self.branch,
+                        "role": "staff"
+                    }
+                )
+
+            if self.job_role:
+                grp = self.job_role.sync_with_django_group()
+                if grp:
+                    self.user.groups.set([grp])
+            else:
+                self.user.groups.clear()
+
+            for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                if hasattr(self.user, cache_field):
+                    delattr(self.user, cache_field)
 
     def __str__(self):
         code_str = f" [{self.employee_code}]" if self.employee_code else ""
@@ -981,24 +1041,28 @@ class UserProfile(models.Model):
     def has_perm(self, perm_key):
         if self.is_platform_admin or self.role in ["owner", "platform_admin"]:
             return True
-        if self.user and self.user.has_perm(f"core.{perm_key}"):
-            return True
+        clean_key = perm_key.split(".")[-1]
+        if self.user:
+            if self.user.has_perm(f"core.{clean_key}"):
+                return True
+            if self.user.groups.filter(permissions__codename=clean_key).exists():
+                return True
         if self.job_role:
-            return self.job_role.has_perm(perm_key)
+            return self.job_role.has_perm(clean_key)
         # Check attached employee profile
         if hasattr(self.user, "employee_profile") and self.user.employee_profile:
-            return self.user.employee_profile.has_perm(perm_key)
+            return self.user.employee_profile.has_perm(clean_key)
         # Fallback for legacy role choices
         if self.role == "branch_manager":
-            return perm_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
+            return clean_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
         if self.role == "cashier":
-            return perm_key in ["pos_access", "view_orders"]
+            return clean_key in ["pos_access", "view_orders"]
         if self.role == "chef":
-            return perm_key in ["kds_access"]
+            return clean_key in ["kds_access"]
         if self.role == "driver":
-            return perm_key in ["delivery_access"]
+            return clean_key in ["delivery_access"]
         if self.role == "call_center":
-            return perm_key in ["call_center_access", "view_orders"]
+            return clean_key in ["call_center_access", "view_orders"]
         return False
 
     def __str__(self):

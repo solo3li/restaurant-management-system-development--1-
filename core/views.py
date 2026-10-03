@@ -51,6 +51,10 @@ def get_active_tenant(request):
     if profile and profile.tenant:
         return profile.tenant
 
+    emp = getattr(request.user, "employee_profile", None)
+    if emp and emp.tenant:
+        return emp.tenant
+
     # Platform admin / Superuser session override
     active_t_id = request.session.get("active_tenant_id")
     if active_t_id:
@@ -65,10 +69,14 @@ def get_active_branch(request):
     """Resolve active branch within the current tenant."""
     tenant = get_active_tenant(request)
     profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner and profile and profile.branch:
-        return profile.branch
+    if not is_owner:
+        if profile and profile.branch:
+            return profile.branch
+        if emp and emp.branch:
+            return emp.branch
 
     active_id = request.session.get("active_branch_id")
     if active_id:
@@ -77,19 +85,57 @@ def get_active_branch(request):
             qs = qs.filter(tenant=tenant)
         return qs.first()
 
+    if tenant:
+        return tenant.branches.first()
+
     return None
 
 
-PERMISSION_ALIASES = {
-    "manage_employees": ["manage_employees", "hr_view_employees", "hr_create_employee", "hr_edit_employee"],
-    "manage_roles": ["manage_roles", "system_manage_roles"],
-    "manage_menu": ["manage_menu", "menu_view", "menu_edit_item", "menu_create_item"],
-    "manage_inventory": ["manage_inventory", "inventory_view", "inventory_add_stock"],
-    "manage_branches": ["manage_branches", "branch_manage_branches"],
+PERMISSION_FALLBACKS = {
+    # Fine-grained permission -> [Self, Equivalent or Parent permissions that grant it]
+    "menu_view": ["menu_view", "manage_menu"],
+    "menu_create_item": ["menu_create_item", "manage_menu"],
+    "menu_edit_item": ["menu_edit_item", "manage_menu"],
+    "menu_delete_item": ["menu_delete_item", "manage_menu"],
+    "menu_toggle_availability": ["menu_toggle_availability", "manage_menu"],
+    "menu_change_price": ["menu_change_price", "manage_menu"],
+    "menu_manage_categories": ["menu_manage_categories", "manage_menu"],
+    "menu_manage_modifiers": ["menu_manage_modifiers", "manage_menu"],
+
+    "inventory_view": ["inventory_view", "manage_inventory"],
+    "inventory_add_stock": ["inventory_add_stock", "manage_inventory"],
+    "inventory_adjust_stock": ["inventory_adjust_stock", "manage_inventory"],
+    "inventory_record_waste": ["inventory_record_waste", "manage_inventory"],
+    "inventory_transfer_stock": ["inventory_transfer_stock", "manage_inventory"],
+    "inventory_manage_suppliers": ["inventory_manage_suppliers", "manage_inventory"],
+
+    "hr_view_employees": ["hr_view_employees", "manage_employees"],
+    "hr_create_employee": ["hr_create_employee", "manage_employees"],
+    "hr_edit_employee": ["hr_edit_employee", "manage_employees"],
+    "hr_deactivate_employee": ["hr_deactivate_employee", "manage_employees"],
+    "hr_manage_salaries": ["hr_manage_salaries", "manage_employees"],
+    "hr_manage_credentials": ["hr_manage_credentials", "manage_employees"],
+    "hr_manage_shifts": ["hr_manage_shifts", "manage_employees"],
+
+    "branch_view_dashboard": ["branch_view_dashboard", "view_branch_dashboard"],
     "view_branch_dashboard": ["view_branch_dashboard", "branch_view_dashboard"],
+    "hq_view_master_dashboard": ["hq_view_master_dashboard", "view_hq_dashboard"],
     "view_hq_dashboard": ["view_hq_dashboard", "hq_view_master_dashboard"],
+    "branch_manage_branches": ["branch_manage_branches", "manage_branches"],
+    "branch_create": ["branch_create", "branch_manage_branches", "manage_branches"],
+    "branch_toggle_status": ["branch_toggle_status", "branch_manage_branches", "manage_branches"],
+
+    "delivery_manage_zones": ["delivery_manage_zones", "manage_branches"],
+    "delivery_assign_driver": ["delivery_assign_driver", "delivery_access"],
+    "delivery_track_drivers": ["delivery_track_drivers", "delivery_access"],
+    "delivery_override_status": ["delivery_override_status", "delivery_access"],
+
+    "pos_cancel_order": ["pos_cancel_order", "cancel_orders"],
     "cancel_orders": ["cancel_orders", "pos_cancel_order"],
-    "delete_orders": ["delete_orders"],
+    "pos_create_order": ["pos_create_order", "pos_access"],
+    "call_center_create_order": ["call_center_create_order", "call_center_access"],
+    "manage_roles": ["manage_roles", "system_manage_roles"],
+    "system_manage_roles": ["system_manage_roles", "manage_roles"],
 }
 
 
@@ -102,15 +148,31 @@ def user_has_perm(user, perm_key):
     profile = getattr(user, "profile", None)
     if profile and (profile.is_platform_admin or profile.role in ["owner", "platform_admin"]):
         return True
+
     clean_key = perm_key.split(".")[-1]
-    keys_to_check = PERMISSION_ALIASES.get(clean_key, [clean_key])
+    keys_to_check = PERMISSION_FALLBACKS.get(clean_key, [clean_key])
+
+    # 1. Native Django check: user.has_perm & group permissions
     for k in keys_to_check:
         if user.has_perm(f"core.{k}"):
             return True
-        if profile and profile.has_perm(k):
+        # Direct check on user's groups to guarantee 0ms latency even before cache reload
+        if user.groups.filter(permissions__codename=k).exists():
             return True
-        if hasattr(user, "employee_profile") and user.employee_profile and user.employee_profile.has_perm(k):
-            return True
+
+    # 2. Check via Employee profile & JobRole
+    emp = getattr(user, "employee_profile", None)
+    if emp:
+        for k in keys_to_check:
+            if emp.has_perm(k):
+                return True
+
+    # 3. Check via UserProfile & JobRole
+    if profile:
+        for k in keys_to_check:
+            if profile.has_perm(k):
+                return True
+
     return False
 
 
@@ -216,6 +278,18 @@ def login_view(request):
                         }
                     )
 
+                    # Sync Django Groups & Permissions
+                    if matched_emp.job_role:
+                        grp = matched_emp.job_role.sync_with_django_group()
+                        if grp:
+                            user_to_login.groups.set([grp])
+                    else:
+                        user_to_login.groups.clear()
+
+                    for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                        if hasattr(user_to_login, cache_field):
+                            delattr(user_to_login, cache_field)
+
                     login(request, user_to_login)
                     if matched_emp.tenant:
                         request.session["active_tenant_id"] = matched_emp.tenant.id
@@ -244,6 +318,18 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 profile = getattr(user, "profile", None)
+
+                # Sync Django Group for user from Employee or Profile
+                emp_obj = getattr(user, "employee_profile", None)
+                eff_job_role = emp_obj.job_role if (emp_obj and emp_obj.job_role) else (profile.job_role if (profile and profile.job_role) else None)
+                if eff_job_role:
+                    grp = eff_job_role.sync_with_django_group()
+                    if grp:
+                        user.groups.set([grp])
+
+                for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                    if hasattr(user, cache_field):
+                        delattr(user, cache_field)
 
                 # Route platform admin
                 if profile and profile.is_platform_admin:
@@ -1162,9 +1248,14 @@ def order_edit_view(request, order_id):
             order.delivery_fee = Decimal("0")
 
         try:
-            order.discount = Decimal(str(request.POST.get("discount") or "0"))
+            new_discount = Decimal(str(request.POST.get("discount") or "0"))
         except Exception:
-            order.discount = Decimal("0")
+            new_discount = Decimal("0")
+
+        if new_discount != order.discount:
+            if not is_owner and not user_has_perm(request.user, "pos_apply_discount"):
+                return HttpResponseForbidden("غير مصرح لك بتعديل أو تطبيق الخصم على الفاتورة")
+            order.discount = new_discount
 
         order.total = max(Decimal("0"), order.subtotal + order.delivery_fee - order.discount)
         order.save()
@@ -1557,10 +1648,29 @@ def api_create_order(request):
         return HttpResponseBadRequest("POST required")
 
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (
+        user_has_perm(request.user, "pos_create_order") or
+        user_has_perm(request.user, "pos_access") or
+        user_has_perm(request.user, "call_center_create_order") or
+        user_has_perm(request.user, "call_center_access")
+    ):
+        return JsonResponse({"error": "غير مصرح لك بإنشاء أو تسجيل طلبات جديدة"}, status=403)
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
         return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    try:
+        raw_discount = Decimal(str(data.get("discount") or 0))
+    except Exception:
+        raw_discount = Decimal("0")
+
+    if raw_discount > 0 and not is_owner_or_super and not user_has_perm(request.user, "pos_apply_discount"):
+        return JsonResponse({"error": "غير مصرح لك بتطبيق خصم على الفاتورة"}, status=403)
 
     items_data = data.get("items", [])
     if not items_data:
@@ -1606,8 +1716,7 @@ def api_create_order(request):
     else:
         delivery_fee = Decimal("0")
 
-    discount = Decimal(str(data.get("discount") or 0))
-    discount = max(Decimal("0"), min(discount, subtotal))
+    discount = max(Decimal("0"), min(raw_discount, subtotal))
     total = max(Decimal("0"), subtotal + delivery_fee - discount)
 
     phone = str(data.get("customerPhone") or "").strip()
@@ -1670,7 +1779,22 @@ def api_update_order(request, order_id):
         return HttpResponseBadRequest("PATCH or POST required")
 
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (
+        user_has_perm(request.user, "edit_orders") or
+        user_has_perm(request.user, "kds_update_status") or
+        user_has_perm(request.user, "kds_access") or
+        user_has_perm(request.user, "delivery_access") or
+        user_has_perm(request.user, "pos_access")
+    ):
+        return JsonResponse({"error": "غير مصرح لك بتعديل الطلبات"}, status=403)
+
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
+    if not is_owner_or_super and profile and profile.branch and order.branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح لك بتعديل طلبات فرع آخر"}, status=403)
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -1678,9 +1802,18 @@ def api_update_order(request, order_id):
 
     old_status = order.status
     if "status" in data and data["status"] in dict(Order.STATUS_CHOICES):
-        order.status = data["status"]
+        new_status = data["status"]
+        if new_status == "cancelled":
+            if not is_owner_or_super and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
+                return JsonResponse({"error": "غير مصرح لك بإلغاء الفواتير أو الطلبات"}, status=403)
+        elif new_status in ["preparing", "ready", "completed"]:
+            if not is_owner_or_super and not (user_has_perm(request.user, "kds_update_status") or user_has_perm(request.user, "kds_access") or user_has_perm(request.user, "edit_orders")):
+                return JsonResponse({"error": "غير مصرح لك بتحديث حالة تحضير الطلب في المطبخ"}, status=403)
+        order.status = new_status
 
     if "driverId" in data:
+        if not is_owner_or_super and not (user_has_perm(request.user, "delivery_assign_driver") or user_has_perm(request.user, "delivery_access") or user_has_perm(request.user, "edit_orders")):
+            return JsonResponse({"error": "غير مصرح لك بإسناد السائقين للطلبات"}, status=403)
         drv_id = data["driverId"]
         if drv_id:
             order.driver = Employee.objects.filter(tenant=tenant, id=drv_id, role="driver").first()
@@ -1688,6 +1821,8 @@ def api_update_order(request, order_id):
             order.driver = None
 
     if "paid" in data and isinstance(data["paid"], bool):
+        if not is_owner_or_super and not (user_has_perm(request.user, "pos_access") or user_has_perm(request.user, "edit_orders")):
+            return JsonResponse({"error": "غير مصرح لك بتحديث حالة دفع الفاتورة"}, status=403)
         order.paid = data["paid"]
 
     order.save()
@@ -1705,6 +1840,12 @@ def api_toggle_branch_menu(request, item_id):
         return HttpResponseBadRequest("POST required")
 
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "menu_toggle_availability") or user_has_perm(request.user, "manage_menu")):
+        return JsonResponse({"error": "غير مصرح لك بتعديل توفر الأصناف في الفرع"}, status=403)
+
     branch = get_active_branch(request)
     item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
 
@@ -1751,6 +1892,12 @@ def api_toggle_menu_item(request, item_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "menu_toggle_availability") or user_has_perm(request.user, "manage_menu")):
+        return JsonResponse({"error": "غير مصرح لك بتعديل توفر الأصناف"}, status=403)
+
     item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
     item.available = not item.available
     item.save()
@@ -1762,6 +1909,12 @@ def api_create_menu_item(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "menu_create_item") or user_has_perm(request.user, "manage_menu")):
+        return JsonResponse({"error": "غير مصرح لك بإضافة أصناف جديدة للمنيو"}, status=403)
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -1793,6 +1946,12 @@ def api_adjust_inventory(request, item_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "inventory_adjust_stock") or user_has_perm(request.user, "manage_inventory")):
+        return JsonResponse({"error": "غير مصرح لك بتسوية أو تعديل كميات المخزون"}, status=403)
+
     item = get_object_or_404(InventoryItem, tenant=tenant, id=item_id)
     try:
         data = json.loads(request.body.decode("utf-8"))
@@ -1819,6 +1978,12 @@ def api_create_inventory(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "inventory_add_stock") or user_has_perm(request.user, "manage_inventory")):
+        return JsonResponse({"error": "غير مصرح لك بإضافة مواد جديدة للمخزون"}, status=403)
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -1847,6 +2012,12 @@ def api_delete_inventory(request, item_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "inventory_adjust_stock") or user_has_perm(request.user, "manage_inventory")):
+        return JsonResponse({"error": "غير مصرح لك بحذف مواد من المخزون"}, status=403)
+
     item = get_object_or_404(InventoryItem, tenant=tenant, id=item_id)
     item.delete()
     return JsonResponse({"ok": True})
@@ -1857,6 +2028,12 @@ def api_create_branch(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "branch_create") or user_has_perm(request.user, "manage_branches")):
+        return JsonResponse({"error": "غير مصرح لك بإنشاء فروع جديدة"}, status=403)
+
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -1939,6 +2116,12 @@ def api_branch_delivery_areas(request, branch_id):
         })
 
     elif request.method == "POST":
+        profile = getattr(request.user, "profile", None)
+        is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+        if not is_owner_or_super and not (user_has_perm(request.user, "delivery_manage_zones") or user_has_perm(request.user, "manage_branches")):
+            return JsonResponse({"error": "غير مصرح لك بإدارة وتعديل مناطق التوصيل"}, status=403)
+
         try:
             data = json.loads(request.body.decode("utf-8"))
         except Exception:
@@ -2000,6 +2183,12 @@ def api_toggle_branch(request, branch_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "branch_toggle_status") or user_has_perm(request.user, "manage_branches")):
+        return JsonResponse({"error": "غير مصرح لك بتغيير حالة الفرع"}, status=403)
+
     branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
     branch.status = "closed" if branch.status == "active" else "active"
     branch.save()
@@ -2504,6 +2693,7 @@ def api_job_roles(request):
         roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("ordering", "id")
         data = []
         for r in roles:
+            perms_list = r.get_permissions_list()
             data.append({
                 "id": r.id,
                 "name": r.name,
@@ -2511,8 +2701,8 @@ def api_job_roles(request):
                 "scope_display": r.get_scope_display(),
                 "description": r.description,
                 "is_system": r.is_system,
-                "permissions": r.permissions or [],
-                "permissions_count": len(r.permissions or []),
+                "permissions": perms_list,
+                "permissions_count": len(perms_list),
                 "employees_count": r.employees_count,
             })
         return JsonResponse({"ok": True, "roles": data, "catalog": PERMISSIONS_CATALOG})
@@ -2550,6 +2740,8 @@ def api_job_roles(request):
             is_system=False,
             permissions=permissions,
         )
+        role.sync_with_django_group()
+        perms_list = role.get_permissions_list()
 
         return JsonResponse({
             "ok": True,
@@ -2560,8 +2752,8 @@ def api_job_roles(request):
                 "scope_display": role.get_scope_display(),
                 "description": role.description,
                 "is_system": role.is_system,
-                "permissions": role.permissions,
-                "permissions_count": len(role.permissions),
+                "permissions": perms_list,
+                "permissions_count": len(perms_list),
                 "employees_count": 0,
             }
         })
@@ -2622,7 +2814,11 @@ def api_job_role_detail(request, role_id):
                 emp.user.profile.save()
             if emp.user and grp:
                 emp.user.groups.set([grp])
+                for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                    if hasattr(emp.user, cache_field):
+                        delattr(emp.user, cache_field)
 
+        perms_list = role.get_permissions_list()
         return JsonResponse({
             "ok": True,
             "role": {
@@ -2632,8 +2828,8 @@ def api_job_role_detail(request, role_id):
                 "scope_display": role.get_scope_display(),
                 "description": role.description,
                 "is_system": role.is_system,
-                "permissions": role.permissions,
-                "permissions_count": len(role.permissions),
+                "permissions": perms_list,
+                "permissions_count": len(perms_list),
                 "employees_count": role.employees.count(),
             }
         })
@@ -3371,10 +3567,22 @@ def ai_callcenter_management_view(request):
     return render(request, "ai_callcenter.html", context)
 
 
+def _check_callcenter_admin(request):
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner and not user_has_perm(request.user, "call_center_manage_ai"):
+        return JsonResponse({"status": "error", "message": "غير مصرح لك بإدارة إعدادات وكيل الذكاء الاصطناعي"}, status=403)
+    return None
+
+
 @login_required
 def api_ai_callcenter_create_profile(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3404,6 +3612,9 @@ def api_ai_callcenter_create_profile(request):
 def api_ai_callcenter_update_profile(request, profile_id=None):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3439,6 +3650,9 @@ def api_ai_callcenter_update_profile(request, profile_id=None):
 def api_ai_callcenter_activate_profile(request, profile_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3451,6 +3665,9 @@ def api_ai_callcenter_activate_profile(request, profile_id):
 def api_ai_callcenter_delete_profile(request, profile_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3463,6 +3680,9 @@ def api_ai_callcenter_delete_profile(request, profile_id):
 def api_ai_callcenter_update_hours(request):
     if request.method not in ("POST", "PUT"):
         return HttpResponseBadRequest("POST or PUT required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3480,6 +3700,9 @@ def api_ai_callcenter_update_hours(request):
 def api_ai_callcenter_add_doc(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3504,6 +3727,9 @@ def api_ai_callcenter_add_doc(request):
 def api_ai_callcenter_delete_doc(request, doc_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3516,6 +3742,9 @@ def api_ai_callcenter_delete_doc(request, doc_id):
 def api_ai_callcenter_add_employee(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3543,6 +3772,9 @@ def api_ai_callcenter_add_employee(request):
 def api_ai_callcenter_delete_employee(request, emp_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3555,6 +3787,9 @@ def api_ai_callcenter_delete_employee(request, emp_id):
 def api_ai_callcenter_save_queue(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -3587,6 +3822,9 @@ def api_ai_callcenter_save_queue(request):
 def api_ai_callcenter_delete_queue(request, queue_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
