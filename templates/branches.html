@@ -490,12 +490,12 @@
     let addMapMode = 'pin'; // 'pin' or 'polygon'
     let stagedAreas = [];
 
-    // Map Tile Configuration (CartoDB Voyager)
-    const MAP_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    // Map Tile Configuration (OpenStreetMap Standard - Free & No API key needed)
+    const MAP_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     const MAP_TILE_OPTIONS = {
-        maxZoom: 20,
-        subdomains: 'abcd',
-        attribution: '&copy; CARTO &copy; OpenStreetMap'
+        maxZoom: 19,
+        subdomains: 'abc',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
     };
 
     function getBranchDefaultCoordinates(city) {

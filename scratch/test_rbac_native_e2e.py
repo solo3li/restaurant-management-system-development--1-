@@ -1130,6 +1130,7 @@ assert_test(s12_order.status == "preparing", "Order status correctly moved from 
 from core.models import Customer
 Branch.objects.filter(tenant=tenant, name="Branch C2 S12").delete()
 Customer.objects.filter(tenant=tenant, phone__in=["0599990001", "0599990002"]).delete()
+Order.objects.filter(order_number__in=["ORD-CA-1", "ORD-CB-1"]).delete()
 branch_c2 = Branch.objects.create(tenant=tenant, name="Branch C2 S12", status="active")
 cust_a = Customer.objects.create(tenant=tenant, name="Customer Branch A", phone="0599990001", address="Zone A")
 cust_b = Customer.objects.create(tenant=tenant, name="Customer Branch B", phone="0599990002", address="Zone B")
