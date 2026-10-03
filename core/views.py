@@ -77,17 +77,37 @@ def get_active_branch(request):
     return None
 
 
+PERMISSION_ALIASES = {
+    "manage_employees": ["manage_employees", "hr_view_employees", "hr_create_employee", "hr_edit_employee"],
+    "manage_roles": ["manage_roles", "system_manage_roles"],
+    "manage_menu": ["manage_menu", "menu_view", "menu_edit_item", "menu_create_item"],
+    "manage_inventory": ["manage_inventory", "inventory_view", "inventory_add_stock"],
+    "manage_branches": ["manage_branches", "branch_manage_branches"],
+    "view_branch_dashboard": ["view_branch_dashboard", "branch_view_dashboard"],
+    "view_hq_dashboard": ["view_hq_dashboard", "hq_view_master_dashboard"],
+    "cancel_orders": ["cancel_orders", "pos_cancel_order"],
+    "delete_orders": ["delete_orders"],
+}
+
+
 def user_has_perm(user, perm_key):
-    """Check if user has permission either via superuser, owner, profile, or job role."""
+    """Check if user has permission either via superuser, owner, Django native auth, profile, or job role."""
     if not user or not user.is_authenticated:
         return False
     if user.is_superuser:
         return True
     profile = getattr(user, "profile", None)
-    if profile:
-        return profile.has_perm(perm_key)
-    if hasattr(user, "employee_profile"):
-        return user.employee_profile.has_perm(perm_key)
+    if profile and (profile.is_platform_admin or profile.role in ["owner", "platform_admin"]):
+        return True
+    clean_key = perm_key.split(".")[-1]
+    keys_to_check = PERMISSION_ALIASES.get(clean_key, [clean_key])
+    for k in keys_to_check:
+        if user.has_perm(f"core.{k}"):
+            return True
+        if profile and profile.has_perm(k):
+            return True
+        if hasattr(user, "employee_profile") and user.employee_profile and user.employee_profile.has_perm(k):
+            return True
     return False
 
 
@@ -1172,9 +1192,12 @@ def api_cancel_order(request, order_id):
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
+    if not is_owner and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
+        return JsonResponse({"error": "غير مصرح لك بإلغاء الفواتير. يرجى مراجعة مدير الفرع لتسجيل الدخول من حسابه."}, status=403)
+
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
     if not is_owner and profile and profile.branch and order.branch != profile.branch:
-        return JsonResponse({"error": "غير مصرح"}, status=403)
+        return JsonResponse({"error": "غير مصرح لك بالتعامل مع طلبات الفروع الأخرى"}, status=403)
 
     order.status = "cancelled"
     order.save()
@@ -1191,8 +1214,8 @@ def api_delete_order(request, order_id):
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner:
-        return JsonResponse({"error": "غير مصرح بالحذف النهائي إلا للإدارة العامة"}, status=403)
+    if not is_owner and not user_has_perm(request.user, "delete_orders"):
+        return JsonResponse({"error": "غير مصرح لك بحذف الفواتير نهائياً. هذه العملية مقتصرة على الإدارة العامة."}, status=403)
 
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
     order_number = order.order_number
@@ -1480,7 +1503,7 @@ def employees_view(request):
         employees = employees.filter(Q(name__icontains=search) | Q(phone__icontains=search) | Q(employee_code__icontains=search))
 
     branches = Branch.objects.filter(tenant=tenant).order_by("name")
-    job_roles = JobRole.objects.filter(tenant=tenant).annotate(emp_count=Count("employees")).order_by("name")
+    job_roles = JobRole.objects.filter(tenant=tenant).annotate(emp_count=Count("employees")).order_by("ordering", "id")
 
     base_qs = Employee.objects.filter(tenant=tenant, branch=active_branch) if active_branch else Employee.objects.filter(tenant=tenant)
     roles_summary = {
@@ -2003,6 +2026,9 @@ def api_create_employee(request):
             "error": f"لقد استنفدت الحد الأقصى للموظفين المسموح بهم في باقتك الحالية ({max_e} موظف). يرجى ترقية باقة الاشتراك لإضافة موظف جديد."
         }, status=400)
 
+    if not is_owner_or_super and not (user_has_perm(request.user, "hr_create_employee") or user_has_perm(request.user, "manage_employees")):
+        return JsonResponse({"error": "غير مصرح لك بإضافة موظفين"}, status=403)
+
     branch_id = data.get("branchId")
     branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
 
@@ -2045,7 +2071,7 @@ def api_create_employee(request):
             raw_role = "driver"
         elif "call_center_access" in perms:
             raw_role = "call_center"
-        elif "manage_employees" in perms or "manage_branches" in perms:
+        elif "manage_employees" in perms or "manage_branches" in perms or "hr_manage_shifts" in perms:
             raw_role = "manager"
         else:
             raw_role = "cashier"
@@ -2086,6 +2112,12 @@ def api_create_employee(request):
         }
     )
 
+    # Sync with Django auth Group
+    if emp.job_role:
+        grp = emp.job_role.sync_with_django_group()
+        if grp:
+            user_obj.groups.set([grp])
+
     return JsonResponse({
         "ok": True,
         "id": emp.id,
@@ -2109,6 +2141,10 @@ def api_update_employee(request, emp_id):
     except Exception:
         return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
 
+    # Permission check
+    if not is_owner_or_super and not (user_has_perm(request.user, "hr_edit_employee") or user_has_perm(request.user, "manage_employees")):
+        return JsonResponse({"error": "غير مصرح لك بتعديل بيانات الموظفين"}, status=403)
+
     # Branch managers can only edit employees in their branch
     if not is_owner_or_super and profile and profile.branch and emp.branch != profile.branch:
         return JsonResponse({"error": "غير مصرح لك بتعديل موظفي الفروع الأخرى"}, status=403)
@@ -2131,6 +2167,12 @@ def api_update_employee(request, emp_id):
         if emp.user and hasattr(emp.user, "profile"):
             emp.user.profile.job_role = emp.job_role
             emp.user.profile.save()
+        if emp.job_role:
+            grp = emp.job_role.sync_with_django_group()
+            if emp.user and grp:
+                emp.user.groups.set([grp])
+        elif emp.user:
+            emp.user.groups.clear()
 
     if "role" in data and data["role"] in dict(Employee.ROLE_CHOICES):
         emp.role = data["role"]
@@ -2201,7 +2243,7 @@ def api_job_roles(request):
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
     if request.method == "GET":
-        roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("name")
+        roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("ordering", "id")
         data = []
         for r in roles:
             data.append({
@@ -2313,12 +2355,15 @@ def api_job_role_detail(request, role_id):
             role.permissions = body["permissions"]
 
         role.save()
+        grp = role.sync_with_django_group()
 
-        # Update linked user profiles
+        # Update linked user profiles and groups
         for emp in role.employees.select_related("user"):
             if emp.user and hasattr(emp.user, "profile"):
                 emp.user.profile.job_role = role
                 emp.user.profile.save()
+            if emp.user and grp:
+                emp.user.groups.set([grp])
 
         return JsonResponse({
             "ok": True,

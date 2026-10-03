@@ -1,5 +1,5 @@
 from django.utils import translation
-from .models import Tenant, Branch, UserProfile
+from .models import Tenant, Branch, UserProfile, RESTAURANT_PERMISSIONS
 
 
 def branch_context(request):
@@ -18,7 +18,7 @@ def branch_context(request):
 
     is_owner = request.user.is_superuser or is_platform_admin or (profile and profile.role == "owner")
 
-    # 1. Resolve user permissions strictly according to JobRole if assigned
+    # 1. Resolve user permissions strictly according to Django Groups & JobRole
     user_perms = set()
     effective_job_role = None
     if profile and profile.job_role:
@@ -27,27 +27,26 @@ def branch_context(request):
         effective_job_role = request.user.employee_profile.job_role
 
     if is_owner:
-        user_perms = {
-            "view_hq_dashboard", "view_branch_dashboard", "view_financials",
-            "pos_access", "view_orders", "edit_orders", "cancel_orders", "delete_orders",
-            "kds_access", "call_center_access", "delivery_access",
-            "manage_menu", "manage_inventory", "manage_branches", "manage_employees", "manage_roles"
-        }
-    elif effective_job_role is not None:
-        # Strictly adopt the job role's designated permissions without fallback leak
-        user_perms = set(effective_job_role.permissions or [])
-    elif profile:
-        # Legacy fallback ONLY when no custom job role was ever assigned
-        if profile.role == "branch_manager":
-            user_perms = {"view_branch_dashboard", "pos_access", "view_orders", "edit_orders", "cancel_orders", "kds_access", "delivery_access", "manage_menu", "manage_inventory", "manage_employees"}
-        elif profile.role == "cashier":
-            user_perms = {"pos_access", "view_orders"}
-        elif profile.role == "chef":
-            user_perms = {"kds_access"}
-        elif profile.role == "driver":
-            user_perms = {"delivery_access"}
-        elif profile.role == "call_center":
-            user_perms = {"call_center_access", "view_orders"}
+        user_perms = {p[0] for p in RESTAURANT_PERMISSIONS}
+    else:
+        # Django built-in permissions from User.groups and User.user_permissions
+        native_perms = {p.split(".")[-1] for p in request.user.get_all_permissions()}
+        if effective_job_role is not None:
+            user_perms = set(effective_job_role.permissions or []) | native_perms
+        elif native_perms:
+            user_perms = native_perms
+        elif profile:
+            # Legacy fallback ONLY when no custom job role or group was assigned
+            if profile.role == "branch_manager":
+                user_perms = {"view_branch_dashboard", "pos_access", "view_orders", "edit_orders", "cancel_orders", "kds_access", "delivery_access", "manage_menu", "manage_inventory", "manage_employees"}
+            elif profile.role == "cashier":
+                user_perms = {"pos_access", "view_orders"}
+            elif profile.role == "chef":
+                user_perms = {"kds_access"}
+            elif profile.role == "driver":
+                user_perms = {"delivery_access"}
+            elif profile.role == "call_center":
+                user_perms = {"call_center_access", "view_orders"}
 
     # Filter by subscription plan features
     if tenant and tenant.subscription_plan and not is_platform_admin:
