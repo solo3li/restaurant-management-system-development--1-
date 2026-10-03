@@ -20,6 +20,12 @@
             </p>
         </div>
         <div class="flex items-center gap-2.5">
+            <a href="{% url 'api_export_employees_csv' %}" class="rounded-xl border border-[#D2AB6B]/60 bg-white px-3.5 py-2.5 text-xs font-bold text-[#0E382A] hover:bg-[#F9F6F0] transition shadow-xs flex items-center gap-2" title="تصدير كملف Excel / CSV">
+                <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>تصدير CSV</span>
+            </a>
             <button onclick="openJobRolesModal()" class="rounded-xl border border-[#D2AB6B]/60 bg-white px-4 py-2.5 text-xs font-bold text-[#0E382A] hover:bg-[#F9F6F0] transition shadow-xs flex items-center gap-2">
                 <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -152,12 +158,44 @@
                             </span>
                         </td>
                         <td class="p-3.5 text-center" data-label="الإجراءات">
-                            <button 
-                                onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.phone|escapejs }}', '{{ emp.job_role_id|default:'' }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}', '{{ emp.employee_code|default:'' }}')" 
-                                class="rounded-lg border border-[#D2AB6B]/40 bg-white px-3 py-1.5 text-xs font-bold text-[#0E382A] hover:bg-[#F9F6F0] hover:border-[#0E382A] transition shadow-2xs"
-                            >
-                                تعديل / PIN
-                            </button>
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button 
+                                    type="button"
+                                    onclick="viewEmployeeDetail({{ emp.id }})" 
+                                    title="عرض الملف الكامل والصلاحيات" 
+                                    class="rounded-lg border border-[#D2AB6B]/40 bg-white p-2 text-xs font-bold text-[#0E382A] hover:bg-[#0E382A] hover:text-[#D2AB6B] transition shadow-2xs"
+                                >
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                                <button 
+                                    type="button"
+                                    onclick="openEditEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.phone|escapejs }}', '{{ emp.job_role_id|default:'' }}', '{{ emp.role }}', '{{ emp.branch_id|default:'' }}', {{ emp.salary }}, '{{ emp.status }}', '{{ emp.employee_code|default:'' }}')" 
+                                    title="تعديل الموظف ورمز PIN" 
+                                    class="rounded-lg border border-[#D2AB6B]/40 bg-white p-2 text-xs font-bold text-[#0E382A] hover:bg-[#F9F6F0] hover:border-[#0E382A] transition shadow-2xs"
+                                >
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                <button 
+                                    type="button"
+                                    onclick="toggleEmpStatus({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.status }}')" 
+                                    title="{% if emp.status == 'active' %}تجميد الحساب{% else %}تفعيل الحساب{% endif %}" 
+                                    class="rounded-lg border p-2 text-xs font-bold transition shadow-2xs {% if emp.status == 'active' %}border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100{% else %}border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100{% endif %}"
+                                >
+                                    {% if emp.status == 'active' %}
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    {% else %}
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                    {% endif %}
+                                </button>
+                                <button 
+                                    type="button"
+                                    onclick="openDeleteEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.employee_code|default:'' }}')" 
+                                    title="حذف الموظف" 
+                                    class="rounded-lg border border-rose-300 bg-rose-50 p-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shadow-2xs"
+                                >
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -380,12 +418,159 @@
                     >
                     <p class="text-[10px] text-[#666666] mt-1">اتركه فارغاً للإبقاء على الرمز الحالي، أو أدخل 4 أرقام جديدة لإعادة تعيين PIN الموظف.</p>
                 </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-[#666666]">كلمة مرور الدخول للوحة (اختياري)</label>
+                    </div>
+                    <input 
+                        type="password" 
+                        id="edit-emp-password" 
+                        placeholder="اتركها فارغة للإبقاء على كلمة المرور الحالية" 
+                        class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono"
+                    >
+                    <p class="text-[10px] text-[#666666] mt-1">تُستخدم لتسجيل دخول الموظف باسم المستخدم وكلمة المرور عبر شاشة الدخول الرئيسية (6 خانات على الأقل).</p>
+                </div>
             </div>
         </div>
 
         <div class="mt-5 flex items-center justify-end gap-2 border-t border-[#D2AB6B]/30 pt-3">
             <button onclick="closeEditEmpModal()" class="rounded-lg border border-[#D2AB6B]/40 bg-white px-3.5 py-1.5 text-xs font-bold text-[#666666] hover:text-[#0E382A]">إلغاء</button>
             <button onclick="saveEditEmp()" class="btn-gold-pill px-5 py-2 text-xs font-bold shadow-sm">حفظ التعديلات</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: VIEW EMPLOYEE PROFILE & PERMISSIONS -->
+<!-- ======================================================== -->
+<div id="view-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-[#D2AB6B]">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3 mb-4 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-[#0E382A] text-[#D2AB6B] flex items-center justify-center font-bold text-lg border-2 border-[#D2AB6B] shadow-sm" id="view-emp-avatar">
+                    م
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base font-bold font-royal text-[#0E382A]" id="view-emp-name">اسم الموظف</h3>
+                        <span id="view-emp-code-badge" class="font-mono text-[10px] font-bold bg-[#D2AB6B]/20 text-[#1E130D] px-2 py-0.5 rounded border border-[#D2AB6B]/40">#101</span>
+                        <span id="view-emp-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full border">نشط</span>
+                    </div>
+                    <p class="text-xs text-[#666666] mt-0.5" id="view-emp-role-subtitle">كاشير صالة — تشغيل فرع</p>
+                </div>
+            </div>
+            <button onclick="closeViewEmpModal()" class="text-[#666666] hover:text-[#0E382A] p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Scrollable Body -->
+        <div class="overflow-y-auto flex-1 pr-1 space-y-4 text-xs">
+            <!-- Personal & Contract Info Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F9F6F0] p-3.5 rounded-xl border border-[#D2AB6B]/30">
+                <div>
+                    <span class="block text-[10px] font-bold text-[#666666]">رقم الجوال</span>
+                    <span class="font-bold text-[#1E130D] font-mono" id="view-emp-phone">—</span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-[#666666]">الفرع التابع له</span>
+                    <span class="font-bold text-[#0E382A]" id="view-emp-branch">—</span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-[#666666]">الراتب الشهري</span>
+                    <span class="font-bold text-[#0E382A] font-mono" id="view-emp-salary">0 ر.س</span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-[#666666]">تاريخ التعيين</span>
+                    <span class="font-bold text-[#1E130D]" id="view-emp-hire-date">—</span>
+                </div>
+            </div>
+
+            <!-- Account & Security Section -->
+            <div class="rounded-xl border border-[#D2AB6B]/30 p-3.5 bg-white space-y-2">
+                <h4 class="font-bold text-[#0E382A] flex items-center gap-1.5 text-xs">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                    بيانات حساب الدخول والأمان
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <div class="bg-[#F9F6F0] p-2.5 rounded-lg border border-[#D2AB6B]/20">
+                        <span class="block text-[10px] text-[#666666]">اسم مستخدم الدخول</span>
+                        <span class="font-mono font-bold text-[#0E382A] text-xs" id="view-emp-username">—</span>
+                    </div>
+                    <div class="bg-[#F9F6F0] p-2.5 rounded-lg border border-[#D2AB6B]/20">
+                        <span class="block text-[10px] text-[#666666]">رمز PIN السريع</span>
+                        <span class="font-bold text-xs" id="view-emp-pin-status">مفعّل (مشفر)</span>
+                    </div>
+                    <div class="bg-[#F9F6F0] p-2.5 rounded-lg border border-[#D2AB6B]/20">
+                        <span class="block text-[10px] text-[#666666]">آخر تسجيل دخول</span>
+                        <span class="font-bold text-[#666666] text-xs" id="view-emp-last-login">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions Matrix -->
+            <div class="rounded-xl border border-[#D2AB6B]/30 p-3.5 bg-white space-y-2">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-[#0E382A] flex items-center gap-1.5 text-xs">
+                        <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        الصلاحيات الممنوحة لهذا الموظف
+                    </h4>
+                    <span id="view-emp-perms-count" class="text-[10px] font-bold bg-[#0E382A]/10 text-[#0E382A] px-2 py-0.5 rounded-full border border-[#D2AB6B]/40">0 صلاحية</span>
+                </div>
+                <div id="view-emp-perms-container" class="flex flex-wrap gap-1.5 pt-1 max-h-48 overflow-y-auto">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-4 pt-3 border-t border-[#D2AB6B]/30 flex items-center justify-between shrink-0">
+            <button type="button" id="view-emp-edit-btn" class="btn-gold-pill px-4 py-1.5 text-xs font-bold shadow-xs">
+                تعديل بيانات الموظف
+            </button>
+            <button type="button" onclick="closeViewEmpModal()" class="rounded-lg border border-[#D2AB6B]/40 bg-white px-4 py-1.5 text-xs font-bold text-[#666666] hover:text-[#0E382A]">
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: DELETE EMPLOYEE CONFIRMATION -->
+<!-- ======================================================== -->
+<div id="delete-emp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-md w-full p-6 shadow-2xl border border-rose-400">
+        <div class="flex items-center gap-3 border-b border-rose-200 pb-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-rose-900 font-royal">حذف الموظف</h3>
+                <p class="text-xs text-rose-700 mt-0.5" id="delete-emp-name-title">الموظف: —</p>
+            </div>
+        </div>
+
+        <input type="hidden" id="delete-emp-id">
+
+        <div class="space-y-3 text-xs text-[#1E130D]">
+            <p>هل أنت متأكد من رغبتك في حذف هذا الموظف وسحب حق الدخول نهائياً؟</p>
+            
+            <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-[11px] text-amber-900 space-y-1">
+                <p class="font-bold flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    سياسة الحماية المالية الذكية:
+                </p>
+                <p>إذا لم تكن للموظف أي فواتير أو طلبات سابقة سيتم حذفه وحسابه نهائياً من قاعدة البيانات. أما إذا كانت له مبيعات مسجلة فسيتم تجميد حسابه وسحب صلاحياته للحفاظ على قيود المحاسبة والضريبة.</p>
+            </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-end gap-2 border-t border-[#D2AB6B]/30 pt-3">
+            <button type="button" onclick="closeDeleteEmpModal()" class="rounded-lg border border-[#D2AB6B]/40 bg-white px-3.5 py-1.5 text-xs font-bold text-[#666666] hover:text-[#0E382A]">إلغاء</button>
+            <button type="button" onclick="confirmDeleteEmp()" id="delete-emp-confirm-btn" class="rounded-lg bg-rose-700 hover:bg-rose-800 text-white px-4 py-1.5 text-xs font-bold transition shadow-xs">
+                تأكيد الحذف
+            </button>
         </div>
     </div>
 </div>
@@ -636,6 +821,9 @@
         document.getElementById('edit-emp-status').value = status;
         document.getElementById('edit-emp-code').value = empCode;
         document.getElementById('edit-emp-pin').value = '';
+        if (document.getElementById('edit-emp-password')) {
+            document.getElementById('edit-emp-password').value = '';
+        }
 
         document.getElementById('edit-emp-title').textContent = `${name} (كود #${empCode || id})`;
 
@@ -666,6 +854,7 @@
         const salary = parseFloat(document.getElementById('edit-emp-salary').value) || 0;
         const employee_code = document.getElementById('edit-emp-code').value.trim();
         const pin_code = document.getElementById('edit-emp-pin').value.trim();
+        const new_password = document.getElementById('edit-emp-password') ? document.getElementById('edit-emp-password').value.trim() : '';
 
         if (!name) {
             showToast('اسم الموظف مطلوب', 'error');
@@ -673,6 +862,10 @@
         }
         if (!job_role_id) {
             showToast('يرجى اختيار المسمى الوظيفي', 'error');
+            return;
+        }
+        if (new_password && new_password.length < 6) {
+            showToast('كلمة المرور يجب أن لا تقل عن 6 أحرف', 'error');
             return;
         }
 
@@ -684,7 +877,7 @@
                     'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({
-                    name, phone, job_role_id, branch_id, status, salary, employee_code, pin_code
+                    name, phone, job_role_id, branch_id, status, salary, employee_code, pin_code, password: new_password
                 })
             });
             const data = await res.json();
@@ -695,6 +888,159 @@
             setTimeout(() => location.reload(), 500);
         } catch (e) {
             showToast(e.message || 'فشل حفظ التعديلات', 'error');
+        }
+    }
+
+    // ==========================================
+    // VIEW EMPLOYEE PROFILE & PERMISSIONS MODAL
+    // ==========================================
+    async function viewEmployeeDetail(empId) {
+        try {
+            const res = await fetch(`/api/employees/${empId}/detail/`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'تعذر تحميل بيانات الموظف');
+
+            const emp = data.employee;
+            document.getElementById('view-emp-avatar').textContent = (emp.name || 'م').charAt(0);
+            document.getElementById('view-emp-name').textContent = emp.name;
+            document.getElementById('view-emp-code-badge').textContent = `#${emp.employee_code || emp.id}`;
+
+            const statusBadge = document.getElementById('view-emp-status-badge');
+            if (emp.status === 'active') {
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800';
+                statusBadge.textContent = 'على رأس العمل (نشط)';
+            } else if (emp.status === 'vacation') {
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-300 bg-sky-50 text-sky-800';
+                statusBadge.textContent = 'في إجازة';
+            } else {
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-300 bg-gray-100 text-gray-700';
+                statusBadge.textContent = 'غير نشط (مجمد)';
+            }
+
+            const roleName = emp.job_role ? emp.job_role.name : (emp.role_display || 'غير محدد');
+            const scopeLabel = emp.job_role ? ` — ${emp.job_role.scope_display || emp.job_role.scope}` : '';
+            document.getElementById('view-emp-role-subtitle').textContent = `${roleName}${scopeLabel}`;
+
+            document.getElementById('view-emp-phone').textContent = emp.phone || '—';
+            document.getElementById('view-emp-branch').textContent = emp.branch ? emp.branch.name : 'الإدارة العامة (HQ)';
+            document.getElementById('view-emp-salary').textContent = `${emp.salary || 0} ر.س`;
+            document.getElementById('view-emp-hire-date').textContent = emp.hire_date || '—';
+
+            document.getElementById('view-emp-username').textContent = emp.user ? emp.user.username : 'غير مرتبط بحساب';
+            document.getElementById('view-emp-pin-status').textContent = emp.has_pin ? 'مفعّل (مشفر)' : 'غير محدد';
+            document.getElementById('view-emp-last-login').textContent = (emp.user && emp.user.last_login) ? emp.user.last_login : 'لم يسجل دخول بعد';
+
+            const permsContainer = document.getElementById('view-emp-perms-container');
+            permsContainer.innerHTML = '';
+            const perms = emp.permissions || [];
+            document.getElementById('view-emp-perms-count').textContent = `${perms.length} صلاحيات`;
+
+            if (perms.length === 0) {
+                permsContainer.innerHTML = '<span class="text-xs text-[#666666] py-2">لا توجد صلاحيات ممنوحة لهذا المسمى حالياً.</span>';
+            } else {
+                perms.forEach(p => {
+                    const pill = document.createElement('span');
+                    pill.className = 'rounded-full bg-[#0E382A]/10 text-[#0E382A] border border-[#D2AB6B]/40 px-2.5 py-1 text-[11px] font-bold flex items-center gap-1.5 shadow-2xs';
+                    pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#D2AB6B]"></span><span>${p.label}</span>`;
+                    permsContainer.appendChild(pill);
+                });
+            }
+
+            const editBtn = document.getElementById('view-emp-edit-btn');
+            editBtn.onclick = () => {
+                closeViewEmpModal();
+                openEditEmpModal(
+                    emp.id,
+                    emp.name,
+                    emp.phone,
+                    emp.job_role ? emp.job_role.id : '',
+                    emp.role,
+                    emp.branch ? emp.branch.id : '',
+                    emp.salary,
+                    emp.status,
+                    emp.employee_code
+                );
+            };
+
+            document.getElementById('view-emp-modal').classList.remove('hidden');
+            document.getElementById('view-emp-modal').classList.add('flex');
+        } catch (e) {
+            showToast(e.message || 'فشل تحميل بيانات الموظف', 'error');
+        }
+    }
+
+    function closeViewEmpModal() {
+        document.getElementById('view-emp-modal').classList.add('hidden');
+        document.getElementById('view-emp-modal').classList.remove('flex');
+    }
+
+    // ==========================================
+    // QUICK TOGGLE EMPLOYEE STATUS
+    // ==========================================
+    async function toggleEmpStatus(empId, empName, currentStatus) {
+        const actionText = currentStatus === 'active' ? 'تجميد حساب' : 'تفعيل حساب';
+        if (!confirm(`هل أنت متأكد من ${actionText} الموظف «${empName}»؟`)) return;
+
+        try {
+            const res = await fetch(`/api/employees/${empId}/toggle-status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'فشل تحديث الحالة');
+
+            showToast(data.message || 'تم تحديث حالة الموظف بنجاح');
+            setTimeout(() => location.reload(), 400);
+        } catch (e) {
+            showToast(e.message || 'حدث خطأ أثناء تغيير الحالة', 'error');
+        }
+    }
+
+    // ==========================================
+    // SMART DELETE EMPLOYEE MODAL
+    // ==========================================
+    function openDeleteEmpModal(empId, empName, empCode) {
+        document.getElementById('delete-emp-id').value = empId;
+        document.getElementById('delete-emp-name-title').textContent = `الموظف: ${empName} (${empCode ? '#' + empCode : '#' + empId})`;
+        document.getElementById('delete-emp-modal').classList.remove('hidden');
+        document.getElementById('delete-emp-modal').classList.add('flex');
+    }
+
+    function closeDeleteEmpModal() {
+        document.getElementById('delete-emp-modal').classList.add('hidden');
+        document.getElementById('delete-emp-modal').classList.remove('flex');
+    }
+
+    async function confirmDeleteEmp() {
+        const empId = document.getElementById('delete-emp-id').value;
+        if (!empId) return;
+
+        const btn = document.getElementById('delete-emp-confirm-btn');
+        btn.disabled = true;
+        btn.textContent = 'جارٍ التنفيذ...';
+
+        try {
+            const res = await fetch(`/api/employees/${empId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'فشل حذف الموظف');
+
+            showToast(data.message || 'تم تنفيذ العملية بنجاح');
+            closeDeleteEmpModal();
+            setTimeout(() => location.reload(), 500);
+        } catch (e) {
+            showToast(e.message || 'حدث خطأ أثناء محاولة الحذف', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'تأكيد الحذف';
         }
     }
 

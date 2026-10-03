@@ -1,4 +1,5 @@
 import json
+import csv
 import sys
 from decimal import Decimal
 from datetime import timedelta
@@ -11,7 +12,7 @@ import asyncio
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse, HttpResponse
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db import transaction
@@ -32,6 +33,7 @@ from .models import (
     BranchMenuAvailability,
     DeliveryArea,
     JobRole,
+    RESTAURANT_PERMISSIONS,
     PERMISSIONS_CATALOG,
     SubscriptionPlan,
     SAAS_FEATURES_CATALOG,
@@ -2244,6 +2246,15 @@ def api_update_employee(request, emp_id):
             return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
         emp.set_pin(new_pin)
 
+    # Password update (for dashboard login)
+    new_password = str(data.get("password") or data.get("new_password") or "").strip()
+    if new_password:
+        if len(new_password) < 6:
+            return JsonResponse({"error": "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل"}, status=400)
+        if emp.user:
+            emp.user.set_password(new_password)
+            emp.user.save()
+
     # Ensure linked User exists safely
     if not emp.user and emp.employee_code:
         emp.user = get_or_create_employee_user(emp.tenant, emp.employee_code, emp.name, exclude_emp_id=emp.id)
@@ -2257,6 +2268,217 @@ def api_update_employee(request, emp_id):
 
     emp.save()
     return JsonResponse({"ok": True, "employeeCode": emp.employee_code, "hasPin": bool(emp.pin_code)})
+
+
+@login_required
+def api_delete_employee(request, emp_id):
+    if request.method not in ["POST", "DELETE"]:
+        return HttpResponseBadRequest("POST or DELETE required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "hr_deactivate_employee") or user_has_perm(request.user, "manage_employees")):
+        return JsonResponse({"error": "غير مصرح لك بحذف أو تجميد الموظفين"}, status=403)
+
+    emp = get_object_or_404(Employee, tenant=tenant, id=emp_id)
+
+    # Branch managers can only delete/archive employees in their branch
+    if not is_owner_or_super and profile and profile.branch and emp.branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح لك بإدارة موظفي الفروع الأخرى"}, status=403)
+
+    try:
+        body = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        body = {}
+
+    force_delete = body.get("force", False)
+
+    # Check if this employee has any linked orders or historical financial records
+    has_driver_orders = Order.objects.filter(driver=emp).exists()
+    has_cashier_orders = Order.objects.filter(tenant=tenant).filter(
+        Q(cashier=emp.name) | Q(cashier=emp.employee_code)
+    ).exists() if emp.employee_code else Order.objects.filter(tenant=tenant, cashier=emp.name).exists()
+
+    has_history = has_driver_orders or has_cashier_orders
+
+    with transaction.atomic():
+        if has_history and not force_delete:
+            # Soft Delete / Archive: Freeze account, deactivate user, detach permissions
+            emp.status = "inactive"
+            emp.save(update_fields=["status"])
+            if emp.user:
+                emp.user.is_active = False
+                emp.user.groups.clear()
+                emp.user.save(update_fields=["is_active"])
+            return JsonResponse({
+                "ok": True,
+                "action": "archived",
+                "message": f"نظراً لوجود فواتير وعمليات سابقة مرتبطة بالموظف «{emp.name}»، تم تجميد حسابه وسحب صلاحياته بنجاح لحماية السجلات المالية والمحاسبية."
+            })
+        else:
+            # Hard delete
+            emp_name = emp.name
+            user_obj = emp.user
+            emp.delete()
+            if user_obj:
+                user_obj.delete()
+            return JsonResponse({
+                "ok": True,
+                "action": "deleted",
+                "message": f"تم حذف الموظف «{emp_name}» وحسابه نهائياً بنجاح."
+            })
+
+
+@login_required
+def api_toggle_employee_status(request, emp_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "hr_deactivate_employee") or user_has_perm(request.user, "manage_employees")):
+        return JsonResponse({"error": "غير مصرح لك بتعديل حالة الموظف"}, status=403)
+
+    emp = get_object_or_404(Employee, tenant=tenant, id=emp_id)
+
+    if not is_owner_or_super and profile and profile.branch and emp.branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح لك بإدارة موظفي الفروع الأخرى"}, status=403)
+
+    # Toggle between active and inactive
+    emp.status = "inactive" if emp.status == "active" else "active"
+    emp.save(update_fields=["status"])
+
+    if emp.user:
+        emp.user.is_active = (emp.status == "active")
+        emp.user.save(update_fields=["is_active"])
+
+    return JsonResponse({
+        "ok": True,
+        "status": emp.status,
+        "new_status": emp.status,
+        "status_display": emp.get_status_display(),
+        "is_active": (emp.status == "active"),
+        "message": f"تم تغيير حالة الموظف «{emp.name}» إلى ({emp.get_status_display()}) بنجاح."
+    })
+
+
+@login_required
+def api_employee_detail(request, emp_id):
+    tenant = get_active_tenant(request)
+    emp = get_object_or_404(Employee.objects.select_related("user", "job_role", "branch"), tenant=tenant, id=emp_id)
+
+    perm_labels_map = dict(RESTAURANT_PERMISSIONS)
+    permissions_detail = []
+    effective_perms = set()
+
+    if emp.user:
+        for p in emp.user.get_all_permissions():
+            codename = p.split(".")[-1]
+            effective_perms.add(codename)
+    if emp.job_role and emp.job_role.permissions:
+        effective_perms.update(emp.job_role.permissions)
+
+    for k in sorted(effective_perms):
+        permissions_detail.append({
+            "key": k,
+            "label": perm_labels_map.get(k, k),
+        })
+
+    delivered_orders_count = Order.objects.filter(driver=emp).count()
+
+    data = {
+        "ok": True,
+        "employee": {
+            "id": emp.id,
+            "name": emp.name,
+            "phone": emp.phone,
+            "employee_code": emp.employee_code,
+            "salary": str(emp.salary),
+            "status": emp.status,
+            "status_display": emp.get_status_display(),
+            "hire_date": emp.hire_date.strftime("%Y-%m-%d") if emp.hire_date else "",
+            "role_legacy": emp.role,
+            "branch": {
+                "id": emp.branch.id if emp.branch else None,
+                "name": emp.branch.name if emp.branch else "الإدارة العامة (HQ)",
+            },
+            "job_role": {
+                "id": emp.job_role.id if emp.job_role else None,
+                "name": emp.job_role.name if emp.job_role else emp.get_role_display(),
+                "scope": emp.job_role.scope if emp.job_role else "branch",
+                "scope_display": emp.job_role.get_scope_display() if emp.job_role else "تشغيل فرع",
+            },
+            "user": {
+                "id": emp.user.id if emp.user else None,
+                "username": emp.user.username if emp.user else "",
+                "is_active": emp.user.is_active if emp.user else False,
+                "last_login": emp.user.last_login.strftime("%Y-%m-%d %H:%M") if emp.user and emp.user.last_login else "لم يسجل بعد",
+            },
+            "has_pin": bool(emp.pin_code),
+            "delivered_orders_count": delivered_orders_count,
+            "permissions_count": len(permissions_detail),
+            "permissions": permissions_detail,
+        }
+    }
+    return JsonResponse(data)
+
+
+@login_required
+def api_export_employees_csv(request):
+    if not user_has_perm(request.user, "manage_employees") and not user_has_perm(request.user, "hr_view_employees"):
+        return HttpResponseForbidden("غير مصرح لك بتصدير بيانات الموظفين")
+
+    tenant = get_active_tenant(request)
+    active_branch = get_active_branch(request)
+
+    employees = Employee.objects.filter(tenant=tenant).select_related("branch", "job_role", "user").order_by("id")
+    if active_branch:
+        employees = employees.filter(branch=active_branch)
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+    filename = f"employees_{tenant.slug if tenant else 'list'}_{timezone.now().strftime('%Y%m%d')}.csv"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    # Write UTF-8 BOM so Excel opens Arabic properly
+    response.write("\ufeff".encode("utf-8"))
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "كود الموظف",
+        "اسم الموظف",
+        "رقم الجوال",
+        "المسمى الوظيفي",
+        "نطاق العمل",
+        "الفرع المعين",
+        "الراتب الأساسي (ر.س)",
+        "الحالة",
+        "اسم مستخدم الدخول",
+        "تاريخ التعيين"
+    ])
+
+    for emp in employees:
+        role_label = emp.job_role.name if emp.job_role else emp.get_role_display()
+        scope_label = emp.job_role.get_scope_display() if emp.job_role else "تشغيل فرع"
+        branch_name = emp.branch.name if emp.branch else "الإدارة العامة"
+        username = emp.user.username if emp.user else "غير مربوط"
+        hire_date_str = emp.hire_date.strftime("%Y-%m-%d") if emp.hire_date else ""
+
+        writer.writerow([
+            emp.employee_code or str(emp.id),
+            emp.name,
+            emp.phone,
+            role_label,
+            scope_label,
+            branch_name,
+            str(emp.salary),
+            emp.get_status_display(),
+            username,
+            hire_date_str
+        ])
+
+    return response
 
 
 # ==========================================
