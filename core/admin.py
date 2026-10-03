@@ -263,7 +263,7 @@ class JobRoleAdmin(admin.ModelAdmin):
 
     @admin.display(description="عدد الصلاحيات")
     def permissions_count(self, obj):
-        return len(obj.permissions)
+        return len(obj.get_permissions_list())
 
     @admin.display(description="الموظفون المرتبطون")
     def employees_count(self, obj):

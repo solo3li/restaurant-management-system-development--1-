@@ -89,7 +89,7 @@ def run_e2e_tests():
         
         # Check permissions attached to Django Group
         group_perms = set(role.group.permissions.values_list("codename", flat=True))
-        role_perms = set(role.permissions or [])
+        role_perms = set(role.get_permissions_list())
         assert_equal(group_perms, role_perms, f"Group permissions match JobRole permissions for '{role.name}'")
 
     # -------------------------------------------------------------

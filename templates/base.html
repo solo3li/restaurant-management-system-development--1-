@@ -564,7 +564,7 @@
             {% endif %}
 
             <!-- 2. Branches & Locations (Nested Accordion) -->
-            {% if is_hq_mode and 'manage_branches' in user_perms %}
+            {% if is_hq_mode and 'manage_branches' in user_perms or is_hq_mode and 'branch_manage_branches' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-branches')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
@@ -591,7 +591,7 @@
             {% endif %}
 
             <!-- 3. POS & Menu (Nested Accordion) -->
-            {% if 'pos_access' in user_perms or 'manage_menu' in user_perms %}
+            {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms or 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-pos')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
@@ -603,13 +603,13 @@
                     <span id="acc-pos-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
                 </button>
                 <div id="acc-pos-content" class="{% if request.resolver_match.url_name in 'pos,branch_menu' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-8 pl-2 border-r mr-4{% else %}pl-8 pr-2 border-l ml-4{% endif %} space-y-1 border-[#D2AB6B]/30 my-1">
-                    {% if 'pos_access' in user_perms %}
+                    {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms %}
                     <a href="{% url 'pos' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'pos' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
                         <span class="text-[8px] text-[#D2AB6B]">◆</span>
                         <span>{{ t.nav_pos }}</span>
                     </a>
                     {% endif %}
-                    {% if 'manage_menu' in user_perms %}
+                    {% if 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms %}
                     <a href="{% url 'branch_menu' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
                         <span class="text-[8px] text-[#D2AB6B]">◆</span>
                         <span>{{ t.nav_menu }}</span>
@@ -635,7 +635,7 @@
             {% endif %}
 
             <!-- 5. AI Call Center (Nested Accordion) -->
-            {% if 'call_center_access' in user_perms %}
+            {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-ai')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
@@ -660,7 +660,7 @@
             {% endif %}
 
             <!-- 6. Inventory & Warehouses (Nested Accordion) -->
-            {% if 'manage_inventory' in user_perms %}
+            {% if 'manage_inventory' in user_perms or 'inventory_view' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
                 <button type="button" onclick="toggleAccordion('acc-inventory')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
                     <div class="flex items-center gap-2.5">
@@ -720,7 +720,7 @@
             {% endif %}
 
             <!-- 9. Staff & Payroll -->
-            {% if 'manage_employees' in user_perms %}
+            {% if 'manage_employees' in user_perms or 'hr_view_employees' in user_perms %}
             <div class="nav-item-wrapper relative">
                 <a href="{% url 'employees' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'employees' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
@@ -734,7 +734,7 @@
             {% endif %}
 
             <!-- 10. Subscription & Billing -->
-            {% if is_owner %}
+            {% if is_owner or 'system_manage_billing' in user_perms %}
             <div class="nav-item-wrapper relative">
                 <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'owner_subscription' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
                     <div class="flex items-center gap-2.5">
@@ -749,6 +749,7 @@
                 </a>
             </div>
             {% endif %}
+
 
             <!-- 11. SaaS Platform SuperAdmin -->
             {% if is_platform_admin %}

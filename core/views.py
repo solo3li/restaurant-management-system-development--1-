@@ -97,6 +97,7 @@ def user_has_perm(user, perm_key):
     Bypasses for superuser and tenant owner / platform admin.
     All staff authorization is strictly verified through Django's native
     Group and Permission engine: user.has_perm('core.<codename>') and user.groups.
+    Includes symmetric synonym resolution and self-healing group synchronization.
     """
     if not user or not user.is_authenticated:
         return False
@@ -107,11 +108,46 @@ def user_has_perm(user, perm_key):
         return True
 
     clean_key = perm_key.split(".")[-1]
-    if user.has_perm(f"core.{clean_key}"):
-        return True
-    # Direct check on user's groups to guarantee 0ms latency even before permission cache refresh
-    if user.groups.filter(permissions__codename=clean_key).exists():
-        return True
+
+    # Symmetric permission synonyms (legacy compatibility with new granular taxonomy)
+    SYNONYM_MAP = {
+        "manage_branches": "branch_manage_branches",
+        "branch_manage_branches": "manage_branches",
+        "manage_roles": "system_manage_roles",
+        "system_manage_roles": "manage_roles",
+        "view_hq_dashboard": "hq_view_master_dashboard",
+        "hq_view_master_dashboard": "view_hq_dashboard",
+        "view_branch_dashboard": "branch_view_dashboard",
+        "branch_view_dashboard": "view_branch_dashboard",
+        "cancel_orders": "pos_cancel_order",
+        "pos_cancel_order": "cancel_orders",
+    }
+    keys_to_check = [clean_key]
+    if clean_key in SYNONYM_MAP:
+        keys_to_check.append(SYNONYM_MAP[clean_key])
+
+    for k in keys_to_check:
+        if user.has_perm(f"core.{k}"):
+            return True
+        # Direct check on user's groups to guarantee 0ms latency even before permission cache refresh
+        if user.groups.filter(permissions__codename=k).exists():
+            return True
+
+    # Self-healing fallback: verify through assigned JobRole if user's group association lagged
+    job_role = None
+    if profile and profile.job_role:
+        job_role = profile.job_role
+    elif hasattr(user, "employee_profile") and user.employee_profile and user.employee_profile.job_role:
+        job_role = user.employee_profile.job_role
+
+    if job_role:
+        for k in keys_to_check:
+            if job_role.has_perm(k):
+                # Auto-sync group to user immediately
+                grp = job_role.sync_with_django_group()
+                if grp:
+                    user.groups.add(grp)
+                return True
 
     return False
 
@@ -133,21 +169,21 @@ def get_post_login_redirect(user):
         return "branch_dashboard"
 
     # Route by operational permission priority
-    if user_has_perm(user, "pos_access"):
+    if user_has_perm(user, "pos_access") or user_has_perm(user, "pos_create_order"):
         return "pos"
     if user_has_perm(user, "kds_access"):
         return "kitchen"
-    if user_has_perm(user, "call_center_access"):
+    if user_has_perm(user, "call_center_access") or user_has_perm(user, "call_center_create_order"):
         return "call_center"
     if user_has_perm(user, "delivery_access"):
         return "delivery"
     if user_has_perm(user, "view_orders"):
         return "branch_orders"
-    if user_has_perm(user, "manage_menu"):
+    if user_has_perm(user, "manage_menu") or user_has_perm(user, "menu_view") or user_has_perm(user, "menu_toggle_availability"):
         return "branch_menu"
-    if user_has_perm(user, "manage_inventory"):
+    if user_has_perm(user, "manage_inventory") or user_has_perm(user, "inventory_view"):
         return "inventory"
-    if user_has_perm(user, "manage_employees"):
+    if user_has_perm(user, "manage_employees") or user_has_perm(user, "hr_view_employees"):
         return "employees"
     if user_has_perm(user, "manage_branches"):
         return "branches"
@@ -1268,8 +1304,13 @@ def api_delete_order(request, order_id):
 @login_required
 @ensure_csrf_cookie
 def branch_menu_view(request):
-    if not user_has_perm(request.user, "manage_menu"):
-        return HttpResponseForbidden("غير مصرح لك بإدارة قائمة الطعام")
+    if not (
+        user_has_perm(request.user, "manage_menu") or
+        user_has_perm(request.user, "menu_view") or
+        user_has_perm(request.user, "menu_toggle_availability") or
+        user_has_perm(request.user, "menu_edit_item")
+    ):
+        return HttpResponseForbidden("غير مصرح لك باستعراض أو إدارة قائمة الطعام")
 
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
@@ -1442,8 +1483,13 @@ def inventory_view(request):
     if tenant and not tenant.has_feature("inventory"):
         return HttpResponseForbidden("ميزة إدارة المخزون غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
 
-    if not user_has_perm(request.user, "manage_inventory"):
-        return HttpResponseForbidden("غير مصرح لك بالوصول لإدارة المخزون")
+    if not (
+        user_has_perm(request.user, "manage_inventory") or
+        user_has_perm(request.user, "inventory_view") or
+        user_has_perm(request.user, "inventory_add_stock") or
+        user_has_perm(request.user, "inventory_adjust_stock")
+    ):
+        return HttpResponseForbidden("غير مصرح لك بالوصول لإدارة أو استعراض المخزون")
     active_branch = get_active_branch(request)
     branch_id = request.GET.get("branch")
     search = request.GET.get("q", "").strip()
@@ -1513,8 +1559,12 @@ def branches_view(request):
 @login_required
 @ensure_csrf_cookie
 def employees_view(request):
-    if not user_has_perm(request.user, "manage_employees"):
-        return HttpResponseForbidden("غير مصرح لك بإدارة الموظفين")
+    if not (
+        user_has_perm(request.user, "manage_employees") or
+        user_has_perm(request.user, "hr_view_employees") or
+        user_has_perm(request.user, "hr_create_employee")
+    ):
+        return HttpResponseForbidden("غير مصرح لك باستعراض أو إدارة الموظفين")
 
     tenant = get_active_tenant(request)
     active_branch = get_active_branch(request)
@@ -1827,6 +1877,18 @@ def api_toggle_branch_menu(request, item_id):
 
 @login_required
 def api_search_customers(request):
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (
+        user_has_perm(request.user, "pos_access") or
+        user_has_perm(request.user, "pos_create_order") or
+        user_has_perm(request.user, "call_center_access") or
+        user_has_perm(request.user, "call_center_create_order") or
+        user_has_perm(request.user, "call_center_view_customers")
+    ):
+        return JsonResponse({"error": "غير مصرح لك بالبحث في دليل بيانات العملاء"}, status=403)
+
     q = request.GET.get("q", "").strip()
     if len(q) < 3:
         return JsonResponse({"customers": []})
@@ -2306,7 +2368,7 @@ def api_create_employee(request):
 
     raw_role = str(data.get("role") or "").strip()
     if not raw_role and job_role:
-        perms = set(job_role.permissions or [])
+        perms = set(job_role.get_permissions_list())
         if "pos_access" in perms:
             raw_role = "cashier"
         elif "kds_access" in perms:
@@ -2583,8 +2645,18 @@ def api_toggle_employee_status(request, emp_id):
 
 @login_required
 def api_employee_detail(request, emp_id):
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "hr_view_employees") or user_has_perm(request.user, "manage_employees")):
+        return JsonResponse({"error": "غير مصرح لك باستعراض تفاصيل الموظفين"}, status=403)
+
     tenant = get_active_tenant(request)
     emp = get_object_or_404(Employee.objects.select_related("user", "job_role", "branch"), tenant=tenant, id=emp_id)
+
+    # Branch managers can only view details of employees in their own branch
+    if not is_owner_or_super and profile and profile.branch and emp.branch != profile.branch:
+        return JsonResponse({"error": "غير مصرح لك باستعراض موظفي الفروع الأخرى"}, status=403)
 
     perm_labels_map = dict(RESTAURANT_PERMISSIONS)
     permissions_detail = []
@@ -2594,8 +2666,8 @@ def api_employee_detail(request, emp_id):
         for p in emp.user.get_all_permissions():
             codename = p.split(".")[-1]
             effective_perms.add(codename)
-    if emp.job_role and emp.job_role.permissions:
-        effective_perms.update(emp.job_role.permissions)
+    if emp.job_role:
+        effective_perms.update(emp.job_role.get_permissions_list())
 
     for k in sorted(effective_perms):
         permissions_detail.append({
@@ -2605,6 +2677,9 @@ def api_employee_detail(request, emp_id):
 
     delivered_orders_count = Order.objects.filter(driver=emp).count()
 
+    can_view_salary = is_owner_or_super or user_has_perm(request.user, "hr_manage_salaries") or user_has_perm(request.user, "manage_employees")
+    salary_display = str(emp.salary) if can_view_salary else "••••"
+
     data = {
         "ok": True,
         "employee": {
@@ -2612,7 +2687,8 @@ def api_employee_detail(request, emp_id):
             "name": emp.name,
             "phone": emp.phone,
             "employee_code": emp.employee_code,
-            "salary": str(emp.salary),
+            "salary": salary_display,
+            "can_view_salary": can_view_salary,
             "status": emp.status,
             "status_display": emp.get_status_display(),
             "hire_date": emp.hire_date.strftime("%Y-%m-%d") if emp.hire_date else "",
@@ -3142,9 +3218,9 @@ def landing_view(request):
 def owner_subscription_view(request):
     """Owner dashboard for viewing current subscription, limits usage, and requesting upgrades."""
     profile = getattr(request.user, "profile", None)
-    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin)) or user_has_perm(request.user, "system_manage_billing")
     if not is_owner:
-        return HttpResponseForbidden("صفحة إدارة الاشتراك مخصصة لمالك المنشأة فقط")
+        return HttpResponseForbidden("صفحة إدارة الاشتراك مخصصة لمالك المنشأة أو المسؤول المخول بالفوترة")
 
     tenant = get_active_tenant(request)
     if not tenant:
@@ -3231,9 +3307,9 @@ def api_request_upgrade(request):
         return HttpResponseBadRequest("POST required")
 
     profile = getattr(request.user, "profile", None)
-    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin)) or user_has_perm(request.user, "system_manage_billing")
     if not is_owner:
-        return JsonResponse({"error": "طلب الترقية مقتصر على مالك المنشأة فقط"}, status=403)
+        return JsonResponse({"error": "طلب الترقية مقتصر على مالك المنشأة أو المسؤول المخول بالفوترة فقط"}, status=403)
 
     tenant = get_active_tenant(request)
     if not tenant:
@@ -3443,9 +3519,9 @@ def ai_callcenter_management_view(request):
     - Live Call Logs, Audio Playback & Transcripts
     """
     profile = getattr(request.user, "profile", None)
-    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin)) or user_has_perm(request.user, "call_center_manage_ai")
     if not is_owner:
-        return HttpResponseForbidden("صفحة إدارة المساعد الصوتي مخصصة لمالك المنشأة فقط")
+        return HttpResponseForbidden("صفحة إدارة المساعد الصوتي مخصصة لمالك المنشأة أو المسؤول المخول بالذكاء الاصطناعي")
 
     tenant = get_active_tenant(request)
     if not tenant:
@@ -3592,6 +3668,40 @@ def _check_callcenter_admin(request):
     if not is_owner and not user_has_perm(request.user, "call_center_manage_ai"):
         return JsonResponse({"status": "error", "message": "غير مصرح لك بإدارة إعدادات وكيل الذكاء الاصطناعي"}, status=403)
     return None
+
+
+def _authenticate_callcenter_request(request):
+    """
+    Validates that the request is made by an authorized call center admin
+    (either an authenticated user with call_center_manage_ai or owner,
+     or an external system bearing a valid TenantApiKey).
+    """
+    if request.user and request.user.is_authenticated:
+        return _check_callcenter_admin(request)
+
+    # Check for access_key in headers, query, or body safely
+    api_key_str = request.headers.get("X-API-Key") or request.GET.get("access_key")
+    if not api_key_str:
+        if getattr(request, "content_type", "") == "application/json":
+            try:
+                body = json.loads(request.body.decode("utf-8"))
+                api_key_str = body.get("access_key")
+            except Exception:
+                pass
+        else:
+            try:
+                api_key_str = request.POST.get("access_key")
+            except Exception:
+                pass
+
+    if api_key_str:
+        from core.models import TenantApiKey
+        key_obj = TenantApiKey.objects.filter(key=api_key_str, is_active=True).first()
+        if key_obj:
+            request.tenant = key_obj.tenant
+            return None
+
+    return JsonResponse({"status": "error", "message": "غير مصرح. يرجى تسجيل الدخول بحساب مخول أو إرسال مفتاح access_key صالح."}, status=401)
 
 
 @login_required
@@ -3857,10 +3967,9 @@ def api_ai_callcenter_add_queue_member(request, queue_id):
     """API to add an employee member to a call queue with penalty priority."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
-    profile = getattr(request.user, "profile", None)
-    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
-    if not is_owner:
-        return JsonResponse({"status": "error", "message": "غير مصرح"}, status=403)
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
 
     tenant = get_active_tenant(request)
     from core import partner_service as ps
@@ -3886,7 +3995,11 @@ def api_ai_callcenter_sync_mcp(request):
     """Triggers live tool synchronization between FastMCP and Partner Voice Platform."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
-    tenant = get_active_tenant(request)
+    err = _authenticate_callcenter_request(request)
+    if err:
+        return err
+
+    tenant = getattr(request, "tenant", None) or get_active_tenant(request)
     if not tenant:
         from core.models import Tenant
         tenant = Tenant.objects.first()
@@ -3909,7 +4022,11 @@ def api_ai_callcenter_update_mcp_url(request):
     """Updates the live MCP server URL in Partner Voice Platform."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
-    tenant = get_active_tenant(request)
+    err = _authenticate_callcenter_request(request)
+    if err:
+        return err
+
+    tenant = getattr(request, "tenant", None) or get_active_tenant(request)
     if not tenant:
         from core.models import Tenant
         tenant = Tenant.objects.first()
@@ -3943,7 +4060,11 @@ def api_ai_callcenter_test_mcp_tool(request):
     """Executes a live tool call directly to test it from the dashboard or external systems."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
-    tenant = get_active_tenant(request)
+    err = _authenticate_callcenter_request(request)
+    if err:
+        return err
+
+    tenant = getattr(request, "tenant", None) or get_active_tenant(request)
     if not tenant:
         from core.models import Tenant
         tenant = Tenant.objects.first()
@@ -4022,6 +4143,10 @@ def api_ai_callcenter_sync_live_context(request):
     """Trigger immediate live context compilation and Redis sync for client."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+
     tenant = get_active_tenant(request)
     if not tenant:
         return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة نشطة."}, status=400)
@@ -4036,6 +4161,10 @@ def api_ai_callcenter_sync_live_context(request):
 @login_required
 def api_ai_callcenter_get_live_context(request):
     """Retrieve current cached live context from Partner PBX."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+
     tenant = get_active_tenant(request)
     if not tenant:
         return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة نشطة."}, status=400)

@@ -250,6 +250,79 @@ assert_test(res_menu_del.status_code == 403, f"Cashier lacking menu_delete_item 
 res_callcenter = client.post("/api/ai-callcenter/profiles/create/", data=json.dumps({"name": "Unauthorized Voice Agent"}), content_type="application/json")
 assert_test(res_callcenter.status_code == 403, f"Cashier lacking call_center_manage_ai blocked from AI voice agent creation (HTTP 403)")
 
+# 14. Employee detail API security & crash prevention
+res_emp_detail_unauth = client.get(f"/api/employees/{test_emp.id}/detail/")
+assert_test(res_emp_detail_unauth.status_code == 403, f"Cashier lacking hr_view_employees blocked from employee detail API (HTTP 403)")
+
+res_emp_detail_owner = owner_client.get(f"/api/employees/{test_emp.id}/detail/")
+assert_test(res_emp_detail_owner.status_code == 200, f"Owner can view employee detail API without crash (HTTP 200)")
+emp_detail_json = res_emp_detail_owner.json()
+assert_test("employee" in emp_detail_json and emp_detail_json["employee"]["can_view_salary"] is True, "Owner can view employee salary in detail")
+
+# 15. Customer Search Protection
+chef_user = User.objects.create_user(username="temp_chef_test", password="password123")
+chef_role = JobRole.objects.get(tenant=tenant, name="طاهٍ رئيسي / مطبخ")
+chef_user.groups.add(chef_role.group)
+chef_client = Client()
+chef_client.login(username="temp_chef_test", password="password123")
+res_cust_search_chef = chef_client.get("/api/customers/search/?q=050")
+assert_test(res_cust_search_chef.status_code == 403, "Chef lacking pos_access and call_center_access blocked from searching customers (HTTP 403)")
+chef_user.delete()
+
+# 16. FastMCP & AI Call Center Unauthenticated Endpoint Security
+anon_client = Client()
+res_mcp_test = anon_client.post("/api/ai-callcenter/mcp/test-tool/", data=json.dumps({"tool_name": "get_menu"}), content_type="application/json")
+assert_test(res_mcp_test.status_code == 401, "Unauthenticated request to test_mcp_tool blocked (HTTP 401)")
+
+res_mcp_sync = anon_client.post("/api/ai-callcenter/mcp/sync/")
+assert_test(res_mcp_sync.status_code == 401, "Unauthenticated request to sync_mcp blocked (HTTP 401)")
+
+res_mcp_url = anon_client.post("/api/ai-callcenter/mcp/update-url/", data=json.dumps({"server_url": "https://evil.com"}), content_type="application/json")
+assert_test(res_mcp_url.status_code == 401, "Unauthenticated request to update_mcp_url blocked (HTTP 401)")
+
+# 17. AI Live Context APIs permission checks
+res_live_ctx_sync = client.post("/api/ai-callcenter/sync-live-context/")
+assert_test(res_live_ctx_sync.status_code == 403, "Cashier lacking call_center_manage_ai blocked from live context sync (HTTP 403)")
+
+res_live_ctx_get = client.get("/api/ai-callcenter/get-live-context/")
+assert_test(res_live_ctx_get.status_code == 403, "Cashier lacking call_center_manage_ai blocked from get live context (HTTP 403)")
+
+res_add_queue_member = client.post("/api/ai-callcenter/queues/1/members/add/", data=json.dumps({"employee_id": test_emp.id}), content_type="application/json")
+assert_test(res_add_queue_member.status_code == 403, "Cashier lacking call_center_manage_ai blocked from queue member add (HTTP 403)")
+
+# 18. Django Admin JobRoleAdmin.permissions_count crash prevention
+from core.admin import JobRoleAdmin
+from django.contrib.admin.sites import AdminSite
+admin_inst = JobRoleAdmin(JobRole, AdminSite())
+count = admin_inst.permissions_count(test_role)
+assert_test(count == len(test_role.get_permissions_list()), f"JobRoleAdmin.permissions_count correctly executes without AttributeError (Count: {count})")
+
+# 19. Granular UI page access gates (Read-only / specialized roles)
+# A. menu_view grants access to branch_menu_view
+test_role.set_permissions(["menu_view"])
+client_res_menu = client.get("/branch/menu/")
+assert_test(client_res_menu.status_code == 200, "User with granular 'menu_view' allowed to access branch_menu_view (HTTP 200)")
+
+# B. inventory_view grants access to inventory_view
+test_role.set_permissions(["inventory_view"])
+client_res_inv = client.get("/inventory/")
+assert_test(client_res_inv.status_code == 200, "User with granular 'inventory_view' allowed to access inventory_view (HTTP 200)")
+
+# C. hr_view_employees grants access to employees_view
+test_role.set_permissions(["hr_view_employees"])
+client_res_emp = client.get("/employees/")
+assert_test(client_res_emp.status_code == 200, "User with granular 'hr_view_employees' allowed to access employees_view (HTTP 200)")
+
+# D. system_manage_billing grants access to owner_subscription_view
+test_role.set_permissions(["system_manage_billing"])
+client_res_sub = client.get("/subscription/")
+assert_test(client_res_sub.status_code == 200, "User with granular 'system_manage_billing' allowed to access owner_subscription_view (HTTP 200)")
+
+# E. call_center_manage_ai grants access to ai_callcenter_management_view
+test_role.set_permissions(["call_center_manage_ai"])
+client_res_ai = client.get("/ai-callcenter/")
+assert_test(client_res_ai.status_code == 200, "User with granular 'call_center_manage_ai' allowed to access ai_callcenter_management_view (HTTP 200)")
+
 # -----------------------------------------------------------------------------
 # TEST SUITE 4: Subscription Plan Feature Normalization
 # -----------------------------------------------------------------------------
