@@ -39,7 +39,19 @@ from .models import (
     SAAS_FEATURES_CATALOG,
     UpgradeRequest,
     TenantApiKey,
+    AuditLog,
+    log_audit_event,
 )
+
+
+def _get_client_ip(request):
+    """Safely extracts client IP address from HTTP request headers."""
+    if not request:
+        return None
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")
 
 
 def get_active_tenant(request):
@@ -1999,32 +2011,65 @@ def api_update_order(request, order_id):
         return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
 
     action = data.get("action")
+    old_status = order.status
     if action == "refund" or data.get("status") == "refunded" or data.get("refund"):
         if not is_owner_or_super and not user_has_perm(request.user, "pos_refund_order"):
             return JsonResponse({"error": "غير مصرح لك باسترجاع الفواتير ورد المبالغ للعميل"}, status=403)
         order.status = "cancelled"
         order.paid = False
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="order_refunded",
+            target_model="Order",
+            target_id=order.id,
+            description=f"استرجاع الفاتورة #{order.order_number} وإعادة المبلغ بقيمة {order.total} ر.س",
+            ip_address=_get_client_ip(request),
+        )
 
-    old_status = order.status
     if "status" in data and data["status"] in dict(Order.STATUS_CHOICES):
         new_status = data["status"]
         if new_status == "cancelled":
             if not is_owner_or_super and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
                 return JsonResponse({"error": "غير مصرح لك بإلغاء الفواتير أو الطلبات"}, status=403)
-        elif new_status in ["preparing", "ready", "completed"]:
-            # Recalling an already completed or ready order back to preparing/new
-            if old_status in ["ready", "completed", "delivered"] and new_status in ["new", "preparing"]:
-                if not is_owner_or_super and not (user_has_perm(request.user, "kds_recall_order") or user_has_perm(request.user, "edit_orders")):
-                    return JsonResponse({"error": "غير مصرح لك باسترجاع طلب تم إنجازه إلى شاشة الطهي (يتطلب صلاحية استرجاع الطلبات)"}, status=403)
-            elif not is_owner_or_super and not (user_has_perm(request.user, "kds_update_status") or user_has_perm(request.user, "kds_access") or user_has_perm(request.user, "edit_orders")):
-                return JsonResponse({"error": "غير مصرح لك بتحديث حالة تحضير الطلب في المطبخ"}, status=403)
-        elif new_status in ["out_for_delivery", "delivered"]:
-            if not is_owner_or_super and not (
-                user_has_perm(request.user, "delivery_access") or
-                user_has_perm(request.user, "delivery_override_status") or
-                user_has_perm(request.user, "edit_orders")
-            ):
-                return JsonResponse({"error": "غير مصرح لك بتحديث مسار وحالة توصيل الطلب"}, status=403)
+            if old_status != "cancelled":
+                log_audit_event(
+                    tenant=tenant,
+                    user=request.user,
+                    action="order_cancelled",
+                    target_model="Order",
+                    target_id=order.id,
+                    description=f"إلغاء الفاتورة #{order.order_number}",
+                    ip_address=_get_client_ip(request),
+                )
+        else:
+            if old_status == "cancelled":
+                if not is_owner_or_super and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
+                    return JsonResponse({"error": "لا يمكن إعادة تنشيط طلب تم إلغاؤه إلا بإذن المالك أو مسؤول الإلغاءات"}, status=403)
+                log_audit_event(
+                    tenant=tenant,
+                    user=request.user,
+                    action="order_reactivated",
+                    target_model="Order",
+                    target_id=order.id,
+                    description=f"إعادة تنشيط الطلب الملغي #{order.order_number} إلى حالة «{new_status}»",
+                    ip_address=_get_client_ip(request),
+                )
+
+            if new_status in ["preparing", "ready"]:
+                # Recalling an already ready or delivered order back to preparing/new
+                if old_status in ["ready", "delivered"] and new_status in ["new", "preparing"]:
+                    if not is_owner_or_super and not (user_has_perm(request.user, "kds_recall_order") or user_has_perm(request.user, "edit_orders")):
+                        return JsonResponse({"error": "غير مصرح لك باسترجاع طلب تم إنجازه إلى شاشة الطهي (يتطلب صلاحية استرجاع الطلبات)"}, status=403)
+                elif not is_owner_or_super and not (user_has_perm(request.user, "kds_update_status") or user_has_perm(request.user, "kds_access") or user_has_perm(request.user, "edit_orders")):
+                    return JsonResponse({"error": "غير مصرح لك بتحديث حالة تحضير الطلب في المطبخ"}, status=403)
+            elif new_status in ["out_for_delivery", "delivered"]:
+                if not is_owner_or_super and not (
+                    user_has_perm(request.user, "delivery_access") or
+                    user_has_perm(request.user, "delivery_override_status") or
+                    user_has_perm(request.user, "edit_orders")
+                ):
+                    return JsonResponse({"error": "غير مصرح لك بتحديث مسار وحالة توصيل الطلب"}, status=403)
         order.status = new_status
 
     if "driverId" in data:
@@ -2049,6 +2094,8 @@ def api_update_order(request, order_id):
     if "paid" in data and isinstance(data["paid"], bool):
         if not is_owner_or_super and not (user_has_perm(request.user, "pos_access") or user_has_perm(request.user, "edit_orders")):
             return JsonResponse({"error": "غير مصرح لك بتحديث حالة دفع الفاتورة"}, status=403)
+        if order.status == "cancelled" and data["paid"] is True:
+            return JsonResponse({"error": "لا يمكن تأكيد دفع فاتورة تم إلغاؤها"}, status=400)
         order.paid = data["paid"]
 
     order.save()
@@ -2111,18 +2158,37 @@ def api_search_customers(request):
         return JsonResponse({"customers": []})
 
     tenant = get_active_tenant(request)
-    customers = Customer.objects.filter(
-        tenant=tenant
-    ).filter(Q(phone__icontains=q) | Q(name__icontains=q))[:8]
+    can_cross = (
+        is_owner_or_super
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or not (profile and profile.branch)
+    )
+
+    customers_qs = Customer.objects.filter(tenant=tenant)
+    if not can_cross and profile and profile.branch:
+        branch_cust_ids = Order.objects.filter(
+            tenant=tenant, branch=profile.branch, customer__isnull=False
+        ).values_list("customer_id", flat=True)
+        customers_qs = customers_qs.filter(id__in=branch_cust_ids)
+
+    customers = customers_qs.filter(Q(phone__icontains=q) | Q(name__icontains=q))[:8]
 
     data = []
     for c in customers:
+        if not can_cross and profile and profile.branch:
+            orders_count = Order.objects.filter(tenant=tenant, branch=profile.branch, customer=c).count()
+        else:
+            orders_count = Order.objects.filter(tenant=tenant, customer=c).count()
+
         data.append({
             "id": c.id,
             "name": c.name,
             "phone": c.phone,
             "address": c.address,
-            "ordersCount": Order.objects.filter(customer=c).count(),
+            "ordersCount": orders_count,
         })
     return JsonResponse({"customers": data})
 
@@ -2744,6 +2810,16 @@ def api_create_employee(request):
         else:
             user_obj.groups.clear()
 
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="employee_created",
+            target_model="Employee",
+            target_id=emp.id,
+            description=f"إضافة موظف جديد «{emp.name}» كود ({code}) ومسمى «{emp.job_role.name if emp.job_role else emp.role}»",
+            ip_address=_get_client_ip(request),
+        )
+
     return JsonResponse({
         "ok": True,
         "id": emp.id,
@@ -2901,6 +2977,17 @@ def api_update_employee(request, emp_id):
         emp.user.profile.save()
 
     emp.save()
+
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="employee_updated",
+        target_model="Employee",
+        target_id=emp.id,
+        description=f"تحديث بيانات الموظف «{emp.name}» (الحالة: {emp.status}, المسمى: {emp.job_role.name if emp.job_role else emp.role})",
+        ip_address=_get_client_ip(request),
+    )
+
     return JsonResponse({"ok": True, "employeeCode": emp.employee_code, "hasPin": bool(emp.pin_code)})
 
 
@@ -2954,6 +3041,15 @@ def api_delete_employee(request, emp_id):
                 emp.user.is_active = False
                 emp.user.groups.clear()
                 emp.user.save(update_fields=["is_active"])
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="employee_archived",
+                target_model="Employee",
+                target_id=emp.id,
+                description=f"أرشفة وتجميد الموظف «{emp.name}» كود {emp.employee_code}",
+                ip_address=_get_client_ip(request),
+            )
             return JsonResponse({
                 "ok": True,
                 "action": "archived",
@@ -2962,7 +3058,17 @@ def api_delete_employee(request, emp_id):
         else:
             # Hard delete
             emp_name = emp.name
+            emp_id_val = emp.id
             user_obj = emp.user
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="employee_deleted",
+                target_model="Employee",
+                target_id=emp_id_val,
+                description=f"حذف الموظف «{emp_name}» نهائياً",
+                ip_address=_get_client_ip(request),
+            )
             emp.delete()
             if user_obj:
                 user_obj.delete()
@@ -3005,6 +3111,16 @@ def api_toggle_employee_status(request, emp_id):
     if emp.user:
         emp.user.is_active = (emp.status == "active")
         emp.user.save(update_fields=["is_active"])
+
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="employee_status_toggled",
+        target_model="Employee",
+        target_id=emp.id,
+        description=f"تغيير حالة الموظف «{emp.name}» إلى {emp.status}",
+        ip_address=_get_client_ip(request),
+    )
 
     return JsonResponse({
         "ok": True,
@@ -3227,6 +3343,16 @@ def api_job_roles(request):
         role.set_permissions(permissions)
         perms_list = role.get_permissions_list()
 
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="role_created",
+            target_model="JobRole",
+            target_id=role.id,
+            description=f"إنشاء مسمى وظيفي جديد «{role.name}» (النطاق: {role.scope})",
+            ip_address=_get_client_ip(request),
+        )
+
         return JsonResponse({
             "ok": True,
             "role": {
@@ -3255,6 +3381,9 @@ def api_job_role_detail(request, role_id):
     if not is_owner_or_super and not user_has_perm(request.user, "manage_roles"):
         return JsonResponse({"error": "غير مصرح لك بتعديل أو حذف المسميات الوظيفية"}, status=403)
 
+    if role.is_system and not is_owner_or_super:
+        return JsonResponse({"error": "فقط مالك المنشأة أو مدير النظام يمكنه تعديل الأدوار الأساسية للنظام أو صلاحياتها"}, status=403)
+
     if request.method in ["POST", "PATCH", "PUT"]:
         try:
             body = json.loads(request.body.decode("utf-8"))
@@ -3269,6 +3398,15 @@ def api_job_role_detail(request, role_id):
                 return JsonResponse({
                     "error": f"لا يمكن حذف المسمى «{role.name}» لوجود {role.employees.count()} موظف مرتبطين به. يرجى نقلهم لمسمى آخر أولاً."
                 }, status=400)
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="role_deleted",
+                target_model="JobRole",
+                target_id=role.id,
+                description=f"حذف المسمى الوظيفي «{role.name}»",
+                ip_address=_get_client_ip(request),
+            )
             role.delete()
             return JsonResponse({"ok": True, "message": "تم حذف المسمى الوظيفي بنجاح"})
 
@@ -3303,6 +3441,15 @@ def api_job_role_detail(request, role_id):
                         delattr(emp.user, cache_field)
 
         perms_list = role.get_permissions_list()
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="role_updated",
+            target_model="JobRole",
+            target_id=role.id,
+            description=f"تحديث المسمى الوظيفي «{role.name}» (النطاق: {role.scope}) والصلاحيات: {perms_list}",
+            ip_address=_get_client_ip(request),
+        )
         return JsonResponse({
             "ok": True,
             "role": {
@@ -4396,8 +4543,7 @@ def api_ai_callcenter_sync_mcp(request):
 
     tenant = getattr(request, "tenant", None) or get_active_tenant(request)
     if not tenant:
-        from core.models import Tenant
-        tenant = Tenant.objects.first()
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة صالحة أو مصرح بها."}, status=400)
 
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -4423,8 +4569,7 @@ def api_ai_callcenter_update_mcp_url(request):
 
     tenant = getattr(request, "tenant", None) or get_active_tenant(request)
     if not tenant:
-        from core.models import Tenant
-        tenant = Tenant.objects.first()
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة صالحة أو مصرح بها."}, status=400)
 
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
@@ -4461,8 +4606,7 @@ def api_ai_callcenter_test_mcp_tool(request):
 
     tenant = getattr(request, "tenant", None) or get_active_tenant(request)
     if not tenant:
-        from core.models import Tenant
-        tenant = Tenant.objects.first()
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة صالحة أو مصرح بها."}, status=400)
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
@@ -4600,3 +4744,37 @@ def set_language_view(request, lang_code):
         samesite="Lax"
     )
     return response
+
+
+@login_required
+def api_audit_logs(request):
+    """API endpoint to query sensitive system audit logs for tenant owners/administrators."""
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (
+        user_has_perm(request.user, "system_view_audit_logs") or
+        user_has_perm(request.user, "system_manage_roles") or
+        user_has_perm(request.user, "manage_roles")
+    ):
+        return JsonResponse({"error": "غير مصرح لك باستعراض سجل التدقيق الأمني"}, status=403)
+
+    logs = AuditLog.objects.filter(tenant=tenant).select_related("user")[:100]
+    data = []
+    for l in logs:
+        user_display = "النظام"
+        if l.user:
+            user_display = l.user.get_full_name() or l.user.username
+        data.append({
+            "id": l.id,
+            "action": l.action,
+            "user": user_display,
+            "targetModel": l.target_model,
+            "targetId": l.target_id,
+            "description": l.description,
+            "ipAddress": l.ip_address,
+            "createdAt": l.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+    return JsonResponse({"ok": True, "logs": data})
+

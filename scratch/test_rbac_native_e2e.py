@@ -1040,6 +1040,131 @@ hr_creator_emp.delete()
 hr_creator_user.delete()
 hr_creator_role.delete()
 
+print("\n--- SUITE 12: Tenant Fallback, System Role Protection, FastMCP Expiration, Order Inversion & Audit Trail ---")
+
+# 1. Tenant Fallback Removal in AI Call Center MCP
+c_anon = Client()
+res_anon_sync = c_anon.post("/api/ai-callcenter/mcp/sync/")
+assert_test(res_anon_sync.status_code in [400, 401], "Unauthenticated MCP sync blocked without leaking first tenant")
+
+# 2. System Role Modification Protection
+User.objects.filter(username="s12_mgr").delete()
+JobRole.objects.filter(tenant=tenant, name="Role Manager S12").delete()
+s12_mgr_user = User.objects.create_user(username="s12_mgr", password="password123")
+s12_mgr_role = JobRole.objects.create(tenant=tenant, name="Role Manager S12", scope="branch")
+s12_mgr_role.set_permissions(["manage_roles", "system_manage_roles"])
+s12_mgr_emp = Employee.objects.create(tenant=tenant, branch=branch, user=s12_mgr_user, name="S12 Mgr", status="active", job_role=s12_mgr_role)
+UserProfile.objects.update_or_create(user=s12_mgr_user, defaults={"tenant": tenant, "branch": branch, "role": "manager", "job_role": s12_mgr_role})
+
+c_s12 = Client()
+c_s12.login(username="s12_mgr", password="password123")
+session_s12 = c_s12.session
+session_s12["active_tenant_id"] = tenant.id
+session_s12["active_branch_id"] = branch.id
+session_s12.save()
+
+sys_role = JobRole.objects.filter(tenant=tenant, is_system=True).first()
+if not sys_role:
+    sys_role = JobRole.objects.create(tenant=tenant, name="المالك الأساسي", is_system=True, scope="both")
+
+res_edit_sys = c_s12.post(f"/api/job-roles/{sys_role.id}/", data=json.dumps({"name": "Tampered Owner", "permissions": []}), content_type="application/json")
+assert_test(res_edit_sys.status_code == 403 and "الأساسية" in res_edit_sys.json().get("error", ""), "Subordinate with manage_roles blocked from modifying is_system role (HTTP 403)")
+
+c_owner = Client()
+c_owner.force_login(owner_user)
+session_own = c_owner.session
+session_own["active_tenant_id"] = tenant.id
+session_own["active_branch_id"] = branch.id
+session_own.save()
+
+res_owner_edit = c_owner.post(f"/api/job-roles/{sys_role.id}/", data=json.dumps({"description": "Updated by Owner"}), content_type="application/json")
+assert_test(res_owner_edit.status_code == 200, "Owner allowed to update system role (HTTP 200)")
+
+# 3. FastMCP Temporal Subscription Expiration
+from django.utils import timezone
+from core.models import TenantApiKey
+from core import mcp_server as ms
+TenantApiKey.objects.filter(key="mcp_test_key_s12").delete()
+s12_api_key = TenantApiKey.objects.create(tenant=tenant, key="mcp_test_key_s12", is_active=True)
+orig_end = tenant.subscription_end
+tenant.subscription_end = timezone.now() - timezone.timedelta(days=2)
+tenant.save()
+
+try:
+    ms._authenticate("mcp_test_key_s12")
+    mcp_blocked = False
+except ValueError as e:
+    mcp_blocked = "منتهي أو ملغي" in str(e)
+assert_test(mcp_blocked, "FastMCP _authenticate strictly rejects access when subscription_end is in the past")
+
+tenant.subscription_end = orig_end
+tenant.save()
+s12_api_key.delete()
+
+# 4. Order State Inversion Safeguards (Cancelled/Refunded Orders)
+Order.objects.filter(order_number="S12-ORD-001").delete()
+s12_order = Order.objects.create(
+    tenant=tenant,
+    branch=branch,
+    order_number="S12-ORD-001",
+    status="cancelled",
+    paid=False,
+    subtotal=Decimal("100.00"),
+    total=Decimal("100.00")
+)
+
+s12_mgr_role.set_permissions(["edit_orders", "pos_access"])
+res_reactivate_fail = c_s12.post(f"/api/orders/{s12_order.id}/", data=json.dumps({"status": "preparing"}), content_type="application/json")
+assert_test(res_reactivate_fail.status_code == 403 and "إعادة تنشيط" in res_reactivate_fail.json().get("error", ""), "Staff lacking cancel permissions blocked from reactivating cancelled order (HTTP 403)")
+
+res_pay_cancelled = c_s12.post(f"/api/orders/{s12_order.id}/", data=json.dumps({"paid": True}), content_type="application/json")
+assert_test(res_pay_cancelled.status_code == 400 and "إلغاؤها" in res_pay_cancelled.json().get("error", ""), "Marking cancelled order as paid blocked with HTTP 400")
+
+s12_mgr_role.set_permissions(["edit_orders", "pos_cancel_order", "pos_access"])
+res_reactivate_ok = c_s12.post(f"/api/orders/{s12_order.id}/", data=json.dumps({"status": "preparing"}), content_type="application/json")
+assert_test(res_reactivate_ok.status_code == 200, "Supervisor with pos_cancel_order successfully reactivated order (HTTP 200)")
+s12_order.refresh_from_db()
+assert_test(s12_order.status == "preparing", "Order status correctly moved from cancelled to preparing")
+
+# 5. Customer Directory Isolation & Scoping
+from core.models import Customer
+Branch.objects.filter(tenant=tenant, name="Branch C2 S12").delete()
+Customer.objects.filter(tenant=tenant, phone__in=["0599990001", "0599990002"]).delete()
+branch_c2 = Branch.objects.create(tenant=tenant, name="Branch C2 S12", status="active")
+cust_a = Customer.objects.create(tenant=tenant, name="Customer Branch A", phone="0599990001", address="Zone A")
+cust_b = Customer.objects.create(tenant=tenant, name="Customer Branch B", phone="0599990002", address="Zone B")
+Order.objects.create(tenant=tenant, branch=branch, customer=cust_a, order_number="ORD-CA-1", subtotal=10, total=10)
+Order.objects.create(tenant=tenant, branch=branch_c2, customer=cust_b, order_number="ORD-CB-1", subtotal=10, total=10)
+
+s12_mgr_role.set_permissions(["pos_access", "pos_create_order"])
+res_search_branch = c_s12.get("/api/customers/search/?q=059999")
+assert_test(res_search_branch.status_code == 200, "Branch cashier can search customers (HTTP 200)")
+found_names = [c["name"] for c in res_search_branch.json().get("customers", [])]
+assert_test("Customer Branch A" in found_names and "Customer Branch B" not in found_names, "Branch-locked cashier only sees customers with history in their branch")
+
+res_search_owner = c_owner.get("/api/customers/search/?q=059999")
+found_names_owner = [c["name"] for c in res_search_owner.json().get("customers", [])]
+assert_test("Customer Branch A" in found_names_owner and "Customer Branch B" in found_names_owner, "Owner sees customers across all branches")
+
+# 6. AuditLog Verification
+from core.models import AuditLog
+logs_count = AuditLog.objects.filter(tenant=tenant).count()
+assert_test(logs_count > 0, f"AuditLog successfully recorded sensitive events (Found {logs_count} logs)")
+
+res_audit_owner = c_owner.get("/api/audit-logs/")
+assert_test(res_audit_owner.status_code == 200 and len(res_audit_owner.json().get("logs", [])) > 0, "Owner can access api_audit_logs endpoint (HTTP 200)")
+
+res_audit_cashier = c_s12.get("/api/audit-logs/")
+assert_test(res_audit_cashier.status_code == 403, "Cashier without system_view_audit_logs blocked from api_audit_logs (HTTP 403)")
+
+cust_a.delete()
+cust_b.delete()
+branch_c2.delete()
+s12_order.delete()
+s12_mgr_emp.delete()
+s12_mgr_user.delete()
+s12_mgr_role.delete()
+
 print("\n======================================================================")
 print(f"  VERIFICATION FINISHED: {passed_tests} PASSED, {failed_tests} FAILED")
 print("======================================================================")

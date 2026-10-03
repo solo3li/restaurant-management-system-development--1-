@@ -323,6 +323,7 @@ RESTAURANT_PERMISSIONS = [
     ("system_assign_permissions", "منح أو سحب صلاحيات مباشرة استثنائية لموظف بعينه"),
     ("system_manage_settings", "تعديل بيانات المنشأة والهوية والرقم الضريبي واللوجو"),
     ("system_manage_billing", "إدارة باقة الاشتراك والفوترة وتجديد اشتراك المنصة"),
+    ("system_view_audit_logs", "استعراض سجل التدقيق الأمني ومراقبة العمليات الحساسة"),
     ("manage_roles", "إدارة المسميات والصلاحيات"),
 ]
 
@@ -455,6 +456,7 @@ PERMISSIONS_CATALOG = [
             {"key": "system_assign_permissions", "label": "تخصيص صلاحيات استثنائية لموظف", "desc": "منح أو سحب صلاحيات فردية لموظف دون تغيير مسمى عمله"},
             {"key": "system_manage_settings", "label": "إعدادات المنشأة والهوية والضريبة", "desc": "تعديل اسم المطعم والشعار والرقم الضريبي"},
             {"key": "system_manage_billing", "label": "إدارة الفوترة والاشتراك السحابي", "desc": "الاطلاع على باقة SaaS وتجديد الاشتراك"},
+            {"key": "system_view_audit_logs", "label": "سجل التدقيق الأمني والعمليات الحساسة", "desc": "الاطلاع على سجل تغيير الصلاحيات وإلغاء الفواتير وتعديل الموظفين"},
             {"key": "manage_roles", "label": "إدارة المسميات - توافقي", "desc": "إدارة الصلاحيات والمسميات"},
         ]
     },
@@ -1248,6 +1250,44 @@ class TenantApiKey(models.Model):
         if placed_order:
             self.total_orders_placed += 1
         self.save(update_fields=["last_used_at", "total_orders_placed"])
+
+
+class AuditLog(models.Model):
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="audit_logs", verbose_name="المنشأة")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="audit_logs", verbose_name="المستخدم المنفذ")
+    action = models.CharField(max_length=64, verbose_name="نوع العملية")
+    target_model = models.CharField(max_length=64, blank=True, verbose_name="النموذج المتأثر")
+    target_id = models.CharField(max_length=64, blank=True, verbose_name="معرف السجل")
+    description = models.TextField(blank=True, verbose_name="تفاصيل العملية")
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="عنوان IP")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ العملية")
+
+    class Meta:
+        verbose_name = "سجل التدقيق الأمني"
+        verbose_name_plural = "سجلات التدقيق الأمني"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"[{self.created_at:%Y-%m-%d %H:%M}] {self.action} - {self.tenant.name}"
+
+
+def log_audit_event(tenant, user=None, action="", target_model="", target_id="", description="", ip_address=None):
+    """Utility function to log sensitive security or financial actions safely."""
+    try:
+        if not tenant:
+            return None
+        return AuditLog.objects.create(
+            tenant=tenant,
+            user=user if user and getattr(user, "is_authenticated", False) else None,
+            action=action,
+            target_model=target_model,
+            target_id=str(target_id) if target_id is not None else "",
+            description=description,
+            ip_address=ip_address,
+        )
+    except Exception:
+        return None
+
 
 
 

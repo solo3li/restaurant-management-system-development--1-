@@ -87,5 +87,6 @@ urlpatterns = [
     path("api/ai-callcenter/mcp/test-tool/", views.api_ai_callcenter_test_mcp_tool, name="api_ai_callcenter_test_mcp_tool"),
     path("api/ai-callcenter/sync-live-context/", views.api_ai_callcenter_sync_live_context, name="api_ai_callcenter_sync_live_context"),
     path("api/ai-callcenter/get-live-context/", views.api_ai_callcenter_get_live_context, name="api_ai_callcenter_get_live_context"),
+    path("api/audit-logs/", views.api_audit_logs, name="api_audit_logs"),
 ]
 

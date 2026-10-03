@@ -420,8 +420,9 @@ def _authenticate(access_key: Optional[str] = None):
     if not tenant.is_active:
         raise ValueError(f"منشأة المطعم «{tenant.name}» معطلة حالياً في المنصة.")
 
-    if tenant.subscription_status in ["expired", "canceled"]:
+    if tenant.subscription_status in ["expired", "canceled"] or tenant.is_subscription_expired():
         raise ValueError(f"اشتراك منشأة «{tenant.name}» منتهي أو ملغي. يرجى تجديد الاشتراك أولاً.")
+
 
     return key_obj, tenant
 
