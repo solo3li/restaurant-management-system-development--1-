@@ -1083,11 +1083,14 @@ def order_detail_view(request, order_id):
     if not is_owner and profile and profile.branch and order.branch != profile.branch:
         return HttpResponseForbidden("غير مصرح لك بمشاهدة طلبات هذا الفرع")
 
+    can_reprint = is_owner or user_has_perm(request.user, "pos_reprint_receipt") or user_has_perm(request.user, "pos_access")
+
     context = {
         "tenant": tenant,
         "order": order,
         "items": order.items.all(),
         "is_owner": is_owner,
+        "can_reprint": can_reprint,
     }
     return render(request, "order_detail.html", context)
 
@@ -1635,8 +1638,19 @@ def api_create_order(request):
         if not m:
             continue
         qty = max(1, int(it.get("qty", 1)))
-        subtotal += m.price * qty
-        rows.append({"menu_item": m, "name": m.name, "price": m.price, "qty": qty})
+        unit_price = m.price
+        custom_price = it.get("customPrice") or it.get("custom_price")
+        if custom_price is not None:
+            try:
+                cp = Decimal(str(custom_price))
+                if cp > 0 and cp != m.price:
+                    if not is_owner_or_super and not user_has_perm(request.user, "pos_override_price"):
+                        return JsonResponse({"error": f"غير مصرح لك بتعديل سعر الصنف «{m.name}» يدوياً"}, status=403)
+                    unit_price = cp
+            except Exception:
+                pass
+        subtotal += unit_price * qty
+        rows.append({"menu_item": m, "name": m.name, "price": unit_price, "qty": qty})
 
     if not rows:
         return JsonResponse({"error": "الأصناف المحددة غير متوفرة"}, status=400)
@@ -1739,6 +1753,13 @@ def api_update_order(request, order_id):
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
         return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    action = data.get("action")
+    if action == "refund" or data.get("status") == "refunded" or data.get("refund"):
+        if not is_owner_or_super and not user_has_perm(request.user, "pos_refund_order"):
+            return JsonResponse({"error": "غير مصرح لك باسترجاع الفواتير ورد المبالغ للعميل"}, status=403)
+        order.status = "cancelled"
+        order.paid = False
 
     old_status = order.status
     if "status" in data and data["status"] in dict(Order.STATUS_CHOICES):
@@ -1882,6 +1903,64 @@ def api_create_menu_item(request):
 
 
 @login_required
+def api_update_menu_item(request, item_id):
+    if request.method not in ["POST", "PUT", "PATCH"]:
+        return HttpResponseBadRequest("POST/PUT required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    # Check price update permission specifically
+    if "price" in data:
+        new_price = Decimal(str(data["price"] or 0))
+        if new_price != item.price:
+            if not is_owner_or_super and not (user_has_perm(request.user, "menu_change_price") or user_has_perm(request.user, "manage_menu")):
+                return JsonResponse({"error": "غير مصرح لك بتعديل أسعار أصناف المنيو"}, status=403)
+            item.price = new_price
+
+    # Check general edit permission for other fields
+    other_fields = {"name", "category", "cost", "emoji", "description"}
+    if any(k in data for k in other_fields):
+        if not is_owner_or_super and not (user_has_perm(request.user, "menu_edit_item") or user_has_perm(request.user, "manage_menu")):
+            return JsonResponse({"error": "غير مصرح لك بتعديل بيانات أصناف المنيو"}, status=403)
+        if "name" in data and str(data["name"]).strip():
+            item.name = str(data["name"]).strip()
+        if "category" in data and str(data["category"]).strip():
+            item.category = str(data["category"]).strip()
+        if "cost" in data:
+            item.cost = Decimal(str(data["cost"] or 0))
+        if "emoji" in data:
+            item.emoji = str(data["emoji"])
+
+    item.save()
+    return JsonResponse({"ok": True, "id": item.id, "name": item.name, "price": float(item.price)})
+
+
+@login_required
+def api_delete_menu_item(request, item_id):
+    if request.method not in ["POST", "DELETE"]:
+        return HttpResponseBadRequest("POST/DELETE required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (user_has_perm(request.user, "menu_delete_item") or user_has_perm(request.user, "manage_menu")):
+        return JsonResponse({"error": "غير مصرح لك بحذف أصناف من المنيو"}, status=403)
+
+    item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
+    item_name = item.name
+    item.delete()
+    return JsonResponse({"ok": True, "message": f"تم حذف الصنف «{item_name}» بنجاح"})
+
+
+@login_required
 def api_adjust_inventory(request, item_id):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
@@ -1971,7 +2050,7 @@ def api_create_branch(request):
     profile = getattr(request.user, "profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner_or_super and not (user_has_perm(request.user, "branch_create") or user_has_perm(request.user, "manage_branches")):
+    if not is_owner_or_super and not (user_has_perm(request.user, "branch_manage_branches") or user_has_perm(request.user, "manage_branches")):
         return JsonResponse({"error": "غير مصرح لك بإنشاء فروع جديدة"}, status=403)
 
     try:
@@ -2126,7 +2205,7 @@ def api_toggle_branch(request, branch_id):
     profile = getattr(request.user, "profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner_or_super and not (user_has_perm(request.user, "branch_toggle_status") or user_has_perm(request.user, "manage_branches")):
+    if not is_owner_or_super and not (user_has_perm(request.user, "branch_manage_branches") or user_has_perm(request.user, "manage_branches")):
         return JsonResponse({"error": "غير مصرح لك بتغيير حالة الفرع"}, status=403)
 
     branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)

@@ -200,11 +200,11 @@ assert_test(res_inv_create.status_code == 403, f"Cashier lacking inventory_add_s
 # 5. Branch Creation
 branch_payload = {"name": "فرع غير مصرح"}
 res_branch_create = client.post("/api/branches/create/", data=json.dumps(branch_payload), content_type="application/json")
-assert_test(res_branch_create.status_code == 403, f"Cashier lacking branch_create blocked from branch create (HTTP 403): {res_branch_create.json().get('error')}")
+assert_test(res_branch_create.status_code == 403, f"Cashier lacking branch_manage_branches blocked from branch create (HTTP 403): {res_branch_create.json().get('error')}")
 
 # 6. Branch Toggle
 res_branch_toggle = client.post(f"/api/branches/toggle/{branch.id}/")
-assert_test(res_branch_toggle.status_code == 403, f"Cashier lacking branch_toggle_status blocked from branch toggle (HTTP 403): {res_branch_toggle.json().get('error')}")
+assert_test(res_branch_toggle.status_code == 403, f"Cashier lacking branch_manage_branches blocked from branch toggle (HTTP 403): {res_branch_toggle.json().get('error')}")
 
 # 7. Delivery Area modification
 area_payload = {"action": "add", "name": "حي الملقا الجديد", "delivery_fee": 10.0}
@@ -225,7 +225,28 @@ if not active_order:
 res_cancel = client.post(f"/api/orders/{active_order.id}/", data=json.dumps({"status": "cancelled"}), content_type="application/json")
 assert_test(res_cancel.status_code == 403, f"Cashier lacking cancel_orders blocked from cancelling order (HTTP 403): {res_cancel.json().get('error')}")
 
-# 9. AI Call Center modifications
+# 9. Manual Price Override in Order
+order_payload_override = {
+    "branchId": branch.id,
+    "items": [{"menuItemId": menu_item.id, "qty": 1, "customPrice": 999.0}],
+    "type": "dine_in"
+}
+res_override = client.post("/api/orders/", data=json.dumps(order_payload_override), content_type="application/json")
+assert_test(res_override.status_code == 403, f"Cashier lacking pos_override_price blocked from custom price (HTTP 403): {res_override.json().get('error')}")
+
+# 10. Order Refund
+res_refund = client.post(f"/api/orders/{active_order.id}/", data=json.dumps({"action": "refund"}), content_type="application/json")
+assert_test(res_refund.status_code == 403, f"Cashier lacking pos_refund_order blocked from refund (HTTP 403): {res_refund.json().get('error')}")
+
+# 11. Menu Price Update
+res_menu_price = client.post(f"/api/menu/{menu_item.id}/", data=json.dumps({"price": 50.0}), content_type="application/json")
+assert_test(res_menu_price.status_code == 403, f"Cashier lacking menu_change_price blocked from updating price (HTTP 403): {res_menu_price.json().get('error')}")
+
+# 12. Menu Item Delete
+res_menu_del = client.post(f"/api/menu/{menu_item.id}/delete/")
+assert_test(res_menu_del.status_code == 403, f"Cashier lacking menu_delete_item blocked from deleting item (HTTP 403): {res_menu_del.json().get('error')}")
+
+# 13. AI Call Center modifications
 res_callcenter = client.post("/api/ai-callcenter/profiles/create/", data=json.dumps({"name": "Unauthorized Voice Agent"}), content_type="application/json")
 assert_test(res_callcenter.status_code == 403, f"Cashier lacking call_center_manage_ai blocked from AI voice agent creation (HTTP 403)")
 
