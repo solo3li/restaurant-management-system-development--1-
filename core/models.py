@@ -559,7 +559,6 @@ class JobRole(models.Model):
     scope = models.CharField(max_length=20, choices=SCOPE_CHOICES, default="branch", verbose_name="نطاق العمل")
     description = models.CharField(max_length=255, blank=True, default="", verbose_name="وصف المهام")
     is_system = models.BooleanField(default=False, verbose_name="مسمى أساسي للنظام")
-    permissions = models.JSONField(default=list, blank=True, verbose_name="مصفوفة الصلاحيات")
     ordering = models.IntegerField(default=10, verbose_name="ترتيب العرض")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
@@ -578,18 +577,33 @@ class JobRole(models.Model):
         clean_key = perm_key.split(".")[-1]
         if self.group:
             return self.group.permissions.filter(codename=clean_key).exists()
-        return clean_key in (self.permissions or [])
+        return False
 
     def get_permissions_list(self):
         if self.group:
             return list(self.group.permissions.values_list("codename", flat=True))
-        return self.permissions or []
+        return []
+
+    def set_permissions(self, codenames):
+        """Set permissions directly on the backing Django Group."""
+        if not self.group:
+            self.sync_with_django_group()
+        from django.contrib.auth.models import Permission
+        perm_objs = Permission.objects.filter(content_type__app_label="core", codename__in=codenames)
+        self.group.permissions.set(perm_objs)
+        # Invalidate permission caches for all linked employees
+        for emp in self.employees.select_related("user"):
+            if emp.user:
+                emp.user.groups.set([self.group])
+                for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                    if hasattr(emp.user, cache_field):
+                        delattr(emp.user, cache_field)
 
     def sync_with_django_group(self):
-        """Synchronize this JobRole with a Django auth Group and its Permission objects."""
+        """Synchronize this JobRole with a Django auth Group."""
         if not self.tenant_id:
             return None
-        from django.contrib.auth.models import Group, Permission
+        from django.contrib.auth.models import Group
         group_name = f"t{self.tenant_id}_role_{self.id}"
         if not self.group:
             grp, _ = Group.objects.get_or_create(name=group_name)
@@ -598,19 +612,6 @@ class JobRole(models.Model):
         elif self.group.name != group_name:
             self.group.name = group_name
             self.group.save(update_fields=["name"])
-
-        # Sync permissions ManyToMany
-        if self.permissions:
-            perm_objs = Permission.objects.filter(codename__in=self.permissions)
-            self.group.permissions.set(perm_objs)
-        else:
-            self.group.permissions.clear()
-
-        # Keep JSONField in sync with real Group permissions
-        db_perms = list(self.group.permissions.values_list("codename", flat=True))
-        if set(self.permissions or []) != set(db_perms):
-            self.permissions = db_perms
-            JobRole.objects.filter(id=self.id).update(permissions=db_perms)
 
         # Update and invalidate cache for all linked employees
         for emp in self.employees.select_related("user"):
@@ -639,7 +640,6 @@ def ensure_tenant_preset_roles(tenant):
                 "scope": cfg["scope"],
                 "description": cfg["description"],
                 "is_system": cfg["is_system"],
-                "permissions": cfg["permissions"],
                 "ordering": (idx + 1) * 10,
             }
         )
@@ -647,10 +647,10 @@ def ensure_tenant_preset_roles(tenant):
             # Refresh system preset permissions
             role.scope = cfg["scope"]
             role.description = cfg["description"]
-            role.permissions = cfg["permissions"]
             role.ordering = (idx + 1) * 10
             role.save()
         role.sync_with_django_group()
+        role.set_permissions(cfg["permissions"])
         created_or_updated.append(role)
     return created_or_updated
 
@@ -749,17 +749,6 @@ class Employee(models.Model):
                 return True
         if self.job_role:
             return self.job_role.has_perm(clean_key)
-        # Fallback for legacy role choices
-        if self.role == "manager":
-            return clean_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
-        if self.role == "cashier":
-            return clean_key in ["pos_access", "view_orders"]
-        if self.role == "chef":
-            return clean_key in ["kds_access"]
-        if self.role == "driver":
-            return clean_key in ["delivery_access"]
-        if self.role == "call_center":
-            return clean_key in ["call_center_access", "view_orders"]
         return False
 
     def save(self, *args, **kwargs):
@@ -1052,17 +1041,6 @@ class UserProfile(models.Model):
         # Check attached employee profile
         if hasattr(self.user, "employee_profile") and self.user.employee_profile:
             return self.user.employee_profile.has_perm(clean_key)
-        # Fallback for legacy role choices
-        if self.role == "branch_manager":
-            return clean_key not in ["delete_orders", "view_hq_dashboard", "manage_branches"]
-        if self.role == "cashier":
-            return clean_key in ["pos_access", "view_orders"]
-        if self.role == "chef":
-            return clean_key in ["kds_access"]
-        if self.role == "driver":
-            return clean_key in ["delivery_access"]
-        if self.role == "call_center":
-            return clean_key in ["call_center_access", "view_orders"]
         return False
 
     def __str__(self):

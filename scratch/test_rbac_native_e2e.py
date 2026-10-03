@@ -55,7 +55,7 @@ for r in job_roles:
     assert_test(r.group.name == f"t{tenant.id}_role_{r.id}", f"Group naming strictly multi-tenant isolated: {r.group.name}")
     # Verify group.permissions matches role permissions
     group_perms = set(r.group.permissions.values_list("codename", flat=True))
-    role_perms = set(r.permissions or [])
+    role_perms = set(r.get_permissions_list())
     assert_test(group_perms == role_perms, f"Role '{r.name}': Django Group permissions strictly match role definitions ({len(group_perms)} perms)")
 
 # -----------------------------------------------------------------------------
@@ -70,9 +70,9 @@ test_role = JobRole.objects.create(
     tenant=tenant,
     name=test_role_name,
     scope="branch",
-    permissions=["pos_access", "pos_create_order", "view_orders"]
 )
 test_role.sync_with_django_group()
+test_role.set_permissions(["pos_access", "pos_create_order", "view_orders"])
 
 test_emp_code = "9988"
 Employee.objects.filter(tenant=tenant, employee_code=test_emp_code).delete()

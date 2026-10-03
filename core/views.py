@@ -91,56 +91,13 @@ def get_active_branch(request):
     return None
 
 
-PERMISSION_FALLBACKS = {
-    # Fine-grained permission -> [Self, Equivalent or Parent permissions that grant it]
-    "menu_view": ["menu_view", "manage_menu"],
-    "menu_create_item": ["menu_create_item", "manage_menu"],
-    "menu_edit_item": ["menu_edit_item", "manage_menu"],
-    "menu_delete_item": ["menu_delete_item", "manage_menu"],
-    "menu_toggle_availability": ["menu_toggle_availability", "manage_menu"],
-    "menu_change_price": ["menu_change_price", "manage_menu"],
-    "menu_manage_categories": ["menu_manage_categories", "manage_menu"],
-    "menu_manage_modifiers": ["menu_manage_modifiers", "manage_menu"],
-
-    "inventory_view": ["inventory_view", "manage_inventory"],
-    "inventory_add_stock": ["inventory_add_stock", "manage_inventory"],
-    "inventory_adjust_stock": ["inventory_adjust_stock", "manage_inventory"],
-    "inventory_record_waste": ["inventory_record_waste", "manage_inventory"],
-    "inventory_transfer_stock": ["inventory_transfer_stock", "manage_inventory"],
-    "inventory_manage_suppliers": ["inventory_manage_suppliers", "manage_inventory"],
-
-    "hr_view_employees": ["hr_view_employees", "manage_employees"],
-    "hr_create_employee": ["hr_create_employee", "manage_employees"],
-    "hr_edit_employee": ["hr_edit_employee", "manage_employees"],
-    "hr_deactivate_employee": ["hr_deactivate_employee", "manage_employees"],
-    "hr_manage_salaries": ["hr_manage_salaries", "manage_employees"],
-    "hr_manage_credentials": ["hr_manage_credentials", "manage_employees"],
-    "hr_manage_shifts": ["hr_manage_shifts", "manage_employees"],
-
-    "branch_view_dashboard": ["branch_view_dashboard", "view_branch_dashboard"],
-    "view_branch_dashboard": ["view_branch_dashboard", "branch_view_dashboard"],
-    "hq_view_master_dashboard": ["hq_view_master_dashboard", "view_hq_dashboard"],
-    "view_hq_dashboard": ["view_hq_dashboard", "hq_view_master_dashboard"],
-    "branch_manage_branches": ["branch_manage_branches", "manage_branches"],
-    "branch_create": ["branch_create", "branch_manage_branches", "manage_branches"],
-    "branch_toggle_status": ["branch_toggle_status", "branch_manage_branches", "manage_branches"],
-
-    "delivery_manage_zones": ["delivery_manage_zones", "manage_branches"],
-    "delivery_assign_driver": ["delivery_assign_driver", "delivery_access"],
-    "delivery_track_drivers": ["delivery_track_drivers", "delivery_access"],
-    "delivery_override_status": ["delivery_override_status", "delivery_access"],
-
-    "pos_cancel_order": ["pos_cancel_order", "cancel_orders"],
-    "cancel_orders": ["cancel_orders", "pos_cancel_order"],
-    "pos_create_order": ["pos_create_order", "pos_access"],
-    "call_center_create_order": ["call_center_create_order", "call_center_access"],
-    "manage_roles": ["manage_roles", "system_manage_roles"],
-    "system_manage_roles": ["system_manage_roles", "manage_roles"],
-}
-
-
 def user_has_perm(user, perm_key):
-    """Check if user has permission either via superuser, owner, Django native auth, profile, or job role."""
+    """
+    Unified pure Django auth permission check.
+    Bypasses for superuser and tenant owner / platform admin.
+    All staff authorization is strictly verified through Django's native
+    Group and Permission engine: user.has_perm('core.<codename>') and user.groups.
+    """
     if not user or not user.is_authenticated:
         return False
     if user.is_superuser:
@@ -150,28 +107,11 @@ def user_has_perm(user, perm_key):
         return True
 
     clean_key = perm_key.split(".")[-1]
-    keys_to_check = PERMISSION_FALLBACKS.get(clean_key, [clean_key])
-
-    # 1. Native Django check: user.has_perm & group permissions
-    for k in keys_to_check:
-        if user.has_perm(f"core.{k}"):
-            return True
-        # Direct check on user's groups to guarantee 0ms latency even before cache reload
-        if user.groups.filter(permissions__codename=k).exists():
-            return True
-
-    # 2. Check via Employee profile & JobRole
-    emp = getattr(user, "employee_profile", None)
-    if emp:
-        for k in keys_to_check:
-            if emp.has_perm(k):
-                return True
-
-    # 3. Check via UserProfile & JobRole
-    if profile:
-        for k in keys_to_check:
-            if profile.has_perm(k):
-                return True
+    if user.has_perm(f"core.{clean_key}"):
+        return True
+    # Direct check on user's groups to guarantee 0ms latency even before permission cache refresh
+    if user.groups.filter(permissions__codename=clean_key).exists():
+        return True
 
     return False
 
@@ -2738,9 +2678,9 @@ def api_job_roles(request):
             scope=scope,
             description=description,
             is_system=False,
-            permissions=permissions,
         )
         role.sync_with_django_group()
+        role.set_permissions(permissions)
         perms_list = role.get_permissions_list()
 
         return JsonResponse({
@@ -2801,11 +2741,11 @@ def api_job_role_detail(request, role_id):
         if "description" in body:
             role.description = str(body["description"]).strip()
 
-        if "permissions" in body and isinstance(body["permissions"], list):
-            role.permissions = body["permissions"]
-
         role.save()
         grp = role.sync_with_django_group()
+
+        if "permissions" in body and isinstance(body["permissions"], list):
+            role.set_permissions(body["permissions"])
 
         # Update linked user profiles and groups
         for emp in role.employees.select_related("user"):

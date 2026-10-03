@@ -54,20 +54,8 @@ def branch_context(request):
         native_perms = {p.split(".")[-1] for p in request.user.get_all_permissions()}
         if effective_job_role is not None:
             user_perms = set(effective_job_role.get_permissions_list()) | native_perms
-        elif native_perms:
+        else:
             user_perms = native_perms
-        elif profile:
-            # Legacy fallback ONLY when no custom job role or group was assigned
-            if profile.role == "branch_manager":
-                user_perms = {"view_branch_dashboard", "pos_access", "view_orders", "edit_orders", "cancel_orders", "kds_access", "delivery_access", "manage_menu", "manage_inventory", "manage_employees"}
-            elif profile.role == "cashier":
-                user_perms = {"pos_access", "view_orders"}
-            elif profile.role == "chef":
-                user_perms = {"kds_access"}
-            elif profile.role == "driver":
-                user_perms = {"delivery_access"}
-            elif profile.role == "call_center":
-                user_perms = {"call_center_access", "view_orders"}
 
     # Filter by subscription plan features
     if tenant and tenant.subscription_plan and not is_platform_admin:
