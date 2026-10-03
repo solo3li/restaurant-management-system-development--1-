@@ -72,21 +72,41 @@ def get_active_branch(request):
     emp = getattr(request.user, "employee_profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner:
+    can_operate_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "call_center_access")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+
+    if not can_operate_cross:
         if profile and profile.branch:
             return profile.branch
         if emp and emp.branch:
             return emp.branch
 
-    active_id = request.session.get("active_branch_id")
-    if active_id:
+    has_session = hasattr(request, "session")
+    if has_session and "active_branch_id" in request.session:
+        active_id = request.session.get("active_branch_id")
+        if active_id in ["all", 0, "0", None]:
+            return None
         qs = Branch.objects.filter(id=active_id)
         if tenant:
             qs = qs.filter(tenant=tenant)
-        return qs.first()
+        b = qs.first()
+        if b:
+            return b
+
+    if profile and profile.branch:
+        return profile.branch
+    if emp and emp.branch:
+        return emp.branch
 
     if tenant:
-        return tenant.branches.first()
+        return tenant.branches.filter(status="active").first() or tenant.branches.first()
 
     return None
 
@@ -220,6 +240,9 @@ def login_view(request):
                 matched_emp = None
                 for emp in emp_candidates:
                     if emp.check_pin(pin):
+                        if emp.user and not emp.user.is_active:
+                            matched_emp = None
+                            break
                         matched_emp = emp
                         break
 
@@ -426,13 +449,32 @@ def register_view(request):
 def switch_branch_view(request, branch_id):
     tenant = get_active_tenant(request)
     profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
-    if not is_owner:
+
+    can_switch = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "call_center_access")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_switch:
         return redirect("branch_dashboard")
 
     if branch_id == 0 or str(branch_id) == "all":
-        request.session["active_branch_id"] = None
-        return redirect("dashboard")
+        can_view_hq = (
+            is_owner
+            or user_has_perm(request.user, "view_hq_dashboard")
+            or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+            or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+        )
+        if can_view_hq:
+            request.session["active_branch_id"] = None
+            return redirect("dashboard")
+        return redirect("branch_dashboard")
     else:
         branch = get_object_or_404(Branch, id=branch_id, tenant=tenant)
         request.session["active_branch_id"] = branch.id
@@ -609,8 +651,8 @@ def dashboard_view(request):
             return redirect(target_view)
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى لوحة الإدارة العامة")
 
-    # If branch-locked or active branch selected, redirect to branch dashboard
-    if not is_owner or active_branch is not None:
+    # If a specific active branch is selected or user lacks HQ dashboard access, redirect to branch dashboard
+    if active_branch is not None or (not is_owner and not user_has_perm(request.user, "view_hq_dashboard")):
         return redirect("branch_dashboard")
 
     now = timezone.now()
@@ -1014,8 +1056,15 @@ def hq_orders_view(request):
     if not is_owner and not user_has_perm(request.user, "view_orders"):
         return HttpResponseForbidden("غير مصرح لك باستعراض سجل الطلبات")
 
-    # If user is branch-locked and not an owner/admin, redirect to branch orders
-    if not is_owner and profile and profile.branch:
+    # If user is strictly branch-locked, redirect to branch orders
+    can_operate_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+    )
+    if not can_operate_cross and profile and profile.branch:
         return redirect("branch_orders")
 
     branches = Branch.objects.filter(tenant=tenant).order_by("name") if tenant else Branch.objects.none()
@@ -2552,14 +2601,11 @@ def api_update_employee(request, emp_id):
             return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
         emp.set_pin(new_pin)
 
-    # Password update (for dashboard login) - requires hr_manage_credentials
+    # Password update (for dashboard login) - restricted to Owner and HQ HR Managers with hr_manage_credentials
     new_password = str(data.get("password") or data.get("new_password") or "").strip()
     if new_password:
-        if not is_owner_or_super and not (
-            user_has_perm(request.user, "hr_manage_credentials") or
-            user_has_perm(request.user, "manage_employees")
-        ):
-            return JsonResponse({"error": "غير مصرح لك بتعيين أو تغيير كلمة مرور حساب الموظف"}, status=403)
+        if not is_owner_or_super and not user_has_perm(request.user, "hr_manage_credentials"):
+            return JsonResponse({"error": "غير مصرح لك بتعيين أو تغيير كلمة مرور حساب الموظف (مقتصر على إدارة المنشأة)"}, status=403)
         if len(new_password) < 6:
             return JsonResponse({"error": "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل"}, status=400)
         if emp.user:

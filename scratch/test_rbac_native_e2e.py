@@ -422,6 +422,49 @@ test_role.set_permissions(["branch_manage_branches"])
 ctx = branch_context(rf_req)
 assert_test("manage_branches" in ctx["user_perms"], "context_processors branch_context expands 'branch_manage_branches' -> 'manage_branches'")
 
+print("\n--- SUITE 7: Cross-Branch Authority, Inactive PIN Security, and HQ Visibility ---")
+
+# 8. Inactive user fails PIN login
+test_emp.set_pin("1234")
+test_emp.save()
+test_user.is_active = False
+test_user.save()
+pin_client = Client()
+res_pin_inactive = pin_client.post("/login/", data={"auth_type": "pin", "employee_code": test_emp.employee_code, "pin": "1234"})
+assert_test("كود الموظف أو رمز PIN غير صحيح" in res_pin_inactive.content.decode("utf-8"), "Inactive employee account fails PIN login with generic error message")
+test_user.is_active = True
+test_user.save()
+
+# 9. Branch-locked user cannot switch branches
+client.force_login(test_user)
+test_role.set_permissions(["pos_access"])  # basic cashier without cross-branch perms
+res_switch_blocked = client.get(f"/branch/switch/{branch.id}/", follow=False)
+assert_test(res_switch_blocked.status_code == 302 and res_switch_blocked.url == "/branch/", "Branch-locked cashier blocked from switching branches (redirected to branch_dashboard)")
+
+# 10. Cross-branch user can switch branches
+test_role.set_permissions(["branch_switch_branches"])
+second_branch = Branch.objects.create(tenant=tenant, name="Secondary Test Branch", status="active")
+res_switch_allowed = client.get(f"/branch/switch/{second_branch.id}/", follow=False)
+assert_test(res_switch_allowed.status_code == 302 and res_switch_allowed.url == "/branch/", "Authorized user can switch branch")
+# Session should now have second_branch.id
+session = client.session
+assert_test(session.get("active_branch_id") == second_branch.id, "Session correctly records switched active_branch_id")
+
+# 11. HQ Dashboard Access: user with view_hq_dashboard can access HQ dashboard
+test_role.set_permissions(["view_hq_dashboard"])
+# Switch to 'all'
+res_switch_hq = client.get("/branch/switch/all/", follow=False)
+assert_test(res_switch_hq.status_code == 302 and res_switch_hq.url == "/dashboard/", "HQ authorized staff can switch to HQ all-branches view")
+res_hq_dash = client.get("/dashboard/")
+assert_test(res_hq_dash.status_code == 200, "HQ staff with view_hq_dashboard can access HQ consolidated dashboard (HTTP 200)")
+
+# 12. Non-HQ staff accessing /dashboard/ redirected to their designated operational screen
+test_role.set_permissions(["pos_access"])
+res_dash_redirect = client.get("/dashboard/", follow=False)
+assert_test(res_dash_redirect.status_code == 302 and res_dash_redirect.url in ["/pos/", "/branch/"], "Operational staff accessing /dashboard/ redirected to designated operational screen (HTTP 302)")
+
+second_branch.delete()
+
 # Clean up test artifacts
 test_emp.delete()
 test_user.delete()
@@ -433,3 +476,4 @@ print("======================================================================")
 
 if failed_tests > 0:
     sys.exit(1)
+
