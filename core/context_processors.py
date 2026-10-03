@@ -78,6 +78,12 @@ def branch_context(request):
             expanded.add("inventory_view")
         if "manage_employees" in user_perms:
             expanded.add("hr_view_employees")
+        if (
+            "finance_view_sales" in user_perms
+            or "finance_view_reports" in user_perms
+            or "finance_view_profit_loss" in user_perms
+        ):
+            expanded.add("view_financials")
         user_perms = expanded
 
     # Filter by subscription plan features

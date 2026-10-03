@@ -146,6 +146,18 @@ def user_has_perm(user, perm_key):
     if clean_key in SYNONYM_MAP:
         keys_to_check.append(SYNONYM_MAP[clean_key])
 
+    # Implied permissions mapping
+    IMPLIED_PERMS = {
+        "view_financials": ["finance_view_sales", "finance_view_reports", "finance_view_profit_loss"],
+        "menu_view": ["manage_menu"],
+        "inventory_view": ["manage_inventory"],
+        "hr_view_employees": ["manage_employees"],
+    }
+    if clean_key in IMPLIED_PERMS:
+        for ik in IMPLIED_PERMS[clean_key]:
+            if ik not in keys_to_check:
+                keys_to_check.append(ik)
+
     for k in keys_to_check:
         if user.has_perm(f"core.{k}"):
             return True
@@ -236,15 +248,26 @@ def login_view(request):
             if not code or not pin:
                 error_message = "يرجى إدخال كود الموظف ورمز PIN المكون من 4 أرقام"
             else:
+                restaurant_id = request.POST.get("restaurant") or request.GET.get("restaurant") or request.session.get("active_tenant_id")
                 emp_candidates = Employee.objects.filter(employee_code=code, status="active").select_related("tenant", "branch", "user")
-                matched_emp = None
+                if restaurant_id:
+                    if str(restaurant_id).isdigit():
+                        emp_candidates = emp_candidates.filter(tenant_id=int(restaurant_id))
+                    else:
+                        emp_candidates = emp_candidates.filter(Q(tenant__slug=restaurant_id) | Q(tenant__name=restaurant_id))
+
+                matched_emps = []
                 for emp in emp_candidates:
                     if emp.check_pin(pin):
                         if emp.user and not emp.user.is_active:
-                            matched_emp = None
-                            break
-                        matched_emp = emp
-                        break
+                            continue
+                        matched_emps.append(emp)
+
+                matched_emp = None
+                if len(matched_emps) > 1 and not restaurant_id:
+                    error_message = "تم العثور على أكثر من حساب بهذا الكود في مطاعم مختلفة. يرجى تحديد اسم أو معرف المطعم للدخول."
+                elif len(matched_emps) >= 1:
+                    matched_emp = matched_emps[0]
 
                 if matched_emp:
                     # Auto-assign default branch if none is set and role is branch-scoped
@@ -297,7 +320,7 @@ def login_view(request):
                     request.session["active_employee_id"] = matched_emp.id
 
                     return redirect(get_post_login_redirect(user_to_login))
-                else:
+                elif not error_message:
                     error_message = "كود الموظف أو رمز PIN غير صحيح"
 
         else:
@@ -1814,6 +1837,12 @@ def api_create_order(request):
     else:
         delivery_fee = Decimal("0")
 
+    if raw_discount > 0 and subtotal > 0:
+        if (raw_discount / subtotal) > Decimal("0.50"):
+            has_supervisor = is_owner_or_super or user_has_perm(request.user, "edit_orders") or user_has_perm(request.user, "manage_branches")
+            if not has_supervisor:
+                return JsonResponse({"error": "تطبيق خصم يتجاوز 50% من قيمة الطلب مقتصر على المشرف أو مدير الفرع"}, status=403)
+
     discount = max(Decimal("0"), min(raw_discount, subtotal))
     total = max(Decimal("0"), subtotal + delivery_fee - discount)
 
@@ -2138,6 +2167,9 @@ def api_adjust_inventory(request, item_id):
     emp = getattr(request.user, "employee_profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
+    if tenant and not tenant.has_feature("inventory") and not (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        return JsonResponse({"error": "ميزة إدارة المخزون غير مفعلة في باقة اشتراك هذا المطعم"}, status=403)
+
     if not is_owner_or_super and not (user_has_perm(request.user, "inventory_adjust_stock") or user_has_perm(request.user, "manage_inventory")):
         return JsonResponse({"error": "غير مصرح لك بتسوية أو تعديل كميات المخزون"}, status=403)
 
@@ -2174,6 +2206,9 @@ def api_create_inventory(request):
     profile = getattr(request.user, "profile", None)
     emp = getattr(request.user, "employee_profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if tenant and not tenant.has_feature("inventory") and not (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        return JsonResponse({"error": "ميزة إدارة المخزون غير مفعلة في باقة اشتراك هذا المطعم"}, status=403)
 
     if not is_owner_or_super and not (user_has_perm(request.user, "inventory_add_stock") or user_has_perm(request.user, "manage_inventory")):
         return JsonResponse({"error": "غير مصرح لك بإضافة مواد جديدة للمخزون"}, status=403)
@@ -2213,6 +2248,9 @@ def api_delete_inventory(request, item_id):
     profile = getattr(request.user, "profile", None)
     emp = getattr(request.user, "employee_profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if tenant and not tenant.has_feature("inventory") and not (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        return JsonResponse({"error": "ميزة إدارة المخزون غير مفعلة في باقة اشتراك هذا المطعم"}, status=403)
 
     if not is_owner_or_super and not user_has_perm(request.user, "manage_inventory"):
         return JsonResponse({"error": "غير مصرح لك بحذف مواد من المخزون (يتطلب صلاحية إدارة المخزون)"}, status=403)
@@ -2956,6 +2994,9 @@ def api_job_roles(request):
         return JsonResponse({"ok": True, "roles": data, "catalog": PERMISSIONS_CATALOG})
 
     elif request.method == "POST":
+        if tenant and not tenant.has_feature("custom_roles") and not (request.user.is_superuser or (profile and profile.is_platform_admin)):
+            return JsonResponse({"error": "إنشاء مسميات وظيفية مخصصة يتطلب باقة اشتراك تدعم ميزة الأدوار المخصصة (custom_roles)"}, status=403)
+
         if not is_owner_or_super and not user_has_perm(request.user, "manage_roles"):
             return JsonResponse({"error": "غير مصرح لك بإضافة مسميات وظيفية"}, status=403)
 

@@ -537,8 +537,139 @@ test_role.set_permissions(["manage_employees", "hr_deactivate_employee"])
 res_force_del = client.post(f"/api/employees/{test_emp.id}/delete/", data=json.dumps({"force": True}), content_type="application/json")
 assert_test(res_force_del.status_code == 200 and res_force_del.json().get("action") == "archived", "Non-owner passing force=True on employee with order history safely archived instead of hard deleted")
 
+# Clean up test artifacts
 created_order.delete()
 second_branch.delete()
+
+# --- SUITE 9: Financial Expansion, Multi-Tenant PIN Isolation, Discount Cap & SaaS Gating ---
+print("\n--- SUITE 9: Financial Expansion, Multi-Tenant PIN Isolation, Discount Cap & SaaS Gating ---")
+
+# 1. Financial Implied Expansion
+test_role.set_permissions(["finance_view_sales"])
+assert_test(user_has_perm(test_user, "finance_view_sales"), "User has finance_view_sales")
+assert_test(user_has_perm(test_user, "view_financials"), "Implied: finance_view_sales grants user_has_perm('view_financials')")
+
+# Check template context expansion
+factory = RequestFactory()
+req = factory.get("/branch/")
+req.user = test_user
+ctx = branch_context(req)
+assert_test("view_financials" in ctx.get("user_perms", set()), "Template context user_perms expands finance_view_sales to view_financials")
+
+# 2. Multi-Tenant PIN Collision Protection
+Tenant.objects.filter(slug="collision-tenant-b").delete()
+Employee.objects.filter(employee_code="999").delete()
+tenant_b = Tenant.objects.create(name="Collision Tenant B", slug="collision-tenant-b", is_active=True)
+branch_b = Branch.objects.create(tenant=tenant_b, name="Collision Branch B")
+
+emp_a = Employee.objects.create(tenant=tenant, branch=branch, name="Emp A", employee_code="999", status="active")
+emp_a.set_pin("5555")
+emp_a.save()
+
+emp_b = Employee.objects.create(tenant=tenant_b, branch=branch_b, name="Emp B", employee_code="999", status="active")
+emp_b.set_pin("5555")
+emp_b.save()
+
+# PIN login without restaurant identifier when collision exists -> blocked!
+c_anon = Client()
+res_coll = c_anon.post("/login/", data={"auth_type": "pin", "employee_code": "999", "pin": "5555"})
+assert_test(res_coll.status_code == 200 and "أكثر من حساب" in res_coll.content.decode("utf-8"), "Ambiguous cross-tenant PIN collision detected and blocked from leaking")
+
+# PIN login with restaurant identifier -> logs into exact tenant
+res_tenant_a = c_anon.post("/login/", data={"auth_type": "pin", "employee_code": "999", "pin": "5555", "restaurant": tenant.slug})
+assert_test(res_tenant_a.status_code == 302 and c_anon.session.get("active_tenant_id") == tenant.id, "Scoped PIN login correctly authenticated into Tenant A")
+
+c_anon.logout()
+res_tenant_b = c_anon.post("/login/", data={"auth_type": "pin", "employee_code": "999", "pin": "5555", "restaurant": tenant_b.slug})
+assert_test(res_tenant_b.status_code == 302 and c_anon.session.get("active_tenant_id") == tenant_b.id, "Scoped PIN login correctly authenticated into Tenant B")
+
+emp_a.delete()
+emp_b.delete()
+branch_b.delete()
+tenant_b.delete()
+
+# Reactivate test_user & test_emp for order testing
+test_emp.status = "active"
+test_emp.save()
+test_user.is_active = True
+test_user.save()
+client.force_login(test_user)
+
+# 3. Discount Cap Protection (> 50% requires supervisor)
+test_role.set_permissions(["pos_access", "pos_create_order", "pos_apply_discount"])
+menu_item_100, _ = MenuItem.objects.get_or_create(tenant=tenant, name="Test Item 100", defaults={"price": Decimal("100.00"), "category": "main"})
+res_disc_20 = client.post("/api/orders/", data=json.dumps({
+    "type": "dine_in",
+    "items": [{"menuItemId": menu_item_100.id, "qty": 1}],
+    "discount": 20.00
+}), content_type="application/json")
+assert_test(res_disc_20.status_code == 201, "Cashier with pos_apply_discount allowed 20% discount (<= 50%)")
+order_20_id = res_disc_20.json().get("order", {}).get("id")
+if order_20_id:
+    Order.objects.filter(id=order_20_id).delete()
+
+# Order item: price = 100. discount = 70 (70%) -> Blocked for regular cashier!
+res_disc_70 = client.post("/api/orders/", data=json.dumps({
+    "type": "dine_in",
+    "items": [{"menuItemId": menu_item_100.id, "qty": 1}],
+    "discount": 70.00
+}), content_type="application/json")
+assert_test(res_disc_70.status_code == 403, "Cashier lacking supervisor authority blocked from > 50% discount (HTTP 403)")
+
+# User with edit_orders (supervisor) -> Allowed 70% discount
+test_role.set_permissions(["pos_access", "pos_create_order", "pos_apply_discount", "edit_orders"])
+res_disc_70_sup = client.post("/api/orders/", data=json.dumps({
+    "type": "dine_in",
+    "items": [{"menuItemId": menu_item_100.id, "qty": 1}],
+    "discount": 70.00
+}), content_type="application/json")
+assert_test(res_disc_70_sup.status_code == 201, "Supervisor with edit_orders allowed > 50% discount (HTTP 201)")
+order_70_id = res_disc_70_sup.json().get("order", {}).get("id")
+if order_70_id:
+    Order.objects.filter(id=order_70_id).delete()
+menu_item_100.delete()
+
+# 4. SaaS Plan Feature Gating on APIs
+User.objects.filter(username="gated_user").delete()
+Tenant.objects.filter(slug="gated-tenant").delete()
+SubscriptionPlan.objects.filter(name="Test Basic Plan").delete()
+
+basic_plan = SubscriptionPlan.objects.create(
+    name="Test Basic Plan",
+    features=["pos", "menu"],  # NO inventory, NO custom_roles
+    max_branches=1,
+    max_employees=5
+)
+gated_tenant = Tenant.objects.create(name="Gated Tenant", slug="gated-tenant", subscription_plan=basic_plan, is_active=True)
+gated_branch = Branch.objects.create(tenant=gated_tenant, name="Gated Branch")
+gated_role = JobRole.objects.create(tenant=gated_tenant, name="Gated Manager", scope="branch")
+gated_role.set_permissions(["manage_inventory", "inventory_add_stock", "manage_roles"])
+gated_user = User.objects.create_user(username="gated_user", password="password123")
+gated_emp = Employee.objects.create(tenant=gated_tenant, branch=gated_branch, user=gated_user, job_role=gated_role, name="Gated Emp", employee_code="888")
+UserProfile.objects.update_or_create(user=gated_user, defaults={"tenant": gated_tenant, "branch": gated_branch, "job_role": gated_role, "role": "manager"})
+gated_user.groups.set([gated_role.group])
+
+c_gated = Client()
+c_gated.login(username="gated_user", password="password123")
+session_gated = c_gated.session
+session_gated["active_tenant_id"] = gated_tenant.id
+session_gated["active_branch_id"] = gated_branch.id
+session_gated.save()
+
+# Try calling api_create_inventory on plan lacking inventory -> 403 Forbidden!
+res_inv_gated = c_gated.post("/api/inventory/create/", data=json.dumps({"name": "Flour", "branchId": gated_branch.id}), content_type="application/json")
+assert_test(res_inv_gated.status_code == 403, "API rejects inventory creation when plan lacks 'inventory' feature (HTTP 403)")
+
+# Try creating custom role on plan lacking custom_roles -> 403 Forbidden!
+res_role_gated = c_gated.post("/api/job-roles/", data=json.dumps({"name": "Custom Cashier", "scope": "branch"}), content_type="application/json")
+assert_test(res_role_gated.status_code == 403, "API rejects custom role creation when plan lacks 'custom_roles' feature (HTTP 403)")
+
+gated_emp.delete()
+gated_user.delete()
+gated_role.delete()
+gated_branch.delete()
+gated_tenant.delete()
+basic_plan.delete()
 
 # Clean up test artifacts
 test_emp.delete()

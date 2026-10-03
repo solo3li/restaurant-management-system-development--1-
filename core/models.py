@@ -131,7 +131,19 @@ class Tenant(models.Model):
     def has_feature(self, feature_key):
         if not self.subscription_plan:
             return True
-        return feature_key in (self.subscription_plan.features or [])
+        raw_features = self.subscription_plan.features or []
+        f_set = set(raw_features)
+        if f_set & {"inventory", "inventory_mgmt"}:
+            f_set.update(["inventory", "inventory_mgmt"])
+        if f_set & {"delivery", "delivery_management", "delivery_zones"}:
+            f_set.update(["delivery", "delivery_management", "delivery_zones"])
+        if f_set & {"pos", "pos_billing"}:
+            f_set.update(["pos", "pos_billing"])
+        if f_set & {"kds", "kds_kitchen"}:
+            f_set.update(["kds", "kds_kitchen"])
+        if f_set & {"menu", "menu_management"}:
+            f_set.update(["menu", "menu_management"])
+        return feature_key in f_set
 
     def is_subscription_active(self):
         if not self.is_active:
