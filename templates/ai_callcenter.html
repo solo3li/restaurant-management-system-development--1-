@@ -1829,16 +1829,24 @@ restaurant_tools = await mcp_client.tools()</pre>
                     <span id="cred-name" class="font-black text-ink"></span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
-                    <span class="text-soft font-sans font-bold">اسم المستخدم (Login):</span>
-                    <span id="cred-username" class="font-black text-brand-600"></span>
+                    <span class="text-soft font-sans font-bold">سيرفر SIP (Domain):</span>
+                    <span id="cred-sip-server" class="font-black text-brand-600 font-mono">169.58.32.179:5070</span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
-                    <span class="text-soft font-sans font-bold">كلمة المرور (Password):</span>
+                    <span class="text-soft font-sans font-bold">مستخدم SIP (MicroSIP):</span>
+                    <span id="cred-username" class="font-black text-emerald-700 font-mono"></span>
+                </div>
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
+                    <span class="text-soft font-sans font-bold">كلمة المرور (Secret):</span>
                     <span id="cred-password" class="font-black text-emerald-700 font-mono"></span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
                     <span class="text-soft font-sans font-bold">التحويلة الداخلية:</span>
                     <span id="cred-ext" class="font-black text-ink"></span>
+                </div>
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
+                    <span class="text-soft font-sans font-bold">رقم المساعد الذكي:</span>
+                    <span class="font-black text-amber-600 font-mono font-bold">999</span>
                 </div>
             </div>
         </div>
@@ -2776,10 +2784,17 @@ async function submitAddEmp(e) {
             
             // Populate credentials modal
             const emp = data.employee || {};
+            const sipCreds = emp.sip_credentials || {};
+            const sipUser = sipCreds.username || emp.sip_username || ('emp' + (emp.extension || extension));
+            const sipServer = sipCreds.server || '169.58.32.179:5070';
+            const sipPass = emp.temporary_password || password || '—';
             document.getElementById('cred-name').textContent = emp.display_name || display_name;
-            document.getElementById('cred-username').textContent = emp.username || username || '—';
-            document.getElementById('cred-password').textContent = emp.temporary_password || password || '—';
+            document.getElementById('cred-username').textContent = sipUser;
+            document.getElementById('cred-password').textContent = sipPass;
             document.getElementById('cred-ext').textContent = emp.extension || extension;
+            if (document.getElementById('cred-sip-server')) {
+                document.getElementById('cred-sip-server').textContent = sipServer;
+            }
 
             // Show credentials modal
             document.getElementById('credentials-modal').classList.remove('hidden');
@@ -2801,7 +2816,8 @@ function copyCredentialsText() {
     const username = document.getElementById('cred-username').textContent;
     const password = document.getElementById('cred-password').textContent;
     const ext = document.getElementById('cred-ext').textContent;
-    const text = `بيانات الدخول لموظف الكول سنتر:\nالاسم: ${name}\nاسم المستخدم (Login ID): ${username}\nكلمة المرور: ${password}\nالتحويلة الداخلية: ${ext}\nرابط البوابة السحابية: https://app.169.58.32.179.nip.io`;
+    const server = document.getElementById('cred-sip-server') ? document.getElementById('cred-sip-server').textContent : '169.58.32.179:5070';
+    const text = `بيانات الهاتف السحابي (MicroSIP / Softphone):\nالاسم: ${name}\nسيرفر SIP (Domain): ${server}\nاسم المستخدم (Username): ${username}\nكلمة المرور (Password): ${password}\nالتحويلة الداخلية: ${ext}\nرقم المساعد الذكي: 999`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {

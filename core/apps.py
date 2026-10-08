@@ -6,9 +6,12 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
+        try:
+            import core.signals  # noqa
+        except Exception:
+            pass
+
         # Python 3.14 compatibility patch for Django BaseContext.__copy__
-        # In Python 3.14+, copy.copy(super()) returns a super proxy object,
-        # which causes AttributeError: 'super' object has no attribute 'dicts'
         try:
             from django.template import context as django_context
 
