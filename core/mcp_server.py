@@ -59,7 +59,7 @@ mcp = FastMCP(
 
 def _check_key_valid(key: str) -> bool:
     from core.models import TenantApiKey
-    return TenantApiKey.objects.filter(key=key, is_active=True).exists()
+    return TenantApiKey.objects.filter(key=key, is_active=True, tenant__is_active=True).exists()
 
 
 class FastMCPAuthMiddleware:

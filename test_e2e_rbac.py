@@ -18,7 +18,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.test import Client
 from django.utils import timezone
 from core.models import (
-    Tenant, Branch, JobRole, Employee, UserProfile, Order,
+    Tenant, Branch, JobRole, Employee, UserProfile, Order, SubscriptionPlan,
     RESTAURANT_PERMISSIONS, PERMISSIONS_CATALOG, PRESET_ROLES_CONFIG,
     ensure_tenant_preset_roles
 )
@@ -72,6 +72,10 @@ def run_e2e_tests():
     tenant = Tenant.objects.first()
     if not tenant:
         tenant = Tenant.objects.create(name="E2E Test Tenant", slug="e2e_tenant", is_active=True)
+    ent_plan = SubscriptionPlan.objects.filter(name__icontains="Enterprise").first()
+    if ent_plan:
+        tenant.subscription_plan = ent_plan
+        tenant.save(update_fields=["subscription_plan"])
     
     branch = Branch.objects.filter(tenant=tenant).first()
     if not branch:

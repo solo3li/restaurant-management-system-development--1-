@@ -1391,20 +1391,23 @@ def order_detail_view(request, order_id):
         id=order_id
     )
 
+    emp = getattr(request.user, "employee_profile", None)
     can_cross = (
         is_owner
         or user_has_perm(request.user, "branch_switch_branches")
         or user_has_perm(request.user, "manage_branches")
         or user_has_perm(request.user, "view_hq_dashboard")
         or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
-        or (getattr(request.user, "employee_profile", None) and getattr(request.user, "employee_profile", None).job_role and getattr(request.user, "employee_profile", None).job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
     )
 
     # If branch-locked and cannot cross, verify branch
-    if not can_cross and profile and profile.branch and order.branch and order.branch != profile.branch:
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return HttpResponseForbidden("غير مصرح لك بمشاهدة طلبات هذا الفرع")
 
     can_reprint = is_owner or user_has_perm(request.user, "pos_reprint_receipt") or user_has_perm(request.user, "pos_access")
+    can_edit = is_owner or user_has_perm(request.user, "edit_orders") or user_has_perm(request.user, "manage_branches")
 
     audit_logs = AuditLog.objects.filter(
         tenant=tenant,
@@ -1417,6 +1420,7 @@ def order_detail_view(request, order_id):
         "order": order,
         "items": order.items.all(),
         "is_owner": is_owner,
+        "can_edit": can_edit,
         "can_reprint": can_reprint,
         "audit_logs": audit_logs,
     }
@@ -1449,22 +1453,34 @@ def order_edit_view(request, order_id):
         or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
     )
 
-    if not can_cross and profile and profile.branch and order.branch and order.branch != profile.branch:
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return HttpResponseForbidden("غير مصرح لك بتعديل طلبات هذا الفرع")
 
-    branches = Branch.objects.filter(tenant=tenant) if tenant else Branch.objects.none()
-    drivers = Employee.objects.filter(tenant=tenant, role="driver") if tenant else Employee.objects.none()
+    branches = (
+        Branch.objects.filter(tenant=tenant).filter(Q(status="active") | Q(id=order.branch_id))
+        if tenant
+        else Branch.objects.none()
+    )
+    drivers = (
+        Employee.objects.filter(tenant=tenant, role="driver").filter(Q(status="active") | Q(id=order.driver_id))
+        if tenant
+        else Employee.objects.none()
+    )
     menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name") if tenant else MenuItem.objects.none()
 
     if request.method == "POST":
         old_status = order.status
         with transaction.atomic():
-            if not can_cross and profile and profile.branch:
-                order.branch = profile.branch
+            if not can_cross and user_branch:
+                order.branch = user_branch
             else:
                 branch_id = request.POST.get("branch_id")
                 if branch_id and branch_id != "none":
-                    order.branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+                    selected_branch = Branch.objects.filter(tenant=tenant, id=branch_id).filter(Q(status="active") | Q(id=order.branch_id)).first()
+                    if not selected_branch:
+                        return HttpResponseBadRequest("الفرع المحدد غير موجود أو مغلق")
+                    order.branch = selected_branch
                 else:
                     order.branch = None
 
@@ -1490,8 +1506,10 @@ def order_edit_view(request, order_id):
 
             driver_id = request.POST.get("driver_id")
             if driver_id and driver_id != "none":
-                driver_obj = Employee.objects.filter(tenant=tenant, id=driver_id, role="driver").first()
-                if driver_obj and not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
+                driver_obj = Employee.objects.filter(tenant=tenant, id=driver_id, role="driver").filter(Q(status="active") | Q(id=order.driver_id)).first()
+                if not driver_obj:
+                    return HttpResponseBadRequest("السائق المحدد غير موجود أو غير نشط")
+                if not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
                     return HttpResponseForbidden("لا يمكن إسناد سائق يتبع فرعاً آخر لهذا الطلب")
                 order.driver = driver_obj
             else:
@@ -1602,7 +1620,17 @@ def api_cancel_order(request, order_id):
         return JsonResponse({"error": "غير مصرح لك بإلغاء الفواتير. يرجى مراجعة مدير الفرع لتسجيل الدخول من حسابه."}, status=403)
 
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
-    if not is_owner and profile and profile.branch and order.branch != profile.branch:
+    emp = getattr(request.user, "employee_profile", None)
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بالتعامل مع طلبات الفروع الأخرى"}, status=403)
 
     order.status = "cancelled"
@@ -1820,16 +1848,24 @@ def delivery_view(request):
         if order.status in orders_by_status:
             orders_by_status[order.status].append(order)
 
+    driver_ids = [d.id for d in drivers]
+    stats_map = {}
+    if driver_ids:
+        agg_qs = Order.objects.filter(tenant=tenant, driver_id__in=driver_ids).values("driver_id").annotate(
+            active=Count("id", filter=Q(status="out_for_delivery")),
+            done=Count("id", filter=Q(status="delivered", created_at__gte=start_of_today))
+        )
+        stats_map = {row["driver_id"]: row for row in agg_qs}
+
     driver_stats = []
     for d in drivers:
-        active = Order.objects.filter(tenant=tenant, driver=d, status="out_for_delivery").count()
-        done = Order.objects.filter(tenant=tenant, driver=d, status="delivered", created_at__gte=start_of_today).count()
+        st = stats_map.get(d.id, {})
         driver_stats.append({
             "id": d.id,
             "name": d.name,
             "phone": d.phone,
-            "active": active,
-            "done": done,
+            "active": st.get("active", 0),
+            "done": st.get("done", 0),
         })
 
     active_count = sum(len(orders_by_status[st]) for st in ["new", "preparing", "ready", "out_for_delivery"])
@@ -1902,13 +1938,29 @@ def branches_view(request):
     tenant = get_active_tenant(request)
     start_of_today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     branches = Branch.objects.filter(tenant=tenant).prefetch_related("delivery_areas").order_by("id")
+
+    emp_counts = dict(
+        Employee.objects.filter(tenant=tenant, branch__isnull=False)
+        .values("branch_id")
+        .annotate(c=Count("id"))
+        .values_list("branch_id", "c")
+    )
+    sales_qs = (
+        Order.objects.filter(tenant=tenant, created_at__gte=start_of_today, branch__isnull=False)
+        .values("branch_id")
+        .annotate(
+            total_sales=Sum("total", filter=~Q(status="cancelled")),
+            orders_cnt=Count("id")
+        )
+    )
+    sales_map = {row["branch_id"]: row for row in sales_qs}
+
     branch_list = []
     for b in branches:
-        emp_count = Employee.objects.filter(branch=b).count()
-        sales = Order.objects.filter(tenant=tenant, branch=b, created_at__gte=start_of_today).exclude(status="cancelled").aggregate(
-            t=Sum("total")
-        )["t"] or Decimal("0")
-        orders_count = Order.objects.filter(tenant=tenant, branch=b, created_at__gte=start_of_today).count()
+        emp_count = emp_counts.get(b.id, 0)
+        s_info = sales_map.get(b.id, {})
+        sales = s_info.get("total_sales") or Decimal("0")
+        orders_count = s_info.get("orders_cnt", 0)
         branch_list.append({
             "branch": b,
             "employees_count": emp_count,
@@ -1964,14 +2016,15 @@ def employees_view(request):
     job_roles = JobRole.objects.filter(tenant=tenant).annotate(emp_count=Count("employees")).order_by("ordering", "id")
 
     base_qs = Employee.objects.filter(tenant=tenant, branch=active_branch) if active_branch else Employee.objects.filter(tenant=tenant)
+    role_counts = dict(base_qs.values("role").annotate(c=Count("id")).values_list("role", "c"))
     roles_summary = {
-        "all": base_qs.count(),
-        "manager": base_qs.filter(role="manager").count(),
-        "cashier": base_qs.filter(role="cashier").count(),
-        "chef": base_qs.filter(role="chef").count(),
-        "driver": base_qs.filter(role="driver").count(),
-        "call_center": base_qs.filter(role="call_center").count(),
-        "waiter": base_qs.filter(role="waiter").count(),
+        "all": sum(role_counts.values()),
+        "manager": role_counts.get("manager", 0),
+        "cashier": role_counts.get("cashier", 0),
+        "chef": role_counts.get("chef", 0),
+        "driver": role_counts.get("driver", 0),
+        "call_center": role_counts.get("call_center", 0),
+        "waiter": role_counts.get("waiter", 0),
     }
 
     # Calculate next suggested employee code for tenant
@@ -2057,11 +2110,18 @@ def api_create_order(request):
     user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
 
     active_branch = get_active_branch(request)
-    branch_id = active_branch.id if active_branch else data.get("branchId")
+    if can_cross and data.get("branchId"):
+        branch_id = data.get("branchId")
+    else:
+        branch_id = (active_branch.id if active_branch else None) or data.get("branchId")
+
     branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
 
     if not can_cross and user_branch:
         branch = user_branch
+
+    if branch and branch.status == "closed":
+        return JsonResponse({"error": "الفرع المحدد مغلق حالياً ولا يستقبل طلبات جديدة"}, status=400)
 
     # Resolve items scoped to tenant and verify availability
     menu_ids = [int(i.get("menuItemId")) for i in items_data if i.get("menuItemId")]
@@ -2104,12 +2164,13 @@ def api_create_order(request):
     delivery_area_id = data.get("deliveryAreaId")
     delivery_area = None
     if delivery_area_id:
-        delivery_area = DeliveryArea.objects.filter(branch__tenant=tenant, id=delivery_area_id).first()
-        if delivery_area:
-            if not can_cross and user_branch and delivery_area.branch and delivery_area.branch != user_branch:
-                return JsonResponse({"error": "غير مصرح لك باختيار منطقة توصيل تتبع فرعاً آخر"}, status=403)
-            if can_cross:
-                branch = delivery_area.branch
+        delivery_area = DeliveryArea.objects.filter(branch__tenant=tenant, id=delivery_area_id, is_active=True).first()
+        if not delivery_area:
+            return JsonResponse({"error": "منطقة التوصيل المحددة غير مفعلة أو غير موجودة بالفرع"}, status=400)
+        if not can_cross and user_branch and delivery_area.branch and delivery_area.branch != user_branch:
+            return JsonResponse({"error": "غير مصرح لك باختيار منطقة توصيل تتبع فرعاً آخر"}, status=403)
+        if can_cross:
+            branch = delivery_area.branch
 
     if order_type == "delivery":
         if delivery_area:
@@ -2244,7 +2305,17 @@ def api_update_order(request, order_id):
         return JsonResponse({"error": "غير مصرح لك بتعديل الطلبات"}, status=403)
 
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
-    if not is_owner_or_super and profile and profile.branch and order.branch != profile.branch:
+    emp = getattr(request.user, "employee_profile", None)
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    can_cross = (
+        is_owner_or_super
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+    if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بتعديل طلبات فرع آخر"}, status=403)
 
     try:
@@ -2332,13 +2403,16 @@ def api_update_order(request, order_id):
             return JsonResponse({"error": "غير مصرح لك بإسناد السائقين للطلبات"}, status=403)
         drv_id = data["driverId"]
         if drv_id:
-            driver_obj = Employee.objects.filter(tenant=tenant, id=drv_id, role="driver").first()
-            if driver_obj and not is_owner_or_super:
+            driver_obj = Employee.objects.filter(tenant=tenant, id=drv_id, role="driver").filter(Q(status="active") | Q(id=order.driver_id)).first()
+            if not driver_obj:
+                return JsonResponse({"error": "السائق المحدد غير موجود أو غير نشط حالياً"}, status=400)
+            if not is_owner_or_super:
                 can_cross = (
                     user_has_perm(request.user, "branch_switch_branches")
                     or user_has_perm(request.user, "manage_branches")
                     or user_has_perm(request.user, "view_hq_dashboard")
                     or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+                    or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
                 )
                 if not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
                     return JsonResponse({"error": "لا يمكن إسناد سائق يتبع فرعاً آخر لهذا الطلب"}, status=403)
@@ -2350,7 +2424,7 @@ def api_update_order(request, order_id):
                     action="order_driver_assigned",
                     target_model="Order",
                     target_id=order.id,
-                    description=f"إسناد السائق «{driver_obj.name if driver_obj else drv_id}» للطلب #{order.order_number}",
+                    description=f"إسناد السائق «{driver_obj.name}» للطلب #{order.order_number}",
                     ip_address=_get_client_ip(request),
                 )
         else:
@@ -2445,26 +2519,29 @@ def api_search_customers(request):
         return JsonResponse({"customers": []})
 
     tenant = get_active_tenant(request)
+    emp = getattr(request.user, "employee_profile", None)
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
     can_cross = (
         is_owner_or_super
         or user_has_perm(request.user, "branch_switch_branches")
         or user_has_perm(request.user, "manage_branches")
         or user_has_perm(request.user, "view_hq_dashboard")
         or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
-        or not (profile and profile.branch)
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+        or not user_branch
     )
 
     customers_qs = Customer.objects.filter(tenant=tenant)
-    if not can_cross and profile and profile.branch:
+    if not can_cross and user_branch:
         branch_cust_ids = Order.objects.filter(
-            tenant=tenant, branch=profile.branch, customer__isnull=False
+            tenant=tenant, branch=user_branch, customer__isnull=False
         ).values_list("customer_id", flat=True)
         customers_qs = customers_qs.filter(id__in=branch_cust_ids)
 
     filter_cond = Q(phone__icontains=q) | Q(name__icontains=q)
-    if not can_cross and profile and profile.branch:
+    if not can_cross and user_branch:
         customers = customers_qs.filter(filter_cond).annotate(
-            orders_count=Count("orders", filter=Q(orders__branch=profile.branch, orders__tenant=tenant))
+            orders_count=Count("orders", filter=Q(orders__branch=user_branch, orders__tenant=tenant))
         )[:8]
     else:
         customers = customers_qs.filter(filter_cond).annotate(
@@ -2592,7 +2669,18 @@ def api_delete_menu_item(request, item_id):
 
     item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
     item_name = item.name
+    item_id_val = item.id
+    item_price = item.price
     item.delete()
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="menu_item_deleted",
+        target_model="MenuItem",
+        target_id=item_id_val,
+        description=f"حذف الصنف «{item_name}» نهائياً من قائمة الطعام (السعر: {item_price} ر.س)",
+        ip_address=_get_client_ip(request),
+    )
     return JsonResponse({"ok": True, "message": f"تم حذف الصنف «{item_name}» بنجاح"})
 
 
@@ -2675,6 +2763,8 @@ def api_create_inventory(request):
         return JsonResponse({"error": "اسم المادة والفرع مطلوبان"}, status=400)
 
     branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
+    if branch.status != "active":
+        return JsonResponse({"error": "لا يمكن إضافة مخزون لفرع مغلق أو غير نشط"}, status=400)
     user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
     can_cross = (
         is_owner_or_super
@@ -2727,8 +2817,22 @@ def api_delete_inventory(request, item_id):
     if not can_cross and user_branch and item.branch and item.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بحذف مخزون الفروع الأخرى"}, status=403)
 
+    item_name = item.name
+    item_id_val = item.id
+    item_qty = item.quantity
+    item_unit = item.unit
+    b_name = item.branch.name if item.branch else "الفرع"
     item.delete()
-    return JsonResponse({"ok": True})
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="inventory_item_deleted",
+        target_model="InventoryItem",
+        target_id=item_id_val,
+        description=f"حذف عنصر المخزون «{item_name}» (الكمية: {item_qty} {item_unit}) من فرع «{b_name}»",
+        ip_address=_get_client_ip(request),
+    )
+    return JsonResponse({"ok": True, "message": f"تم حذف عنصر المخزون «{item_name}» بنجاح"})
 
 
 @login_required
@@ -2920,7 +3024,8 @@ def api_toggle_branch(request, branch_id):
         or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
         or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
     )
-    if not can_cross and profile and profile.branch and branch != profile.branch:
+    user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
+    if not can_cross and user_branch and branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بتغيير حالة فرع آخر"}, status=403)
 
     if branch.status == "closed":
@@ -2931,6 +3036,17 @@ def api_toggle_branch(request, branch_id):
     else:
         branch.status = "closed"
     branch.save()
+
+    status_label = "فتح وتنشيط" if branch.status == "active" else "إغلاق مؤقت"
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="branch_status_toggled",
+        target_model="Branch",
+        target_id=branch.id,
+        description=f"{status_label} الفرع «{branch.name}» (الحالة الجديدة: {branch.status})",
+        ip_address=_get_client_ip(request),
+    )
     return JsonResponse({"ok": True, "status": branch.status})
 
 
@@ -4236,6 +4352,16 @@ def api_review_upgrade_request(request, req_id):
         tenant = upgrade_req.tenant
         tenant.refresh_from_db()
 
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="upgrade_request_approved",
+            target_model="UpgradeRequest",
+            target_id=upgrade_req.id,
+            description=f"الموافقة على طلب ترقية المنشأة إلى باقة «{upgrade_req.requested_plan.name}» وتفعيل الاشتراك حتى {tenant.subscription_end.strftime('%Y-%m-%d') if tenant.subscription_end else ''}",
+            ip_address=_get_client_ip(request),
+        )
+
         return JsonResponse({
             "ok": True,
             "message": f"تمت الموافقة على طلب ترقية «{tenant.name}» إلى باقة «{upgrade_req.requested_plan.name}» بنجاح وتم تفعيل الاشتراك.",
@@ -4248,6 +4374,16 @@ def api_review_upgrade_request(request, req_id):
         upgrade_req.status = "rejected"
         upgrade_req.reviewed_at = timezone.now()
         upgrade_req.save()
+
+        log_audit_event(
+            tenant=upgrade_req.tenant,
+            user=request.user,
+            action="upgrade_request_rejected",
+            target_model="UpgradeRequest",
+            target_id=upgrade_req.id,
+            description=f"رفض طلب ترقية المنشأة إلى باقة «{upgrade_req.requested_plan.name}»",
+            ip_address=_get_client_ip(request),
+        )
 
         return JsonResponse({
             "ok": True,
@@ -4292,6 +4428,16 @@ def api_create_api_key(request):
         is_active=True,
     )
 
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="api_key_created",
+        target_model="TenantApiKey",
+        target_id=api_key_obj.id,
+        description=f"إنشاء مفتاح ذكاء اصطناعي جديد: «{api_key_obj.name}» (الفرع: {assigned_branch.name if assigned_branch else 'كافة الفروع'})",
+        ip_address=_get_client_ip(request),
+    )
+
     return JsonResponse({
         "ok": True,
         "message": f"تم إنشاء مفتاح الذكاء الاصطناعي «{api_key_obj.name}» بنجاح!",
@@ -4322,6 +4468,16 @@ def api_toggle_api_key(request, key_id):
     api_key_obj.save(update_fields=["is_active"])
 
     status_str = "تفعيل" if api_key_obj.is_active else "تعطيل"
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="api_key_toggled",
+        target_model="TenantApiKey",
+        target_id=api_key_obj.id,
+        description=f"{status_str} مفتاح الذكاء الاصطناعي «{api_key_obj.name}»",
+        ip_address=_get_client_ip(request),
+    )
+
     return JsonResponse({
         "ok": True,
         "is_active": api_key_obj.is_active,
@@ -4343,7 +4499,18 @@ def api_delete_api_key(request, key_id):
     tenant = get_active_tenant(request)
     api_key_obj = get_object_or_404(TenantApiKey, id=key_id, tenant=tenant)
     name = api_key_obj.name
+    api_key_id_val = api_key_obj.id
     api_key_obj.delete()
+
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="api_key_deleted",
+        target_model="TenantApiKey",
+        target_id=api_key_id_val,
+        description=f"حذف مفتاح الذكاء الاصطناعي «{name}» نهائياً",
+        ip_address=_get_client_ip(request),
+    )
 
     return JsonResponse({
         "ok": True,
