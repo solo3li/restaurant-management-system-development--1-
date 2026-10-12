@@ -5426,15 +5426,15 @@ def api_ai_callcenter_call_recording_proxy(request, call_id):
         req = urllib.request.Request(rec_url, headers={"User-Agent": "Motaem-Voice-Proxy/1.0"})
         url_fp = urllib.request.urlopen(req, context=ctx, timeout=15)
 
-        def _iter_chunks():
+        async def _iter_chunks():
             try:
                 while True:
-                    chunk = url_fp.read(8192)
+                    chunk = await asyncio.to_thread(url_fp.read, 8192)
                     if not chunk:
                         break
                     yield chunk
             finally:
-                url_fp.close()
+                await asyncio.to_thread(url_fp.close)
 
         content_type = url_fp.headers.get_content_type() if hasattr(url_fp.headers, "get_content_type") else "audio/mpeg"
         response = StreamingHttpResponse(
