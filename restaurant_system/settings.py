@@ -52,9 +52,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
-# Allow external iframes, cross-origin modals and web tools
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None
-X_FRAME_OPTIONS = 'ALLOWALL'
+# Security headers & Frame options
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 86400 * 7
+CSRF_COOKIE_HTTPONLY = False
 
 
 # Application definition

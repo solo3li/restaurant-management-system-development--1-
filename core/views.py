@@ -17,6 +17,8 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.db import transaction
 from django.db.models import Sum, Count, F, Q
+from django.core.cache import cache
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from asgiref.sync import sync_to_async
 from .kitchen_events import kitchen_broadcaster, serialize_kitchen_order, notify_kitchen_order_event
 
@@ -54,6 +56,33 @@ def _get_client_ip(request):
     return request.META.get("REMOTE_ADDR")
 
 
+def _check_rate_limit(key, max_attempts=5):
+    """Checks if key is currently rate-limited (blocked)."""
+    try:
+        attempts = cache.get(key, 0)
+        return attempts >= max_attempts
+    except Exception:
+        return False
+
+
+def _record_failed_attempt(key, timeout_seconds=900):
+    """Increments failed attempt count with 15 minutes expiration."""
+    try:
+        attempts = cache.get(key, 0) + 1
+        cache.set(key, attempts, timeout=timeout_seconds)
+        return attempts
+    except Exception:
+        return 1
+
+
+def _clear_rate_limit(key):
+    """Clears failed attempt count on successful login."""
+    try:
+        cache.delete(key)
+    except Exception:
+        pass
+
+
 def get_active_tenant(request):
     """Resolve the active tenant for the current request."""
     if hasattr(request, "tenant") and request.tenant:
@@ -74,7 +103,10 @@ def get_active_tenant(request):
         if t:
             return t
 
-    return Tenant.objects.filter(is_active=True).first()
+    if hasattr(request, "user") and (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        return Tenant.objects.filter(is_active=True).first()
+
+    return None
 
 
 def get_active_branch(request):
@@ -257,7 +289,12 @@ def login_view(request):
             code = code.translate(trans_table).strip()
             pin = pin.translate(trans_table).strip()
 
-            if not code or not pin:
+            client_ip = _get_client_ip(request) or "unknown"
+            pin_rate_key = f"rate_limit_pin_{client_ip}_{code}"
+
+            if _check_rate_limit(pin_rate_key):
+                error_message = "تم تجاوز الحد الأقصى للمحاولات الخاطئة (5 محاولات). يرجى الانتظار لمدة 15 دقيقة قبل المحاولة مرة أخرى."
+            elif not code or not pin:
                 error_message = "يرجى إدخال كود الموظف ورمز PIN المكون من 4 أرقام"
             else:
                 restaurant_id = request.POST.get("restaurant") or request.GET.get("restaurant") or request.session.get("active_tenant_id")
@@ -282,6 +319,7 @@ def login_view(request):
                     matched_emp = matched_emps[0]
 
                 if matched_emp:
+                    _clear_rate_limit(pin_rate_key)
                     # Auto-assign default branch if none is set and role is branch-scoped
                     effective_branch = matched_emp.branch
                     if not effective_branch and matched_emp.tenant:
@@ -333,57 +371,67 @@ def login_view(request):
 
                     return redirect(get_post_login_redirect(user_to_login))
                 elif not error_message:
+                    _record_failed_attempt(pin_rate_key)
                     error_message = "كود الموظف أو رمز PIN غير صحيح"
 
         else:
             # Mode A: Standard Credentials
             username = request.POST.get("username", "").strip()
             password = request.POST.get("password", "")
-            user = authenticate(request, username=username, password=password)
 
-            # Fallback: if username is employee_code (e.g. "104"), resolve via Employee
-            if user is None and username:
-                trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
-                clean_code = username.translate(trans_table).strip()
-                emp_candidate = Employee.objects.filter(employee_code=clean_code, status="active").select_related("user").first()
-                if emp_candidate and emp_candidate.user:
-                    user = authenticate(request, username=emp_candidate.user.username, password=password)
+            client_ip = _get_client_ip(request) or "unknown"
+            cred_rate_key = f"rate_limit_cred_{client_ip}_{username}"
 
-            if user is not None:
-                login(request, user)
-                profile = getattr(user, "profile", None)
-
-                # Sync Django Group for user from Employee or Profile
-                emp_obj = getattr(user, "employee_profile", None)
-                eff_job_role = emp_obj.job_role if (emp_obj and emp_obj.job_role) else (profile.job_role if (profile and profile.job_role) else None)
-                if eff_job_role:
-                    grp = eff_job_role.sync_with_django_group()
-                    if grp:
-                        user.groups.set([grp])
-
-                for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
-                    if hasattr(user, cache_field):
-                        delattr(user, cache_field)
-
-                # Route platform admin
-                if profile and profile.is_platform_admin:
-                    return redirect("platform_dashboard")
-
-                # Bind tenant
-                if profile and profile.tenant:
-                    request.session["active_tenant_id"] = profile.tenant.id
-
-                # Route branch-locked staff
-                if profile and profile.role != "owner":
-                    if not profile.branch and profile.tenant:
-                        profile.branch = profile.tenant.branches.filter(status="active").first() or profile.tenant.branches.first()
-                        profile.save(update_fields=["branch"])
-                    if profile.branch:
-                        request.session["active_branch_id"] = profile.branch.id
-
-                return redirect(get_post_login_redirect(user))
+            if _check_rate_limit(cred_rate_key):
+                error_message = "تم تجاوز الحد الأقصى للمحاولات الخاطئة (5 محاولات). يرجى الانتظار لمدة 15 دقيقة قبل المحاولة مرة أخرى."
             else:
-                error_message = "اسم المستخدم أو كلمة المرور غير صحيحة"
+                user = authenticate(request, username=username, password=password)
+
+                # Fallback: if username is employee_code (e.g. "104"), resolve via Employee
+                if user is None and username:
+                    trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+                    clean_code = username.translate(trans_table).strip()
+                    emp_candidate = Employee.objects.filter(employee_code=clean_code, status="active").select_related("user").first()
+                    if emp_candidate and emp_candidate.user:
+                        user = authenticate(request, username=emp_candidate.user.username, password=password)
+
+                if user is not None:
+                    _clear_rate_limit(cred_rate_key)
+                    login(request, user)
+                    profile = getattr(user, "profile", None)
+
+                    # Sync Django Group for user from Employee or Profile
+                    emp_obj = getattr(user, "employee_profile", None)
+                    eff_job_role = emp_obj.job_role if (emp_obj and emp_obj.job_role) else (profile.job_role if (profile and profile.job_role) else None)
+                    if eff_job_role:
+                        grp = eff_job_role.sync_with_django_group()
+                        if grp:
+                            user.groups.set([grp])
+
+                    for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                        if hasattr(user, cache_field):
+                            delattr(user, cache_field)
+
+                    # Route platform admin
+                    if profile and profile.is_platform_admin:
+                        return redirect("platform_dashboard")
+
+                    # Bind tenant
+                    if profile and profile.tenant:
+                        request.session["active_tenant_id"] = profile.tenant.id
+
+                    # Route branch-locked staff
+                    if profile and profile.role != "owner":
+                        if not profile.branch and profile.tenant:
+                            profile.branch = profile.tenant.branches.filter(status="active").first() or profile.tenant.branches.first()
+                            profile.save(update_fields=["branch"])
+                        if profile.branch:
+                            request.session["active_branch_id"] = profile.branch.id
+
+                    return redirect(get_post_login_redirect(user))
+                else:
+                    _record_failed_attempt(cred_rate_key)
+                    error_message = "اسم المستخدم أو كلمة المرور غير صحيحة"
 
     return render(request, "login.html", {"error": error_message})
 
@@ -1113,10 +1161,21 @@ def branch_orders_view(request):
     if search:
         orders = orders.filter(Q(order_number__icontains=search) | Q(customer_name__icontains=search) | Q(customer_phone__icontains=search))
 
+    page_num = request.GET.get("page", 1)
+    paginator = Paginator(orders, 50)
+    try:
+        page_obj = paginator.page(page_num)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
     context = {
         "tenant": tenant,
         "branch": branch,
-        "orders": orders[:50],
+        "orders": page_obj,
+        "page_obj": page_obj,
+        "paginator": paginator,
         "status_filter": status_filter,
         "type_filter": type_filter,
         "search_query": search,
@@ -1199,17 +1258,35 @@ def hq_orders_view(request):
             Q(branch__name__icontains=search)
         )
 
-    # Summary metrics for the filtered queryset
-    total_orders = orders.count()
-    total_revenue = orders.exclude(status="cancelled").aggregate(s=Sum("total"))["s"] or Decimal("0")
-    pending_orders = orders.filter(status__in=["new", "preparing", "ready", "out_for_delivery"]).count()
-    delivered_orders = orders.filter(status="delivered").count()
-    cancelled_orders = orders.filter(status="cancelled").count()
+    # Summary metrics in a single optimized aggregation query
+    metrics = orders.aggregate(
+        total_orders=Count("id"),
+        total_revenue=Sum("total", filter=~Q(status="cancelled")),
+        pending_orders=Count("id", filter=Q(status__in=["new", "preparing", "ready", "out_for_delivery"])),
+        delivered_orders=Count("id", filter=Q(status="delivered")),
+        cancelled_orders=Count("id", filter=Q(status="cancelled")),
+    )
+    total_orders = metrics["total_orders"] or 0
+    total_revenue = metrics["total_revenue"] or Decimal("0")
+    pending_orders = metrics["pending_orders"] or 0
+    delivered_orders = metrics["delivered_orders"] or 0
+    cancelled_orders = metrics["cancelled_orders"] or 0
+
+    page_num = request.GET.get("page", 1)
+    paginator = Paginator(orders, 50)
+    try:
+        page_obj = paginator.page(page_num)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
 
     context = {
         "tenant": tenant,
         "branches": branches,
-        "orders": orders[:100],
+        "orders": page_obj,
+        "page_obj": page_obj,
+        "paginator": paginator,
         "total_orders": total_orders,
         "total_revenue": total_revenue,
         "pending_orders": pending_orders,
@@ -1935,48 +2012,54 @@ def api_create_order(request):
     address = str(data.get("address") or "").strip()
     customer = None
 
-    if phone:
-        customer, _ = Customer.objects.get_or_create(tenant=tenant, phone=phone, defaults={"name": cust_name, "address": address})
-        if cust_name and customer.name != cust_name:
-            customer.name = cust_name
-        if address:
-            customer.address = address
-        customer.save()
+    with transaction.atomic():
+        if phone:
+            customer, _ = Customer.objects.get_or_create(tenant=tenant, phone=phone, defaults={"name": cust_name, "address": address})
+            if cust_name and customer.name != cust_name:
+                customer.name = cust_name
+            if address:
+                customer.address = address
+            customer.save()
 
-    count = Order.objects.filter(tenant=tenant).count()
-    prefix = tenant.slug[:3].upper() if tenant else "ORD"
-    order_number = f"{prefix}-{1000 + count + 1}"
+        prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
+        last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
+        next_seq = (last_order.id + 1) if last_order else 1
+        candidate_num = f"{prefix}-{1000 + next_seq}"
+        while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
+            next_seq += 1
+            candidate_num = f"{prefix}-{1000 + next_seq}"
+        order_number = candidate_num
 
-    order = Order.objects.create(
-        tenant=tenant,
-        order_number=order_number,
-        order_type=order_type,
-        channel=channel,
-        branch=branch,
-        delivery_area=delivery_area,
-        customer=customer,
-        customer_name=cust_name,
-        customer_phone=phone,
-        address=address,
-        status="new",
-        pay_method=data.get("payMethod", "cash"),
-        paid=True,
-        subtotal=subtotal,
-        delivery_fee=delivery_fee,
-        discount=discount,
-        total=total,
-        cashier=getattr(request.user, "employee_profile", None).name if getattr(request.user, "employee_profile", None) else (request.user.get_full_name() or request.user.first_name or request.user.username),
-        notes=str(data.get("notes") or ""),
-    )
-
-    for r in rows:
-        OrderItem.objects.create(
-            order=order,
-            menu_item=r["menu_item"],
-            name=r["name"],
-            price=r["price"],
-            qty=r["qty"],
+        order = Order.objects.create(
+            tenant=tenant,
+            order_number=order_number,
+            order_type=order_type,
+            channel=channel,
+            branch=branch,
+            delivery_area=delivery_area,
+            customer=customer,
+            customer_name=cust_name,
+            customer_phone=phone,
+            address=address,
+            status="new",
+            pay_method=data.get("payMethod", "cash"),
+            paid=True,
+            subtotal=subtotal,
+            delivery_fee=delivery_fee,
+            discount=discount,
+            total=total,
+            cashier=getattr(request.user, "employee_profile", None).name if getattr(request.user, "employee_profile", None) else (request.user.get_full_name() or request.user.first_name or request.user.username),
+            notes=str(data.get("notes") or ""),
         )
+
+        for r in rows:
+            OrderItem.objects.create(
+                order=order,
+                menu_item=r["menu_item"],
+                name=r["name"],
+                price=r["price"],
+                qty=r["qty"],
+            )
 
     # Broadcast real-time SSE event to all active kitchen screens (0ms)
     notify_kitchen_order_event(order, "new_order")

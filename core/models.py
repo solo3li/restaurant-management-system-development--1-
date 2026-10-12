@@ -761,6 +761,16 @@ class Employee(models.Model):
         verbose_name = "موظف"
         verbose_name_plural = "الموظفون"
         ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant", "employee_code"],
+                condition=models.Q(employee_code__isnull=False) & ~models.Q(employee_code=""),
+                name="unique_tenant_emp_code"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["tenant", "status"], name="idx_emp_tenant_status"),
+        ]
 
     def set_pin(self, raw_pin):
         if raw_pin:
@@ -898,6 +908,9 @@ class Customer(models.Model):
         verbose_name = "عميل"
         verbose_name_plural = "العملاء"
         ordering = ["-id"]
+        indexes = [
+            models.Index(fields=["tenant", "phone"], name="idx_cust_t_phone"),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.phone})"
@@ -935,7 +948,7 @@ class Order(models.Model):
         blank=True,
         verbose_name="المستأجر / المنشأة",
     )
-    order_number = models.CharField(max_length=50, unique=True, verbose_name="رقم الطلب")
+    order_number = models.CharField(max_length=50, db_index=True, verbose_name="رقم الطلب")
     order_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="dine_in", verbose_name="نوع الطلب")
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES, default="cashier", verbose_name="القناة")
     branch = models.ForeignKey(
@@ -988,6 +1001,14 @@ class Order(models.Model):
         verbose_name = "طلب"
         verbose_name_plural = "الطلبات"
         ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["tenant", "order_number"], name="unique_tenant_order_number"),
+        ]
+        indexes = [
+            models.Index(fields=["tenant", "status", "-created_at"], name="idx_ord_t_stat_dt"),
+            models.Index(fields=["tenant", "-created_at"], name="idx_ord_t_dt"),
+            models.Index(fields=["tenant", "branch", "-created_at"], name="idx_ord_t_br_dt"),
+        ]
 
     def __str__(self):
         return f"{self.order_number} ({self.get_status_display()})"

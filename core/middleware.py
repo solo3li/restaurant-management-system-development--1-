@@ -22,15 +22,17 @@ class TenantMiddleware:
                 elif profile and profile.tenant:
                     request.tenant = profile.tenant
                 else:
-                    # Default to first tenant if available
                     request.tenant = Tenant.objects.filter(is_active=True).first()
             else:
                 # Tenant users (owners, managers, employees) are strictly bound to their tenant
                 if profile and profile.tenant:
                     request.tenant = profile.tenant
                 else:
-                    # Fallback to first active tenant
-                    request.tenant = Tenant.objects.filter(is_active=True).first()
+                    emp = getattr(request.user, "employee_profile", None)
+                    if emp and emp.tenant:
+                        request.tenant = emp.tenant
+                    else:
+                        request.tenant = None
 
         response = self.get_response(request)
         return response

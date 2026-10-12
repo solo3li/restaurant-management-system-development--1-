@@ -109,6 +109,19 @@ class KitchenEventBroadcaster:
                         del self._subscribers[tenant_id]
             logger.info("Unregistered kitchen SSE client")
 
+    @staticmethod
+    def _safe_put(q: asyncio.Queue, payload: Dict[str, Any]):
+        try:
+            q.put_nowait(payload)
+        except asyncio.QueueFull:
+            try:
+                q.get_nowait()
+                q.put_nowait(payload)
+            except Exception:
+                pass
+        except Exception:
+            pass
+
     def broadcast(self, tenant_id: int, event_type: str, data: Dict[str, Any], branch_id: Optional[int] = None):
         """
         Broadcasts an event payload to all active listener queues for the given tenant/branch.
@@ -131,17 +144,19 @@ class KitchenEventBroadcaster:
             if target_branch and branch_id and target_branch != branch_id:
                 continue
 
-            try:
-                q.put_nowait(payload)
-            except asyncio.QueueFull:
-                # Discard oldest to make room
+            loop = getattr(q, "_loop", None)
+            if loop and loop.is_running():
                 try:
-                    q.get_nowait()
-                    q.put_nowait(payload)
-                except Exception:
-                    pass
-            except Exception as e:
-                logger.warning("Error putting event to kitchen queue: %s", e)
+                    current_loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    current_loop = None
+
+                if current_loop is loop:
+                    self._safe_put(q, payload)
+                else:
+                    loop.call_soon_threadsafe(self._safe_put, q, payload)
+            else:
+                self._safe_put(q, payload)
 
 
 # Global singleton broadcaster instance

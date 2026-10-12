@@ -165,6 +165,22 @@
                 </tbody>
             </table>
         </div>
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="flex items-center justify-between border-t border-line px-4 py-3 bg-paper/50 rounded-b-xl">
+            <div class="text-xs text-soft font-bold">
+                عرض الصفحة <span class="text-ink">{{ page_obj.number }}</span> من <span class="text-ink">{{ page_obj.paginator.num_pages }}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-line bg-surface hover:bg-gold/10 text-ink transition">السابق</a>
+                {% endif %}
+                <span class="px-2 py-1 text-xs font-black text-ink">{{ page_obj.number }}</span>
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-line bg-surface hover:bg-gold/10 text-ink transition">التالي</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
