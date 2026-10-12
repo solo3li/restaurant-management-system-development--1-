@@ -314,7 +314,7 @@ def login_view(request):
 
                 matched_emp = None
                 if len(matched_emps) > 1 and not restaurant_id:
-                    error_message = "تم العثور على أكثر من حساب بهذا الكود في مطاعم مختلفة. يرجى تحديد اسم أو معرف المطعم للدخول."
+                    error_message = "يرجى تحديد اسم أو معرف المنشأة (المطعم) للدخول بهذا الحساب."
                 elif len(matched_emps) >= 1:
                     matched_emp = matched_emps[0]
 
@@ -2258,22 +2258,26 @@ def api_search_customers(request):
         ).values_list("customer_id", flat=True)
         customers_qs = customers_qs.filter(id__in=branch_cust_ids)
 
-    customers = customers_qs.filter(Q(phone__icontains=q) | Q(name__icontains=q))[:8]
+    filter_cond = Q(phone__icontains=q) | Q(name__icontains=q)
+    if not can_cross and profile and profile.branch:
+        customers = customers_qs.filter(filter_cond).annotate(
+            orders_count=Count("orders", filter=Q(orders__branch=profile.branch, orders__tenant=tenant))
+        )[:8]
+    else:
+        customers = customers_qs.filter(filter_cond).annotate(
+            orders_count=Count("orders", filter=Q(orders__tenant=tenant))
+        )[:8]
 
-    data = []
-    for c in customers:
-        if not can_cross and profile and profile.branch:
-            orders_count = Order.objects.filter(tenant=tenant, branch=profile.branch, customer=c).count()
-        else:
-            orders_count = Order.objects.filter(tenant=tenant, customer=c).count()
-
-        data.append({
+    data = [
+        {
             "id": c.id,
             "name": c.name,
             "phone": c.phone,
             "address": c.address,
-            "ordersCount": orders_count,
-        })
+            "ordersCount": c.orders_count,
+        }
+        for c in customers
+    ]
     return JsonResponse({"customers": data})
 
 
@@ -2404,7 +2408,6 @@ def api_adjust_inventory(request, item_id):
     if not is_owner_or_super and not (user_has_perm(request.user, "inventory_adjust_stock") or user_has_perm(request.user, "manage_inventory")):
         return JsonResponse({"error": "غير مصرح لك بتسوية أو تعديل كميات المخزون"}, status=403)
 
-    item = get_object_or_404(InventoryItem, tenant=tenant, id=item_id)
     user_branch = profile.branch if profile and profile.branch else (emp.branch if emp and emp.branch else None)
     can_cross = (
         is_owner_or_super
@@ -2414,27 +2417,33 @@ def api_adjust_inventory(request, item_id):
         or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
         or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
     )
-    if not can_cross and user_branch and item.branch and item.branch != user_branch:
-        return JsonResponse({"error": "غير مصرح لك بتسوية مخزون الفروع الأخرى"}, status=403)
 
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception:
         return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
 
-    if "delta" in data:
-        delta = Decimal(str(data["delta"]))
-        item.quantity = max(Decimal("0"), item.quantity + delta)
-    elif "quantity" in data:
-        item.quantity = max(Decimal("0"), Decimal(str(data["quantity"])))
+    with transaction.atomic():
+        item = InventoryItem.objects.select_for_update().filter(tenant=tenant, id=item_id).first()
+        if not item:
+            return JsonResponse({"error": "عنصر المخزون غير موجود"}, status=404)
 
-    if "minQuantity" in data:
-        item.min_quantity = max(Decimal("0"), Decimal(str(data["minQuantity"])))
-    if "supplier" in data:
-        item.supplier = str(data["supplier"])
+        if not can_cross and user_branch and item.branch and item.branch != user_branch:
+            return JsonResponse({"error": "غير مصرح لك بتسوية مخزون الفروع الأخرى"}, status=403)
 
-    item.save()
-    return JsonResponse({"ok": True, "quantity": float(item.quantity), "minQuantity": float(item.min_quantity)})
+        if "delta" in data:
+            delta = Decimal(str(data["delta"]))
+            item.quantity = max(Decimal("0"), item.quantity + delta)
+        elif "quantity" in data:
+            item.quantity = max(Decimal("0"), Decimal(str(data["quantity"])))
+
+        if "minQuantity" in data:
+            item.min_quantity = max(Decimal("0"), Decimal(str(data["minQuantity"])))
+        if "supplier" in data:
+            item.supplier = str(data["supplier"])
+
+        item.save()
+        return JsonResponse({"ok": True, "quantity": float(item.quantity), "minQuantity": float(item.min_quantity)})
 
 
 @login_required
@@ -2800,7 +2809,8 @@ def api_create_employee(request):
 
     pin = str(data.get("pin") or data.get("pin_code") or "").strip()
     if not pin:
-        pin = "1234"
+        import secrets
+        pin = str(secrets.randbelow(9000) + 1000)
     elif len(pin) < 4:
         return JsonResponse({"error": "رمز PIN يجب أن يتكون من 4 أرقام على الأقل"}, status=400)
 
@@ -2909,6 +2919,7 @@ def api_create_employee(request):
         "id": emp.id,
         "name": emp.name,
         "employeeCode": code,
+        "pin": pin,
         "jobRole": emp.job_role.name if emp.job_role else emp.get_role_display()
     })
 
@@ -5038,7 +5049,7 @@ def api_ai_callcenter_whatsapp_send(request):
         order = Order.objects.filter(tenant=tenant, id=order_id).first()
         if order:
             phone = phone or order.customer_phone
-            items_str = ", ".join(f"{it.item_name} x{it.quantity}" for it in order.items.all())
+            items_str = ", ".join(f"{it.name} x{it.qty}" for it in order.items.all())
             message = f"مرحباً بك من مطعم {tenant.name}!\nتم استلام طلبك رقم {order.order_number}:\n{items_str}\nالإجمالي: {order.total} ريال.\nشكراً لاختيارك لنا!"
 
     if not phone or not message:

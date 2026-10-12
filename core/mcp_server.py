@@ -27,7 +27,7 @@ from django.conf import settings
 if not settings.configured:
     django.setup()
 
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from fastmcp import FastMCP
 import contextvars
@@ -1379,44 +1379,49 @@ def create_callcenter_order(
     tax = (subtotal * Decimal("0.15")).quantize(Decimal("0.01"))
     total = subtotal + delivery_fee
 
-    # Unique Order Number
-    while True:
-        order_number = f"DIY-{random.randint(1000, 9999)}"
-        if not Order.objects.filter(tenant=tenant, order_number=order_number).exists():
-            break
-
+    # Unique Order Number with Tenant Scoped Prefix
+    prefix = (tenant.slug[:3] if tenant and tenant.slug else "CC").upper()
     full_notes = f"[AI Call Center: {key_obj.name}] {notes}".strip()
 
     # 5. Atomic Order Creation
-    order = Order.objects.create(
-        tenant=tenant,
-        branch=branch,
-        order_number=order_number,
-        order_type=order_type,
-        channel="call_center",
-        customer=customer,
-        customer_name=customer.name,
-        customer_phone=customer.phone,
-        address=clean_addr,
-        delivery_area=matched_area,
-        subtotal=subtotal,
-        delivery_fee=delivery_fee,
-        discount=Decimal("0.00"),
-        total=total,
-        paid=False,
-        cashier=f"AI: {key_obj.name}",
-        notes=full_notes,
-        status="new",
-    )
+    with transaction.atomic():
+        last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
+        next_seq = (last_order.id + 1) if last_order else 1
+        candidate_num = f"{prefix}-{1000 + next_seq}"
+        while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
+            next_seq += 1
+            candidate_num = f"{prefix}-{1000 + next_seq}"
+        order_number = candidate_num
 
-    for oi in order_items_prepared:
-        OrderItem.objects.create(
-            order=order,
-            menu_item=oi["menu_item"],
-            name=oi["menu_item"].name,
-            price=oi["price"],
-            qty=oi["quantity"],
+        order = Order.objects.create(
+            tenant=tenant,
+            branch=branch,
+            order_number=order_number,
+            order_type=order_type,
+            channel="call_center",
+            customer=customer,
+            customer_name=customer.name,
+            customer_phone=customer.phone,
+            address=clean_addr,
+            delivery_area=matched_area,
+            subtotal=subtotal,
+            delivery_fee=delivery_fee,
+            discount=Decimal("0.00"),
+            total=total,
+            paid=False,
+            cashier=f"AI: {key_obj.name}",
+            notes=full_notes,
+            status="new",
         )
+
+        for oi in order_items_prepared:
+            OrderItem.objects.create(
+                order=order,
+                menu_item=oi["menu_item"],
+                name=oi["menu_item"].name,
+                price=oi["price"],
+                qty=oi["quantity"],
+            )
 
     # Real-time SSE push to kitchen display
     try:
@@ -1515,9 +1520,15 @@ def track_order(
         # 1.1 Direct exact match
         order = Order.objects.filter(tenant=tenant, order_number__iexact=norm_query).select_related("branch", "customer", "driver").first()
 
-        # 1.2 Match with DIY- prefix if missing
-        if not order and not norm_query.upper().startswith("DIY-"):
-            order = Order.objects.filter(tenant=tenant, order_number__iexact=f"DIY-{norm_query}").select_related("branch", "customer", "driver").first()
+        # 1.2 Match with tenant prefix or standard prefixes if missing
+        if not order:
+            prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
+            for pfx in [prefix, "DIY", "ORD", "CC"]:
+                if not norm_query.upper().startswith(f"{pfx}-"):
+                    candidate = Order.objects.filter(tenant=tenant, order_number__iexact=f"{pfx}-{norm_query}").select_related("branch", "customer", "driver").first()
+                    if candidate:
+                        order = candidate
+                        break
 
         # 1.3 Extract 3-5 digits sequence (e.g. "3114" from "طلب 3114")
         if not order:
@@ -1664,8 +1675,14 @@ def cancel_order(
     # 1. Search by exact order_number or digits
     if norm_query:
         order = Order.objects.filter(tenant=tenant, order_number__iexact=norm_query).select_related("branch", "customer").first()
-        if not order and not norm_query.upper().startswith("DIY-"):
-            order = Order.objects.filter(tenant=tenant, order_number__iexact=f"DIY-{norm_query}").select_related("branch", "customer").first()
+        if not order:
+            prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
+            for pfx in [prefix, "DIY", "ORD", "CC"]:
+                if not norm_query.upper().startswith(f"{pfx}-"):
+                    candidate = Order.objects.filter(tenant=tenant, order_number__iexact=f"{pfx}-{norm_query}").select_related("branch", "customer").first()
+                    if candidate:
+                        order = candidate
+                        break
 
         if not order:
             num_matches = re.findall(r'\d{3,5}', norm_query)

@@ -56,6 +56,12 @@ def get_client_id_for_tenant(tenant) -> int:
     if getattr(tenant, "voice_client_id", None):
         return tenant.voice_client_id
 
+    # Tenant 1 (سلسلة مطاعم كُـورَا / diyafa) is client 49 on the partner platform
+    if getattr(tenant, "id", None) == 1 or getattr(tenant, "slug", "") in ("diyafa", "kura"):
+        tenant.voice_client_id = 49
+        tenant.save(update_fields=["voice_client_id"])
+        return 49
+
     # Dynamically auto-register tenant if not registered yet
     try:
         reg = ensure_tenant_registered(tenant)
@@ -65,7 +71,10 @@ def get_client_id_for_tenant(tenant) -> int:
     except Exception as e:
         logger.warning(f"Could not auto-register tenant {getattr(tenant, 'name', '')}: {e}")
 
-    return getattr(tenant, "voice_client_id", 49) or 49
+    cid = getattr(tenant, "voice_client_id", None)
+    if not cid:
+        raise ValueError(f"تعذر العثور على حساب سنترال صوتي مربوط بالمنشأة «{getattr(tenant, 'name', '')}». يرجى مراجعة إعدادات الكول سنتر.")
+    return cid
 
 
 def register_sub_client(name: str, external_reference: str, email: str = "", password: str = "", spending_cap: float = 25.0, minute_cap: int = 300) -> Dict[str, Any]:

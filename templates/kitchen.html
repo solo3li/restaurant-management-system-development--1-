@@ -183,15 +183,17 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{{ kitchen_orders|json_script:"initial-orders-data" }}
+{{ station_counts|json_script:"initial-stations-data" }}
 <script>
     // ================================================================
     // KURA KDS (Kitchen Display System) - True Real-Time SSE Engine
     // Zero polling, zero page reloads, station filtering & audio bell
     // ================================================================
 
-    // Initial server state passed securely
-    const INITIAL_ORDERS = {{ kitchen_orders_json|safe }};
-    const INITIAL_STATION_COUNTS = {{ station_counts_json|safe }};
+    // Initial server state passed securely via json_script
+    const INITIAL_ORDERS = JSON.parse(document.getElementById('initial-orders-data')?.textContent || '[]');
+    const INITIAL_STATION_COUNTS = JSON.parse(document.getElementById('initial-stations-data')?.textContent || '{}');
     const TARGET_BRANCH_ID = "{{ target_branch_id|default:'' }}";
 
     // Application state in memory
