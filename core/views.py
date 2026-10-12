@@ -1559,14 +1559,20 @@ def order_edit_view(request, order_id):
 
             # Delivery Fee & Discount
             try:
-                order.delivery_fee = Decimal(str(request.POST.get("delivery_fee") or ("8" if order.order_type == "delivery" else "0")))
+                raw_fee = Decimal(str(request.POST.get("delivery_fee") or ("8" if order.order_type == "delivery" else "0")))
+                order.delivery_fee = max(Decimal("0"), raw_fee)
             except Exception:
                 order.delivery_fee = Decimal("0")
 
             try:
-                new_discount = Decimal(str(request.POST.get("discount") or "0"))
+                raw_discount = Decimal(str(request.POST.get("discount") or "0"))
             except Exception:
-                new_discount = Decimal("0")
+                raw_discount = Decimal("0")
+
+            if raw_discount < 0:
+                return HttpResponseBadRequest("قيمة الخصم لا يمكن أن تكون سالبة")
+
+            new_discount = min(raw_discount, order.subtotal)
 
             if new_discount != order.discount:
                 if not is_owner and not user_has_perm(request.user, "pos_apply_discount"):
@@ -2088,6 +2094,9 @@ def api_create_order(request):
     except Exception:
         raw_discount = Decimal("0")
 
+    if raw_discount < 0:
+        return JsonResponse({"error": "قيمة الخصم لا يمكن أن تكون سالبة"}, status=400)
+
     if raw_discount > 0 and not is_owner_or_super and not user_has_perm(request.user, "pos_apply_discount"):
         return JsonResponse({"error": "غير مصرح لك بتطبيق خصم على الفاتورة"}, status=403)
 
@@ -2174,9 +2183,12 @@ def api_create_order(request):
 
     if order_type == "delivery":
         if delivery_area:
-            delivery_fee = delivery_area.delivery_fee
+            delivery_fee = max(Decimal("0"), delivery_area.delivery_fee)
         else:
-            delivery_fee = Decimal(str(data.get("deliveryFee") or "8"))
+            try:
+                delivery_fee = max(Decimal("0"), Decimal(str(data.get("deliveryFee") or "8")))
+            except Exception:
+                delivery_fee = Decimal("0")
     else:
         delivery_fee = Decimal("0")
 
@@ -2612,6 +2624,16 @@ def api_create_menu_item(request):
     for b in Branch.objects.filter(tenant=tenant):
         BranchMenuAvailability.objects.get_or_create(branch=b, menu_item=item, defaults={"is_available": True})
 
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="menu_item_created",
+        target_model="MenuItem",
+        target_id=item.id,
+        description=f"إضافة الصنف «{item.name}» إلى قائمة الطعام (السعر: {item.price} ر.س، القسم: {item.category})",
+        ip_address=_get_client_ip(request),
+    )
+
     return JsonResponse({"id": item.id, "name": item.name}, status=201)
 
 
@@ -2653,6 +2675,15 @@ def api_update_menu_item(request, item_id):
             item.emoji = str(data["emoji"])
 
     item.save()
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="menu_item_updated",
+        target_model="MenuItem",
+        target_id=item.id,
+        description=f"تحديث بيانات الصنف «{item.name}» (السعر: {item.price} ر.س، القسم: {item.category})",
+        ip_address=_get_client_ip(request),
+    )
     return JsonResponse({"ok": True, "id": item.id, "name": item.name, "price": float(item.price)})
 
 
@@ -2734,6 +2765,15 @@ def api_adjust_inventory(request, item_id):
             item.supplier = str(data["supplier"])
 
         item.save()
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="inventory_stock_adjusted",
+            target_model="InventoryItem",
+            target_id=item.id,
+            description=f"تسوية مخزون المادة «{item.name}» إلى {item.quantity} {item.unit} في فرع «{item.branch.name if item.branch else ''}»",
+            ip_address=_get_client_ip(request),
+        )
         return JsonResponse({"ok": True, "quantity": float(item.quantity), "minQuantity": float(item.min_quantity)})
 
 
@@ -2782,9 +2822,18 @@ def api_create_inventory(request):
         branch=branch,
         name=name,
         unit=data.get("unit", "كجم"),
-        quantity=Decimal(str(data.get("quantity") or 0)),
-        min_quantity=Decimal(str(data.get("minQuantity") or 5)),
+        quantity=max(Decimal("0"), Decimal(str(data.get("quantity") or 0))),
+        min_quantity=max(Decimal("0"), Decimal(str(data.get("minQuantity") or 5))),
         supplier=data.get("supplier", ""),
+    )
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="inventory_item_created",
+        target_model="InventoryItem",
+        target_id=item.id,
+        description=f"إضافة المادة «{item.name}» برصيد أولي {item.quantity} {item.unit} لفرع «{branch.name}»",
+        ip_address=_get_client_ip(request),
     )
     return JsonResponse({"ok": True, "id": item.id})
 
@@ -2896,6 +2945,16 @@ def api_create_branch(request):
                 is_active=True,
             )
 
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="branch_created",
+        target_model="Branch",
+        target_id=branch.id,
+        description=f"إنشاء الفرع الجديد «{branch.name}» في مدينة «{branch.city}»",
+        ip_address=_get_client_ip(request),
+    )
+
     return JsonResponse({
         "ok": True,
         "id": branch.id,
@@ -2958,14 +3017,24 @@ def api_branch_delivery_areas(request, branch_id):
             name = str(data.get("name", "")).strip()
             if not name:
                 return JsonResponse({"error": "اسم المنطقة أو الكومبوند مطلوب"}, status=400)
+            fee_val = max(Decimal("0"), Decimal(str(data.get("delivery_fee") or 8.0)))
             area = DeliveryArea.objects.create(
                 branch=branch,
                 name=name,
                 area_type=data.get("area_type", "compound"),
-                delivery_fee=Decimal(str(data.get("delivery_fee") or 8.0)),
+                delivery_fee=fee_val,
                 estimated_time_minutes=int(data.get("estimated_time_minutes") or 35),
                 notes=str(data.get("notes", "")).strip(),
                 is_active=True
+            )
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="delivery_area_created",
+                target_model="DeliveryArea",
+                target_id=area.id,
+                description=f"إضافة منطقة التوصيل «{area.name}» برسوم {area.delivery_fee} ر.س لفرع «{branch.name}»",
+                ip_address=_get_client_ip(request),
             )
             return JsonResponse({
                 "ok": True,
@@ -2981,7 +3050,18 @@ def api_branch_delivery_areas(request, branch_id):
 
         elif action == "delete":
             area_id = data.get("area_id")
+            del_target = DeliveryArea.objects.filter(branch=branch, id=area_id).first()
+            del_name = del_target.name if del_target else str(area_id)
             DeliveryArea.objects.filter(branch=branch, id=area_id).delete()
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="delivery_area_deleted",
+                target_model="DeliveryArea",
+                target_id=area_id,
+                description=f"حذف منطقة التوصيل «{del_name}» من فرع «{branch.name}»",
+                ip_address=_get_client_ip(request),
+            )
             return JsonResponse({"ok": True})
 
         elif action == "save_zone":
@@ -2999,6 +3079,15 @@ def api_branch_delivery_areas(request, branch_id):
             if radius is not None:
                 branch.delivery_radius_km = Decimal(str(radius))
             branch.save()
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="branch_zone_updated",
+                target_model="Branch",
+                target_id=branch.id,
+                description=f"تحديث نطاق ومضلع التوصيل لفرع «{branch.name}» (نصف القطر: {branch.delivery_radius_km} كم)",
+                ip_address=_get_client_ip(request),
+            )
             return JsonResponse({"ok": True, "message": "تم حفظ مضلع الزون وإحداثيات الفرع بنجاح"})
 
         return JsonResponse({"error": "إجراء غير معروف"}, status=400)

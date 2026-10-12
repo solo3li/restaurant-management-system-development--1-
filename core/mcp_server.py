@@ -116,10 +116,6 @@ class FastMCPAuthMiddleware:
                             key = k
                             break
 
-                # If still no key, but there is only one active key in system or latest session
-                if not key and len(KEY_LATEST_SESSION) == 1:
-                    key = list(KEY_LATEST_SESSION.keys())[0]
-
                 if not key:
                     await self._reject(send, 401, "مفتاح الدخول (Access Key) مطلوب. مرره في ?access_key=... أو عبر Headers.")
                     return
