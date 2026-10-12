@@ -1189,6 +1189,14 @@ class UpgradeRequest(models.Model):
         tenant.subscription_end = base_time + timedelta(days=extension_days)
         tenant.save()
 
+        # Synchronize call minute & spending caps with Partner API
+        try:
+            from core import partner_service as ps
+            ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Voice quota sync failed on upgrade for {tenant.slug}: {e}")
+
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         old_status = None

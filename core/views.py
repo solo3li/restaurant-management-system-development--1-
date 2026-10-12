@@ -4222,6 +4222,14 @@ def api_update_tenant_subscription(request, tenant_id):
             pass
 
     tenant.save()
+
+    # Synchronize call minute & spending caps with Partner API
+    try:
+        from core import partner_service as ps
+        ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
+    except Exception as e:
+        logger.warning(f"Failed to sync voice caps for tenant '{tenant.slug}' on subscription update: {e}")
+
     return JsonResponse({
         "ok": True,
         "message": f"تم تحديث اشتراك منشأة «{tenant.name}» بنجاح",
@@ -4750,6 +4758,9 @@ def ai_callcenter_management_view(request):
         primary_did = "لا يوجد خط هاتف مخصص بعد"
     live_context_cached = live_context_resp.get("cached_in_redis", False)
 
+    usage_info = ps.get_client_usage(client_id).get("client") or {}
+    plan_caps = ps.get_plan_voice_caps(tenant)
+
     context = {
         "tenant": tenant,
         "profile": profile_data,
@@ -4779,6 +4790,8 @@ def ai_callcenter_management_view(request):
         "live_context_data": live_context_data,
         "live_context_cached": live_context_cached,
         "live_context_raw": live_context_resp,
+        "client_usage": usage_info,
+        "plan_caps": plan_caps,
     }
     return render(request, "ai_callcenter.html", context)
 
@@ -5548,6 +5561,60 @@ def api_ai_callcenter_telephony_info(request):
     nums = ps.get_telephony_numbers(client_id)
     trunks = ps.get_pbx_trunks(client_id)
     return JsonResponse({"status": "success", "numbers": nums, "trunks": trunks})
+
+
+@login_required
+def api_ai_callcenter_usage(request):
+    """Fetch live consumption and quotas for the tenant from Partner API."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    usage = ps.get_client_usage(client_id)
+    plan_caps = ps.get_plan_voice_caps(tenant)
+    client_data = usage.get("client") or {}
+
+    total_mins = client_data.get("total_minutes") or 0
+    cap_mins = client_data.get("minute_cap") or plan_caps.get("minute_cap") or 0
+    remaining_mins = max(0, cap_mins - total_mins)
+
+    return JsonResponse({
+        "status": "success",
+        "client_id": client_id,
+        "usage": client_data,
+        "plan_caps": plan_caps,
+        "total_minutes": total_mins,
+        "minute_cap": cap_mins,
+        "remaining_minutes": remaining_mins,
+        "spending_cap": client_data.get("spending_cap") or plan_caps.get("spending_cap"),
+        "total_spent": client_data.get("total_spent") or 0.0,
+        "is_active": client_data.get("is_active", True),
+    })
+
+
+@login_required
+def api_ai_callcenter_sync_caps(request):
+    """Synchronize / reset tenant call caps with the Voice AI partner platform."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    try:
+        res = ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
 def set_language_view(request, lang_code):

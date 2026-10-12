@@ -55,6 +55,39 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- VOICE QUOTA & USAGE (PARTNER API)          -->
+    <!-- ========================================== -->
+    <div class="card p-4 bg-gradient-to-l from-[#FAF7F2] to-card border border-[#E8DFC8] rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#0E382A] text-[#D2AB6B] flex items-center justify-center font-bold text-lg shadow-xs">
+                🎙️
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-ink">سقف المكالمات الصوتية المخصص للباقة</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#D2AB6B]/15 text-[#8C6527]">
+                        {{ tenant.subscription_plan.name|default:tenant.get_plan_display }}
+                    </span>
+                    {% if client_usage.is_active != False %}
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">نشط بالسنترال</span>
+                    {% else %}
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800">موقوف</span>
+                    {% endif %}
+                </div>
+                <div class="text-[11px] text-soft mt-0.5">
+                    مستهلك: <strong class="text-ink font-bold">{{ client_usage.total_minutes|default:0 }}</strong> دقيقة من أصل <strong class="text-brand-700 font-bold">{{ client_usage.minute_cap|default:plan_caps.minute_cap }}</strong> دقيقة • سقف الإنفاق: <strong class="text-ink font-bold">${{ client_usage.spending_cap|default:plan_caps.spending_cap }}</strong> (مستهلك: ${{ client_usage.total_spent|default:"0.00" }})
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+            <button onclick="syncVoiceCaps()" id="sync-caps-btn" class="px-3.5 py-2 rounded-xl border border-brand-200 text-brand-700 bg-brand-50 hover:bg-brand-100 text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>مزامنة الحصة الصوتية</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- KPI SUMMARY CARDS (4 LUXURY METRIC CARDS)  -->
     <!-- ========================================== -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -3704,6 +3737,41 @@ async function loadTelephonyInfo() {
         }
     } catch (e) {
         showNotification('تعذر تحديث بيانات السنترال', true);
+    }
+}
+
+async function syncVoiceCaps() {
+    const btn = document.getElementById('sync-caps-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="inline-block animate-spin">⏳</span> <span>جاري المزامنة...</span>`;
+    }
+    showNotification('جاري مزامنة سقف الدقائق مع خادم الاتصالات...');
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_sync_caps' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie('csrftoken') || '{{ csrf_token }}',
+                "Content-Type": "application/json"
+            }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showNotification('تمت مزامنة حصة وسقف الدقائق بنجاح!');
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showNotification(data.message || 'تعذر المزامنة مع خادم الاتصالات', true);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>مزامنة الحصة الصوتية</span>`;
+            }
+        }
+    } catch (e) {
+        showNotification('حدث خطأ في الاتصال أثناء المزامنة', true);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>مزامنة الحصة الصوتية</span>`;
+        }
     }
 }
 

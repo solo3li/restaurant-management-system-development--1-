@@ -96,6 +96,8 @@ urlpatterns = [
     path("api/ai-callcenter/whatsapp/disconnect/", views.api_ai_callcenter_whatsapp_disconnect, name="api_ai_callcenter_whatsapp_disconnect"),
     path("api/ai-callcenter/whatsapp/send/", views.api_ai_callcenter_whatsapp_send, name="api_ai_callcenter_whatsapp_send"),
     path("api/ai-callcenter/telephony/info/", views.api_ai_callcenter_telephony_info, name="api_ai_callcenter_telephony_info"),
+    path("api/ai-callcenter/usage/", views.api_ai_callcenter_usage, name="api_ai_callcenter_usage"),
+    path("api/ai-callcenter/sync-caps/", views.api_ai_callcenter_sync_caps, name="api_ai_callcenter_sync_caps"),
     path("api/audit-logs/", views.api_audit_logs, name="api_audit_logs"),
 ]
 

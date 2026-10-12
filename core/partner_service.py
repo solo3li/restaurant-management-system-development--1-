@@ -77,6 +77,129 @@ def get_client_id_for_tenant(tenant) -> int:
     return cid
 
 
+DEFAULT_PLAN_VOICE_CAPS = {
+    "trial": {"minute_cap": 50, "spending_cap": 5.0},
+    "starter": {"minute_cap": 150, "spending_cap": 15.0},
+    "basic": {"minute_cap": 150, "spending_cap": 15.0},
+    "standard": {"minute_cap": 150, "spending_cap": 15.0},
+    "growth": {"minute_cap": 500, "spending_cap": 40.0},
+    "pro": {"minute_cap": 500, "spending_cap": 40.0},
+    "premium": {"minute_cap": 500, "spending_cap": 40.0},
+    "enterprise": {"minute_cap": 1500, "spending_cap": 100.0},
+}
+DEFAULT_VOICE_CAPS = {"minute_cap": 150, "spending_cap": 15.0}
+
+
+def get_plan_voice_caps(tenant_or_plan=None) -> Dict[str, Any]:
+    """
+    Resolve minute and spending caps based on tenant subscription plan tier.
+    Default distribution:
+      - Trial: 50 mins, $5.00
+      - Starter / Basic / Standard: 150 mins, $15.00
+      - Pro / Growth / Premium: 500 mins, $40.00
+      - Enterprise: 1500 mins, $100.00
+    """
+    plan_code = "standard"
+    if tenant_or_plan:
+        if hasattr(tenant_or_plan, "subscription_plan") and tenant_or_plan.subscription_plan:
+            plan_code = (tenant_or_plan.subscription_plan.code or "").lower()
+        elif hasattr(tenant_or_plan, "plan"):
+            plan_code = (tenant_or_plan.plan or "").lower()
+        elif hasattr(tenant_or_plan, "code"):
+            plan_code = (tenant_or_plan.code or "").lower()
+        elif isinstance(tenant_or_plan, str):
+            plan_code = tenant_or_plan.strip().lower()
+
+    caps = DEFAULT_PLAN_VOICE_CAPS.get(plan_code)
+    if not caps:
+        # Fallback keyword matching
+        if any(k in plan_code for k in ("trial", "free", "تجريب")):
+            caps = DEFAULT_PLAN_VOICE_CAPS["trial"]
+        elif any(k in plan_code for k in ("enter", "corp", "شركات")):
+            caps = DEFAULT_PLAN_VOICE_CAPS["enterprise"]
+        elif any(k in plan_code for k in ("pro", "growth", "prem", "متقدم", "نمو", "احتراف")):
+            caps = DEFAULT_PLAN_VOICE_CAPS["pro"]
+        else:
+            caps = DEFAULT_PLAN_VOICE_CAPS["standard"]
+
+    return dict(caps)
+
+
+def update_client_cap(client_id: int, minute_cap: Optional[int] = None, spending_cap: Optional[float] = None, is_active: Optional[bool] = None) -> Dict[str, Any]:
+    """
+    Direct Partner API call to update call minute and spending caps for a client.
+    Target: POST /api/partner/v1/clients/<client_id>/cap/
+    """
+    payload = {"client_id": int(client_id)}
+    if minute_cap is not None:
+        payload["minute_cap"] = int(minute_cap)
+    if spending_cap is not None:
+        payload["spending_cap"] = float(spending_cap)
+    if is_active is not None:
+        payload["is_active"] = bool(is_active)
+
+    return _request(f"/clients/{client_id}/cap/", method="POST", data=payload)
+
+
+def get_client_usage(client_id: int) -> Dict[str, Any]:
+    """
+    Fetch live usage statistics, consumption, and cap limits for a sub-client
+    from the Partner API.
+    Target: GET /api/partner/v1/clients/<client_id>/
+    Fallback: GET /api/partner/v1/clients/ (matching by client_id)
+    """
+    resp = _request(f"/clients/{client_id}/")
+    if resp.get("status") == "success" and "client" in resp:
+        return resp
+
+    # Fallback to list search if direct detail endpoint fails
+    list_resp = _request("/clients/")
+    if list_resp.get("status") == "success":
+        for c in list_resp.get("clients", []):
+            if c.get("client_id") == client_id or c.get("id") == client_id:
+                return {"status": "success", "client": c}
+    return resp
+
+
+def sync_tenant_voice_caps(tenant, reset_to_plan: bool = True, minute_cap: Optional[int] = None, spending_cap: Optional[float] = None, is_active: Optional[bool] = None) -> Dict[str, Any]:
+    """
+    Synchronize call minute and spending caps to the Voice AI partner platform for a tenant.
+    If caps are not explicitly passed and reset_to_plan is True, caps are determined by the
+    tenant's active subscription plan tier:
+      - Trial: 50 mins, $5.00
+      - Starter / Basic / Standard: 150 mins, $15.00
+      - Pro / Growth / Premium: 500 mins, $40.00
+      - Enterprise: 1500 mins, $100.00
+    """
+    if not tenant:
+        return {"status": "error", "message": "No tenant provided"}
+
+    client_id = getattr(tenant, "voice_client_id", None)
+    if not client_id:
+        try:
+            reg = ensure_tenant_registered(tenant)
+            client_id = reg.get("client_id")
+        except Exception as e:
+            logger.warning(f"Could not auto-register tenant for voice cap sync: {e}")
+
+    if not client_id:
+        return {"status": "error", "message": f"المنشأة «{tenant.name}» غير مسجلة في السنترال الصوتي بعد."}
+
+    if minute_cap is None and spending_cap is None:
+        plan_caps = get_plan_voice_caps(tenant)
+        minute_cap = plan_caps["minute_cap"]
+        spending_cap = plan_caps["spending_cap"]
+
+    resp = update_client_cap(
+        client_id=client_id,
+        minute_cap=minute_cap,
+        spending_cap=spending_cap,
+        is_active=is_active if is_active is not None else tenant.is_active,
+    )
+    logger.info(f"Synced voice caps for tenant '{tenant.slug}' (client_id={client_id}): minute_cap={minute_cap}, spending_cap={spending_cap}, result={resp.get('status')}")
+    return resp
+
+
 def register_sub_client(name: str, external_reference: str, email: str = "", password: str = "", spending_cap: float = 25.0, minute_cap: int = 300) -> Dict[str, Any]:
     """Register a new sub-client tenant on the Voice AI partner platform."""
     import secrets
@@ -110,12 +233,15 @@ def ensure_tenant_registered(tenant, password: str = "") -> Dict[str, Any]:
             "password": tenant.voice_password,
         }
 
-    # Register sub-client on the partner platform
+    caps = get_plan_voice_caps(tenant)
+    # Register sub-client on the partner platform with tier caps
     res = register_sub_client(
         name=tenant.name,
         external_reference=tenant.slug,
         email=tenant.email,
         password=password or tenant.voice_password or "",
+        minute_cap=caps["minute_cap"],
+        spending_cap=caps["spending_cap"],
     )
     if res.get("status") == "success":
         client_data = res.get("client") or {}
