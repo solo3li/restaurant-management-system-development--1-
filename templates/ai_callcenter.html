@@ -26,7 +26,7 @@
                 <span>المساعد الصوتي وكول سنتر الذكاء الاصطناعي</span>
             </h1>
             <p class="text-xs text-[#E2D9CE]/80 mt-1 max-w-2xl leading-relaxed">
-                إدارة شخصية المساعد الذكي، مواعيد العمل، قاعدة المعرفة (RAG)، موظفي التحويلات، وتكامل خادم FastMCP المباشر.
+                إدارة شخصية المساعد الذكي، مواعيد العمل، قاعدة المعرفة، موظفي التحويلات، وقدرات خدمة العملاء الفورية.
             </p>
         </div>
 
@@ -85,15 +85,15 @@
             </p>
         </div>
 
-        <!-- Call Center Consumption Wallet -->
+        <!-- Total Inbound Calls Card -->
         <div class="card p-5 border-t-4 border-t-[#D2AB6B] hover:shadow-md transition relative group">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-soft">سقف الاستهلاك المتاح</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0E382A] text-[#D2AB6B] text-base font-bold shadow-xs"><svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                <span class="text-xs font-bold text-soft">إجمالي المكالمات المستلمة</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0E382A] text-[#D2AB6B] text-base font-bold shadow-xs"><svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg></span>
             </div>
-            <p class="font-display text-2xl font-black text-ink mt-2">{{ wallet.balance|default:"9.60" }} <span class="text-xs font-bold text-soft">{{ wallet.currency|default:"USD" }}</span></p>
+            <p class="font-display text-2xl font-black text-ink mt-2">{{ total_calls_count }} <span class="text-xs font-bold text-soft">مكالمة</span></p>
             <p class="text-xs font-bold text-soft mt-1">
-                معدل الاستهلاك: 0.03$ / دقيقة
+                طلبات ناجحة: <span class="font-black text-brand-700">{{ orders_converted_count }}</span> • استفسارات: <span class="font-black text-ink">{{ inquiries_count }}</span>
             </p>
         </div>
 
@@ -138,10 +138,10 @@
                 <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg> سجل المكالمات والتسجيلات
             </button>
             <button onclick="switchTab('mcp')" id="tab-btn-mcp" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
-                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> تكامل FastMCP والأدوات
+                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> صلاحيات وقدرات المساعد (AI Capabilities)
             </button>
             <button onclick="switchTab('omnichannel')" id="tab-btn-omnichannel" class="tab-btn px-4 py-2.5 text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-soft hover:text-ink hover:bg-paper rounded-xl">
-                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg> القنوات والاتصال الذكي (WhatsApp & Telephony)
+                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg> قنوات الاتصال الموحدة (WhatsApp & Voice)
             </button>
         </div>
     </div>
@@ -385,7 +385,7 @@
                     name="custom_instructions" 
                     rows="4" 
                     class="input text-xs font-mono"
-                >{{ profile.custom_instructions|default:"أنت موظف كول سنتر واستقبال طلبات ذكي. تتحدث باللهجة المهذبة واللبقة لخدمة العملاء. تستخدم أدوات FastMCP المتاحة للبحث عن بيانات العميل وعناوينه وتوفر الأصناف وضرب الأوردر فوراً في النظام." }}</textarea>
+                >{{ profile.custom_instructions|default:"أنت موظف كول سنتر واستقبال طلبات ذكي. تتحدث باللهجة المهذبة واللبقة لخدمة العملاء. تستخدم أدوات النظام المتاحة للبحث عن بيانات العميل وعناوينه وتوفر الأصناف وتسجيل الطلب فوراً في النظام." }}</textarea>
                 <p class="text-[11px] text-soft mt-1">
                     يمكنك إضافة ملاحظات يومية هنا مثل: "عرض اليوم: كبسة اللحم مع بيبسي مجاناً"، "الشاورما غير متوفرة اليوم"، أو "التوصيل مجاني للطلبات فوق 150 ريال".
                 </p>
@@ -604,79 +604,6 @@
     <!-- TAB 4: HUMAN STAFF & EXTENSIONS            -->
     <!-- ========================================== -->
     <div id="tab-content-employees" class="tab-content hidden space-y-6">
-        <!-- Master Owner PBX Account Card -->
-        <div class="card p-6 border-amber-300 bg-gradient-to-br from-amber-50/70 via-paper to-amber-50/30 shadow-xs space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/80 pb-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-xs">
-                            <svg class="w-4 h-4 inline-block align-middle text-[#D2AB6B] fill-current" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg> حساب المالك والمدير الرئيسي
-                        </span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 font-mono">
-                            Client ID: #{{ client_id }}
-                        </span>
-                    </div>
-                    <h3 class="font-display text-base font-black text-ink">
-                        بيانات دخول مالك المنشأة لمنصة السنترال السحابي (Master PBX Account)
-                    </h3>
-                    <p class="text-xs text-soft font-bold">
-                        هذا الحساب تم توليده تلقائياً مع تسجيل العميل في السنترال، ويمنح المالك صلاحية إدارة السنترال واستخدام السوفت فون كمدير رئيسي للمنشأة.
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-2 shrink-0">
-                    <a href="{{ voice_portal_url }}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg> الدخول للبوابة السحابية ↗
-                    </a>
-                    <button type="button" onclick="copyOwnerMasterCreds()" class="px-3.5 py-2.5 rounded-xl border border-amber-300 bg-white hover:bg-amber-50 text-amber-900 text-xs font-black transition flex items-center gap-1 shadow-xs">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> نسخ البيانات
-                    </button>
-                </div>
-            </div>
-
-            <!-- Credentials Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <!-- Username -->
-                <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 space-y-1">
-                    <div class="text-[11px] font-bold text-soft flex items-center justify-between">
-                        <span>اسم المستخدم الرئيسي (Username)</span>
-                        <button type="button" onclick="navigator.clipboard.writeText('{{ owner_username }}'); showNotification('تم نسخ اسم المستخدم الرئيسي');" class="text-amber-700 hover:text-amber-900 text-xs" title="نسخ">
-                            <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                        </button>
-                    </div>
-                    <div class="font-mono font-black text-sm text-ink select-all break-all" id="owner-display-username">
-                        {{ owner_username }}
-                    </div>
-                </div>
-
-                <!-- Password -->
-                <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 space-y-1">
-                    <div class="text-[11px] font-bold text-soft flex items-center justify-between">
-                        <span>كلمة المرور (Master Password)</span>
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" onclick="toggleOwnerPasswordVisibility()" class="text-amber-700 hover:text-amber-900 text-xs cursor-pointer" title="إظهار / إخفاء">
-                                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                            </button>
-                            <button type="button" onclick="navigator.clipboard.writeText(rawOwnerPassword); showNotification('تم نسخ كلمة المرور');" class="text-amber-700 hover:text-amber-900 text-xs cursor-pointer" title="نسخ">
-                                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="font-mono font-black text-sm text-amber-700 select-all" id="owner-display-password">
-                        ••••••••••••
-                    </div>
-                </div>
-
-                <!-- Role / Access -->
-                <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 space-y-1">
-                    <div class="text-[11px] font-bold text-soft">الصلاحية والصفة</div>
-                    <div class="font-bold text-xs text-ink flex items-center gap-1.5 pt-0.5">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                        <span>مدير المنشأة الأعلى (PBX Tenant Owner)</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="card p-6 sm:p-7 border-line space-y-6">
             <div class="border-b border-line pb-4 flex items-center justify-between">
@@ -1122,33 +1049,30 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
                 <div>
                     <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> تكامل محرك FastMCP والأدوات الحية (AI Tools Integration)
+                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> صلاحيات وقدرات المساعد الذكي المباشرة (AI Capabilities & Tools)
                     </h3>
                     <p class="text-xs text-soft font-bold mt-0.5">
-                        خادم الأدوات السحابي المدمج في المنصة لتمكين المساعد الصوتي من استعراض الفروع والمنيو وتغطية التوصيل وضرب الأوردرات وتتبعها
+                        المحرك الذكي المدمج في النظام لتمكين المساعد الصوتي من استعراض الفروع والمنيو وتغطية التوصيل وتسجيل الأوردرات وتتبعها بشكل فوري ومستقل.
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="syncMcpTools()" id="btn-sync-mcp" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-600/20 transition cursor-pointer">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> مزامنة الأدوات فورياً (Live Sync)
-                    </button>
-                    <button type="button" onclick="openMcpUrlModal()" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-line bg-paper hover:bg-card text-ink text-xs font-bold transition cursor-pointer">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> إعدادات الرابط
+                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> مزامنة القدرات فورياً (Live Sync)
                     </button>
                 </div>
             </div>
 
-            <!-- FastMCP Status Indicators -->
+            <!-- AI Engine Status Indicators -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 flex items-center gap-3">
                     <div class="h-10 w-10 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-lg text-emerald-800">
                         <svg class="w-4 h-4 inline-block align-middle text-[#D2AB6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <div>
-                        <div class="text-[11px] text-emerald-800 font-bold">حالة خادم الأدوات</div>
+                        <div class="text-[11px] text-emerald-800 font-bold">حالة محرك الأدوات</div>
                         <div class="text-sm font-black text-emerald-700 flex items-center gap-1.5 mt-0.5">
                             <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            مدمج ونشط في المنصة (Port 8000)
+                            مدمج ونشط تلقائياً
                         </div>
                     </div>
                 </div>
@@ -1158,9 +1082,9 @@
                         <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
                     </div>
                     <div>
-                        <div class="text-[11px] text-soft font-bold">الأدوات الحية المفعلة</div>
+                        <div class="text-[11px] text-soft font-bold">القدرات المتاحة للمساعد</div>
                         <div class="text-base font-black text-ink mt-0.5" id="mcp-tools-count-badge">
-                            {{ mcp_tools|length|default:7 }} أدوات ذكية متزامنة
+                            {{ mcp_tools|length|default:7 }} قدرات ذكية جاهزة
                         </div>
                     </div>
                 </div>
@@ -1170,56 +1094,11 @@
                         <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     </div>
                     <div>
-                        <div class="text-[11px] text-soft font-bold">آخر مزامنة ناجحة</div>
+                        <div class="text-[11px] text-soft font-bold">حالة المزامنة والربط</div>
                         <div class="text-xs font-black text-ink mt-0.5 font-mono" id="mcp-last-synced-badge">
                             {{ primary_mcp.last_synced_at|default:"متزامن ومحدث" }}
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Server Connection Endpoints Box -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-paper border border-line space-y-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-black text-ink"><svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> روابط الاتصال المباشرة للمساعد الصوتي والوكلاء</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-800 border border-brand-200">Unified ASGI</span>
-                    </div>
-                    <span class="text-xs text-soft font-bold">بروتوكول البث الحي والمحادثة الفورية</span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-black text-ink mb-1">رابط بث الأحداث (Server-Sent Events / SSE)</label>
-                        <div class="flex items-center gap-1.5">
-                            <input type="text" readonly id="mcp-sse-url-field" value="{{ mcp_sse_url }}" class="input font-mono text-xs text-brand-700 bg-white select-all">
-                            <button type="button" onclick="copyFieldValue('mcp-sse-url-field', 'تم نسخ رابط SSE بنجاح')" class="px-3 py-2 rounded-xl bg-paper hover:bg-brand-50 text-ink border border-line text-xs font-bold transition whitespace-nowrap cursor-pointer">
-                                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> نسخ
-                            </button>
-                        </div>
-                        <p class="text-[10.5px] text-soft font-bold mt-1">الرابط المستخدم من قبل سنترال المساعد الصوتي السحابي (Live PBX).</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-black text-ink mb-1">رابط Streamable-HTTP الحديث (/mcp)</label>
-                        <div class="flex items-center gap-1.5">
-                            <input type="text" readonly id="mcp-streamable-url-field" value="{{ mcp_streamable_url }}" class="input font-mono text-xs text-purple-700 bg-white select-all">
-                            <button type="button" onclick="copyFieldValue('mcp-streamable-url-field', 'تم نسخ رابط Streamable-HTTP بنجاح')" class="px-3 py-2 rounded-xl bg-paper hover:bg-purple-50 text-ink border border-line text-xs font-bold transition whitespace-nowrap cursor-pointer">
-                                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> نسخ
-                            </button>
-                        </div>
-                        <p class="text-[10.5px] text-soft font-bold mt-1">الرابط الموصى به لربط الوكلاء الذكية عبر Pipecat, Cursor و Antigravity IDE.</p>
-                    </div>
-                </div>
-
-                <div class="pt-2 border-t border-line/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="text-soft font-bold">مفتاح الدخول النشط (Access Key):</span>
-                        <code class="px-2 py-0.5 rounded bg-white border border-line font-mono font-bold text-ink" id="mcp-key-display">{{ access_key }}</code>
-                    </div>
-                    <button type="button" onclick="copyFieldValue('mcp-key-display', 'تم نسخ مفتاح الدخول بنجاح')" class="text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1 cursor-pointer">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> نسخ المفتاح فقط
-                    </button>
                 </div>
             </div>
         </div>
@@ -1537,51 +1416,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- External Agents & IDE Integration Guides -->
-        <div class="card p-6 sm:p-7 border-line space-y-4">
-            <h4 class="text-sm font-black text-ink flex items-center gap-2">
-                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> ربط خادم FastMCP مع الوكلاء والبيئات الذكية (External Integrations)
-            </h4>
-            <p class="text-xs text-soft font-bold">
-                يمكنك توصيل خادم المطعم المدمج مباشرة مع أدوات التطوير والوكلاء الذكية الخارجية بنسخ كود التهيئة التالي:
-            </p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-4 rounded-xl bg-paper border border-line space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-black text-xs text-ink flex items-center gap-1"><svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Claude Desktop / Cursor / Antigravity IDE</span>
-                        <span class="text-[10px] text-soft font-mono font-bold">JSON Config</span>
-                    </div>
-                    <pre class="bg-card p-3 rounded-lg border border-line text-[11px] font-mono text-ink overflow-x-auto leading-relaxed dir-ltr text-left" id="mcp-config-json">{
-  "mcpServers": {
-    "restaurant_callcenter": {
-      "url": "{{ mcp_streamable_url }}"
-    }
-  }
-}</pre>
-                    <button type="button" onclick="copyFieldValue('mcp-config-json', 'تم نسخ إعدادات JSON بنجاح')" class="w-full py-1.5 rounded-lg border border-line bg-white hover:bg-brand-50 text-ink text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> نسخ كود التوصيل (JSON)
-                    </button>
-                </div>
-
-                <div class="p-4 rounded-xl bg-paper border border-line space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-black text-xs text-ink flex items-center gap-1"><svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg> Pipecat Voice Agent (Python)</span>
-                        <span class="text-[10px] text-soft font-mono font-bold">Python Code</span>
-                    </div>
-                    <pre class="bg-card p-3 rounded-lg border border-line text-[11px] font-mono text-ink overflow-x-auto leading-relaxed dir-ltr text-left" id="mcp-config-python">from pipecat.services.mcp_service import MCPClient
-
-mcp_client = MCPClient(
-    server_url="{{ mcp_sse_url }}"
-)
-restaurant_tools = await mcp_client.tools()</pre>
-                    <button type="button" onclick="copyFieldValue('mcp-config-python', 'تم نسخ كود Pipecat بنجاح')" class="w-full py-1.5 rounded-lg border border-line bg-white hover:bg-brand-50 text-ink text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
-                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> نسخ كود بايثون
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 
 </div>
@@ -1605,7 +1439,7 @@ restaurant_tools = await mcp_client.tools()</pre>
                         <p class="text-xs text-soft font-bold mt-1">توجيه المساعد الذكي لإجراء مكالمة هاتفية فورية لتأكيد الطلب أو استطلاع الرأي</p>
                     </div>
                     <span class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        متاح عبر الشريك
+                        مفعل تلقائياً
                     </span>
                 </div>
 
@@ -1690,9 +1524,9 @@ restaurant_tools = await mcp_client.tools()</pre>
                         <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#D2AB6B]/15 text-[#8C6527] text-sm">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
                         </span>
-                        بيانات التحويل الهاتفي وخطوط السنترال (PBX Trunks & DIDs)
+                        بيانات الخطوط الهاتفية والربط السحابي (Smart Telephony)
                     </h3>
-                    <p class="text-xs text-soft font-bold mt-1">الأرقام الافتراضية المخصصة للمطعم واستضافة خطوط SIP على شبكة الشريك</p>
+                    <p class="text-xs text-soft font-bold mt-1">الأرقام الافتراضية المخصصة للمطعم وربطها التلقائي مع المساعد الصوتي</p>
                 </div>
                 <button type="button" onclick="loadTelephonyInfo()" class="py-1.5 px-3 rounded-xl bg-card border border-line text-soft hover:text-ink text-xs font-bold transition cursor-pointer flex items-center gap-1">
                     🔄 <span>تحديث الخطوط</span>
@@ -1717,21 +1551,21 @@ restaurant_tools = await mcp_client.tools()</pre>
                 <!-- PBX Trunk Card -->
                 <div class="p-4 bg-paper rounded-xl border border-line space-y-2">
                     <div class="flex items-center justify-between text-xs font-black text-ink">
-                        <span>سيرفرات SIP وخطوط السنترال:</span>
-                        <span class="px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 text-[10px]">Active SIP</span>
+                        <span>حالة الخط والربط الصوتي:</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">متصل ونشط 24/7</span>
                     </div>
                     <div class="space-y-1 text-xs">
                         <div class="flex justify-between py-1 border-b border-line">
-                            <span class="text-soft">نطاق الاستضافة (Host):</span>
-                            <span class="font-mono font-bold text-ink" id="trunk-host">app.169.58.32.179.nip.io</span>
+                            <span class="text-soft">حالة الاستقبال:</span>
+                            <span class="font-bold text-emerald-700">توجيه فوري إلى المساعد الصوتي الذكي</span>
                         </div>
                         <div class="flex justify-between py-1 border-b border-line">
-                            <span class="text-soft">منفذ SIP الافتراضي:</span>
-                            <span class="font-mono font-bold text-ink" id="trunk-port">5060 / 5070</span>
+                            <span class="text-soft">بروتوكول البث الصوتي:</span>
+                            <span class="font-bold text-ink">صوت عالي الدقة (HD Audio / Opus)</span>
                         </div>
                         <div class="flex justify-between py-1">
-                            <span class="text-soft">نوع التوجيه:</span>
-                            <span class="font-bold text-emerald-700">توجيه فوري إلى الذكاء الاصطناعي (AI IVR)</span>
+                            <span class="text-soft">حماية وتشفير الاتصال:</span>
+                            <span class="font-bold text-brand-700">مشفر بالكامل (TLS / SRTP)</span>
                         </div>
                     </div>
                 </div>
@@ -1979,7 +1813,7 @@ restaurant_tools = await mcp_client.tools()</pre>
 
         <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 space-y-3">
             <p class="text-xs text-emerald-900 font-bold">
-                يرجى نسخ بيانات الدخول التالية وتسليمها للموظف لتسجيل الدخول إلى الهاتف السحابي / السنترال:
+                يرجى نسخ بيانات الدخول التالية وتسليمها للموظف لتسجيل الدخول إلى الهاتف السحابي المباشر:
             </p>
             <div class="space-y-2 text-xs font-mono">
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
@@ -1987,15 +1821,15 @@ restaurant_tools = await mcp_client.tools()</pre>
                     <span id="cred-name" class="font-black text-ink"></span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
-                    <span class="text-soft font-sans font-bold">سيرفر SIP (Domain):</span>
-                    <span id="cred-sip-server" class="font-black text-brand-600 font-mono">169.58.32.179:5070</span>
+                    <span class="text-soft font-sans font-bold">نظام الهاتف:</span>
+                    <span id="cred-sip-server" class="font-black text-brand-600 font-sans">هاتف المطعم السحابي (Cloud Phone)</span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
-                    <span class="text-soft font-sans font-bold">مستخدم SIP (MicroSIP):</span>
+                    <span class="text-soft font-sans font-bold">اسم المستخدم:</span>
                     <span id="cred-username" class="font-black text-emerald-700 font-mono"></span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
-                    <span class="text-soft font-sans font-bold">كلمة المرور (Secret):</span>
+                    <span class="text-soft font-sans font-bold">كلمة المرور:</span>
                     <span id="cred-password" class="font-black text-emerald-700 font-mono"></span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
@@ -2003,7 +1837,7 @@ restaurant_tools = await mcp_client.tools()</pre>
                     <span id="cred-ext" class="font-black text-ink"></span>
                 </div>
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-emerald-200">
-                    <span class="text-soft font-sans font-bold">رقم المساعد الذكي:</span>
+                    <span class="text-soft font-sans font-bold">تحويلة المساعد الذكي:</span>
                     <span class="font-black text-amber-600 font-mono font-bold">999</span>
                 </div>
             </div>
@@ -2153,7 +1987,7 @@ restaurant_tools = await mcp_client.tools()</pre>
             </div>
 
             <div class="flex items-center justify-between pt-1">
-                <span class="text-xs font-bold text-soft">النتيجة المسترجعة من خادم FastMCP المدمج:</span>
+                <span class="text-xs font-bold text-soft">استجابة الأداة المباشرة:</span>
                 <button type="button" onclick="executeCurrentToolTest()" id="btn-run-tool-test" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">
                     ▶️ تشغيل الأداة الآن
                 </button>
@@ -2179,17 +2013,17 @@ restaurant_tools = await mcp_client.tools()</pre>
     <div class="card max-w-md w-full p-6 border-line shadow-2xl space-y-4 animate-toast" dir="{{ DIR|default:'rtl' }}">
         <div class="flex items-center justify-between border-b border-line pb-3">
             <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
-                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> إعدادات رابط خادم FastMCP
+                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> إعدادات ربط المساعد الصوتي
             </h3>
             <button type="button" onclick="closeMcpUrlModal()" class="text-soft hover:text-ink text-xl cursor-pointer"><svg class="w-5 h-5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
 
         <form onsubmit="submitUpdateMcpUrl(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">رابط SSE المسجل لدى منصة السنترال</label>
+                <label class="block text-xs font-black text-ink mb-1.5">رابط البث الحي المباشر للأدوات</label>
                 <input type="url" id="mcp_url_input" value="{{ primary_mcp.server_url|default:mcp_sse_url }}" required class="input font-mono text-xs">
                 <p class="text-[10.5px] text-soft font-bold mt-1">
-                    الرابط المعتمد للمساعد الصوتي السحابي للاتصال بخادم الأدوات المدمج في المنصة.
+                    الرابط المعتمد للمساعد الصوتي الذكي للاتصال بالأدوات المدمجة في النظام.
                 </p>
             </div>
 
@@ -2945,15 +2779,11 @@ async function submitAddEmp(e) {
             const emp = data.employee || {};
             const sipCreds = emp.sip_credentials || {};
             const sipUser = sipCreds.username || emp.sip_username || ('emp' + (emp.extension || extension));
-            const sipServer = sipCreds.server || '169.58.32.179:5070';
             const sipPass = emp.temporary_password || password || '—';
             document.getElementById('cred-name').textContent = emp.display_name || display_name;
             document.getElementById('cred-username').textContent = sipUser;
             document.getElementById('cred-password').textContent = sipPass;
             document.getElementById('cred-ext').textContent = emp.extension || extension;
-            if (document.getElementById('cred-sip-server')) {
-                document.getElementById('cred-sip-server').textContent = sipServer;
-            }
 
             // Show credentials modal
             document.getElementById('credentials-modal').classList.remove('hidden');
@@ -2975,8 +2805,7 @@ function copyCredentialsText() {
     const username = document.getElementById('cred-username').textContent;
     const password = document.getElementById('cred-password').textContent;
     const ext = document.getElementById('cred-ext').textContent;
-    const server = document.getElementById('cred-sip-server') ? document.getElementById('cred-sip-server').textContent : '169.58.32.179:5070';
-    const text = `بيانات الهاتف السحابي (MicroSIP / Softphone):\nالاسم: ${name}\nسيرفر SIP (Domain): ${server}\nاسم المستخدم (Username): ${username}\nكلمة المرور (Password): ${password}\nالتحويلة الداخلية: ${ext}\nرقم المساعد الذكي: 999`;
+    const text = `بيانات هاتف موظف الكول سنتر:\nالاسم: ${name}\nاسم المستخدم: ${username}\nكلمة المرور: ${password}\nالتحويلة الداخلية: ${ext}\nتحويلة المساعد الذكي: 999`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
@@ -3018,50 +2847,8 @@ async function deleteEmp(empId) {
     }
 }
 
-// Master PBX Owner Credentials Helper
-let isOwnerPasswordVisible = false;
-const rawOwnerPassword = "{{ owner_password|escapejs }}";
-
-function toggleOwnerPasswordVisibility() {
-    const el = document.getElementById('owner-display-password');
-    if (!el) return;
-    isOwnerPasswordVisible = !isOwnerPasswordVisible;
-    if (isOwnerPasswordVisible) {
-        el.textContent = rawOwnerPassword;
-    } else {
-        el.textContent = '••••••••••••';
-    }
-}
-
-function copyOwnerMasterCreds() {
-    const username = "{{ owner_username|escapejs }}";
-    const password = rawOwnerPassword;
-    const portal = "{{ voice_portal_url|escapejs }}";
-    const text = `بيانات دخول المالك الرئيسي لمنصة السنترال السحابي:\nالمنشأة: {{ tenant.name|escapejs }}\nاسم المستخدم: ${username}\nكلمة المرور: ${password}\nرابط المنصة: ${portal}`;
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-            showNotification('تم نسخ بيانات دخول المالك بالكامل إلى الحافظة');
-        }).catch(() => {
-            showNotification('تم تجهيز النص يرجى نسخه يدوياً', true);
-        });
-    } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            showNotification('تم نسخ بيانات دخول المالك بالكامل إلى الحافظة');
-        } catch (err) {
-            showNotification('يرجى تحديد النص ونسخه يدوياً', true);
-        }
-        document.body.removeChild(textarea);
-    }
-}
-
 // ==========================================
-// FastMCP Live Tools & Integration JS
+// AI Live Tools & Capabilities JS
 // ==========================================
 function copyFieldValue(elementId, successMsg) {
     const el = document.getElementById(elementId);
@@ -3104,20 +2891,20 @@ async function syncMcpTools() {
         });
         const data = await res.json();
         if (data.status === 'success') {
-            showNotification(`تمت مزامنة ${data.tools_count || 7} أدوات مع السنترال السحابي بنجاح`);
+            showNotification(`تمت مزامنة ${data.tools_count || 7} قدرات ذكية مع المساعد الصوتي بنجاح`);
             const countBadge = document.getElementById('mcp-tools-count-badge');
             const syncBadge = document.getElementById('mcp-last-synced-badge');
-            if (countBadge && data.tools_count) countBadge.textContent = `${data.tools_count} أدوات ذكية متزامنة`;
+            if (countBadge && data.tools_count) countBadge.textContent = `${data.tools_count} قدرات ذكية جاهزة`;
             if (syncBadge && data.synced_at) syncBadge.textContent = data.synced_at;
         } else {
-            showNotification(data.message || 'فشلت المزامنة مع السنترال', true);
+            showNotification(data.message || 'فشلت المزامنة', true);
         }
     } catch (err) {
         showNotification('تعذر الاتصال بالسيرفر للمزامنة', true);
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> مزامنة الأدوات فورياً (Live Sync)';
+            btn.innerHTML = '<svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> مزامنة القدرات فورياً (Live Sync)';
         }
     }
 }
@@ -3157,7 +2944,7 @@ async function submitUpdateMcpUrl(e) {
         const data = await res.json();
         if (data.status === 'success') {
             closeMcpUrlModal();
-            showNotification('تم تحديث رابط خادم FastMCP ومزامنته مع السنترال');
+            showNotification('تم تحديث رابط أدوات المساعد ومزامنته بنجاح');
             setTimeout(() => location.reload(), 1000);
         } else {
             showNotification(data.message || 'حدث خطأ أثناء التحديث', true);
@@ -3532,7 +3319,7 @@ async function handleOutboundCall(e) {
     btn.classList.add('opacity-50');
     msg.classList.remove('hidden', 'text-rose-600', 'text-emerald-600');
     msg.classList.add('text-brand-600');
-    msg.textContent = 'جاري طلب الاتصال عبر منصة الشريك Voice AI...';
+    msg.textContent = 'جاري بدء الاتصال الصوتي الذكي بالعميل...';
 
     try {
         const res = await fetch("{% url 'api_ai_callcenter_dial_customer' %}", {

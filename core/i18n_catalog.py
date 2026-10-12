@@ -195,7 +195,7 @@ I18N_CATALOG = {
     "توليد مفتاح جديد": "Generate New API Key",
     "كول سنتر الذكاء الاصطناعي": "AI Voice Call Center",
     "مركز الاتصالات المباشر": "Live Call Center",
-    "إدارة المساعد الذكي وFastMCP": "AI Voice Agent & FastMCP Integration",
+    "إعدادات المساعد الصوتي": "AI Voice Assistant Settings",
     "المكالمات النشطة": "Active Calls",
     "إجمالي المكالمات الواردة": "Total Inbound Calls",
     "مكالمات ناجحة": "Successful Orders via AI",

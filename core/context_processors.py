@@ -256,7 +256,7 @@ def i18n_context(request):
         "nav_kitchen": "شاشات المطبخ (KDS)" if is_rtl else "Kitchen Displays (KDS)",
         "nav_ai_callcenter": "كول سنتر الذكاء الاصطناعي" if is_rtl else "AI Call Center",
         "nav_callcenter_live": "مركز الاتصالات المباشر" if is_rtl else "Live Call Center",
-        "nav_callcenter_mgmt": "إدارة المساعد الذكي وFastMCP" if is_rtl else "AI Agent & FastMCP",
+        "nav_callcenter_mgmt": "إعدادات المساعد الصوتي" if is_rtl else "AI Voice Assistant Settings",
         "nav_inventory": "المستودعات والمخزون" if is_rtl else "Inventory & Warehouses",
         "nav_stock_audit": "جرد المواد والمستودعات" if is_rtl else "Stock Audit & Materials",
         "nav_delivery": "أسطول التوصيل والمناديب" if is_rtl else "Delivery Fleet & Drivers",

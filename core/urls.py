@@ -88,6 +88,7 @@ urlpatterns = [
     path("api/ai-callcenter/sync-live-context/", views.api_ai_callcenter_sync_live_context, name="api_ai_callcenter_sync_live_context"),
     path("api/ai-callcenter/get-live-context/", views.api_ai_callcenter_get_live_context, name="api_ai_callcenter_get_live_context"),
     path("api/ai-callcenter/calls/dial/", views.api_ai_callcenter_dial_customer, name="api_ai_callcenter_dial_customer"),
+    path("api/ai-callcenter/calls/<str:call_id>/recording/", views.api_ai_callcenter_call_recording_proxy, name="api_ai_callcenter_call_recording_proxy"),
     path("api/ai-callcenter/whatsapp/status/", views.api_ai_callcenter_whatsapp_status, name="api_ai_callcenter_whatsapp_status"),
     path("api/ai-callcenter/whatsapp/connect/", views.api_ai_callcenter_whatsapp_connect, name="api_ai_callcenter_whatsapp_connect"),
     path("api/ai-callcenter/whatsapp/disconnect/", views.api_ai_callcenter_whatsapp_disconnect, name="api_ai_callcenter_whatsapp_disconnect"),

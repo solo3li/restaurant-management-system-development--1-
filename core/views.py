@@ -12,7 +12,7 @@ import asyncio
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse, HttpResponse
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse, HttpResponse, HttpResponseNotFound
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db import transaction
@@ -4140,6 +4140,11 @@ def ai_callcenter_management_view(request):
             cust = Customer.objects.filter(tenant=tenant).filter(Q(phone=raw_phone) | Q(phone__endswith=c_phone) if c_phone else Q(phone=raw_phone)).first()
             c["customer_name"] = cust.name if cust else "عميل اتصال هاتفي"
 
+        # Mask recording URL through proxy to eliminate IP leak
+        cid = c.get("call_id")
+        if c.get("recording_url") and cid:
+            c["recording_url"] = f"/api/ai-callcenter/calls/{cid}/recording/"
+
     total_calls_count = len(calls_data)
     orders_converted_count = sum(1 for c in calls_data if c.get("linked_order"))
     inquiries_count = max(0, total_calls_count - orders_converted_count)
@@ -4179,10 +4184,6 @@ def ai_callcenter_management_view(request):
 
     context = {
         "tenant": tenant,
-        "client_id": client_id,
-        "owner_username": owner_username,
-        "owner_password": owner_password,
-        "voice_portal_url": "https://app.169.58.32.179.nip.io",
         "profile": profile_data,
         "profiles": profiles_data,
         "hours": hours_data,
@@ -4786,6 +4787,51 @@ def api_ai_callcenter_dial_customer(request):
         return JsonResponse(res)
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@login_required
+def api_ai_callcenter_call_recording_proxy(request, call_id):
+    """Secure white-labeled streaming proxy for call audio recordings."""
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return HttpResponseForbidden("لم يتم العثور على منشأة نشطة")
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    calls_resp = ps.get_calls(client_id)
+    calls = calls_resp.get("calls") or []
+    target_call = next((c for c in calls if c.get("call_id") == call_id), None)
+    if not target_call or not target_call.get("recording_url"):
+        return HttpResponseNotFound("التسجيل غير متاح")
+
+    rec_url = target_call["recording_url"]
+    try:
+        import urllib.request
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = urllib.request.Request(rec_url, headers={"User-Agent": "Motaem-Voice-Proxy/1.0"})
+        url_fp = urllib.request.urlopen(req, context=ctx, timeout=15)
+
+        def _iter_chunks():
+            try:
+                while True:
+                    chunk = url_fp.read(8192)
+                    if not chunk:
+                        break
+                    yield chunk
+            finally:
+                url_fp.close()
+
+        content_type = url_fp.headers.get_content_type() if hasattr(url_fp.headers, "get_content_type") else "audio/mpeg"
+        response = StreamingHttpResponse(
+            _iter_chunks(),
+            content_type=content_type or "audio/mpeg"
+        )
+        response["Accept-Ranges"] = "bytes"
+        return response
+    except Exception as e:
+        return HttpResponse(f"Error loading recording: {e}", status=500)
 
 
 @login_required
