@@ -1792,7 +1792,7 @@ def list_recent_orders(branch_id: Optional[int] = None, limit: int = 10, access_
         {
             "id": o.id,
             "order_number": o.order_number,
-            "branch": o.branch.name,
+            "branch": o.branch.name if o.branch else "الفرع الرئيسي",
             "customer_name": o.customer_name,
             "order_type": o.get_order_type_display(),
             "status": o.get_status_display(),

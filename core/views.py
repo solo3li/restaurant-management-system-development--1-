@@ -43,6 +43,7 @@ from .models import (
     TenantApiKey,
     AuditLog,
     log_audit_event,
+    ensure_tenant_preset_roles,
 )
 
 
@@ -515,7 +516,10 @@ def register_view(request):
                         status="active"
                     )
 
-                # 7. Authenticate and redirect
+                    # 7. Seed standard preset roles
+                    ensure_tenant_preset_roles(tenant)
+
+                # 8. Authenticate and redirect
                 login(request, user)
                 request.session["active_tenant_id"] = tenant.id
                 return redirect("dashboard")
@@ -1858,6 +1862,8 @@ def employees_view(request):
         employees = employees.filter(Q(name__icontains=search) | Q(phone__icontains=search) | Q(employee_code__icontains=search))
 
     branches = Branch.objects.filter(tenant=tenant).order_by("name")
+    if tenant and not JobRole.objects.filter(tenant=tenant).exists():
+        ensure_tenant_preset_roles(tenant)
     job_roles = JobRole.objects.filter(tenant=tenant).annotate(emp_count=Count("employees")).order_by("ordering", "id")
 
     base_qs = Employee.objects.filter(tenant=tenant, branch=active_branch) if active_branch else Employee.objects.filter(tenant=tenant)
@@ -2738,7 +2744,13 @@ def api_toggle_branch(request, branch_id):
     if not can_cross and profile and profile.branch and branch != profile.branch:
         return JsonResponse({"error": "غير مصرح لك بتغيير حالة فرع آخر"}, status=403)
 
-    branch.status = "closed" if branch.status == "active" else "active"
+    if branch.status == "closed":
+        if tenant and not tenant.can_add_branch():
+            max_b = tenant.subscription_plan.max_branches if tenant.subscription_plan else 0
+            return JsonResponse({"error": f"لا يمكن إعادة تفعيل الفرع لأنك بلغت الحد الأقصى للفروع النشطة في باقتك الحالية ({max_b} فروع). يرجى ترقية الباقة أولاً."}, status=400)
+        branch.status = "active"
+    else:
+        branch.status = "closed"
     branch.save()
     return JsonResponse({"ok": True, "status": branch.status})
 
@@ -3218,7 +3230,13 @@ def api_toggle_employee_status(request, emp_id):
         return JsonResponse({"error": "غير مصرح لك بإدارة موظفي الفروع الأخرى"}, status=403)
 
     # Toggle between active and inactive
-    emp.status = "inactive" if emp.status == "active" else "active"
+    if emp.status != "active":
+        if tenant and not tenant.can_add_employee():
+            max_e = tenant.subscription_plan.max_employees if tenant.subscription_plan else 0
+            return JsonResponse({"error": f"لا يمكن إعادة تنشيط الموظف لأنك بلغت الحد الأقصى للموظفين النشطين في باقتك الحالية ({max_e} موظف). يرجى ترقية الباقة أولاً."}, status=400)
+        emp.status = "active"
+    else:
+        emp.status = "inactive"
     emp.save(update_fields=["status"])
 
     if emp.user:
@@ -3400,6 +3418,8 @@ def api_job_roles(request):
         ):
             return JsonResponse({"error": "غير مصرح لك باستعراض المسميات الوظيفية وهيكل الصلاحيات"}, status=403)
 
+        if tenant and not JobRole.objects.filter(tenant=tenant).exists():
+            ensure_tenant_preset_roles(tenant)
         roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("ordering", "id")
         data = []
         for r in roles:
@@ -3875,8 +3895,8 @@ def owner_subscription_view(request):
     if not tenant:
         return HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
 
-    branches_count = Branch.objects.filter(tenant=tenant).count()
-    employees_count = Employee.objects.filter(tenant=tenant).count()
+    branches_count = Branch.objects.filter(tenant=tenant, status="active").count()
+    employees_count = Employee.objects.filter(tenant=tenant, status__in=["active", "vacation"]).count()
     orders_count = Order.objects.filter(tenant=tenant).count()
     
     plan = tenant.subscription_plan
@@ -4431,13 +4451,14 @@ def api_ai_callcenter_update_profile(request, profile_id=None):
 
     # Set smart default for off_topic_response based on dialect if empty
     dialect = data.get("dialect", "egyptian")
+    rest_name = tenant.name.strip() if (tenant and getattr(tenant, "name", None)) else "المطعم"
     if "off_topic_response" in data and not str(data["off_topic_response"]).strip():
         defaults_by_dialect = {
-            "saudi": "أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو مطاعم كُـورَا فقط، تحب تطلب شيء من عروضنا اليوم؟",
-            "emirati": "السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو مطاعم كُـورَا فقط، حاب تطلب شي الحين؟",
-            "kuwaiti": "السموحة يا غالي، أنا مخصص لطلبات ومنيو مطاعم كُـورَا فقط، تبي تطلب شي من المنيو؟",
-            "modern_standard": "أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات مطاعم كُـورَا فقط، هل ترغب بطلب أي وجبة؟",
-            "egyptian": "بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات مطاعم كُـورَا فقط، تؤمر بأي صنف النهارده؟",
+            "saudi": f"أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو {rest_name} فقط، تحب تطلب شيء من عروضنا اليوم؟",
+            "emirati": f"السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو {rest_name} فقط، حاب تطلب شي الحين؟",
+            "kuwaiti": f"السموحة يا غالي، أنا مخصص لطلبات ومنيو {rest_name} فقط، تبي تطلب شي من المنيو؟",
+            "modern_standard": f"أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات {rest_name} فقط، هل ترغب بطلب أي وجبة؟",
+            "egyptian": f"بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات {rest_name} فقط، تؤمر بأي صنف النهارده؟",
         }
         data["off_topic_response"] = defaults_by_dialect.get(dialect, defaults_by_dialect["egyptian"])
 

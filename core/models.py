@@ -118,7 +118,7 @@ class Tenant(models.Model):
         limit = self.subscription_plan.max_branches
         if limit is None or limit <= 0:
             return True
-        return self.branches.count() < limit
+        return self.branches.filter(status="active").count() < limit
 
     def can_add_employee(self):
         if not self.subscription_plan:
@@ -126,7 +126,7 @@ class Tenant(models.Model):
         limit = self.subscription_plan.max_employees
         if limit is None or limit <= 0:
             return True
-        return self.employees.count() < limit
+        return self.employees.filter(status__in=["active", "vacation"]).count() < limit
 
     def has_feature(self, feature_key):
         if not self.subscription_plan:
