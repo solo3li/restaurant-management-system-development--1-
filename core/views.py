@@ -688,29 +688,51 @@ def api_create_tenant(request):
     if Tenant.objects.filter(slug=slug).exists():
         return JsonResponse({"error": "المعرف اللاتيني (Slug) مستخدم بالفعل"}, status=400)
 
-    tenant = Tenant.objects.create(
-        name=name,
-        slug=slug,
-        logo_emoji=data.get("emoji", "🍽️"),
-        phone=data.get("phone", ""),
-        plan=data.get("plan", "standard"),
-        address=data.get("address", ""),
-        is_active=True,
-    )
-
-    # Provision Initial Owner
+    # Pre-validate owner username collision before creating tenant record
     owner_username = str(data.get("owner_username", "")).strip()
     owner_password = str(data.get("owner_password", "")).strip()
-    if owner_username:
-        if User.objects.filter(username=owner_username).exists():
-            return JsonResponse({"error": f"اسم المستخدم «{owner_username}» محجوز مسبقاً في النظام"}, status=400)
-        if owner_password:
-            owner_user = User.objects.create_user(username=owner_username, password=owner_password, first_name=name)
+    if owner_username and User.objects.filter(username=owner_username).exists():
+        return JsonResponse({"error": f"اسم المستخدم «{owner_username}» محجوز مسبقاً في النظام"}, status=400)
+
+    plan_code = data.get("plan", "starter")
+    plan_obj = SubscriptionPlan.objects.filter(code=plan_code).first() or SubscriptionPlan.objects.filter(is_active=True).first()
+
+    with transaction.atomic():
+        tenant = Tenant.objects.create(
+            name=name,
+            slug=slug,
+            logo_emoji=data.get("emoji", "🍽️"),
+            phone=data.get("phone", ""),
+            plan=data.get("plan", "standard"),
+            subscription_plan=plan_obj,
+            subscription_status="active",
+            subscription_start=timezone.now(),
+            subscription_end=timezone.now() + timedelta(days=30),
+            address=data.get("address", ""),
+            is_active=True,
+        )
+
+        # 1. Create Initial Main Branch
+        Branch.objects.create(
+            tenant=tenant,
+            name=f"الفرع الرئيسي — {name}",
+            phone=data.get("phone", ""),
+            status="active",
+        )
+
+        # 2. Seed standard preset roles
+        ensure_tenant_preset_roles(tenant)
+
+        # 3. Provision Initial Owner
+        if owner_username:
+            import secrets
+            pwd_to_use = owner_password if owner_password else f"Rest@{secrets.token_hex(4)}"
+            owner_user = User.objects.create_user(username=owner_username, password=pwd_to_use, first_name=name)
             UserProfile.objects.create(
                 user=owner_user,
                 tenant=tenant,
                 role="owner",
-                branch=None
+                branch=None,
             )
 
     return JsonResponse({"ok": True, "tenantId": tenant.id})
@@ -1401,99 +1423,110 @@ def order_edit_view(request, order_id):
     menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name") if tenant else MenuItem.objects.none()
 
     if request.method == "POST":
-        if not can_cross and profile and profile.branch:
-            order.branch = profile.branch
-        else:
-            branch_id = request.POST.get("branch_id")
-            if branch_id and branch_id != "none":
-                order.branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+        old_status = order.status
+        with transaction.atomic():
+            if not can_cross and profile and profile.branch:
+                order.branch = profile.branch
             else:
-                order.branch = None
+                branch_id = request.POST.get("branch_id")
+                if branch_id and branch_id != "none":
+                    order.branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+                else:
+                    order.branch = None
 
-        order.order_type = request.POST.get("order_type", order.order_type)
-        order.channel = request.POST.get("channel", order.channel)
-        new_status = request.POST.get("status", order.status)
-        if new_status == "cancelled" and order.status != "cancelled":
-            if not is_owner and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
-                return HttpResponseForbidden("غير مصرح لك بإلغاء الفواتير أو الطلبات")
-        order.status = new_status
-        order.customer_name = request.POST.get("customer_name", order.customer_name).strip()
-        order.customer_phone = request.POST.get("customer_phone", order.customer_phone).strip()
-        order.address = request.POST.get("address", order.address).strip()
-        order.notes = request.POST.get("notes", order.notes).strip()
-        order.cashier = request.POST.get("cashier", order.cashier).strip()
-        order.pay_method = request.POST.get("pay_method", order.pay_method)
-        order.paid = request.POST.get("paid") in ["true", "on", "1", True]
+            order.order_type = request.POST.get("order_type", order.order_type)
+            order.channel = request.POST.get("channel", order.channel)
+            new_status = request.POST.get("status", order.status)
+            if new_status == "cancelled" and order.status != "cancelled":
+                if not is_owner and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
+                    return HttpResponseForbidden("غير مصرح لك بإلغاء الفواتير أو الطلبات")
+            order.status = new_status
+            order.customer_name = request.POST.get("customer_name", order.customer_name).strip()
 
-        driver_id = request.POST.get("driver_id")
-        if driver_id and driver_id != "none":
-            driver_obj = Employee.objects.filter(tenant=tenant, id=driver_id, role="driver").first()
-            if driver_obj and not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
-                return HttpResponseForbidden("لا يمكن إسناد سائق يتبع فرعاً آخر لهذا الطلب")
-            order.driver = driver_obj
-        else:
-            order.driver = None
+            # Normalize Arabic digits (٠١٢٣٤٥٦٧٨٩ -> 0123456789)
+            trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+            raw_phone = request.POST.get("customer_phone", order.customer_phone)
+            order.customer_phone = str(raw_phone or "").translate(trans_table).strip()
 
-        # Update customer record if phone exists
-        if order.customer_phone:
-            cust, _ = Customer.objects.get_or_create(
-                tenant=tenant,
-                phone=order.customer_phone,
-                defaults={"name": order.customer_name, "address": order.address}
-            )
-            if order.customer_name and cust.name != order.customer_name:
-                cust.name = order.customer_name
-            if order.address and cust.address != order.address:
-                cust.address = order.address
-            cust.save()
-            order.customer = cust
+            order.address = request.POST.get("address", order.address).strip()
+            order.notes = request.POST.get("notes", order.notes).strip()
+            order.cashier = request.POST.get("cashier", order.cashier).strip()
+            order.pay_method = request.POST.get("pay_method", order.pay_method)
+            order.paid = request.POST.get("paid") in ["true", "on", "1", True]
 
-        # Items parsing from JSON submitted by interactive editor
-        items_json = request.POST.get("items_json")
-        parsed_items = None
-        if items_json:
-            try:
-                parsed_items = json.loads(items_json)
-            except Exception:
-                parsed_items = None
+            driver_id = request.POST.get("driver_id")
+            if driver_id and driver_id != "none":
+                driver_obj = Employee.objects.filter(tenant=tenant, id=driver_id, role="driver").first()
+                if driver_obj and not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
+                    return HttpResponseForbidden("لا يمكن إسناد سائق يتبع فرعاً آخر لهذا الطلب")
+                order.driver = driver_obj
+            else:
+                order.driver = None
 
-        if parsed_items is not None:
-            order.items.all().delete()
-            subtotal = Decimal("0")
-            for pi in parsed_items:
-                m_id = pi.get("menu_item_id")
-                m_item = MenuItem.objects.filter(tenant=tenant, id=m_id).first() if m_id else None
-                name = pi.get("name") or (m_item.name if m_item else "صنف")
-                price = Decimal(str(pi.get("price") or (m_item.price if m_item else 0)))
-                qty = max(1, int(pi.get("qty") or 1))
-                subtotal += price * qty
-                OrderItem.objects.create(
-                    order=order,
-                    menu_item=m_item,
-                    name=name,
-                    price=price,
-                    qty=qty
+            # Update customer record if phone exists
+            if order.customer_phone:
+                cust, _ = Customer.objects.get_or_create(
+                    tenant=tenant,
+                    phone=order.customer_phone,
+                    defaults={"name": order.customer_name, "address": order.address}
                 )
-            order.subtotal = subtotal
+                if order.customer_name and cust.name != order.customer_name:
+                    cust.name = order.customer_name
+                if order.address and cust.address != order.address:
+                    cust.address = order.address
+                cust.save()
+                order.customer = cust
 
-        # Delivery Fee & Discount
-        try:
-            order.delivery_fee = Decimal(str(request.POST.get("delivery_fee") or ("8" if order.order_type == "delivery" else "0")))
-        except Exception:
-            order.delivery_fee = Decimal("0")
+            # Items parsing from JSON submitted by interactive editor
+            items_json = request.POST.get("items_json")
+            parsed_items = None
+            if items_json:
+                try:
+                    parsed_items = json.loads(items_json)
+                except Exception:
+                    parsed_items = None
 
-        try:
-            new_discount = Decimal(str(request.POST.get("discount") or "0"))
-        except Exception:
-            new_discount = Decimal("0")
+            if parsed_items is not None:
+                order.items.all().delete()
+                subtotal = Decimal("0")
+                for pi in parsed_items:
+                    m_id = pi.get("menu_item_id")
+                    m_item = MenuItem.objects.filter(tenant=tenant, id=m_id).first() if m_id else None
+                    name = pi.get("name") or (m_item.name if m_item else "صنف")
+                    price = Decimal(str(pi.get("price") or (m_item.price if m_item else 0)))
+                    qty = max(1, int(pi.get("qty") or 1))
+                    subtotal += price * qty
+                    OrderItem.objects.create(
+                        order=order,
+                        menu_item=m_item,
+                        name=name,
+                        price=price,
+                        qty=qty
+                    )
+                order.subtotal = subtotal
 
-        if new_discount != order.discount:
-            if not is_owner and not user_has_perm(request.user, "pos_apply_discount"):
-                return HttpResponseForbidden("غير مصرح لك بتعديل أو تطبيق الخصم على الفاتورة")
-            order.discount = new_discount
+            # Delivery Fee & Discount
+            try:
+                order.delivery_fee = Decimal(str(request.POST.get("delivery_fee") or ("8" if order.order_type == "delivery" else "0")))
+            except Exception:
+                order.delivery_fee = Decimal("0")
 
-        order.total = max(Decimal("0"), order.subtotal + order.delivery_fee - order.discount)
-        order.save()
+            try:
+                new_discount = Decimal(str(request.POST.get("discount") or "0"))
+            except Exception:
+                new_discount = Decimal("0")
+
+            if new_discount != order.discount:
+                if not is_owner and not user_has_perm(request.user, "pos_apply_discount"):
+                    return HttpResponseForbidden("غير مصرح لك بتعديل أو تطبيق الخصم على الفاتورة")
+                order.discount = new_discount
+
+            order.total = max(Decimal("0"), order.subtotal + order.delivery_fee - order.discount)
+            order.save()
+
+        # Real-time SSE push to kitchen display screen
+        event_type = "order_cancelled" if order.status == "cancelled" else ("order_status_changed" if old_status != order.status else "order_updated")
+        notify_kitchen_order_event(order, event_type)
 
         return redirect("order_detail", order_id=order.id)
 
@@ -2031,7 +2064,8 @@ def api_create_order(request):
     discount = max(Decimal("0"), min(raw_discount, subtotal))
     total = max(Decimal("0"), subtotal + delivery_fee - discount)
 
-    phone = str(data.get("customerPhone") or "").strip()
+    trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+    phone = str(data.get("customerPhone") or "").translate(trans_table).strip()
     cust_name = str(data.get("customerName") or "").strip() or ("عميل توصيل" if order_type == "delivery" else "عميل نقدي")
     address = str(data.get("address") or "").strip()
     customer = None
@@ -2261,7 +2295,8 @@ def api_search_customers(request):
     ):
         return JsonResponse({"error": "غير مصرح لك بالبحث في دليل بيانات العملاء"}, status=403)
 
-    q = request.GET.get("q", "").strip()
+    trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+    q = request.GET.get("q", "").translate(trans_table).strip()
     if len(q) < 3:
         return JsonResponse({"customers": []})
 
@@ -4045,24 +4080,16 @@ def api_review_upgrade_request(request, req_id):
         upgrade_req.reviewed_at = timezone.now()
         upgrade_req.save()
 
-        # Update tenant subscription
+        # Refresh tenant instance after automatic apply_upgrade
         tenant = upgrade_req.tenant
-        tenant.subscription_plan = upgrade_req.requested_plan
-        tenant.billing_cycle = upgrade_req.billing_cycle
-        tenant.subscription_status = "active"
-
-        # Extend subscription duration (365 days for yearly, 30 days for monthly)
-        extension_days = 365 if upgrade_req.billing_cycle == "yearly" else 30
-        base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
-        tenant.subscription_end = base_time + timedelta(days=extension_days)
-        tenant.save()
+        tenant.refresh_from_db()
 
         return JsonResponse({
             "ok": True,
             "message": f"تمت الموافقة على طلب ترقية «{tenant.name}» إلى باقة «{upgrade_req.requested_plan.name}» بنجاح وتم تفعيل الاشتراك.",
             "status": "approved",
             "plan_name": tenant.subscription_plan.name,
-            "subscription_end": tenant.subscription_end.strftime("%Y-%m-%d"),
+            "subscription_end": tenant.subscription_end.strftime("%Y-%m-%d") if tenant.subscription_end else "",
         })
 
     elif action == "reject":
