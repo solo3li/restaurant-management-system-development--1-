@@ -18,9 +18,12 @@ def _async_sync(tenant):
 @receiver([post_save, post_delete], sender=Branch)
 @receiver([post_save, post_delete], sender=DeliveryArea)
 def trigger_voice_ai_context_sync(sender, instance, **kwargs):
-    tenant = getattr(instance, "tenant", None)
-    if not tenant and hasattr(instance, "branch") and instance.branch:
-        tenant = getattr(instance.branch, "tenant", None)
+    try:
+        tenant = getattr(instance, "tenant", None)
+        if not tenant and hasattr(instance, "branch") and instance.branch:
+            tenant = getattr(instance.branch, "tenant", None)
+    except Exception:
+        tenant = None
 
     if tenant and hasattr(tenant, "has_feature") and tenant.has_feature("call_center"):
         threading.Thread(target=_async_sync, args=(tenant,), daemon=True).start()

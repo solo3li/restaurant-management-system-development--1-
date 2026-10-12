@@ -418,53 +418,54 @@ def register_view(request):
             error_message = "كلمة المرور يجب أن لا تقل عن 6 خانات."
         else:
             try:
-                # 1. Create User Account
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                    first_name=owner_name or restaurant_name
-                )
+                with transaction.atomic():
+                    # 1. Create User Account
+                    user = User.objects.create_user(
+                        username=username,
+                        email=email,
+                        password=password,
+                        first_name=owner_name or restaurant_name
+                    )
 
-                # 2. Pick Selected Plan
-                plan = SubscriptionPlan.objects.filter(code=plan_code).first() or plans.first()
+                    # 2. Pick Selected Plan
+                    plan = SubscriptionPlan.objects.filter(code=plan_code).first() or plans.first()
 
-                # 3. Generate unique slug
-                base_slug = slugify(restaurant_name) or f"restaurant-{user.id}"
-                slug = base_slug
-                counter = 1
-                while Tenant.objects.filter(slug=slug).exists():
-                    slug = f"{base_slug}-{counter}"
-                    counter += 1
+                    # 3. Generate unique slug
+                    base_slug = slugify(restaurant_name) or f"restaurant-{user.id}"
+                    slug = base_slug
+                    counter = 1
+                    while Tenant.objects.filter(slug=slug).exists():
+                        slug = f"{base_slug}-{counter}"
+                        counter += 1
 
-                # 4. Create Tenant
-                tenant = Tenant.objects.create(
-                    name=restaurant_name,
-                    slug=slug,
-                    phone=phone,
-                    email=email,
-                    plan="trial",
-                    subscription_plan=plan,
-                    subscription_status="trial",
-                    subscription_start=timezone.now(),
-                    subscription_end=timezone.now() + timedelta(days=plan.trial_days if plan else 14),
-                    is_active=True,
-                )
+                    # 4. Create Tenant
+                    tenant = Tenant.objects.create(
+                        name=restaurant_name,
+                        slug=slug,
+                        phone=phone,
+                        email=email,
+                        plan="trial",
+                        subscription_plan=plan,
+                        subscription_status="trial",
+                        subscription_start=timezone.now(),
+                        subscription_end=timezone.now() + timedelta(days=plan.trial_days if plan else 14),
+                        is_active=True,
+                    )
 
-                # 5. Create Owner Profile
-                UserProfile.objects.create(
-                    user=user,
-                    tenant=tenant,
-                    role="owner"
-                )
+                    # 5. Create Owner Profile
+                    UserProfile.objects.create(
+                        user=user,
+                        tenant=tenant,
+                        role="owner"
+                    )
 
-                # 6. Create Initial Main Branch
-                Branch.objects.create(
-                    tenant=tenant,
-                    name=f"الفرع الرئيسي — {restaurant_name}",
-                    phone=phone,
-                    is_active=True
-                )
+                    # 6. Create Initial Main Branch
+                    Branch.objects.create(
+                        tenant=tenant,
+                        name=f"الفرع الرئيسي — {restaurant_name}",
+                        phone=phone,
+                        status="active"
+                    )
 
                 # 7. Authenticate and redirect
                 login(request, user)

@@ -202,6 +202,10 @@ class Branch(models.Model):
         tenant_name = f" [{self.tenant.name}]" if self.tenant else ""
         return f"{self.name}{tenant_name}"
 
+    @property
+    def is_active(self):
+        return self.status == "active"
+
 
 class DeliveryArea(models.Model):
     AREA_TYPES = [
