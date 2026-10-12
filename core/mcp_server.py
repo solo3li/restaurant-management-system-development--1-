@@ -1552,7 +1552,7 @@ def track_order(
 
         customer_orders = list(phone_orders_qs[:5])
         if customer_orders:
-            active_orders = [o for o in customer_orders if o.status in ["new", "preparing", "ready", "on_way"]]
+            active_orders = [o for o in customer_orders if o.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]]
             order = active_orders[0] if active_orders else customer_orders[0]
 
     if not order:
@@ -1570,12 +1570,14 @@ def track_order(
         "new": "طلبك مسجل وجاري إرساله للمطبخ.",
         "preparing": "طلبك حالياً بيتجهز في المطبخ بكل اهتمام.",
         "ready": "طلبك جاهز تماماً وبانتظار مندوب التوصيل للاستلام.",
+        "out_for_delivery": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
         "on_way": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
         "delivered": "الطلب مسجل عندنا إنه تم تسليمه بنجاح.",
+        "cancelled": "الطلب مسجل إنه ملغي.",
         "canceled": "الطلب مسجل إنه ملغي.",
     }
     speech_state = status_speech_map.get(order.status, f"حالة طلبك الحالية هي {order.get_status_display()}.")
-    driver_speech = f" مع الكابتن {order.driver.name} ورقم هاتفه {order.driver.phone}" if (order.driver and order.status == "on_way") else ""
+    driver_speech = f" مع الكابتن {order.driver.name} ورقم هاتفه {order.driver.phone}" if (order.driver and order.status in ["out_for_delivery", "on_way"]) else ""
     ai_speech = f"يا فندم بخصوص طلبك رقم {order.order_number}، {speech_state}{driver_speech}."
 
     driver_info = None
@@ -1702,7 +1704,7 @@ def cancel_order(
             models.Q(customer_phone__icontains=suffix) | models.Q(customer__phone__icontains=suffix)
         ).select_related("branch", "customer").order_by("-created_at")
 
-        active_orders = [o for o in phone_orders_qs[:5] if o.status in ["new", "preparing", "ready", "on_way"]]
+        active_orders = [o for o in phone_orders_qs[:5] if o.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]]
         order = active_orders[0] if active_orders else phone_orders_qs.first()
 
     if not order:
@@ -1716,7 +1718,7 @@ def cancel_order(
         }
 
     # Strict cancellation policy: only allow cancellation if order is 'new'
-    if order.status == "canceled":
+    if order.status in ["cancelled", "canceled"]:
         key_obj.record_usage(placed_order=False)
         return {
             "ok": False,
@@ -1738,14 +1740,21 @@ def cancel_order(
             "instruction_for_ai": "أبلغ العميل بلطف أن الطلب دخل مرحلة التحضير في المطبخ ولا يمكن إلغاؤه كما في ai_speech_response."
         }
 
-    # Cancel the order
-    order.status = "canceled"
+    # Cancel the order cleanly
+    order.status = "cancelled"
     cancel_note = f"[تم الإلغاء آلياً بواسطة بوت الكول سنتر: {key_obj.name} - السبب: {reason}]"
     if order.notes:
         order.notes = f"{order.notes}\n{cancel_note}"
     else:
         order.notes = cancel_note
     order.save()
+
+    # Real-time SSE push to kitchen display
+    try:
+        from core.kitchen_events import notify_kitchen_order_event
+        notify_kitchen_order_event(order, "order_cancelled")
+    except Exception as e:
+        logger.warning(f"Failed to notify kitchen of AI cancelled order: {e}")
 
     key_obj.record_usage(placed_order=False)
     return {

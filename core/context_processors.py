@@ -40,8 +40,10 @@ def branch_context(request):
     # Scoped branches for the active tenant
     if tenant:
         all_branches = Branch.objects.filter(tenant=tenant, status="active").order_by("id")
-    else:
+    elif is_platform_admin:
         all_branches = Branch.objects.filter(status="active").order_by("id")
+    else:
+        all_branches = Branch.objects.none()
 
     is_owner = request.user.is_superuser or is_platform_admin or (profile and profile.role == "owner")
 

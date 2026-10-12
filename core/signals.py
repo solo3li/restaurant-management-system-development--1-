@@ -7,12 +7,15 @@ from core.models import MenuItem, Branch, DeliveryArea
 logger = logging.getLogger(__name__)
 
 def _async_sync(tenant):
+    from django.db import connections
     try:
         from core import partner_service as ps
         ps.sync_tenant_live_context(tenant)
         logger.info(f"[VOICE AI SYNC] Successfully synced live context to Voice AI for tenant: {tenant.name}")
     except Exception as e:
         logger.warning(f"[VOICE AI SYNC] Could not push live context for tenant {tenant.name}: {e}")
+    finally:
+        connections.close_all()
 
 @receiver([post_save, post_delete], sender=MenuItem)
 @receiver([post_save, post_delete], sender=Branch)

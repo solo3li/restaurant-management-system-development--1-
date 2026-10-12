@@ -787,21 +787,34 @@ def dashboard_view(request):
             "is_today": i == 0,
         })
 
-    # 6. Branch performance comparison matrix & ranking
-    branches = Branch.objects.filter(tenant=tenant, status="active").order_by("id")
+    # 6. Branch performance comparison matrix & ranking (Optimized: 3 grouped queries total)
+    branches = list(Branch.objects.filter(tenant=tenant, status="active").order_by("id"))
     total_branches_count = Branch.objects.filter(tenant=tenant).count()
-    active_branches_count = branches.count()
+    active_branches_count = len(branches)
     callcenter_orders_count = today_orders.filter(channel="call_center").count()
     cashier_orders_count = today_orders.filter(channel="cashier").count()
+
+    branch_sales_map = {
+        row["branch_id"]: {"total": row["t"] or Decimal("0"), "count": row["c"]}
+        for row in today_orders.values("branch_id").annotate(t=Sum("total"), c=Count("id"))
+    }
+    branch_emps_map = {
+        row["branch_id"]: row["c"]
+        for row in Employee.objects.filter(tenant=tenant, branch__isnull=False).values("branch_id").annotate(c=Count("id"))
+    }
+    branch_stock_map = {
+        row["branch_id"]: row["c"]
+        for row in InventoryItem.objects.filter(tenant=tenant, quantity__lte=F("min_quantity"), branch__isnull=False).values("branch_id").annotate(c=Count("id"))
+    }
 
     branch_matrix = []
     max_branch_sale = Decimal("1")
     for b in branches:
-        b_orders = today_orders.filter(branch=b)
-        b_total = b_orders.aggregate(t=Sum("total"))["t"] or Decimal("0")
-        b_count = b_orders.count()
-        b_emps = Employee.objects.filter(branch=b).count()
-        b_low_stock = InventoryItem.objects.filter(branch=b, quantity__lte=F("min_quantity")).count()
+        sales_info = branch_sales_map.get(b.id, {"total": Decimal("0"), "count": 0})
+        b_total = sales_info["total"]
+        b_count = sales_info["count"]
+        b_emps = branch_emps_map.get(b.id, 0)
+        b_low_stock = branch_stock_map.get(b.id, 0)
         if b_total > max_branch_sale:
             max_branch_sale = b_total
         branch_matrix.append({
@@ -1622,16 +1635,12 @@ def pos_view(request):
     branch = get_active_branch(request)
     categories = ["الكل", "أطباق رئيسية", "مشويات", "ساندويتشات", "برجر", "دجاج", "مقبلات", "مشروبات", "حلويات"]
 
-    all_menu = MenuItem.objects.filter(tenant=tenant).order_by("category", "name")
+    base_menu = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name")
     if branch:
         disabled_ids = set(BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True))
-        menu_items = []
-        for m in all_menu:
-            m_avail = (m.id not in disabled_ids) and m.available
-            if m_avail:
-                menu_items.append(m)
+        menu_items = list(base_menu.exclude(id__in=disabled_ids))
     else:
-        menu_items = list(all_menu.filter(available=True))
+        menu_items = list(base_menu)
 
     recent_orders = Order.objects.filter(tenant=tenant).order_by("-id")
     if branch:
@@ -1951,8 +1960,15 @@ def api_create_order(request):
     if not can_cross and user_branch:
         branch = user_branch
 
-    # Resolve items scoped to tenant
+    # Resolve items scoped to tenant and verify availability
     menu_ids = [int(i.get("menuItemId")) for i in items_data if i.get("menuItemId")]
+    disabled_in_branch = set()
+    if branch:
+        disabled_in_branch = set(
+            BranchMenuAvailability.objects.filter(
+                branch=branch, menu_item_id__in=menu_ids, is_available=False
+            ).values_list("menu_item_id", flat=True)
+        )
     menu_map = {m.id: m for m in MenuItem.objects.filter(tenant=tenant, id__in=menu_ids)}
 
     rows = []
@@ -1962,6 +1978,8 @@ def api_create_order(request):
         m = menu_map.get(m_id)
         if not m:
             continue
+        if not m.available or m_id in disabled_in_branch:
+            return JsonResponse({"error": f"الصنف «{m.name}» غير متوفر حالياً بالفرع"}, status=400)
         qty = max(1, int(it.get("qty", 1)))
         unit_price = m.price
         custom_price = it.get("customPrice") or it.get("custom_price")
