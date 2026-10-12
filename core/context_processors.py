@@ -187,9 +187,9 @@ def branch_context(request):
             "is_active": tenant.is_subscription_active(),
             "is_expiring_soon": (tenant.days_until_expiry() <= 7) if tenant.subscription_end else False,
             "max_branches": tenant.subscription_plan.max_branches,
-            "branches_count": tenant.branches.count(),
+            "branches_count": tenant.branches.filter(status="active").count(),
             "max_employees": tenant.subscription_plan.max_employees,
-            "employees_count": tenant.employees.count(),
+            "employees_count": tenant.employees.filter(status__in=["active", "vacation"]).count(),
             "features": plan_features,
         }
 

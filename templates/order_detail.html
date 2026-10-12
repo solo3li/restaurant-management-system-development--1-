@@ -285,6 +285,86 @@
             </div>
         </div>
     </div>
+
+    <!-- Order Audit Log & Timeline Section -->
+    <div class="classic-card p-6 shadow-sm border border-line">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-5">
+            <div class="flex items-center gap-2.5">
+                <span class="medallion-icon-light flex h-8 w-8 items-center justify-center rounded-lg shadow-xs">
+                    <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-sm font-bold font-royal text-ink">سجل التدقيق والتتبع الأمني للفاتورة</h2>
+                    <p class="text-[11px] font-bold text-soft">توثيق شامل لكافة العمليات (إنشاء، تعديل، تغيير حالة، إلغاء، مدفوعات) مع هوية المنفّذ والوقت والـ IP</p>
+                </div>
+            </div>
+            <span class="rounded-full bg-paper px-3 py-1 text-xs font-black text-brand-700 border border-line">
+                {{ audit_logs|length }} عملية مسجلة
+            </span>
+        </div>
+
+        <div class="relative border-r border-[#E8DCC8] pr-4 space-y-4">
+            {% for log in audit_logs %}
+            <div class="relative flex items-start gap-3">
+                <!-- Dot Icon on Timeline -->
+                <div class="absolute -right-[23px] top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#FAF6F0] ring-4 ring-[#FAF6F0]">
+                    <span class="h-2 w-2 rounded-full
+                        {% if log.action == 'order_created' %}bg-emerald-500
+                        {% elif log.action == 'order_edited' %}bg-amber-500
+                        {% elif log.action == 'order_cancelled' or log.action == 'order_refunded' %}bg-rose-500
+                        {% elif log.action == 'order_driver_assigned' %}bg-sky-500
+                        {% else %}bg-brand-600{% endif %}">
+                    </span>
+                </div>
+
+                <div class="flex-1 bg-paper/50 rounded-xl p-3 border border-line/60 space-y-1">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-black
+                                {% if log.action == 'order_created' %}bg-emerald-100 text-emerald-800
+                                {% elif log.action == 'order_edited' %}bg-amber-100 text-amber-800
+                                {% elif log.action == 'order_cancelled' or log.action == 'order_refunded' %}bg-rose-100 text-rose-800
+                                {% elif log.action == 'order_driver_assigned' %}bg-sky-100 text-sky-800
+                                {% else %}bg-brand-100 text-brand-800{% endif %}">
+                                {% if log.action == 'order_created' %}إنشاء الطلب
+                                {% elif log.action == 'order_edited' %}تعديل الفاتورة
+                                {% elif log.action == 'order_cancelled' %}إلغاء الطلب
+                                {% elif log.action == 'order_refunded' %}استرجاع ورد المبلغ
+                                {% elif log.action == 'order_reactivated' %}إعادة تنشيط الطلب
+                                {% elif log.action == 'order_status_changed' %}تحديث الحالة
+                                {% elif log.action == 'order_driver_assigned' %}إسناد سائق
+                                {% elif log.action == 'order_driver_unassigned' %}إلغاء إسناد سائق
+                                {% elif log.action == 'order_payment_updated' %}تحديث السداد
+                                {% elif log.action == 'order_deleted' %}حذف نهائي
+                                {% else %}{{ log.action }}{% endif %}
+                            </span>
+                            <span class="text-xs font-bold text-ink">{{ log.description }}</span>
+                        </div>
+                        <span class="text-[11px] font-bold text-soft" dir="ltr">{{ log.created_at|date:"Y-m-d H:i:s" }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-3 text-[11px] text-soft pt-1 border-t border-line/40">
+                        <span class="inline-flex items-center gap-1">
+                            <svg class="w-3 h-3 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span>المنفّذ: <strong class="text-ink font-bold">{% if log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}الذكاء الاصطناعي / الكاشير ({{ order.cashier|default:'النظام' }}){% endif %}</strong></span>
+                        </span>
+                        {% if log.ip_address %}
+                        <span>•</span>
+                        <span class="inline-flex items-center gap-1 font-mono text-[10px]" dir="ltr">
+                            IP: {{ log.ip_address }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="py-6 text-center text-xs font-bold text-soft bg-paper/30 rounded-xl border border-line/40">
+                <p>تم تسجيل الطلب في المنظومة بتاريخ {{ order.created_at|date:"Y-m-d H:i" }} بواسطة ({{ order.cashier|default:"الكاشير" }}).</p>
+                <p class="text-[10px] text-soft mt-1">لم تسجل أي تعديلات لاحقة على هذه الفاتورة حتى الآن.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
 <script>

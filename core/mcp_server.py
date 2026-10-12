@@ -27,7 +27,7 @@ from django.conf import settings
 if not settings.configured:
     django.setup()
 
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.utils import timezone
 from fastmcp import FastMCP
 import contextvars
@@ -1275,12 +1275,17 @@ def create_callcenter_order(
         customer.save()
     else:
         clean_name = clean_name or f"عميل ({clean_phone[-4:]})"
-        customer = Customer.objects.create(
-            tenant=tenant,
-            phone=clean_phone,
-            name=clean_name,
-            address=clean_addr,
-        )
+        try:
+            customer = Customer.objects.create(
+                tenant=tenant,
+                phone=clean_phone,
+                name=clean_name,
+                address=clean_addr,
+            )
+        except IntegrityError:
+            customer = Customer.objects.filter(tenant=tenant).filter(
+                models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
+            ).first()
 
     # 3. Order Type & Intelligent Delivery / Branch Resolution
     order_type = str(order_type or "delivery").strip().lower()
@@ -1383,36 +1388,48 @@ def create_callcenter_order(
     prefix = (tenant.slug[:3] if tenant and tenant.slug else "CC").upper()
     full_notes = f"[AI Call Center: {key_obj.name}] {notes}".strip()
 
-    # 5. Atomic Order Creation
+    # 5. Atomic Order Creation with Concurrency Retry Loop
     with transaction.atomic():
-        last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
-        next_seq = (last_order.id + 1) if last_order else 1
-        candidate_num = f"{prefix}-{1000 + next_seq}"
-        while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
-            next_seq += 1
+        order = None
+        for attempt in range(5):
+            last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
+            next_seq = (last_order.id + 1 + attempt) if last_order else (1 + attempt)
             candidate_num = f"{prefix}-{1000 + next_seq}"
-        order_number = candidate_num
+            while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
+                next_seq += 1
+                candidate_num = f"{prefix}-{1000 + next_seq}"
+            order_number = candidate_num
 
-        order = Order.objects.create(
-            tenant=tenant,
-            branch=branch,
-            order_number=order_number,
-            order_type=order_type,
-            channel="call_center",
-            customer=customer,
-            customer_name=customer.name,
-            customer_phone=customer.phone,
-            address=clean_addr,
-            delivery_area=matched_area,
-            subtotal=subtotal,
-            delivery_fee=delivery_fee,
-            discount=Decimal("0.00"),
-            total=total,
-            paid=False,
-            cashier=f"AI: {key_obj.name}",
-            notes=full_notes,
-            status="new",
-        )
+            try:
+                sid = transaction.savepoint()
+                order = Order.objects.create(
+                    tenant=tenant,
+                    branch=branch,
+                    order_number=order_number,
+                    order_type=order_type,
+                    channel="call_center",
+                    customer=customer,
+                    customer_name=customer.name if customer else "عميل هاتف",
+                    customer_phone=customer.phone if customer else clean_phone,
+                    address=clean_addr,
+                    delivery_area=matched_area,
+                    subtotal=subtotal,
+                    delivery_fee=delivery_fee,
+                    discount=Decimal("0.00"),
+                    total=total,
+                    paid=False,
+                    cashier=f"AI: {key_obj.name}",
+                    notes=full_notes,
+                    status="new",
+                )
+                transaction.savepoint_commit(sid)
+                break
+            except IntegrityError:
+                transaction.savepoint_rollback(sid)
+                continue
+
+        if not order:
+            return {"error": "فشل إنشاء الطلب بسبب تضارب أرقام الطلبات المتزامنة."}
 
         for oi in order_items_prepared:
             OrderItem.objects.create(
@@ -1422,6 +1439,18 @@ def create_callcenter_order(
                 price=oi["price"],
                 qty=oi["quantity"],
             )
+
+        from core.models import log_audit_event
+        cust_label = customer.name if customer else "عميل"
+        log_audit_event(
+            tenant=tenant,
+            user=None,
+            action="order_created",
+            target_model="Order",
+            target_id=order.id,
+            description=f"إنشاء الطلب #{order.order_number} تلقائياً عبر كول سنتر الذكاء الاصطناعي ({key_obj.name}) للعميل {cust_label} بقيمة {order.total} ر.س",
+            ip_address=None,
+        )
 
     # Real-time SSE push to kitchen display
     try:

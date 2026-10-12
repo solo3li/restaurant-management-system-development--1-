@@ -908,6 +908,13 @@ class Customer(models.Model):
         verbose_name = "عميل"
         verbose_name_plural = "العملاء"
         ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant", "phone"],
+                condition=~models.Q(phone=""),
+                name="unique_tenant_customer_phone",
+            ),
+        ]
         indexes = [
             models.Index(fields=["tenant", "phone"], name="idx_cust_t_phone"),
         ]
@@ -1175,6 +1182,7 @@ class UpgradeRequest(models.Model):
         tenant.subscription_plan = self.requested_plan
         tenant.billing_cycle = self.billing_cycle
         tenant.subscription_status = "active"
+        tenant.is_active = True
 
         extension_days = 365 if self.billing_cycle == "yearly" else 30
         base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()

@@ -15,7 +15,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse, HttpResponse, HttpResponseNotFound
 from django.utils import timezone
 from django.utils.text import slugify
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Sum, Count, F, Q
 from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -239,6 +239,9 @@ def get_post_login_redirect(user):
         return "platform_dashboard"
 
     is_owner = (profile and profile.role == "owner")
+    if profile and profile.tenant and not profile.tenant.is_active:
+        return "owner_subscription" if is_owner else "login"
+
     if is_owner or user_has_perm(user, "view_hq_dashboard"):
         return "dashboard"
 
@@ -277,6 +280,9 @@ def login_view(request):
         return redirect(get_post_login_redirect(request.user))
 
     error_message = None
+    if request.GET.get("suspended") == "1":
+        error_message = "تم إيقاف حساب هذه المنشأة مؤقتاً. يرجى مراجعة إدارة المطعم أو صاحب العمل."
+
     if request.method == "POST":
         auth_type = request.POST.get("auth_type", "credentials")
 
@@ -320,57 +326,60 @@ def login_view(request):
                     matched_emp = matched_emps[0]
 
                 if matched_emp:
-                    _clear_rate_limit(pin_rate_key)
-                    # Auto-assign default branch if none is set and role is branch-scoped
-                    effective_branch = matched_emp.branch
-                    if not effective_branch and matched_emp.tenant:
-                        effective_branch = matched_emp.tenant.branches.filter(status="active").first() or matched_emp.tenant.branches.first()
-                        matched_emp.branch = effective_branch
-                        matched_emp.save(update_fields=["branch"])
-
-                    # Auto-provision user account if missing
-                    user_to_login = matched_emp.user
-                    if not user_to_login:
-                        tenant_slug = matched_emp.tenant.slug if matched_emp.tenant else "sys"
-                        username = f"emp_{tenant_slug}_{matched_emp.employee_code}"
-                        user_to_login, _ = User.objects.get_or_create(username=username, defaults={"first_name": matched_emp.name})
-                        user_to_login.set_unusable_password()
-                        user_to_login.save()
-                        matched_emp.user = user_to_login
-                        matched_emp.save(update_fields=["user"])
-
-                    # Ensure UserProfile matches employee
-                    user_profile_role = "branch_manager" if matched_emp.role == "manager" else matched_emp.role
-                    UserProfile.objects.update_or_create(
-                        user=user_to_login,
-                        defaults={
-                            "tenant": matched_emp.tenant,
-                            "branch": effective_branch,
-                            "role": user_profile_role,
-                            "job_role": matched_emp.job_role,
-                        }
-                    )
-
-                    # Sync Django Groups & Permissions
-                    if matched_emp.job_role:
-                        grp = matched_emp.job_role.sync_with_django_group()
-                        if grp:
-                            user_to_login.groups.set([grp])
+                    if matched_emp.tenant and not matched_emp.tenant.is_active:
+                        error_message = "تم إيقاف حساب هذه المنشأة مؤقتاً. يرجى مراجعة إدارة المطعم."
                     else:
-                        user_to_login.groups.clear()
+                        _clear_rate_limit(pin_rate_key)
+                        # Auto-assign default branch if none is set and role is branch-scoped
+                        effective_branch = matched_emp.branch
+                        if not effective_branch and matched_emp.tenant:
+                            effective_branch = matched_emp.tenant.branches.filter(status="active").first() or matched_emp.tenant.branches.first()
+                            matched_emp.branch = effective_branch
+                            matched_emp.save(update_fields=["branch"])
 
-                    for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
-                        if hasattr(user_to_login, cache_field):
-                            delattr(user_to_login, cache_field)
+                        # Auto-provision user account if missing
+                        user_to_login = matched_emp.user
+                        if not user_to_login:
+                            tenant_slug = matched_emp.tenant.slug if matched_emp.tenant else "sys"
+                            username = f"emp_{tenant_slug}_{matched_emp.employee_code}"
+                            user_to_login, _ = User.objects.get_or_create(username=username, defaults={"first_name": matched_emp.name})
+                            user_to_login.set_unusable_password()
+                            user_to_login.save()
+                            matched_emp.user = user_to_login
+                            matched_emp.save(update_fields=["user"])
 
-                    login(request, user_to_login)
-                    if matched_emp.tenant:
-                        request.session["active_tenant_id"] = matched_emp.tenant.id
-                    if effective_branch:
-                        request.session["active_branch_id"] = effective_branch.id
-                    request.session["active_employee_id"] = matched_emp.id
+                        # Ensure UserProfile matches employee
+                        user_profile_role = "branch_manager" if matched_emp.role == "manager" else matched_emp.role
+                        UserProfile.objects.update_or_create(
+                            user=user_to_login,
+                            defaults={
+                                "tenant": matched_emp.tenant,
+                                "branch": effective_branch,
+                                "role": user_profile_role,
+                                "job_role": matched_emp.job_role,
+                            }
+                        )
 
-                    return redirect(get_post_login_redirect(user_to_login))
+                        # Sync Django Groups & Permissions
+                        if matched_emp.job_role:
+                            grp = matched_emp.job_role.sync_with_django_group()
+                            if grp:
+                                user_to_login.groups.set([grp])
+                        else:
+                            user_to_login.groups.clear()
+
+                        for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                            if hasattr(user_to_login, cache_field):
+                                delattr(user_to_login, cache_field)
+
+                        login(request, user_to_login)
+                        if matched_emp.tenant:
+                            request.session["active_tenant_id"] = matched_emp.tenant.id
+                        if effective_branch:
+                            request.session["active_branch_id"] = effective_branch.id
+                        request.session["active_employee_id"] = matched_emp.id
+
+                        return redirect(get_post_login_redirect(user_to_login))
                 elif not error_message:
                     _record_failed_attempt(pin_rate_key)
                     error_message = "كود الموظف أو رمز PIN غير صحيح"
@@ -397,9 +406,27 @@ def login_view(request):
                         user = authenticate(request, username=emp_candidate.user.username, password=password)
 
                 if user is not None:
+                    profile = getattr(user, "profile", None)
+                    emp_candidate = getattr(user, "employee_profile", None)
+                    target_tenant = profile.tenant if (profile and profile.tenant) else (emp_candidate.tenant if (emp_candidate and emp_candidate.tenant) else None)
+                    is_platform_admin = user.is_superuser or (profile and profile.is_platform_admin)
+
+                    # Tenant Suspension Handling
+                    if target_tenant and not target_tenant.is_active and not is_platform_admin:
+                        is_owner = (profile and profile.role == "owner")
+                        if not is_owner:
+                            _record_failed_attempt(cred_rate_key)
+                            error_message = "تم إيقاف حساب هذه المنشأة مؤقتاً. يرجى مراجعة إدارة المطعم أو صاحب العمل."
+                            return render(request, "login.html", {"error": error_message})
+                        else:
+                            # Owner is routed exclusively to owner_subscription
+                            _clear_rate_limit(cred_rate_key)
+                            login(request, user)
+                            request.session["active_tenant_id"] = target_tenant.id
+                            return redirect("owner_subscription")
+
                     _clear_rate_limit(cred_rate_key)
                     login(request, user)
-                    profile = getattr(user, "profile", None)
 
                     # Sync Django Group for user from Employee or Profile
                     emp_obj = getattr(user, "employee_profile", None)
@@ -1379,12 +1406,19 @@ def order_detail_view(request, order_id):
 
     can_reprint = is_owner or user_has_perm(request.user, "pos_reprint_receipt") or user_has_perm(request.user, "pos_access")
 
+    audit_logs = AuditLog.objects.filter(
+        tenant=tenant,
+        target_model="Order",
+        target_id=str(order.id)
+    ).select_related("user").order_by("-created_at")
+
     context = {
         "tenant": tenant,
         "order": order,
         "items": order.items.all(),
         "is_owner": is_owner,
         "can_reprint": can_reprint,
+        "audit_logs": audit_logs,
     }
     return render(request, "order_detail.html", context)
 
@@ -1524,6 +1558,16 @@ def order_edit_view(request, order_id):
             order.total = max(Decimal("0"), order.subtotal + order.delivery_fee - order.discount)
             order.save()
 
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="order_edited",
+                target_model="Order",
+                target_id=order.id,
+                description=f"تعديل أصناف وتفاصيل الطلب #{order.order_number} (الإجمالي الجديد: {order.total} ر.س)",
+                ip_address=_get_client_ip(request),
+            )
+
         # Real-time SSE push to kitchen display screen
         event_type = "order_cancelled" if order.status == "cancelled" else ("order_status_changed" if old_status != order.status else "order_updated")
         notify_kitchen_order_event(order, event_type)
@@ -1563,6 +1607,15 @@ def api_cancel_order(request, order_id):
 
     order.status = "cancelled"
     order.save()
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="order_cancelled",
+        target_model="Order",
+        target_id=order.id,
+        description=f"إلغاء الطلب #{order.order_number} بقيمة {order.total} ر.س",
+        ip_address=_get_client_ip(request),
+    )
     notify_kitchen_order_event(order, "order_cancelled")
     return JsonResponse({"ok": True, "status": "cancelled", "message": f"تم إلغاء الطلب {order.order_number} بنجاح"})
 
@@ -1593,7 +1646,18 @@ def api_delete_order(request, order_id):
     if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بحذف فواتير الفروع الأخرى"}, status=403)
 
+    order_id_val = order.id
     order_number = order.order_number
+    order_total = order.total
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="order_deleted",
+        target_model="Order",
+        target_id=order_id_val,
+        description=f"حذف الفاتورة #{order_number} نهائياً بقيمة {order_total} ر.س من قاعدة البيانات",
+        ip_address=_get_client_ip(request),
+    )
     notify_kitchen_order_event(order, "order_cancelled")
     order.delete()
     return JsonResponse({"ok": True, "message": f"تم حذف الطلب {order_number} نهائياً من قاعدة البيانات"})
@@ -2070,45 +2134,71 @@ def api_create_order(request):
     address = str(data.get("address") or "").strip()
     customer = None
 
+    cashier_name = (
+        getattr(request.user, "employee_profile", None).name
+        if getattr(request.user, "employee_profile", None)
+        else (request.user.get_full_name() or request.user.first_name or request.user.username)
+    )
+
     with transaction.atomic():
         if phone:
-            customer, _ = Customer.objects.get_or_create(tenant=tenant, phone=phone, defaults={"name": cust_name, "address": address})
-            if cust_name and customer.name != cust_name:
-                customer.name = cust_name
-            if address:
-                customer.address = address
-            customer.save()
+            customer = Customer.objects.filter(tenant=tenant, phone=phone).first()
+            if not customer:
+                try:
+                    customer = Customer.objects.create(
+                        tenant=tenant, phone=phone, name=cust_name, address=address
+                    )
+                except IntegrityError:
+                    customer = Customer.objects.filter(tenant=tenant, phone=phone).first()
+            if customer:
+                if cust_name and customer.name != cust_name:
+                    customer.name = cust_name
+                if address and customer.address != address:
+                    customer.address = address
+                customer.save()
 
         prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
-        last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
-        next_seq = (last_order.id + 1) if last_order else 1
-        candidate_num = f"{prefix}-{1000 + next_seq}"
-        while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
-            next_seq += 1
+        order = None
+        for attempt in range(5):
+            last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
+            next_seq = (last_order.id + 1 + attempt) if last_order else (1 + attempt)
             candidate_num = f"{prefix}-{1000 + next_seq}"
-        order_number = candidate_num
+            while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
+                next_seq += 1
+                candidate_num = f"{prefix}-{1000 + next_seq}"
+            order_number = candidate_num
 
-        order = Order.objects.create(
-            tenant=tenant,
-            order_number=order_number,
-            order_type=order_type,
-            channel=channel,
-            branch=branch,
-            delivery_area=delivery_area,
-            customer=customer,
-            customer_name=cust_name,
-            customer_phone=phone,
-            address=address,
-            status="new",
-            pay_method=data.get("payMethod", "cash"),
-            paid=True,
-            subtotal=subtotal,
-            delivery_fee=delivery_fee,
-            discount=discount,
-            total=total,
-            cashier=getattr(request.user, "employee_profile", None).name if getattr(request.user, "employee_profile", None) else (request.user.get_full_name() or request.user.first_name or request.user.username),
-            notes=str(data.get("notes") or ""),
-        )
+            try:
+                sid = transaction.savepoint()
+                order = Order.objects.create(
+                    tenant=tenant,
+                    order_number=order_number,
+                    order_type=order_type,
+                    channel=channel,
+                    branch=branch,
+                    delivery_area=delivery_area,
+                    customer=customer,
+                    customer_name=cust_name,
+                    customer_phone=phone,
+                    address=address,
+                    status="new",
+                    pay_method=data.get("payMethod", "cash"),
+                    paid=True,
+                    subtotal=subtotal,
+                    delivery_fee=delivery_fee,
+                    discount=discount,
+                    total=total,
+                    cashier=cashier_name,
+                    notes=str(data.get("notes") or ""),
+                )
+                transaction.savepoint_commit(sid)
+                break
+            except IntegrityError:
+                transaction.savepoint_rollback(sid)
+                continue
+
+        if not order:
+            return JsonResponse({"error": "حدث تضارب أثناء توليد رقم الطلب، يرجى إعادة المحاولة."}, status=409)
 
         for r in rows:
             OrderItem.objects.create(
@@ -2118,6 +2208,16 @@ def api_create_order(request):
                 price=r["price"],
                 qty=r["qty"],
             )
+
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="order_created",
+            target_model="Order",
+            target_id=order.id,
+            description=f"إنشاء الطلب #{order.order_number} ({order.get_order_type_display()}) بقيمة {order.total} ر.س بواسطة الكاشير: {cashier_name}",
+            ip_address=_get_client_ip(request),
+        )
 
     # Broadcast real-time SSE event to all active kitchen screens (0ms)
     notify_kitchen_order_event(order, "new_order")
@@ -2194,7 +2294,20 @@ def api_update_order(request, order_id):
                     action="order_reactivated",
                     target_model="Order",
                     target_id=order.id,
-                    description=f"إعادة تنشيط الطلب الملغي #{order.order_number} إلى حالة «{new_status}»",
+                    description=f"إعادة تنشيط الطلب الملغي #{order.order_number} إلى حالة «{dict(Order.STATUS_CHOICES).get(new_status, new_status)}»",
+                    ip_address=_get_client_ip(request),
+                )
+            elif old_status != new_status:
+                status_dict = dict(Order.STATUS_CHOICES)
+                old_lbl = status_dict.get(old_status, old_status)
+                new_lbl = status_dict.get(new_status, new_status)
+                log_audit_event(
+                    tenant=tenant,
+                    user=request.user,
+                    action="order_status_changed",
+                    target_model="Order",
+                    target_id=order.id,
+                    description=f"تحديث حالة الطلب #{order.order_number} من «{old_lbl}» إلى «{new_lbl}»",
                     ip_address=_get_client_ip(request),
                 )
 
@@ -2229,16 +2342,47 @@ def api_update_order(request, order_id):
                 )
                 if not can_cross and order.branch and driver_obj.branch and driver_obj.branch != order.branch:
                     return JsonResponse({"error": "لا يمكن إسناد سائق يتبع فرعاً آخر لهذا الطلب"}, status=403)
-            order.driver = driver_obj
+            if order.driver != driver_obj:
+                order.driver = driver_obj
+                log_audit_event(
+                    tenant=tenant,
+                    user=request.user,
+                    action="order_driver_assigned",
+                    target_model="Order",
+                    target_id=order.id,
+                    description=f"إسناد السائق «{driver_obj.name if driver_obj else drv_id}» للطلب #{order.order_number}",
+                    ip_address=_get_client_ip(request),
+                )
         else:
-            order.driver = None
+            if order.driver is not None:
+                order.driver = None
+                log_audit_event(
+                    tenant=tenant,
+                    user=request.user,
+                    action="order_driver_unassigned",
+                    target_model="Order",
+                    target_id=order.id,
+                    description=f"إلغاء إسناد السائق عن الطلب #{order.order_number}",
+                    ip_address=_get_client_ip(request),
+                )
 
     if "paid" in data and isinstance(data["paid"], bool):
         if not is_owner_or_super and not (user_has_perm(request.user, "pos_access") or user_has_perm(request.user, "edit_orders")):
             return JsonResponse({"error": "غير مصرح لك بتحديث حالة دفع الفاتورة"}, status=403)
         if order.status == "cancelled" and data["paid"] is True:
             return JsonResponse({"error": "لا يمكن تأكيد دفع فاتورة تم إلغاؤها"}, status=400)
-        order.paid = data["paid"]
+        if order.paid != data["paid"]:
+            order.paid = data["paid"]
+            paid_str = "تم الدفع بالكامل" if order.paid else "معلق / غير مدفوع"
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="order_payment_updated",
+                target_model="Order",
+                target_id=order.id,
+                description=f"تحديث حالة سداد الطلب #{order.order_number} إلى «{paid_str}»",
+                ip_address=_get_client_ip(request),
+            )
 
     order.save()
 
@@ -2861,18 +3005,20 @@ def api_create_employee(request):
     if not is_owner_or_super and profile and profile.branch and branch != profile.branch:
         return JsonResponse({"error": "غير مصرح لك بإضافة موظف في فرع آخر"}, status=403)
 
+    trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
     # Generate or validate employee code
-    code = str(data.get("employeeCode") or data.get("employee_code") or "").strip()
+    code = str(data.get("employeeCode") or data.get("employee_code") or "").translate(trans_table).strip()
     if not code:
         max_numeric = 100
         for ec in Employee.objects.filter(tenant=tenant).values_list("employee_code", flat=True):
-            if ec and ec.isdigit():
-                max_numeric = max(max_numeric, int(ec))
+            clean_ec = str(ec or "").translate(trans_table).strip()
+            if clean_ec and clean_ec.isdigit():
+                max_numeric = max(max_numeric, int(clean_ec))
         code = str(max_numeric + 1)
     elif Employee.objects.filter(tenant=tenant, employee_code=code).exists():
         return JsonResponse({"error": f"كود الموظف ({code}) مستخدم مسبقاً في هذا المطعم، يرجى اختيار كود آخر"}, status=400)
 
-    pin = str(data.get("pin") or data.get("pin_code") or "").strip()
+    pin = str(data.get("pin") or data.get("pin_code") or "").translate(trans_table).strip()
     if not pin:
         import secrets
         pin = str(secrets.randbelow(9000) + 1000)
@@ -3023,8 +3169,9 @@ def api_update_employee(request, emp_id):
             emp.user.first_name = emp.name
             emp.user.save()
 
+    trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
     if "phone" in data:
-        emp.phone = str(data["phone"]).strip()
+        emp.phone = str(data["phone"]).translate(trans_table).strip()
 
     if "jobRoleId" in data or "job_role_id" in data:
         if not is_owner_or_super and not (
@@ -3094,7 +3241,7 @@ def api_update_employee(request, emp_id):
             emp.user.profile.save()
 
     # Employee Code (ID) update - restricted to Superadmin and Owner
-    new_code = str(data.get("employeeCode") or data.get("employee_code") or "").strip()
+    new_code = str(data.get("employeeCode") or data.get("employee_code") or "").translate(trans_table).strip()
     if new_code and new_code != emp.employee_code:
         if not is_owner_or_super:
             return JsonResponse({"error": "تعديل كود الموظف مقتصر على المالك ومدير النظام فقط"}, status=403)
@@ -3103,7 +3250,7 @@ def api_update_employee(request, emp_id):
         emp.employee_code = new_code
 
     # PIN change / reset - requires hr_manage_credentials
-    new_pin = str(data.get("pin") or data.get("pin_code") or "").strip()
+    new_pin = str(data.get("pin") or data.get("pin_code") or "").translate(trans_table).strip()
     if new_pin:
         if not is_owner_or_super and not (
             user_has_perm(request.user, "hr_manage_credentials") or
@@ -3845,8 +3992,13 @@ def api_update_tenant_subscription(request, tenant_id):
         plan = get_object_or_404(SubscriptionPlan, id=plan_id)
         tenant.subscription_plan = plan
 
+    if "is_active" in body:
+        tenant.is_active = bool(body["is_active"])
+
     if "status" in body and body["status"] in dict(Tenant.SUBSCRIPTION_STATUS_CHOICES):
         tenant.subscription_status = body["status"]
+        if tenant.subscription_status == "active":
+            tenant.is_active = True
 
     if "billing_cycle" in body and body["billing_cycle"] in dict(Tenant.BILLING_CYCLE_CHOICES):
         tenant.billing_cycle = body["billing_cycle"]
