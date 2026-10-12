@@ -4163,6 +4163,18 @@ def ai_callcenter_management_view(request):
     live_context_resp = ps.get_client_live_context(client_id)
     live_context_info = live_context_resp.get("context", {}) if live_context_resp.get("status") == "success" else {}
     live_context_data = live_context_info.get("data", {})
+    # Telephony numbers
+    telephony_resp = ps.get_telephony_numbers(client_id)
+    raw_nums = telephony_resp if isinstance(telephony_resp, list) else (telephony_resp.get("numbers") or [])
+    primary_did = ""
+    if raw_nums and len(raw_nums) > 0:
+        first_num = raw_nums[0]
+        if isinstance(first_num, dict):
+            primary_did = first_num.get("phone_number") or first_num.get("number") or first_num.get("did") or ""
+        elif isinstance(first_num, str):
+            primary_did = first_num
+    if not primary_did:
+        primary_did = "لا يوجد خط هاتف مخصص بعد"
     live_context_cached = live_context_resp.get("cached_in_redis", False)
 
     context = {
@@ -4186,7 +4198,8 @@ def ai_callcenter_management_view(request):
         "call_orders": call_orders,
         "total_ai_orders": total_ai_orders,
         "total_ai_revenue": total_ai_revenue,
-        "did_number": "+966 11 234 5678", # Assigned virtual number for demo
+        "did_number": primary_did,
+        "did_numbers": raw_nums,
         "mcp_servers": mcp_servers,
         "primary_mcp": primary_mcp,
         "mcp_tools": primary_mcp.get("cached_tools", []) if primary_mcp else [],
@@ -4265,13 +4278,14 @@ def api_ai_callcenter_create_profile(request):
 
     # Set smart default for off_topic_response based on dialect if omitted
     dialect = data.get("dialect", "egyptian")
+    rest_name = tenant.name.strip() if (tenant and getattr(tenant, "name", None)) else "المطعم"
     if not data.get("off_topic_response"):
         defaults_by_dialect = {
-            "saudi": "أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو مطاعم كُـورَا فقط، تحب تطلب شيء من عروضنا اليوم؟",
-            "emirati": "السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو مطاعم كُـورَا فقط، حاب تطلب شي الحين؟",
-            "kuwaiti": "السموحة يا غالي، أنا مخصص لطلبات ومنيو مطاعم كُـورَا فقط، تبي تطلب شي من المنيو؟",
-            "modern_standard": "أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات مطاعم كُـورَا فقط، هل ترغب بطلب أي وجبة؟",
-            "egyptian": "بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات مطاعم كُـورَا فقط، تؤمر بأي صنف النهارده؟",
+            "saudi": f"أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو {rest_name} فقط، تحب تطلب شيء من عروضنا اليوم؟",
+            "emirati": f"السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو {rest_name} فقط، حاب تطلب شي الحين؟",
+            "kuwaiti": f"السموحة يا غالي، أنا مخصص لطلبات ومنيو {rest_name} فقط، تبي تطلب شي من المنيو؟",
+            "modern_standard": f"أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات {rest_name} فقط، هل ترغب بطلب أي وجبة؟",
+            "egyptian": f"بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات {rest_name} فقط، تؤمر بأي صنف النهارده؟",
         }
         data["off_topic_response"] = defaults_by_dialect.get(dialect, defaults_by_dialect["egyptian"])
 
@@ -4551,7 +4565,16 @@ def api_ai_callcenter_sync_mcp(request):
     servers_resp = ps.get_client_mcp_servers(client_id)
     servers = servers_resp.get("servers") or []
     if not servers:
-        return JsonResponse({"status": "error", "message": "لم يتم العثور على خادم FastMCP مسجل للمنشأة."}, status=404)
+        from core.models import TenantApiKey
+        api_key_obj = TenantApiKey.objects.filter(tenant=tenant, is_active=True).first()
+        if not api_key_obj:
+            api_key_obj = TenantApiKey.objects.create(tenant=tenant, name="مفتاح FastMCP الموحد للمساعد الصوتي")
+        access_key = api_key_obj.key if api_key_obj else ""
+        base_host = request.get_host().split(":")[0]
+        effective_domain = "uggu.space" if base_host in ("169.58.32.179", "127.0.0.1", "localhost") else base_host
+        mcp_sse_url = f"https://{effective_domain}/sse?access_key={access_key}"
+        create_resp = ps.create_client_mcp_server(client_id, server_url=mcp_sse_url, sync_now=True)
+        return JsonResponse(create_resp)
 
     mcp_id = servers[0]["id"]
     sync_resp = ps.sync_client_mcp_tools(client_id, mcp_id)
@@ -4586,7 +4609,8 @@ def api_ai_callcenter_update_mcp_url(request):
     servers_resp = ps.get_client_mcp_servers(client_id)
     servers = servers_resp.get("servers") or []
     if not servers:
-        return JsonResponse({"status": "error", "message": "لم يتم العثور على خادم FastMCP مسجل."}, status=404)
+        create_resp = ps.create_client_mcp_server(client_id, server_url=server_url, sync_now=True)
+        return JsonResponse(create_resp)
 
     mcp_id = servers[0]["id"]
     update_resp = ps.update_client_mcp_server(client_id, mcp_id, {"server_url": server_url})
@@ -4714,6 +4738,158 @@ def api_ai_callcenter_get_live_context(request):
         return JsonResponse(res)
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@login_required
+def api_ai_callcenter_dial_customer(request):
+    """Trigger an autonomous outbound AI call to a customer."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "لم يتم العثور على منشأة نشطة."}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        return JsonResponse({"status": "error", "message": "بيانات JSON غير صالحة"}, status=400)
+
+    phone = data.get("phone_number") or data.get("phone")
+    order_id = data.get("order_id")
+    customer_name = data.get("customer_name", "")
+    call_goal = data.get("call_goal", "")
+
+    if order_id and not phone:
+        order = Order.objects.filter(tenant=tenant, id=order_id).first()
+        if order:
+            phone = order.customer_phone
+            customer_name = customer_name or order.customer_name or ""
+            call_goal = call_goal or f"تأكيد الطلب رقم {order.order_number} بقيمة {order.total} ريال مع العميل"
+
+    if not phone:
+        return JsonResponse({"status": "error", "message": "رقم هاتف العميل مطلوب لإجراء المكالمة"}, status=400)
+
+    try:
+        res = ps.dial_outbound_call(
+            client_id=client_id,
+            phone_number=phone,
+            call_goal=call_goal or f"التواصل مع العميل بخصوص خدمات مطعم {tenant.name}",
+            customer_name=customer_name
+        )
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_status(request):
+    """Get WhatsApp connection status for this tenant's AI assistant."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    res = ps.get_whatsapp_status(client_id)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_connect(request):
+    """Fetch QR code to link tenant's WhatsApp."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    res = ps.get_whatsapp_qr(client_id)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_disconnect(request):
+    """Disconnect tenant's WhatsApp session."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    res = ps.disconnect_whatsapp(client_id)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_send(request):
+    """Send WhatsApp message or order receipt to customer."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        return JsonResponse({"status": "error", "message": "بيانات JSON غير صالحة"}, status=400)
+
+    phone = data.get("phone_number") or data.get("phone")
+    message = data.get("message") or ""
+    order_id = data.get("order_id")
+
+    if order_id and not message:
+        order = Order.objects.filter(tenant=tenant, id=order_id).first()
+        if order:
+            phone = phone or order.customer_phone
+            items_str = ", ".join(f"{it.item_name} x{it.quantity}" for it in order.items.all())
+            message = f"مرحباً بك من مطعم {tenant.name}!\nتم استلام طلبك رقم {order.order_number}:\n{items_str}\nالإجمالي: {order.total} ريال.\nشكراً لاختيارك لنا!"
+
+    if not phone or not message:
+        return JsonResponse({"status": "error", "message": "رقم الهاتف والرسالة مطلوبان"}, status=400)
+
+    res = ps.send_whatsapp_message(client_id, phone, message)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_telephony_info(request):
+    """Fetch assigned direct inward dialing numbers and PBX trunks."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    nums = ps.get_telephony_numbers(client_id)
+    trunks = ps.get_pbx_trunks(client_id)
+    return JsonResponse({"status": "success", "numbers": nums, "trunks": trunks})
+
 
 def set_language_view(request, lang_code):
     """

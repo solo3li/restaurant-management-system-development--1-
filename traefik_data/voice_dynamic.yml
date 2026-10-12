@@ -1,11 +1,20 @@
 http:
   routers:
     voice-django-router:
-      rule: "Host(`app.169.58.32.179.nip.io`) || Host(`169.58.32.179.nip.io`)"
+      rule: "Host(`app.169.58.32.179.nip.io`) || Host(`telephony.169.58.32.179.nip.io`) || Host(`169.58.32.179.nip.io`)"
       entryPoints:
         - "web"
         - "websecure"
       service: "voice-django-service"
+      tls:
+        certResolver: "myresolver"
+
+    voice-n8n-router:
+      rule: "Host(`n8n.169.58.32.179.nip.io`) || Host(`coworker.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+        - "websecure"
+      service: "voice-n8n-service"
       tls:
         certResolver: "myresolver"
 
@@ -45,16 +54,31 @@ http:
       tls:
         certResolver: "myresolver"
 
+
+    voice-flowise-router:
+      rule: "Host(`flowise.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+        - "websecure"
+      service: "voice-flowise-service"
+      tls:
+        certResolver: "myresolver"
+
   services:
     voice-django-service:
       loadBalancer:
         servers:
           - url: "http://voice_django:8000"
 
+    voice-n8n-service:
+      loadBalancer:
+        servers:
+          - url: "http://voice_n8n:5678"
+
     voice-livekit-service:
       loadBalancer:
         servers:
-          - url: "http://voice_livekit:7880"
+          - url: "http://169.58.32.179:7880"
 
     voice-centrifugo-service:
       loadBalancer:
@@ -70,3 +94,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://voice_minio:9000"
+
+    voice-flowise-service:
+      loadBalancer:
+        servers:
+          - url: "http://voice_flowise:3000"

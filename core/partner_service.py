@@ -1,3 +1,4 @@
+import os
 import urllib.request
 import urllib.parse
 import json
@@ -7,8 +8,8 @@ from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger(__name__)
 
-PARTNER_API_BASE_URL = "https://app.169.58.32.179.nip.io/api/partner/v1"
-PARTNER_API_KEY = "sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA"
+PARTNER_API_BASE_URL = os.getenv("PARTNER_API_BASE_URL", "https://app.169.58.32.179.nip.io/api/partner/v1").rstrip("/")
+PARTNER_API_KEY = os.getenv("PARTNER_API_KEY", "sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA")
 
 # SSL Context to allow local self-signed or wildcard certs
 _SSL_CONTEXT = ssl.create_default_context()
@@ -43,10 +44,22 @@ def _request(path: str, method: str = "GET", data: Optional[Dict[str, Any]] = No
 
 
 def get_client_id_for_tenant(tenant) -> int:
-    """Return mapped partner client_id for given restaurant tenant."""
-    if tenant and getattr(tenant, "voice_client_id", None):
+    """Return mapped partner client_id for given restaurant tenant, auto-registering if needed."""
+    if not tenant:
+        return 49
+    if getattr(tenant, "voice_client_id", None):
         return tenant.voice_client_id
-    return 49
+
+    # Dynamically auto-register tenant if not registered yet
+    try:
+        reg = ensure_tenant_registered(tenant)
+        cid = reg.get("client_id")
+        if cid:
+            return cid
+    except Exception as e:
+        logger.warning(f"Could not auto-register tenant {getattr(tenant, 'name', '')}: {e}")
+
+    return getattr(tenant, "voice_client_id", 49) or 49
 
 
 def register_sub_client(name: str, external_reference: str, email: str = "", password: str = "", spending_cap: float = 25.0, minute_cap: int = 300) -> Dict[str, Any]:
@@ -251,6 +264,18 @@ def get_client_mcp_servers(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/mcp/")
 
 
+def create_client_mcp_server(client_id: int, server_url: str, name: str = "خادم أدوات المطعم (FastMCP)", auth_token: str = "", is_active: bool = True, sync_now: bool = True) -> Dict[str, Any]:
+    """Register a new external FastMCP SSE tool server for this client."""
+    payload = {
+        "name": name,
+        "server_url": server_url,
+        "auth_token": auth_token,
+        "is_active": is_active,
+        "sync_now": sync_now
+    }
+    return _request(f"/clients/{client_id}/mcp/", method="POST", data=payload)
+
+
 def update_client_mcp_server(client_id: int, mcp_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
     """Update MCP server details (e.g., server_url, auth_token, is_active)."""
     return _request(f"/clients/{client_id}/mcp/{mcp_id}/", method="PATCH", data=data)
@@ -360,5 +385,62 @@ def sync_tenant_live_context(tenant, client_id: Optional[int] = None) -> Dict[st
     resp["zones_count"] = len(payload.get("delivery_zones", []))
     resp["out_of_stock_count"] = len(payload.get("out_of_stock", []))
     return resp
+
+
+# =========================================================================
+# Outbound AI Calling & Dialing API
+# =========================================================================
+
+def dial_outbound_call(client_id: int, phone_number: str, call_goal: str = "", customer_name: str = "") -> Dict[str, Any]:
+    """Trigger an autonomous outbound AI call to customer (e.g. order confirmation or feedback)."""
+    payload = {
+        "phone_number": str(phone_number).strip(),
+        "call_goal": str(call_goal).strip(),
+        "customer_name": str(customer_name).strip(),
+    }
+    return _request(f"/clients/{client_id}/calls/dial/", method="POST", data=payload)
+
+
+# =========================================================================
+# WhatsApp & Omnichannel Partner API
+# =========================================================================
+
+def get_whatsapp_status(client_id: int) -> Dict[str, Any]:
+    """Fetch live WhatsApp Baileys connection status for sub-client."""
+    return _request(f"/clients/{client_id}/whatsapp/status/")
+
+
+def get_whatsapp_qr(client_id: int) -> Dict[str, Any]:
+    """Fetch QR code for pairing restaurant WhatsApp instance."""
+    return _request(f"/clients/{client_id}/whatsapp/connect/", method="POST")
+
+
+def disconnect_whatsapp(client_id: int) -> Dict[str, Any]:
+    """Disconnect restaurant WhatsApp session."""
+    return _request(f"/clients/{client_id}/whatsapp/disconnect/", method="POST")
+
+
+def send_whatsapp_message(client_id: int, phone_number: str, message: str) -> Dict[str, Any]:
+    """Send WhatsApp message/invoice/tracking link to customer."""
+    payload = {
+        "phone_number": str(phone_number).strip(),
+        "message": str(message).strip(),
+    }
+    return _request(f"/clients/{client_id}/whatsapp/send/", method="POST", data=payload)
+
+
+# =========================================================================
+# Telephony DID Numbers & PBX Trunks API
+# =========================================================================
+
+def get_telephony_numbers(client_id: int) -> Dict[str, Any]:
+    """Fetch assigned direct inward dialing (DID) numbers for sub-client."""
+    return _request(f"/clients/{client_id}/telephony/numbers/")
+
+
+def get_pbx_trunks(client_id: int) -> Dict[str, Any]:
+    """Fetch SIP trunks and PBX routing configurations for sub-client."""
+    return _request(f"/clients/{client_id}/telephony/pbx-trunks/")
+
 
 
