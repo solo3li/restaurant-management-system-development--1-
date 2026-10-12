@@ -28,16 +28,22 @@ def _request(path: str, method: str = "GET", data: Optional[Dict[str, Any]] = No
 
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=10.0, context=_SSL_CONTEXT) as response:
+        with urllib.request.urlopen(req, timeout=30.0, context=_SSL_CONTEXT) as response:
             resp_body = response.read().decode("utf-8")
             return json.loads(resp_body)
     except urllib.error.HTTPError as e:
         error_msg = e.read().decode("utf-8", errors="ignore")
         logger.error(f"Partner API HTTPError [{e.code}] on {method} {path}: {error_msg}")
         try:
-            return json.loads(error_msg)
+            parsed = json.loads(error_msg)
+            if isinstance(parsed, dict):
+                return parsed
         except Exception:
-            return {"status": "error", "code": e.code, "message": error_msg}
+            pass
+        clean_msg = "حدث خطأ أثناء معالجة الطلب في خادم الاتصالات."
+        if e.code in (400, 409):
+            clean_msg = "رقم التحويلة مسجل بالفعل لهذا المطعم أو أن البيانات غير صحيحة."
+        return {"status": "error", "code": e.code, "message": clean_msg}
     except Exception as ex:
         logger.error(f"Partner API Request Exception on {method} {path}: {ex}", exc_info=True)
         return {"status": "error", "message": str(ex)}
@@ -219,7 +225,13 @@ def add_employee(client_id: int, display_name: str, extension: str, department: 
         payload["username"] = username.strip()
     if password:
         payload["password"] = password.strip()
-    return _request(f"/clients/{client_id}/employees/", method="POST", data=payload)
+    resp = _request(f"/clients/{client_id}/employees/", method="POST", data=payload)
+    emp = resp.get("employee")
+    if emp and isinstance(emp, dict):
+        port = emp.get("sip_port") or 5070
+        emp["sip_server_display"] = f"uggu.space:{port}"
+        emp["sip_domain"] = "uggu.space"
+    return resp
 
 
 def delete_employee(client_id: int, employee_id: int) -> Dict[str, Any]:

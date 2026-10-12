@@ -4451,7 +4451,13 @@ def api_ai_callcenter_add_employee(request):
         return JsonResponse({"status": "error", "message": "اسم الموظف والتحويلة مطلوبان"}, status=400)
 
     resp = ps.add_employee(client_id, display_name=name, extension=ext, department=dept, status=status, username=username, password=password)
-    return JsonResponse(resp)
+    status_code = 200
+    if resp.get("status") == "error":
+        code_val = resp.get("code")
+        status_code = code_val if isinstance(code_val, int) and 400 <= code_val <= 599 else 400
+        if not resp.get("message"):
+            resp["message"] = "تعذر إضافة الموظف. يرجى التأكد من عدم تكرار رقم التحويلة."
+    return JsonResponse(resp, status=status_code)
 
 
 @login_required

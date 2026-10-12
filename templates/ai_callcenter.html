@@ -1798,7 +1798,7 @@
 
             <div class="pt-3 border-t border-line flex items-center justify-end gap-2">
                 <button type="button" onclick="closeAddEmpModal()" class="px-4 py-2 rounded-xl border border-line bg-paper text-ink text-xs font-bold">إلغاء</button>
-                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black">إضافة الموظف وتوليد الحساب</button>
+                <button type="submit" id="btn-add-emp-submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5">إضافة الموظف وتوليد الحساب</button>
             </div>
         </form>
     </div>
@@ -2798,12 +2798,34 @@ async function deleteDoc(docId) {
 
 async function submitAddEmp(e) {
     e.preventDefault();
+    const btn = document.getElementById('btn-add-emp-submit') || e.target.querySelector('button[type="submit"]');
+    if (btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.dataset.origText = btn.innerHTML;
+        btn.innerHTML = `<span class="animate-spin inline-block ml-1">⏳</span> جاري إضافة الموظف...`;
+    }
+
     const display_name = document.getElementById('emp_name').value.trim();
     const username = document.getElementById('emp_username').value.trim();
     const password = document.getElementById('emp_password').value.trim();
     const extension = document.getElementById('emp_ext').value.trim();
     const department = document.getElementById('emp_dept').value;
     const status = document.getElementById('emp_status').value;
+
+    if (!display_name || !extension) {
+        showNotification('اسم الموظف ورقم التحويلة مطلوبان', true);
+        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.origText; }
+        return;
+    }
+
+    // Client-side quick check: prevent duplicate extension from current table
+    const existingExts = Array.from(document.querySelectorAll('#emps-tbody tr td:nth-child(3)')).map(td => td.textContent.replace(/[^0-9]/g, ''));
+    if (existingExts.includes(extension)) {
+        showNotification(`رقم التحويلة #${extension} مسجل بالفعل لدى موظف آخر في المطعم. يرجى اختيار رقم تحويلة آخر.`, true);
+        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.origText; }
+        return;
+    }
 
     try {
         const res = await fetch("{% url 'api_ai_callcenter_add_employee' %}", {
@@ -2817,6 +2839,12 @@ async function submitAddEmp(e) {
         const data = await res.json();
         if (data.status === 'success') {
             closeAddEmpModal();
+            // Clear inputs
+            document.getElementById('emp_name').value = '';
+            document.getElementById('emp_username').value = '';
+            document.getElementById('emp_password').value = '';
+            document.getElementById('emp_ext').value = '';
+
             showNotification('تم إنشاء حساب الموظف بنجاح');
             
             // Populate credentials modal for newly created employee
@@ -2839,10 +2867,15 @@ async function submitAddEmp(e) {
             passwordVisible = true;
             document.getElementById('credentials-modal').classList.remove('hidden');
         } else {
-            showNotification(data.message || 'حدث خطأ أثناء إضافة الموظف', true);
+            showNotification(data.message || 'حدث خطأ أثناء إضافة الموظف. يرجى التأكد من عدم تكرار رقم التحويلة.', true);
         }
     } catch (err) {
-        showNotification('تعذر الاتصال بالسيرفر', true);
+        showNotification('تعذر الاتصال بالسيرفر أثناء إضافة الموظف', true);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.origText || 'إضافة الموظف وتوليد الحساب';
+        }
     }
 }
 
