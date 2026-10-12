@@ -4470,6 +4470,44 @@ def api_ai_callcenter_delete_employee(request, emp_id):
 
 
 @login_required
+def api_ai_callcenter_get_employee_credentials(request, emp_id):
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    resp = ps.get_employee(client_id, emp_id)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_reset_employee_password(request, emp_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    custom_password = None
+    if request.body:
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+            custom_password = data.get("password")
+        except Exception:
+            pass
+
+    resp = ps.reset_employee_password(client_id, emp_id, password=custom_password)
+    return JsonResponse(resp)
+
+
+@login_required
 def api_ai_callcenter_save_queue(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")

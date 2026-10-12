@@ -198,7 +198,14 @@ def delete_document(client_id: int, doc_id: int) -> Dict[str, Any]:
 
 
 def get_employees(client_id: int) -> Dict[str, Any]:
-    return _request(f"/clients/{client_id}/employees/")
+    resp = _request(f"/clients/{client_id}/employees/")
+    emps = resp.get("employees")
+    if isinstance(emps, list):
+        for emp in emps:
+            port = emp.get("sip_port") or 5070
+            emp["sip_server_display"] = f"uggu.space:{port}"
+            emp["sip_domain"] = "uggu.space"
+    return resp
 
 
 def add_employee(client_id: int, display_name: str, extension: str, department: str = "خدمة العملاء", status: str = "ready", username: str = "", password: str = "") -> Dict[str, Any]:
@@ -217,6 +224,34 @@ def add_employee(client_id: int, display_name: str, extension: str, department: 
 
 def delete_employee(client_id: int, employee_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/employees/{employee_id}/", method="DELETE")
+
+
+def get_employee(client_id: int, employee_id: int) -> Dict[str, Any]:
+    """Retrieve full details of an employee including SIP credentials and queue memberships."""
+    resp = _request(f"/clients/{client_id}/employees/{employee_id}/")
+    emp = resp.get("employee")
+    if emp and isinstance(emp, dict):
+        # White-label SIP server to domain with port
+        port = emp.get("sip_port") or 5070
+        emp["sip_server_display"] = f"uggu.space:{port}"
+        emp["sip_domain"] = "uggu.space"
+    return resp
+
+
+def update_employee(client_id: int, employee_id: int, **fields) -> Dict[str, Any]:
+    """Update employee details or reset password."""
+    return _request(f"/clients/{client_id}/employees/{employee_id}/", method="PATCH", data=fields)
+
+
+def reset_employee_password(client_id: int, employee_id: int, password: Optional[str] = None) -> Dict[str, Any]:
+    """Generate and set a new SIP password for an employee."""
+    import secrets
+    new_password = password.strip() if password else f"Pass_{secrets.token_hex(4)}"
+    resp = update_employee(client_id, employee_id, password=new_password)
+    if resp.get("status") == "success" and "employee" in resp:
+        resp["employee"]["temporary_password"] = new_password
+        resp["temporary_password"] = new_password
+    return resp
 
 
 def get_queues(client_id: int) -> Dict[str, Any]:
