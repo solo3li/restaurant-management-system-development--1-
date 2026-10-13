@@ -5,13 +5,7 @@
 {% block content %}
 <div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
 
-    <!-- 1. Luxury Banner -->
-    {% include "ai_callcenter/_header.html" with page_title="نظرة عامة وإحصائيات الكول سنتر" page_subtitle="لوحة القيادة الموحدة لمراقبة خطوط الهاتف، استهلاك الباقة الصوتية، الطلبات المنفذة آلياً، وأداء المساعد الصوتي." page_icon="📊" %}
-
-    <!-- 2. Subpages Navigation -->
-    {% include "ai_callcenter/_nav_subpages.html" with active_subpage="overview" %}
-
-    <!-- 3. KPI Summary Cards (4 Luxury Metric Cards) -->
+    <!-- 1. KPI Summary Cards (4 Luxury Metric Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Direct Phone Number Card -->
         <div class="card p-5 border-t-4 border-t-[#D2AB6B] hover:shadow-md transition relative group">

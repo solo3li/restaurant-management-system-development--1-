@@ -5,11 +5,6 @@
 {% block content %}
 <div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
 
-    <!-- 1. Luxury Banner -->
-    {% include "ai_callcenter/_header.html" with page_title="سجل كافة المكالمات الهاتفية والتسجيلات" page_subtitle="متابعة فورية لاتصالات العملاء الواردة، الاستماع للتسجيلات الصوتية، استعراض التفريغ والملخص الذكي، وتتبع الطلبات المنفذة." page_icon="📞" %}
-
-    <!-- 2. Subpages Navigation -->
-    {% include "ai_callcenter/_nav_subpages.html" with active_subpage="calls" %}
 
     <!-- KPI Stats Cards for Calls -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">

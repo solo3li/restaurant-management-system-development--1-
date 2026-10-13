@@ -5,11 +5,6 @@
 {% block content %}
 <div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
 
-    <!-- 1. Luxury Banner -->
-    {% include "ai_callcenter/_header.html" with page_title="جدول مواعيد العمل والاعتذار" page_subtitle="تحديد أيام وساعات استقبال اتصالات العملاء والرد اللبق التلقائي خارج أوقات الدوام لإنهاء المكالمة دون استنزاف رصيد الدقائق." page_icon="🕒" %}
-
-    <!-- 2. Subpages Navigation -->
-    {% include "ai_callcenter/_nav_subpages.html" with active_subpage="hours" %}
 
     <form id="hours-form" onsubmit="saveHours(event)" class="card p-6 sm:p-7 border-line space-y-6 shadow-xs">
         {% csrf_token %}
