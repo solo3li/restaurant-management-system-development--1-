@@ -289,11 +289,11 @@
                                 {% if item.has_variants %}
                                     <span class="text-[10px] text-stone-400 font-bold block leading-none">{% if CURRENT_LANG == 'en' %}Price:{% else %}السعر:{% endif %}</span>
                                     <span id="price-display-{{ item.id }}" class="text-sm font-black text-brand-600" dir="ltr">
-                                        {{ item.min_price|floatformat:2 }} <span class="text-[10px] font-bold">{% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
+                                        {{ item.min_price|floatformat:2 }} <span class="text-[10px] font-bold">{{ branch_currency_symbol }}</span>
                                     </span>
                                 {% else %}
                                     <span class="text-sm font-black text-brand-600" dir="ltr">
-                                        {{ item.price|floatformat:2 }} <span class="text-[10px] font-bold">{% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
+                                        {{ item.price|floatformat:2 }} <span class="text-[10px] font-bold">{{ branch_currency_symbol }}</span>
                                     </span>
                                 {% endif %}
                             </div>
@@ -338,7 +338,7 @@
                 </div>
                 <div class="flex items-center gap-1.5 text-sm font-black" dir="ltr">
                     <span id="cart-total-display">0.00</span>
-                    <span class="text-xs text-gold-400">{% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
+                    <span class="text-xs text-gold-400">{{ branch_currency_symbol }}</span>
                     <span class="text-xs font-normal ms-1">{% if CURRENT_LANG == 'en' %}→{% else %}←{% endif %}</span>
                 </div>
             </button>
@@ -389,7 +389,7 @@
                                 <option value="">{% if CURRENT_LANG == 'en' %}— Select your area or district —{% else %}— اختر منطقتك أو الكومبوند —{% endif %}</option>
                                 {% for a in delivery_areas %}
                                     <option value="{{ a.id }}" data-fee="{{ a.fee }}">
-                                        {{ a.name }} ({% if CURRENT_LANG == 'en' %}Fee: {{ a.fee }} SAR • {{ a.estimated_time }}{% else %}رسوم: {{ a.fee }} ر.س • {{ a.estimated_time }}{% endif %})
+                                        {{ a.name }} ({% if CURRENT_LANG == 'en' %}Fee: {{ a.fee }} {{ branch_currency_symbol }} • {{ a.estimated_time }}{% else %}رسوم: {{ a.fee }} {{ branch_currency_symbol }} • {{ a.estimated_time }}{% endif %})
                                     </option>
                                 {% endfor %}
                             </select>
@@ -417,11 +417,11 @@
                 <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-1.5 text-xs">
                     <div class="flex justify-between text-stone-600">
                         <span>{% if CURRENT_LANG == 'en' %}Subtotal:{% else %}المجموع الفرعي:{% endif %}</span>
-                        <span id="summary-subtotal" class="font-bold">0.00 {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
+                        <span id="summary-subtotal" class="font-bold">0.00 {{ branch_currency_symbol }}</span>
                     </div>
                     <div id="summary-delivery-row" class="flex justify-between text-stone-600 hidden">
                         <span>{% if CURRENT_LANG == 'en' %}Delivery Fee:{% else %}رسوم التوصيل:{% endif %}</span>
-                        <span id="summary-delivery-fee" class="font-bold">0.00 {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
+                        <span id="summary-delivery-fee" class="font-bold">0.00 {{ branch_currency_symbol }}</span>
                     </div>
                     <div class="flex justify-between text-stone-500 text-[10px]">
                         <span>{% if CURRENT_LANG == 'en' %}Value Added Tax (15%):{% else %}ضريبة القيمة المضافة (15%):{% endif %}</span>
@@ -429,7 +429,7 @@
                     </div>
                     <div class="pt-1.5 border-t border-stone-200 flex justify-between text-stone-900 font-black text-sm">
                         <span>{% if CURRENT_LANG == 'en' %}Grand Total:{% else %}المجموع الإجمالي:{% endif %}</span>
-                        <span id="summary-total" class="text-brand-600">0.00 {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
+                        <span id="summary-total" class="text-brand-600">0.00 {{ branch_currency_symbol }}</span>
                     </div>
                 </div>
 
@@ -437,7 +437,7 @@
                 <div id="min-delivery-alert" class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold hidden flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span>🛵</span>
-                        <span id="min-delivery-text">{% if CURRENT_LANG == 'en' %}Minimum delivery order: {{ min_delivery_order }} SAR{% else %}الحد الأدنى لطلب التوصيل: {{ min_delivery_order }} ر.س{% endif %}</span>
+                        <span id="min-delivery-text">{% if CURRENT_LANG == 'en' %}Minimum delivery order: {{ min_delivery_order }} {{ branch_currency_symbol }}{% else %}الحد الأدنى لطلب التوصيل: {{ min_delivery_order }} {{ branch_currency_symbol }}{% endif %}</span>
                     </div>
                 </div>
             </div>
@@ -468,7 +468,7 @@
                 <span id="success-order-number" class="text-xl font-black font-mono text-brand-600 tracking-wider">QR-0000</span>
                 <span id="success-order-type" class="text-xs font-bold text-stone-700 block">{% if CURRENT_LANG == 'en' %}Takeaway Pickup{% else %}استلام سفري{% endif %}</span>
                 <div class="text-xs font-black text-stone-900 pt-1 border-t border-stone-200">
-                    {% if CURRENT_LANG == 'en' %}Total:{% else %}الإجمالي:{% endif %} <span id="success-order-total" class="text-emerald-700">0.00</span> {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}
+                    {% if CURRENT_LANG == 'en' %}Total:{% else %}الإجمالي:{% endif %} <span id="success-order-total" class="text-emerald-700">0.00</span> {{ branch_currency_symbol }}
                 </div>
             </div>
 

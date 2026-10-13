@@ -66,7 +66,7 @@
                     </span>
                     <p class="truncate text-xs font-black text-ink group-hover:text-brand-700 transition">{{ m.name }}</p>
                     <div class="mt-1 flex items-center justify-between">
-                        <span class="text-xs font-black text-brand-700">{{ m.price|floatformat:0 }} ر.س</span>
+                        <span class="text-xs font-black text-brand-700">{{ m.price|floatformat:0 }} {{ branch_currency_symbol }}</span>
                         <span class="text-[10px] font-bold text-soft">{{ m.category }}</span>
                     </div>
                     {% if not m.available %}
@@ -157,7 +157,7 @@
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="cashier-name" placeholder="اسم الكاشير" value="{{ user.username }}" class="input text-xs">
                         {% if perms.core.pos_apply_discount or "pos_apply_discount" in user_perms %}
-                        <input type="number" id="order-discount" placeholder="خصم (ر.س)" min="0" step="1" oninput="updateTotals()" class="input text-xs">
+                        <input type="number" id="order-discount" placeholder="خصم ({{ branch_currency_symbol }})" min="0" step="1" oninput="updateTotals()" class="input text-xs">
                         {% else %}
                         <div class="flex items-center justify-between text-xs text-muted px-2.5 border border-line rounded-lg bg-surface/60" title="غير مصرح لك بتطبيق خصومات على الفاتورة">
                             <span class="text-2xs font-semibold text-soft flex items-center gap-1">🔒 الخصم مقفل</span>
@@ -170,19 +170,19 @@
                     <div class="rounded-xl bg-paper p-3 text-xs space-y-1.5 border border-line">
                         <div class="flex justify-between text-soft">
                             <span>المجموع الفرعي</span>
-                            <span id="sum-subtotal" class="font-bold">0.00 ر.س</span>
+                            <span id="sum-subtotal" class="font-bold">0.00 {{ branch_currency_symbol }}</span>
                         </div>
                         <div id="row-delivery-fee" class="hidden flex justify-between text-soft">
                             <span>رسوم التوصيل</span>
-                            <span class="font-bold">8.00 ر.س</span>
+                            <span class="font-bold">8.00 {{ branch_currency_symbol }}</span>
                         </div>
                         <div id="row-discount" class="hidden flex justify-between text-good-700">
                             <span>الخصم</span>
-                            <span id="sum-discount" class="font-bold">- 0.00 ر.س</span>
+                            <span id="sum-discount" class="font-bold">- 0.00 {{ branch_currency_symbol }}</span>
                         </div>
                         <div class="flex justify-between border-t border-line pt-2 text-sm font-bold text-ink">
                             <span>الإجمالي المستحق</span>
-                            <span id="sum-total" class="text-base text-brand-700 font-black">0.00 ر.س</span>
+                            <span id="sum-total" class="text-base text-brand-700 font-black">0.00 {{ branch_currency_symbol }}</span>
                         </div>
                     </div>
 
@@ -210,7 +210,7 @@
             </span>
             <div>
                 <p class="text-[11px] text-[#E6C898] font-bold">الفاتورة الحالية</p>
-                <p id="mobile-cart-total" class="text-sm font-black text-white">0.00 ر.س</p>
+                <p id="mobile-cart-total" class="text-sm font-black text-white">0.00 {{ branch_currency_symbol }}</p>
             </div>
         </div>
         <button type="button" onclick="scrollToCart()" class="btn-gold-pill px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-md">
@@ -257,7 +257,7 @@
                     </span>
                     <div>
                         <p class="text-xs font-bold text-ink">{{ m.name }}</p>
-                        <p class="text-[10px] text-soft">{{ m.category }} • {{ m.price }} ر.س</p>
+                        <p class="text-[10px] text-soft">{{ m.category }} • {{ m.price }} {{ branch_currency_symbol }}</p>
                     </div>
                 </div>
                 <button 
@@ -306,11 +306,11 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">سعر البيع (ر.س)</label>
+                    <label class="mb-1 block font-bold text-soft">سعر البيع ({{ branch_currency_symbol }})</label>
                     <input type="number" id="new-item-price" placeholder="45" class="input text-xs">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">التكلفة (ر.س)</label>
+                    <label class="mb-1 block font-bold text-soft">التكلفة ({{ branch_currency_symbol }})</label>
                     <input type="number" id="new-item-cost" placeholder="18" class="input text-xs">
                 </div>
             </div>
@@ -326,6 +326,7 @@
 
 {% block extra_scripts %}
 <script>
+    const CURRENCY_SYMBOL = "{{ branch_currency_symbol|default:'ر.س'|escapejs }}";
     let cart = {};
     let selectedOrderType = 'dine_in';
     let currentCategory = 'الكل';
@@ -451,14 +452,14 @@
                 <div class="flex items-center justify-between py-2 text-xs">
                     <div class="min-w-0 flex-1">
                         <p class="font-bold text-ink truncate">${item.name}</p>
-                        <p class="text-[11px] text-soft">${item.price} ر.س × ${item.qty}</p>
+                        <p class="text-[11px] text-soft">${item.price} ${CURRENCY_SYMBOL} × ${item.qty}</p>
                     </div>
                     <div class="flex items-center gap-1 mx-2 border border-line rounded-lg p-0.5 bg-paper/50">
                         <button onclick="updateCartQty(${item.id}, 1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-brand-100 font-black text-brand-700">+</button>
                         <span class="w-5 text-center font-bold">${item.qty}</span>
                         <button onclick="updateCartQty(${item.id}, -1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-bad-100 font-black text-bad-700">-</button>
                     </div>
-                    <span class="font-extrabold text-brand-700 w-16 text-left">${(item.price * item.qty).toFixed(2)} ر.س</span>
+                    <span class="font-extrabold text-brand-700 w-16 text-left">${(item.price * item.qty).toFixed(2)} ${CURRENCY_SYMBOL}</span>
                 </div>
             `;
         });
@@ -491,24 +492,24 @@
         const discount = Math.min(Math.max(discountInput, 0), subtotal);
         const total = Math.max(0, subtotal + fee - discount);
 
-        document.getElementById('sum-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
-        document.getElementById('sum-total').textContent = `${total.toFixed(2)} ر.س`;
+        document.getElementById('sum-subtotal').textContent = `${subtotal.toFixed(2)} ${CURRENCY_SYMBOL}`;
+        document.getElementById('sum-total').textContent = `${total.toFixed(2)} ${CURRENCY_SYMBOL}`;
 
         const mobileTotal = document.getElementById('mobile-cart-total');
         if (mobileTotal) {
-            mobileTotal.textContent = `${total.toFixed(2)} ر.س`;
+            mobileTotal.textContent = `${total.toFixed(2)} ${CURRENCY_SYMBOL}`;
         }
 
         const discRow = document.getElementById('row-discount');
         if (discount > 0) {
             discRow.classList.remove('hidden');
-            document.getElementById('sum-discount').textContent = `- ${discount.toFixed(2)} ر.س`;
+            document.getElementById('sum-discount').textContent = `- ${discount.toFixed(2)} ${CURRENCY_SYMBOL}`;
         } else {
             discRow.classList.add('hidden');
         }
 
         const submitBtn = document.getElementById('submit-order-btn');
-        submitBtn.textContent = `تحصيل ${total.toFixed(2)} ر.س`;
+        submitBtn.textContent = `تحصيل ${total.toFixed(2)} ${CURRENCY_SYMBOL}`;
     }
 
     async function submitOrder() {

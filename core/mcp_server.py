@@ -920,7 +920,7 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, qu
             "id": m.id,
             "name": m.name,
             "category": m.category,
-            "price": float(m.price),
+            "price": float(m.get_price_for_branch(branch)),
             "currency": branch.currency,
             "currency_name": cur_name,
             "currency_symbol": cur_sym,
@@ -1266,12 +1266,13 @@ def preview_order(
         if qty <= 0:
             continue
 
-        line_total = menu_item.price * qty
+        item_price = menu_item.get_price_for_branch(branch)
+        line_total = item_price * qty
         subtotal += line_total
         prepared_items.append({
             "name": menu_item.name,
             "quantity": qty,
-            "unit_price": float(menu_item.price),
+            "unit_price": float(item_price),
             "line_total": float(line_total),
         })
 
@@ -1528,13 +1529,14 @@ def create_callcenter_order(
         if qty <= 0:
             continue
 
-        line_total = menu_item.price * qty
+        item_price = menu_item.get_price_for_branch(branch)
+        line_total = item_price * qty
         subtotal += line_total
 
         order_items_prepared.append({
             "menu_item": menu_item,
             "quantity": qty,
-            "price": menu_item.price,
+            "price": item_price,
             "total": line_total,
             "notes": item_notes,
         })

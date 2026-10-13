@@ -987,6 +987,23 @@ class MenuItem(models.Model):
             return self.variants.order_by("price").first().price
         return self.price
 
+    def get_price_for_branch(self, branch):
+        if not branch:
+            return self.price
+        b_avail = self.branch_availabilities.filter(branch=branch).first()
+        if b_avail and b_avail.custom_price is not None:
+            return b_avail.custom_price
+        return self.price
+
+    def get_min_price_for_branch(self, branch):
+        if not branch or not self.has_variants:
+            return self.get_price_for_branch(branch)
+        variants = list(self.variants.all())
+        if not variants:
+            return self.get_price_for_branch(branch)
+        prices = [v.get_price_for_branch(branch) for v in variants]
+        return min(prices) if prices else self.get_price_for_branch(branch)
+
 
 class MenuItemVariant(models.Model):
     menu_item = models.ForeignKey(
@@ -1008,12 +1025,20 @@ class MenuItemVariant(models.Model):
         ordering = ["ordering", "id"]
 
     def __str__(self):
-        return f"{self.menu_item.name} - {self.name} ({self.price} ر.س)"
+        return f"{self.menu_item.name} - {self.name} ({self.price} {self.menu_item.tenant.get_currency_symbol_ar() if self.menu_item and self.menu_item.tenant else 'ر.س'})"
 
     def get_display_name(self, lang="ar"):
         if lang == "en" and self.name_en:
             return self.name_en
         return self.name
+
+    def get_price_for_branch(self, branch):
+        if not branch:
+            return self.price
+        b_vp = self.branch_prices.filter(branch=branch).first()
+        if b_vp and b_vp.custom_price is not None:
+            return b_vp.custom_price
+        return self.price
 
 
 class InventoryItem(models.Model):
@@ -1283,15 +1308,33 @@ class BranchMenuAvailability(models.Model):
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="branch_menus", verbose_name="الفرع")
     menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE, related_name="branch_availabilities", verbose_name="صنف المنيو")
     is_available = models.BooleanField(default=True, verbose_name="متوفر في هذا الفرع")
+    custom_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name="سعر مخصص للفرع")
 
     class Meta:
-        verbose_name = "توفر الصنف بالفرع"
-        verbose_name_plural = "توفر الأصناف بالفروع"
+        verbose_name = "توفر وتسعير الصنف بالفرع"
+        verbose_name_plural = "توفر وتسعير الأصناف بالفروع"
         unique_together = ("branch", "menu_item")
 
     def __str__(self):
         status = "متوفر" if self.is_available else "غير متوفر"
-        return f"{self.menu_item.name} ({self.branch.name}) - {status}"
+        price_str = f" ({self.custom_price})" if self.custom_price is not None else ""
+        return f"{self.menu_item.name} ({self.branch.name}) - {status}{price_str}"
+
+
+class BranchVariantPrice(models.Model):
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="branch_variant_prices", verbose_name="الفرع")
+    variant = models.ForeignKey(MenuItemVariant, on_delete=models.CASCADE, related_name="branch_prices", verbose_name="حجم الصنف")
+    custom_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name="سعر الحجم المخصص للفرع")
+    is_available = models.BooleanField(default=True, verbose_name="متوفر في هذا الفرع")
+
+    class Meta:
+        verbose_name = "سعر حجم الصنف بالفرع"
+        verbose_name_plural = "أسعار أحجام الأصناف بالفروع"
+        unique_together = ("branch", "variant")
+
+    def __str__(self):
+        price_str = f"{self.custom_price}" if self.custom_price is not None else "افتراضي"
+        return f"{self.variant.menu_item.name} - {self.variant.name} ({self.branch.name}) - {price_str}"
 
 
 class UpgradeRequest(models.Model):

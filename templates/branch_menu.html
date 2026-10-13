@@ -168,12 +168,24 @@
                 {% endif %}
 
                 <div class="flex items-center justify-between text-xs py-2 my-1.5 border-y border-line/60">
-                    <span class="text-soft font-bold">{% if row.item.has_variants %}يبدأ من:{% else %}سعر البيع:{% endif %}</span>
-                    <span class="font-extrabold text-ink font-body text-sm">{{ row.item.min_price }} <span class="text-[10px] font-bold text-soft">ر.س</span></span>
+                    <div class="flex flex-col">
+                        <span class="text-soft font-bold">{% if row.item.has_variants %}يبدأ من:{% else %}سعر البيع:{% endif %}</span>
+                        {% if row.custom_price %}
+                        <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
+                            سعر مخصص للفرع
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-left">
+                        <span class="font-extrabold text-ink font-body text-sm">{{ row.effective_min_price }} <span class="text-[10px] font-bold text-soft">{{ branch_currency_symbol }}</span></span>
+                        {% if row.custom_price %}
+                        <span class="block text-[10px] text-soft line-through">{{ row.item.min_price }} {{ tenant.get_currency_symbol_ar|default:"ر.س" }}</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
-            <!-- Action Buttons: Toggle, Edit, Delete -->
+            <!-- Action Buttons: Toggle, Branch Price, All Branches, Edit, Delete -->
             <div class="mt-2 pt-1 space-y-1.5">
                 <button 
                     type="button" 
@@ -190,15 +202,36 @@
                     {% endif %}
                 </button>
 
-                {% if can_manage_menu %}
                 <div class="flex items-center gap-1.5">
+                    {% if branch %}
+                    <button 
+                        type="button" 
+                        onclick="openBranchPriceModal({{ row.item.id }}, '{{ row.item.name|escapejs }}', {{ row.custom_price|default:'null' }}, {{ row.item.price }})" 
+                        class="flex-1 rounded-xl py-1.5 px-2 text-xs font-bold bg-[#0E382A]/5 border border-[#D2AB6B]/50 text-[#0E382A] hover:bg-[#0E382A]/10 transition flex items-center justify-center gap-1 shadow-2xs"
+                        title="تخصيص سعر الصنف لهذا الفرع"
+                    >
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>تسعير الفرع</span>
+                    </button>
+                    {% endif %}
+                    <button 
+                        type="button" 
+                        onclick="openItemAllBranchesPriceModal({{ row.item.id }})" 
+                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 transition flex items-center justify-center gap-1 shadow-2xs"
+                        title="تخصيص أسعار كافة الفروع"
+                    >
+                        <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <span>كل الفروع</span>
+                    </button>
+
+                    {% if can_manage_menu %}
                     <button 
                         type="button" 
                         onclick="openEditItemModal({{ row.item.id }})" 
-                        class="flex-1 rounded-xl py-1.5 px-2 text-xs font-bold bg-paper border border-line text-ink hover:border-[#D2AB6B] transition flex items-center justify-center gap-1 shadow-2xs"
+                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-paper border border-line text-ink hover:border-[#D2AB6B] transition flex items-center justify-center gap-1 shadow-2xs"
+                        title="تعديل بيانات الصنف"
                     >
                         <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        <span>تعديل</span>
                     </button>
                     <button 
                         type="button" 
@@ -208,9 +241,8 @@
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
 
             <!-- Hidden JSON for Edit Modal -->
             <script id="item-json-{{ row.item.id }}" type="application/json">
@@ -733,11 +765,11 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 <!-- Single Price Inputs (if no variants) -->
                 <div id="singlePriceSection" class="grid grid-cols-2 gap-3 pt-1">
                     <div>
-                        <label class="block text-xs font-bold text-ink mb-1">سعر البيع (ر.س) <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-bold text-ink mb-1">سعر البيع ({{ branch_currency_symbol }}) <span class="text-rose-500">*</span></label>
                         <input type="number" step="0.25" min="0" id="itemModalPrice" name="price" class="input text-xs w-full" placeholder="25.00">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-ink mb-1">التكلفة التقريبية (ر.س)</label>
+                        <label class="block text-xs font-bold text-ink mb-1">التكلفة التقريبية ({{ branch_currency_symbol }})</label>
                         <input type="number" step="0.25" min="0" id="itemModalCost" name="cost" class="input text-xs w-full" placeholder="10.00">
                     </div>
                 </div>
@@ -856,7 +888,129 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     {% endfor %}
                 </div>
             </div>
+        <!-- ============================================================ -->
+<!-- MODAL: CUSTOM BRANCH PRICE MODAL                              -->
+<!-- ============================================================ -->
+<div id="branch-price-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-md w-full p-6 shadow-2xl flex flex-col border border-[#D2AB6B] animate-scale-in">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div class="flex items-center gap-2.5">
+                <span class="medallion-icon w-8 h-8 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+                <div>
+                    <h3 class="text-sm font-bold font-royal text-ink">تخصيص سعر الصنف للفرع</h3>
+                    <p class="text-[11px] text-soft">فرع: <span id="bpm-branch-name" class="font-bold text-[#0E382A]">{{ branch.name|default:'الفرع النشط' }}</span></p>
+                </div>
+            </div>
+            <button onclick="closeBranchPriceModal()" class="text-soft hover:text-ink p-1">✕</button>
         </div>
+
+        <form id="branchPriceForm" onsubmit="saveBranchItemPrice(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="bpm-item-id" value="">
+
+            <div class="p-3 rounded-xl bg-paper border border-line space-y-1.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-soft font-bold">الصنف:</span>
+                    <span id="bpm-item-name" class="font-extrabold text-ink text-sm"></span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-soft font-bold">السعر الافتراضي العام (Master):</span>
+                    <span class="font-mono font-bold text-soft"><span id="bpm-default-price">0.00</span> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-soft font-bold">عملة هذا الفرع:</span>
+                    <span class="font-bold text-[#0E382A] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {{ branch.currency|default:'SAR' }} ({{ branch.get_currency_symbol_ar|default:'ر.س' }})
+                    </span>
+                </div>
+            </div>
+
+            <!-- Single Price Customization Input -->
+            <div id="bpm-single-price-box">
+                <label class="block font-bold text-ink mb-1">
+                    السعر المخصص لهذا الفرع ({{ branch.get_currency_symbol_ar|default:'ر.س' }}):
+                </label>
+                <div class="relative">
+                    <input type="number" step="0.25" min="0" id="bpm-custom-price-input" placeholder="اتركه فارغاً لاستخدام السعر العام" class="input w-full font-bold text-ink">
+                    <span class="absolute left-3 top-2.5 text-xs text-soft font-bold">{{ branch.get_currency_symbol_ar|default:'ر.س' }}</span>
+                </div>
+                <p class="text-[10px] text-soft mt-1">إذا ترك فارغاً، سيتم تطبيق السعر العام للمطعم تلقائياً.</p>
+            </div>
+
+            <!-- Variants List (if item has variants) -->
+            <div id="bpm-variants-box" class="hidden space-y-2.5 border-t border-line pt-3">
+                <span class="text-xs font-bold text-ink block">أسعار الأحجام المخصصة لهذا الفرع:</span>
+                <div id="bpm-variants-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-line">
+                <button type="button" onclick="closeBranchPriceModal()" class="rounded-xl px-4 py-2 border border-line bg-white hover:bg-paper text-ink font-bold">إلغاء</button>
+                <button type="submit" id="btnSaveBranchPrice" class="btn-gold-pill px-5 py-2 font-bold shadow-sm">حفظ سعر الفرع</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: ALL BRANCHES PRICING MATRIX MODAL                      -->
+<!-- ============================================================ -->
+<div id="all-branches-price-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-2xl w-full p-6 shadow-2xl flex flex-col border border-[#D2AB6B] animate-scale-in max-h-[90vh]">
+        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div class="flex items-center gap-2.5">
+                <span class="medallion-icon w-8 h-8 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </span>
+                <div>
+                    <h3 class="text-sm font-bold font-royal text-ink">جدول أسعار الصنف بكافة فروع السلسلة</h3>
+                    <p class="text-[11px] text-soft">الصنف: <span id="abpm-item-name" class="font-extrabold text-ink"></span></p>
+                </div>
+            </div>
+            <button onclick="closeAllBranchesPriceModal()" class="text-soft hover:text-ink p-1">✕</button>
+        </div>
+
+        <div id="abpm-loading" class="py-12 text-center text-xs text-soft font-bold">
+            جاري جلب بيانات فروع السلسلة...
+        </div>
+
+        <form id="allBranchesPriceForm" onsubmit="saveAllBranchesPrices(event)" class="space-y-4 overflow-y-auto flex-1 hidden text-xs">
+            <input type="hidden" id="abpm-item-id" value="">
+
+            <div class="p-3 rounded-xl bg-paper border border-line flex items-center justify-between">
+                <div>
+                    <span class="text-soft font-bold block">السعر العام للمطعم (HQ Master):</span>
+                    <span id="abpm-master-price" class="font-black text-brand-700 text-sm"></span>
+                </div>
+                <p class="text-[11px] text-soft max-w-xs text-left">
+                    الفروع التي تترك خانة السعر المخصص فيها فارغة ستعتمد السعر العام تلقائياً.
+                </p>
+            </div>
+
+            <!-- Branches Table -->
+            <div class="border border-line rounded-xl overflow-hidden shadow-2xs">
+                <table class="w-full text-right text-xs">
+                    <thead class="bg-[#F9F6F0] border-b border-line text-soft font-bold text-[11px]">
+                        <tr>
+                            <th class="p-3">الفرع</th>
+                            <th class="p-3">العملة</th>
+                            <th class="p-3">السعر المخصص</th>
+                            <th class="p-3">السعر الفعلي المطبق</th>
+                        </tr>
+                    </thead>
+                    <tbody id="abpm-branches-tbody" class="divide-y divide-line/60">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-line">
+                <button type="button" onclick="closeAllBranchesPriceModal()" class="rounded-xl px-4 py-2 border border-line bg-white hover:bg-paper text-ink font-bold">إلغاء</button>
+                <button type="submit" id="btnSaveAllBranches" class="btn-gold-pill px-5 py-2 font-bold shadow-sm">حفظ أسعار الفروع</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -965,7 +1119,7 @@ function addVariantRow(name = '', name_en = '', price = '', cost = '') {
         <input type="text" name="variant_name_en[]" class="v-name-en input text-xs flex-1 min-w-[120px] font-mono" dir="ltr" placeholder="Size in EN (Medium)" value="${name_en}">
         <div class="relative w-28">
             <input type="number" step="0.25" min="0" name="variant_price[]" class="v-price input text-xs w-full" placeholder="السعر" value="${price}">
-            <span class="absolute left-2 top-2 text-[10px] text-soft">ر.س</span>
+            <span class="absolute left-2 top-2 text-[10px] text-soft">${window.BRANCH_CURRENCY_SYMBOL || '{{ branch_currency_symbol }}'}</span>
         </div>
         <button type="button" onclick="this.closest('.variant-row').remove()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg" title="حذف الحجم">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1093,6 +1247,232 @@ async function deleteMenuItem(itemId, itemName) {
         }
     } catch (e) {
         showToast('خطأ في الاتصال بالخادم', 'error');
+    }
+}
+
+// ==========================================
+// Branch Item Price Modal Script
+// ==========================================
+async function openBranchPriceModal(itemId, itemName, currentPrice, defaultPrice) {
+    const modal = document.getElementById('branch-price-modal');
+    if (!modal) return;
+    document.getElementById('bpm-item-id').value = itemId;
+    document.getElementById('bpm-item-name').innerText = itemName;
+    document.getElementById('bpm-default-price').innerText = defaultPrice !== null ? Number(defaultPrice).toFixed(2) : '0.00';
+    document.getElementById('bpm-custom-price-input').value = (currentPrice !== null && currentPrice !== undefined) ? currentPrice : '';
+    
+    const variantsBox = document.getElementById('bpm-variants-box');
+    const variantsContainer = document.getElementById('bpm-variants-container');
+    variantsContainer.innerHTML = '<p class="text-soft text-[11px]">جاري فحص الأحجام...</p>';
+    variantsBox.classList.remove('hidden');
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    try {
+        const res = await fetch(`/api/menu-items/${itemId}/branch-prices/`);
+        const data = await res.json();
+        if (data.ok) {
+            if (data.item.has_variants) {
+                const curBranchData = data.branches.find(b => String(b.branch_id) === String(currentBranchId));
+                const vList = curBranchData ? curBranchData.variants : [];
+                if (vList && vList.length > 0) {
+                    variantsContainer.innerHTML = '';
+                    vList.forEach(v => {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center justify-between gap-3 p-2 rounded-lg bg-paper border border-line';
+                        div.innerHTML = `
+                            <div class="flex-1">
+                                <span class="font-bold text-ink block">${v.name}</span>
+                                <span class="text-[10px] text-soft">السعر العام: ${Number(v.default_price).toFixed(2)}</span>
+                            </div>
+                            <div class="w-32 relative">
+                                <input type="number" step="0.25" min="0" class="input text-xs font-bold w-full bpm-variant-input" data-variant-id="${v.variant_id}" value="${v.custom_price !== null ? v.custom_price : ''}" placeholder="${Number(v.effective_price).toFixed(2)}">
+                            </div>
+                        `;
+                        variantsContainer.appendChild(div);
+                    });
+                    variantsBox.classList.remove('hidden');
+                } else {
+                    variantsBox.classList.add('hidden');
+                }
+            } else {
+                variantsBox.classList.add('hidden');
+            }
+        } else {
+            variantsBox.classList.add('hidden');
+        }
+    } catch (e) {
+        variantsBox.classList.add('hidden');
+    }
+}
+
+function closeBranchPriceModal() {
+    const modal = document.getElementById('branch-price-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+async function saveBranchItemPrice(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btnSaveBranchPrice');
+    const itemId = document.getElementById('bpm-item-id').value;
+    const customPriceVal = document.getElementById('bpm-custom-price-input').value.trim();
+    
+    const variantInputs = document.querySelectorAll('.bpm-variant-input');
+    const variants = [];
+    variantInputs.forEach(inp => {
+        const vId = inp.getAttribute('data-variant-id');
+        const vVal = inp.value.trim();
+        variants.push({
+            variant_id: parseInt(vId),
+            custom_price: vVal !== '' ? parseFloat(vVal) : null
+        });
+    });
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>جاري الحفظ…</span>';
+
+    try {
+        const res = await fetch(`/api/branches/${currentBranchId}/menu/${itemId}/price/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                custom_price: customPriceVal !== '' ? parseFloat(customPriceVal) : null,
+                variants: variants
+            })
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+            showToast(data.message || 'تم حفظ تسعير الفرع بنجاح 💰');
+            closeBranchPriceModal();
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            showToast(data.error || 'تعذر حفظ السعر', 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>حفظ سعر الفرع</span>';
+    }
+}
+
+// ==========================================
+// All Branches Price Matrix Modal Script
+// ==========================================
+async function openItemAllBranchesPriceModal(itemId) {
+    const modal = document.getElementById('all-branches-price-modal');
+    if (!modal) return;
+    const loading = document.getElementById('abpm-loading');
+    const form = document.getElementById('allBranchesPriceForm');
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    loading.classList.remove('hidden');
+    form.classList.add('hidden');
+
+    try {
+        const res = await fetch(`/api/menu-items/${itemId}/branch-prices/`);
+        const data = await res.json();
+        if (res.ok && data.ok) {
+            document.getElementById('abpm-item-id').value = data.item.id;
+            document.getElementById('abpm-item-name').innerText = data.item.name;
+            document.getElementById('abpm-master-price').innerText = `${Number(data.item.default_price).toFixed(2)} ${data.item.tenant_currency_symbol}`;
+
+            const tbody = document.getElementById('abpm-branches-tbody');
+            tbody.innerHTML = '';
+
+            data.branches.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-paper/40 transition';
+                const isCurrent = String(b.branch_id) === String(currentBranchId);
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <span class="font-bold text-ink block">${b.branch_name} ${isCurrent ? '<span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mr-1">الفرع الحالي</span>' : ''}</span>
+                        <span class="text-[10px] text-soft">${b.is_available ? 'متوفر' : 'غير متوفر'}</span>
+                    </td>
+                    <td class="p-3">
+                        <span class="font-bold text-[#0E382A] bg-paper px-2 py-0.5 rounded border border-line">${b.currency} (${b.currency_symbol})</span>
+                    </td>
+                    <td class="p-3">
+                        <div class="relative max-w-[140px]">
+                            <input type="number" step="0.25" min="0" class="input w-full text-xs font-bold abpm-branch-input" data-branch-id="${b.branch_id}" value="${b.custom_price !== null ? b.custom_price : ''}" placeholder="${Number(b.effective_price).toFixed(2)}">
+                        </div>
+                    </td>
+                    <td class="p-3 font-mono font-bold text-ink">
+                        ${Number(b.effective_price).toFixed(2)} <span class="text-[10px] text-soft font-body">${b.currency_symbol}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            loading.classList.add('hidden');
+            form.classList.remove('hidden');
+        } else {
+            showToast(data.error || 'تعذر تحميل بيانات الفروع', 'error');
+            closeAllBranchesPriceModal();
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+        closeAllBranchesPriceModal();
+    }
+}
+
+function closeAllBranchesPriceModal() {
+    const modal = document.getElementById('all-branches-price-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+async function saveAllBranchesPrices(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btnSaveAllBranches');
+    const itemId = document.getElementById('abpm-item-id').value;
+    const inputs = document.querySelectorAll('.abpm-branch-input');
+
+    const branchPrices = [];
+    inputs.forEach(inp => {
+        const bId = inp.getAttribute('data-branch-id');
+        const val = inp.value.trim();
+        branchPrices.push({
+            branch_id: parseInt(bId),
+            custom_price: val !== '' ? parseFloat(val) : null
+        });
+    });
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>جاري الحفظ…</span>';
+
+    try {
+        const res = await fetch(`/api/menu-items/${itemId}/branch-prices/update/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({ branch_prices: branchPrices })
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+            showToast(data.message || 'تم تحديث أسعار الفروع بنجاح 🏢');
+            closeAllBranchesPriceModal();
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            showToast(data.error || 'تعذر حفظ الأسعار', 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>حفظ أسعار الفروع</span>';
     }
 }
 

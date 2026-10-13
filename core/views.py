@@ -41,6 +41,7 @@ from .models import (
     OrderItem,
     UserProfile,
     BranchMenuAvailability,
+    BranchVariantPrice,
     DeliveryArea,
     JobRole,
     RESTAURANT_PERMISSIONS,
@@ -1740,22 +1741,56 @@ def branch_menu_view(request):
         menu_qs = menu_qs.filter(name__icontains=search)
 
     branch_avail_map = {}
+    branch_price_map = {}
+    branch_variant_price_map = {}
     if branch:
         for av in BranchMenuAvailability.objects.filter(branch=branch):
             branch_avail_map[av.menu_item_id] = av.is_available
+            branch_price_map[av.menu_item_id] = av.custom_price
+        for vp in BranchVariantPrice.objects.filter(branch=branch):
+            branch_variant_price_map[vp.variant_id] = vp.custom_price
 
     items_data = []
     for item in menu_qs:
         if branch:
             is_avail = branch_avail_map.get(item.id, item.available)
+            custom_price = branch_price_map.get(item.id)
+            effective_price = custom_price if custom_price is not None else item.price
+            variants_list = []
+            for v in item.variants.all():
+                v_custom = branch_variant_price_map.get(v.id)
+                variants_list.append({
+                    "id": v.id,
+                    "name": v.name,
+                    "name_en": v.name_en,
+                    "default_price": v.price,
+                    "custom_price": v_custom,
+                    "effective_price": v_custom if v_custom is not None else v.price,
+                })
         else:
             is_avail = item.available
+            custom_price = None
+            effective_price = item.price
+            variants_list = [{
+                "id": v.id,
+                "name": v.name,
+                "name_en": v.name_en,
+                "default_price": v.price,
+                "custom_price": None,
+                "effective_price": v.price,
+            } for v in item.variants.all()]
 
         items_data.append({
             "item": item,
             "is_available": is_avail,
+            "custom_price": custom_price,
+            "effective_price": effective_price,
+            "effective_min_price": item.get_min_price_for_branch(branch) if branch else item.min_price,
+            "variants_data": variants_list,
             "variants": list(item.variants.all()),
         })
+
+    currency_sym = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
 
     context = {
         "tenant": tenant,
@@ -1767,6 +1802,7 @@ def branch_menu_view(request):
         "selected_cat": cat_filter,
         "search_query": search,
         "can_manage_menu": can_manage_menu,
+        "branch_currency_symbol": currency_sym,
     }
     return render(request, "branch_menu.html", context)
 
@@ -1792,13 +1828,20 @@ def pos_view(request):
     base_menu = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name")
     if branch:
         disabled_ids = set(BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True))
-        menu_items = list(base_menu.exclude(id__in=disabled_ids))
+        raw_items = list(base_menu.exclude(id__in=disabled_ids))
     else:
-        menu_items = list(base_menu)
+        raw_items = list(base_menu)
+
+    menu_items = []
+    for m in raw_items:
+        m.price = m.get_price_for_branch(branch)
+        menu_items.append(m)
 
     recent_orders = Order.objects.filter(tenant=tenant).order_by("-id")
     if branch:
         recent_orders = recent_orders.filter(branch=branch)
+
+    currency_sym = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
 
     context = {
         "tenant": tenant,
@@ -1806,6 +1849,7 @@ def pos_view(request):
         "categories": categories,
         "menu_items": menu_items,
         "recent_orders": recent_orders[:10],
+        "branch_currency_symbol": currency_sym,
     }
     return render(request, "pos.html", context)
 
@@ -1830,6 +1874,7 @@ def call_center_view(request):
         "delivery_areas": delivery_areas,
         "menu_items": menu_items,
         "recent_orders": recent_orders,
+        "tenant_currency_symbol": tenant.get_currency_symbol_ar() if tenant else "ر.س",
     }
     return render(request, "call_center.html", context)
 
@@ -2187,12 +2232,12 @@ def api_create_order(request):
         if not m.available or m_id in disabled_in_branch:
             return JsonResponse({"error": f"الصنف «{m.name}» غير متوفر حالياً بالفرع"}, status=400)
         qty = max(1, int(it.get("qty", 1)))
-        unit_price = m.price
+        unit_price = m.get_price_for_branch(branch)
         custom_price = it.get("customPrice") or it.get("custom_price")
         if custom_price is not None:
             try:
                 cp = Decimal(str(custom_price))
-                if cp > 0 and cp != m.price:
+                if cp > 0 and cp != unit_price:
                     if not is_owner_or_super and not user_has_perm(request.user, "pos_override_price"):
                         return JsonResponse({"error": f"غير مصرح لك بتعديل سعر الصنف «{m.name}» يدوياً"}, status=403)
                     unit_price = cp
@@ -2543,6 +2588,228 @@ def api_toggle_branch_menu(request, item_id):
         item.available = not item.available
         item.save()
         return JsonResponse({"ok": True, "isAvailable": item.available, "itemName": item.name, "branch": "كل الفروع"})
+
+
+@login_required
+def api_update_branch_item_price(request, branch_id, item_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not (
+        user_has_perm(request.user, "manage_menu") or
+        user_has_perm(request.user, "menu_edit_item") or
+        user_has_perm(request.user, "manage_branches")
+    ):
+        return JsonResponse({"error": "غير مصرح لك بتعديل أسعار الأصناف في هذا الفرع"}, status=403)
+
+    branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
+    item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    raw_price = data.get("custom_price")
+    custom_price = None
+    if raw_price is not None and str(raw_price).strip() != "":
+        try:
+            custom_price = max(Decimal("0.00"), Decimal(str(raw_price)))
+        except Exception:
+            return JsonResponse({"error": "قيمة السعر غير صحيحة"}, status=400)
+
+    avail, _ = BranchMenuAvailability.objects.get_or_create(
+        branch=branch,
+        menu_item=item,
+        defaults={"is_available": item.available}
+    )
+    avail.custom_price = custom_price
+    avail.save(update_fields=["custom_price"])
+
+    variants_data = data.get("variants") or []
+    if isinstance(variants_data, list):
+        for v_item in variants_data:
+            v_id = v_item.get("variant_id")
+            v_raw = v_item.get("custom_price")
+            variant = item.variants.filter(id=v_id).first()
+            if variant:
+                v_price = None
+                if v_raw is not None and str(v_raw).strip() != "":
+                    try:
+                        v_price = max(Decimal("0.00"), Decimal(str(v_raw)))
+                    except Exception:
+                        pass
+                vp, _ = BranchVariantPrice.objects.get_or_create(
+                    branch=branch,
+                    variant=variant,
+                    defaults={"is_available": True}
+                )
+                vp.custom_price = v_price
+                vp.save(update_fields=["custom_price"])
+
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="branch_item_price_updated",
+        target_model="MenuItem",
+        target_id=item.id,
+        description=f"تعديل سعر الصنف «{item.name}» في فرع «{branch.name}» إلى {custom_price if custom_price is not None else 'السعر الافتراضي'} {branch.get_currency_symbol_ar()}",
+        ip_address=_get_client_ip(request),
+    )
+
+    effective_price = item.get_price_for_branch(branch)
+    effective_min_price = item.get_min_price_for_branch(branch)
+    return JsonResponse({
+        "ok": True,
+        "item_id": item.id,
+        "branch_id": branch.id,
+        "custom_price": float(custom_price) if custom_price is not None else None,
+        "effective_price": float(effective_price),
+        "effective_min_price": float(effective_min_price),
+        "currency_symbol": branch.get_currency_symbol_ar(),
+        "message": f"تم تحديث سعر «{item.name}» لفرع «{branch.name}» بنجاح."
+    })
+
+
+@login_required
+def api_get_item_branch_prices(request, item_id):
+    tenant = get_active_tenant(request)
+    item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
+    branches = Branch.objects.filter(tenant=tenant, status="active").order_by("id")
+
+    b_avails = {av.branch_id: av for av in BranchMenuAvailability.objects.filter(menu_item=item)}
+    b_v_prices = {}
+    for vp in BranchVariantPrice.objects.filter(variant__menu_item=item):
+        b_v_prices.setdefault(vp.branch_id, {})[vp.variant_id] = vp.custom_price
+
+    branches_data = []
+    item_variants = list(item.variants.all())
+
+    for b in branches:
+        av = b_avails.get(b.id)
+        c_price = av.custom_price if av else None
+        eff_price = c_price if c_price is not None else item.price
+
+        v_list = []
+        for v in item_variants:
+            v_custom = b_v_prices.get(b.id, {}).get(v.id)
+            v_eff = v_custom if v_custom is not None else v.price
+            v_list.append({
+                "variant_id": v.id,
+                "name": v.name,
+                "default_price": float(v.price),
+                "custom_price": float(v_custom) if v_custom is not None else None,
+                "effective_price": float(v_eff),
+            })
+
+        branches_data.append({
+            "branch_id": b.id,
+            "branch_name": b.name,
+            "currency": b.currency,
+            "currency_symbol": b.get_currency_symbol_ar(),
+            "currency_name": b.get_currency_name_ar(),
+            "custom_price": float(c_price) if c_price is not None else None,
+            "effective_price": float(eff_price),
+            "is_available": av.is_available if av else item.available,
+            "variants": v_list,
+        })
+
+    return JsonResponse({
+        "ok": True,
+        "item": {
+            "id": item.id,
+            "name": item.name,
+            "category": item.category,
+            "default_price": float(item.price),
+            "has_variants": item.has_variants,
+            "tenant_currency": tenant.default_currency if tenant else "SAR",
+            "tenant_currency_symbol": tenant.get_currency_symbol_ar() if tenant else "ر.س",
+        },
+        "branches": branches_data,
+    })
+
+
+@login_required
+def api_update_item_branch_prices(request, item_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_menu"):
+        return JsonResponse({"error": "غير مصرح لك بتعديل أسعار الفروع المجمعة"}, status=403)
+
+    item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    branches_data = data.get("branches") or []
+    updated_count = 0
+
+    for b_entry in branches_data:
+        b_id = b_entry.get("branch_id")
+        branch = Branch.objects.filter(tenant=tenant, id=b_id).first()
+        if not branch:
+            continue
+
+        raw_price = b_entry.get("custom_price")
+        custom_price = None
+        if raw_price is not None and str(raw_price).strip() != "":
+            try:
+                custom_price = max(Decimal("0.00"), Decimal(str(raw_price)))
+            except Exception:
+                pass
+
+        avail, _ = BranchMenuAvailability.objects.get_or_create(
+            branch=branch,
+            menu_item=item,
+            defaults={"is_available": item.available}
+        )
+        avail.custom_price = custom_price
+        avail.save(update_fields=["custom_price"])
+        updated_count += 1
+
+        v_entries = b_entry.get("variants") or []
+        for ve in v_entries:
+            v_id = ve.get("variant_id")
+            v_raw = ve.get("custom_price")
+            variant = item.variants.filter(id=v_id).first()
+            if variant:
+                v_price = None
+                if v_raw is not None and str(v_raw).strip() != "":
+                    try:
+                        v_price = max(Decimal("0.00"), Decimal(str(v_raw)))
+                    except Exception:
+                        pass
+                vp, _ = BranchVariantPrice.objects.get_or_create(
+                    branch=branch,
+                    variant=variant,
+                    defaults={"is_available": True}
+                )
+                vp.custom_price = v_price
+                vp.save(update_fields=["custom_price"])
+
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="item_branch_prices_bulk_updated",
+        target_model="MenuItem",
+        target_id=item.id,
+        description=f"تحديث أسعار الصنف «{item.name}» المخصصة لـ {updated_count} فروع",
+        ip_address=_get_client_ip(request),
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "message": f"تم تحديث أسعار الصنف «{item.name}» لـ {updated_count} فروع بنجاح.",
+        "updated_count": updated_count
+    })
 
 
 @login_required
@@ -6896,14 +7163,18 @@ def digital_menu_view(request, slug=None, branch_id=None):
         is_avail = item.available and (item.id not in disabled_ids)
         item_variants = []
         for v in item.variants.all():
+            v_eff_price = v.get_price_for_branch(selected_branch)
             item_variants.append({
                 "id": v.id,
                 "name": v.get_display_name(active_lang),
                 "raw_name": v.name,
                 "name_en": v.name_en,
-                "price": float(v.price),
+                "price": float(v_eff_price),
                 "is_default": v.is_default,
             })
+
+        eff_price = item.get_price_for_branch(selected_branch)
+        eff_min_price = item.get_min_price_for_branch(selected_branch)
 
         categorized_items[cat].append({
             "id": item.id,
@@ -6912,8 +7183,8 @@ def digital_menu_view(request, slug=None, branch_id=None):
             "name_en": item.name_en,
             "description": item.get_display_description(active_lang),
             "description_en": item.description_en,
-            "price": float(item.price),
-            "min_price": float(item.min_price),
+            "price": float(eff_price),
+            "min_price": float(eff_min_price),
             "has_variants": item.has_variants and len(item_variants) > 0,
             "variants": item_variants,
             "emoji": item.emoji or "🍽️",
@@ -7069,17 +7340,17 @@ def api_digital_menu_place_order(request, slug):
         # Check variant (size) if selected
         v_id = it.get("variantId") or it.get("variant_id")
         variant_obj = None
-        item_price = m.price
+        item_price = m.get_price_for_branch(branch)
         item_title = m.name
         if v_id and m.has_variants:
             variant_obj = MenuItemVariant.objects.filter(id=v_id, menu_item=m).first()
             if variant_obj:
-                item_price = variant_obj.price
+                item_price = variant_obj.get_price_for_branch(branch)
                 item_title = f"{m.name} ({variant_obj.name})"
         elif m.has_variants:
             variant_obj = m.variants.filter(is_default=True).first() or m.variants.first()
             if variant_obj:
-                item_price = variant_obj.price
+                item_price = variant_obj.get_price_for_branch(branch)
                 item_title = f"{m.name} ({variant_obj.name})"
 
         note_str = str(it.get("notes", "")).strip()[:200]
@@ -7098,9 +7369,10 @@ def api_digital_menu_place_order(request, slug):
 
     # Validate Minimum Delivery Order
     if order_type == "delivery" and branch.min_delivery_order > 0 and subtotal < branch.min_delivery_order:
+        cur_sym = branch.get_currency_symbol_ar()
         return JsonResponse({
             "status": "error",
-            "message": f"الحد الأدنى لطلب التوصيل من هذا الفرع هو {branch.min_delivery_order} ر.س. (المجموع الحالي: {subtotal} ر.س)."
+            "message": f"الحد الأدنى لطلب التوصيل من هذا الفرع هو {branch.min_delivery_order} {cur_sym}. (المجموع الحالي: {subtotal} {cur_sym})."
         }, status=400)
 
     delivery_fee = Decimal("0.00")

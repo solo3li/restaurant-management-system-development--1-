@@ -111,7 +111,7 @@
                         </td>
                         <td class="td text-soft" data-label="طريقة الدفع">{{ o.get_pay_method_display }}</td>
                         <td class="td text-soft" data-label="السائق">{{ o.driver.name|default:"—" }}</td>
-                        <td class="td font-extrabold text-brand-700 font-mono text-sm" data-label="الإجمالي">{{ o.total|floatformat:2 }} ر.س</td>
+                        <td class="td font-extrabold text-brand-700 font-mono text-sm" data-label="الإجمالي">{{ o.total|floatformat:2 }} {{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
                         <td class="td" data-label="الحالة">
                             <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold
                                 {% if o.status == 'delivered' %}bg-emerald-100 text-emerald-800

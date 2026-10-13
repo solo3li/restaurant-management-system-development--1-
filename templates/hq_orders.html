@@ -373,6 +373,7 @@
                             "delivery_fee": "{{ o.delivery_fee|floatformat:2 }}",
                             "discount": "{{ o.discount|floatformat:2 }}",
                             "total": "{{ o.total|floatformat:2 }}",
+                            "currency_symbol": "{{ o.branch.get_currency_symbol_ar|default:t.get_currency_symbol_ar }}",
                             "items": [
                                 {% for item in o.items.all %}
                                 {
@@ -611,6 +612,7 @@
             }
 
             // Items tbody
+            const cur = data.currency_symbol || 'ر.س';
             const tbody = document.getElementById('modal-items-tbody');
             tbody.innerHTML = '';
             if (data.items && data.items.length > 0) {
@@ -620,8 +622,8 @@
                     tr.innerHTML = `
                         <td class="p-2.5 font-bold text-ink">${it.name}</td>
                         <td class="p-2.5 text-center font-bold text-ink">${it.qty}</td>
-                        <td class="p-2.5 text-left text-soft">${it.price} ر.س</td>
-                        <td class="p-2.5 text-left font-black text-brand-700">${it.line_total} ر.س</td>
+                        <td class="p-2.5 text-left text-soft">${it.price} ${cur}</td>
+                        <td class="p-2.5 text-left font-black text-brand-700">${it.line_total} ${cur}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -630,10 +632,10 @@
             }
 
             // Financials
-            document.getElementById('modal-subtotal').textContent = data.subtotal + ' ر.س';
-            document.getElementById('modal-delivery-fee').textContent = data.delivery_fee + ' ر.س';
-            document.getElementById('modal-discount').textContent = '-' + data.discount + ' ر.س';
-            document.getElementById('modal-total').textContent = data.total + ' ر.س';
+            document.getElementById('modal-subtotal').textContent = data.subtotal + ' ' + cur;
+            document.getElementById('modal-delivery-fee').textContent = data.delivery_fee + ' ' + cur;
+            document.getElementById('modal-discount').textContent = '-' + data.discount + ' ' + cur;
+            document.getElementById('modal-total').textContent = data.total + ' ' + cur;
 
             const modal = document.getElementById('order-detail-modal');
             modal.classList.remove('hidden');
@@ -669,6 +671,7 @@
     function printModalReceipt() {
         if (!activeModalOrder) return;
         const o = activeModalOrder;
+        const cur = o.currency_symbol || 'ر.س';
         
         let itemsHtml = '';
         o.items.forEach(it => {
@@ -676,7 +679,7 @@
                 <tr>
                     <td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${it.name}</td>
                     <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: center;">${it.qty}</td>
-                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: left;">${it.line_total} ر.س</td>
+                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: left;">${it.line_total} ${cur}</td>
                 </tr>
             `;
         });
@@ -697,7 +700,7 @@
             </head>
             <body>
                 <div class="header">
-                    <div class="title">مطاعم كُـورَا</div>
+                    <div class="title">{{ t.name|default:"مطاعم كُـورَا" }}</div>
                     <div>فرع: ${o.branch}</div>
                     <div>رقم الطلب: ${o.order_number}</div>
                     <div>التاريخ: ${o.created_at}</div>
@@ -718,13 +721,13 @@
                         ${itemsHtml}
                     </tbody>
                 </table>
-                <div class="row"><span>المجموع الفرعي:</span><span>${o.subtotal} ر.س</span></div>
-                ${parseFloat(o.delivery_fee) > 0 ? `<div class="row"><span>رسوم التوصيل:</span><span>${o.delivery_fee} ر.س</span></div>` : ''}
-                ${parseFloat(o.discount) > 0 ? `<div class="row"><span>الخصم:</span><span>-${o.discount} ر.س</span></div>` : ''}
-                <div class="row total-row"><span>المبلغ الإجمالي:</span><span>${o.total} ر.س</span></div>
+                <div class="row"><span>المجموع الفرعي:</span><span>${o.subtotal} ${cur}</span></div>
+                ${parseFloat(o.delivery_fee) > 0 ? `<div class="row"><span>رسوم التوصيل:</span><span>${o.delivery_fee} ${cur}</span></div>` : ''}
+                ${parseFloat(o.discount) > 0 ? `<div class="row"><span>الخصم:</span><span>-${o.discount} ${cur}</span></div>` : ''}
+                <div class="row total-row"><span>المبلغ الإجمالي:</span><span>${o.total} ${cur}</span></div>
                 <div class="row"><span>طريقة الدفع:</span><span>${o.pay_method}</span></div>
                 <div style="text-align: center; margin-top: 15px; font-size: 11px;">
-                    شكراً لاختياركم مطاعم كُـورَا!
+                    شكراً لاختياركم {{ t.name|default:"مطاعم كُـورَا" }}!
                 </div>
             </body>
             </html>

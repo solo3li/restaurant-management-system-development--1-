@@ -181,7 +181,7 @@
                                 <option value="">-- اختر صنفاً لإضافته --</option>
                                 {% for m in menu_items %}
                                 <option value="{{ m.id }}" data-name="{{ m.name }}" data-price="{{ m.price }}">
-                                    {{ m.name }} — {{ m.price|floatformat:2 }} ر.س ({{ m.category }})
+                                    {{ m.name }} — {{ m.price|floatformat:2 }} {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }} ({{ m.category }})
                                 </option>
                                 {% endfor %}
                             </select>
@@ -221,18 +221,18 @@
                     <div class="space-y-3 text-xs">
                         <div class="flex justify-between text-soft">
                             <span>المجموع الفرعي:</span>
-                            <span id="display-subtotal" class="font-bold text-ink">0.00 ر.س</span>
+                            <span id="display-subtotal" class="font-bold text-ink">0.00 {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
                         </div>
 
                         <!-- Delivery Fee -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">رسوم التوصيل (ر.س):</label>
+                            <label class="block font-bold text-soft mb-1">رسوم التوصيل ({{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}):</label>
                             <input type="number" step="0.5" min="0" name="delivery_fee" id="delivery-fee-input" value="{{ order.delivery_fee|stringformat:'.2f' }}" oninput="recalcFinancials()" class="input font-bold">
                         </div>
 
                         <!-- Discount -->
                         <div>
-                            <label class="block font-bold text-soft mb-1">الخصم المطبق (ر.س):</label>
+                            <label class="block font-bold text-soft mb-1">الخصم المطبق ({{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}):</label>
                             {% if is_owner or perms.core.pos_apply_discount or "pos_apply_discount" in user_perms %}
                             <input type="number" step="0.5" min="0" name="discount" id="discount-input" value="{{ order.discount|stringformat:'.2f' }}" oninput="recalcFinancials()" class="input font-bold">
                             {% else %}
@@ -246,7 +246,7 @@
                         <div class="border-t-2 border-dashed border-line pt-3">
                             <div class="flex justify-between items-center text-sm font-black">
                                 <span class="text-ink">المبلغ الإجمالي النهائي:</span>
-                                <span id="display-total" class="text-brand-700 text-lg font-body font-black">0.00 ر.س</span>
+                                <span id="display-total" class="text-brand-700 text-lg font-body font-black">0.00 {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
                             </div>
                         </div>
 
@@ -284,6 +284,7 @@
 </div>
 
 <script>
+    const CURRENCY_SYMBOL = "{{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar|escapejs }}";
     // Initial order items loaded from Django context
     let orderItems = [
         {% for item in items %}
@@ -319,8 +320,8 @@
                         <button type="button" onclick="changeItemQty(${index}, 1)" class="h-6 w-6 flex items-center justify-center rounded bg-card hover:bg-line text-ink font-bold">+</button>
                     </div>
                 </td>
-                <td class="p-2.5 text-left text-soft font-bold">${item.price.toFixed(2)} ر.س</td>
-                <td class="p-2.5 text-left font-black text-brand-700">${lineTotal} ر.س</td>
+                <td class="p-2.5 text-left text-soft font-bold">${item.price.toFixed(2)} ${CURRENCY_SYMBOL}</td>
+                <td class="p-2.5 text-left font-black text-brand-700">${lineTotal} ${CURRENCY_SYMBOL}</td>
                 <td class="p-2.5 text-center">
                     <button type="button" onclick="removeItem(${index})" class="rounded-lg p-1.5 text-bad-600 hover:bg-bad-100 transition inline-flex items-center justify-center" title="حذف الصنف">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -384,8 +385,8 @@
 
         const total = Math.max(0, subtotal + deliveryFee - discount);
 
-        document.getElementById('display-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
-        document.getElementById('display-total').textContent = `${total.toFixed(2)} ر.س`;
+        document.getElementById('display-subtotal').textContent = `${subtotal.toFixed(2)} ${CURRENCY_SYMBOL}`;
+        document.getElementById('display-total').textContent = `${total.toFixed(2)} ${CURRENCY_SYMBOL}`;
 
         document.getElementById('items-json-input').value = JSON.stringify(orderItems);
     }

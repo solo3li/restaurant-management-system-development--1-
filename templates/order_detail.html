@@ -208,8 +208,8 @@
                                     </div>
                                 </td>
                                 <td class="td text-center font-black text-ink text-sm">{{ item.qty }}</td>
-                                <td class="td text-left font-bold text-soft">{{ item.price|floatformat:2 }} ر.س</td>
-                                <td class="td text-left font-black text-brand-700">{{ item.line_total|floatformat:2 }} ر.س</td>
+                                <td class="td text-left font-bold text-soft">{{ item.price|floatformat:2 }} {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
+                                <td class="td text-left font-black text-brand-700">{{ item.line_total|floatformat:2 }} {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -232,20 +232,20 @@
                 <div class="space-y-3 text-xs">
                     <div class="flex justify-between text-soft">
                         <span>المجموع الفرعي:</span>
-                        <span class="font-bold text-ink">{{ order.subtotal|floatformat:2 }} ر.س</span>
+                        <span class="font-bold text-ink">{{ order.subtotal|floatformat:2 }} {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
                     </div>
                     <div class="flex justify-between text-soft">
                         <span>رسوم التوصيل:</span>
-                        <span class="font-bold text-ink">{{ order.delivery_fee|floatformat:2 }} ر.س</span>
+                        <span class="font-bold text-ink">{{ order.delivery_fee|floatformat:2 }} {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
                     </div>
                     <div class="flex justify-between text-soft">
                         <span>الخصم المطبق:</span>
-                        <span class="font-bold text-bad-700">-{{ order.discount|floatformat:2 }} ر.س</span>
+                        <span class="font-bold text-bad-700">-{{ order.discount|floatformat:2 }} {{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
                     </div>
 
                     <div class="border-t-2 border-dashed border-line pt-3 flex justify-between items-center text-base font-black">
                         <span class="text-ink">المبلغ الإجمالي:</span>
-                        <span class="text-brand-700 text-xl font-body font-black">{{ order.total|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span></span>
+                        <span class="text-brand-700 text-xl font-body font-black">{{ order.total|floatformat:2 }} <span class="text-xs font-bold text-soft">{{ order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span></span>
                     </div>
 
                     <div class="rounded-xl bg-paper p-3 mt-4 space-y-2 text-xs">

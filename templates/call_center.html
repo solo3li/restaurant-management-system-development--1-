@@ -80,8 +80,8 @@
                             <select id="order-delivery-area" class="input text-xs" onchange="onDeliveryAreaChanged()">
                                 <option value="">-- اختر المنطقة أو الكومبوند لتوجيه الفرع --</option>
                                 {% for a in delivery_areas %}
-                                <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.name }}">
-                                    [{{ a.get_area_type_display|default:"منطقة" }}] {{ a.name }} (فرع: {{ a.branch.name }} • {{ a.delivery_fee }} ر.س)
+                                <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.name }}" data-currency="{{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol }}">
+                                    [{{ a.get_area_type_display|default:"منطقة" }}] {{ a.name }} (فرع: {{ a.branch.name }} • {{ a.delivery_fee }} {{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol }})
                                 </option>
                                 {% endfor %}
                             </select>
@@ -128,7 +128,7 @@
                                 <p class="text-[10px] text-soft">{{ m.category }}</p>
                             </div>
                         </div>
-                        <span class="text-xs font-black text-brand-700 font-body">{{ m.price }} ر.س</span>
+                        <span class="text-xs font-black text-brand-700 font-body">{{ m.price }} {{ tenant_currency_symbol }}</span>
                     </div>
                     {% endfor %}
                 </div>
@@ -156,9 +156,9 @@
                 <div class="space-y-3 border-t border-line pt-3 mt-3 text-xs">
                     <div>
                         <label class="mb-1 block font-bold text-soft">الفرع المنفذ للطلب</label>
-                        <select id="call-order-branch" class="input text-xs font-bold">
+                        <select id="call-order-branch" class="input text-xs font-bold" onchange="onBranchChanged()">
                             {% for b in branches %}
-                            <option value="{{ b.id }}">{{ b.name }}</option>
+                            <option value="{{ b.id }}" data-currency="{{ b.get_currency_symbol_ar }}">{{ b.name }} ({{ b.get_currency_symbol_ar }})</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -182,18 +182,18 @@
                     <div class="rounded-xl bg-paper p-3 space-y-1.5 border border-line">
                         <div class="flex justify-between text-soft">
                             <span>قيمة الأصناف</span>
-                            <span id="call-subtotal" class="font-bold">0.00 ر.س</span>
+                            <span id="call-subtotal" class="font-bold">0.00 {{ tenant_currency_symbol }}</span>
                         </div>
                         <div class="flex justify-between text-soft items-center">
                             <span class="flex items-center gap-1.5">
                                 <span>رسوم التوصيل</span>
                                 <span id="call-est-time-badge" class="hidden text-[10px] text-brand-800 bg-brand-100 px-1.5 py-0.5 rounded font-bold"></span>
                             </span>
-                            <span id="call-delivery-fee" class="font-bold text-brand-700">8.00 ر.س</span>
+                            <span id="call-delivery-fee" class="font-bold text-brand-700">8.00 {{ tenant_currency_symbol }}</span>
                         </div>
                         <div class="flex justify-between border-t border-line pt-2 text-sm font-bold text-ink">
                             <span>المجموع الكلي</span>
-                            <span id="call-total" class="text-base text-brand-700 font-black font-body">8.00 ر.س</span>
+                            <span id="call-total" class="text-base text-brand-700 font-black font-body">8.00 {{ tenant_currency_symbol }}</span>
                         </div>
                     </div>
 
@@ -216,7 +216,7 @@
                     <div class="rounded-lg border border-line p-2.5 bg-paper/40 hover:bg-white hover:border-[#D2AB6B] transition text-xs">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-ink">{{ o.order_number }}</span>
-                            <span class="font-black text-brand-700 font-body">{{ o.total|floatformat:2 }} ر.س</span>
+                            <span class="font-black text-brand-700 font-body">{{ o.total|floatformat:2 }} {{ o.branch.get_currency_symbol_ar|default:tenant_currency_symbol }}</span>
                         </div>
                         <p class="text-[11px] text-soft mt-0.5">{{ o.customer_name }} • {{ o.created_at|time:"H:i" }}</p>
                     </div>
@@ -237,7 +237,7 @@
             </span>
             <div>
                 <p class="text-[11px] text-[#E6C898] font-bold">تذكرة التوصيل</p>
-                <p id="call-mobile-total" class="text-sm font-black text-white">8.00 ر.س</p>
+                <p id="call-mobile-total" class="text-sm font-black text-white">8.00 {{ tenant_currency_symbol }}</p>
             </div>
         </div>
         <button type="button" onclick="scrollToCallTicket()" class="btn-gold-pill px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-md">
@@ -252,6 +252,18 @@
 <script>
     let callCart = {};
     let callDeliveryFee = 8.00;
+    let currentCallCurrency = "{{ tenant_currency_symbol|default:'ر.س'|escapejs }}";
+
+    function onBranchChanged() {
+        const bSel = document.getElementById('call-order-branch');
+        if (bSel && bSel.selectedIndex >= 0) {
+            const opt = bSel.options[bSel.selectedIndex];
+            if (opt && opt.dataset.currency) {
+                currentCallCurrency = opt.dataset.currency;
+                renderCallCart();
+            }
+        }
+    }
 
     function onDeliveryAreaChanged() {
         const sel = document.getElementById('order-delivery-area');
@@ -271,6 +283,10 @@
                 branchSelect.value = branchId;
             }
 
+            if (opt.dataset.currency) {
+                currentCallCurrency = opt.dataset.currency;
+            }
+
             // Update delivery fee & time
             callDeliveryFee = fee;
             routeBadge.textContent = `موجه لـ: ${branchName}`;
@@ -279,7 +295,7 @@
             timeBadge.textContent = `${timeMin} دقيقة`;
             timeBadge.classList.remove('hidden');
 
-            showToast(`تم توجيه الطلب تلقائياً لـ «${branchName}» برسم توصيل ${fee} ر.س`);
+            showToast(`تم توجيه الطلب تلقائياً لـ «${branchName}» برسم توصيل ${fee} ${currentCallCurrency}`);
         } else {
             callDeliveryFee = 8.00;
             routeBadge.classList.add('hidden');
@@ -320,7 +336,7 @@
                                 <p class="text-xs font-bold text-ink">${c.name} (${c.phone})</p>
                                 <p class="text-[11px] text-soft">${c.address || 'بدون عنوان مسجل'}</p>
                             </div>
-                            <span class="text-[11px] font-bold text-brand-700 font-body">${c.ordersCount} طلبات • ${c.lifetime} ر.س</span>
+                            <span class="text-[11px] font-bold text-brand-700 font-body">${c.ordersCount} طلبات • ${c.lifetime} ${currentCallCurrency}</span>
                         </div>
                     `;
                 });
@@ -347,7 +363,7 @@
         document.getElementById('order-cust-phone').value = c.phone;
         document.getElementById('order-cust-address').value = c.address;
         document.getElementById('cust-status-badge').textContent = 'عميل مسجل';
-        document.getElementById('cust-stats-badge').textContent = `${c.ordersCount} طلبات (${c.lifetime} ر.س)`;
+        document.getElementById('cust-stats-badge').textContent = `${c.ordersCount} طلبات (${c.lifetime} ${currentCallCurrency})`;
         document.getElementById('customer-results-box').classList.add('hidden');
         showToast(`تم اختيار العميل: ${c.name}`);
     }
@@ -380,13 +396,13 @@
         const mobileTotal = document.getElementById('call-mobile-total');
         if (mobileBadge) mobileBadge.textContent = count;
 
-        document.getElementById('call-delivery-fee').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
+        document.getElementById('call-delivery-fee').textContent = `${callDeliveryFee.toFixed(2)} ${currentCallCurrency}`;
 
         if (keys.length === 0) {
             container.innerHTML = `<div id="call-cart-empty" class="py-6 text-center text-xs text-soft font-bold">لم يتم اختيار وجبات بعد</div>`;
-            document.getElementById('call-subtotal').textContent = '0.00 ر.س';
-            document.getElementById('call-total').textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
-            if (mobileTotal) mobileTotal.textContent = `${callDeliveryFee.toFixed(2)} ر.س`;
+            document.getElementById('call-subtotal').textContent = `0.00 ${currentCallCurrency}`;
+            document.getElementById('call-total').textContent = `${callDeliveryFee.toFixed(2)} ${currentCallCurrency}`;
+            if (mobileTotal) mobileTotal.textContent = `${callDeliveryFee.toFixed(2)} ${currentCallCurrency}`;
             return;
         }
 
@@ -399,22 +415,22 @@
                 <div class="flex items-center justify-between py-2 text-xs">
                     <div class="min-w-0 flex-1">
                         <p class="font-bold text-ink truncate">${it.name}</p>
-                        <p class="text-[11px] text-soft font-body">${it.price} ر.س × ${it.qty}</p>
+                        <p class="text-[11px] text-soft font-body">${it.price} ${currentCallCurrency} × ${it.qty}</p>
                     </div>
                     <div class="flex items-center gap-1 mx-2 border border-line rounded-lg p-0.5 bg-paper/50">
                         <button onclick="updateCallItemQty(${it.id}, 1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-brand-100 font-bold text-brand-700">+</button>
                         <span class="w-5 text-center font-bold font-body">${it.qty}</span>
                         <button onclick="updateCallItemQty(${it.id}, -1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-bad-100 font-bold text-bad-700">-</button>
                     </div>
-                    <span class="font-black text-brand-700 w-14 text-left font-body">${(it.price * it.qty).toFixed(2)}</span>
+                    <span class="font-black text-brand-700 w-16 text-left font-body">${(it.price * it.qty).toFixed(2)} ${currentCallCurrency}</span>
                 </div>
             `;
         });
         container.innerHTML = html;
         const finalTotal = subtotal + callDeliveryFee;
-        document.getElementById('call-subtotal').textContent = `${subtotal.toFixed(2)} ر.س`;
-        document.getElementById('call-total').textContent = `${finalTotal.toFixed(2)} ر.س`;
-        if (mobileTotal) mobileTotal.textContent = `${finalTotal.toFixed(2)} ر.س`;
+        document.getElementById('call-subtotal').textContent = `${subtotal.toFixed(2)} ${currentCallCurrency}`;
+        document.getElementById('call-total').textContent = `${finalTotal.toFixed(2)} ${currentCallCurrency}`;
+        if (mobileTotal) mobileTotal.textContent = `${finalTotal.toFixed(2)} ${currentCallCurrency}`;
     }
 
     function scrollToCallTicket() {
