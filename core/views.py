@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.cache import never_cache
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse, HttpResponse, HttpResponseNotFound
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.text import slugify
 from django.db import transaction, IntegrityError
 from django.db.models import Sum, Count, F, Q
@@ -7218,6 +7218,7 @@ def digital_menu_view(request, slug=None, branch_id=None):
             "estimated_time": est_time,
         })
 
+    is_open = selected_branch.is_currently_open()
     cur_sym = selected_branch.get_currency_symbol_ar() if active_lang == "ar" else selected_branch.get_currency_symbol_en()
     cur_name = selected_branch.get_currency_name_ar()
     context = {

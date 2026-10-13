@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block title %}قائمة أصناف الفرع والتوفر — منظومة كُـورَا{% endblock %}
 
@@ -128,33 +129,56 @@
         {% for row in items_data %}
         <div 
             id="item-card-{{ row.item.id }}" 
-            class="classic-card p-4 flex flex-col justify-between transition-all duration-200 hover:border-[#D2AB6B] hover:shadow-md {% if not row.is_available %}opacity-70 bg-paper/60 border-bad-200{% endif %}"
+            class="classic-card p-4 flex flex-col justify-between transition-all duration-200 hover:border-[#D2AB6B] hover:shadow-md {% if not row.is_available %}opacity-75 bg-paper/50 border-rose-200{% endif %}"
         >
             <div>
-                <div class="flex items-start justify-between gap-2 mb-2">
-                    <div class="flex items-center gap-2.5">
+                <!-- Top Row: Icon/Image + Name + Category & Actions (Badges + Edit/Delete) -->
+                <div class="flex items-start justify-between gap-2.5 mb-2.5">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
                         {% if row.item.image %}
-                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="h-11 w-11 rounded-xl object-cover shadow-2xs border border-line flex-shrink-0">
+                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="h-12 w-12 rounded-xl object-cover shadow-2xs border border-line flex-shrink-0">
                         {% else %}
-                            <span class="medallion-icon-light flex h-11 w-11 items-center justify-center rounded-xl shadow-2xs flex-shrink-0 text-xl">
+                            <span class="medallion-icon-light flex h-12 w-12 items-center justify-center rounded-xl shadow-2xs flex-shrink-0 text-xl">
                                 {{ row.item.emoji|default:"🍽️" }}
                             </span>
                         {% endif %}
-                        <div class="min-w-0">
-                            <h3 class="font-bold text-sm text-ink leading-tight truncate">{{ row.item.name }}</h3>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-bold text-sm text-ink leading-tight truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
                             {% if row.item.name_en %}
                                 <span class="text-[10px] text-soft font-mono block truncate" dir="ltr">{{ row.item.name_en }}</span>
                             {% endif %}
                             <span class="text-[10px] font-bold text-soft block mt-0.5">{{ row.item.category }}</span>
                         </div>
                     </div>
-                    <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                        <span 
-                            id="badge-{{ row.item.id }}" 
-                            class="rounded-lg px-2 py-0.5 text-[10px] font-bold {% if row.is_available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
-                        >
-                            {% if row.is_available %}متوفر بالفرع{% else %}غير متوفر (نافد){% endif %}
-                        </span>
+
+                    <!-- Top-Left Badges & Management Icons -->
+                    <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <div class="flex items-center gap-1">
+                            {% if can_manage_menu %}
+                            <button 
+                                type="button" 
+                                onclick="openEditItemModal({{ row.item.id }})" 
+                                class="w-6 h-6 rounded-lg bg-paper border border-line text-soft hover:text-ink hover:border-[#D2AB6B] transition flex items-center justify-center shadow-2xs"
+                                title="تعديل بيانات الصنف"
+                            >
+                                <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button 
+                                type="button" 
+                                onclick="deleteMenuItem({{ row.item.id }}, '{{ row.item.name|escapejs }}')" 
+                                class="w-6 h-6 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition flex items-center justify-center shadow-2xs"
+                                title="حذف الصنف"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                            {% endif %}
+                            <span 
+                                id="badge-{{ row.item.id }}" 
+                                class="rounded-lg px-2 py-0.5 text-[10px] font-bold {% if row.is_available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
+                            >
+                                {% if row.is_available %}متوفر بالفرع{% else %}غير متوفر (نافد){% endif %}
+                            </span>
+                        </div>
                         {% if row.item.has_variants %}
                             <span class="rounded bg-sky-50 border border-sky-200 text-sky-800 text-[9px] font-extrabold px-1.5 py-0.2">
                                 {{ row.variants|length }} أحجام
@@ -167,7 +191,8 @@
                     <p class="text-[11px] text-soft line-clamp-2 my-1.5 leading-relaxed">{{ row.item.description }}</p>
                 {% endif %}
 
-                <div class="flex items-center justify-between text-xs py-2 my-1.5 border-y border-line/60">
+                <!-- Price Row -->
+                <div class="flex items-center justify-between text-xs py-2 my-2 border-y border-line/60">
                     <div class="flex flex-col">
                         <span class="text-soft font-bold">{% if row.item.has_variants %}يبدأ من:{% else %}سعر البيع:{% endif %}</span>
                         {% if row.custom_price %}
@@ -185,8 +210,9 @@
                 </div>
             </div>
 
-            <!-- Action Buttons: Toggle, Branch Price, All Branches, Edit, Delete -->
-            <div class="mt-2 pt-1 space-y-1.5">
+            <!-- Action Buttons: Clean & Spacious -->
+            <div class="mt-2 space-y-2">
+                <!-- 1. Availability Toggle (Full Width) -->
                 <button 
                     type="button" 
                     id="btn-{{ row.item.id }}"
@@ -202,49 +228,35 @@
                     {% endif %}
                 </button>
 
-                <div class="flex items-center gap-1.5">
+                <!-- 2. Pricing Buttons (Grid of 2) -->
+                <div class="{% if branch %}grid grid-cols-2 gap-2{% else %}flex{% endif %}">
                     {% if branch %}
+                    {% localize off %}
                     <button 
                         type="button" 
-                        onclick="openBranchPriceModal({{ row.item.id }}, '{{ row.item.name|escapejs }}', {{ row.custom_price|default:'null' }}, {{ row.item.price }})" 
-                        class="flex-1 rounded-xl py-1.5 px-2 text-xs font-bold bg-[#0E382A]/5 border border-[#D2AB6B]/50 text-[#0E382A] hover:bg-[#0E382A]/10 transition flex items-center justify-center gap-1 shadow-2xs"
+                        onclick="openBranchPriceModal({{ row.item.id }}, '{{ row.item.name|escapejs }}', {{ row.custom_price|default:'null' }}, {{ row.item.price|default:'0' }})" 
+                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-[#0E382A]/5 border border-[#D2AB6B]/50 text-[#0E382A] hover:bg-[#0E382A]/10 transition flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
                         title="تخصيص سعر الصنف لهذا الفرع"
                     >
                         <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>تسعير الفرع</span>
                     </button>
+                    {% endlocalize %}
                     {% endif %}
                     <button 
                         type="button" 
                         onclick="openItemAllBranchesPriceModal({{ row.item.id }})" 
-                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 transition flex items-center justify-center gap-1 shadow-2xs"
+                        class="{% if not branch %}w-full{% endif %} rounded-xl py-1.5 px-2 text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 transition flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
                         title="تخصيص أسعار كافة الفروع"
                     >
                         <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         <span>كل الفروع</span>
                     </button>
-
-                    {% if can_manage_menu %}
-                    <button 
-                        type="button" 
-                        onclick="openEditItemModal({{ row.item.id }})" 
-                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-paper border border-line text-ink hover:border-[#D2AB6B] transition flex items-center justify-center gap-1 shadow-2xs"
-                        title="تعديل بيانات الصنف"
-                    >
-                        <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    </button>
-                    <button 
-                        type="button" 
-                        onclick="deleteMenuItem({{ row.item.id }}, '{{ row.item.name|escapejs }}')" 
-                        class="rounded-xl py-1.5 px-2.5 text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition flex items-center justify-center shadow-2xs"
-                        title="حذف الصنف"
-                    >
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    </button>
-                    {% endif %}
                 </div>
+            </div>
 
             <!-- Hidden JSON for Edit Modal -->
+            {% localize off %}
             <script id="item-json-{{ row.item.id }}" type="application/json">
                 {
                     "id": {{ row.item.id }},
@@ -252,19 +264,20 @@
                     "name_en": "{{ row.item.name_en|default:''|escapejs }}",
                     "category_id": {{ row.item.category_rel.id|default:"null" }},
                     "category": "{{ row.item.category|escapejs }}",
-                    "price": {{ row.item.price }},
-                    "cost": {{ row.item.cost }},
+                    "price": {{ row.item.price|default:"0.0" }},
+                    "cost": {{ row.item.cost|default:"0.0" }},
                     "description": "{{ row.item.description|default:''|escapejs }}",
                     "description_en": "{{ row.item.description_en|default:''|escapejs }}",
                     "image_url": "{% if row.item.image %}{{ row.item.image.url }}{% endif %}",
                     "has_variants": {% if row.item.has_variants %}true{% else %}false{% endif %},
                     "variants": [
                         {% for v in row.variants %}
-                            {"id": {{ v.id }}, "name": "{{ v.name|escapejs }}", "name_en": "{{ v.name_en|default:''|escapejs }}", "price": {{ v.price }}, "cost": {{ v.cost }}}{% if not forloop.last %},{% endif %}
+                            {"id": {{ v.id }}, "name": "{{ v.name|escapejs }}", "name_en": "{{ v.name_en|default:''|escapejs }}", "price": {{ v.price|default:"0.0" }}, "cost": {{ v.cost|default:"0.0" }}}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ]
                 }
             </script>
+            {% endlocalize %}
         </div>
         {% empty %}
         <div class="col-span-full py-16 text-center text-soft classic-card p-8">
