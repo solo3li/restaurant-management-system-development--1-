@@ -2,8 +2,11 @@ import os
 import json
 import csv
 import sys
+import logging
 from decimal import Decimal
 from datetime import timedelta
+
+logger = logging.getLogger(__name__)
 
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -6381,8 +6384,10 @@ def api_ai_callcenter_whatsapp_conversation_messages(request, phone):
     res = ps.get_whatsapp_conversation_messages(client_id, phone=phone, limit=limit)
     if res.get("status") == "success" and "messages" in res:
         for m in res["messages"]:
-            if m.get("has_media") and m.get("id"):
+            if m.get("has_media") and not m.get("media_expired") and m.get("id"):
                 m["media_url"] = f"/api/ai-callcenter/whatsapp/messages/{m['id']}/media/"
+            elif m.get("media_expired"):
+                m["media_url"] = ""
     return JsonResponse(res)
 
 
@@ -6437,7 +6442,7 @@ def api_ai_callcenter_whatsapp_message_media(request, message_id):
             response["Accept-Ranges"] = "bytes"
         return response
     except Exception as e:
-        status_code = getattr(e, "code", 500)
+        status_code = getattr(e, "code", 404)
         logger.warning(f"Error streaming WhatsApp media {message_id}: {e}")
         return HttpResponse(f"Error loading media: {e}", status=status_code)
 
