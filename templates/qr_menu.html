@@ -79,7 +79,11 @@
                 <div>
                     <div class="flex items-center justify-center sm:justify-start gap-2">
                         <h1 class="text-2xl sm:text-3xl font-black font-royal text-white tracking-wide">{{ tenant.name }}</h1>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">مفتوح للطلب</span>
+                        {% if is_open %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">مفتوح للطلب</span>
+                        {% else %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-400/30">مغلق حالياً</span>
+                        {% endif %}
                     </div>
                     {% if tenant.bio %}
                         <p class="text-xs text-stone-200 mt-1 max-w-md line-clamp-2">{{ tenant.bio }}</p>
@@ -116,6 +120,26 @@
         </div>
     </div>
 
+    <!-- Branch Closed Notice (If branch is closed) -->
+    {% if not is_open %}
+    <div class="max-w-4xl mx-auto w-full px-4 pt-4 -mb-2 relative z-10">
+        <div class="bg-amber-50 border border-amber-300 rounded-2xl p-3 flex items-center gap-3 text-amber-950 shadow-sm">
+            <span class="text-2xl flex-shrink-0">⛔</span>
+            <div class="text-xs">
+                <p class="font-black text-amber-900">عذراً، فرع «{{ selected_branch.name }}» مغلق حالياً لاستقبال الطلبات</p>
+                <p class="text-stone-600 mt-0.5">
+                    {% if selected_branch.opening_time and selected_branch.closing_time %}
+                        ساعات العمل الرسمية: من {{ selected_branch.opening_time|time:"g:i A" }} وحتى {{ selected_branch.closing_time|time:"g:i A" }}.
+                    {% else %}
+                        الفرع متوقف مؤقتاً عن استقبال الطلبات بأمر الإدارة.
+                    {% endif %}
+                    يمكنك تصفح قائمة الوجبات والأسعار.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- ========================================== -->
     <!-- ORDER TYPE TOGGLE (TAKEAWAY vs DELIVERY)   -->
     <!-- ========================================== -->
@@ -144,14 +168,17 @@
                 <button type="button" onclick="clearSearch()" id="clear-search-btn" class="hidden absolute left-3 top-2 text-stone-400 hover:text-stone-700 text-xs font-bold">✕</button>
             </div>
 
-            <!-- Categories Horizontal Scroll -->
+            <!-- Categories Horizontal Scroll with Images -->
             <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                <button type="button" onclick="selectCategory('all')" class="cat-pill px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition bg-brand-600 text-white shadow-2xs" data-cat="all">
+                <button type="button" onclick="selectCategory('all')" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition bg-brand-600 text-white shadow-2xs" data-cat="all">
                     الكل
                 </button>
-                {% for cat in categories %}
-                <button type="button" onclick="selectCategory('{{ cat }}')" class="cat-pill px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-white text-stone-700 border border-stone-200 hover:border-gold-500 shadow-2xs" data-cat="{{ cat }}">
-                    {{ cat }}
+                {% for cat in category_objs %}
+                <button type="button" onclick="selectCategory('{{ cat.name|escapejs }}')" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-white text-stone-700 border border-stone-200 hover:border-gold-500 shadow-2xs flex items-center gap-1.5" data-cat="{{ cat.name }}">
+                    {% if cat.image_url %}
+                        <img src="{{ cat.image_url }}" alt="{{ cat.name }}" class="w-4 h-4 rounded object-cover border border-stone-200 flex-shrink-0">
+                    {% endif %}
+                    <span>{{ cat.name }}</span>
                 </button>
                 {% endfor %}
             </div>
@@ -162,49 +189,86 @@
     <!-- MENU ITEMS SECTION                         -->
     <!-- ========================================== -->
     <main class="max-w-4xl mx-auto w-full px-4 pt-4 flex-1">
-        {% if categorized_items %}
-            {% for cat, items in categorized_items.items %}
-            <section class="mb-8 category-section" data-cat="{{ cat }}">
-                <div class="flex items-center gap-2 mb-3.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-gold-500"></span>
-                    <h2 class="text-base font-black text-stone-900">{{ cat }}</h2>
-                    <span class="text-[11px] font-bold text-stone-400">({{ items|length }})</span>
+        {% if sections %}
+            {% for sec in sections %}
+            <section class="mb-8 category-section" data-cat="{{ sec.name }}">
+                <div class="flex items-center gap-2.5 mb-3.5">
+                    {% if sec.image_url %}
+                        <img src="{{ sec.image_url }}" alt="{{ sec.name }}" class="w-6 h-6 rounded-lg object-cover border border-stone-200 shadow-xs flex-shrink-0">
+                    {% else %}
+                        <span class="w-2.5 h-2.5 rounded-full bg-gold-500 flex-shrink-0"></span>
+                    {% endif %}
+                    <h2 class="text-base font-black text-stone-900">{{ sec.name }}</h2>
+                    <span class="text-[11px] font-bold text-stone-400">({{ sec.items|length }})</span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {% for item in items %}
-                    <div class="dish-card bg-white rounded-2xl p-3.5 border border-stone-200/90 shadow-2xs transition-all flex gap-3.5 justify-between items-start {% if not item.is_available %}opacity-60 bg-stone-50{% endif %}" data-item-id="{{ item.id }}" data-item-name="{{ item.name }}" data-item-cat="{{ cat }}">
-                        <!-- Details -->
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-sm font-black text-stone-900 leading-snug truncate">{{ item.name }}</h3>
-                            {% if item.description %}
-                                <p class="text-xs text-stone-500 mt-1 line-clamp-2 leading-relaxed font-normal">{{ item.description }}</p>
-                            {% endif %}
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-sm font-black text-brand-600" dir="ltr">
-                                    {{ item.price|floatformat:2 }} <span class="text-[10px] font-bold">ر.س</span>
-                                </span>
+                    {% for item in sec.items %}
+                    <div class="dish-card bg-white rounded-2xl p-3.5 border border-stone-200/90 shadow-2xs transition-all flex flex-col justify-between {% if not item.is_available %}opacity-60 bg-stone-50{% endif %}" data-item-id="{{ item.id }}" data-item-name="{{ item.name }}" data-item-cat="{{ sec.name }}" data-has-variants="{{ item.has_variants|yesno:'1,0' }}" data-base-price="{{ item.price }}">
+                        <!-- Top details & image -->
+                        <div class="flex gap-3 justify-between items-start">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-sm font-black text-stone-900 leading-snug truncate">{{ item.name }}</h3>
+                                {% if item.description %}
+                                    <p class="text-xs text-stone-500 mt-1 line-clamp-2 leading-relaxed font-normal">{{ item.description }}</p>
+                                {% endif %}
+                            </div>
 
-                                <!-- Add / Counter Controls -->
-                                {% if item.is_available %}
-                                    <div id="controls-{{ item.id }}" class="flex items-center gap-2">
-                                        <button type="button" onclick="addToCart({{ item.id }}, '{{ item.name|escapejs }}', {{ item.price }}, '{{ item.emoji|escapejs }}')" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black transition flex items-center gap-1 shadow-2xs">
-                                            <span>+</span>
-                                            <span>أضف</span>
-                                        </button>
-                                    </div>
+                            <!-- Dish Image -->
+                            <div class="w-20 h-20 rounded-xl bg-stone-100 flex-shrink-0 overflow-hidden flex items-center justify-center border border-stone-200">
+                                {% if item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="w-full h-full object-cover">
                                 {% else %}
-                                    <span class="px-2.5 py-1 rounded-lg bg-stone-200 text-stone-600 text-[10px] font-black">نفد اليوم</span>
+                                    <span class="text-3xl">{{ item.emoji|default:"🍽️" }}</span>
                                 {% endif %}
                             </div>
                         </div>
 
-                        <!-- Image / Emoji Thumbnail -->
-                        <div class="w-20 h-20 rounded-xl bg-stone-100 flex-shrink-0 overflow-hidden flex items-center justify-center border border-stone-200">
-                            {% if item.image_url %}
-                                <img src="{{ item.image_url }}" alt="{{ item.name }}" class="w-full h-full object-cover">
+                        <!-- Variant / Size Choices (If available) -->
+                        {% if item.has_variants %}
+                        <div class="mt-2.5 pt-2 border-t border-stone-100">
+                            <span class="text-[10px] font-bold text-stone-400 block mb-1">اختر الحجم:</span>
+                            <div class="flex flex-wrap items-center gap-1.5" id="variant-group-{{ item.id }}">
+                                {% for v in item.variants %}
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="variant_{{ item.id }}" value="{{ v.id }}" data-name="{{ v.name }}" data-price="{{ v.price }}" {% if v.is_default or forloop.first %}checked{% endif %} onchange="onVariantSelect({{ item.id }})" class="sr-only peer">
+                                    <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold border border-stone-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 text-stone-600 transition flex items-center gap-1">
+                                        <span>{{ v.name }}</span>
+                                        <span class="text-[10px] text-stone-400 font-normal">({{ v.price|floatformat:2 }})</span>
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Price & Action Button -->
+                        <div class="mt-3 pt-2 border-t border-stone-50 flex items-center justify-between">
+                            <div>
+                                {% if item.has_variants %}
+                                    <span class="text-[10px] text-stone-400 font-bold block leading-none">السعر:</span>
+                                    <span id="price-display-{{ item.id }}" class="text-sm font-black text-brand-600" dir="ltr">
+                                        {{ item.min_price|floatformat:2 }} <span class="text-[10px] font-bold">ر.س</span>
+                                    </span>
+                                {% else %}
+                                    <span class="text-sm font-black text-brand-600" dir="ltr">
+                                        {{ item.price|floatformat:2 }} <span class="text-[10px] font-bold">ر.س</span>
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Controls -->
+                            {% if not item.is_available %}
+                                <span class="px-2.5 py-1 rounded-lg bg-stone-200 text-stone-600 text-[10px] font-black">نفد اليوم</span>
+                            {% elif not is_open %}
+                                <span class="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-400 text-[10px] font-bold">الفرع مغلق</span>
                             {% else %}
-                                <span class="text-3xl">{{ item.emoji|default:"🍽️" }}</span>
+                                <div id="controls-{{ item.id }}" class="flex items-center gap-2">
+                                    <button type="button" onclick="handleItemAdd({{ item.id }}, '{{ item.name|escapejs }}', {{ item.price }}, '{{ item.emoji|escapejs }}', {{ item.has_variants|yesno:'true,false' }})" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black transition flex items-center gap-1 shadow-2xs">
+                                        <span>+</span>
+                                        <span>أضف</span>
+                                    </button>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -327,6 +391,14 @@
                         <span id="summary-total" class="text-brand-600">0.00 ر.س</span>
                     </div>
                 </div>
+
+                <!-- Minimum Delivery Warning Alert -->
+                <div id="min-delivery-alert" class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold hidden flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span>🛵</span>
+                        <span id="min-delivery-text">الحد الأدنى لطلب التوصيل: {{ min_delivery_order }} ر.س</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Modal Footer -->
@@ -379,8 +451,10 @@
     <script>
         const TENANT_SLUG = "{{ tenant.slug }}";
         const SELECTED_BRANCH_ID = {{ selected_branch.id|default:0 }};
+        const IS_BRANCH_OPEN = {{ is_open|yesno:"true,false" }};
+        const MIN_DELIVERY_ORDER = parseFloat("{{ min_delivery_order|default:0 }}");
         let currentOrderType = 'takeaway';
-        let cart = {}; // { itemId: { name, price, qty, emoji } }
+        let cart = {}; // { [cartKey]: { key, itemId, variantId, variantName, name, price, qty, emoji } }
 
         function setOrderType(type) {
             currentOrderType = type;
@@ -410,9 +484,9 @@
         function selectCategory(cat) {
             document.querySelectorAll('.cat-pill').forEach(btn => {
                 if (btn.getAttribute('data-cat') === cat) {
-                    btn.className = 'cat-pill px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition bg-brand-600 text-white shadow-2xs';
+                    btn.className = 'cat-pill px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition bg-brand-600 text-white shadow-2xs flex items-center gap-1.5';
                 } else {
-                    btn.className = 'cat-pill px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-white text-stone-700 border border-stone-200 hover:border-gold-500 shadow-2xs';
+                    btn.className = 'cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-white text-stone-700 border border-stone-200 hover:border-gold-500 shadow-2xs flex items-center gap-1.5';
                 }
             });
 
@@ -451,44 +525,107 @@
             filterDishes();
         }
 
-        function addToCart(id, name, price, emoji) {
-            if (!cart[id]) {
-                cart[id] = { name: name, price: parseFloat(price), qty: 1, emoji: emoji };
-            } else {
-                cart[id].qty += 1;
-            }
-            updateCartSummary();
-            renderItemControls(id);
+        function escapeQuotes(str) {
+            return (str || '').replace(/'/g, "\\'");
         }
 
-        function updateItemQty(id, delta) {
-            if (!cart[id]) return;
-            cart[id].qty += delta;
-            if (cart[id].qty <= 0) {
-                delete cart[id];
+        function onVariantSelect(itemId) {
+            const radio = document.querySelector(`input[name="variant_${itemId}"]:checked`);
+            if (!radio) return;
+            const vPrice = parseFloat(radio.getAttribute('data-price') || 0);
+            const priceDisplay = document.getElementById(`price-display-${itemId}`);
+            if (priceDisplay) {
+                priceDisplay.innerHTML = `${vPrice.toFixed(2)} <span class="text-[10px] font-bold">ر.س</span>`;
+            }
+            renderItemControls(itemId);
+        }
+
+        function handleItemAdd(itemId, baseName, basePrice, emoji, hasVariants) {
+            if (!IS_BRANCH_OPEN) {
+                alert('عذراً، هذا الفرع مغلق حالياً لاستقبال الطلبات.');
+                return;
+            }
+
+            let activeKey = `${itemId}`;
+            let variantId = null;
+            let variantName = '';
+            let price = parseFloat(basePrice);
+            let fullName = baseName;
+
+            if (hasVariants) {
+                const radio = document.querySelector(`input[name="variant_${itemId}"]:checked`);
+                if (radio) {
+                    variantId = parseInt(radio.value);
+                    variantName = radio.getAttribute('data-name') || '';
+                    price = parseFloat(radio.getAttribute('data-price') || 0);
+                    activeKey = `${itemId}_${variantId}`;
+                    fullName = `${baseName} (${variantName})`;
+                }
+            }
+
+            if (!cart[activeKey]) {
+                cart[activeKey] = {
+                    key: activeKey,
+                    itemId: itemId,
+                    variantId: variantId,
+                    variantName: variantName,
+                    name: fullName,
+                    price: price,
+                    qty: 1,
+                    emoji: emoji || '🍽️'
+                };
+            } else {
+                cart[activeKey].qty += 1;
+            }
+
+            updateCartSummary();
+            renderItemControls(itemId);
+        }
+
+        function updateCartKeyQty(key, delta) {
+            if (!cart[key]) return;
+            cart[key].qty += delta;
+            const itemId = cart[key].itemId;
+            if (cart[key].qty <= 0) {
+                delete cart[key];
             }
             updateCartSummary();
-            renderItemControls(id);
+            renderItemControls(itemId);
             renderCartModalList();
         }
 
-        function renderItemControls(id) {
-            const container = document.getElementById(`controls-${id}`);
+        function renderItemControls(itemId) {
+            const container = document.getElementById(`controls-${itemId}`);
             if (!container) return;
-            const item = cart[id];
-            if (item && item.qty > 0) {
+            const card = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (!card) return;
+            const hasVariants = card.getAttribute('data-has-variants') === '1';
+
+            let activeKey = `${itemId}`;
+            let activePrice = parseFloat(card.getAttribute('data-base-price') || 0);
+
+            if (hasVariants) {
+                const radio = document.querySelector(`input[name="variant_${itemId}"]:checked`);
+                if (radio) {
+                    const activeVariantId = parseInt(radio.value);
+                    activePrice = parseFloat(radio.getAttribute('data-price') || 0);
+                    activeKey = `${itemId}_${activeVariantId}`;
+                }
+            }
+
+            const itemInCart = cart[activeKey];
+            if (itemInCart && itemInCart.qty > 0) {
                 container.innerHTML = `
                     <div class="flex items-center gap-1.5 bg-stone-100 rounded-xl p-1 border border-stone-200 shadow-2xs">
-                        <button type="button" onclick="updateItemQty(${id}, -1)" class="w-6 h-6 rounded-lg bg-white text-stone-800 hover:bg-rose-50 hover:text-rose-600 font-black text-xs flex items-center justify-center border border-stone-200">−</button>
-                        <span class="w-5 text-center font-black text-xs text-brand-600">${item.qty}</span>
-                        <button type="button" onclick="updateItemQty(${id}, 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black text-xs flex items-center justify-center shadow-xs">+</button>
+                        <button type="button" onclick="updateCartKeyQty('${activeKey}', -1)" class="w-6 h-6 rounded-lg bg-white text-stone-800 hover:bg-rose-50 hover:text-rose-600 font-black text-xs flex items-center justify-center border border-stone-200">−</button>
+                        <span class="w-5 text-center font-black text-xs text-brand-600">${itemInCart.qty}</span>
+                        <button type="button" onclick="updateCartKeyQty('${activeKey}', 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black text-xs flex items-center justify-center shadow-xs">+</button>
                     </div>
                 `;
             } else {
-                const card = document.querySelector(`[data-item-id="${id}"]`);
-                const name = card ? card.getAttribute('data-item-name') : '';
+                const name = card.getAttribute('data-item-name') || '';
                 container.innerHTML = `
-                    <button type="button" onclick="addToCart(${id}, '${escapeQuotes(name)}', ${item ? item.price : 0})" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black transition flex items-center gap-1 shadow-2xs">
+                    <button type="button" onclick="handleItemAdd(${itemId}, '${escapeQuotes(name)}', ${activePrice}, '🍽️', ${hasVariants})" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black transition flex items-center gap-1 shadow-2xs">
                         <span>+</span>
                         <span>أضف</span>
                     </button>
@@ -496,16 +633,12 @@
             }
         }
 
-        function escapeQuotes(str) {
-            return (str || '').replace(/'/g, "\\'");
-        }
-
         function updateCartSummary() {
             let totalCount = 0;
             let subtotal = 0;
-            for (const id in cart) {
-                totalCount += cart[id].qty;
-                subtotal += (cart[id].price * cart[id].qty);
+            for (const k in cart) {
+                totalCount += cart[k].qty;
+                subtotal += (cart[k].price * cart[k].qty);
             }
 
             const floatCart = document.getElementById('floating-cart');
@@ -520,7 +653,7 @@
                 floatCart.classList.add('translate-y-full');
             }
 
-            // Summary calculations
+            // Delivery calculation
             let deliveryFee = 0;
             if (currentOrderType === 'delivery') {
                 const selectArea = document.getElementById('delivery-area-select');
@@ -538,6 +671,26 @@
             if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' ر.س';
             if (deliveryFeeEl) deliveryFeeEl.textContent = deliveryFee.toFixed(2) + ' ر.س';
             if (totalEl) totalEl.textContent = grandTotal.toFixed(2) + ' ر.س';
+
+            // Minimum delivery check
+            const minAlert = document.getElementById('min-delivery-alert');
+            const minText = document.getElementById('min-delivery-text');
+
+            if (minAlert) {
+                if (currentOrderType === 'delivery' && MIN_DELIVERY_ORDER > 0) {
+                    minAlert.classList.remove('hidden');
+                    if (subtotal < MIN_DELIVERY_ORDER) {
+                        minAlert.className = 'p-3 rounded-2xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold flex items-center justify-between';
+                        const diff = (MIN_DELIVERY_ORDER - subtotal).toFixed(2);
+                        minText.innerHTML = `<span>الحد الأدنى للتوصيل: <strong>${MIN_DELIVERY_ORDER} ر.س</strong> (متبقي: ${diff} ر.س)</span>`;
+                    } else {
+                        minAlert.className = 'p-3 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-between';
+                        minText.innerHTML = `<span>✓ تم استيفاء الحد الأدنى لطلب التوصيل (${MIN_DELIVERY_ORDER} ر.س)</span>`;
+                    }
+                } else {
+                    minAlert.classList.add('hidden');
+                }
+            }
         }
 
         function updateDeliveryFee() {
@@ -556,13 +709,13 @@
         function renderCartModalList() {
             const container = document.getElementById('cart-items-container');
             if (!container) return;
-            const items = Object.entries(cart);
+            const items = Object.values(cart);
             if (items.length === 0) {
                 container.innerHTML = '<p class="text-xs text-stone-400 italic text-center py-4">السلة فارغة حالياً</p>';
                 return;
             }
 
-            container.innerHTML = items.map(([id, it]) => `
+            container.innerHTML = items.map(it => `
                 <div class="flex items-center justify-between p-2.5 bg-stone-50 rounded-xl border border-stone-200 text-xs">
                     <div class="flex items-center gap-2">
                         <span class="text-base">${it.emoji || '🍽️'}</span>
@@ -572,15 +725,30 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <button type="button" onclick="updateItemQty(${id}, -1)" class="w-6 h-6 rounded-lg bg-white border border-stone-300 font-black text-xs">−</button>
+                        <button type="button" onclick="updateCartKeyQty('${it.key}', -1)" class="w-6 h-6 rounded-lg bg-white border border-stone-300 font-black text-xs hover:bg-rose-50 hover:text-rose-600">−</button>
                         <span class="w-5 text-center font-bold text-xs">${it.qty}</span>
-                        <button type="button" onclick="updateItemQty(${id}, 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black text-xs">+</button>
+                        <button type="button" onclick="updateCartKeyQty('${it.key}', 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black text-xs">+</button>
                     </div>
                 </div>
             `).join('');
         }
 
         async function submitOrder() {
+            if (!IS_BRANCH_OPEN) {
+                alert('عذراً، هذا الفرع مغلق حالياً ولا يستقبل طلبات جديدة.');
+                return;
+            }
+
+            let subtotal = 0;
+            for (const k in cart) {
+                subtotal += (cart[k].price * cart[k].qty);
+            }
+
+            if (currentOrderType === 'delivery' && MIN_DELIVERY_ORDER > 0 && subtotal < MIN_DELIVERY_ORDER) {
+                alert(`عذراً، الحد الأدنى لطلب التوصيل من هذا الفرع هو ${MIN_DELIVERY_ORDER} ر.س. (المجموع الحالي: ${subtotal.toFixed(2)} ر.س). يرجى إضافة وجبات أخرى.`);
+                return;
+            }
+
             const btn = document.getElementById('btn-submit-order');
             const name = (document.getElementById('cust-name').value || '').trim();
             const phone = (document.getElementById('cust-phone').value || '').trim();
@@ -612,8 +780,9 @@
                 }
             }
 
-            const itemsArray = Object.entries(cart).map(([id, it]) => ({
-                menuItemId: parseInt(id),
+            const itemsArray = Object.values(cart).map(it => ({
+                menuItemId: it.itemId,
+                variantId: it.variantId || null,
                 qty: it.qty,
                 notes: ''
             }));
@@ -676,12 +845,20 @@
         function resetOrderAndClose() {
             cart = {};
             updateCartSummary();
-            document.querySelectorAll('[id^="controls-"]').forEach(c => {
-                const id = c.id.replace('controls-', '');
+            document.querySelectorAll('[data-item-id]').forEach(card => {
+                const id = card.getAttribute('data-item-id');
                 renderItemControls(id);
             });
             document.getElementById('success-modal').classList.add('hidden');
         }
+
+        // Initialize variant prices on load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-has-variants="1"]').forEach(card => {
+                const id = card.getAttribute('data-item-id');
+                onVariantSelect(id);
+            });
+        });
     </script>
 </body>
 </html>

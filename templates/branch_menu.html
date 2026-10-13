@@ -33,11 +33,29 @@
             <button 
                 type="button" 
                 onclick="openQrBrandingModal()" 
-                class="btn-gold-pill px-3.5 py-1.5 text-xs font-black shadow-2xs flex items-center gap-1.5"
+                class="rounded-xl bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-[#D2AB6B] transition shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                <span>شعار وهُوية المنيو والـ QR</span>
+                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <span>الـ QR والهوية</span>
             </button>
+            {% if can_manage_menu %}
+            <button 
+                type="button" 
+                onclick="openCategoryModal()" 
+                class="rounded-xl bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-[#D2AB6B] transition shadow-2xs flex items-center gap-1.5"
+            >
+                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <span>إدارة الأقسام</span>
+            </button>
+            <button 
+                type="button" 
+                onclick="openCreateItemModal()" 
+                class="btn-gold-pill px-4 py-1.5 text-xs font-black shadow-2xs flex items-center gap-1.5"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>+ إضافة صنف جديد</span>
+            </button>
+            {% endif %}
         </div>
     </div>
 
@@ -58,13 +76,23 @@
     <div class="classic-card p-4 space-y-3">
         <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-3">
             <!-- Category Pills -->
-            <div class="flex flex-wrap gap-1.5">
-                {% for c in categories %}
+            <!-- Category Pills with images -->
+            <div class="flex flex-wrap items-center gap-1.5">
                 <a 
-                    href="?cat={{ c }}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all {% if selected_cat == c %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}bg-paper text-soft hover:text-ink border border-line hover:border-[#D2AB6B]{% endif %}"
+                    href="?cat=الكل{% if search_query %}&q={{ search_query }}{% endif %}" 
+                    class="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all {% if selected_cat == 'الكل' %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}bg-paper text-soft hover:text-ink border border-line hover:border-[#D2AB6B]{% endif %}"
                 >
-                    {{ c }}
+                    الكل
+                </a>
+                {% for c in category_objs %}
+                <a 
+                    href="?cat={{ c.name }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+                    class="rounded-xl px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 {% if selected_cat == c.name %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}bg-paper text-soft hover:text-ink border border-line hover:border-[#D2AB6B]{% endif %}"
+                >
+                    {% if c.image %}
+                        <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-4 h-4 rounded-full object-cover">
+                    {% endif %}
+                    <span>{{ c.name }}</span>
                 </a>
                 {% endfor %}
             </div>
@@ -105,30 +133,45 @@
             <div>
                 <div class="flex items-start justify-between gap-2 mb-2">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
-                            <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                        </span>
-                        <div>
-                            <h3 class="font-bold text-sm text-ink leading-tight">{{ row.item.name }}</h3>
-                            <span class="text-[10px] font-bold text-soft">{{ row.item.category }}</span>
+                        {% if row.item.image %}
+                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="h-11 w-11 rounded-xl object-cover shadow-2xs border border-line flex-shrink-0">
+                        {% else %}
+                            <span class="medallion-icon-light flex h-11 w-11 items-center justify-center rounded-xl shadow-2xs flex-shrink-0 text-xl">
+                                {{ row.item.emoji|default:"🍽️" }}
+                            </span>
+                        {% endif %}
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-sm text-ink leading-tight truncate">{{ row.item.name }}</h3>
+                            <span class="text-[10px] font-bold text-soft block mt-0.5">{{ row.item.category }}</span>
                         </div>
                     </div>
-                    <span 
-                        id="badge-{{ row.item.id }}" 
-                        class="rounded-lg px-2 py-0.5 text-[10px] font-bold {% if row.is_available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
-                    >
-                        {% if row.is_available %}متوفر بالفرع{% else %}غير متوفر (نافد){% endif %}
-                    </span>
+                    <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                        <span 
+                            id="badge-{{ row.item.id }}" 
+                            class="rounded-lg px-2 py-0.5 text-[10px] font-bold {% if row.is_available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
+                        >
+                            {% if row.is_available %}متوفر بالفرع{% else %}غير متوفر (نافد){% endif %}
+                        </span>
+                        {% if row.item.has_variants %}
+                            <span class="rounded bg-sky-50 border border-sky-200 text-sky-800 text-[9px] font-extrabold px-1.5 py-0.2">
+                                {{ row.variants|length }} أحجام
+                            </span>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between text-xs py-2 my-2 border-y border-line/60">
-                    <span class="text-soft font-bold">سعر البيع:</span>
-                    <span class="font-extrabold text-ink font-body text-sm">{{ row.item.price }} <span class="text-[10px] font-bold text-soft">ر.س</span></span>
+                {% if row.item.description %}
+                    <p class="text-[11px] text-soft line-clamp-2 my-1.5 leading-relaxed">{{ row.item.description }}</p>
+                {% endif %}
+
+                <div class="flex items-center justify-between text-xs py-2 my-1.5 border-y border-line/60">
+                    <span class="text-soft font-bold">{% if row.item.has_variants %}يبدأ من:{% else %}سعر البيع:{% endif %}</span>
+                    <span class="font-extrabold text-ink font-body text-sm">{{ row.item.min_price }} <span class="text-[10px] font-bold text-soft">ر.س</span></span>
                 </div>
             </div>
 
-            <!-- Action Toggle Button -->
-            <div class="mt-2 pt-1">
+            <!-- Action Buttons: Toggle, Edit, Delete -->
+            <div class="mt-2 pt-1 space-y-1.5">
                 <button 
                     type="button" 
                     id="btn-{{ row.item.id }}"
@@ -143,7 +186,48 @@
                         <span>إعادة التفعيل بالفرع</span>
                     {% endif %}
                 </button>
+
+                {% if can_manage_menu %}
+                <div class="flex items-center gap-1.5">
+                    <button 
+                        type="button" 
+                        onclick="openEditItemModal({{ row.item.id }})" 
+                        class="flex-1 rounded-xl py-1.5 px-2 text-xs font-bold bg-paper border border-line text-ink hover:border-[#D2AB6B] transition flex items-center justify-center gap-1 shadow-2xs"
+                    >
+                        <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <span>تعديل</span>
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="deleteMenuItem({{ row.item.id }}, '{{ row.item.name|escapejs }}')" 
+                        class="rounded-xl py-1.5 px-2.5 text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition flex items-center justify-center shadow-2xs"
+                        title="حذف الصنف"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+                {% endif %}
             </div>
+
+            <!-- Hidden JSON for Edit Modal -->
+            <script id="item-json-{{ row.item.id }}" type="application/json">
+                {
+                    "id": {{ row.item.id }},
+                    "name": "{{ row.item.name|escapejs }}",
+                    "category_id": {{ row.item.category_rel.id|default:"null" }},
+                    "category": "{{ row.item.category|escapejs }}",
+                    "price": {{ row.item.price }},
+                    "cost": {{ row.item.cost }},
+                    "description": "{{ row.item.description|default:''|escapejs }}",
+                    "image_url": "{% if row.item.image %}{{ row.item.image.url }}{% endif %}",
+                    "has_variants": {% if row.item.has_variants %}true{% else %}false{% endif %},
+                    "variants": [
+                        {% for v in row.variants %}
+                            {"id": {{ v.id }}, "name": "{{ v.name|escapejs }}", "price": {{ v.price }}, "cost": {{ v.cost }}}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }
+            </script>
         </div>
         {% empty %}
         <div class="col-span-full py-16 text-center text-soft classic-card p-8">
@@ -557,4 +641,515 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- Modal: Item Create & Edit Modal -->
+<!-- ========================================== -->
+<div id="item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-body" onclick="closeItemModal()">
+    <div class="relative w-full max-w-xl max-h-[92vh] overflow-y-auto classic-card p-6 shadow-2xl" onclick="event.stopPropagation()">
+        
+        <div class="flex items-center justify-between border-b border-line pb-4">
+            <div class="flex items-center gap-3">
+                <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                    <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-lg font-bold font-royal text-ink" id="itemModalTitle">إضافة صنف جديد</h2>
+                    <p class="text-xs font-bold text-soft">بيانات الطبق، الأسعار، الأحجام والصورة</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeItemModal()" class="rounded-lg p-1.5 text-soft hover:bg-paper hover:text-ink transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <form id="itemForm" onsubmit="saveMenuItem(event)" class="space-y-4 pt-4">
+            <input type="hidden" id="itemModalId" value="">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1">اسم الصنف <span class="text-rose-500">*</span></label>
+                    <input type="text" id="itemModalName" required class="input text-xs w-full" placeholder="مثال: كلاسيك برجر لحم">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1">القسم / التصنيف <span class="text-rose-500">*</span></label>
+                    <select id="itemModalCategory" required class="input text-xs w-full">
+                        {% for c in category_objs %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-ink mb-1">وصف الطبق والمكونات</label>
+                <textarea id="itemModalDescription" rows="2" class="input text-xs w-full" placeholder="لحم بلدي مشوي طازج، صوص الشيف، جبن شيدر ذائب..."></textarea>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="p-3 rounded-2xl bg-paper/60 border border-line space-y-2">
+                <label class="block text-xs font-bold text-ink">صورة الصنف</label>
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 rounded-xl bg-white border border-line flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="itemModalImgPreview" src="" alt="Preview" class="w-full h-full object-cover hidden">
+                        <span id="itemModalImgPlaceholder" class="text-2xl">🍽️</span>
+                    </div>
+                    <div class="flex-1">
+                        <input type="file" id="itemModalImage" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
+                        <p class="text-[10px] text-soft mt-1">صورة واضحة للطبق بدقة جيدة (PNG / JPG / WEBP).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sizes / Variants Toggle -->
+            <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-amber-950 block">هل يحتوي الصنف على أحجام متعددة؟</span>
+                        <span class="text-[10px] text-amber-800">مثل: صغير / وسط / كبير بأسعار مختلفة</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="itemModalHasVariants" onchange="toggleVariantSection()" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0E382A]"></div>
+                    </label>
+                </div>
+
+                <!-- Single Price Inputs (if no variants) -->
+                <div id="singlePriceSection" class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label class="block text-xs font-bold text-ink mb-1">سعر البيع (ر.س) <span class="text-rose-500">*</span></label>
+                        <input type="number" step="0.25" min="0" id="itemModalPrice" class="input text-xs w-full" placeholder="25.00">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-ink mb-1">التكلفة التقريبية (ر.س)</label>
+                        <input type="number" step="0.25" min="0" id="itemModalCost" class="input text-xs w-full" placeholder="10.00">
+                    </div>
+                </div>
+
+                <!-- Variants Table (if has variants) -->
+                <div id="variantsSection" class="space-y-2 hidden pt-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-ink">قائمة الأحجام والأسعار:</span>
+                        <button type="button" onclick="addVariantRow()" class="px-2.5 py-1 rounded-lg bg-[#0E382A] text-[#E6C898] text-[10px] font-bold shadow-2xs hover:bg-[#124634]">
+                            + إضافة حجم
+                        </button>
+                    </div>
+                    <div id="variantsContainer" class="space-y-2">
+                        <!-- Dynamic variant rows -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-line">
+                <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-xl border border-line text-xs font-bold text-soft hover:bg-paper">
+                    إلغاء
+                </button>
+                <button type="submit" id="btnSaveItem" class="btn-gold-pill px-5 py-2 text-xs font-black shadow-2xs">
+                    حفظ الصنف
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- Modal: Category Management Modal -->
+<!-- ========================================== -->
+<div id="category-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-body" onclick="closeCategoryModal()">
+    <div class="relative w-full max-w-xl max-h-[92vh] overflow-y-auto classic-card p-6 shadow-2xl" onclick="event.stopPropagation()">
+        
+        <div class="flex items-center justify-between border-b border-line pb-4">
+            <div class="flex items-center gap-3">
+                <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                    <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-lg font-bold font-royal text-ink">إدارة أقسام وتصنيفات المنيو</h2>
+                    <p class="text-xs font-bold text-soft">إضافة، تعديل، وترتيب أقسام المنيو مع صور الأقسام</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeCategoryModal()" class="rounded-lg p-1.5 text-soft hover:bg-paper hover:text-ink transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="space-y-5 pt-4">
+            <!-- Add / Edit Form -->
+            <form id="categoryForm" onsubmit="saveCategory(event)" class="p-3.5 rounded-2xl bg-paper/70 border border-line space-y-3">
+                <input type="hidden" id="categoryModalId" value="">
+                <h3 class="text-xs font-bold text-ink" id="catFormTitle">إضافة قسم جديد:</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-soft mb-1">اسم القسم <span class="text-rose-500">*</span></label>
+                        <input type="text" id="catModalName" required class="input text-xs w-full" placeholder="مثال: بيتزا، شاورما، حلويات">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-soft mb-1">ترتيب الظهور</label>
+                        <input type="number" id="catModalOrder" value="10" class="input text-xs w-full">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-soft mb-1">صورة القسم (Icon / Image)</label>
+                    <input type="file" id="catModalImage" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-1">
+                    <button type="button" id="btnCancelCatEdit" onclick="resetCategoryForm()" class="px-3 py-1.5 rounded-xl border border-line text-xs font-bold text-soft hidden">
+                        إلغاء التعديل
+                    </button>
+                    <button type="submit" id="btnSaveCategory" class="btn-gold-pill px-4 py-1.5 text-xs font-black shadow-2xs">
+                        حفظ القسم
+                    </button>
+                </div>
+            </form>
+
+            <!-- Categories List -->
+            <div>
+                <h3 class="text-xs font-bold text-ink mb-2">الأقسام الحالية ({{ category_objs|length }}):</h3>
+                <div class="space-y-1.5 max-h-60 overflow-y-auto">
+                    {% for c in category_objs %}
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-paper border border-line" id="cat-row-{{ c.id }}">
+                        <div class="flex items-center gap-2.5">
+                            {% if c.image %}
+                                <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-8 h-8 rounded-lg object-cover border border-line">
+                            {% else %}
+                                <span class="w-8 h-8 rounded-lg bg-paper-light border border-line flex items-center justify-center text-xs text-soft font-bold">📁</span>
+                            {% endif %}
+                            <div>
+                                <span class="font-bold text-xs text-ink block leading-tight">{{ c.name }}</span>
+                                <span class="text-[10px] text-soft font-bold">الترتيب: {{ c.ordering }} • الأصناف: {{ c.items.count }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="editCategory({{ c.id }}, '{{ c.name|escapejs }}', {{ c.ordering }})" class="p-1.5 rounded-lg text-soft hover:text-ink hover:bg-paper-light transition" title="تعديل">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button type="button" onclick="deleteCategory({{ c.id }}, '{{ c.name|escapejs }}')" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="حذف">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==========================================
+// Item CRUD UI Script
+// ==========================================
+function openCreateItemModal() {
+    document.getElementById('itemModalTitle').innerText = 'إضافة صنف جديد';
+    document.getElementById('itemModalId').value = '';
+    document.getElementById('itemModalName').value = '';
+    document.getElementById('itemModalDescription').value = '';
+    document.getElementById('itemModalPrice').value = '';
+    document.getElementById('itemModalCost').value = '';
+    document.getElementById('itemModalImage').value = '';
+    document.getElementById('itemModalImgPreview').classList.add('hidden');
+    document.getElementById('itemModalImgPlaceholder').classList.remove('hidden');
+    document.getElementById('itemModalHasVariants').checked = false;
+    document.getElementById('variantsContainer').innerHTML = '';
+    toggleVariantSection();
+
+    const modal = document.getElementById('item-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function openEditItemModal(itemId) {
+    const jsonEl = document.getElementById(`item-json-${itemId}`);
+    if (!jsonEl) return;
+    const item = JSON.parse(jsonEl.textContent);
+
+    document.getElementById('itemModalTitle').innerText = 'تعديل الصنف';
+    document.getElementById('itemModalId').value = item.id;
+    document.getElementById('itemModalName').value = item.name;
+    document.getElementById('itemModalDescription').value = item.description || '';
+    document.getElementById('itemModalPrice').value = item.price;
+    document.getElementById('itemModalCost').value = item.cost || '';
+    document.getElementById('itemModalImage').value = '';
+
+    if (item.category_id) {
+        document.getElementById('itemModalCategory').value = item.category_id;
+    }
+
+    if (item.image_url) {
+        const preview = document.getElementById('itemModalImgPreview');
+        preview.src = item.image_url;
+        preview.classList.remove('hidden');
+        document.getElementById('itemModalImgPlaceholder').classList.add('hidden');
+    } else {
+        document.getElementById('itemModalImgPreview').classList.add('hidden');
+        document.getElementById('itemModalImgPlaceholder').classList.remove('hidden');
+    }
+
+    const hasVariants = item.has_variants && item.variants && item.variants.length > 0;
+    document.getElementById('itemModalHasVariants').checked = hasVariants;
+    const container = document.getElementById('variantsContainer');
+    container.innerHTML = '';
+    if (hasVariants) {
+        item.variants.forEach(v => {
+            addVariantRow(v.name, v.price, v.cost);
+        });
+    }
+    toggleVariantSection();
+
+    const modal = document.getElementById('item-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeItemModal() {
+    const modal = document.getElementById('item-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function toggleVariantSection() {
+    const isChecked = document.getElementById('itemModalHasVariants').checked;
+    const singleSection = document.getElementById('singlePriceSection');
+    const variantsSection = document.getElementById('variantsSection');
+    if (isChecked) {
+        singleSection.classList.add('hidden');
+        variantsSection.classList.remove('hidden');
+        if (document.querySelectorAll('.variant-row').length === 0) {
+            addVariantRow('صغير', '', '');
+            addVariantRow('وسط', '', '');
+            addVariantRow('كبير', '', '');
+        }
+    } else {
+        singleSection.classList.remove('hidden');
+        variantsSection.classList.add('hidden');
+    }
+}
+
+function addVariantRow(name = '', price = '', cost = '') {
+    const container = document.getElementById('variantsContainer');
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 variant-row p-2 rounded-xl bg-white border border-line';
+    row.innerHTML = `
+        <input type="text" class="v-name input text-xs flex-1" placeholder="اسم الحجم (مثال: وسط)" value="${name}" required>
+        <div class="relative w-28">
+            <input type="number" step="0.25" min="0" class="v-price input text-xs w-full" placeholder="السعر" value="${price}" required>
+            <span class="absolute left-2 top-2 text-[10px] text-soft">ر.س</span>
+        </div>
+        <button type="button" onclick="this.closest('.variant-row').remove()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+async function saveMenuItem(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btnSaveItem');
+    const itemId = document.getElementById('itemModalId').value;
+    const name = document.getElementById('itemModalName').value.trim();
+    const catId = document.getElementById('itemModalCategory').value;
+    const desc = document.getElementById('itemModalDescription').value.trim();
+    const hasVariants = document.getElementById('itemModalHasVariants').checked;
+    const price = document.getElementById('itemModalPrice').value;
+    const cost = document.getElementById('itemModalCost').value;
+    const fileInput = document.getElementById('itemModalImage');
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('category_id', catId);
+    formData.append('description', desc);
+
+    if (hasVariants) {
+        const variantRows = document.querySelectorAll('.variant-row');
+        const variants = [];
+        variantRows.forEach(r => {
+            const vName = r.querySelector('.v-name').value.trim();
+            const vPrice = r.querySelector('.v-price').value;
+            if (vName && vPrice) {
+                variants.push({ name: vName, price: vPrice, cost: 0 });
+            }
+        });
+        if (variants.length === 0) {
+            showToast('يرجى إضافة حجم وسعر واحد على الأقل', 'error');
+            return;
+        }
+        formData.append('variants', JSON.stringify(variants));
+    } else {
+        if (!price || parseFloat(price) <= 0) {
+            showToast('يرجى تحديد سعر بيع صحيح', 'error');
+            return;
+        }
+        formData.append('price', price);
+        formData.append('cost', cost || '0');
+        formData.append('variants', JSON.stringify([]));
+    }
+
+    if (fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]);
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>جاري الحفظ…</span>';
+
+    const url = itemId ? `/api/menu/${itemId}/` : '/api/menu/create/';
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: formData,
+        });
+        const data = await res.json();
+        if (res.ok && (data.status === 'success' || data.ok || data.id)) {
+            showToast(itemId ? 'تم تحديث بيانات الصنف بنجاح 🍽️' : 'تمت إضافة الصنف الجديد بنجاح 🍽️');
+            closeItemModal();
+            setTimeout(() => window.location.reload(), 600);
+        } else {
+            showToast(data.error || 'تعذر حفظ بيانات الصنف', 'error');
+        }
+    } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>حفظ الصنف</span>';
+    }
+}
+
+async function deleteMenuItem(itemId, itemName) {
+    if (!confirm(`هل أنت متأكد من حذف الصنف «${itemName}» من قائمة الطعام؟`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/menu/${itemId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            }
+        });
+        const data = await res.json();
+        if (res.ok && (data.ok || data.status === 'success')) {
+            showToast(`تم حذف الصنف «${itemName}» بنجاح 🗑️`);
+            const card = document.getElementById(`item-card-${itemId}`);
+            if (card) {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => card.remove(), 250);
+            }
+        } else {
+            showToast(data.error || 'تعذر حذف الصنف', 'error');
+        }
+    } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+    }
+}
+
+// ==========================================
+// Category CRUD UI Script
+// ==========================================
+function openCategoryModal() {
+    const modal = document.getElementById('category-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeCategoryModal() {
+    const modal = document.getElementById('category-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function resetCategoryForm() {
+    document.getElementById('catFormTitle').innerText = 'إضافة قسم جديد:';
+    document.getElementById('categoryModalId').value = '';
+    document.getElementById('catModalName').value = '';
+    document.getElementById('catModalOrder').value = '10';
+    document.getElementById('catModalImage').value = '';
+    document.getElementById('btnCancelCatEdit').classList.add('hidden');
+}
+
+function editCategory(id, name, order) {
+    document.getElementById('catFormTitle').innerText = `تعديل قسم «${name}»:`;
+    document.getElementById('categoryModalId').value = id;
+    document.getElementById('catModalName').value = name;
+    document.getElementById('catModalOrder').value = order;
+    document.getElementById('btnCancelCatEdit').classList.remove('hidden');
+    document.getElementById('categoryForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveCategory(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btnSaveCategory');
+    const catId = document.getElementById('categoryModalId').value;
+    const name = document.getElementById('catModalName').value.trim();
+    const order = document.getElementById('catModalOrder').value;
+    const imgInput = document.getElementById('catModalImage');
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('ordering', order);
+    if (imgInput.files.length > 0) {
+        formData.append('image', imgInput.files[0]);
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>جاري الحفظ…</span>';
+
+    const url = catId ? `/api/menu/categories/${catId}/` : '/api/menu/categories/create/';
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: formData,
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+            showToast(catId ? 'تم تحديث القسم بنجاح 📁' : 'تمت إضافة القسم الجديد بنجاح 📁');
+            closeCategoryModal();
+            setTimeout(() => window.location.reload(), 600);
+        } else {
+            showToast(data.error || 'تعذر حفظ القسم', 'error');
+        }
+    } catch (e) {
+        showToast('خطأ في الاتصال بالسيرفر', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>حفظ القسم</span>';
+    }
+}
+
+async function deleteCategory(catId, catName) {
+    if (!confirm(`هل أنت متأكد من حذف القسم «${catName}»؟`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/menu/categories/${catId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            }
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+            showToast(`تم حذف القسم «${catName}» بنجاح 🗑️`);
+            const row = document.getElementById(`cat-row-${catId}`);
+            if (row) row.remove();
+            setTimeout(() => window.location.reload(), 600);
+        } else {
+            showToast(data.error || 'تعذر حذف القسم', 'error');
+        }
+    } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'error');
+    }
+}
+</script>
 {% endblock %}

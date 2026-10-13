@@ -9,7 +9,7 @@ django.setup()
 
 from django.test import Client
 from django.contrib.auth.models import User
-from core.models import Tenant, Branch, MenuItem, DeliveryArea, Order, OrderItem, UserProfile
+from core.models import Tenant, Branch, MenuItem, MenuItemVariant, MenuCategory, DeliveryArea, Order, OrderItem, UserProfile
 
 def run_tests():
     print("=" * 60)
@@ -196,9 +196,201 @@ def run_tests():
     assert tenant.custom_domain is None
     print("✅ Custom Domain unbind clean up successful")
 
+    import time
+    test_suffix = int(time.time())
+    test_cat_name = f"معجنات تجريبية {test_suffix}"
+    test_cat_updated = f"معجنات إيطالية {test_suffix}"
+    test_item_name = f"بيتزا بافلو {test_suffix}"
+
+    # 8. Test Category CRUD via API
+    print("\n--- 7. Testing Category Management CRUD APIs ---")
+    cat_create_resp = client.post("/api/menu/categories/create/", {
+        "name": test_cat_name,
+        "description": "أشهى أنواع البيتزا والمعجنات الطازجة",
+        "ordering": "5"
+    })
+    assert cat_create_resp.status_code in [200, 201], f"Expected 200/201, got {cat_create_resp.status_code}: {cat_create_resp.content.decode('utf-8')}"
+    new_cat_id = cat_create_resp.json().get("id") or cat_create_resp.json().get("category", {}).get("id")
+    test_cat = MenuCategory.objects.get(id=new_cat_id, tenant=tenant)
+    assert test_cat.name == test_cat_name
+    print(f"✅ Category created: {test_cat.name} (ID: {test_cat.id})")
+
+    # Update category
+    cat_update_resp = client.post(f"/api/menu/categories/{new_cat_id}/", {
+        "name": test_cat_updated,
+        "description": "وصف محدث للقسم",
+        "ordering": "2"
+    })
+    assert cat_update_resp.status_code == 200
+    test_cat.refresh_from_db()
+    assert test_cat.name == test_cat_updated
+    assert test_cat.description == "وصف محدث للقسم"
+    print(f"✅ Category updated: {test_cat.name}")
+
+    # List categories
+    cat_list_resp = client.get("/api/menu/categories/")
+    assert cat_list_resp.status_code == 200
+    cats_data = cat_list_resp.json()["categories"]
+    assert any(c["id"] == new_cat_id for c in cats_data)
+    print(f"✅ List categories returned {len(cats_data)} categories including new one")
+
+    # 9. Test MenuItem with Variants CRUD via API
+    print("\n--- 8. Testing MenuItem Creation with Multiple Size Variants ---")
+    variants_json = json.dumps([
+        {"name": "صغير", "price": 18.00, "cost": 7.00, "is_default": False},
+        {"name": "وسط", "price": 28.00, "cost": 11.00, "is_default": True},
+        {"name": "كبير", "price": 42.00, "cost": 16.00, "is_default": False}
+    ])
+    item_create_resp = client.post("/api/menu/create/", {
+        "name": test_item_name,
+        "category_id": new_cat_id,
+        "price": "28.00",
+        "cost_price": "11.00",
+        "description": "بيتزا إيطالية بجبنة الموزاريلا وصوص البافلو",
+        "has_variants": "true",
+        "variants": variants_json
+    })
+    assert item_create_resp.status_code in [200, 201], f"Expected 200/201, got {item_create_resp.status_code}: {item_create_resp.content.decode('utf-8')}"
+    new_item_id = item_create_resp.json().get("id") or item_create_resp.json().get("item", {}).get("id")
+    test_item = MenuItem.objects.get(id=new_item_id, tenant=tenant)
+
+    assert test_item.has_variants is True
+    assert test_item.variants.count() == 3
+    assert test_item.min_price == 18.00
+    v_small = test_item.variants.get(name="صغير")
+    v_medium = test_item.variants.get(name="وسط")
+    v_large = test_item.variants.get(name="كبير")
+    assert v_medium.is_default is True
+    print(f"✅ MenuItem with 3 variants created: {test_item.name} (Min price: {test_item.min_price} SAR)")
+
+    # 10. Test Digital Menu Self-Ordering with Specific Variant Size
+    print("\n--- 9. Testing Ordering with Variant Size via Digital Menu ---")
+    variant_order_payload = {
+        "branch_id": branch.id,
+        "order_type": "takeaway",
+        "customer_name": "عبدالله الراجحي",
+        "customer_phone": "0543219876",
+        "items": [
+            {
+                "menuItemId": test_item.id,
+                "variantId": v_large.id,
+                "qty": 2,
+                "notes": "زيادة جبنة"
+            }
+        ]
+    }
+    resp_v_order = client.post(
+        f"/api/m/{tenant.slug}/order/",
+        data=json.dumps(variant_order_payload),
+        content_type="application/json"
+    )
+    assert resp_v_order.status_code == 201, f"Expected 201, got {resp_v_order.status_code}: {resp_v_order.content.decode('utf-8')}"
+    v_order_data = resp_v_order.json()
+    v_order_obj = Order.objects.get(id=v_order_data["order_id"])
+    expected_v_total = float(v_large.price) * 2 # 42 * 2 = 84
+    assert abs(float(v_order_obj.total) - expected_v_total) < 0.01
+    oi = v_order_obj.items.first()
+    assert oi.variant == v_large
+    assert oi.price == v_large.price
+    print(f"✅ Order with Variant #{v_order_obj.order_number} confirmed: Size='{oi.variant_name}', Price={oi.price} SAR, Total={v_order_obj.total} SAR")
+
+    # 11. Test Branch Operating Hours Enforcement (Store Closed)
+    print("\n--- 10. Testing Branch Operating Hours & Order Acceptance ---")
+    orig_accepting = branch.is_accepting_orders
+    branch.is_accepting_orders = False
+    branch.save(update_fields=["is_accepting_orders"])
+
+    closed_order_payload = {
+        "branch_id": branch.id,
+        "order_type": "takeaway",
+        "customer_name": "سلطان",
+        "customer_phone": "0555551234",
+        "items": [{"menuItemId": test_item.id, "qty": 1}]
+    }
+    resp_closed = client.post(
+        f"/api/m/{tenant.slug}/order/",
+        data=json.dumps(closed_order_payload),
+        content_type="application/json"
+    )
+    assert resp_closed.status_code == 400, f"Expected 400 when branch closed, got {resp_closed.status_code}"
+    assert "مغلق" in resp_closed.json().get("message", "")
+    print(f"✅ Correctly rejected order when branch is closed: {resp_closed.json().get('message')}")
+
+    # Re-enable branch
+    branch.is_accepting_orders = orig_accepting
+    branch.save(update_fields=["is_accepting_orders"])
+
+    # 12. Test Minimum Delivery Order Threshold
+    print("\n--- 11. Testing Minimum Delivery Order Enforcement ---")
+    orig_min = branch.min_delivery_order
+    branch.min_delivery_order = 100.00
+    branch.save(update_fields=["min_delivery_order"])
+
+    # Attempt delivery below 100 SAR (v_small = 18.00 SAR)
+    under_min_payload = {
+        "branch_id": branch.id,
+        "order_type": "delivery",
+        "customer_name": "ماجد العتيبي",
+        "customer_phone": "0567890123",
+        "address": "الرياض، حي الملقا",
+        "delivery_area_id": area.id,
+        "items": [{"menuItemId": test_item.id, "variantId": v_small.id, "qty": 1}]
+    }
+    resp_under = client.post(
+        f"/api/m/{tenant.slug}/order/",
+        data=json.dumps(under_min_payload),
+        content_type="application/json"
+    )
+    assert resp_under.status_code == 400, f"Expected 400 when below min delivery order, got {resp_under.status_code}"
+    assert "الحد الأدنى" in resp_under.json().get("message", "")
+    print(f"✅ Order rejected below minimum delivery threshold: {resp_under.json().get('message')}")
+
+    # Place delivery order exceeding threshold (3 x large = 3 x 42 = 126.00 SAR > 100)
+    over_min_payload = {
+        "branch_id": branch.id,
+        "order_type": "delivery",
+        "customer_name": "ماجد العتيبي",
+        "customer_phone": "0567890123",
+        "address": "الرياض، حي الملقا",
+        "delivery_area_id": area.id,
+        "items": [{"menuItemId": test_item.id, "variantId": v_large.id, "qty": 3}]
+    }
+    resp_over = client.post(
+        f"/api/m/{tenant.slug}/order/",
+        data=json.dumps(over_min_payload),
+        content_type="application/json"
+    )
+    assert resp_over.status_code == 201, f"Expected 201 when exceeding min delivery, got {resp_over.status_code}: {resp_over.content.decode('utf-8')}"
+    over_order = Order.objects.get(id=resp_over.json()["order_id"])
+    print(f"✅ Delivery order exceeding threshold passed: Subtotal={over_order.subtotal} SAR, Total={over_order.total} SAR")
+
+    # Restore min delivery
+    branch.min_delivery_order = orig_min
+    branch.save(update_fields=["min_delivery_order"])
+
+    # 13. Test Soft Delete of Menu Items & Categories
+    print("\n--- 12. Testing Safe Soft Delete / Archiving ---")
+    del_item_resp = client.post(f"/api/menu/{test_item.id}/delete/")
+    assert del_item_resp.status_code == 200
+    test_item.refresh_from_db()
+    assert test_item.is_active is False
+    assert test_item.available is False
+    print(f"✅ MenuItem safely soft-deleted: is_active={test_item.is_active}, available={test_item.available}")
+
+    del_cat_resp = client.post(f"/api/menu/categories/{new_cat_id}/delete/")
+    assert del_cat_resp.status_code == 200
+    test_cat.refresh_from_db()
+    assert test_cat.is_active is False
+    print(f"✅ MenuCategory safely soft-deleted: is_active={test_cat.is_active}")
+
+    # Verify historical orders referencing the item still exist and are valid
+    assert OrderItem.objects.filter(menu_item=test_item).exists()
+    print("✅ Historical OrderItems remained perfectly intact with no data loss!")
+
     print("\n" + "=" * 60)
     print("🎉 ALL DIGITAL MENU E2E TESTS PASSED PERFECTLY!")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     run_tests()

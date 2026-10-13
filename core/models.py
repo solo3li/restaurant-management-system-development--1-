@@ -196,12 +196,28 @@ class Branch(models.Model):
     longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True, verbose_name="خط الطول")
     delivery_polygon = models.JSONField(default=list, blank=True, verbose_name="مضلع التغطية على الخريطة")
     delivery_radius_km = models.DecimalField(max_digits=5, decimal_places=2, default=5.00, verbose_name="نصف قطر التغطية (كم)")
+    opening_time = models.TimeField(null=True, blank=True, verbose_name="وقت فتح الفرع")
+    closing_time = models.TimeField(null=True, blank=True, verbose_name="وقت إغلاق الفرع")
+    min_delivery_order = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="الحد الأدنى لطلب التوصيل")
+    is_accepting_orders = models.BooleanField(default=True, verbose_name="استقبال الطلبات الذاتية حالياً")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
 
     class Meta:
         verbose_name = "فرع"
         verbose_name_plural = "الفروع"
         ordering = ["id"]
+
+    def is_currently_open(self):
+        if not self.is_accepting_orders or self.status != "active":
+            return False
+        if not self.opening_time or not self.closing_time:
+            return True
+        from django.utils import timezone
+        now_time = timezone.localtime().time()
+        if self.opening_time <= self.closing_time:
+            return self.opening_time <= now_time <= self.closing_time
+        else:
+            return now_time >= self.opening_time or now_time <= self.closing_time
 
     def __str__(self):
         tenant_name = f" [{self.tenant.name}]" if self.tenant else ""
@@ -838,6 +854,31 @@ class Employee(models.Model):
         return f"{self.name}{code_str} ({role_label})"
 
 
+class MenuCategory(models.Model):
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="menu_categories",
+        verbose_name="المستأجر / المنشأة",
+    )
+    name = models.CharField(max_length=100, verbose_name="اسم التصنيف")
+    description = models.TextField(blank=True, default="", verbose_name="وصف التصنيف")
+    image = models.FileField(upload_to="category_images/", blank=True, null=True, verbose_name="صورة القسم")
+    ordering = models.IntegerField(default=10, verbose_name="ترتيب العرض")
+    is_active = models.BooleanField(default=True, verbose_name="نشط")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
+
+    class Meta:
+        verbose_name = "تصنيف قائمة الطعام"
+        verbose_name_plural = "تصنيفات قائمة الطعام"
+        unique_together = ("tenant", "name")
+        ordering = ["ordering", "id"]
+
+    def __str__(self):
+        return f"{self.name} ({self.tenant.name if self.tenant else 'عام'})"
+
+
 class MenuItem(models.Model):
     tenant = models.ForeignKey(
         Tenant,
@@ -850,11 +891,21 @@ class MenuItem(models.Model):
     name = models.CharField(max_length=255, verbose_name="اسم الصنف")
     description = models.TextField(default="", blank=True, verbose_name="وصف الطبق والمكونات")
     category = models.CharField(max_length=100, verbose_name="الفئة")
+    category_rel = models.ForeignKey(
+        MenuCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="items",
+        verbose_name="التصنيف المترابط",
+    )
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="سعر البيع")
     cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="التكلفة")
     emoji = models.CharField(max_length=20, default="", blank=True, verbose_name="أيقونة")
     image = models.FileField(upload_to="menu_items/", blank=True, null=True, verbose_name="صورة الصنف")
     available = models.BooleanField(default=True, verbose_name="متوفر")
+    has_variants = models.BooleanField(default=False, verbose_name="يحتوي على أحجام متعددة")
+    is_active = models.BooleanField(default=True, verbose_name="مفعل وغير مؤرشف")
 
     class Meta:
         verbose_name = "صنف منيو"
@@ -863,6 +914,34 @@ class MenuItem(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def min_price(self):
+        if self.has_variants and self.variants.exists():
+            return self.variants.order_by("price").first().price
+        return self.price
+
+
+class MenuItemVariant(models.Model):
+    menu_item = models.ForeignKey(
+        MenuItem,
+        on_delete=models.CASCADE,
+        related_name="variants",
+        verbose_name="صنف المنيو",
+    )
+    name = models.CharField(max_length=100, verbose_name="اسم الحجم / الخيار")
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="سعر الحجم")
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="التكلفة")
+    is_default = models.BooleanField(default=False, verbose_name="الحجم الافتراضي")
+    ordering = models.IntegerField(default=10, verbose_name="ترتيب العرض")
+
+    class Meta:
+        verbose_name = "حجم / خيار الصنف"
+        verbose_name_plural = "أحجام وخيارات الأصناف"
+        ordering = ["ordering", "id"]
+
+    def __str__(self):
+        return f"{self.menu_item.name} - {self.name} ({self.price} ر.س)"
 
 
 class InventoryItem(models.Model):
@@ -1043,6 +1122,15 @@ class OrderItem(models.Model):
         blank=True,
         verbose_name="صنف المنيو",
     )
+    variant = models.ForeignKey(
+        MenuItemVariant,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_items",
+        verbose_name="الحجم المختار",
+    )
+    variant_name = models.CharField(max_length=100, blank=True, default="", verbose_name="اسم الحجم")
     name = models.CharField(max_length=255, verbose_name="اسم الصنف")
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="سعر الوحدة")
     qty = models.PositiveIntegerField(default=1, verbose_name="الكمية")

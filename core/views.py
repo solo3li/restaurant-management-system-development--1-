@@ -27,6 +27,8 @@ from .models import (
     Branch,
     Employee,
     MenuItem,
+    MenuCategory,
+    MenuItemVariant,
     InventoryItem,
     Customer,
     Order,
@@ -1714,11 +1716,17 @@ def branch_menu_view(request):
 
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
-    categories = ["الكل", "أطباق رئيسية", "مشويات", "ساندويتشات", "برجر", "دجاج", "مقبلات", "مشروبات", "حلويات"]
+
+    profile = getattr(request.user, "profile", None)
+    can_manage_menu = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin)) or user_has_perm(request.user, "manage_menu") or user_has_perm(request.user, "menu_create_item")
+
+    # Dynamic Categories from MenuCategory
+    cat_objs = list(MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id"))
+    category_names = ["الكل"] + [c.name for c in cat_objs]
     cat_filter = request.GET.get("cat", "الكل")
     search = request.GET.get("q", "").strip()
 
-    menu_qs = MenuItem.objects.filter(tenant=tenant).order_by("category", "name")
+    menu_qs = MenuItem.objects.filter(tenant=tenant, is_active=True).prefetch_related("variants").order_by("category", "name")
     if cat_filter != "الكل":
         menu_qs = menu_qs.filter(category=cat_filter)
     if search:
@@ -1739,6 +1747,7 @@ def branch_menu_view(request):
         items_data.append({
             "item": item,
             "is_available": is_avail,
+            "variants": list(item.variants.all()),
         })
 
     context = {
@@ -1746,9 +1755,11 @@ def branch_menu_view(request):
         "branch": branch,
         "branches": Branch.objects.filter(tenant=tenant, status="active"),
         "items_data": items_data,
-        "categories": categories,
+        "categories": category_names,
+        "category_objs": cat_objs,
         "selected_cat": cat_filter,
         "search_query": search,
+        "can_manage_menu": can_manage_menu,
     }
     return render(request, "branch_menu.html", context)
 
@@ -2602,25 +2613,94 @@ def api_create_menu_item(request):
     if not is_owner_or_super and not (user_has_perm(request.user, "menu_create_item") or user_has_perm(request.user, "manage_menu")):
         return JsonResponse({"error": "غير مصرح لك بإضافة أصناف جديدة للمنيو"}, status=403)
 
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+    is_multipart = request.content_type and "multipart/form-data" in request.content_type
+    if is_multipart:
+        data = request.POST
+    else:
+        try:
+            data = json.loads(request.body.decode("utf-8")) if request.body else request.POST
+        except Exception:
+            data = request.POST
 
     name = str(data.get("name", "")).strip()
+    if not name:
+        return JsonResponse({"error": "اسم الصنف مطلوب"}, status=400)
+
+    category_id = data.get("category_id")
+    category_name = str(data.get("category", "")).strip()
+    cat_obj = None
+    if category_id:
+        cat_obj = MenuCategory.objects.filter(tenant=tenant, id=category_id).first()
+        if cat_obj:
+            category_name = cat_obj.name
+    elif category_name:
+        cat_obj = MenuCategory.objects.filter(tenant=tenant, name__iexact=category_name).first()
+        if not cat_obj:
+            cat_obj = MenuCategory.objects.create(tenant=tenant, name=category_name)
+
+    if not category_name:
+        category_name = "أطباق رئيسية"
+
     price = Decimal(str(data.get("price") or 0))
-    if not name or price <= 0:
-        return JsonResponse({"error": "اسم الصنف والسعر مطلوبان"}, status=400)
+    cost = Decimal(str(data.get("cost") or 0))
+    description = str(data.get("description", "")).strip()
+    emoji = str(data.get("emoji", "🍽️")).strip()
+
+    # Parse Variants (Sizes) if provided
+    variants_raw = data.get("variants")
+    variants_list = []
+    if variants_raw:
+        if isinstance(variants_raw, str):
+            try:
+                variants_list = json.loads(variants_raw)
+            except Exception:
+                variants_list = []
+        elif isinstance(variants_raw, list):
+            variants_list = variants_raw
+
+    has_variants = bool(variants_list)
+    if has_variants:
+        valid_prices = [Decimal(str(v.get("price", 0))) for v in variants_list if float(v.get("price", 0)) > 0]
+        if valid_prices:
+            price = min(valid_prices)
+
+    if not has_variants and price <= 0:
+        return JsonResponse({"error": "يرجى تحديد سعر صالح للصنف"}, status=400)
 
     item = MenuItem.objects.create(
         tenant=tenant,
         name=name,
-        category=data.get("category", "أطباق رئيسية"),
+        description=description,
+        category=category_name,
+        category_rel=cat_obj,
         price=price,
-        cost=Decimal(str(data.get("cost") or 0)),
-        emoji=data.get("emoji", "🍽️"),
+        cost=cost,
+        emoji=emoji,
         available=True,
+        has_variants=has_variants,
+        is_active=True,
     )
+
+    if "image" in request.FILES:
+        item.image = request.FILES["image"]
+        item.save(update_fields=["image"])
+
+    # Create variant sizes
+    has_any_default = any(bool(v.get("is_default")) for v in variants_list)
+    for idx, v in enumerate(variants_list):
+        v_name = str(v.get("name", "")).strip()
+        v_price = Decimal(str(v.get("price", 0)))
+        v_cost = Decimal(str(v.get("cost", 0)))
+        is_def = bool(v.get("is_default")) if has_any_default else (idx == 0)
+        if v_name and v_price > 0:
+            MenuItemVariant.objects.create(
+                menu_item=item,
+                name=v_name,
+                price=v_price,
+                cost=v_cost,
+                is_default=is_def,
+                ordering=(idx + 1) * 10,
+            )
 
     for b in Branch.objects.filter(tenant=tenant):
         BranchMenuAvailability.objects.get_or_create(branch=b, menu_item=item, defaults={"is_available": True})
@@ -2635,7 +2715,14 @@ def api_create_menu_item(request):
         ip_address=_get_client_ip(request),
     )
 
-    return JsonResponse({"id": item.id, "name": item.name}, status=201)
+    return JsonResponse({
+        "status": "success",
+        "id": item.id,
+        "name": item.name,
+        "price": float(item.price),
+        "category": item.category,
+        "image_url": item.image.url if item.image else "",
+    }, status=201)
 
 
 @login_required
@@ -2648,32 +2735,86 @@ def api_update_menu_item(request, item_id):
 
     item = get_object_or_404(MenuItem, tenant=tenant, id=item_id)
 
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+    is_multipart = request.content_type and "multipart/form-data" in request.content_type
+    if is_multipart:
+        data = request.POST
+    else:
+        try:
+            data = json.loads(request.body.decode("utf-8")) if request.body else request.POST
+        except Exception:
+            data = request.POST
 
-    # Check price update permission specifically
-    if "price" in data:
+    if not is_owner_or_super and not (user_has_perm(request.user, "menu_edit_item") or user_has_perm(request.user, "manage_menu")):
+        return JsonResponse({"error": "غير مصرح لك بتعديل بيانات أصناف المنيو"}, status=403)
+
+    if "name" in data and str(data["name"]).strip():
+        item.name = str(data["name"]).strip()
+
+    if "description" in data:
+        item.description = str(data["description"]).strip()
+
+    if "category_id" in data and data["category_id"]:
+        cat = MenuCategory.objects.filter(tenant=tenant, id=data["category_id"]).first()
+        if cat:
+            item.category_rel = cat
+            item.category = cat.name
+    elif "category" in data and str(data["category"]).strip():
+        item.category = str(data["category"]).strip()
+        cat = MenuCategory.objects.filter(tenant=tenant, name__iexact=item.category).first()
+        if cat:
+            item.category_rel = cat
+
+    if "cost" in data:
+        item.cost = Decimal(str(data["cost"] or 0))
+
+    if "emoji" in data:
+        item.emoji = str(data["emoji"])
+
+    if "image" in request.FILES:
+        item.image = request.FILES["image"]
+
+    # Handle variants if provided
+    if "variants" in data:
+        variants_raw = data.get("variants")
+        variants_list = []
+        if isinstance(variants_raw, str):
+            try:
+                variants_list = json.loads(variants_raw)
+            except Exception:
+                variants_list = []
+        elif isinstance(variants_raw, list):
+            variants_list = variants_raw
+
+        if variants_list:
+            item.has_variants = True
+            item.variants.all().delete()
+            has_any_default = any(bool(v.get("is_default")) for v in variants_list)
+            for idx, v in enumerate(variants_list):
+                v_name = str(v.get("name", "")).strip()
+                v_price = Decimal(str(v.get("price", 0)))
+                v_cost = Decimal(str(v.get("cost", 0)))
+                is_def = bool(v.get("is_default")) if has_any_default else (idx == 0)
+                if v_name and v_price > 0:
+                    MenuItemVariant.objects.create(
+                        menu_item=item,
+                        name=v_name,
+                        price=v_price,
+                        cost=v_cost,
+                        is_default=is_def,
+                        ordering=(idx + 1) * 10,
+                    )
+            valid_prices = [Decimal(str(v.get("price", 0))) for v in variants_list if float(v.get("price", 0)) > 0]
+            if valid_prices:
+                item.price = min(valid_prices)
+        else:
+            item.has_variants = False
+            item.variants.all().delete()
+            if "price" in data:
+                item.price = Decimal(str(data["price"] or 0))
+    elif "price" in data:
         new_price = Decimal(str(data["price"] or 0))
-        if new_price != item.price:
-            if not is_owner_or_super and not (user_has_perm(request.user, "menu_change_price") or user_has_perm(request.user, "manage_menu")):
-                return JsonResponse({"error": "غير مصرح لك بتعديل أسعار أصناف المنيو"}, status=403)
+        if new_price > 0:
             item.price = new_price
-
-    # Check general edit permission for other fields
-    other_fields = {"name", "category", "cost", "emoji", "description"}
-    if any(k in data for k in other_fields):
-        if not is_owner_or_super and not (user_has_perm(request.user, "menu_edit_item") or user_has_perm(request.user, "manage_menu")):
-            return JsonResponse({"error": "غير مصرح لك بتعديل بيانات أصناف المنيو"}, status=403)
-        if "name" in data and str(data["name"]).strip():
-            item.name = str(data["name"]).strip()
-        if "category" in data and str(data["category"]).strip():
-            item.category = str(data["category"]).strip()
-        if "cost" in data:
-            item.cost = Decimal(str(data["cost"] or 0))
-        if "emoji" in data:
-            item.emoji = str(data["emoji"])
 
     item.save()
     log_audit_event(
@@ -2685,7 +2826,14 @@ def api_update_menu_item(request, item_id):
         description=f"تحديث بيانات الصنف «{item.name}» (السعر: {item.price} ر.س، القسم: {item.category})",
         ip_address=_get_client_ip(request),
     )
-    return JsonResponse({"ok": True, "id": item.id, "name": item.name, "price": float(item.price)})
+    return JsonResponse({
+        "ok": True,
+        "id": item.id,
+        "name": item.name,
+        "price": float(item.price),
+        "category": item.category,
+        "image_url": item.image.url if item.image else "",
+    })
 
 
 @login_required
@@ -2703,17 +2851,153 @@ def api_delete_menu_item(request, item_id):
     item_name = item.name
     item_id_val = item.id
     item_price = item.price
-    item.delete()
+
+    # Safe Soft Delete
+    item.is_active = False
+    item.available = False
+    item.save(update_fields=["is_active", "available"])
+
     log_audit_event(
         tenant=tenant,
         user=request.user,
         action="menu_item_deleted",
         target_model="MenuItem",
         target_id=item_id_val,
-        description=f"حذف الصنف «{item_name}» نهائياً من قائمة الطعام (السعر: {item_price} ر.س)",
+        description=f"أرشفة/حذف الصنف «{item_name}» من قائمة الطعام (السعر: {item_price} ر.س)",
         ip_address=_get_client_ip(request),
     )
     return JsonResponse({"ok": True, "message": f"تم حذف الصنف «{item_name}» بنجاح"})
+
+
+# ----------------------------------------------------
+# Dynamic Category Management APIs
+# ----------------------------------------------------
+
+@login_required
+def api_list_categories(request):
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"error": "منشأة غير موجودة"}, status=400)
+    cats = MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id")
+    data = []
+    for c in cats:
+        data.append({
+            "id": c.id,
+            "name": c.name,
+            "description": c.description,
+            "ordering": c.ordering,
+            "image_url": c.image.url if c.image else "",
+            "items_count": c.items.filter(is_active=True).count(),
+        })
+    return JsonResponse({"ok": True, "categories": data})
+
+
+@login_required
+def api_create_category(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_menu"):
+        return JsonResponse({"error": "غير مصرح لك بإضافة تصنيفات"}, status=403)
+
+    is_multipart = request.content_type and "multipart/form-data" in request.content_type
+    data = request.POST if is_multipart else (json.loads(request.body.decode("utf-8")) if request.body else request.POST)
+
+    name = str(data.get("name", "")).strip()
+    if not name:
+        return JsonResponse({"error": "اسم التصنيف مطلوب"}, status=400)
+
+    ordering = int(data.get("ordering", 10) or 10)
+    existing_cat = MenuCategory.objects.filter(tenant=tenant, name=name).first()
+    if existing_cat:
+        if existing_cat.is_active:
+            return JsonResponse({"error": "يوجد قسم نشط بهذا الاسم مسبقاً"}, status=400)
+        else:
+            cat = existing_cat
+            cat.is_active = True
+            cat.ordering = ordering
+    else:
+        cat = MenuCategory.objects.create(
+            tenant=tenant,
+            name=name,
+            ordering=ordering,
+            is_active=True
+        )
+
+    if "description" in data:
+        cat.description = str(data["description"]).strip()
+
+    if "image" in request.FILES:
+        cat.image = request.FILES["image"]
+
+    cat.save()
+    return JsonResponse({
+        "status": "success",
+        "id": cat.id,
+        "name": cat.name,
+        "ordering": cat.ordering,
+        "image_url": cat.image.url if cat.image else "",
+    }, status=201)
+
+
+@login_required
+def api_update_category(request, cat_id):
+    if request.method not in ["POST", "PUT", "PATCH"]:
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_menu"):
+        return JsonResponse({"error": "غير مصرح لك بتعديل التصنيفات"}, status=403)
+
+    cat = get_object_or_404(MenuCategory, tenant=tenant, id=cat_id)
+    is_multipart = request.content_type and "multipart/form-data" in request.content_type
+    data = request.POST if is_multipart else (json.loads(request.body.decode("utf-8")) if request.body else request.POST)
+
+    if "name" in data and str(data["name"]).strip():
+        new_name = str(data["name"]).strip()
+        if MenuCategory.objects.filter(tenant=tenant, name=new_name).exclude(id=cat.id).exists():
+            return JsonResponse({"error": "يوجد قسم آخر بنفس هذا الاسم مسبقاً"}, status=400)
+        old_name = cat.name
+        cat.name = new_name
+        MenuItem.objects.filter(tenant=tenant, category=old_name).update(category=cat.name)
+
+    if "description" in data:
+        cat.description = str(data["description"]).strip()
+
+    if "ordering" in data:
+        cat.ordering = int(data["ordering"] or 10)
+
+    if "image" in request.FILES:
+        cat.image = request.FILES["image"]
+
+    cat.save()
+    return JsonResponse({
+        "status": "success",
+        "id": cat.id,
+        "name": cat.name,
+        "ordering": cat.ordering,
+        "image_url": cat.image.url if cat.image else "",
+    })
+
+
+@login_required
+def api_delete_category(request, cat_id):
+    if request.method not in ["POST", "DELETE"]:
+        return HttpResponseBadRequest("POST/DELETE required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_menu"):
+        return JsonResponse({"error": "غير مصرح لك بحذف التصنيفات"}, status=403)
+
+    cat = get_object_or_404(MenuCategory, tenant=tenant, id=cat_id)
+    cat_name = cat.name
+    cat.is_active = False
+    cat.save(update_fields=["is_active"])
+    return JsonResponse({"status": "success", "message": f"تم حذف التصنيف «{cat_name}» بنجاح"})
 
 
 @login_required
@@ -5728,28 +6012,68 @@ def digital_menu_view(request, slug=None, branch_id=None):
         ).values_list("menu_item_id", flat=True)
     )
 
+    # Dynamic Categories
+    cat_objs = list(MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id"))
+    categories_data = []
+    for c in cat_objs:
+        categories_data.append({
+            "id": c.id,
+            "name": c.name,
+            "image_url": c.image.url if c.image else "",
+        })
+
     # Categories and items
-    raw_items = MenuItem.objects.filter(tenant=tenant).order_by("category", "name")
-    categories_set = []
+    raw_items = MenuItem.objects.filter(tenant=tenant, is_active=True).prefetch_related("variants").order_by("category", "name")
+    categories_set = [c.name for c in cat_objs]
     categorized_items = {}
 
     for item in raw_items:
         cat = item.category or "أطباق عامة"
         if cat not in categorized_items:
             categorized_items[cat] = []
-            categories_set.append(cat)
+            if cat not in categories_set:
+                categories_set.append(cat)
+                categories_data.append({
+                    "id": None,
+                    "name": cat,
+                    "image_url": "",
+                })
 
         is_avail = item.available and (item.id not in disabled_ids)
+        item_variants = []
+        for v in item.variants.all():
+            item_variants.append({
+                "id": v.id,
+                "name": v.name,
+                "price": float(v.price),
+                "is_default": v.is_default,
+            })
+
         categorized_items[cat].append({
             "id": item.id,
             "name": item.name,
             "description": item.description or "",
             "price": float(item.price),
+            "min_price": float(item.min_price),
+            "has_variants": item.has_variants and len(item_variants) > 0,
+            "variants": item_variants,
             "emoji": item.emoji or "🍽️",
             "image_url": item.image.url if item.image else "",
             "is_available": is_avail,
             "category": cat,
         })
+
+    # Prepare sections list matching category_objs
+    sections = []
+    for c in categories_data:
+        c_items = categorized_items.get(c["name"], [])
+        if c_items:
+            sections.append({
+                "id": c["id"],
+                "name": c["name"],
+                "image_url": c["image_url"],
+                "items": c_items,
+            })
 
     # Delivery areas for selected branch
     areas = []
@@ -5761,16 +6085,22 @@ def digital_menu_view(request, slug=None, branch_id=None):
             "estimated_time": f"{a.estimated_time_minutes} دقيقة" if a.estimated_time_minutes else "30-45 دقيقة",
         })
 
+    is_open = selected_branch.is_currently_open()
     context = {
         "tenant": tenant,
         "branches": branches,
         "selected_branch": selected_branch,
+        "is_open": is_open,
+        "min_delivery_order": float(selected_branch.min_delivery_order or 0),
         "categories": categories_set,
+        "category_objs": categories_data,
+        "sections": sections,
         "categorized_items": categorized_items,
         "delivery_areas": areas,
         "brand_color": tenant.brand_color or "#0E382A",
     }
     return render(request, "qr_menu.html", context)
+
 
 
 def api_digital_menu_branch_areas(request, slug, branch_id):
@@ -5835,6 +6165,16 @@ def api_digital_menu_place_order(request, slug):
     if not branch:
         return JsonResponse({"status": "error", "message": "الفرع المحدد غير متاح لاستقبال الطلبات حالياً."}, status=400)
 
+    # Check Branch Operating Hours
+    if not branch.is_currently_open():
+        time_info = ""
+        if branch.opening_time and branch.closing_time:
+            time_info = f" (ساعات العمل: {branch.opening_time.strftime('%I:%M %p')} إلى {branch.closing_time.strftime('%I:%M %p')})"
+        return JsonResponse({
+            "status": "error",
+            "message": f"عذراً، فرع «{branch.name}» مغلق حالياً ولا يستقبل طلبات جديدة{time_info}."
+        }, status=400)
+
     if not items_data or not isinstance(items_data, list):
         return JsonResponse({"status": "error", "message": "سلة الطلب فارغة. يرجى اختيار وجبات من المنيو أولاً."}, status=400)
 
@@ -5856,13 +6196,43 @@ def api_digital_menu_place_order(request, slug):
                 "message": f"الصنف «{m.name if m else m_id}» غير متاح للطلب في هذا الفرع حالياً."
             }, status=400)
         qty = max(1, int(it.get("qty", 1)))
-        subtotal += m.price * qty
+
+        # Check variant (size) if selected
+        v_id = it.get("variantId") or it.get("variant_id")
+        variant_obj = None
+        item_price = m.price
+        item_title = m.name
+        if v_id and m.has_variants:
+            variant_obj = MenuItemVariant.objects.filter(id=v_id, menu_item=m).first()
+            if variant_obj:
+                item_price = variant_obj.price
+                item_title = f"{m.name} ({variant_obj.name})"
+        elif m.has_variants:
+            variant_obj = m.variants.filter(is_default=True).first() or m.variants.first()
+            if variant_obj:
+                item_price = variant_obj.price
+                item_title = f"{m.name} ({variant_obj.name})"
+
+        note_str = str(it.get("notes", "")).strip()[:200]
+        if note_str:
+            item_title = f"{item_title} [{note_str}]"
+
+        subtotal += item_price * qty
         order_items_to_create.append({
             "item": m,
+            "variant": variant_obj,
+            "variant_name": variant_obj.name if variant_obj else "",
+            "title": item_title,
             "qty": qty,
-            "price": m.price,
-            "notes": str(it.get("notes", "")).strip()[:200]
+            "price": item_price,
         })
+
+    # Validate Minimum Delivery Order
+    if order_type == "delivery" and branch.min_delivery_order > 0 and subtotal < branch.min_delivery_order:
+        return JsonResponse({
+            "status": "error",
+            "message": f"الحد الأدنى لطلب التوصيل من هذا الفرع هو {branch.min_delivery_order} ر.س. (المجموع الحالي: {subtotal} ر.س)."
+        }, status=400)
 
     delivery_fee = Decimal("0.00")
     area = None
@@ -5907,11 +6277,12 @@ def api_digital_menu_place_order(request, slug):
     )
 
     for row in order_items_to_create:
-        item_title = f"{row['item'].name} ({row['notes']})" if row.get("notes") else row["item"].name
         OrderItem.objects.create(
             order=order,
             menu_item=row["item"],
-            name=item_title,
+            variant=row["variant"],
+            variant_name=row["variant_name"],
+            name=row["title"],
             price=row["price"],
             qty=row["qty"],
         )
