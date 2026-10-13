@@ -525,13 +525,21 @@ def build_tenant_live_context_payload(tenant) -> Dict[str, Any]:
     from core.models import Branch, MenuItem, DeliveryArea
 
     branches = []
-    for b in Branch.objects.filter(tenant=tenant, status="active"):
+    for b in Branch.objects.filter(tenant=tenant):
+        st_ar = "مفتوح ويستقبل الطلبات" if b.status == "active" else "مغلق مؤقتاً"
+        hours_str = ""
+        if b.opening_time and b.closing_time:
+            hours_str = f"من {b.opening_time.strftime('%I:%M %p')} إلى {b.closing_time.strftime('%I:%M %p')}"
+        else:
+            hours_str = "يومياً (24 ساعة / دوام كامل)"
+
         branches.append({
             "id": b.id,
             "name": b.name,
             "city": b.city or "الرياض",
             "phone": b.phone or "",
-            "status": "مفتوح",
+            "status": st_ar,
+            "working_hours": hours_str,
             "address": b.address or ""
         })
 
@@ -559,21 +567,40 @@ def build_tenant_live_context_payload(tenant) -> Dict[str, Any]:
 
     out_of_stock = list(MenuItem.objects.filter(tenant=tenant, available=False).values_list("name", flat=True))
 
+    # Resolve Digital Menu URL
+    if getattr(tenant, "custom_domain", None):
+        c_dom = str(tenant.custom_domain).strip().rstrip("/")
+        digital_menu_url = f"https://{c_dom}/" if not c_dom.startswith("http") else f"{c_dom}/"
+    else:
+        dom = os.environ.get("DOMAIN_NAME", "uggu.space").strip().rstrip("/")
+        digital_menu_url = f"https://{dom}/m/{tenant.slug}/" if not dom.startswith("http") else f"{dom}/m/{tenant.slug}/"
+
+    menu_whatsapp_msg = (
+        f"أهلاً بك يا فندم! 🍽️\n"
+        f"يسعدنا تواصلك مع مطعم {tenant.name}.\n"
+        f"تفضل رابط قائمة الطعام الإلكترونية لتصفح الوجبات والأسعار:\n"
+        f"{digital_menu_url}\n"
+        f"يسعدنا دائماً خدمتك! ✨"
+    )
+
     return {
         "restaurant_name": tenant.name,
         "branches": branches,
         "delivery_zones": areas,
         "menu": menu,
         "out_of_stock": out_of_stock,
+        "digital_menu_url": digital_menu_url,
+        "digital_menu_whatsapp_template": menu_whatsapp_msg,
         "policies": {
             "tax_rate": "15% ضريبة القيمة المضافة شاملة بالأسعار",
             "cancellation": "يُسمح بإلغاء الطلب فقط طالما لا يزال جديداً ولم يدخل مرحلة التحضير بالمطبخ",
             "payment_methods": ["الدفع عند الاستلام كاش أو مدى"]
         },
         "system_instruction_for_agent": (
-            "استخدم هذه الذاكرة اللحظية (الفروع، المنيو، الأسعار، مناطق التوصيل) للإجابة الفورية المباشرة على "
+            "استخدم هذه الذاكرة اللحظية (الفروع، المنيو، الأسعار، مناطق التوصيل، رابط المنيو) للإجابة الفورية المباشرة على "
             "استفسارات العميل دون استدعاء أي أداة MCP للأسئلة المرجعية. "
-            "استخدم أدوات MCP فقط عند طلب العميل: البحث عن بياناته السابقة (lookup_customer)، "
+            "إذا طلب العميل رابط المنيو على الواتساب: استدعِ أداة send_whatsapp_message فوراً لتمرير digital_menu_url إلى رقم هاتفه المتصل منه. "
+            "استخدم أدوات MCP فقط عند طلب العميل: استرجاع رابط فرع مخصص (get_digital_menu_link)، البحث عن بياناته السابقة (lookup_customer)، "
             "معاينة الفاتورة قبل التأكيد (preview_order)، إنشاء الطلب النهائي (create_callcenter_order)، "
             "أو تتبع وإلغاء أوردر جاري (track_order / cancel_order)."
         )

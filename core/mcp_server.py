@@ -739,6 +739,67 @@ def _resolve_delivery_coverage_and_branch(
     }
 
 
+
+@mcp.tool
+def get_digital_menu_link(branch_id: Optional[int] = None, access_key: Optional[str] = None) -> Dict[str, Any]:
+    """
+    استرجاع رابط قائمة الطعام الإلكترونية المباشرة (المنيو الرقمي QR Menu) للمطعم لمشاركته مع العميل أو إرساله عبر الواتساب.
+    يُستخدم فوراً عند طلب العميل رابط المنيو أو تصفح القائمة أونلاين عبر الهاتف أو الواتساب.
+    
+    Args:
+        branch_id: (اختياري) معرف الفرع المحدد لفتح منيو هذا الفرع مباشرة إن طلبه العميل.
+        access_key: (اختياري) مفتاح الدخول للمنشأة (يُقرأ تلقائياً من الجلسة).
+    """
+    key_obj, tenant = _authenticate(access_key)
+    from core.models import Branch
+
+    branch = None
+    if branch_id is not None:
+        branch = Branch.objects.filter(tenant=tenant, id=branch_id, status="active").first()
+        if not branch:
+            return {"ok": False, "status": "error", "error": f"الفرع برقم #{branch_id} غير موجود أو غير تابع للمنشأة."}
+    elif key_obj.assigned_branch:
+        branch = key_obj.assigned_branch
+
+    # Resolve Domain and URL
+    if getattr(tenant, "custom_domain", None):
+        c_domain = tenant.custom_domain.strip().rstrip("/")
+        if not c_domain.startswith("http"):
+            c_domain = f"https://{c_domain}"
+        if branch:
+            menu_url = f"{c_domain}/branch/{branch.id}/"
+        else:
+            menu_url = f"{c_domain}/"
+    else:
+        domain = os.environ.get("DOMAIN_NAME", "uggu.space").strip().rstrip("/")
+        if not domain.startswith("http"):
+            domain = f"https://{domain}"
+        if branch:
+            menu_url = f"{domain}/m/{tenant.slug}/branch/{branch.id}/"
+        else:
+            menu_url = f"{domain}/m/{tenant.slug}/"
+
+    b_name = branch.name if branch else "كافة الفروع"
+    whatsapp_text = (
+        f"أهلاً بك يا فندم! 🍽️\n"
+        f"يسعدنا تواصلك مع مطعم {tenant.name}.\n"
+        f"تفضل رابط قائمة الطعام الإلكترونية لتصفح الوجبات والأسعار:\n"
+        f"{menu_url}\n"
+        f"يسعدنا دائماً خدمتك! ✨"
+    )
+
+    return {
+        "ok": True,
+        "status": "success",
+        "menu_url": menu_url,
+        "restaurant_name": tenant.name,
+        "branch_id": branch.id if branch else None,
+        "branch_name": b_name,
+        "message": f"رابط قائمة الطعام الإلكترونية لمطعم {tenant.name} هو: {menu_url}",
+        "suggested_whatsapp_text": whatsapp_text
+    }
+
+
 @mcp.tool
 def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, access_key: Optional[str] = None) -> Dict[str, Any]:
     """
