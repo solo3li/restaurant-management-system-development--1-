@@ -452,14 +452,33 @@
 
     async function submitAddEmp(e) {
         e.preventDefault();
+        const btn = document.getElementById('btn-add-emp-submit');
+        const empName = document.getElementById('emp_name').value.trim();
+        const empExt = document.getElementById('emp_ext').value.trim();
+        const empUsername = document.getElementById('emp_username').value.trim();
+        const empPassword = document.getElementById('emp_password').value.trim();
+        const empDept = document.getElementById('emp_dept').value;
+        const empStatus = document.getElementById('emp_status').value;
+
+        if (!empName || !empExt) {
+            showNotification('يرجى كتابة اسم الموظف ورقم التحويلة', true);
+            return;
+        }
+
         const payload = {
-            name: document.getElementById('emp_name').value,
-            username: document.getElementById('emp_username').value,
-            password: document.getElementById('emp_password').value,
-            extension: document.getElementById('emp_ext').value,
-            department: document.getElementById('emp_dept').value,
-            status: document.getElementById('emp_status').value
+            display_name: empName,
+            name: empName,
+            username: empUsername,
+            password: empPassword,
+            extension: empExt,
+            department: empDept,
+            status: empStatus
         };
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'جاري الإضافة...';
+        }
 
         try {
             const res = await fetch("{% url 'api_ai_callcenter_add_employee' %}", {
@@ -473,10 +492,18 @@
                 closeAddEmpModal();
                 setTimeout(() => location.reload(), 1000);
             } else {
-                showNotification(data.message || 'حدث خطأ', true);
+                showNotification(data.message || 'حدث خطأ أثناء إضافة الموظف', true);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'إضافة الموظف';
+                }
             }
         } catch (e) {
-            showNotification('تعذر الاتصال', true);
+            showNotification('تعذر الاتصال بالسيرفر', true);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'إضافة الموظف';
+            }
         }
     }
 

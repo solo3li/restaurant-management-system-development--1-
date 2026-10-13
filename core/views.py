@@ -5522,10 +5522,10 @@ def api_ai_callcenter_add_employee(request):
     except Exception:
         return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
 
-    name = data.get("display_name", "").strip()
-    ext = data.get("extension", "").strip()
-    dept = data.get("department", "خدمة العملاء").strip()
-    status = data.get("status", "ready").strip()
+    name = (data.get("display_name") or data.get("name") or "").strip()
+    ext = (data.get("extension") or data.get("ext") or "").strip()
+    dept = (data.get("department") or data.get("dept") or "خدمة العملاء").strip()
+    status = (data.get("status") or "ready").strip()
     username = data.get("username", "").strip()
     password = data.get("password", "").strip()
 
