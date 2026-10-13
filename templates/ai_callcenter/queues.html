@@ -5,16 +5,15 @@
 {% block content %}
 <div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
 
-
     <!-- SECTION 1: CALL QUEUES -->
     <div class="card p-6 sm:p-7 border-line space-y-6 shadow-xs">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
             <div>
                 <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg> طوابير الانتظار (Call Queues)
+                    <svg class="w-5 h-5 inline-block text-brand-600 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg> طوابير الانتظار وتوجيه المكالمات (Call Queues & Routing)
                 </h3>
                 <p class="text-xs text-soft font-bold mt-0.5">
-                    إنشاء وإدارة طوابير مستقلة (مبيعات، شكاوى، استفسارات) وتعيين الموظفين إليها
+                    إدارة طوابير التوزيع (خدمة العملاء، الطلبات، الشكاوى) مع توجيه الذكاء الاصطناعي (Gemini Live) متى يحول المتصلين للموظفين.
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -29,47 +28,89 @@
             <table class="w-full text-right border-collapse text-xs">
                 <thead>
                     <tr class="bg-paper text-soft font-black border-b border-line">
-                        <th class="py-3 px-3.5">اسم الطابور</th>
+                        <th class="py-3 px-3.5 min-w-[220px]">اسم واختصاص الطابور للـ AI</th>
                         <th class="py-3 px-3 text-center">كود الطابور</th>
                         <th class="py-3 px-3">استراتيجية التوزيع</th>
-                        <th class="py-3 px-3 text-center">مهلة الرنين</th>
+                        <th class="py-3 px-3 text-center">المهل الزمنية</th>
+                        <th class="py-3 px-3.5 min-w-[260px]">أعضاء الطابور (موظفو التحويل)</th>
                         <th class="py-3 px-3">الإجراء البديل</th>
-                        <th class="py-3 px-3 text-center">الأعضاء</th>
                         <th class="py-3 px-3.5 text-center">إجراءات</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-line/60 bg-card">
                     {% for q in queues %}
                     <tr id="queue-row-{{ q.id }}" class="hover:bg-paper/40 transition">
-                        <td class="py-3 px-3.5 font-bold text-ink">
+                        <td class="py-3.5 px-3.5">
                             <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-brand-600"></span>
-                                <span>{{ q.name }}</span>
-                                {% if forloop.first %}
+                                <span class="w-2.5 h-2.5 rounded-full bg-brand-600 shrink-0"></span>
+                                <span class="font-black text-ink text-sm">{{ q.name }}</span>
+                                {% if forloop.first or q.code == '200' %}
                                 <span class="text-[9.5px] px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-800 border border-brand-200">الافتراضي</span>
                                 {% endif %}
                             </div>
+                            <div class="mt-1.5 text-[11px] leading-relaxed text-soft font-medium">
+                                {% if q.description %}
+                                <span class="text-brand-600 font-bold">🤖 اختصاص الـ AI:</span>
+                                <span>{{ q.description }}</span>
+                                {% else %}
+                                <span class="text-slate-400 italic">لم يُحدد وصف واختصاص للذكاء الاصطناعي (اضغط تعديل لإضافته)</span>
+                                {% endif %}
+                            </div>
                         </td>
-                        <td class="py-3 px-3 text-center font-mono font-black text-brand-600">{{ q.code }}</td>
-                        <td class="py-3 px-3 font-bold text-ink">
-                            {% if q.strategy == 'least_recent' %}الأقل استقبالاً
-                            {% elif q.strategy == 'round_robin' %}دائري بالتناوب
-                            {% else %}عشوائي{% endif %}
-                        </td>
-                        <td class="py-3 px-3 text-center font-mono">{{ q.ring_timeout_seconds|default:20 }} ثانية</td>
-                        <td class="py-3 px-3 text-soft font-bold">
-                            {% if q.fallback_action == 'ai_assistant' %}عودة المساعد الذكي{% else %}إنهاء المكالمة{% endif %}
-                        </td>
-                        <td class="py-3 px-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full font-black text-[11px] bg-emerald-100 text-emerald-800">
-                                {{ q.members|length }} أعضاء
+                        <td class="py-3.5 px-3 text-center">
+                            <span class="font-mono font-black text-brand-600 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-lg text-xs">
+                                #{{ q.code }}
                             </span>
                         </td>
-                        <td class="py-3 px-3.5 text-center">
-                            <div class="inline-flex items-center gap-1.5">
-                                <button type="button" onclick="openAddQueueMemberModal({{ q.id }}, '{{ q.name|escapejs }}')" class="px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                        <td class="py-3.5 px-3 font-bold text-ink">
+                            {% if q.strategy == 'ring_all' %}
+                            <span class="inline-flex items-center gap-1 text-purple-700">
+                                <span>📢</span> رنين جماعي متزامن (Ring-All)
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 text-emerald-700">
+                                <span>🔄</span> دائري بالتناوب (Round-Robin)
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-3 text-center font-mono space-y-0.5">
+                            <div class="text-[11px] font-bold text-ink">رنين: {{ q.ring_timeout_seconds|default:20 }}ث</div>
+                            <div class="text-[10px] text-soft">انتظار: {{ q.total_timeout_seconds|default:60 }}ث</div>
+                        </td>
+                        <td class="py-3.5 px-3.5">
+                            <div class="flex flex-wrap items-center gap-1.5" id="queue-members-container-{{ q.id }}">
+                                {% if q.members %}
+                                    {% for m in q.members %}
+                                    <div id="qm-chip-{{ q.id }}-{{ m.employee_id }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-paper border border-line text-xs font-bold shadow-2xs hover:border-brand-300 transition">
+                                        <span class="w-1.5 h-1.5 rounded-full {% if m.status == 'ready' %}bg-emerald-500{% elif m.status == 'busy' %}bg-amber-500{% else %}bg-slate-400{% endif %}" title="حالة الموظف"></span>
+                                        <span class="text-ink">{{ m.name }}</span>
+                                        <span class="text-brand-600 font-mono text-[10.5px]">#{{ m.extension }}</span>
+                                        <span class="text-[9.5px] text-soft font-mono">({{ m.order }})</span>
+                                        <button type="button" onclick="removeQueueMember({{ q.id }}, {{ m.employee_id }}, '{{ m.name|escapejs }}')" class="text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded p-0.5 transition cursor-pointer" title="إزالة من هذا الطابور">
+                                            ✕
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-soft text-xs italic">لا يوجد موظفون مسندون للطابور بعد</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-3 text-soft font-bold">
+                            {% if q.fallback_action == 'ai_assistant' %}
+                            <span class="text-brand-600">عودة المساعد الذكي للاعتذار</span>
+                            {% else %}
+                            <span class="text-rose-600">إنهاء المكالمة</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-3.5 text-center">
+                            <div class="inline-flex items-center gap-1.5 justify-center flex-wrap">
+                                <button type="button" onclick="openAddQueueMemberModal({{ q.id }}, '{{ q.name|escapejs }}')" class="px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="إضافة موظف للطابور">
                                     <span>+</span>
-                                    <span>إضافة عضو</span>
+                                    <span>عضو</span>
+                                </button>
+                                <button type="button" onclick="openEditQueueModal({{ q.id }}, '{{ q.name|escapejs }}', '{{ q.code|escapejs }}', '{{ q.description|default:''|escapejs }}', '{{ q.strategy|default:'round_robin'|escapejs }}', {{ q.ring_timeout_seconds|default:20 }}, {{ q.total_timeout_seconds|default:60 }}, '{{ q.fallback_action|default:'ai_assistant'|escapejs }}')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition cursor-pointer" title="تعديل الطابور">
+                                    ✏️
                                 </button>
                                 <button type="button" onclick="deleteQueue({{ q.id }}, '{{ q.name|escapejs }}')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition cursor-pointer" title="حذف الطابور">
                                     ✕
@@ -94,48 +135,55 @@
         <div class="border-b border-line pb-4 flex items-center justify-between flex-wrap gap-3">
             <div>
                 <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg> موظفو الاستقبال والتحويل البشري
+                    <svg class="w-5 h-5 inline-block text-brand-600 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg> موظفو الاستقبال والتحويل البشري (Human Staff Directory)
                 </h3>
-                <p class="text-xs text-soft font-bold mt-0.5">تسجيل موظفي الكاشير وخدمة العملاء وأرقام تحويلاتهم الداخلية (Extensions)</p>
+                <p class="text-xs text-soft font-bold mt-0.5">تسجيل موظفي الكاشير وخدمة العملاء، أرقام تحويلاتهم SIP، والتحكم الفوري بحالة التواجد والتفرغ</p>
             </div>
-            <button onclick="openAddEmpModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs cursor-pointer">
+            <button onclick="openAddEmpModal()" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-md shadow-brand-600/20 cursor-pointer">
                 <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg> إضافة موظف جديد
             </button>
         </div>
 
         <!-- Employees Table -->
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto rounded-xl border border-line">
             <table class="w-full text-right border-collapse text-xs">
                 <thead>
-                    <tr class="border-b border-line bg-paper/60 text-soft font-black">
-                        <th class="py-2.5 px-3">اسم الموظف</th>
-                        <th class="py-2.5 px-3">اسم المستخدم (Login ID)</th>
-                        <th class="py-2.5 px-3">رقم التحويلة (Extension)</th>
-                        <th class="py-2.5 px-3">القسم</th>
-                        <th class="py-2.5 px-3">حالة التفرغ</th>
-                        <th class="py-2.5 px-3 text-center">إجراءات</th>
+                    <tr class="border-b border-line bg-paper text-soft font-black">
+                        <th class="py-3 px-3.5">اسم الموظف</th>
+                        <th class="py-3 px-3">اسم المستخدم (Login ID)</th>
+                        <th class="py-3 px-3 text-center">رقم التحويلة الداخلية</th>
+                        <th class="py-3 px-3">القسم</th>
+                        <th class="py-3 px-3.5 text-center min-w-[180px]">حالة التواجد (تغيير فوري)</th>
+                        <th class="py-3 px-3.5 text-center">إجراءات</th>
                     </tr>
                 </thead>
-                <tbody id="emps-tbody" class="divide-y divide-line/60">
+                <tbody id="emps-tbody" class="divide-y divide-line/60 bg-card">
                     {% if employees %}
                         {% for emp in employees %}
                         <tr id="emp-row-{{ emp.id }}" class="hover:bg-paper/30 transition">
-                            <td class="py-3 px-3 font-bold text-ink">{{ emp.display_name }}</td>
+                            <td class="py-3 px-3.5 font-bold text-ink text-sm">{{ emp.display_name }}</td>
                             <td class="py-3 px-3 font-mono font-bold text-soft text-xs">{{ emp.username|default:"—" }}</td>
-                            <td class="py-3 px-3 font-mono font-black text-brand-600 text-sm">#{{ emp.extension }}</td>
-                            <td class="py-3 px-3 text-soft font-bold">{{ emp.department }}</td>
-                            <td class="py-3 px-3">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-black {% if emp.status == 'ready' %}bg-emerald-100 text-emerald-800{% elif emp.status == 'busy' %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-700{% endif %}">
-                                    <span class="h-1.5 w-1.5 rounded-full {% if emp.status == 'ready' %}bg-emerald-500{% elif emp.status == 'busy' %}bg-amber-500{% else %}bg-slate-400{% endif %}"></span>
-                                    {{ emp.status_display|default:emp.status }}
+                            <td class="py-3 px-3 text-center">
+                                <span class="font-mono font-black text-brand-600 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-lg text-xs">
+                                    #{{ emp.extension }}
                                 </span>
                             </td>
-                            <td class="py-3 px-3 text-center">
-                                <div class="inline-flex items-center gap-1 justify-center">
-                                    <button type="button" onclick="openEmpCredentialsModal({{ emp.id }}, '{{ emp.display_name|escapejs }}', '{{ emp.extension }}', '{{ emp.sip_username|default:''|escapejs }}', '{{ emp.sip_password|default:''|escapejs }}')" class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 transition cursor-pointer" title="بيانات وإعدادات الهاتف (SIP)">
+                            <td class="py-3 px-3 text-soft font-bold">{{ emp.department }}</td>
+                            <td class="py-3 px-3.5 text-center">
+                                <div class="inline-flex items-center gap-2">
+                                    <select onchange="updateEmpStatus({{ emp.id }}, this.value)" id="emp-status-select-{{ emp.id }}" class="text-xs font-bold py-1.5 px-2.5 rounded-xl border border-line bg-paper cursor-pointer focus:border-brand-500 focus:outline-none transition">
+                                        <option value="ready" {% if emp.status == 'ready' %}selected{% endif %}>🟢 متاح للرنين (Ready)</option>
+                                        <option value="busy" {% if emp.status == 'busy' %}selected{% endif %}>🟡 مشغول (Busy)</option>
+                                        <option value="offline" {% if emp.status == 'offline' %}selected{% endif %}>⚪ غير متصل (Offline)</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td class="py-3 px-3.5 text-center">
+                                <div class="inline-flex items-center gap-1.5 justify-center">
+                                    <button type="button" onclick="openEmpCredentialsModal({{ emp.id }}, '{{ emp.display_name|escapejs }}', '{{ emp.extension }}', '{{ emp.sip_username|default:''|escapejs }}', '{{ emp.sip_password|default:''|escapejs }}')" class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 border border-brand-200/50 transition cursor-pointer" title="بيانات وإعدادات الهاتف (SIP)">
                                         <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                     </button>
-                                    <button type="button" onclick="deleteEmp({{ emp.id }})" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition cursor-pointer" title="حذف الموظف">
+                                    <button type="button" onclick="deleteEmp({{ emp.id }})" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-rose-200/50 transition cursor-pointer" title="حذف الموظف">
                                         <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
@@ -145,7 +193,7 @@
                     {% else %}
                         <tr id="no-emps-row">
                             <td colspan="6" class="py-8 text-center text-soft font-bold">
-                                لا يوجد موظفو تحويل مسجلون حالياً.
+                                لا يوجد موظفو تحويل مسجلون حالياً. اضغط على «إضافة موظف جديد» لإضافة كاشير أو موظف استقبال.
                             </td>
                         </tr>
                     {% endif %}
@@ -155,35 +203,45 @@
     </div>
 </div>
 
-<!-- Modal: Create New Queue -->
+<!-- Modal: Create / Edit Queue -->
 <div id="create-queue-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="{{ DIR|default:'rtl' }}">
         <div class="flex items-center justify-between border-b border-line pb-3">
-            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+            <h3 id="modal-queue-title" class="font-display text-base font-black text-ink flex items-center gap-2">
                 <span>➕</span> إنشاء طابور انتظار جديد (Call Queue)
             </h3>
             <button type="button" onclick="closeCreateQueueModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
         </div>
 
-        <form id="create-queue-form" onsubmit="submitCreateQueue(event)" class="space-y-4">
+        <form id="create-queue-form" onsubmit="submitSaveQueue(event)" class="space-y-4">
+            <input type="hidden" id="cq_id" value="">
+
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">اسم الطابور</label>
+                <label class="block text-xs font-black text-ink mb-1.5">اسم الطابور *</label>
                 <input type="text" id="cq_name" name="name" placeholder="مثال: طابور المبيعات والطلبات الجديدة" required class="input">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">كود الطابور الداخلي</label>
-                    <input type="text" id="cq_code" name="code" placeholder="مثال: 201" required class="input font-mono font-bold">
+                    <label class="block text-xs font-black text-ink mb-1.5">كود الطابور الداخلي (Extension Code) *</label>
+                    <input type="text" id="cq_code" name="code" placeholder="مثال: 200 أو 201" required pattern="[0-9]+" class="input font-mono font-bold">
                 </div>
                 <div>
                     <label class="block text-xs font-black text-ink mb-1.5">استراتيجية التوزيع</label>
                     <select id="cq_strategy" name="strategy" class="input font-bold cursor-pointer">
-                        <option value="least_recent" selected>الأقل استقبالاً (Least Recent)</option>
-                        <option value="round_robin">دائري بالتناوب (Round Robin)</option>
-                        <option value="random">عشوائي (Random)</option>
+                        <option value="round_robin" selected>🔄 دائري بالتناوب (Round-Robin)</option>
+                        <option value="ring_all">📢 رنين جماعي متزامن للكل (Ring-All)</option>
                     </select>
                 </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">
+                    <span>وصف واختصاصات الطابور للذكاء الاصطناعي</span>
+                    <span class="text-[11px] text-soft font-normal mr-1">(لتوجيه الـ AI متى يحول للقسم)</span>
+                </label>
+                <textarea id="cq_description" name="description" rows="3" placeholder="مثال: مخصص لشكاوى الفواتير، تعديل الطلبات، أو الاستفسارات المعقدة. حول المتصل هنا عند حدوث مشكلة أو طلب التحدث مع إنسان." class="input text-xs leading-relaxed"></textarea>
+                <p class="text-[10px] text-soft mt-1">يعتمد مساعد الذكاء الاصطناعي على هذا الوصف في المكالمة ليقرر متى يحول المتصل إلى هذا القسم تلقائياً.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -192,17 +250,22 @@
                     <input type="number" id="cq_ring_timeout" name="ring_timeout_seconds" value="20" min="5" max="60" class="input font-bold font-mono">
                 </div>
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">الإجراء البديل (Fallback)</label>
-                    <select id="cq_fallback" name="fallback_action" class="input font-bold cursor-pointer">
-                        <option value="ai_assistant" selected>عودة المساعد الذكي للاعتذار</option>
-                        <option value="hangup">إنهاء المكالمة</option>
-                    </select>
+                    <label class="block text-xs font-black text-ink mb-1.5">مهلة الانتظار الكلية (ثواني)</label>
+                    <input type="number" id="cq_total_timeout" name="total_timeout_seconds" value="60" min="15" max="300" class="input font-bold font-mono">
                 </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1.5">الإجراء البديل (Fallback عند انتهاء الانتظار)</label>
+                <select id="cq_fallback" name="fallback_action" class="input font-bold cursor-pointer">
+                    <option value="ai_assistant" selected>عودة المساعد الذكي للاعتذار ومتابعة المكالمة</option>
+                    <option value="hangup">إنهاء المكالمة</option>
+                </select>
             </div>
 
             <div class="pt-3 border-t border-line flex items-center justify-end gap-2.5">
                 <button type="button" onclick="closeCreateQueueModal()" class="px-4 py-2 rounded-xl text-soft hover:bg-paper text-xs font-black transition cursor-pointer">إلغاء</button>
-                <button type="submit" id="cq-submit-btn" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">حفظ وإنشاء الطابور</button>
+                <button type="submit" id="cq-submit-btn" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer">حفظ الطابور</button>
             </div>
         </form>
     </div>
@@ -222,18 +285,19 @@
             <input type="hidden" id="qm_queue_id" value="">
 
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">اختر الموظف المراد تعيينه في الطابور</label>
+                <label class="block text-xs font-black text-ink mb-1.5">اختر الموظف المراد تعيينه في هذا الطابور *</label>
                 <select id="qm_employee_id" required class="input font-bold cursor-pointer">
                     <option value="" disabled selected>— اختر موظف من القائمة —</option>
                     {% for emp in employees %}
-                    <option value="{{ emp.id }}">{{ emp.display_name }} (تحويلة: {{ emp.extension }} - {{ emp.department }})</option>
+                    <option value="{{ emp.id }}">{{ emp.display_name }} (تحويلة: #{{ emp.extension }} — {{ emp.department }})</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">أولوية الرنين (Priority 0-100)</label>
-                <input type="number" id="qm_penalty" value="0" min="0" max="100" class="input font-mono font-bold">
+                <label class="block text-xs font-black text-ink mb-1.5">ترتيب الأولوية في التناوب (Order 1, 2, 3...)</label>
+                <input type="number" id="qm_order" value="1" min="1" max="100" class="input font-mono font-bold">
+                <p class="text-[10px] text-soft mt-1">الرقم الأصغر يُرن عليه أولاً في نظام التناوب (Round-Robin).</p>
             </div>
 
             <div class="pt-3 border-t border-line flex items-center justify-end gap-2.5">
@@ -256,7 +320,7 @@
 
         <form onsubmit="submitAddEmp(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-black text-ink mb-1">اسم الموظف</label>
+                <label class="block text-xs font-black text-ink mb-1">اسم الموظف *</label>
                 <input type="text" id="emp_name" placeholder="مثال: أحمد عبد الله" required class="input">
             </div>
 
@@ -273,8 +337,8 @@
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1">رقم التحويلة الداخلية (Extension)</label>
-                    <input type="text" id="emp_ext" placeholder="مثال: 101" required class="input font-mono font-bold">
+                    <label class="block text-xs font-black text-ink mb-1">رقم التحويلة الداخلية *</label>
+                    <input type="text" id="emp_ext" placeholder="مثال: 101" required pattern="[0-9]+" class="input font-mono font-bold">
                 </div>
                 <div>
                     <label class="block text-xs font-black text-ink mb-1">القسم</label>
@@ -290,9 +354,9 @@
             <div>
                 <label class="block text-xs font-black text-ink mb-1">حالة التفرغ الأولية</label>
                 <select id="emp_status" class="input font-bold cursor-pointer">
-                    <option value="ready" selected>جاهز ومتاح لاستقبال المكالمات (Ready)</option>
-                    <option value="busy">مشغول (Busy)</option>
-                    <option value="offline">غير متصل (Offline)</option>
+                    <option value="ready" selected>🟢 جاهز ومتاح لاستقبال المكالمات (Ready)</option>
+                    <option value="busy">🟡 مشغول (Busy)</option>
+                    <option value="offline">⚪ غير متصل (Offline)</option>
                 </select>
             </div>
 
@@ -346,18 +410,55 @@
 </div>
 
 <script>
-    function openCreateQueueModal() { document.getElementById('create-queue-modal').classList.remove('hidden'); }
-    function closeCreateQueueModal() { document.getElementById('create-queue-modal').classList.add('hidden'); }
+    function openCreateQueueModal() {
+        document.getElementById('modal-queue-title').innerHTML = '<span>➕</span> إنشاء طابور انتظار جديد (Call Queue)';
+        document.getElementById('cq_id').value = '';
+        document.getElementById('cq_name').value = '';
+        document.getElementById('cq_code').value = '';
+        document.getElementById('cq_code').readOnly = false;
+        document.getElementById('cq_description').value = '';
+        document.getElementById('cq_strategy').value = 'round_robin';
+        document.getElementById('cq_ring_timeout').value = 20;
+        document.getElementById('cq_total_timeout').value = 60;
+        document.getElementById('cq_fallback').value = 'ai_assistant';
+        document.getElementById('create-queue-modal').classList.remove('hidden');
+    }
+
+    function openEditQueueModal(id, name, code, description, strategy, ringTimeout, totalTimeout, fallback) {
+        document.getElementById('modal-queue-title').innerHTML = '<span>✏️</span> تعديل طابور الانتظار (كود ' + code + ')';
+        document.getElementById('cq_id').value = id;
+        document.getElementById('cq_name').value = name;
+        document.getElementById('cq_code').value = code;
+        document.getElementById('cq_description').value = description || '';
+        document.getElementById('cq_strategy').value = strategy || 'round_robin';
+        document.getElementById('cq_ring_timeout').value = ringTimeout || 20;
+        document.getElementById('cq_total_timeout').value = totalTimeout || 60;
+        document.getElementById('cq_fallback').value = fallback || 'ai_assistant';
+        document.getElementById('create-queue-modal').classList.remove('hidden');
+    }
+
+    function closeCreateQueueModal() {
+        document.getElementById('create-queue-modal').classList.add('hidden');
+    }
 
     function openAddQueueMemberModal(qId, qName) {
         document.getElementById('qm_queue_id').value = qId;
         document.getElementById('modal-queue-name').textContent = qName;
+        document.getElementById('qm_order').value = 1;
         document.getElementById('add-queue-member-modal').classList.remove('hidden');
     }
-    function closeAddQueueMemberModal() { document.getElementById('add-queue-member-modal').classList.add('hidden'); }
 
-    function openAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('hidden'); }
-    function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.add('hidden'); }
+    function closeAddQueueMemberModal() {
+        document.getElementById('add-queue-member-modal').classList.add('hidden');
+    }
+
+    function openAddEmpModal() {
+        document.getElementById('add-emp-modal').classList.remove('hidden');
+    }
+
+    function closeAddEmpModal() {
+        document.getElementById('add-emp-modal').classList.add('hidden');
+    }
 
     function openEmpCredentialsModal(id, name, ext, username, password) {
         document.getElementById('cred-active-empid').value = id;
@@ -366,7 +467,10 @@
         document.getElementById('cred-password-display').textContent = password || '••••••••';
         document.getElementById('credentials-modal').classList.remove('hidden');
     }
-    function closeCredentialsModal() { document.getElementById('credentials-modal').classList.add('hidden'); }
+
+    function closeCredentialsModal() {
+        document.getElementById('credentials-modal').classList.add('hidden');
+    }
 
     function copyCredentialsText() {
         const name = document.getElementById('cred-name').textContent;
@@ -377,15 +481,22 @@
         copyTextToClipboard(text, 'تم نسخ بيانات الاتصال');
     }
 
-    async function submitCreateQueue(e) {
+    async function submitSaveQueue(e) {
         e.preventDefault();
+        const btn = document.getElementById('cq-submit-btn');
+        const qId = document.getElementById('cq_id').value;
         const payload = {
-            name: document.getElementById('cq_name').value,
-            code: document.getElementById('cq_code').value,
+            id: qId || undefined,
+            name: document.getElementById('cq_name').value.trim(),
+            code: document.getElementById('cq_code').value.trim(),
+            description: document.getElementById('cq_description').value.trim(),
             strategy: document.getElementById('cq_strategy').value,
             ring_timeout_seconds: parseInt(document.getElementById('cq_ring_timeout').value) || 20,
+            total_timeout_seconds: parseInt(document.getElementById('cq_total_timeout').value) || 60,
             fallback_action: document.getElementById('cq_fallback').value
         };
+
+        if (btn) { btn.disabled = true; btn.textContent = 'جاري الحفظ...'; }
 
         try {
             const res = await fetch("{% url 'api_ai_callcenter_save_queue' %}", {
@@ -395,14 +506,16 @@
             });
             const data = await res.json();
             if (data.status === 'success') {
-                showNotification('تم إنشاء الطابور بنجاح');
+                showNotification(qId ? 'تم تحديث إعدادات الطابور بنجاح' : 'تم إنشاء طابور الانتظار بنجاح');
                 closeCreateQueueModal();
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(() => location.reload(), 800);
             } else {
-                showNotification(data.message || 'حدث خطأ', true);
+                showNotification(data.message || 'حدث خطأ أثناء حفظ الطابور', true);
             }
         } catch (e) {
-            showNotification('تعذر الاتصال', true);
+            showNotification('تعذر الاتصال بالسيرفر', true);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'حفظ الطابور'; }
         }
     }
 
@@ -427,26 +540,75 @@
 
     async function submitAddQueueMember(e) {
         e.preventDefault();
+        const btn = document.getElementById('qm-submit-btn');
         const qId = document.getElementById('qm_queue_id').value;
         const empId = document.getElementById('qm_employee_id').value;
-        const penalty = parseInt(document.getElementById('qm_penalty').value) || 0;
+        const order = parseInt(document.getElementById('qm_order').value) || 1;
+
+        if (!empId) {
+            showNotification('يرجى اختيار الموظف', true);
+            return;
+        }
+
+        if (btn) { btn.disabled = true; btn.textContent = 'جاري الإضافة...'; }
 
         try {
             const res = await fetch(`/api/ai-callcenter/queues/${qId}/members/add/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' },
-                body: JSON.stringify({ employee_id: empId, penalty: penalty })
+                body: JSON.stringify({ employee_id: empId, order: order })
             });
             const data = await res.json();
             if (data.status === 'success') {
                 showNotification('تمت إضافة الموظف للطابور بنجاح');
                 closeAddQueueMemberModal();
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(() => location.reload(), 800);
             } else {
-                showNotification(data.message || 'حدث خطأ', true);
+                showNotification(data.message || 'حدث خطأ أثناء الإضافة', true);
             }
         } catch (e) {
-            showNotification('تعذر الاتصال', true);
+            showNotification('تعذر الاتصال بالسيرفر', true);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'تأكيد الإضافة'; }
+        }
+    }
+
+    async function removeQueueMember(qId, empId, empName) {
+        if (!confirm(`هل تريد إزالة الموظف "${empName}" من هذا الطابور؟`)) return;
+
+        try {
+            const res = await fetch(`/api/ai-callcenter/queues/${qId}/members/remove/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' },
+                body: JSON.stringify({ employee_id: empId })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                document.getElementById(`qm-chip-${qId}-${empId}`)?.remove();
+                showNotification(`تمت إزالة ${empName} من الطابور`);
+            } else {
+                showNotification(data.message || 'حدث خطأ أثناء إزالة الموظف', true);
+            }
+        } catch (e) {
+            showNotification('تعذر الاتصال بالسيرفر', true);
+        }
+    }
+
+    async function updateEmpStatus(empId, newStatus) {
+        try {
+            const res = await fetch(`/api/ai-callcenter/employees/${empId}/status/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showNotification('تم تحديث حالة الموظف بنجاح');
+            } else {
+                showNotification(data.message || 'تعذر تحديث الحالة', true);
+            }
+        } catch (e) {
+            showNotification('تعذر الاتصال بالسيرفر', true);
         }
     }
 
@@ -493,13 +655,10 @@
                 setTimeout(() => location.reload(), 1000);
             } else {
                 showNotification(data.message || 'حدث خطأ أثناء إضافة الموظف', true);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'إضافة الموظف';
-                }
             }
         } catch (e) {
             showNotification('تعذر الاتصال بالسيرفر', true);
+        } finally {
             if (btn) {
                 btn.disabled = false;
                 btn.textContent = 'إضافة الموظف';

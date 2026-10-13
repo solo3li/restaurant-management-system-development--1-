@@ -1462,6 +1462,27 @@ def log_audit_event(tenant, user=None, action="", target_model="", target_id="",
         return None
 
 
+class KnowledgeDocument(models.Model):
+    """Local storage and metadata for uploaded restaurant knowledge documents (PDFs, Menus, FAQs)."""
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='knowledge_documents')
+    partner_doc_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name="معرف المستند في منصة المكالمات")
+    title = models.CharField(max_length=255, verbose_name="عنوان المستند أو السؤال")
+    file = models.FileField(upload_to='knowledge_docs/%Y/%m/', null=True, blank=True, verbose_name="الملف المرفوع")
+    file_type = models.CharField(max_length=32, blank=True, verbose_name="نوع الملف")
+    file_size = models.PositiveIntegerField(default=0, verbose_name="حجم الملف بالبايت")
+    source_type = models.CharField(max_length=32, default='file', verbose_name="مصدر المستند")  # 'file', 'faq', 'url'
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+
+    class Meta:
+        verbose_name = "مستند قاعدة المعرفة"
+        verbose_name_plural = "مستندات قاعدة المعرفة"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} ({self.tenant.name})"
+
+
+
 
 
 

@@ -350,7 +350,7 @@ def add_document(client_id: int, title: str, content: str = "", file_url: str = 
 
 
 def delete_document(client_id: int, doc_id: int) -> Dict[str, Any]:
-    return _request(f"/clients/{client_id}/documents/{doc_id}/", method="DELETE")
+    return _request(f"/clients/{client_id}/documents/?document_id={doc_id}", method="DELETE")
 
 
 def get_employees(client_id: int) -> Dict[str, Any]:
@@ -420,16 +420,22 @@ def get_queues(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/queues/")
 
 
-def add_or_update_queue(client_id: int, name: str, code: str = "200", strategy: str = "least_recent", ring_timeout_seconds: int = 20, total_timeout_seconds: int = 60, fallback_action: str = "ai_assistant") -> Dict[str, Any]:
+def add_or_update_queue(client_id: int, name: str, code: str = "200", description: str = "", strategy: str = "round_robin", ring_timeout_seconds: int = 20, total_timeout_seconds: int = 60, fallback_action: str = "ai_assistant") -> Dict[str, Any]:
+    strat_clean = strategy.strip() if strategy.strip() in ("round_robin", "ring_all") else "round_robin"
     payload = {
         "name": name.strip(),
         "code": str(code).strip(),
-        "strategy": strategy.strip(),
+        "description": description.strip(),
+        "strategy": strat_clean,
         "ring_timeout_seconds": int(ring_timeout_seconds),
         "total_timeout_seconds": int(total_timeout_seconds),
         "fallback_action": fallback_action.strip(),
     }
     return _request(f"/clients/{client_id}/queues/", method="POST", data=payload)
+
+
+def update_queue(client_id: int, queue_id: int, **fields) -> Dict[str, Any]:
+    return _request(f"/clients/{client_id}/queues/{queue_id}/", method="PATCH", data=fields)
 
 
 def delete_queue(client_id: int, queue_id: int) -> Dict[str, Any]:
@@ -440,10 +446,19 @@ def get_queue_members(client_id: int, queue_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/queues/{queue_id}/members/")
 
 
-def add_queue_member(client_id: int, queue_id: int, employee_id: int, penalty: int = 0) -> Dict[str, Any]:
+def add_queue_member(client_id: int, queue_id: int, employee_id: int, order: int = 1) -> Dict[str, Any]:
     payload = {
+        "action": "add",
         "employee_id": int(employee_id),
-        "penalty": int(penalty),
+        "order": int(order),
+    }
+    return _request(f"/clients/{client_id}/queues/{queue_id}/members/", method="POST", data=payload)
+
+
+def remove_queue_member(client_id: int, queue_id: int, employee_id: int) -> Dict[str, Any]:
+    payload = {
+        "action": "remove",
+        "employee_id": int(employee_id),
     }
     return _request(f"/clients/{client_id}/queues/{queue_id}/members/", method="POST", data=payload)
 

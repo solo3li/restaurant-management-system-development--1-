@@ -1,3 +1,4 @@
+import os
 import json
 import csv
 import sys
@@ -5184,9 +5185,27 @@ def ai_callcenter_knowledge_view(request):
         return err_resp
 
     from core import partner_service as ps
+    from core.models import KnowledgeDocument
     client_id, _ = _get_callcenter_client_info(tenant)
 
     docs_data = ps.get_documents(client_id).get("documents") or []
+
+    # Enrich docs_data with local file attachments
+    local_docs = {
+        ld.partner_doc_id: ld
+        for ld in KnowledgeDocument.objects.filter(tenant=tenant)
+        if ld.partner_doc_id
+    }
+    for doc in docs_data:
+        doc_id = doc.get("id")
+        if doc_id in local_docs:
+            ld = local_docs[doc_id]
+            if ld.file:
+                doc["file_download_url"] = ld.file.url
+                doc["is_local_file"] = True
+            doc["source_type"] = ld.source_type
+        else:
+            doc["source_type"] = "faq" if not doc.get("file_type") or doc.get("file_type") == "txt" else "file"
 
     context = {
         "tenant": tenant,
@@ -5209,6 +5228,28 @@ def ai_callcenter_queues_view(request):
 
     employees_data = ps.get_employees(client_id).get("employees") or []
     queues_data = ps.get_queues(client_id).get("queues") or []
+
+    # Auto-seed default queue if tenant has 0 queues
+    if not queues_data:
+        try:
+            default_q_desc = "طابور خدمة العملاء والطلبات العام: يتم تحويل المتصل إليه عند طلب التحدث مع ممثل خدمة العملاء أو لتأكيد وإلغاء الطلبات."
+            seed_resp = ps.add_or_update_queue(
+                client_id=client_id,
+                name="طابور خدمة العملاء والطلبات",
+                code="200",
+                description=default_q_desc,
+                strategy="round_robin",
+                ring_timeout_seconds=20,
+                total_timeout_seconds=60,
+                fallback_action="ai_assistant"
+            )
+            if seed_resp.get("status") == "success" and seed_resp.get("queue"):
+                new_q = seed_resp.get("queue")
+                if employees_data:
+                    ps.add_queue_member(client_id, new_q["id"], employees_data[0]["id"], order=1)
+                queues_data = ps.get_queues(client_id).get("queues") or [new_q]
+        except Exception as q_seed_err:
+            logger.warning(f"Failed to auto-seed default queue for client {client_id}: {q_seed_err}")
 
     context = {
         "tenant": tenant,
@@ -5538,21 +5579,99 @@ def api_ai_callcenter_add_doc(request):
         return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
+    from core.models import KnowledgeDocument
     client_id = ps.get_client_id_for_tenant(tenant)
 
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+    # Check if this is a multipart file upload
+    file_obj = request.FILES.get("file")
+    if file_obj:
+        allowed_exts = [".pdf", ".docx", ".doc", ".txt", ".md", ".csv", ".json"]
+        filename = file_obj.name
+        ext = os.path.splitext(filename)[1].lower()
+        if ext not in allowed_exts:
+            return JsonResponse({
+                "status": "error",
+                "message": f"صيغة الملف غير مدعومة ({ext}). الصيغ المسموحة هي: PDF, DOCX, TXT, CSV, MD, JSON"
+            }, status=400)
 
-    title = data.get("title", "").strip()
-    content = data.get("content", "").strip()
-    file_url = data.get("file_url", "").strip()
+        max_bytes = 25 * 1024 * 1024  # 25 MB
+        if file_obj.size > max_bytes:
+            return JsonResponse({
+                "status": "error",
+                "message": "حجم الملف يتجاوز الحد الأقصى المسموح به (25 ميجابايت)"
+            }, status=400)
+
+        title = (request.POST.get("title") or os.path.splitext(filename)[0]).strip()
+
+        # Save to local KnowledgeDocument model & storage
+        doc_record = KnowledgeDocument.objects.create(
+            tenant=tenant,
+            title=title,
+            file=file_obj,
+            file_type=ext.lstrip("."),
+            file_size=file_obj.size,
+            source_type="file"
+        )
+
+        # Build public absolute URL for the voice partner platform to ingest
+        base_host = request.get_host().split(":")[0]
+        effective_domain = "uggu.space" if base_host in ("169.58.32.179", "127.0.0.1", "localhost", "testserver") else base_host
+        public_file_url = f"https://{effective_domain}{doc_record.file.url}"
+
+        # Dispatch to partner platform
+        resp = ps.add_document(client_id, title=title, file_url=public_file_url)
+
+        if resp.get("status") == "success":
+            partner_doc_id = resp.get("document", {}).get("id")
+            if partner_doc_id:
+                doc_record.partner_doc_id = partner_doc_id
+                doc_record.save(update_fields=["partner_doc_id"])
+            return JsonResponse({
+                "status": "success",
+                "message": resp.get("message") or f"تم رفع المستند '{title}' وفهرسته بنجاح في قاعدة المعرفة.",
+                "document": resp.get("document")
+            })
+        else:
+            if doc_record.file:
+                try:
+                    doc_record.file.delete(save=False)
+                except Exception:
+                    pass
+            doc_record.delete()
+            return JsonResponse({
+                "status": "error",
+                "message": resp.get("message") or "تعذر فهرسة المستند في خدمة المكالمات"
+            }, status=400)
+
+    # Otherwise, handle JSON / text payload
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        data = {}
+
+    title = (request.POST.get("title") or data.get("title") or "").strip()
+    content = (request.POST.get("content") or data.get("content") or "").strip()
+    file_url = (request.POST.get("file_url") or data.get("file_url") or "").strip()
 
     if not title:
-        return JsonResponse({"status": "error", "message": "عنوان المستند مطلوب"}, status=400)
+        return JsonResponse({"status": "error", "message": "عنوان المستند أو السؤال مطلوب"}, status=400)
+
+    if not content and not file_url:
+        return JsonResponse({"status": "error", "message": "يرجى كتابة نص المعلومة (FAQ) أو رفع ملف"}, status=400)
 
     resp = ps.add_document(client_id, title=title, content=content, file_url=file_url)
+
+    if resp.get("status") == "success":
+        partner_doc_id = resp.get("document", {}).get("id")
+        source_type = "url" if file_url else "faq"
+        KnowledgeDocument.objects.create(
+            tenant=tenant,
+            partner_doc_id=partner_doc_id,
+            title=title,
+            file_type="url" if file_url else "txt",
+            source_type=source_type
+        )
+
     return JsonResponse(resp)
 
 
@@ -5565,9 +5684,21 @@ def api_ai_callcenter_delete_doc(request, doc_id):
         return err
     tenant = get_active_tenant(request)
     from core import partner_service as ps
+    from core.models import KnowledgeDocument
     client_id = ps.get_client_id_for_tenant(tenant)
 
     resp = ps.delete_document(client_id, doc_id)
+
+    # Delete local record and file
+    ld = KnowledgeDocument.objects.filter(tenant=tenant, partner_doc_id=doc_id).first()
+    if ld:
+        if ld.file:
+            try:
+                ld.file.delete(save=False)
+            except Exception:
+                pass
+        ld.delete()
+
     return JsonResponse(resp)
 
 
@@ -5661,6 +5792,32 @@ def api_ai_callcenter_reset_employee_password(request, emp_id):
 
 
 @login_required
+def api_ai_callcenter_update_employee_status(request, emp_id):
+    """API to quickly update employee presence status (ready, busy, offline)."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    new_status = (data.get("status") or "ready").strip()
+    if new_status not in ("ready", "busy", "offline"):
+        return JsonResponse({"status": "error", "message": "حالة غير صالحة"}, status=400)
+
+    resp = ps.update_employee(client_id, emp_id, status=new_status)
+    return JsonResponse(resp)
+
+
+@login_required
 def api_ai_callcenter_save_queue(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
@@ -5676,22 +5833,40 @@ def api_ai_callcenter_save_queue(request):
     except Exception:
         return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
 
-    name = data.get("name", "طابور خدمة العملاء الرئيسي").strip()
-    code = data.get("code", "200").strip()
-    strategy = data.get("strategy", "least_recent").strip()
+    queue_id = data.get("id") or data.get("queue_id")
+    name = (data.get("name") or "طابور خدمة العملاء الرئيسي").strip()
+    code = str(data.get("code") or "200").strip()
+    description = (data.get("description") or "").strip()
+    strategy = (data.get("strategy") or "round_robin").strip()
+    if strategy not in ("round_robin", "ring_all"):
+        strategy = "round_robin"
     ring_timeout = int(data.get("ring_timeout_seconds", 20))
     total_timeout = int(data.get("total_timeout_seconds", 60))
-    fallback = data.get("fallback_action", "ai_assistant").strip()
+    fallback = (data.get("fallback_action") or "ai_assistant").strip()
 
-    resp = ps.add_or_update_queue(
-        client_id,
-        name=name,
-        code=code,
-        strategy=strategy,
-        ring_timeout_seconds=ring_timeout,
-        total_timeout_seconds=total_timeout,
-        fallback_action=fallback
-    )
+    if queue_id:
+        resp = ps.update_queue(
+            client_id,
+            queue_id=int(queue_id),
+            name=name,
+            code=code,
+            description=description,
+            strategy=strategy,
+            ring_timeout_seconds=ring_timeout,
+            total_timeout_seconds=total_timeout,
+            fallback_action=fallback
+        )
+    else:
+        resp = ps.add_or_update_queue(
+            client_id,
+            name=name,
+            code=code,
+            description=description,
+            strategy=strategy,
+            ring_timeout_seconds=ring_timeout,
+            total_timeout_seconds=total_timeout,
+            fallback_action=fallback
+        )
     return JsonResponse(resp)
 
 
@@ -5712,7 +5887,7 @@ def api_ai_callcenter_delete_queue(request, queue_id):
 
 @login_required
 def api_ai_callcenter_add_queue_member(request, queue_id):
-    """API to add an employee member to a call queue with penalty priority."""
+    """API to add an employee member to a call queue with order priority."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
     err = _check_callcenter_admin(request)
@@ -5729,12 +5904,38 @@ def api_ai_callcenter_add_queue_member(request, queue_id):
         return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
 
     employee_id = data.get("employee_id")
-    penalty = int(data.get("penalty", 0))
+    order = int(data.get("order") or data.get("penalty") or 1)
 
     if not employee_id:
         return JsonResponse({"status": "error", "message": "يرجى تحديد الموظف المراد إضافته للطابور"}, status=400)
 
-    resp = ps.add_queue_member(client_id, queue_id, employee_id=int(employee_id), penalty=penalty)
+    resp = ps.add_queue_member(client_id, queue_id, employee_id=int(employee_id), order=order)
+    return JsonResponse(resp)
+
+
+@login_required
+def api_ai_callcenter_remove_queue_member(request, queue_id):
+    """API to remove an employee member from a call queue."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+
+    tenant = get_active_tenant(request)
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "Invalid JSON body"}, status=400)
+
+    employee_id = data.get("employee_id")
+    if not employee_id:
+        return JsonResponse({"status": "error", "message": "يرجى تحديد الموظف المراد إزالته من الطابور"}, status=400)
+
+    resp = ps.remove_queue_member(client_id, queue_id, employee_id=int(employee_id))
     return JsonResponse(resp)
 
 
