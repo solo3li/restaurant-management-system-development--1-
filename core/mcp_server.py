@@ -714,9 +714,10 @@ def _resolve_delivery_coverage_and_branch(
     if not clean_addr:
         return None, None, {
             "ok": False,
+            "is_system_error": False,
             "error": "عنوان التوصيل مطلوب لتنفيذ طلبات التوصيل (Delivery).",
             "ai_speech_response": "يا فندم محتاجة أعرف عنوان التوصيل بالتفصيل عشان أقدر أأكد لحضرتك الطلب وأشوف أقرب فرع.",
-            "instruction_for_ai": "اطلب من العميل تزويدك بعنوان التوصيل بالحي والشارع كما في ai_speech_response."
+            "instruction_for_ai": "اطلب من العميل تزويدك بعنوان التوصيل بالحي والشارع كما في ai_speech_response ولا تقل إن هناك عطلاً بالسيستم."
         }
 
     norm_addr = _normalize_arabic_text(clean_addr)
@@ -730,6 +731,7 @@ def _resolve_delivery_coverage_and_branch(
     if not candidate_branches:
         return None, None, {
             "ok": False,
+            "is_system_error": False,
             "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
             "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات، نسعد بخدمتك في أوقات العمل الرسمية.",
             "instruction_for_ai": "أبلغ العميل بلطف أن الفروع مغلقة حالياً."
@@ -740,10 +742,11 @@ def _resolve_delivery_coverage_and_branch(
     if not all_areas:
         return None, None, {
             "ok": False,
+            "is_system_error": False,
             "error": "خدمة التوصيل غير مفعلة حالياً في فروع المنشأة.",
             "ai_speech_response": "يا فندم خدمة التوصيل غير متاحة حالياً، لكن يشرفنا نجهز لحضرتك الطلب تستلمه بنفسك من الفرع (سفري). تحب نسجله استلام؟",
             "suggested_action": "takeaway",
-            "instruction_for_ai": "أبلغ العميل أن التوصيل غير متاح واقترح الاستلام من الفرع."
+            "instruction_for_ai": "أبلغ العميل أن التوصيل غير متاح واقترح الاستلام من الفرع ولا تقل إن هناك عطلاً بالسيستم."
         }
 
     matched_area = None
@@ -792,6 +795,7 @@ def _resolve_delivery_coverage_and_branch(
     covered_str = "، ".join(covered_names[:5])
     return None, None, {
         "ok": False,
+        "is_system_error": False,
         "error": f"العنوان المحدد «{clean_addr}» خارج نطاق تغطية التوصيل لفروعنا حالياً. المناطق المغطاة: {covered_str}.",
         "available_areas": covered_names,
         "suggested_action": "takeaway",
@@ -1409,9 +1413,10 @@ def create_callcenter_order(
     if not items:
         return {
             "ok": False,
+            "is_system_error": False,
             "error": "قائمة الأصناف (items) مطلوبة لتنفيذ الطلب.",
             "ai_speech_response": "يا فندم محتاجة أعرف الأصناف والكميات المطلوبة عشان أسجل الأوردر.",
-            "instruction_for_ai": "اطلب من العميل تحديد الأصناف التي يود طلبها."
+            "instruction_for_ai": "اطلب من العميل تحديد الأصناف التي يود طلبها ولا تقل إن هناك عطلاً بالسيستم."
         }
 
     # 2. Resilient Phone Validation & Customer Recognition
@@ -1511,6 +1516,7 @@ def create_callcenter_order(
         if match_err:
             return {
                 "ok": False,
+                "is_system_error": False,
                 "error": match_err,
                 "ai_speech_response": f"يا فندم بخصوص طلبك، {match_err}",
                 "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بما جاء في ai_speech_response واقترح عليه بديلاً متوفراً."

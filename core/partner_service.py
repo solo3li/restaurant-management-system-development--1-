@@ -520,12 +520,16 @@ def clear_client_live_context(client_id: int) -> Dict[str, Any]:
 def build_tenant_live_context_payload(tenant) -> Dict[str, Any]:
     """
     Build a comprehensive, clean JSON payload representing restaurant branches,
-    delivery coverage, categorized menus with prices, and out-of-stock items.
+    delivery coverage, categorized menus with prices, branch-specific currency,
+    and out-of-stock items.
     """
     from core.models import Branch, MenuItem, DeliveryArea
 
     branches = []
-    for b in Branch.objects.filter(tenant=tenant):
+    active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
+    all_branches = list(Branch.objects.filter(tenant=tenant))
+
+    for b in all_branches:
         st_ar = "مفتوح ويستقبل الطلبات" if b.status == "active" else "مغلق مؤقتاً"
         hours_str = ""
         if b.opening_time and b.closing_time:
@@ -537,6 +541,9 @@ def build_tenant_live_context_payload(tenant) -> Dict[str, Any]:
             "id": b.id,
             "name": b.name,
             "city": b.city or "الرياض",
+            "currency": b.currency,
+            "currency_name": b.get_currency_name_ar(),
+            "currency_symbol": b.get_currency_symbol_ar(),
             "phone": b.phone or "",
             "status": st_ar,
             "working_hours": hours_str,
@@ -545,25 +552,46 @@ def build_tenant_live_context_payload(tenant) -> Dict[str, Any]:
 
     areas = []
     for a in DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).select_related("branch"):
+        b_cur_name = a.branch.get_currency_name_ar() if a.branch else "ريال"
         areas.append({
             "id": a.id,
             "zone": a.name,
             "branch_id": a.branch.id if a.branch else None,
             "branch_name": a.branch.name if a.branch else "",
             "fee": float(a.delivery_fee or 0),
+            "currency": b_cur_name,
             "estimated_time": f"{a.estimated_time_minutes} دقيقة" if a.estimated_time_minutes else "35 دقيقة"
         })
+
+    primary_branch = active_branches[0] if active_branches else (all_branches[0] if all_branches else None)
+    default_cur_name = primary_branch.get_currency_name_ar() if primary_branch else tenant.get_currency_name_ar()
+    default_cur_sym = primary_branch.get_currency_symbol_ar() if primary_branch else tenant.get_currency_symbol_ar()
 
     menu = {}
     for item in MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name"):
         cat = item.category or "أطباق عامة"
         if cat not in menu:
             menu[cat] = []
-        menu[cat].append({
+
+        item_dict = {
             "id": item.id,
             "name": item.name,
             "price": float(item.price),
-        })
+            "currency": default_cur_name,
+            "currency_symbol": default_cur_sym,
+        }
+
+        if len(active_branches) > 1:
+            branch_prices = {}
+            for b in active_branches:
+                branch_prices[b.name] = {
+                    "price": float(item.get_price_for_branch(b)),
+                    "currency": b.get_currency_name_ar(),
+                    "currency_symbol": b.get_currency_symbol_ar(),
+                }
+            item_dict["branch_prices"] = branch_prices
+
+        menu[cat].append(item_dict)
 
     out_of_stock = list(MenuItem.objects.filter(tenant=tenant, available=False).values_list("name", flat=True))
 
@@ -592,13 +620,16 @@ def build_tenant_live_context_payload(tenant) -> Dict[str, Any]:
         "digital_menu_url": digital_menu_url,
         "digital_menu_whatsapp_template": menu_whatsapp_msg,
         "policies": {
-            "tax_rate": "15% ضريبة القيمة المضافة شاملة بالأسعار",
+            "tax_rate": "الأسعار شاملة ضريبة القيمة المضافة الرسمية المطبقة",
             "cancellation": "يُسمح بإلغاء الطلب فقط طالما لا يزال جديداً ولم يدخل مرحلة التحضير بالمطبخ",
-            "payment_methods": ["الدفع عند الاستلام كاش أو مدى"]
+            "payment_methods": ["الدفع عند الاستلام نقداً (كاش) أو بالبطاقة البنكية"]
         },
         "system_instruction_for_agent": (
             "استخدم هذه الذاكرة اللحظية (الفروع، المنيو، الأسعار، مناطق التوصيل، رابط المنيو) للإجابة الفورية المباشرة على "
             "استفسارات العميل دون استدعاء أي أداة MCP للأسئلة المرجعية. "
+            "قاعدة العملات المعتمدة الصارمة: لكل فرع عملته الرسمية المحددة في بيانات الفروع وقائمة الطعام (مثل: جنيه مصري، دينار تونسي، ريال سعودي). "
+            "يجب نطق الأسعار دائماً بالعملة المعتمدة الخاصة بالفرع المطلوب حصراً، ويُحظر تماماً وبشكل قاطع نطق 'ريال' أو 'ريال سعودي' إذا كانت عملة الفرع ليست SAR! "
+            "لا تستنتج العملة من لهجتك الصوتية مطلقاً بل التزم بما ورد في بيانات الفرع. "
             "إذا طلب العميل رابط المنيو على الواتساب: استدعِ أداة send_whatsapp_message فوراً لتمرير digital_menu_url إلى رقم هاتفه المتصل منه. "
             "استخدم أدوات MCP فقط عند طلب العميل: استرجاع رابط فرع مخصص (get_digital_menu_link)، البحث عن بياناته السابقة (lookup_customer)، "
             "معاينة الفاتورة قبل التأكيد (preview_order)، إنشاء الطلب النهائي (create_callcenter_order)، "
