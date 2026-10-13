@@ -500,19 +500,19 @@
         let cart = {}; // { [cartKey]: { key, itemId, variantId, variantName, name, price, qty, emoji } }
 
         const i18n = {
-            currency: CURRENT_LANG === 'en' ? 'SAR' : 'ر.س',
+            currency: "{{ branch_currency_symbol|default:'ر.س' }}",
             branchClosedAlert: CURRENT_LANG === 'en' ? 'Sorry, this branch is currently closed for orders.' : 'عذراً، هذا الفرع مغلق حالياً لاستقبال الطلبات.',
             addBtn: CURRENT_LANG === 'en' ? 'Add' : 'أضف',
             emptyCart: CURRENT_LANG === 'en' ? 'Cart is currently empty' : 'السلة فارغة حالياً',
             minDeliveryAlert: (min, cur) => CURRENT_LANG === 'en'
-                ? `Sorry, minimum delivery order for this branch is ${min} SAR (Current: ${cur} SAR). Please add more items.`
-                : `عذراً، الحد الأدنى لطلب التوصيل من هذا الفرع هو ${min} ر.س. (المجموع الحالي: ${cur} ر.س). يرجى إضافة وجبات أخرى.`,
+                ? `Sorry, minimum delivery order for this branch is ${min} ${i18n.currency} (Current: ${cur} ${i18n.currency}). Please add more items.`
+                : `عذراً، الحد الأدنى لطلب التوصيل من هذا الفرع هو ${min} ${i18n.currency}. (المجموع الحالي: ${cur} ${i18n.currency}). يرجى إضافة وجبات أخرى.`,
             minDeliveryBadgeRemaining: (min, diff) => CURRENT_LANG === 'en'
-                ? `<span>Minimum delivery order: <strong>${min} SAR</strong> (Remaining: ${diff} SAR)</span>`
-                : `<span>الحد الأدنى للتوصيل: <strong>${min} ر.س</strong> (متبقي: ${diff} ر.س)</span>`,
+                ? `<span>Minimum delivery order: <strong>${min} ${i18n.currency}</strong> (Remaining: ${diff} ${i18n.currency})</span>`
+                : `<span>الحد الأدنى للتوصيل: <strong>${min} ${i18n.currency}</strong> (متبقي: ${diff} ${i18n.currency})</span>`,
             minDeliveryBadgeMet: (min) => CURRENT_LANG === 'en'
-                ? `<span>✓ Minimum delivery order reached (${min} SAR)</span>`
-                : `<span>✓ تم استيفاء الحد الأدنى لطلب التوصيل (${min} ر.س)</span>`,
+                ? `<span>✓ Minimum delivery order reached (${min} ${i18n.currency})</span>`
+                : `<span>✓ تم استيفاء الحد الأدنى لطلب التوصيل (${min} ${i18n.currency})</span>`,
             valName: CURRENT_LANG === 'en' ? 'Please enter your name correctly' : 'يرجى كتابة الاسم بشكل صحيح',
             valPhone: CURRENT_LANG === 'en' ? 'Please enter a valid phone number' : 'يرجى إدخال رقم هاتف صالح للتواصل',
             valArea: CURRENT_LANG === 'en' ? 'Please select your delivery area' : 'يرجى اختيار منطقة التوصيل من القائمة',

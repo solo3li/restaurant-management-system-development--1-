@@ -200,6 +200,12 @@ class Branch(models.Model):
     opening_time = models.TimeField(null=True, blank=True, verbose_name="وقت فتح الفرع")
     closing_time = models.TimeField(null=True, blank=True, verbose_name="وقت إغلاق الفرع")
     min_delivery_order = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="الحد الأدنى لطلب التوصيل")
+    currency = models.CharField(
+        max_length=10,
+        default="SAR",
+        verbose_name="عملة الفرع",
+        help_text="العملة الرسمية للفرع والأسعار وطلبات الذكاء الاصطناعي والكول سنتر."
+    )
     is_accepting_orders = models.BooleanField(default=True, verbose_name="استقبال الطلبات الذاتية حالياً")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
 
@@ -207,6 +213,18 @@ class Branch(models.Model):
         verbose_name = "فرع"
         verbose_name_plural = "الفروع"
         ordering = ["id"]
+
+    def get_currency_name_ar(self):
+        from core.currencies import get_currency_info
+        return get_currency_info(self.currency).get("name_ar", "ريال")
+
+    def get_currency_symbol_ar(self):
+        from core.currencies import get_currency_info
+        return get_currency_info(self.currency).get("symbol_ar", "ر.س")
+
+    def get_currency_symbol_en(self):
+        from core.currencies import get_currency_info
+        return get_currency_info(self.currency).get("symbol_en", "SAR")
 
     def get_display_name(self, lang="ar"):
         if lang == "en" and self.name_en:

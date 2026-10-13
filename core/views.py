@@ -6829,13 +6829,17 @@ def digital_menu_view(request, slug=None, branch_id=None):
             "estimated_time": est_time,
         })
 
-    is_open = selected_branch.is_currently_open()
+    cur_sym = selected_branch.get_currency_symbol_ar() if active_lang == "ar" else selected_branch.get_currency_symbol_en()
+    cur_name = selected_branch.get_currency_name_ar()
     context = {
         "tenant": tenant,
         "branches": branches,
         "selected_branch": selected_branch,
         "is_open": is_open,
         "min_delivery_order": float(selected_branch.min_delivery_order or 0),
+        "branch_currency": selected_branch.currency,
+        "branch_currency_symbol": cur_sym,
+        "branch_currency_name": cur_name,
         "categories": categories_set,
         "category_objs": categories_data,
         "sections": sections,

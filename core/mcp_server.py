@@ -503,7 +503,25 @@ def _canonical_food_name(text: str) -> str:
         "فرخه": "دجاج",
         "دجاجة": "دجاج",
         "دجاجه": "دجاج",
+        "تشيكن": "دجاج",
+        "تشكن": "دجاج",
         "لحمه": "لحم",
+        "لحمة": "لحم",
+        "برجر": "برجر",
+        "بورجر": "برجر",
+        "سنجل": "سينجل",
+        "دبل": "دبل",
+        "دابل": "دبل",
+        "بطاطس": "بطاطس",
+        "فرنش": "بطاطس",
+        "فرايز": "بطاطس",
+        "حار": "حار",
+        "سبايسي": "حار",
+        "حاره": "حار",
+        "حارة": "حار",
+        "موتزاريلا": "موزاريلا",
+        "موتزريلا": "موزاريلا",
+        "موزريلا": "موزاريلا",
         "ضاني": "غنم",
         "ضان": "غنم",
         "خروف": "غنم",
@@ -541,6 +559,49 @@ def _clean_phone(phone: Any) -> str:
     if p.startswith("+"):
         p = p[1:]
     return p
+
+
+def _parse_natural_order_text(text: str, tenant=None, branch=None) -> List[Dict[str, Any]]:
+    """تحليل النص العامي إلى قائمة أصناف وكميات مرنة للمكالمات الصوتية."""
+    if not text or not isinstance(text, str):
+        return []
+
+    clean_text = _normalize_arabic_text(str(text))
+    num_map = {
+        "واحد": 1, "واحده": 1, "واحدة": 1, "١": 1, "1": 1,
+        "اتنين": 2, "اثنين": 2, "إثنين": 2, "٢": 2, "2": 2,
+        "تلاتة": 3, "ثلاثة": 3, "٣": 3, "3": 3,
+        "اربعة": 4, "أربعة": 4, "٤": 4, "4": 4,
+        "خمسة": 5, "٥": 5, "5": 5,
+        "ستة": 6, "٦": 6, "6": 6,
+    }
+
+    # تقطيع الجملة بناءً على الفواصل وحرف العطف و (مع استثناء كلمات مثل وجبة)
+    segments = re.split(r'[,،\n\+]|\s+و(?!\w*جبة)', clean_text)
+    items = []
+
+    for seg in segments:
+        seg = seg.strip()
+        if not seg:
+            continue
+        qty = 1
+        name_candidate = seg
+        # فحص وجود رقم في البداية: "2 برجر دبل" أو "اتنين دبل تشيز برجر"
+        m_lead = re.match(r'^(?:عدد\s+)?(\d+|واحد|واحده|واحدة|اتنين|اثنين|إثنين|تلاتة|ثلاثة|اربعة|أربعة|خمسة|ستة)\s*(?:من\s+)?(?:قطع\s+|قطعة\s+|وجبة\s+|ساندوتش\s+)?(.+)$', seg)
+        if m_lead:
+            raw_qty, name_candidate = m_lead.group(1), m_lead.group(2)
+            qty = num_map.get(raw_qty, int(raw_qty) if raw_qty.isdigit() else 1)
+        else:
+            m_trail = re.match(r'^(.+?)\s+(\d+|واحد|واحده|واحدة|اتنين|اثنين|تلاتة|ثلاثة)$', seg)
+            if m_trail:
+                name_candidate, raw_qty = m_trail.group(1), m_trail.group(2)
+                qty = num_map.get(raw_qty, int(raw_qty) if raw_qty.isdigit() else 1)
+
+        name_candidate = name_candidate.strip()
+        if name_candidate:
+            items.append({"name": name_candidate, "quantity": max(1, qty)})
+
+    return items
 
 
 def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> tuple[Optional[Any], Optional[str]]:
@@ -801,14 +862,15 @@ def get_digital_menu_link(branch_id: Optional[int] = None, access_key: Optional[
 
 
 @mcp.tool
-def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, access_key: Optional[str] = None) -> Dict[str, Any]:
+def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, query: Optional[str] = None, access_key: Optional[str] = None) -> Dict[str, Any]:
     """
     استعراض أصناف قائمة الطعام (Menu) المتوفرة في فرع محدد وأسعارها وتصنيفاتها.
-    الأسعار بالريال السعودي وشاملة لضريبة القيمة المضافة 15%.
+    الأسعار بعملة الفرع الرسمية وشاملة للضريبة.
     
     Args:
-        branch_id: (اختياري) معرف الفرع المراد جلب المنيو الخاص به. إن لم يحدد يتم جلب الفرع الرئيسي تلقائياً.
-        category: (اختياري) تصفية حسب القسم مثل 'أطباق رئيسية', 'مشويات', 'مقبلات', 'مشروبات'.
+        branch_id: (اختياري) معرف الفرع المراد جلب المنيو الخاص به. إن لم يحدد يتم جلب الفرع الأنسب تلقائياً.
+        category: (اختياري) تصفية حسب القسم مثل 'برجر', 'دجاج', 'مقبلات', 'مشروبات'.
+        query: (اختياري) بحث بالاسم أو المكونات (مثال: 'تشيز برجر', 'بطاطس', 'كولا').
         access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
     key_obj, tenant = _authenticate(access_key)
@@ -828,9 +890,21 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, ac
     if key_obj.assigned_branch and key_obj.assigned_branch_id != branch.id:
         return {"ok": False, "error": f"مفتاح الـ API هذا مخصص لفرع «{key_obj.assigned_branch.name}» فقط."}
 
+    cur_name = branch.get_currency_name_ar()
+    cur_sym = branch.get_currency_symbol_ar()
+
     items_qs = MenuItem.objects.filter(tenant=tenant, available=True)
     if category and category.strip():
         items_qs = items_qs.filter(category__icontains=category.strip())
+
+    if query and query.strip():
+        q_str = query.strip()
+        items_qs = items_qs.filter(
+            models.Q(name__icontains=q_str) |
+            models.Q(name_en__icontains=q_str) |
+            models.Q(description__icontains=q_str) |
+            models.Q(category__icontains=q_str)
+        )
 
     # Check branch availability overrides
     disabled_items = set(
@@ -847,6 +921,9 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, ac
             "name": m.name,
             "category": m.category,
             "price": float(m.price),
+            "currency": branch.currency,
+            "currency_name": cur_name,
+            "currency_symbol": cur_sym,
             "emoji": m.emoji or "🍽️",
         }
         items_list.append(item_dict)
@@ -858,6 +935,9 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, ac
         "tenant_name": tenant.name,
         "branch_name": branch.name,
         "branch_id": branch.id,
+        "currency": branch.currency,
+        "currency_name": cur_name,
+        "currency_symbol": cur_sym,
         "total_items": len(items_list),
         "categories": list(categories_map.keys()),
         "items": items_list,
@@ -989,11 +1069,16 @@ def check_delivery_coverage(
         err["covered"] = False
         return err
 
+    cur_name = matched_branch.get_currency_name_ar()
+    cur_sym = matched_branch.get_currency_symbol_ar()
     return {
         "ok": True,
         "covered": True,
         "branch_id": matched_branch.id,
         "branch_name": matched_branch.name,
+        "currency": matched_branch.currency,
+        "currency_name": cur_name,
+        "currency_symbol": cur_sym,
         "matched_area": {
             "id": matched_area.id,
             "name": matched_area.name,
@@ -1002,8 +1087,8 @@ def check_delivery_coverage(
             "estimated_time_minutes": matched_area.estimated_time_minutes,
             "notes": matched_area.notes or "",
         },
-        "ai_speech_response": f"تمام يا فندم، حي «{matched_area.name}» مغطى من خلال {matched_branch.name}، ورسوم التوصيل {matched_area.delivery_fee:.0f} ريال، ووقت التوصيل التقديري حوالي {matched_area.estimated_time_minutes} دقيقة.",
-        "instruction_for_ai": f"أبلغ العميل بأن الحي «{matched_area.name}» مغطى ورسوم التوصيل هي {matched_area.delivery_fee:.0f} ريال، ووقت التوصيل التقديري {matched_area.estimated_time_minutes} دقيقة كما في ai_speech_response."
+        "ai_speech_response": f"تمام يا فندم، منطقة «{matched_area.name}» مغطاة من خلال {matched_branch.name}، ورسوم التوصيل {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري حوالي {matched_area.estimated_time_minutes} دقيقة.",
+        "instruction_for_ai": f"أبلغ العميل بأن المنطقة «{matched_area.name}» مغطاة ورسوم التوصيل هي {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري {matched_area.estimated_time_minutes} دقيقة كما في ai_speech_response."
     }
 
 
@@ -1059,17 +1144,23 @@ def preview_order(
             "diagnostic": True
         }
 
-    # 1. Parse & normalize items if stringified JSON or Pydantic models
+    # 1. Parse & normalize items if stringified JSON, natural string, or Pydantic models
     if isinstance(items, str):
         try:
             items = json.loads(items)
         except Exception:
-            return {
-                "ok": False,
-                "error": "صيغة قائمة الأصناف غير صالحة، يرجى تزويدنا بقائمة أصناف صحيحة.",
-                "ai_speech_response": "يا فندم ما قدرتش أحدد الأصناف المطلوبة، ممكن توضح لي طلبت إيه بالظبط؟",
-                "instruction_for_ai": "اطلب من العميل توضيح الأصناف والكميات المطلوبة."
-            }
+            natural = _parse_natural_order_text(items, tenant)
+            if natural:
+                items = natural
+            else:
+                return {
+                    "ok": False,
+                    "error": "صيغة قائمة الأصناف غير صالحة، يرجى تزويدنا بقائمة أصناف صحيحة.",
+                    "ai_speech_response": "يا فندم ما قدرتش أحدد الأصناف المطلوبة، ممكن توضح لي طلبت إيه بالظبط؟",
+                    "instruction_for_ai": "اطلب من العميل توضيح الأصناف والكميات المطلوبة."
+                }
+    elif isinstance(items, dict):
+        items = [items]
 
     cleaned_items = []
     for it in (items or []):
@@ -1083,7 +1174,11 @@ def preview_order(
             try:
                 cleaned_items.append(json.loads(it))
             except Exception:
-                cleaned_items.append({"name": it, "quantity": 1})
+                nat = _parse_natural_order_text(it, tenant)
+                if nat:
+                    cleaned_items.extend(nat)
+                else:
+                    cleaned_items.append({"name": it, "quantity": 1})
         else:
             cleaned_items.append({"name": str(it), "quantity": 1})
     items = cleaned_items
@@ -1139,6 +1234,9 @@ def preview_order(
                     "instruction_for_ai": "أبلغ العميل بأن فروعنا مغلقة حالياً."
                 }
 
+    cur_name = branch.get_currency_name_ar()
+    cur_sym = branch.get_currency_symbol_ar()
+
     # 3. Item validation & Server-side calculation
     disabled_item_ids = set(
         BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
@@ -1185,19 +1283,21 @@ def preview_order(
             "instruction_for_ai": "اطلب من العميل توضيح طلبه."
         }
 
-    vat_tax = (subtotal * Decimal("0.15")).quantize(Decimal("0.01"))
     grand_total = subtotal + delivery_fee
 
     items_speech = " و ".join([f"{it['quantity']} {it['name']}" for it in prepared_items])
     if order_type == "delivery":
-        speech = f"إجمالي طلبك ({items_speech}) بقيمة {subtotal:.0f} ريال، ورسوم التوصيل {delivery_fee:.0f} ريال، الإجمالي النهائي {grand_total:.0f} ريال شامل الضريبة. تحب أأكد لحضرتك الطلب دلوقتي؟"
+        speech = f"إجمالي طلبك ({items_speech}) بقيمة {subtotal:.0f} {cur_name}، ورسوم التوصيل {delivery_fee:.0f} {cur_name}، الإجمالي النهائي {grand_total:.0f} {cur_name}. تحب أسجل لحضرتك الطلب دلوقتي؟"
     else:
-        speech = f"إجمالي طلبك سفري ({items_speech}) بقيمة {subtotal:.0f} ريال شامل الضريبة، وتقدر تستلمه من فرع {branch.name}. تحب أأكد لحضرتك الطلب دلوقتي؟"
+        speech = f"إجمالي طلبك سفري ({items_speech}) بقيمة {subtotal:.0f} {cur_name}، وتقدر تستلمه من فرع {branch.name}. تحب أسجل لحضرتك الطلب دلوقتي؟"
 
     key_obj.record_usage(placed_order=False)
     return {
         "ok": True,
         "branch_name": branch.name,
+        "currency": branch.currency,
+        "currency_name": cur_name,
+        "currency_symbol": cur_sym,
         "order_type": "توصيل" if order_type == "delivery" else "استلام من الفرع",
         "items": prepared_items,
         "subtotal": float(subtotal),
@@ -1266,17 +1366,23 @@ def create_callcenter_order(
             "diagnostic": True
         }
 
-    # 1. Parse & normalize items if stringified JSON or Pydantic models
+    # 1. Parse & normalize items if stringified JSON, natural string, or Pydantic models
     if isinstance(items, str):
         try:
             items = json.loads(items)
         except Exception:
-            return {
-                "ok": False,
-                "error": "صيغة قائمة الأصناف غير صالحة.",
-                "ai_speech_response": "يا فندم ما قدرتش أسجل الأصناف المطلوبة، ممكن تعيدها لي تاني؟",
-                "instruction_for_ai": "اطلب من العميل إعادة ذكر الأصناف والكميات المطلوبة."
-            }
+            natural = _parse_natural_order_text(items, tenant)
+            if natural:
+                items = natural
+            else:
+                return {
+                    "ok": False,
+                    "error": "صيغة قائمة الأصناف غير صالحة.",
+                    "ai_speech_response": "يا فندم ما قدرتش أسجل الأصناف المطلوبة، ممكن تعيدها لي تاني؟",
+                    "instruction_for_ai": "اطلب من العميل إعادة ذكر الأصناف والكميات المطلوبة."
+                }
+    elif isinstance(items, dict):
+        items = [items]
 
     cleaned_items = []
     for it in (items or []):
@@ -1290,7 +1396,11 @@ def create_callcenter_order(
             try:
                 cleaned_items.append(json.loads(it))
             except Exception:
-                cleaned_items.append({"name": it, "quantity": 1})
+                nat = _parse_natural_order_text(it, tenant)
+                if nat:
+                    cleaned_items.extend(nat)
+                else:
+                    cleaned_items.append({"name": it, "quantity": 1})
         else:
             cleaned_items.append({"name": str(it), "quantity": 1})
     items = cleaned_items
@@ -1518,17 +1628,52 @@ def create_callcenter_order(
 
     key_obj.record_usage(placed_order=True)
 
+    cur_name = branch.get_currency_name_ar()
+    cur_sym = branch.get_currency_symbol_ar()
+
     est_time = f"{matched_area.estimated_time_minutes} دقيقة" if (matched_area and matched_area.estimated_time_minutes) else "30 إلى 45 دقيقة"
     items_speech = " و ".join([f"{oi['quantity']} {oi['menu_item'].name}" for oi in order_items_prepared])
     if order_type == "delivery":
-        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} ريال، ويوصل لحضرتك خلال {est_time} تقريباً."
+        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، ويوصل لحضرتك خلال {est_time} تقريباً."
     else:
-        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} ريال، وتقدر تستلمه من فرع {branch.name} خلال {est_time}."
+        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، وتقدر تستلمه من فرع {branch.name} خلال {est_time}."
+
+    # 6. Automatic Instant WhatsApp Confirmation (إذا كان هاتف العميل حقيقياً)
+    if tenant and getattr(tenant, "voice_client_id", None) and clean_phone and clean_phone != "web_dashboard" and "dashboard" not in str(clean_phone).lower():
+        try:
+            import threading
+            from core import partner_service as ps
+            items_lines = "\n".join([f"• {oi['quantity']} × {oi['menu_item'].name} ({oi['total']:.0f} {cur_sym})" for oi in order_items_prepared])
+            wa_text = (
+                f"🧾 *تأكيد طلبك من مطعم {tenant.name}*\n"
+                f"📍 *الفرع:* {branch.name}\n"
+                f"🔢 *رقم الطلب:* #{order.order_number}\n\n"
+                f"🍔 *الأصناف المطلوبة:*\n{items_lines}\n\n"
+                f"💰 *المجموع:* {subtotal:.0f} {cur_sym}\n"
+                f"🛵 *رسوم التوصيل:* {delivery_fee:.0f} {cur_sym}\n"
+                f"💵 *الإجمالي المطلوب:* {total:.0f} {cur_sym}\n\n"
+                f"🏠 *عنوان التوصيل:* {clean_addr or 'استلام من الفرع'}\n"
+                f"⏱️ *وقت التوصيل المتوقع:* {est_time}\n\n"
+                f"شكراً لطلبك! نسعد دائماً بخدمتكم."
+            )
+            def _send_wa_async():
+                try:
+                    ps.send_whatsapp_message(tenant.voice_client_id, clean_phone, wa_text)
+                except Exception as ex:
+                    import logging
+            wa_thread = threading.Thread(target=_send_wa_async)
+            wa_thread.start()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Error initiating auto WhatsApp confirmation: {e}")
 
     return {
         "ok": True,
         "message": f"تم إنشاء الأوردر بنجاح برقم {order.order_number}",
         "order_number": order.order_number,
+        "currency": branch.currency,
+        "currency_name": cur_name,
+        "currency_symbol": cur_sym,
         "customer_recognized": customer_recognized,
         "ai_speech_response": speech,
         "instruction_for_ai": "اقرأ للعميل نص ai_speech_response لتأكيد رقم الأوردر والإجمالي ووقت التوصيل.",
@@ -1536,6 +1681,9 @@ def create_callcenter_order(
             "id": order.id,
             "order_number": order.order_number,
             "branch_name": branch.name,
+            "currency": branch.currency,
+            "currency_name": cur_name,
+            "currency_symbol": cur_sym,
             "customer_name": customer.name,
             "customer_phone": customer.phone,
             "delivery_address": clean_addr,
@@ -1708,6 +1856,9 @@ def track_order(
             "delivery_address": order.address,
             "delivery_fee": float(order.delivery_fee),
             "total": float(order.total),
+            "currency": order.branch.currency if order.branch else "SAR",
+            "currency_name": order.branch.get_currency_name_ar() if order.branch else "ريال",
+            "currency_symbol": order.branch.get_currency_symbol_ar() if order.branch else "ر.س",
             "driver": driver_info,
             "items": items_data,
             "created_at": order.created_at.strftime("%Y-%m-%d %H:%M"),
