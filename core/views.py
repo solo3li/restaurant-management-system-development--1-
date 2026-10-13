@@ -6379,7 +6379,67 @@ def api_ai_callcenter_whatsapp_conversation_messages(request, phone):
         limit = 50
 
     res = ps.get_whatsapp_conversation_messages(client_id, phone=phone, limit=limit)
+    if res.get("status") == "success" and "messages" in res:
+        for m in res["messages"]:
+            if m.get("has_media") and m.get("id"):
+                m["media_url"] = f"/api/ai-callcenter/whatsapp/messages/{m['id']}/media/"
     return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_message_media(request, message_id):
+    """
+    Proxy media stream from partner telephony API with HTTP Range support for audio/video scrubbing.
+    """
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return HttpResponseForbidden("منشأة غير موجودة")
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    range_header = request.headers.get("Range") or request.META.get("HTTP_RANGE")
+    try:
+        try:
+            url_fp = ps.stream_whatsapp_message_media(client_id, message_id, range_header=range_header)
+        except Exception as e_initial:
+            if client_id != 69 and getattr(e_initial, 'code', None) == 404:
+                url_fp = ps.stream_whatsapp_message_media(69, message_id, range_header=range_header)
+            else:
+                raise e_initial
+
+        async def _iter_chunks():
+            try:
+                while True:
+                    chunk = await asyncio.to_thread(url_fp.read, 32768)
+                    if not chunk:
+                        break
+                    yield chunk
+            finally:
+                await asyncio.to_thread(url_fp.close)
+
+        content_type = url_fp.headers.get_content_type() if hasattr(url_fp.headers, "get_content_type") else (url_fp.headers.get("Content-Type") or "application/octet-stream")
+        status_code = getattr(url_fp, "status", 200)
+
+        response = StreamingHttpResponse(
+            _iter_chunks(),
+            status=status_code,
+            content_type=content_type
+        )
+        for h in ["Content-Length", "Content-Range", "Accept-Ranges", "Cache-Control"]:
+            val = url_fp.headers.get(h)
+            if val:
+                response[h] = val
+        if "Accept-Ranges" not in response:
+            response["Accept-Ranges"] = "bytes"
+        return response
+    except Exception as e:
+        status_code = getattr(e, "code", 500)
+        logger.warning(f"Error streaming WhatsApp media {message_id}: {e}")
+        return HttpResponse(f"Error loading media: {e}", status=status_code)
 
 
 @login_required

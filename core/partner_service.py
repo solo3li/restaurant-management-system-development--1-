@@ -695,6 +695,23 @@ def sync_whatsapp_chats(client_id: int, clean_old: bool = False, max_messages: i
     return _request(f"/clients/{client_id}/whatsapp/sync/", method="POST", data=payload)
 
 
+def stream_whatsapp_message_media(client_id: int, message_id: int, range_header: Optional[str] = None):
+    """
+    Open streaming HTTP connection to partner WhatsApp media endpoint with Range support.
+    Returns urllib.response object.
+    """
+    url = f"{PARTNER_API_BASE_URL}/clients/{client_id}/whatsapp/messages/{message_id}/media/"
+    headers = {
+        "X-Partner-Key": PARTNER_API_KEY,
+        "User-Agent": "Motaem-Media-Proxy/1.0",
+    }
+    if range_header:
+        headers["Range"] = range_header
+
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    return urllib.request.urlopen(req, timeout=30.0, context=_SSL_CONTEXT)
+
+
 # =========================================================================
 # Telephony DID Numbers & PBX Trunks API
 # =========================================================================

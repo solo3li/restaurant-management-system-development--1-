@@ -549,6 +549,28 @@
     </div>
 </div>
 
+<!-- 4. Media Lightbox Modal -->
+<div id="media-lightbox-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden transition-opacity" onclick="closeLightboxOnBackdrop(event)">
+    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+        <!-- Top Controls Bar -->
+        <div class="w-full flex items-center justify-between pb-3 text-white">
+            <span id="lightbox-caption" class="text-xs font-bold truncate max-w-md text-stone-200"></span>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="zoomLightbox(0.2)" class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition text-xs font-bold cursor-pointer" title="تكبير">➕ تكبير</button>
+                <button type="button" onclick="zoomLightbox(-0.2)" class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition text-xs font-bold cursor-pointer" title="تصغير">➖ تصغير</button>
+                <button type="button" onclick="resetLightboxZoom()" class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition text-xs font-bold cursor-pointer" title="إعادة الحجم">1:1</button>
+                <a id="lightbox-download-link" href="#" download class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition text-xs font-bold flex items-center gap-1 cursor-pointer" title="تحميل الصورة">📥 تحميل</a>
+                <button type="button" onclick="closeLightbox()" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white transition text-xs font-bold cursor-pointer" title="إغلاق">✕</button>
+            </div>
+        </div>
+
+        <!-- Image Content -->
+        <div class="overflow-auto max-h-[80vh] max-w-[90vw] flex items-center justify-center rounded-2xl shadow-2xl bg-black/40 border border-white/10 p-2">
+            <img id="lightbox-img" src="" alt="" class="max-h-[75vh] max-w-[85vw] object-contain transition-transform duration-150">
+        </div>
+    </div>
+</div>
+
 <script>
 // ==========================================
 // Omnichannel State Management
@@ -1042,6 +1064,279 @@ function updateAiButtonUI(aiActive) {
     }
 }
 
+// ==========================================
+// Rich WhatsApp Media Players & Lightbox
+// ==========================================
+let currentlyPlayingAudioId = null;
+let currentLightboxZoom = 1.0;
+
+function formatDuration(seconds) {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const s = Math.floor(seconds);
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    return `${m}:${rem < 10 ? '0' : ''}${rem}`;
+}
+
+function renderMessageMedia(msg) {
+    if (!msg.has_media || !msg.media_url) return '';
+
+    const type = msg.media_type;
+
+    if (type === 'audio') {
+        const dur = msg.media_duration ? formatDuration(msg.media_duration) : '0:00';
+        return `
+            <div class="whatsapp-audio-player my-1 p-2.5 bg-paper rounded-xl border border-line flex flex-col gap-2 min-w-[240px] max-w-sm" data-audio-id="${msg.id}">
+                <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="togglePlayAudio(${msg.id})" id="btn-audio-play-${msg.id}" class="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-xs transition shrink-0 cursor-pointer">
+                        <span id="icon-play-${msg.id}">▶</span>
+                        <span id="icon-pause-${msg.id}" class="hidden">⏸</span>
+                    </button>
+                    
+                    <div class="flex-1 flex flex-col gap-1 min-w-0">
+                        <!-- Waveform representation -->
+                        <div class="relative w-full h-5 flex items-center cursor-pointer" onclick="seekAudioBar(event, ${msg.id})">
+                            <div class="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden relative" id="audio-progress-bar-container-${msg.id}">
+                                <div id="audio-progress-bar-${msg.id}" class="h-full bg-emerald-500 rounded-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] font-mono text-soft">
+                            <span id="audio-cur-time-${msg.id}">0:00</span>
+                            <span id="audio-total-time-${msg.id}">${dur}</span>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="toggleAudioSpeed(${msg.id})" id="audio-speed-btn-${msg.id}" class="px-1.5 py-0.5 rounded text-[10px] font-black bg-card border border-line text-soft hover:text-ink shrink-0 cursor-pointer" title="تغيير سرعة الصوت">
+                        1x
+                    </button>
+
+                    <div class="w-7 h-7 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0 text-xs" title="تسجيل صوتي PTT">
+                        🎤
+                    </div>
+                </div>
+
+                <audio id="native-audio-${msg.id}" src="${msg.media_url}" preload="metadata"
+                       ontimeupdate="onAudioTimeUpdate(${msg.id})"
+                       onended="onAudioEnded(${msg.id})"
+                       onloadedmetadata="onAudioMetadata(${msg.id})"></audio>
+
+                ${msg.transcription ? `
+                <div class="pt-2 border-t border-line/70 flex flex-col gap-1">
+                    <div class="flex items-center gap-1 text-[11px] font-black text-emerald-800 dark:text-emerald-400">
+                        <span>🤖 تفريغ صوتي ذكي (AI):</span>
+                    </div>
+                    <p class="text-xs text-ink leading-relaxed bg-card p-2 rounded-lg border border-line font-sans">${escapeHtml(msg.transcription)}</p>
+                </div>` : ''}
+            </div>
+        `;
+    }
+
+    if (type === 'image') {
+        const vis = msg.vision_analysis;
+        return `
+            <div class="whatsapp-image-card my-1 flex flex-col rounded-xl overflow-hidden border border-line bg-card max-w-sm shadow-xs">
+                <div class="relative group cursor-pointer overflow-hidden max-h-72 flex items-center justify-center bg-stone-900/10" onclick="openLightbox('${msg.media_url}', '${escapeHtml(msg.message_text || 'صورة')}')">
+                    <img src="${msg.media_url}" alt="WhatsApp Media" loading="lazy" class="w-full max-h-72 object-contain transition-transform duration-200 group-hover:scale-102">
+                    <div class="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span class="px-2.5 py-1 rounded-full bg-black/70 text-white text-xs backdrop-blur-xs font-bold flex items-center gap-1 shadow-md">
+                            🔍 عرض وتكبير
+                        </span>
+                    </div>
+                </div>
+
+                ${vis && typeof vis === 'object' ? `
+                <div class="p-2.5 text-[11px] border-t border-line space-y-1.5 bg-paper/60">
+                    <div class="flex items-center justify-between text-brand-700 font-black">
+                        <span class="flex items-center gap-1">👁️ فهم الصورة بالذكاء الاصطناعي</span>
+                        ${vis.image_type ? `<span class="px-1.5 py-0.5 rounded text-[9px] bg-brand-50 text-brand-700 border border-brand-200">${escapeHtml(vis.image_type)}</span>` : ''}
+                    </div>
+                    ${vis.payment_details ? `
+                    <div class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 space-y-0.5 font-sans">
+                        <div class="font-black text-[10px] flex items-center gap-1">💳 تفاصيل التحويل المالي (مستخرج تلقائياً):</div>
+                        <div class="text-[10px]">المبلغ: <b>${escapeHtml(vis.payment_details['المبلغ المحول'] || vis.payment_details['amount'] || 'غير محدد')}</b></div>
+                        <div class="text-[10px]">رقم العملية: <b>${escapeHtml(vis.payment_details['رقم العملية'] || vis.payment_details['ref'] || 'غير محدد')}</b></div>
+                    </div>` : ''}
+                    ${vis.description ? `<p class="text-xs text-ink leading-relaxed">${escapeHtml(vis.description)}</p>` : ''}
+                </div>` : ''}
+            </div>
+        `;
+    }
+
+    if (type === 'video') {
+        return `
+            <div class="whatsapp-video-card my-1 flex flex-col rounded-xl overflow-hidden border border-line bg-black max-w-sm shadow-xs">
+                <video src="${msg.media_url}" controls preload="metadata" class="w-full max-h-72 rounded-t-xl bg-black"></video>
+            </div>
+        `;
+    }
+
+    if (type === 'document') {
+        return `
+            <div class="whatsapp-doc-card my-1 flex items-center justify-between gap-3 p-3 rounded-xl border border-line bg-card max-w-sm shadow-xs">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="text-2xl">📄</span>
+                    <div class="min-w-0">
+                        <p class="text-xs font-black text-ink truncate">${escapeHtml(msg.media_file_name || 'document.pdf')}</p>
+                        <span class="text-[10px] text-soft font-mono uppercase">${escapeHtml(msg.media_mimetype || 'PDF')}</span>
+                    </div>
+                </div>
+                <a href="${msg.media_url}" download target="_blank" class="px-2.5 py-1.5 rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 text-xs font-bold transition flex items-center gap-1 shrink-0">
+                    تحميل ⬇️
+                </a>
+            </div>
+        `;
+    }
+
+    return '';
+}
+
+function togglePlayAudio(id) {
+    const audio = document.getElementById(`native-audio-${id}`);
+    const playIcon = document.getElementById(`icon-play-${id}`);
+    const pauseIcon = document.getElementById(`icon-pause-${id}`);
+    if (!audio) return;
+
+    if (audio.paused) {
+        if (currentlyPlayingAudioId && currentlyPlayingAudioId !== id) {
+            const prevAudio = document.getElementById(`native-audio-${currentlyPlayingAudioId}`);
+            const prevPlay = document.getElementById(`icon-play-${currentlyPlayingAudioId}`);
+            const prevPause = document.getElementById(`icon-pause-${currentlyPlayingAudioId}`);
+            if (prevAudio) prevAudio.pause();
+            if (prevPlay) prevPlay.classList.remove('hidden');
+            if (prevPause) prevPause.classList.add('hidden');
+        }
+
+        audio.play().then(() => {
+            currentlyPlayingAudioId = id;
+            if (playIcon) playIcon.classList.add('hidden');
+            if (pauseIcon) pauseIcon.classList.remove('hidden');
+        }).catch(err => {
+            console.error('Audio playback error:', err);
+        });
+    } else {
+        audio.pause();
+        currentlyPlayingAudioId = null;
+        if (playIcon) playIcon.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.classList.add('hidden');
+    }
+}
+
+function onAudioTimeUpdate(id) {
+    const audio = document.getElementById(`native-audio-${id}`);
+    if (!audio || !audio.duration) return;
+
+    const curTimeEl = document.getElementById(`audio-cur-time-${id}`);
+    const barEl = document.getElementById(`audio-progress-bar-${id}`);
+
+    if (curTimeEl) curTimeEl.textContent = formatDuration(audio.currentTime);
+    if (barEl) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        barEl.style.width = `${pct}%`;
+    }
+}
+
+function onAudioMetadata(id) {
+    const audio = document.getElementById(`native-audio-${id}`);
+    const totalEl = document.getElementById(`audio-total-time-${id}`);
+    if (audio && totalEl && audio.duration && !isNaN(audio.duration)) {
+        totalEl.textContent = formatDuration(audio.duration);
+    }
+}
+
+function onAudioEnded(id) {
+    const playIcon = document.getElementById(`icon-play-${id}`);
+    const pauseIcon = document.getElementById(`icon-pause-${id}`);
+    const barEl = document.getElementById(`audio-progress-bar-${id}`);
+    const curTimeEl = document.getElementById(`audio-cur-time-${id}`);
+
+    if (playIcon) playIcon.classList.remove('hidden');
+    if (pauseIcon) pauseIcon.classList.add('hidden');
+    if (barEl) barEl.style.width = '0%';
+    if (curTimeEl) curTimeEl.textContent = '0:00';
+    if (currentlyPlayingAudioId === id) currentlyPlayingAudioId = null;
+}
+
+function seekAudioBar(event, id) {
+    const audio = document.getElementById(`native-audio-${id}`);
+    const container = document.getElementById(`audio-progress-bar-container-${id}`);
+    if (!audio || !container || !audio.duration) return;
+
+    const rect = container.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const pct = Math.max(0, Math.min(1, clickX / rect.width));
+    audio.currentTime = pct * audio.duration;
+}
+
+function toggleAudioSpeed(id) {
+    const audio = document.getElementById(`native-audio-${id}`);
+    const speedBtn = document.getElementById(`audio-speed-btn-${id}`);
+    if (!audio || !speedBtn) return;
+
+    const speeds = [1.0, 1.5, 2.0];
+    const currentSpeed = audio.playbackRate || 1.0;
+    const nextIdx = (speeds.indexOf(currentSpeed) + 1) % speeds.length;
+    const nextSpeed = speeds[nextIdx];
+
+    audio.playbackRate = nextSpeed;
+    speedBtn.textContent = `${nextSpeed}x`;
+}
+
+function openLightbox(url, caption = '') {
+    const modal = document.getElementById('media-lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    const capEl = document.getElementById('lightbox-caption');
+    const dlLink = document.getElementById('lightbox-download-link');
+
+    if (!modal || !img) return;
+
+    currentLightboxZoom = 1.0;
+    img.style.transform = `scale(${currentLightboxZoom})`;
+    img.src = url;
+    if (capEl) capEl.textContent = caption;
+    if (dlLink) {
+        dlLink.href = url;
+        dlLink.download = 'whatsapp_image.jpg';
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeLightbox() {
+    const modal = document.getElementById('media-lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    if (modal) modal.classList.add('hidden');
+    if (img) img.src = '';
+}
+
+function closeLightboxOnBackdrop(e) {
+    if (e.target && e.target.id === 'media-lightbox-modal') {
+        closeLightbox();
+    }
+}
+
+function zoomLightbox(delta) {
+    const img = document.getElementById('lightbox-img');
+    if (!img) return;
+    currentLightboxZoom = Math.max(0.5, Math.min(3.0, currentLightboxZoom + delta));
+    img.style.transform = `scale(${currentLightboxZoom})`;
+}
+
+function resetLightboxZoom() {
+    const img = document.getElementById('lightbox-img');
+    if (!img) return;
+    currentLightboxZoom = 1.0;
+    img.style.transform = `scale(1.0)`;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('media-lightbox-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            closeLightbox();
+        }
+    }
+});
+
 async function reloadActiveMessages() {
     if (!activeConversation) return;
     const container = document.getElementById('messages-container');
@@ -1091,16 +1386,22 @@ async function reloadActiveMessages() {
             const isAi = msg.direction === 'outbound_ai';
             const isHuman = msg.direction === 'outbound_human' || msg.direction === 'outbound';
 
+            const mediaHtml = renderMessageMedia(msg);
+            const textHtml = (msg.message_text && !msg.has_media) || (msg.message_text && msg.has_media && !msg.message_text.startsWith('📷') && !msg.message_text.startsWith('🎤') && !msg.message_text.startsWith('🎥'))
+                ? `<p class="text-xs text-ink whitespace-pre-wrap leading-relaxed">${escapeHtml(msg.message_text)}</p>`
+                : '';
+
             if (isInbound) {
                 // Inbound (Customer message - Right aligned in RTL)
                 bubble.className = 'flex justify-start';
                 bubble.innerHTML = `
-                    <div class="max-w-[75%] bg-card border border-line rounded-2xl rounded-tr-xs p-3 shadow-xs space-y-1">
+                    <div class="max-w-[75%] bg-card border border-line rounded-2xl rounded-tr-xs p-3 shadow-xs space-y-1.5">
                         <div class="flex items-center justify-between gap-3 text-[10px] text-soft">
                             <span class="font-black text-ink">${msg.customer_name || 'العميل'}</span>
                             <span class="font-mono text-muted">${msg.created_at_time || ''}</span>
                         </div>
-                        <p class="text-xs text-ink whitespace-pre-wrap leading-relaxed">${escapeHtml(msg.message_text)}</p>
+                        ${mediaHtml}
+                        ${textHtml}
                     </div>
                 `;
             } else {
@@ -1112,12 +1413,13 @@ async function reloadActiveMessages() {
                     : '<span class="text-[10px] font-black text-brand-800 bg-brand-100/80 px-2 py-0.5 rounded-full">👤 موظف الكاشير</span>';
 
                 bubble.innerHTML = `
-                    <div class="max-w-[75%] ${bgClass} border rounded-2xl rounded-tl-xs p-3 shadow-xs space-y-1">
+                    <div class="max-w-[75%] ${bgClass} border rounded-2xl rounded-tl-xs p-3 shadow-xs space-y-1.5">
                         <div class="flex items-center justify-between gap-3 text-[10px]">
                             ${tag}
                             <span class="font-mono text-muted">${msg.created_at_time || ''}</span>
                         </div>
-                        <p class="text-xs text-ink whitespace-pre-wrap leading-relaxed">${escapeHtml(msg.message_text)}</p>
+                        ${mediaHtml}
+                        ${textHtml}
                     </div>
                 `;
             }

@@ -111,6 +111,7 @@ urlpatterns = [
     path("api/ai-callcenter/whatsapp/send/", views.api_ai_callcenter_whatsapp_send, name="api_ai_callcenter_whatsapp_send"),
     path("api/ai-callcenter/whatsapp/conversations/", views.api_ai_callcenter_whatsapp_conversations, name="api_ai_callcenter_whatsapp_conversations"),
     path("api/ai-callcenter/whatsapp/conversations/<str:phone>/messages/", views.api_ai_callcenter_whatsapp_conversation_messages, name="api_ai_callcenter_whatsapp_conversation_messages"),
+    path("api/ai-callcenter/whatsapp/messages/<int:message_id>/media/", views.api_ai_callcenter_whatsapp_message_media, name="api_ai_callcenter_whatsapp_message_media"),
     path("api/ai-callcenter/whatsapp/conversations/<str:phone>/reply/", views.api_ai_callcenter_whatsapp_conversation_reply, name="api_ai_callcenter_whatsapp_conversation_reply"),
     path("api/ai-callcenter/whatsapp/conversations/<str:phone>/toggle-ai/", views.api_ai_callcenter_whatsapp_conversation_toggle_ai, name="api_ai_callcenter_whatsapp_conversation_toggle_ai"),
     path("api/ai-callcenter/whatsapp/sync/", views.api_ai_callcenter_whatsapp_sync, name="api_ai_callcenter_whatsapp_sync"),
