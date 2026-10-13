@@ -2997,8 +2997,13 @@ def api_create_menu_item(request):
                 ordering=(idx + 1) * 10,
             )
 
+    price_scope = request.POST.get("price_scope", "all")
+    branch_id = request.POST.get("branch_id")
+    target_branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
+
     for b in Branch.objects.filter(tenant=tenant):
-        BranchMenuAvailability.objects.get_or_create(branch=b, menu_item=item, defaults={"is_available": True})
+        c_price = price if (price_scope == "branch" and target_branch and b == target_branch) else None
+        BranchMenuAvailability.objects.get_or_create(branch=b, menu_item=item, defaults={"is_available": True, "custom_price": c_price})
 
     log_audit_event(
         tenant=tenant,
@@ -3074,10 +3079,15 @@ def api_update_menu_item(request, item_id):
     if "image" in request.FILES:
         item.image = request.FILES["image"]
 
+    # Handle pricing scope: branch-specific vs all branches (master)
+    price_scope = data.get("price_scope", "all")
+    branch_id = data.get("branch_id")
+    target_branch = Branch.objects.filter(tenant=tenant, id=branch_id).first() if branch_id else None
+
     # Handle variants if provided
-    if "variants" in data:
-        variants_raw = data.get("variants")
-        variants_list = []
+    variants_raw = data.get("variants")
+    variants_list = []
+    if variants_raw:
         if isinstance(variants_raw, str):
             try:
                 variants_list = json.loads(variants_raw)
@@ -3086,57 +3096,134 @@ def api_update_menu_item(request, item_id):
         elif isinstance(variants_raw, list):
             variants_list = variants_raw
 
-        if variants_list:
-            item.has_variants = True
-            item.variants.all().delete()
-            has_any_default = any(bool(v.get("is_default")) for v in variants_list)
-            for idx, v in enumerate(variants_list):
-                v_name = str(v.get("name", "")).strip()
-                v_name_en = str(v.get("name_en", "")).strip()
-                v_price = Decimal(str(v.get("price", 0)))
-                v_cost = Decimal(str(v.get("cost", 0)))
-                is_def = bool(v.get("is_default")) if has_any_default else (idx == 0)
-                if v_name and v_price > 0:
-                    MenuItemVariant.objects.create(
-                        menu_item=item,
-                        name=v_name,
-                        name_en=v_name_en,
-                        price=v_price,
-                        cost=v_cost,
-                        is_default=is_def,
-                        ordering=(idx + 1) * 10,
-                    )
-            valid_prices = [Decimal(str(v.get("price", 0))) for v in variants_list if float(v.get("price", 0)) > 0]
-            if valid_prices:
-                item.price = min(valid_prices)
-        else:
-            item.has_variants = False
-            item.variants.all().delete()
-            if "price" in data:
-                item.price = Decimal(str(data["price"] or 0))
-    elif "price" in data:
-        new_price = Decimal(str(data["price"] or 0))
-        if new_price > 0:
-            item.price = new_price
+    if price_scope == "branch" and target_branch:
+        # 1. Save core item details without touching master item.price
+        item.save()
 
-    item.save()
-    log_audit_event(
-        tenant=tenant,
-        user=request.user,
-        action="menu_item_updated",
-        target_model="MenuItem",
-        target_id=item.id,
-        description=f"تحديث بيانات الصنف «{item.name}» (السعر: {item.price} ر.س، القسم: {item.category})",
-        ip_address=_get_client_ip(request),
-    )
-    return JsonResponse({
-        "ok": True,
-        "id": item.id,
-        "name": item.name,
-        "price": float(item.price),
-        "category": item.category,
-        "image_url": item.image.url if item.image else "",
-    })
+        # 2. Update BranchMenuAvailability.custom_price for single-price items
+        if not item.has_variants and "price" in data:
+            raw_p = data.get("price")
+            b_custom_price = None
+            if raw_p is not None and str(raw_p).strip() != "":
+                try:
+                    b_custom_price = max(Decimal("0.00"), Decimal(str(raw_p)))
+                except Exception:
+                    pass
+            avail, _ = BranchMenuAvailability.objects.get_or_create(
+                branch=target_branch,
+                menu_item=item,
+                defaults={"is_available": item.available}
+            )
+            avail.custom_price = b_custom_price
+            avail.save(update_fields=["custom_price"])
+
+        # 3. If item has variants, update BranchVariantPrice for target_branch
+        if item.has_variants and variants_list:
+            for v_entry in variants_list:
+                v_id = v_entry.get("id")
+                v_price = v_entry.get("price")
+                if v_id and v_price is not None:
+                    var_obj = item.variants.filter(id=v_id).first()
+                    if var_obj:
+                        try:
+                            vp_price = max(Decimal("0.00"), Decimal(str(v_price)))
+                            vp, _ = BranchVariantPrice.objects.get_or_create(
+                                branch=target_branch,
+                                variant=var_obj,
+                                defaults={"is_available": True}
+                            )
+                            vp.custom_price = vp_price
+                            vp.save(update_fields=["custom_price"])
+                        except Exception:
+                            pass
+
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="branch_item_price_updated",
+            target_model="MenuItem",
+            target_id=item.id,
+            description=f"تخصيص سعر الصنف «{item.name}» في فرع «{target_branch.name}» فقط إلى {data.get('price')} {target_branch.get_currency_symbol_ar()}",
+            ip_address=_get_client_ip(request),
+        )
+
+        effective_price = item.get_price_for_branch(target_branch)
+        return JsonResponse({
+            "ok": True,
+            "status": "success",
+            "id": item.id,
+            "name": item.name,
+            "price": float(effective_price),
+            "master_price": float(item.price),
+            "price_scope": "branch",
+            "branch_id": target_branch.id,
+            "category": item.category,
+            "image_url": item.image.url if item.image else "",
+        })
+    else:
+        # price_scope == "all": Master price update for all branches
+        if "variants" in data:
+            if variants_list:
+                item.has_variants = True
+                item.variants.all().delete()
+                has_any_default = any(bool(v.get("is_default")) for v in variants_list)
+                for idx, v in enumerate(variants_list):
+                    v_name = str(v.get("name", "")).strip()
+                    v_name_en = str(v.get("name_en", "")).strip()
+                    v_price = Decimal(str(v.get("price", 0)))
+                    v_cost = Decimal(str(v.get("cost", 0)))
+                    is_def = bool(v.get("is_default")) if has_any_default else (idx == 0)
+                    if v_name and v_price > 0:
+                        MenuItemVariant.objects.create(
+                            menu_item=item,
+                            name=v_name,
+                            name_en=v_name_en,
+                            price=v_price,
+                            cost=v_cost,
+                            is_default=is_def,
+                            ordering=(idx + 1) * 10,
+                        )
+                valid_prices = [Decimal(str(v.get("price", 0))) for v in variants_list if float(v.get("price", 0)) > 0]
+                if valid_prices:
+                    item.price = min(valid_prices)
+            else:
+                item.has_variants = False
+                item.variants.all().delete()
+                if "price" in data:
+                    item.price = Decimal(str(data["price"] or 0))
+        elif "price" in data:
+            new_price = Decimal(str(data["price"] or 0))
+            if new_price > 0:
+                item.price = new_price
+
+        item.save()
+
+        # If user explicitly updated all branches from a branch view, clear that branch's custom override
+        if target_branch:
+            BranchMenuAvailability.objects.filter(branch=target_branch, menu_item=item).update(custom_price=None)
+            for v_obj in item.variants.all():
+                BranchVariantPrice.objects.filter(branch=target_branch, variant=v_obj).update(custom_price=None)
+
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="menu_item_updated",
+            target_model="MenuItem",
+            target_id=item.id,
+            description=f"تحديث السعر العام للصنف «{item.name}» لجميع الفروع إلى {item.price} {tenant.get_currency_symbol_ar() if tenant else 'ر.س'}",
+            ip_address=_get_client_ip(request),
+        )
+
+        return JsonResponse({
+            "ok": True,
+            "status": "success",
+            "id": item.id,
+            "name": item.name,
+            "price": float(item.price),
+            "price_scope": "all",
+            "category": item.category,
+            "image_url": item.image.url if item.image else "",
+        })
 
 
 @login_required

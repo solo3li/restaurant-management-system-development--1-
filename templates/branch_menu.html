@@ -265,14 +265,16 @@
                     "category_id": {{ row.item.category_rel.id|default:"null" }},
                     "category": "{{ row.item.category|escapejs }}",
                     "price": {{ row.item.price|default:"0.0" }},
+                    "custom_price": {{ row.custom_price|default:"null" }},
+                    "effective_price": {{ row.effective_price|default:"0.0" }},
                     "cost": {{ row.item.cost|default:"0.0" }},
                     "description": "{{ row.item.description|default:''|escapejs }}",
                     "description_en": "{{ row.item.description_en|default:''|escapejs }}",
                     "image_url": "{% if row.item.image %}{{ row.item.image.url }}{% endif %}",
                     "has_variants": {% if row.item.has_variants %}true{% else %}false{% endif %},
                     "variants": [
-                        {% for v in row.variants %}
-                            {"id": {{ v.id }}, "name": "{{ v.name|escapejs }}", "name_en": "{{ v.name_en|default:''|escapejs }}", "price": {{ v.price|default:"0.0" }}, "cost": {{ v.cost|default:"0.0" }}}{% if not forloop.last %},{% endif %}
+                        {% for v in row.variants_data %}
+                            {"id": {{ v.id }}, "name": "{{ v.name|escapejs }}", "name_en": "{{ v.name_en|default:''|escapejs }}", "price": {{ v.default_price|default:"0.0" }}, "custom_price": {{ v.custom_price|default:"null" }}, "effective_price": {{ v.effective_price|default:"0.0" }}}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ]
                 }
@@ -762,41 +764,94 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </div>
             </div>
 
-            <!-- Sizes / Variants Toggle -->
+            <!-- Pricing & Scope Section -->
             <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <span class="text-xs font-bold text-amber-950 block">هل يحتوي الصنف على أحجام متعددة؟</span>
-                        <span class="text-[10px] text-amber-800">مثل: صغير / وسط / كبير بأسعار مختلفة</span>
+                <div class="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#B88B46]"></span>
+                        <h4 class="text-xs font-black font-royal text-[#0E382A]">إعدادات التسعير ونطاق التطبيق</h4>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="itemModalHasVariants" name="has_variants" onchange="toggleVariantSection()" class="sr-only peer">
-                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0E382A]"></div>
-                    </label>
+                    {% if branch %}
+                        <span class="text-[10px] font-bold text-[#0E382A] bg-white border border-[#D2AB6B]/40 px-2 py-0.5 rounded-lg shadow-2xs">
+                            📍 {{ branch.name }} ({{ branch_currency_symbol }})
+                        </span>
+                    {% else %}
+                        <span class="text-[10px] font-bold text-soft bg-paper px-2 py-0.5 rounded-lg">
+                            🏢 الإدارة العامة (لكل الفروع)
+                        </span>
+                    {% endif %}
                 </div>
 
-                <!-- Single Price Inputs (if no variants) -->
-                <div id="singlePriceSection" class="grid grid-cols-2 gap-3 pt-1">
-                    <div>
-                        <label class="block text-xs font-bold text-ink mb-1">سعر البيع ({{ branch_currency_symbol }}) <span class="text-rose-500">*</span></label>
-                        <input type="number" step="0.25" min="0" id="itemModalPrice" name="price" class="input text-xs w-full" placeholder="25.00">
+                {% if branch %}
+                <!-- Price Scope Selector (Branch vs All Branches) -->
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1.5">حدد نطاق تطبيق السعر:</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label id="scope-branch-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-[#0E382A] text-[#0E382A] font-extrabold shadow-2xs">
+                            <input type="radio" name="price_scope" value="branch" checked class="accent-[#0E382A]" onchange="onPriceScopeChange('branch')">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-black">لهذا الفرع فقط</span>
+                                <span class="text-[9px] font-normal text-soft">يخصص السعر لـ «{{ branch.name }}» فقط</span>
+                            </div>
+                        </label>
+                        <label id="scope-all-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-line text-soft hover:border-[#D2AB6B]/60 font-bold">
+                            <input type="radio" name="price_scope" value="all" class="accent-[#0E382A]" onchange="onPriceScopeChange('all')">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-black text-ink">لكل الفروع</span>
+                                <span class="text-[9px] font-normal text-soft">يعدل السعر العام للمطعم</span>
+                            </div>
+                        </label>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-ink mb-1">التكلفة التقريبية ({{ branch_currency_symbol }})</label>
-                        <input type="number" step="0.25" min="0" id="itemModalCost" name="cost" class="input text-xs w-full" placeholder="10.00">
+
+                    <!-- Scope Info Banner -->
+                    <div id="priceScopeInfo" class="mt-2 text-[10px] p-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center justify-between">
+                        <span id="priceScopeNotice">⚡ سيتم حفظ السعر وتطبيقه حصراً على فرع «{{ branch.name }}» بعملة ({{ branch_currency_symbol }}).</span>
+                        <span id="masterPriceBadge" class="hidden text-soft font-bold">السعر العام: <b id="masterPriceValText" class="text-ink">0.00</b> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
                     </div>
                 </div>
+                {% else %}
+                    <input type="hidden" name="price_scope" value="all">
+                {% endif %}
 
-                <!-- Variants Table (if has variants) -->
-                <div id="variantsSection" class="space-y-2 hidden pt-1">
+                <!-- Sizes / Variants Toggle -->
+                <div class="pt-2 border-t border-amber-200/60">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-ink">قائمة الأحجام والأسعار:</span>
-                        <button type="button" onclick="addVariantRow()" class="px-2.5 py-1 rounded-lg bg-[#0E382A] text-[#E6C898] text-[10px] font-bold shadow-2xs hover:bg-[#124634]">
-                            + إضافة حجم
-                        </button>
+                        <div>
+                            <span class="text-xs font-bold text-amber-950 block">هل يحتوي الصنف على أحجام متعددة؟</span>
+                            <span class="text-[10px] text-amber-800">مثل: صغير / وسط / كبير بأسعار مختلفة</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="itemModalHasVariants" name="has_variants" onchange="toggleVariantSection()" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0E382A]"></div>
+                        </label>
                     </div>
-                    <div id="variantsContainer" class="space-y-2">
-                        <!-- Dynamic variant rows -->
+
+                    <!-- Single Price Inputs (if no variants) -->
+                    <div id="singlePriceSection" class="grid grid-cols-2 gap-3 pt-2">
+                        <div>
+                            <label class="block text-xs font-bold text-ink mb-1">
+                                <span id="labelPriceText">سعر البيع المخصص للفرع</span>
+                                ({{ branch_currency_symbol }}) <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="number" step="0.25" min="0" id="itemModalPrice" name="price" class="input text-xs w-full font-bold" placeholder="25.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-ink mb-1">التكلفة التقريبية ({{ branch_currency_symbol }})</label>
+                            <input type="number" step="0.25" min="0" id="itemModalCost" name="cost" class="input text-xs w-full" placeholder="10.00">
+                        </div>
+                    </div>
+
+                    <!-- Variants Table (if has variants) -->
+                    <div id="variantsSection" class="space-y-2 hidden pt-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-ink">قائمة الأحجام والأسعار:</span>
+                            <button type="button" id="btnAddVariantBtn" onclick="addVariantRow()" class="px-2.5 py-1 rounded-lg bg-[#0E382A] text-[#E6C898] text-[10px] font-bold shadow-2xs hover:bg-[#124634]">
+                                + إضافة حجم
+                            </button>
+                        </div>
+                        <div id="variantsContainer" class="space-y-2">
+                            <!-- Dynamic variant rows -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -948,7 +1003,12 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <input type="number" step="0.25" min="0" id="bpm-custom-price-input" placeholder="اتركه فارغاً لاستخدام السعر العام" class="input w-full font-bold text-ink">
                     <span class="absolute left-3 top-2.5 text-xs text-soft font-bold">{{ branch.get_currency_symbol_ar|default:'ر.س' }}</span>
                 </div>
-                <p class="text-[10px] text-soft mt-1">إذا ترك فارغاً، سيتم تطبيق السعر العام للمطعم تلقائياً.</p>
+                <div class="flex items-center justify-between mt-1.5">
+                    <p class="text-[10px] text-soft">إذا ترك فارغاً، سيتم تطبيق السعر العام للمطعم تلقائياً.</p>
+                    <button type="button" onclick="document.getElementById('bpm-custom-price-input').value = '';" class="text-[10px] font-bold text-amber-800 hover:text-amber-950 underline transition">
+                        🔄 استعادة السعر العام
+                    </button>
+                </div>
             </div>
 
             <!-- Variants List (if item has variants) -->
@@ -1031,6 +1091,43 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 // ==========================================
 // Item CRUD UI Script
 // ==========================================
+function onPriceScopeChange(scope) {
+    const branchLabel = document.getElementById('scope-branch-label');
+    const allLabel = document.getElementById('scope-all-label');
+    const notice = document.getElementById('priceScopeNotice');
+    const labelPriceText = document.getElementById('labelPriceText');
+    const branchName = "{% if branch %}{{ branch.name|escapejs }}{% endif %}";
+    const curSym = "{{ branch_currency_symbol }}";
+
+    if (scope === 'branch') {
+        if (branchLabel) {
+            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-[#0E382A] text-[#0E382A] font-extrabold shadow-2xs';
+        }
+        if (allLabel) {
+            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-line text-soft hover:border-[#D2AB6B]/60 font-bold';
+        }
+        if (notice) {
+            notice.innerText = `⚡ سيتم حفظ السعر وتطبيقه حصراً على فرع «${branchName}» بعملة (${curSym}).`;
+        }
+        if (labelPriceText) {
+            labelPriceText.innerText = 'سعر البيع المخصص للفرع';
+        }
+    } else {
+        if (allLabel) {
+            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-[#0E382A] text-[#0E382A] font-extrabold shadow-2xs';
+        }
+        if (branchLabel) {
+            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-line text-soft hover:border-[#D2AB6B]/60 font-bold';
+        }
+        if (notice) {
+            notice.innerText = '⚠️ تنبيه: سيتم تحديث السعر العام الأساسي وتطبيقه على كافة فروع المطعم.';
+        }
+        if (labelPriceText) {
+            labelPriceText.innerText = 'السعر العام لكل الفروع';
+        }
+    }
+}
+
 function openCreateItemModal() {
     document.getElementById('itemModalTitle').innerText = 'إضافة صنف جديد';
     document.getElementById('itemModalId').value = '';
@@ -1046,6 +1143,14 @@ function openCreateItemModal() {
     document.getElementById('itemModalHasVariants').checked = false;
     document.getElementById('variantsContainer').innerHTML = '';
     toggleVariantSection();
+
+    const branchRadio = document.querySelector('input[name="price_scope"][value="branch"]');
+    if (branchRadio) {
+        branchRadio.checked = true;
+        onPriceScopeChange('branch');
+    }
+    const masterBadge = document.getElementById('masterPriceBadge');
+    if (masterBadge) masterBadge.classList.add('hidden');
 
     const modal = document.getElementById('item-modal');
     modal.classList.remove('hidden');
@@ -1063,7 +1168,6 @@ function openEditItemModal(itemId) {
     document.getElementById('itemModalNameEn').value = item.name_en || '';
     document.getElementById('itemModalDescription').value = item.description || '';
     document.getElementById('itemModalDescriptionEn').value = item.description_en || '';
-    document.getElementById('itemModalPrice').value = item.price;
     document.getElementById('itemModalCost').value = item.cost || '';
     document.getElementById('itemModalImage').value = '';
 
@@ -1081,13 +1185,35 @@ function openEditItemModal(itemId) {
         document.getElementById('itemModalImgPlaceholder').classList.remove('hidden');
     }
 
+    // Configure pricing & scope
+    const masterValText = document.getElementById('masterPriceValText');
+    const masterBadge = document.getElementById('masterPriceBadge');
+    if (masterValText) masterValText.innerText = Number(item.price).toFixed(2);
+    if (masterBadge) masterBadge.classList.remove('hidden');
+
+    const branchRadio = document.querySelector('input[name="price_scope"][value="branch"]');
+    if (branchRadio) {
+        branchRadio.checked = true;
+        onPriceScopeChange('branch');
+    }
+
+    const priceInput = document.getElementById('itemModalPrice');
+    if (priceInput) {
+        if (item.custom_price !== null && item.custom_price !== undefined) {
+            priceInput.value = item.custom_price;
+        } else {
+            priceInput.value = item.effective_price || item.price;
+        }
+    }
+
     const hasVariants = item.has_variants && item.variants && item.variants.length > 0;
     document.getElementById('itemModalHasVariants').checked = hasVariants;
     const container = document.getElementById('variantsContainer');
     container.innerHTML = '';
     if (hasVariants) {
         item.variants.forEach(v => {
-            addVariantRow(v.name, v.name_en || '', v.price, v.cost);
+            const vEff = (v.custom_price !== null && v.custom_price !== undefined) ? v.custom_price : (v.effective_price || v.price);
+            addVariantRow(v.name, v.name_en || '', vEff, v.cost || 0, v.id, v.price);
         });
     }
     toggleVariantSection();
@@ -1123,18 +1249,22 @@ function toggleVariantSection() {
     }
 }
 
-function addVariantRow(name = '', name_en = '', price = '', cost = '') {
+function addVariantRow(name = '', name_en = '', price = '', cost = '', id = null, defaultPrice = null) {
     const container = document.getElementById('variantsContainer');
     const row = document.createElement('div');
-    row.className = 'flex flex-wrap items-center gap-2 variant-row p-2 rounded-xl bg-white border border-line';
+    row.className = 'flex flex-wrap items-center gap-2 variant-row p-2 rounded-xl bg-white border border-line shadow-2xs';
+    if (id) {
+        row.setAttribute('data-variant-id', id);
+    }
+    const defHint = defaultPrice !== null ? `placeholder="${Number(defaultPrice).toFixed(2)}"` : 'placeholder="السعر"';
     row.innerHTML = `
         <input type="text" name="variant_name[]" class="v-name input text-xs flex-1 min-w-[120px]" placeholder="الحجم بالعربي (مثال: وسط)" value="${name}">
         <input type="text" name="variant_name_en[]" class="v-name-en input text-xs flex-1 min-w-[120px] font-mono" dir="ltr" placeholder="Size in EN (Medium)" value="${name_en}">
-        <div class="relative w-28">
-            <input type="number" step="0.25" min="0" name="variant_price[]" class="v-price input text-xs w-full" placeholder="السعر" value="${price}">
-            <span class="absolute left-2 top-2 text-[10px] text-soft">${window.BRANCH_CURRENCY_SYMBOL || '{{ branch_currency_symbol }}'}</span>
+        <div class="relative w-32">
+            <input type="number" step="0.25" min="0" name="variant_price[]" class="v-price input text-xs w-full font-bold" ${defHint} value="${price}">
+            <span class="absolute left-2 top-2 text-[10px] text-soft">{{ branch_currency_symbol }}</span>
         </div>
-        <button type="button" onclick="this.closest('.variant-row').remove()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg" title="حذف الحجم">
+        <button type="button" onclick="this.closest('.variant-row').remove()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="حذف الحجم">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
     `;
@@ -1166,22 +1296,38 @@ async function saveMenuItem(event) {
         return;
     }
 
+    const priceScopeRadio = document.querySelector('input[name="price_scope"]:checked');
+    const priceScope = priceScopeRadio ? priceScopeRadio.value : 'all';
+
     const formData = new FormData();
+    if (itemId) formData.append('id', itemId);
     formData.append('name', name);
     formData.append('name_en', nameEn);
     formData.append('category_id', catId);
     formData.append('description', desc);
     formData.append('description_en', descEn);
+    formData.append('cost', cost || '0');
+    formData.append('price_scope', priceScope);
+    if (currentBranchId) {
+        formData.append('branch_id', currentBranchId);
+    }
 
     if (hasVariants) {
         const variantRows = document.querySelectorAll('.variant-row');
         const variants = [];
         variantRows.forEach(r => {
+            const vId = r.getAttribute('data-variant-id');
             const vName = r.querySelector('.v-name').value.trim();
             const vNameEn = r.querySelector('.v-name-en') ? r.querySelector('.v-name-en').value.trim() : '';
             const vPrice = r.querySelector('.v-price').value;
             if (vName && vPrice) {
-                variants.push({ name: vName, name_en: vNameEn, price: vPrice, cost: 0 });
+                variants.push({
+                    id: vId ? parseInt(vId) : null,
+                    name: vName,
+                    name_en: vNameEn,
+                    price: parseFloat(vPrice),
+                    cost: 0
+                });
             }
         });
         if (variants.length === 0) {
@@ -1196,7 +1342,6 @@ async function saveMenuItem(event) {
             return;
         }
         formData.append('price', price);
-        formData.append('cost', cost || '0');
         formData.append('variants', JSON.stringify([]));
     }
 
@@ -1219,9 +1364,12 @@ async function saveMenuItem(event) {
         });
         const data = await res.json();
         if (res.ok && (data.status === 'success' || data.ok || data.id)) {
-            showToast(itemId ? 'تم تحديث بيانات الصنف بنجاح 🍽️' : 'تمت إضافة الصنف الجديد بنجاح 🍽️');
+            const msg = (priceScope === 'branch' && currentBranchId)
+                ? 'تم حفظ وتخصيص سعر الصنف لهذا الفرع بنجاح 🍽️'
+                : 'تم حفظ وتحديث السعر العام للصنف في كافة الفروع 🍽️';
+            showToast(msg);
             closeItemModal();
-            setTimeout(() => window.location.reload(), 600);
+            setTimeout(() => window.location.reload(), 500);
         } else {
             showToast(data.error || 'تعذر حفظ بيانات الصنف', 'error');
         }
