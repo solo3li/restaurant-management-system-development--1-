@@ -65,6 +65,11 @@ class Tenant(models.Model):
     name = models.CharField(max_length=255, verbose_name="اسم المطعم / المنشأة")
     slug = models.SlugField(max_length=100, unique=True, verbose_name="المعرف اللاتيني (Slug)")
     logo_emoji = models.CharField(max_length=20, default="🍽️", blank=True, verbose_name="شعار / أيقونة")
+    logo_image = models.FileField(upload_to="tenant_logos/", blank=True, null=True, verbose_name="شعار المطعم (Logo)")
+    cover_image = models.FileField(upload_to="tenant_covers/", blank=True, null=True, verbose_name="صورة الغلاف (Cover)")
+    custom_domain = models.CharField(max_length=255, unique=True, null=True, blank=True, db_index=True, verbose_name="النطاق المخصص (Custom Domain)")
+    brand_color = models.CharField(max_length=20, default="#0E382A", blank=True, verbose_name="اللون الأساسي للهوية")
+    bio = models.CharField(max_length=255, default="", blank=True, verbose_name="نبذة عن المطعم")
     phone = models.CharField(max_length=50, default="", blank=True, verbose_name="رقم الهاتف")
     email = models.EmailField(blank=True, default="", verbose_name="البريد الإلكتروني")
     address = models.CharField(max_length=255, default="", blank=True, verbose_name="المقر الرئيسي")
@@ -843,10 +848,12 @@ class MenuItem(models.Model):
         verbose_name="المستأجر / المنشأة",
     )
     name = models.CharField(max_length=255, verbose_name="اسم الصنف")
+    description = models.TextField(default="", blank=True, verbose_name="وصف الطبق والمكونات")
     category = models.CharField(max_length=100, verbose_name="الفئة")
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="سعر البيع")
     cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="التكلفة")
     emoji = models.CharField(max_length=20, default="", blank=True, verbose_name="أيقونة")
+    image = models.FileField(upload_to="menu_items/", blank=True, null=True, verbose_name="صورة الصنف")
     available = models.BooleanField(default=True, verbose_name="متوفر")
 
     class Meta:
@@ -932,6 +939,7 @@ class Order(models.Model):
     CHANNEL_CHOICES = [
         ("cashier", "الكاشير"),
         ("call_center", "الكول سنتر"),
+        ("qr_menu", "المنيو الرقمي (QR)"),
     ]
     STATUS_CHOICES = [
         ("new", "جديد"),

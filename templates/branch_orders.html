@@ -85,7 +85,14 @@
                     {% for o in orders %}
                     <tr class="hover:bg-paper/30 transition">
                         <td class="td" data-label="رقم الطلب">
-                            <span class="font-extrabold text-ink text-sm">{{ o.order_number }}</span>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="font-extrabold text-ink text-sm">{{ o.order_number }}</span>
+                                {% if o.channel == 'qr_menu' %}
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200" title="طلب ذاتي منيو رقمي (QR)">📱 QR</span>
+                                {% elif o.channel == 'call_center' %}
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200" title="طلب كول سنتر">📞 هاتف</span>
+                                {% endif %}
+                            </div>
                             <span class="block text-[10px] text-soft">الكاشير: {{ o.cashier|default:"—" }}</span>
                         </td>
                         <td class="td" data-label="النوع">

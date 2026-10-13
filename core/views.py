@@ -1744,6 +1744,7 @@ def branch_menu_view(request):
     context = {
         "tenant": tenant,
         "branch": branch,
+        "branches": Branch.objects.filter(tenant=tenant, status="active"),
         "items_data": items_data,
         "categories": categories,
         "selected_cat": cat_filter,
@@ -5679,4 +5680,349 @@ def api_audit_logs(request):
             "createdAt": l.created_at.strftime("%Y-%m-%d %H:%M:%S"),
         })
     return JsonResponse({"ok": True, "logs": data})
+
+
+# ==========================================
+# 11. DIGITAL MENU & SELF-ORDERING (QR MENU)
+# ==========================================
+
+def digital_menu_view(request, slug=None, branch_id=None):
+    """
+    Public digital menu view for customers.
+    Accessed via /m/<slug>/ or /m/<slug>/branch/<branch_id>/ or custom domain.
+    """
+    tenant = None
+    if slug:
+        tenant = get_object_or_404(Tenant, slug=slug, is_active=True)
+    elif getattr(request, "custom_domain_tenant", None):
+        tenant = request.custom_domain_tenant
+    else:
+        return HttpResponseNotFound("لم يتم العثور على قائمة طعام المطعم")
+
+    branches = list(Branch.objects.filter(tenant=tenant, status="active").order_by("id"))
+    if not branches:
+        return render(request, "qr_menu.html", {
+            "tenant": tenant,
+            "branches": [],
+            "selected_branch": None,
+            "no_branches": True,
+            "categories": [],
+            "categorized_items": {},
+        })
+
+    # Determine selected branch
+    selected_branch = None
+    if branch_id:
+        selected_branch = next((b for b in branches if b.id == branch_id), None)
+    if not selected_branch:
+        req_bid = request.GET.get("branch")
+        if req_bid and str(req_bid).isdigit():
+            selected_branch = next((b for b in branches if b.id == int(req_bid)), None)
+    if not selected_branch:
+        selected_branch = branches[0]
+
+    # Disabled items in this branch
+    disabled_ids = set(
+        BranchMenuAvailability.objects.filter(
+            branch=selected_branch, is_available=False
+        ).values_list("menu_item_id", flat=True)
+    )
+
+    # Categories and items
+    raw_items = MenuItem.objects.filter(tenant=tenant).order_by("category", "name")
+    categories_set = []
+    categorized_items = {}
+
+    for item in raw_items:
+        cat = item.category or "أطباق عامة"
+        if cat not in categorized_items:
+            categorized_items[cat] = []
+            categories_set.append(cat)
+
+        is_avail = item.available and (item.id not in disabled_ids)
+        categorized_items[cat].append({
+            "id": item.id,
+            "name": item.name,
+            "description": item.description or "",
+            "price": float(item.price),
+            "emoji": item.emoji or "🍽️",
+            "image_url": item.image.url if item.image else "",
+            "is_available": is_avail,
+            "category": cat,
+        })
+
+    # Delivery areas for selected branch
+    areas = []
+    for a in DeliveryArea.objects.filter(branch=selected_branch, is_active=True).order_by("delivery_fee", "name"):
+        areas.append({
+            "id": a.id,
+            "name": a.name,
+            "fee": float(a.delivery_fee or 0),
+            "estimated_time": f"{a.estimated_time_minutes} دقيقة" if a.estimated_time_minutes else "30-45 دقيقة",
+        })
+
+    context = {
+        "tenant": tenant,
+        "branches": branches,
+        "selected_branch": selected_branch,
+        "categories": categories_set,
+        "categorized_items": categorized_items,
+        "delivery_areas": areas,
+        "brand_color": tenant.brand_color or "#0E382A",
+    }
+    return render(request, "qr_menu.html", context)
+
+
+def api_digital_menu_branch_areas(request, slug, branch_id):
+    """Return JSON list of delivery areas for chosen branch."""
+    tenant = get_object_or_404(Tenant, slug=slug, is_active=True)
+    branch = get_object_or_404(Branch, tenant=tenant, id=branch_id, status="active")
+    areas = []
+    for a in DeliveryArea.objects.filter(branch=branch, is_active=True).order_by("delivery_fee", "name"):
+        areas.append({
+            "id": a.id,
+            "name": a.name,
+            "fee": float(a.delivery_fee or 0),
+            "estimated_time": f"{a.estimated_time_minutes} دقيقة" if a.estimated_time_minutes else "30-45 دقيقة",
+        })
+    return JsonResponse({"status": "success", "areas": areas})
+
+
+@csrf_exempt
+def api_digital_menu_place_order(request, slug):
+    """
+    Public self-ordering endpoint for digital menu customers.
+    Strictly accepts Takeaway (سفري) or Delivery (توصيل) orders only.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    tenant = get_object_or_404(Tenant, slug=slug, is_active=True)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": "error", "message": "بيانات غير صالحة"}, status=400)
+
+    branch_id = data.get("branch_id")
+    order_type = str(data.get("order_type", "takeaway")).strip().lower()
+    customer_name = str(data.get("customer_name", "")).strip()
+    customer_phone = str(data.get("customer_phone", "")).strip()
+    delivery_area_id = data.get("delivery_area_id")
+    address = str(data.get("address", "")).strip()
+    notes = str(data.get("notes", "")).strip()
+    items_data = data.get("items", [])
+
+    # Strict Validation: Takeaway and Delivery ONLY
+    if order_type not in ["takeaway", "delivery"]:
+        return JsonResponse({
+            "status": "error",
+            "message": "نوع الطلب غير صالح. الطلبات المتاحة هي: سفري أو توصيل فقط."
+        }, status=400)
+
+    if not customer_name or len(customer_name) < 2:
+        return JsonResponse({"status": "error", "message": "يرجى كتابة اسم العميل بشكل صحيح."}, status=400)
+
+    if not customer_phone or len(customer_phone) < 7:
+        return JsonResponse({"status": "error", "message": "يرجى كتابة رقم هاتف صالح للتواصل."}, status=400)
+
+    if order_type == "delivery":
+        if not address:
+            return JsonResponse({"status": "error", "message": "يرجى إدخال عنوان التوصيل المفصل."}, status=400)
+        if not delivery_area_id:
+            return JsonResponse({"status": "error", "message": "يرجى اختيار منطقة التوصيل من القائمة."}, status=400)
+
+    branch = Branch.objects.filter(tenant=tenant, id=branch_id, status="active").first()
+    if not branch:
+        return JsonResponse({"status": "error", "message": "الفرع المحدد غير متاح لاستقبال الطلبات حالياً."}, status=400)
+
+    if not items_data or not isinstance(items_data, list):
+        return JsonResponse({"status": "error", "message": "سلة الطلب فارغة. يرجى اختيار وجبات من المنيو أولاً."}, status=400)
+
+    # Validate items and calculate totals strictly from DB
+    menu_ids = [int(i.get("menuItemId") or i.get("id") or 0) for i in items_data if (i.get("menuItemId") or i.get("id"))]
+    menu_map = {m.id: m for m in MenuItem.objects.filter(tenant=tenant, id__in=menu_ids)}
+    disabled_ids = set(
+        BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
+    )
+
+    order_items_to_create = []
+    subtotal = Decimal("0.00")
+    for it in items_data:
+        m_id = int(it.get("menuItemId") or it.get("id") or 0)
+        m = menu_map.get(m_id)
+        if not m or not m.available or m_id in disabled_ids:
+            return JsonResponse({
+                "status": "error",
+                "message": f"الصنف «{m.name if m else m_id}» غير متاح للطلب في هذا الفرع حالياً."
+            }, status=400)
+        qty = max(1, int(it.get("qty", 1)))
+        subtotal += m.price * qty
+        order_items_to_create.append({
+            "item": m,
+            "qty": qty,
+            "price": m.price,
+            "notes": str(it.get("notes", "")).strip()[:200]
+        })
+
+    delivery_fee = Decimal("0.00")
+    area = None
+    if order_type == "delivery" and delivery_area_id:
+        area = DeliveryArea.objects.filter(branch=branch, id=delivery_area_id, is_active=True).first()
+        if area and area.delivery_fee:
+            delivery_fee = Decimal(str(area.delivery_fee))
+
+    total = subtotal + delivery_fee
+
+    # Generate unique order number
+    import secrets
+    ord_number = f"QR-{secrets.token_hex(3).upper()}"
+    while Order.objects.filter(tenant=tenant, order_number=ord_number).exists():
+        ord_number = f"QR-{secrets.token_hex(3).upper()}"
+
+    # Customer record
+    cust, _ = Customer.objects.get_or_create(
+        tenant=tenant,
+        phone=customer_phone,
+        defaults={"name": customer_name, "address": address}
+    )
+
+    order = Order.objects.create(
+        tenant=tenant,
+        branch=branch,
+        order_number=ord_number,
+        order_type=order_type,
+        channel="qr_menu",
+        status="new",
+        pay_method="cash",
+        paid=False,
+        customer=cust,
+        customer_name=customer_name,
+        customer_phone=customer_phone,
+        address=address,
+        delivery_area=area,
+        delivery_fee=delivery_fee,
+        subtotal=subtotal,
+        total=total,
+        notes=notes,
+    )
+
+    for row in order_items_to_create:
+        item_title = f"{row['item'].name} ({row['notes']})" if row.get("notes") else row["item"].name
+        OrderItem.objects.create(
+            order=order,
+            menu_item=row["item"],
+            name=item_title,
+            price=row["price"],
+            qty=row["qty"],
+        )
+
+    # Broadcast real-time SSE event to kitchen display screens (0ms dispatch)
+    try:
+        notify_kitchen_order_event(order, "new_order")
+    except Exception as e:
+        logger.warning(f"Failed to dispatch kitchen SSE for QR order {order.order_number}: {e}")
+
+    return JsonResponse({
+        "status": "success",
+        "message": "تم استلام طلبك بنجاح! جاري تحضيره في المطبخ.",
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "order_type": order.get_order_type_display(),
+        "branch_name": branch.name,
+        "total": float(order.total),
+        "subtotal": float(order.subtotal),
+        "delivery_fee": float(order.delivery_fee),
+    }, status=201)
+
+
+@login_required
+def api_update_tenant_branding(request):
+    """Update restaurant logo, cover, bio, brand color, and name."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"error": "منشأة غير موجودة"}, status=400)
+
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner and not user_has_perm(request.user, "manage_menu"):
+        return JsonResponse({"error": "غير مصرح لك بتعديل هوية المطعم"}, status=403)
+
+    name = request.POST.get("name", "").strip()
+    if name:
+        tenant.name = name
+
+    bio = request.POST.get("bio", "").strip()
+    if bio is not None:
+        tenant.bio = bio
+
+    brand_color = request.POST.get("brand_color", "").strip()
+    if brand_color:
+        tenant.brand_color = brand_color
+
+    logo_emoji = request.POST.get("logo_emoji", "").strip()
+    if logo_emoji:
+        tenant.logo_emoji = logo_emoji
+
+    if "logo_image" in request.FILES:
+        tenant.logo_image = request.FILES["logo_image"]
+
+    if "cover_image" in request.FILES:
+        tenant.cover_image = request.FILES["cover_image"]
+
+    tenant.save()
+    return JsonResponse({
+        "status": "success",
+        "message": "تم تحديث هوية وشعار المطعم بنجاح",
+        "tenant": {
+            "name": tenant.name,
+            "bio": tenant.bio,
+            "brand_color": tenant.brand_color,
+            "logo_emoji": tenant.logo_emoji,
+            "logo_url": tenant.logo_image.url if tenant.logo_image else "",
+            "cover_url": tenant.cover_image.url if tenant.cover_image else "",
+        }
+    })
+
+
+@login_required
+def api_update_custom_domain(request):
+    """Bind or clear custom domain for restaurant digital menu."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"error": "منشأة غير موجودة"}, status=400)
+
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner:
+        return JsonResponse({"error": "مقتصر على مالك المنشأة فقط"}, status=403)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else request.POST
+    except Exception:
+        data = request.POST
+
+    domain = str(data.get("custom_domain", "")).strip().lower()
+    # Strip http:// or https:// or trailing slashes
+    import re
+    domain = re.sub(r"^https?://", "", domain).strip("/")
+    if domain:
+        existing = Tenant.objects.filter(custom_domain__iexact=domain).exclude(id=tenant.id).first()
+        if existing:
+            return JsonResponse({"error": f"هذا النطاق «{domain}» مرتبط بالفعل بمنشأة أخرى."}, status=400)
+        tenant.custom_domain = domain
+    else:
+        tenant.custom_domain = None
+
+    tenant.save(update_fields=["custom_domain"])
+    return JsonResponse({
+        "status": "success",
+        "message": "تم حفظ النطاق المخصص بنجاح" if domain else "تمت إزالة النطاق المخصص بنجاح",
+        "custom_domain": tenant.custom_domain or "",
+    })
 

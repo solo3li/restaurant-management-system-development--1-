@@ -99,5 +99,13 @@ urlpatterns = [
     path("api/ai-callcenter/usage/", views.api_ai_callcenter_usage, name="api_ai_callcenter_usage"),
     path("api/ai-callcenter/sync-caps/", views.api_ai_callcenter_sync_caps, name="api_ai_callcenter_sync_caps"),
     path("api/audit-logs/", views.api_audit_logs, name="api_audit_logs"),
+
+    # Digital Menu & Self-Ordering (Public Customer-Facing & Management)
+    path("m/<slug:slug>/", views.digital_menu_view, name="digital_menu"),
+    path("m/<slug:slug>/branch/<int:branch_id>/", views.digital_menu_view, name="digital_menu_branch"),
+    path("api/m/<slug:slug>/areas/<int:branch_id>/", views.api_digital_menu_branch_areas, name="api_digital_menu_branch_areas"),
+    path("api/m/<slug:slug>/order/", views.api_digital_menu_place_order, name="api_digital_menu_place_order"),
+    path("api/settings/branding/", views.api_update_tenant_branding, name="api_update_tenant_branding"),
+    path("api/settings/custom-domain/", views.api_update_custom_domain, name="api_update_custom_domain"),
 ]
 

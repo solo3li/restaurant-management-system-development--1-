@@ -18,10 +18,26 @@
                 {% endif %}
             </p>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="rounded-xl bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-soft shadow-2xs">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="rounded-xl bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft shadow-2xs">
                 إجمالي الأصناف: <span class="font-extrabold text-ink font-body">{{ items_data|length }}</span>
             </span>
+            <a 
+                href="/m/{{ tenant.slug }}/{% if branch %}branch/{{ branch.id }}/{% endif %}" 
+                target="_blank" 
+                class="rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
+            >
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span>معاينة المنيو الرقمي (Online)</span>
+            </a>
+            <button 
+                type="button" 
+                onclick="openQrBrandingModal()" 
+                class="btn-gold-pill px-3.5 py-1.5 text-xs font-black shadow-2xs flex items-center gap-1.5"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <span>شعار وهُوية المنيو والـ QR</span>
+            </button>
         </div>
     </div>
 
@@ -199,5 +215,346 @@ async function toggleItemAvailability(itemId, itemName) {
         btn.disabled = false;
     }
 }
+
+// Digital Menu & Branding Modal Scripts
+let currentTenantSlug = "{{ tenant.slug|escapejs }}";
+let currentBranchId = "{% if branch %}{{ branch.id }}{% endif %}";
+let currentCustomDomain = "{{ tenant.custom_domain|default:''|escapejs }}";
+let activeQrUrl = '';
+
+function getDigitalMenuFullUrl() {
+    if (currentCustomDomain) {
+        return window.location.protocol + '//' + currentCustomDomain + (currentBranchId ? '/branch/' + currentBranchId + '/' : '/');
+    }
+    const path = '/m/' + currentTenantSlug + '/' + (currentBranchId ? 'branch/' + currentBranchId + '/' : '');
+    return window.location.origin + path;
+}
+
+function openQrBrandingModal() {
+    const modal = document.getElementById('qr-branding-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    const fullUrl = getDigitalMenuFullUrl();
+    const input = document.getElementById('qr-menu-link-input');
+    const openLink = document.getElementById('qr-open-menu-link');
+    const qrImg = document.getElementById('qrCodeImage');
+    
+    if (input) input.value = fullUrl;
+    if (openLink) openLink.href = fullUrl;
+    
+    activeQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(fullUrl);
+    if (qrImg) qrImg.src = activeQrUrl;
+}
+
+function closeQrBrandingModal() {
+    const modal = document.getElementById('qr-branding-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function switchQrModalTab(tab) {
+    const tabs = ['qr', 'branding', 'domain'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const content = document.getElementById(`tab-content-${t}`);
+        if (!btn || !content) return;
+        if (t === tab) {
+            btn.className = 'px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-[#0E382A] text-[#E6C898]';
+            content.classList.remove('hidden');
+        } else {
+            btn.className = 'px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink rounded-lg transition-all';
+            content.classList.add('hidden');
+        }
+    });
+}
+
+function copyMenuUrl() {
+    const input = document.getElementById('qr-menu-link-input');
+    if (!input) return;
+    navigator.clipboard.writeText(input.value).then(() => {
+        showToast('تم نسخ رابط المنيو بنجاح! 📋');
+    }).catch(() => {
+        input.select();
+        document.execCommand('copy');
+        showToast('تم نسخ الرابط! 📋');
+    });
+}
+
+async function downloadQrImage() {
+    if (!activeQrUrl) return;
+    try {
+        const res = await fetch(activeQrUrl);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `qr-menu-${currentTenantSlug}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch(e) {
+        window.open(activeQrUrl, '_blank');
+    }
+}
+
+async function submitBrandingForm(event) {
+    event.preventDefault();
+    const form = document.getElementById('brandingForm');
+    const submitBtn = document.getElementById('btnSaveBranding');
+    const formData = new FormData(form);
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>جاري الحفظ…</span>';
+    
+    try {
+        const res = await fetch('/api/settings/branding/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+            showToast(data.message || 'تم تحديث هوية وشعار المطعم بنجاح');
+            if (data.tenant && data.tenant.logo_url) {
+                const logoImg = document.getElementById('logoPreviewImg');
+                const logoHolder = document.getElementById('logoPlaceholder');
+                if (logoImg) {
+                    logoImg.src = data.tenant.logo_url;
+                    logoImg.classList.remove('hidden');
+                }
+                if (logoHolder) logoHolder.classList.add('hidden');
+            }
+            if (data.tenant && data.tenant.cover_url) {
+                const coverImg = document.getElementById('coverPreviewImg');
+                const coverHolder = document.getElementById('coverPlaceholder');
+                if (coverImg) {
+                    coverImg.src = data.tenant.cover_url;
+                    coverImg.classList.remove('hidden');
+                }
+                if (coverHolder) coverHolder.classList.add('hidden');
+            }
+        } else {
+            showToast(data.error || 'تعذر تحديث الهوية', 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال بالسيرفر', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>حفظ الهوية والشعار</span>';
+    }
+}
+
+async function submitCustomDomainForm(event) {
+    event.preventDefault();
+    const input = document.getElementById('customDomainInput');
+    const submitBtn = document.getElementById('btnSaveDomain');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>جاري الحفظ…</span>';
+    
+    try {
+        const res = await fetch('/api/settings/custom-domain/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({ custom_domain: input.value.trim() })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+            showToast(data.message || 'تم تحديث النطاق بنجاح');
+            currentCustomDomain = data.custom_domain || '';
+            const fullUrl = getDigitalMenuFullUrl();
+            const linkInput = document.getElementById('qr-menu-link-input');
+            const openLink = document.getElementById('qr-open-menu-link');
+            const qrImg = document.getElementById('qrCodeImage');
+            if (linkInput) linkInput.value = fullUrl;
+            if (openLink) openLink.href = fullUrl;
+            activeQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(fullUrl);
+            if (qrImg) qrImg.src = activeQrUrl;
+        } else {
+            showToast(data.error || 'تعذر حفظ النطاق المخصص', 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال بالسيرفر', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>حفظ النطاق</span>';
+    }
+}
+
+document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
+    const hex = document.getElementById('brandColorHex');
+    if (hex) hex.value = e.target.value;
+});
 </script>
+
+<!-- Interactive Modal: QR Code, Branding & Custom Domain -->
+<div id="qr-branding-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-body" onclick="closeQrBrandingModal()">
+    <div class="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto classic-card p-6 shadow-2xl" onclick="event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-line pb-4">
+            <div class="flex items-center gap-3">
+                <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                    <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-lg font-bold font-royal text-ink">المنيو الرقمي — الـ QR Code والهوية البصرية</h2>
+                    <p class="text-xs font-bold text-soft">تخصيص شعار وغلاف المطعم، نسخ الـ QR، وربط النطاق المخصص</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeQrBrandingModal()" class="rounded-lg p-1.5 text-soft hover:bg-paper hover:text-ink transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex items-center gap-2 border-b border-line mt-4 pb-2">
+            <button type="button" id="tab-btn-qr" onclick="switchQrModalTab('qr')" class="px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-[#0E382A] text-[#E6C898]">
+                📱 رمز الـ QR والرابط
+            </button>
+            <button type="button" id="tab-btn-branding" onclick="switchQrModalTab('branding')" class="px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink rounded-lg transition-all">
+                🎨 الشعار والهوية البصرية
+            </button>
+            <button type="button" id="tab-btn-domain" onclick="switchQrModalTab('domain')" class="px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink rounded-lg transition-all">
+                🌐 النطاق المخصص (Domain)
+            </button>
+        </div>
+
+        <!-- Tab 1: QR & Link -->
+        <div id="tab-content-qr" class="space-y-4 pt-4">
+            <div class="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-2xl bg-paper/60 border border-line">
+                <div class="flex flex-col items-center gap-2">
+                    <div class="bg-white p-3 rounded-2xl border border-line shadow-sm">
+                        <img id="qrCodeImage" src="" alt="QR Code" class="w-48 h-48 rounded-lg object-contain bg-white">
+                    </div>
+                    <button type="button" onclick="downloadQrImage()" class="btn-gold-pill px-4 py-2 text-xs font-black shadow-2xs flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>تحميل كصورة (PNG)</span>
+                    </button>
+                </div>
+                <div class="flex-1 space-y-3 text-right">
+                    <h3 class="font-bold text-sm text-ink font-royal">رابط المنيو الرقمي للزبائن</h3>
+                    <p class="text-xs text-soft leading-relaxed">
+                        يستطيع عملاؤك مسح هذا الرمز بواسطة كاميرا هواتفهم لفتح المنيو والطلب ذاتياً (سفري أو توصيل)، دون الحاجة لتحميل أي تطبيق.
+                    </p>
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-soft">الرابط المباشر:</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="qr-menu-link-input" readonly class="input text-xs font-mono font-bold w-full bg-paper" dir="ltr">
+                            <button type="button" onclick="copyMenuUrl()" class="px-3 py-2 rounded-xl bg-[#0E382A] text-[#E6C898] hover:bg-[#124634] text-xs font-black shadow-2xs transition flex items-center gap-1 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                <span>نسخ</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <a id="qr-open-menu-link" href="#" target="_blank" class="inline-flex items-center gap-1 text-xs font-black text-brand-700 hover:underline">
+                            <span>فتح المنيو في نافذة جديدة</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Branding (Logo, Cover, Bio, Color) -->
+        <div id="tab-content-branding" class="space-y-4 pt-4 hidden">
+            <form id="brandingForm" onsubmit="submitBrandingForm(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Logo Upload -->
+                    <div class="p-3 rounded-2xl bg-paper/60 border border-line space-y-2">
+                        <label class="block text-xs font-bold text-ink">شعار المطعم (Logo)</label>
+                        <div class="flex items-center gap-3">
+                            <div class="w-14 h-14 rounded-2xl bg-white border border-line flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                <img id="logoPreviewImg" src="{% if tenant.logo_image %}{{ tenant.logo_image.url }}{% endif %}" alt="Logo" class="w-full h-full object-cover {% if not tenant.logo_image %}hidden{% endif %}">
+                                <span id="logoPlaceholder" class="text-2xl {% if tenant.logo_image %}hidden{% endif %}">{{ tenant.logo_emoji|default:"🍽️" }}</span>
+                            </div>
+                            <div class="flex-1">
+                                <input type="file" name="logo_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
+                                <p class="text-[10px] text-soft mt-1">يفضل بصيغة PNG أو JPG أو SVG بمقاس مربع.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cover Banner Upload -->
+                    <div class="p-3 rounded-2xl bg-paper/60 border border-line space-y-2">
+                        <label class="block text-xs font-bold text-ink">صورة غلاف المنيو (Banner)</label>
+                        <div class="flex items-center gap-3">
+                            <div class="w-20 h-14 rounded-xl bg-white border border-line flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                <img id="coverPreviewImg" src="{% if tenant.cover_image %}{{ tenant.cover_image.url }}{% endif %}" alt="Cover" class="w-full h-full object-cover {% if not tenant.cover_image %}hidden{% endif %}">
+                                <span id="coverPlaceholder" class="text-xs text-soft font-bold {% if tenant.cover_image %}hidden{% endif %}">لا يوجد</span>
+                            </div>
+                            <div class="flex-1">
+                                <input type="file" name="cover_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
+                                <p class="text-[10px] text-soft mt-1">تظهر أعلى صفحة المنيو في الهواتف.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Restaurant Name & Bio -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-ink mb-1">اسم المطعم / البراند</label>
+                        <input type="text" name="name" value="{{ tenant.name }}" required class="input text-xs w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-ink mb-1">لون هوية البراند الأساسي</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="brandColorPicker" name="brand_color" value="{{ tenant.brand_color|default:'#0E382A' }}" class="w-10 h-9 p-0.5 rounded-lg border border-line cursor-pointer bg-transparent">
+                            <input type="text" id="brandColorHex" value="{{ tenant.brand_color|default:'#0E382A' }}" oninput="document.getElementById('brandColorPicker').value=this.value" class="input text-xs font-mono font-bold w-full" dir="ltr">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1">نبذة عن المطعم (Bio / Slogan)</label>
+                    <input type="text" name="bio" value="{{ tenant.bio|default:'' }}" placeholder="مثال: أشهى المأكولات والمشويات الطازجة بإتقان يومي" class="input text-xs w-full">
+                    <p class="text-[10px] text-soft mt-1">تظهر هذه النبذة تحت اسم المطعم مباشرة في المنيو الرقمي.</p>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                    <button type="submit" id="btnSaveBranding" class="btn-gold-pill px-5 py-2.5 text-xs font-black shadow-2xs">
+                        حفظ الهوية والشعار
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab 3: Custom Domain -->
+        <div id="tab-content-domain" class="space-y-4 pt-4 hidden">
+            <form onsubmit="submitCustomDomainForm(event)" class="space-y-4">
+                <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-300 text-xs text-amber-900 space-y-1">
+                    <p class="font-bold text-amber-950">كيفية ربط نطاقك المخصص بالمنيو الرقمي:</p>
+                    <p class="leading-relaxed text-amber-800">
+                        1. اذهب للوحة تحكم النطاق (Cloudflare, GoDaddy, Namecheap...) وأضف سجل <strong class="text-amber-950">CNAME</strong> يشير إلى خادم النظام (مثلاً: <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200">{{ request.get_host }}</code>).
+                        <br>
+                        2. اكتب النطاق في الحقل أدناه واحفظه ليتم توجيه أي زائر يفتح النطاق مباشرة إلى المنيو الرقمي الخاص بك.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1">النطاق المخصص (Custom Domain)</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="customDomainInput" value="{{ tenant.custom_domain|default:'' }}" placeholder="مثال: menu.myrestaurant.com" class="input text-xs font-mono font-bold w-full" dir="ltr">
+                        <button type="submit" id="btnSaveDomain" class="btn-gold-pill px-5 py-2 text-xs font-black shadow-2xs flex-shrink-0">
+                            حفظ النطاق
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-soft mt-1">اتركه فارغاً واضغط حفظ إذا كنت تريد إزالة الربط واستخدام الرابط الافتراضي.</p>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
 {% endblock %}

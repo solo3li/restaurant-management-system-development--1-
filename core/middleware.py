@@ -11,6 +11,22 @@ class TenantMiddleware:
     def __call__(self, request):
         request.tenant = None
         request.is_platform_admin = False
+        request.custom_domain_tenant = None
+
+        # Check for Custom Domain binding
+        try:
+            host = request.get_host().split(":")[0].lower()
+            if host not in ["localhost", "127.0.0.1", "testserver"] and not host.endswith(".nip.io"):
+                custom_t = Tenant.objects.filter(custom_domain__iexact=host, is_active=True).first()
+                if custom_t:
+                    request.custom_domain_tenant = custom_t
+                    if not request.user.is_authenticated:
+                        request.tenant = custom_t
+                    if request.path in ["/", ""]:
+                        from core.views import digital_menu_view
+                        return digital_menu_view(request, slug=custom_t.slug)
+        except Exception:
+            pass
 
         if request.user.is_authenticated:
             profile = getattr(request.user, "profile", None)
