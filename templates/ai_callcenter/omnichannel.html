@@ -920,12 +920,18 @@ function renderConversations(searchQuery = '') {
         }
 
         const initial = (conv.customer_name || conv.display_phone || 'ع')[0];
+        const avatarHtml = conv.profile_pic_url 
+            ? `<div class="w-10 h-10 rounded-full overflow-hidden border border-line bg-paper shrink-0 relative">
+                   <img src="${conv.profile_pic_url}" alt="${conv.customer_name || ''}" class="w-full h-full object-cover" 
+                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center font-black text-xs text-ink bg-paper\\'>${initial}</div>';">
+               </div>`
+            : `<div class="w-10 h-10 rounded-full bg-paper border border-line text-ink flex items-center justify-center font-black text-xs shrink-0">
+                   ${initial}
+               </div>`;
 
         item.innerHTML = `
             <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-10 h-10 rounded-full bg-paper border border-line text-ink flex items-center justify-center font-black text-xs shrink-0">
-                    ${initial}
-                </div>
+                ${avatarHtml}
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex items-center gap-1.5 min-w-0">
@@ -960,8 +966,19 @@ async function selectConversation(conv) {
 
     // Update Header
     document.getElementById('chat-customer-name').textContent = conv.customer_name || 'عميل واتساب';
-    document.getElementById('chat-customer-phone').textContent = conv.display_phone || conv.phone_number;
-    document.getElementById('chat-avatar').textContent = (conv.customer_name || 'ع')[0];
+    document.getElementById('chat-customer-phone').textContent = conv.display_phone || conv.real_phone || conv.phone_number;
+    
+    const avatarEl = document.getElementById('chat-avatar');
+    if (avatarEl) {
+        const initial = (conv.customer_name || 'ع')[0];
+        if (conv.profile_pic_url) {
+            avatarEl.innerHTML = `<img src="${conv.profile_pic_url}" alt="${conv.customer_name || ''}" class="w-full h-full object-cover rounded-full" onerror="this.onerror=null; this.parentElement.textContent='${initial}';">`;
+            avatarEl.className = "w-10 h-10 rounded-full overflow-hidden border border-brand-200 shrink-0 bg-paper";
+        } else {
+            avatarEl.textContent = initial;
+            avatarEl.className = "w-10 h-10 rounded-full bg-brand-50 border border-brand-200 text-brand-700 flex items-center justify-center font-black text-sm shrink-0";
+        }
+    }
     
     // Read-Only & Permissions Gating
     const isReadOnly = conv.can_send === false;
@@ -1033,6 +1050,27 @@ async function reloadActiveMessages() {
         const url = `/api/ai-callcenter/whatsapp/conversations/${encodeURIComponent(activeConversation.phone_number)}/messages/`;
         const res = await fetch(url);
         const data = await res.json();
+
+        if (data.customer_name) {
+            document.getElementById('chat-customer-name').textContent = data.customer_name;
+            activeConversation.customer_name = data.customer_name;
+        }
+        if (data.display_phone) {
+            document.getElementById('chat-customer-phone').textContent = data.display_phone;
+            activeConversation.display_phone = data.display_phone;
+        }
+        if (data.real_phone) {
+            activeConversation.real_phone = data.real_phone;
+        }
+        if (data.profile_pic_url) {
+            activeConversation.profile_pic_url = data.profile_pic_url;
+            const avatarEl = document.getElementById('chat-avatar');
+            if (avatarEl) {
+                const initial = (data.customer_name || 'ع')[0];
+                avatarEl.innerHTML = `<img src="${data.profile_pic_url}" alt="${data.customer_name || ''}" class="w-full h-full object-cover rounded-full" onerror="this.onerror=null; this.parentElement.textContent='${initial}';">`;
+                avatarEl.className = "w-10 h-10 rounded-full overflow-hidden border border-brand-200 shrink-0 bg-paper";
+            }
+        }
 
         container.innerHTML = '';
         const msgs = data.messages || [];
