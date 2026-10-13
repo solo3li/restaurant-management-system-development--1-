@@ -14,6 +14,7 @@ import asyncio
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, StreamingHttpResponse, HttpResponse, HttpResponseNotFound
 from django.utils import timezone
 from django.utils.text import slugify
@@ -5331,6 +5332,7 @@ def ai_callcenter_capabilities_view(request):
 
 
 @login_required
+@never_cache
 def ai_callcenter_omnichannel_view(request):
     """
     Dedicated Subpage 8: Omnichannel Channels, Outbound AI Dialer & WhatsApp Web.
@@ -5343,7 +5345,7 @@ def ai_callcenter_omnichannel_view(request):
     client_id, _ = _get_callcenter_client_info(tenant)
 
     telephony_resp = ps.get_telephony_numbers(client_id)
-    raw_nums = telephony_resp if isinstance(telephony_resp, list) else (telephony_resp.get("numbers") or [])
+    raw_nums = telephony_resp.get("numbers", []) if isinstance(telephony_resp, dict) else (telephony_resp if isinstance(telephony_resp, list) else [])
     primary_did = ""
     if raw_nums and len(raw_nums) > 0:
         first_num = raw_nums[0]
@@ -5351,12 +5353,13 @@ def ai_callcenter_omnichannel_view(request):
             primary_did = first_num.get("phone_number") or first_num.get("number") or first_num.get("did") or ""
         elif isinstance(first_num, str):
             primary_did = first_num
-    if not primary_did:
-        primary_did = "لا يوجد خط هاتف مخصص بعد"
+
+    has_did = bool(primary_did and primary_did != "لا يوجد خط هاتف مخصص بعد")
 
     context = {
         "tenant": tenant,
         "did_number": primary_did,
+        "has_did": has_did,
         "did_numbers": raw_nums,
     }
     return render(request, "ai_callcenter/omnichannel.html", context)
@@ -6232,6 +6235,7 @@ def api_ai_callcenter_call_recording_proxy(request, call_id):
 
 
 @login_required
+@never_cache
 def api_ai_callcenter_whatsapp_status(request):
     """Get WhatsApp connection status for this tenant's AI assistant."""
     err = _check_callcenter_admin(request)
@@ -6260,6 +6264,19 @@ def api_ai_callcenter_whatsapp_connect(request):
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
     res = ps.get_whatsapp_qr(client_id)
+    if not isinstance(res, dict):
+        return JsonResponse({"status": "error", "message": "استجابة غير صالحة من خادم الواتساب"}, status=502)
+
+    base64_val = res.get("base64") or res.get("qr") or ""
+    if not base64_val and isinstance(res.get("qrcode"), dict):
+        base64_val = res["qrcode"].get("base64") or ""
+
+    if base64_val:
+        res["qr"] = base64_val
+        res["base64"] = base64_val
+        res["status"] = "success"
+        res["ok"] = True
+
     return JsonResponse(res)
 
 
@@ -6318,6 +6335,138 @@ def api_ai_callcenter_whatsapp_send(request):
 
 
 @login_required
+@never_cache
+def api_ai_callcenter_whatsapp_conversations(request):
+    """Fetch omnichannel WhatsApp conversations for tenant."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    q = request.GET.get("q", "").strip()
+    try:
+        page = max(1, int(request.GET.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
+    try:
+        page_size = min(100, max(1, int(request.GET.get("page_size", 30))))
+    except (ValueError, TypeError):
+        page_size = 30
+
+    res = ps.get_whatsapp_conversations(client_id, query=q, page=page, page_size=page_size)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_conversation_messages(request, phone):
+    """Fetch conversation messages history for specific customer phone."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    try:
+        limit = min(200, max(1, int(request.GET.get("limit", 50))))
+    except (ValueError, TypeError):
+        limit = 50
+
+    res = ps.get_whatsapp_conversation_messages(client_id, phone=phone, limit=limit)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_conversation_reply(request, phone):
+    """Send human agent/cashier reply to customer on WhatsApp."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        return JsonResponse({"status": "error", "message": "بيانات JSON غير صالحة"}, status=400)
+
+    message = str(data.get("message") or "").strip()
+    if not message:
+        return JsonResponse({"status": "error", "message": "نص الرسالة مطلوب"}, status=400)
+
+    res = ps.reply_whatsapp_conversation(client_id, phone=phone, message=message)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_conversation_toggle_ai(request, phone):
+    """Toggle AI auto-reply for customer conversation."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    data = {}
+    if request.body:
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            pass
+
+    ai_active = data.get("ai_active") if "ai_active" in data else None
+    res = ps.toggle_whatsapp_conversation_ai(client_id, phone=phone, enabled=ai_active)
+    return JsonResponse(res)
+
+
+@login_required
+def api_ai_callcenter_whatsapp_sync(request):
+    """Sync all genuine WhatsApp chats and messages directly from phone/evolution_db."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    data = {}
+    if request.body:
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            pass
+
+    clean_old = bool(data.get("clean_old", False))
+    try:
+        max_messages = int(data.get("max_messages", 40))
+    except (ValueError, TypeError):
+        max_messages = 40
+
+    res = ps.sync_whatsapp_chats(client_id, clean_old=clean_old, max_messages=max_messages)
+    return JsonResponse(res)
+
+
+@login_required
 def api_ai_callcenter_telephony_info(request):
     """Fetch assigned direct inward dialing numbers and PBX trunks."""
     err = _check_callcenter_admin(request)
@@ -6329,9 +6478,10 @@ def api_ai_callcenter_telephony_info(request):
 
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
-    nums = ps.get_telephony_numbers(client_id)
+    nums_resp = ps.get_telephony_numbers(client_id)
     trunks = ps.get_pbx_trunks(client_id)
-    return JsonResponse({"status": "success", "numbers": nums, "trunks": trunks})
+    raw_nums = nums_resp.get("numbers", []) if isinstance(nums_resp, dict) else (nums_resp if isinstance(nums_resp, list) else [])
+    return JsonResponse({"status": "success", "numbers": raw_nums, "raw_telephony": nums_resp, "trunks": trunks})
 
 
 @login_required

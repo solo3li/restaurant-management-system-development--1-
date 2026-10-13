@@ -641,6 +641,60 @@ def send_whatsapp_message(client_id: int, phone_number: str, message: str) -> Di
     return _request(f"/clients/{client_id}/whatsapp/send/", method="POST", data=payload)
 
 
+def get_whatsapp_conversations(client_id: int, query: str = "", page: int = 1, page_size: int = 30) -> Dict[str, Any]:
+    """Fetch omnichannel WhatsApp conversation list for client."""
+    params = []
+    if query:
+        params.append(f"q={urllib.parse.quote(query)}")
+    if page > 1:
+        params.append(f"page={page}")
+    if page_size != 30:
+        params.append(f"page_size={page_size}")
+    qs = f"?{'&'.join(params)}" if params else ""
+    return _request(f"/clients/{client_id}/whatsapp/conversations/{qs}")
+
+
+def get_whatsapp_conversation_messages(client_id: int, phone: str, limit: int = 50) -> Dict[str, Any]:
+    """Fetch message history for specific customer phone conversation."""
+    clean_phone = urllib.parse.quote(str(phone).strip())
+    return _request(f"/clients/{client_id}/whatsapp/conversations/{clean_phone}/messages/?limit={limit}")
+
+
+def reply_whatsapp_conversation(client_id: int, phone: str, message: str) -> Dict[str, Any]:
+    """Send human cashier reply to customer on WhatsApp."""
+    clean_phone = urllib.parse.quote(str(phone).strip())
+    payload = {"message": str(message).strip()}
+    return _request(f"/clients/{client_id}/whatsapp/conversations/{clean_phone}/reply/", method="POST", data=payload)
+
+
+def toggle_whatsapp_conversation_ai(client_id: int, phone: str, enabled: Optional[bool] = None) -> Dict[str, Any]:
+    """Toggle AI auto-reply for customer conversation."""
+    clean_phone = urllib.parse.quote(str(phone).strip())
+    payload = {}
+    if enabled is not None:
+        payload["ai_active"] = bool(enabled)
+    return _request(f"/clients/{client_id}/whatsapp/conversations/{clean_phone}/toggle-ai/", method="POST", data=payload)
+
+
+def trigger_whatsapp_followup(client_id: int, phone: str, customer_name: str = "", trigger_type: str = "manual_followup") -> Dict[str, Any]:
+    """Trigger an automated WhatsApp post-call follow-up message."""
+    payload = {
+        "phone": str(phone).strip(),
+        "customer_name": str(customer_name).strip(),
+        "trigger_type": str(trigger_type).strip(),
+    }
+    return _request(f"/clients/{client_id}/whatsapp/followup/", method="POST", data=payload)
+
+
+def sync_whatsapp_chats(client_id: int, clean_old: bool = False, max_messages: int = 40) -> Dict[str, Any]:
+    """Sync all genuine WhatsApp chats and messages directly from phone/evolution_db."""
+    payload = {
+        "clean_old": bool(clean_old),
+        "max_messages": int(max_messages),
+    }
+    return _request(f"/clients/{client_id}/whatsapp/sync/", method="POST", data=payload)
+
+
 # =========================================================================
 # Telephony DID Numbers & PBX Trunks API
 # =========================================================================
