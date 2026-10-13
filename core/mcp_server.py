@@ -527,6 +527,8 @@ def _canonical_food_name(text: str) -> str:
         "خروف": "غنم",
         "بيبسي": "مشروب غازي",
         "كولا": "مشروب غازي",
+        "كوكاكولا": "مشروب غازي",
+        "كوكا": "مشروب غازي",
         "سفن": "مشروب غازي",
         "سبرايت": "مشروب غازي",
         "كانز": "مشروب غازي",
@@ -1104,6 +1106,8 @@ def preview_order(
     delivery_area_id: Optional[int] = None,
     order_type: str = "delivery",
     branch_id: Optional[int] = None,
+    branch_name: Optional[str] = None,
+    branch: Optional[Any] = None,
     customer_phone: Optional[str] = None,
     phone: Optional[str] = None,
     phone_number: Optional[str] = None,
@@ -1219,24 +1223,34 @@ def preview_order(
         delivery_fee = matched_area.delivery_fee
     else:
         # Takeaway or Dine-in
+        active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
+        if not active_branches:
+            return {
+                "ok": False,
+                "is_system_error": False,
+                "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
+                "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
+                "instruction_for_ai": "أبلغ العميل بأن فروعنا مغلقة حالياً."
+            }
+
+        candidate_bname = str(branch_name or branch or "").strip()
+
         if effective_branch_id is not None:
-            branch = Branch.objects.filter(tenant=tenant, id=effective_branch_id, status="active").first()
-            if not branch:
-                return {
-                    "ok": False,
-                    "error": f"الفرع برقم #{effective_branch_id} غير موجود أو غير نشط.",
-                    "ai_speech_response": "بعتذر لحضرتك، الفرع المطلوب غير متاح حالياً.",
-                    "instruction_for_ai": "أبلغ العميل بأن الفرع المطلوب غير متاح."
-                }
-        else:
-            branch = Branch.objects.filter(tenant=tenant, status="active").first()
-            if not branch:
-                return {
-                    "ok": False,
-                    "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
-                    "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
-                    "instruction_for_ai": "أبلغ العميل بأن فروعنا مغلقة حالياً."
-                }
+            branch = next((b for b in active_branches if b.id == effective_branch_id), None)
+            if not branch and 1 <= effective_branch_id <= len(active_branches):
+                branch = active_branches[effective_branch_id - 1]
+
+        if not branch and candidate_bname:
+            norm_b = _normalize_arabic_text(candidate_bname)
+            for b in active_branches:
+                norm_curr = _normalize_arabic_text(b.name)
+                norm_city = _normalize_arabic_text(b.city)
+                if norm_b in norm_curr or norm_curr in norm_b or (norm_city and (norm_b in norm_city or norm_city in norm_b)):
+                    branch = b
+                    break
+
+        if not branch:
+            branch = active_branches[0]
 
     cur_name = branch.get_currency_name_ar()
     cur_sym = branch.get_currency_symbol_ar()
@@ -1319,6 +1333,8 @@ def preview_order(
 @mcp.tool
 def create_callcenter_order(
     branch_id: Optional[int] = None,
+    branch_name: Optional[str] = None,
+    branch: Optional[Any] = None,
     customer_phone: Optional[str] = None,
     phone: Optional[str] = None,
     phone_number: Optional[str] = None,
@@ -1484,24 +1500,34 @@ def create_callcenter_order(
         delivery_fee = matched_area.delivery_fee
     else:
         # Takeaway or Dine-in
+        active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
+        if not active_branches:
+            return {
+                "ok": False,
+                "is_system_error": False,
+                "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
+                "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
+                "instruction_for_ai": "أبلغ العميل بأن الفروع مغلقة حالياً."
+            }
+
+        candidate_bname = str(branch_name or branch or "").strip()
+
         if effective_branch_id is not None:
-            branch = Branch.objects.filter(tenant=tenant, id=effective_branch_id, status="active").first()
-            if not branch:
-                return {
-                    "ok": False,
-                    "error": f"الفرع برقم #{effective_branch_id} غير موجود أو غير نشط في المنشأة.",
-                    "ai_speech_response": "بعتذر لحضرتك، الفرع المطلوب غير متاح حالياً.",
-                    "instruction_for_ai": "أبلغ العميل بأن الفرع المطلوب غير متاح."
-                }
-        else:
-            branch = Branch.objects.filter(tenant=tenant, status="active").first()
-            if not branch:
-                return {
-                    "ok": False,
-                    "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
-                    "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
-                    "instruction_for_ai": "أبلغ العميل بأن الفروع مغلقة حالياً."
-                }
+            branch = next((b for b in active_branches if b.id == effective_branch_id), None)
+            if not branch and 1 <= effective_branch_id <= len(active_branches):
+                branch = active_branches[effective_branch_id - 1]
+
+        if not branch and candidate_bname:
+            norm_b = _normalize_arabic_text(candidate_bname)
+            for b in active_branches:
+                norm_curr = _normalize_arabic_text(b.name)
+                norm_city = _normalize_arabic_text(b.city)
+                if norm_b in norm_curr or norm_curr in norm_b or (norm_city and (norm_b in norm_city or norm_city in norm_b)):
+                    branch = b
+                    break
+
+        if not branch:
+            branch = active_branches[0]
 
     # 4. Strict Menu Items Resolver & Total Calculation
     disabled_item_ids = set(
