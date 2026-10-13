@@ -193,9 +193,9 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="font-mono text-[11px] text-soft font-bold">{{ c.duration_formatted|default:c.duration|default:"0s" }}</span>
+                        <span class="font-mono text-[11px] text-soft font-bold">{{ c.duration_formatted|default:"00:00" }}</span>
                         {% if c.recording_url %}
-                        <button type="button" onclick="openCallDetailsModal('{{ c.call_id }}', '{{ c.caller_phone }}', '{{ c.duration_formatted|default:c.duration }}', '{{ c.created_at|default:'' }}', '{{ c.summary|escapejs }}', '{{ c.recording_url }}')" class="p-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold transition cursor-pointer" title="تشغيل التسجيل">
+                        <button type="button" onclick="openCallDetailsModal('{{ c.call_id }}', '{{ c.caller_phone }}', '{{ c.duration_formatted|default:"00:00" }}', '{{ c.started_at|default:"" }}', '{{ c.summary|escapejs }}', '{{ c.recording_url }}', '{{ c.transcript|escapejs }}')" class="p-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold transition cursor-pointer" title="تشغيل التسجيل">
                             ▶️
                         </button>
                         {% endif %}
@@ -297,9 +297,16 @@
 
         <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
             <span class="text-xs font-black text-amber-950 flex items-center gap-1.5">
-                <span>🤖</span> تفريغ وملخص الذكاء الاصطناعي:
+                <span>🤖</span> ملخص الذكاء الاصطناعي:
             </span>
             <p id="cd-modal-summary" class="text-xs text-amber-950 font-normal leading-relaxed"></p>
+        </div>
+
+        <div id="cd-modal-transcript-container" class="p-4 rounded-2xl bg-paper border border-line space-y-2 hidden">
+            <span class="text-xs font-black text-ink flex items-center gap-1.5">
+                <span>💬</span> التفريغ الصوتي والنص الكامل للحوار:
+            </span>
+            <div id="cd-modal-transcript" class="text-xs text-ink/80 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line p-3 bg-card rounded-xl border border-line/60"></div>
         </div>
 
         <div class="pt-3 border-t border-line flex justify-end">
@@ -309,12 +316,21 @@
 </div>
 
 <script>
-    function openCallDetailsModal(ref, phone, duration, time, summary, audioUrl) {
+    function openCallDetailsModal(ref, phone, duration, time, summary, audioUrl, transcript) {
         document.getElementById('cd-modal-ref').textContent = ref || '—';
         document.getElementById('cd-modal-phone').textContent = phone || '—';
-        document.getElementById('cd-modal-duration').textContent = duration || '—';
+        document.getElementById('cd-modal-duration').textContent = duration ? duration + ' دقيقة' : '—';
         document.getElementById('cd-modal-time').textContent = time || '—';
         document.getElementById('cd-modal-summary').textContent = summary || 'لا يوجد ملخص مسجل لهذه المكالمة.';
+
+        const transcriptEl = document.getElementById('cd-modal-transcript');
+        const transcriptCont = document.getElementById('cd-modal-transcript-container');
+        if (transcript && transcript.trim()) {
+            transcriptEl.textContent = transcript;
+            transcriptCont.classList.remove('hidden');
+        } else {
+            transcriptCont.classList.add('hidden');
+        }
 
         const audio = document.getElementById('cd-modal-audio');
         const source = document.getElementById('cd-modal-source');

@@ -77,7 +77,7 @@
                             <td class="py-3 px-3 whitespace-nowrap">
                                 <div class="font-mono text-soft text-[11px]">{{ c.started_at }}</div>
                                 <span class="inline-flex items-center gap-1 font-mono text-[10.5px] font-bold text-brand-600 bg-brand-50/70 px-2 py-0.5 rounded-md border border-brand-200/50 mt-1">
-                                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> {{ c.duration_formatted|default:c.duration_seconds|default:"02:00" }} دقيقة
+                                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> {{ c.duration_formatted|default:"00:00" }} دقيقة
                                 </span>
                             </td>
                             <td class="py-3 px-3 whitespace-nowrap">
@@ -110,10 +110,11 @@
                                 <button type="button" onclick="openCallDetailsModal(this)"
                                     data-ref="{% if c.linked_order %}{{ c.linked_order.order_number }}{% else %}{{ c.call_id }}{% endif %}"
                                     data-phone="{{ c.caller_phone }}"
-                                    data-duration="{{ c.duration_formatted|default:c.duration_seconds|default:"02:00" }}"
+                                    data-duration="{{ c.duration_formatted|default:"00:00" }}"
                                     data-time="{{ c.started_at }}"
                                     data-audio="{{ c.recording_url|default:"" }}"
                                     data-summary="{{ c.summary|default:"لا يوجد ملخص مسجل لهذه المكالمة." }}"
+                                    data-transcript="{{ c.transcript|default:"" }}"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-black border border-brand-200 transition shadow-2xs cursor-pointer">
                                     <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg> تفاصيل المكالمة
                                 </button>
@@ -139,7 +140,7 @@
 
 <!-- Modal: Call Recording & Details -->
 <div id="call-details-modal" onclick="if(event.target===this)closeCallDetailsModal()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-4 animate-toast max-h-[90vh] overflow-y-auto" dir="{{ DIR|default:'rtl' }}">
         <div class="flex items-center justify-between border-b border-line pb-3">
             <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
                 <span>🎧</span> تفاصيل المكالمة الصوتية والتسجيل
@@ -183,9 +184,16 @@
 
         <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
             <span class="text-xs font-black text-amber-950 flex items-center gap-1.5">
-                <span>🤖</span> تفريغ وملخص الذكاء الاصطناعي:
+                <span>🤖</span> ملخص الذكاء الاصطناعي:
             </span>
             <p id="cd-modal-summary" class="text-xs text-amber-950 font-normal leading-relaxed"></p>
+        </div>
+
+        <div id="cd-modal-transcript-container" class="p-4 rounded-2xl bg-paper border border-line space-y-2 hidden">
+            <span class="text-xs font-black text-ink flex items-center gap-1.5">
+                <span>💬</span> التفريغ الصوتي والنص الكامل للحوار:
+            </span>
+            <div id="cd-modal-transcript" class="text-xs text-ink/80 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line p-3 bg-card rounded-xl border border-line/60"></div>
         </div>
 
         <div class="pt-3 border-t border-line flex justify-end">
@@ -202,12 +210,22 @@
         const time = btn.getAttribute('data-time');
         const summary = btn.getAttribute('data-summary');
         const audioUrl = btn.getAttribute('data-audio');
+        const transcript = btn.getAttribute('data-transcript');
 
         document.getElementById('cd-modal-ref').textContent = ref || '—';
         document.getElementById('cd-modal-phone').textContent = phone || '—';
-        document.getElementById('cd-modal-duration').textContent = duration || '—';
+        document.getElementById('cd-modal-duration').textContent = duration ? duration + ' دقيقة' : '—';
         document.getElementById('cd-modal-time').textContent = time || '—';
         document.getElementById('cd-modal-summary').textContent = summary || 'لا يوجد ملخص مسجل لهذه المكالمة.';
+
+        const transcriptEl = document.getElementById('cd-modal-transcript');
+        const transcriptCont = document.getElementById('cd-modal-transcript-container');
+        if (transcript && transcript.trim()) {
+            transcriptEl.textContent = transcript;
+            transcriptCont.classList.remove('hidden');
+        } else {
+            transcriptCont.classList.add('hidden');
+        }
 
         const audio = document.getElementById('cd-modal-audio');
         const source = document.getElementById('cd-modal-source');

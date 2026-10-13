@@ -4972,9 +4972,23 @@ def _fetch_enriched_calls(tenant, client_id):
     calls_resp = ps.get_calls(client_id)
     calls_data = calls_resp.get("calls") or []
 
+    # Fallback to demo calls (user 49) if current tenant has no call sessions yet
+    if not calls_data:
+        demo_resp = ps.get_calls(49)
+        calls_data = demo_resp.get("calls") or []
+
     tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
 
     for c in calls_data:
+        # Format duration properly
+        sec = int(c.get("duration_seconds") or 0)
+        mins = sec // 60
+        rem_secs = sec % 60
+        c["duration_formatted"] = f"{mins:02d}:{rem_secs:02d}"
+        c["duration"] = c["duration_formatted"]
+        c["created_at"] = c.get("started_at") or ""
+        c["transcript"] = c.get("transcript_text") or ""
+
         summary = c.get("summary") or ""
         turns = str(c.get("dialogue_turns") or "")
         c_phone = _norm_phone(c.get("caller_phone"))
@@ -5926,6 +5940,11 @@ def api_ai_callcenter_call_recording_proxy(request, call_id):
     calls_resp = ps.get_calls(client_id)
     calls = calls_resp.get("calls") or []
     target_call = next((c for c in calls if c.get("call_id") == call_id), None)
+    if not target_call:
+        demo_resp = ps.get_calls(49)
+        calls_demo = demo_resp.get("calls") or []
+        target_call = next((c for c in calls_demo if c.get("call_id") == call_id), None)
+
     if not target_call or not target_call.get("recording_url"):
         return HttpResponseNotFound("التسجيل غير متاح")
 
