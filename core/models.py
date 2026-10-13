@@ -188,6 +188,7 @@ class Branch(models.Model):
         verbose_name="المستأجر / المنشأة",
     )
     name = models.CharField(max_length=255, verbose_name="اسم الفرع")
+    name_en = models.CharField(max_length=255, default="", blank=True, verbose_name="اسم الفرع (إنجليزي)")
     city = models.CharField(max_length=100, default="", blank=True, verbose_name="المدينة")
     address = models.CharField(max_length=255, default="", blank=True, verbose_name="العنوان")
     phone = models.CharField(max_length=50, default="", blank=True, verbose_name="الهاتف")
@@ -206,6 +207,11 @@ class Branch(models.Model):
         verbose_name = "فرع"
         verbose_name_plural = "الفروع"
         ordering = ["id"]
+
+    def get_display_name(self, lang="ar"):
+        if lang == "en" and self.name_en:
+            return self.name_en
+        return self.name
 
     def is_currently_open(self):
         if not self.is_accepting_orders or self.status != "active":
@@ -862,7 +868,9 @@ class MenuCategory(models.Model):
         verbose_name="المستأجر / المنشأة",
     )
     name = models.CharField(max_length=100, verbose_name="اسم التصنيف")
+    name_en = models.CharField(max_length=100, default="", blank=True, verbose_name="اسم التصنيف (إنجليزي)")
     description = models.TextField(blank=True, default="", verbose_name="وصف التصنيف")
+    description_en = models.TextField(blank=True, default="", verbose_name="وصف التصنيف (إنجليزي)")
     image = models.FileField(upload_to="category_images/", blank=True, null=True, verbose_name="صورة القسم")
     ordering = models.IntegerField(default=10, verbose_name="ترتيب العرض")
     is_active = models.BooleanField(default=True, verbose_name="نشط")
@@ -878,6 +886,16 @@ class MenuCategory(models.Model):
     def __str__(self):
         return f"{self.name} ({self.tenant.name if self.tenant else 'عام'})"
 
+    def get_display_name(self, lang="ar"):
+        if lang == "en" and self.name_en:
+            return self.name_en
+        return self.name
+
+    def get_display_description(self, lang="ar"):
+        if lang == "en" and self.description_en:
+            return self.description_en
+        return self.description
+
 
 class MenuItem(models.Model):
     tenant = models.ForeignKey(
@@ -889,7 +907,9 @@ class MenuItem(models.Model):
         verbose_name="المستأجر / المنشأة",
     )
     name = models.CharField(max_length=255, verbose_name="اسم الصنف")
+    name_en = models.CharField(max_length=255, default="", blank=True, verbose_name="اسم الصنف (إنجليزي)")
     description = models.TextField(default="", blank=True, verbose_name="وصف الطبق والمكونات")
+    description_en = models.TextField(default="", blank=True, verbose_name="وصف الطبق (إنجليزي)")
     category = models.CharField(max_length=100, verbose_name="الفئة")
     category_rel = models.ForeignKey(
         MenuCategory,
@@ -915,6 +935,16 @@ class MenuItem(models.Model):
     def __str__(self):
         return self.name
 
+    def get_display_name(self, lang="ar"):
+        if lang == "en" and self.name_en:
+            return self.name_en
+        return self.name
+
+    def get_display_description(self, lang="ar"):
+        if lang == "en" and self.description_en:
+            return self.description_en
+        return self.description
+
     @property
     def min_price(self):
         if self.has_variants and self.variants.exists():
@@ -930,6 +960,7 @@ class MenuItemVariant(models.Model):
         verbose_name="صنف المنيو",
     )
     name = models.CharField(max_length=100, verbose_name="اسم الحجم / الخيار")
+    name_en = models.CharField(max_length=100, default="", blank=True, verbose_name="اسم الحجم (إنجليزي)")
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="سعر الحجم")
     cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="التكلفة")
     is_default = models.BooleanField(default=False, verbose_name="الحجم الافتراضي")
@@ -942,6 +973,11 @@ class MenuItemVariant(models.Model):
 
     def __str__(self):
         return f"{self.menu_item.name} - {self.name} ({self.price} ر.س)"
+
+    def get_display_name(self, lang="ar"):
+        if lang == "en" and self.name_en:
+            return self.name_en
+        return self.name
 
 
 class InventoryItem(models.Model):

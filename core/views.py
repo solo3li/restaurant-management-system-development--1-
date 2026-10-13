@@ -2644,6 +2644,8 @@ def api_create_menu_item(request):
     price = Decimal(str(data.get("price") or 0))
     cost = Decimal(str(data.get("cost") or 0))
     description = str(data.get("description", "")).strip()
+    name_en = str(data.get("name_en", "")).strip()
+    description_en = str(data.get("description_en", "")).strip()
     emoji = str(data.get("emoji", "🍽️")).strip()
 
     # Parse Variants (Sizes) if provided
@@ -2670,7 +2672,9 @@ def api_create_menu_item(request):
     item = MenuItem.objects.create(
         tenant=tenant,
         name=name,
+        name_en=name_en,
         description=description,
+        description_en=description_en,
         category=category_name,
         category_rel=cat_obj,
         price=price,
@@ -2689,6 +2693,7 @@ def api_create_menu_item(request):
     has_any_default = any(bool(v.get("is_default")) for v in variants_list)
     for idx, v in enumerate(variants_list):
         v_name = str(v.get("name", "")).strip()
+        v_name_en = str(v.get("name_en", "")).strip()
         v_price = Decimal(str(v.get("price", 0)))
         v_cost = Decimal(str(v.get("cost", 0)))
         is_def = bool(v.get("is_default")) if has_any_default else (idx == 0)
@@ -2696,6 +2701,7 @@ def api_create_menu_item(request):
             MenuItemVariant.objects.create(
                 menu_item=item,
                 name=v_name,
+                name_en=v_name_en,
                 price=v_price,
                 cost=v_cost,
                 is_default=is_def,
@@ -2750,8 +2756,14 @@ def api_update_menu_item(request, item_id):
     if "name" in data and str(data["name"]).strip():
         item.name = str(data["name"]).strip()
 
+    if "name_en" in data:
+        item.name_en = str(data["name_en"]).strip()
+
     if "description" in data:
         item.description = str(data["description"]).strip()
+
+    if "description_en" in data:
+        item.description_en = str(data["description_en"]).strip()
 
     if "category_id" in data and data["category_id"]:
         cat = MenuCategory.objects.filter(tenant=tenant, id=data["category_id"]).first()
@@ -2791,6 +2803,7 @@ def api_update_menu_item(request, item_id):
             has_any_default = any(bool(v.get("is_default")) for v in variants_list)
             for idx, v in enumerate(variants_list):
                 v_name = str(v.get("name", "")).strip()
+                v_name_en = str(v.get("name_en", "")).strip()
                 v_price = Decimal(str(v.get("price", 0)))
                 v_cost = Decimal(str(v.get("cost", 0)))
                 is_def = bool(v.get("is_default")) if has_any_default else (idx == 0)
@@ -2798,6 +2811,7 @@ def api_update_menu_item(request, item_id):
                     MenuItemVariant.objects.create(
                         menu_item=item,
                         name=v_name,
+                        name_en=v_name_en,
                         price=v_price,
                         cost=v_cost,
                         is_default=is_def,
@@ -2929,6 +2943,12 @@ def api_create_category(request):
     if "description" in data:
         cat.description = str(data["description"]).strip()
 
+    if "name_en" in data:
+        cat.name_en = str(data["name_en"]).strip()
+
+    if "description_en" in data:
+        cat.description_en = str(data["description_en"]).strip()
+
     if "image" in request.FILES:
         cat.image = request.FILES["image"]
 
@@ -2937,6 +2957,7 @@ def api_create_category(request):
         "status": "success",
         "id": cat.id,
         "name": cat.name,
+        "name_en": cat.name_en,
         "ordering": cat.ordering,
         "image_url": cat.image.url if cat.image else "",
     }, status=201)
@@ -2964,8 +2985,14 @@ def api_update_category(request, cat_id):
         cat.name = new_name
         MenuItem.objects.filter(tenant=tenant, category=old_name).update(category=cat.name)
 
+    if "name_en" in data:
+        cat.name_en = str(data["name_en"]).strip()
+
     if "description" in data:
         cat.description = str(data["description"]).strip()
+
+    if "description_en" in data:
+        cat.description_en = str(data["description_en"]).strip()
 
     if "ordering" in data:
         cat.ordering = int(data["ordering"] or 10)
@@ -5983,7 +6010,26 @@ def digital_menu_view(request, slug=None, branch_id=None):
     else:
         return HttpResponseNotFound("لم يتم العثور على قائمة طعام المطعم")
 
+    # Determine active language for digital menu
+    active_lang = None
+    if hasattr(request, "LANGUAGE_CODE") and request.LANGUAGE_CODE:
+        active_lang = request.LANGUAGE_CODE
+    elif hasattr(request, "session") and request.session.get("django_language"):
+        active_lang = request.session.get("django_language")
+    elif request.COOKIES.get("django_language"):
+        active_lang = request.COOKIES.get("django_language")
+    else:
+        active_lang = translation.get_language() or "ar"
+
+    if "-" in active_lang:
+        active_lang = active_lang.split("-")[0]
+    if active_lang not in ["ar", "en"]:
+        active_lang = "ar"
+
     branches = list(Branch.objects.filter(tenant=tenant, status="active").order_by("id"))
+    for b in branches:
+        b.display_name = b.get_display_name(active_lang)
+
     if not branches:
         return render(request, "qr_menu.html", {
             "tenant": tenant,
@@ -5992,6 +6038,9 @@ def digital_menu_view(request, slug=None, branch_id=None):
             "no_branches": True,
             "categories": [],
             "categorized_items": {},
+            "CURRENT_LANG": active_lang,
+            "DIR": "rtl" if active_lang == "ar" else "ltr",
+            "IS_RTL": active_lang == "ar",
         })
 
     # Determine selected branch
@@ -6005,6 +6054,8 @@ def digital_menu_view(request, slug=None, branch_id=None):
     if not selected_branch:
         selected_branch = branches[0]
 
+    selected_branch.display_name = selected_branch.get_display_name(active_lang)
+
     # Disabled items in this branch
     disabled_ids = set(
         BranchMenuAvailability.objects.filter(
@@ -6015,20 +6066,29 @@ def digital_menu_view(request, slug=None, branch_id=None):
     # Dynamic Categories
     cat_objs = list(MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id"))
     categories_data = []
+    cat_id_to_display = {}
     for c in cat_objs:
+        disp_name = c.get_display_name(active_lang)
+        cat_id_to_display[c.id] = disp_name
         categories_data.append({
             "id": c.id,
-            "name": c.name,
+            "name": disp_name,
+            "raw_name": c.name,
+            "name_en": c.name_en,
             "image_url": c.image.url if c.image else "",
         })
 
     # Categories and items
     raw_items = MenuItem.objects.filter(tenant=tenant, is_active=True).prefetch_related("variants").order_by("category", "name")
-    categories_set = [c.name for c in cat_objs]
+    categories_set = [c["name"] for c in categories_data]
     categorized_items = {}
 
     for item in raw_items:
-        cat = item.category or "أطباق عامة"
+        if item.category_rel and item.category_rel.id in cat_id_to_display:
+            cat = cat_id_to_display[item.category_rel.id]
+        else:
+            cat = item.category or ("General Dishes" if active_lang == "en" else "أطباق عامة")
+
         if cat not in categorized_items:
             categorized_items[cat] = []
             if cat not in categories_set:
@@ -6036,6 +6096,8 @@ def digital_menu_view(request, slug=None, branch_id=None):
                 categories_data.append({
                     "id": None,
                     "name": cat,
+                    "raw_name": item.category or cat,
+                    "name_en": "",
                     "image_url": "",
                 })
 
@@ -6044,15 +6106,20 @@ def digital_menu_view(request, slug=None, branch_id=None):
         for v in item.variants.all():
             item_variants.append({
                 "id": v.id,
-                "name": v.name,
+                "name": v.get_display_name(active_lang),
+                "raw_name": v.name,
+                "name_en": v.name_en,
                 "price": float(v.price),
                 "is_default": v.is_default,
             })
 
         categorized_items[cat].append({
             "id": item.id,
-            "name": item.name,
-            "description": item.description or "",
+            "name": item.get_display_name(active_lang),
+            "raw_name": item.name,
+            "name_en": item.name_en,
+            "description": item.get_display_description(active_lang),
+            "description_en": item.description_en,
             "price": float(item.price),
             "min_price": float(item.min_price),
             "has_variants": item.has_variants and len(item_variants) > 0,
@@ -6078,11 +6145,14 @@ def digital_menu_view(request, slug=None, branch_id=None):
     # Delivery areas for selected branch
     areas = []
     for a in DeliveryArea.objects.filter(branch=selected_branch, is_active=True).order_by("delivery_fee", "name"):
+        est_time = f"{a.estimated_time_minutes} min" if active_lang == "en" else f"{a.estimated_time_minutes} دقيقة"
+        if not a.estimated_time_minutes:
+            est_time = "30-45 min" if active_lang == "en" else "30-45 دقيقة"
         areas.append({
             "id": a.id,
             "name": a.name,
             "fee": float(a.delivery_fee or 0),
-            "estimated_time": f"{a.estimated_time_minutes} دقيقة" if a.estimated_time_minutes else "30-45 دقيقة",
+            "estimated_time": est_time,
         })
 
     is_open = selected_branch.is_currently_open()
@@ -6098,6 +6168,9 @@ def digital_menu_view(request, slug=None, branch_id=None):
         "categorized_items": categorized_items,
         "delivery_areas": areas,
         "brand_color": tenant.brand_color or "#0E382A",
+        "CURRENT_LANG": active_lang,
+        "DIR": "rtl" if active_lang == "ar" else "ltr",
+        "IS_RTL": active_lang == "ar",
     }
     return render(request, "qr_menu.html", context)
 
@@ -6293,13 +6366,20 @@ def api_digital_menu_place_order(request, slug):
     except Exception as e:
         logger.warning(f"Failed to dispatch kitchen SSE for QR order {order.order_number}: {e}")
 
+    active_lang = request.session.get("django_language") or request.COOKIES.get("django_language") or "ar"
+    if hasattr(request, "LANGUAGE_CODE") and request.LANGUAGE_CODE:
+        active_lang = request.LANGUAGE_CODE
+    if "-" in active_lang:
+        active_lang = active_lang.split("-")[0]
+    is_en = (active_lang == "en")
+
     return JsonResponse({
         "status": "success",
-        "message": "تم استلام طلبك بنجاح! جاري تحضيره في المطبخ.",
+        "message": "Your order has been received successfully! Preparing in the kitchen." if is_en else "تم استلام طلبك بنجاح! جاري تحضيره في المطبخ.",
         "order_id": order.id,
         "order_number": order.order_number,
-        "order_type": order.get_order_type_display(),
-        "branch_name": branch.name,
+        "order_type": ("Takeaway Pickup" if order.order_type == "takeaway" else "Home Delivery") if is_en else order.get_order_type_display(),
+        "branch_name": branch.get_display_name(active_lang),
         "total": float(order.total),
         "subtotal": float(order.subtotal),
         "delivery_fee": float(order.delivery_fee),

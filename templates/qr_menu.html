@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ CURRENT_LANG|default:'ar' }}" dir="{{ DIR|default:'rtl' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ tenant.name }} — قائمة الطعام والطلب الذاتي</title>
+    <title>{{ tenant.name }} — {% if CURRENT_LANG == 'en' %}Digital Menu & Self-Ordering{% else %}قائمة الطعام والطلب الذاتي{% endif %}</title>
     
-    <!-- Tailwind CSS CDN & Cairo Font -->
+    <!-- Tailwind CSS CDN & Cairo / Inter / Amiri Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
@@ -30,7 +30,7 @@
                         }
                     },
                     fontFamily: {
-                        sans: ['Cairo', 'sans-serif'],
+                        sans: {% if CURRENT_LANG == 'en' %}['Inter', 'Cairo', 'sans-serif']{% else %}['Cairo', 'Inter', 'sans-serif']{% endif %},
                         royal: ['Amiri', 'serif'],
                     }
                 }
@@ -40,7 +40,7 @@
 
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: {% if CURRENT_LANG == 'en' %}'Inter', 'Cairo', sans-serif{% else %}'Cairo', 'Inter', sans-serif{% endif %};
             background-color: #F8F6F0;
             color: #1A1A1A;
             -webkit-tap-highlight-color: transparent;
@@ -65,7 +65,7 @@
         <div class="absolute inset-0 bg-gradient-to-t from-brand-700 via-brand-600/80 to-transparent"></div>
 
         <div class="relative max-w-4xl mx-auto px-4 pt-8 pb-6 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4">
-            <div class="flex flex-col sm:flex-row items-center sm:items-center gap-4 text-center sm:text-right">
+            <div class="flex flex-col sm:flex-row items-center sm:items-center gap-4 text-center sm:text-start">
                 <!-- Logo -->
                 <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white shadow-xl border-2 border-gold-500 overflow-hidden flex items-center justify-center flex-shrink-0">
                     {% if tenant.logo_image %}
@@ -80,9 +80,13 @@
                     <div class="flex items-center justify-center sm:justify-start gap-2">
                         <h1 class="text-2xl sm:text-3xl font-black font-royal text-white tracking-wide">{{ tenant.name }}</h1>
                         {% if is_open %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">مفتوح للطلب</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                                {% if CURRENT_LANG == 'en' %}Open for Orders{% else %}مفتوح للطلب{% endif %}
+                            </span>
                         {% else %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-400/30">مغلق حالياً</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                                {% if CURRENT_LANG == 'en' %}Currently Closed{% else %}مغلق حالياً{% endif %}
+                            </span>
                         {% endif %}
                     </div>
                     {% if tenant.bio %}
@@ -98,25 +102,44 @@
                         {% if selected_branch %}
                             <span class="flex items-center gap-1 text-gold-400 font-bold">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span>{{ selected_branch.name }}</span>
+                                <span>{{ selected_branch.display_name|default:selected_branch.name }}</span>
                             </span>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Branch Switcher (If multiple) -->
-            {% if branches|length > 1 %}
-            <div class="w-full sm:w-auto">
-                <select id="branch-select" onchange="switchBranch(this.value)" class="w-full sm:w-auto bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-gold-500">
-                    {% for b in branches %}
-                        <option value="{{ b.id }}" {% if b.id == selected_branch.id %}selected{% endif %} class="text-stone-900 font-bold">
-                            فرع: {{ b.name }}
-                        </option>
-                    {% endfor %}
-                </select>
+            <!-- Header Actions: Language Switcher Capsule & Branch Selector -->
+            <div class="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+                <!-- Royal Language Switcher Capsule -->
+                <div class="inline-flex items-center bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-inner text-xs font-bold">
+                    <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
+                       class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-gold-500 text-stone-900 shadow-sm font-black{% else %}text-white/80 hover:text-white{% endif %}"
+                       title="العربية">
+                        <span>🇸🇦</span>
+                        <span>عربي</span>
+                    </a>
+                    <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
+                       class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-gold-500 text-stone-900 shadow-sm font-black{% else %}text-white/80 hover:text-white{% endif %}"
+                       title="English">
+                        <span>🇬🇧</span>
+                        <span>EN</span>
+                    </a>
+                </div>
+
+                <!-- Branch Switcher (If multiple) -->
+                {% if branches|length > 1 %}
+                <div class="flex-shrink-0">
+                    <select id="branch-select" onchange="switchBranch(this.value)" class="bg-black/40 backdrop-blur-md text-white border border-white/20 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-gold-500">
+                        {% for b in branches %}
+                            <option value="{{ b.id }}" {% if b.id == selected_branch.id %}selected{% endif %} class="text-stone-900 font-bold">
+                                {% if CURRENT_LANG == 'en' %}Branch: {{ b.display_name|default:b.name }}{% else %}فرع: {{ b.display_name|default:b.name }}{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
 
@@ -126,14 +149,32 @@
         <div class="bg-amber-50 border border-amber-300 rounded-2xl p-3 flex items-center gap-3 text-amber-950 shadow-sm">
             <span class="text-2xl flex-shrink-0">⛔</span>
             <div class="text-xs">
-                <p class="font-black text-amber-900">عذراً، فرع «{{ selected_branch.name }}» مغلق حالياً لاستقبال الطلبات</p>
+                <p class="font-black text-amber-900">
+                    {% if CURRENT_LANG == 'en' %}
+                        Sorry, "{{ selected_branch.display_name|default:selected_branch.name }}" branch is currently closed for orders
+                    {% else %}
+                        عذراً، فرع «{{ selected_branch.display_name|default:selected_branch.name }}» مغلق حالياً لاستقبال الطلبات
+                    {% endif %}
+                </p>
                 <p class="text-stone-600 mt-0.5">
                     {% if selected_branch.opening_time and selected_branch.closing_time %}
-                        ساعات العمل الرسمية: من {{ selected_branch.opening_time|time:"g:i A" }} وحتى {{ selected_branch.closing_time|time:"g:i A" }}.
+                        {% if CURRENT_LANG == 'en' %}
+                            Official working hours: {{ selected_branch.opening_time|time:"g:i A" }} to {{ selected_branch.closing_time|time:"g:i A" }}.
+                        {% else %}
+                            ساعات العمل الرسمية: من {{ selected_branch.opening_time|time:"g:i A" }} وحتى {{ selected_branch.closing_time|time:"g:i A" }}.
+                        {% endif %}
                     {% else %}
-                        الفرع متوقف مؤقتاً عن استقبال الطلبات بأمر الإدارة.
+                        {% if CURRENT_LANG == 'en' %}
+                            Orders are temporarily paused for this branch.
+                        {% else %}
+                            الفرع متوقف مؤقتاً عن استقبال الطلبات بأمر الإدارة.
+                        {% endif %}
                     {% endif %}
-                    يمكنك تصفح قائمة الوجبات والأسعار.
+                    {% if CURRENT_LANG == 'en' %}
+                        You can still browse meals and prices.
+                    {% else %}
+                        يمكنك تصفح قائمة الوجبات والأسعار.
+                    {% endif %}
                 </p>
             </div>
         </div>
@@ -147,11 +188,11 @@
         <div class="bg-white rounded-2xl p-1.5 shadow-lg border border-stone-200 grid grid-cols-2 gap-1.5">
             <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 bg-brand-600 text-white shadow-sm">
                 <span class="text-base">🛍️</span>
-                <span>استلام سفري من الفرع</span>
+                <span>{% if CURRENT_LANG == 'en' %}Takeaway Pickup{% else %}استلام سفري من الفرع{% endif %}</span>
             </button>
             <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 text-stone-600 hover:bg-stone-100">
                 <span class="text-base">🛵</span>
-                <span>توصيل إلى منزلك</span>
+                <span>{% if CURRENT_LANG == 'en' %}Home Delivery{% else %}توصيل إلى منزلك{% endif %}</span>
             </button>
         </div>
     </div>
@@ -163,15 +204,15 @@
         <div class="max-w-4xl mx-auto px-4 space-y-2.5">
             <!-- Search Input -->
             <div class="relative">
-                <input type="text" id="menu-search" oninput="filterDishes()" placeholder="ابحث عن وجبة، صنف، أو مشروب..." class="w-full bg-white border border-stone-200 rounded-xl py-2 px-9 text-xs font-bold text-stone-800 placeholder-stone-400 focus:outline-none focus:border-brand-600 shadow-2xs">
-                <svg class="w-4 h-4 text-stone-400 absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <button type="button" onclick="clearSearch()" id="clear-search-btn" class="hidden absolute left-3 top-2 text-stone-400 hover:text-stone-700 text-xs font-bold">✕</button>
+                <input type="text" id="menu-search" oninput="filterDishes()" placeholder="{% if CURRENT_LANG == 'en' %}Search for a meal, dish, or drink...{% else %}ابحث عن وجبة، صنف، أو مشروب...{% endif %}" class="w-full bg-white border border-stone-200 rounded-xl py-2 ps-9 pe-9 text-xs font-bold text-stone-800 placeholder-stone-400 focus:outline-none focus:border-brand-600 shadow-2xs">
+                <svg class="w-4 h-4 text-stone-400 absolute start-3 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <button type="button" onclick="clearSearch()" id="clear-search-btn" class="hidden absolute end-3 top-2 text-stone-400 hover:text-stone-700 text-xs font-bold">✕</button>
             </div>
 
             <!-- Categories Horizontal Scroll with Images -->
             <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
                 <button type="button" onclick="selectCategory('all')" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition bg-brand-600 text-white shadow-2xs" data-cat="all">
-                    الكل
+                    {% if CURRENT_LANG == 'en' %}All{% else %}الكل{% endif %}
                 </button>
                 {% for cat in category_objs %}
                 <button type="button" onclick="selectCategory('{{ cat.name|escapejs }}')" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-white text-stone-700 border border-stone-200 hover:border-gold-500 shadow-2xs flex items-center gap-1.5" data-cat="{{ cat.name }}">
@@ -227,7 +268,7 @@
                         <!-- Variant / Size Choices (If available) -->
                         {% if item.has_variants %}
                         <div class="mt-2.5 pt-2 border-t border-stone-100">
-                            <span class="text-[10px] font-bold text-stone-400 block mb-1">اختر الحجم:</span>
+                            <span class="text-[10px] font-bold text-stone-400 block mb-1">{% if CURRENT_LANG == 'en' %}Choose size:{% else %}اختر الحجم:{% endif %}</span>
                             <div class="flex flex-wrap items-center gap-1.5" id="variant-group-{{ item.id }}">
                                 {% for v in item.variants %}
                                 <label class="cursor-pointer">
@@ -246,27 +287,27 @@
                         <div class="mt-3 pt-2 border-t border-stone-50 flex items-center justify-between">
                             <div>
                                 {% if item.has_variants %}
-                                    <span class="text-[10px] text-stone-400 font-bold block leading-none">السعر:</span>
+                                    <span class="text-[10px] text-stone-400 font-bold block leading-none">{% if CURRENT_LANG == 'en' %}Price:{% else %}السعر:{% endif %}</span>
                                     <span id="price-display-{{ item.id }}" class="text-sm font-black text-brand-600" dir="ltr">
-                                        {{ item.min_price|floatformat:2 }} <span class="text-[10px] font-bold">ر.س</span>
+                                        {{ item.min_price|floatformat:2 }} <span class="text-[10px] font-bold">{% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
                                     </span>
                                 {% else %}
                                     <span class="text-sm font-black text-brand-600" dir="ltr">
-                                        {{ item.price|floatformat:2 }} <span class="text-[10px] font-bold">ر.س</span>
+                                        {{ item.price|floatformat:2 }} <span class="text-[10px] font-bold">{% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
                                     </span>
                                 {% endif %}
                             </div>
 
                             <!-- Controls -->
                             {% if not item.is_available %}
-                                <span class="px-2.5 py-1 rounded-lg bg-stone-200 text-stone-600 text-[10px] font-black">نفد اليوم</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-stone-200 text-stone-600 text-[10px] font-black">{% if CURRENT_LANG == 'en' %}Sold Out{% else %}نفد اليوم{% endif %}</span>
                             {% elif not is_open %}
-                                <span class="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-400 text-[10px] font-bold">الفرع مغلق</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-400 text-[10px] font-bold">{% if CURRENT_LANG == 'en' %}Branch Closed{% else %}الفرع مغلق{% endif %}</span>
                             {% else %}
                                 <div id="controls-{{ item.id }}" class="flex items-center gap-2">
                                     <button type="button" onclick="handleItemAdd({{ item.id }}, '{{ item.name|escapejs }}', {{ item.price }}, '{{ item.emoji|escapejs }}', {{ item.has_variants|yesno:'true,false' }})" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black transition flex items-center gap-1 shadow-2xs">
                                         <span>+</span>
-                                        <span>أضف</span>
+                                        <span>{% if CURRENT_LANG == 'en' %}Add{% else %}أضف{% endif %}</span>
                                     </button>
                                 </div>
                             {% endif %}
@@ -279,8 +320,8 @@
         {% else %}
             <div class="text-center py-16 bg-white rounded-3xl border border-stone-200 p-8 shadow-xs my-6">
                 <span class="text-5xl block mb-3">🍽️</span>
-                <h3 class="text-base font-black text-stone-800">قائمة الطعام قيد التجهيز</h3>
-                <p class="text-xs text-stone-500 mt-1">لم يتم نشر وجبات في هذا الفرع بعد. يرجى مراجعة إدارة المطعم.</p>
+                <h3 class="text-base font-black text-stone-800">{% if CURRENT_LANG == 'en' %}Menu is being prepared{% else %}قائمة الطعام قيد التجهيز{% endif %}</h3>
+                <p class="text-xs text-stone-500 mt-1">{% if CURRENT_LANG == 'en' %}No meals have been published for this branch yet. Please check back soon.{% else %}لم يتم نشر وجبات في هذا الفرع بعد. يرجى مراجعة إدارة المطعم.{% endif %}</p>
             </div>
         {% endif %}
     </main>
@@ -293,12 +334,12 @@
             <button type="button" onclick="openCheckoutModal()" class="w-full bg-brand-600 hover:bg-brand-700 text-white rounded-2xl p-3.5 shadow-2xl border border-gold-500/40 flex items-center justify-between transition transform active:scale-98">
                 <div class="flex items-center gap-2.5">
                     <span id="cart-badge-count" class="w-7 h-7 rounded-lg bg-gold-500 text-stone-900 font-black text-xs flex items-center justify-center shadow-xs">0</span>
-                    <span class="text-xs font-black">معاينة الطلب والسلة</span>
+                    <span class="text-xs font-black">{% if CURRENT_LANG == 'en' %}View Cart & Order{% else %}معاينة الطلب والسلة{% endif %}</span>
                 </div>
                 <div class="flex items-center gap-1.5 text-sm font-black" dir="ltr">
                     <span id="cart-total-display">0.00</span>
-                    <span class="text-xs text-gold-400">ر.س</span>
-                    <span class="text-xs font-normal mr-1">←</span>
+                    <span class="text-xs text-gold-400">{% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
+                    <span class="text-xs font-normal ms-1">{% if CURRENT_LANG == 'en' %}→{% else %}←{% endif %}</span>
                 </div>
             </button>
         </div>
@@ -308,12 +349,12 @@
     <!-- CHECKOUT & CART MODAL                      -->
     <!-- ========================================== -->
     <div id="checkout-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center hidden p-0 sm:p-4">
-        <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-stone-200 animate-in slide-in-from-bottom-5">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl border border-stone-200 animate-in slide-in-from-bottom-5">
             <!-- Modal Header -->
             <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">🛒</span>
-                    <h3 class="text-sm font-black text-stone-900">سلة الطلب — تأكيد الفاتورة</h3>
+                    <h3 class="text-sm font-black text-stone-900">{% if CURRENT_LANG == 'en' %}Order Cart — Order Summary{% else %}سلة الطلب — تأكيد الفاتورة{% endif %}</h3>
                 </div>
                 <button type="button" onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-600 font-bold flex items-center justify-center text-xs">✕</button>
             </div>
@@ -322,73 +363,73 @@
             <div class="p-4 overflow-y-auto space-y-4 flex-1">
                 <!-- Selected Items List -->
                 <div class="space-y-2">
-                    <span class="text-xs font-bold text-stone-500 block">الوجبات المختارة:</span>
+                    <span class="text-xs font-bold text-stone-500 block">{% if CURRENT_LANG == 'en' %}Selected Items:{% else %}الوجبات المختارة:{% endif %}</span>
                     <div id="cart-items-container" class="space-y-2"></div>
                 </div>
 
                 <!-- Customer Details Form -->
                 <div class="pt-2 border-t border-stone-100 space-y-3">
-                    <span class="text-xs font-bold text-stone-500 block">بيانات العميل:</span>
+                    <span class="text-xs font-bold text-stone-500 block">{% if CURRENT_LANG == 'en' %}Customer Details:{% else %}بيانات العميل:{% endif %}</span>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">الاسم الكريم *</label>
-                            <input type="text" id="cust-name" placeholder="محمد السالم" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Full Name *{% else %}الاسم الكريم *{% endif %}</label>
+                            <input type="text" id="cust-name" placeholder="{% if CURRENT_LANG == 'en' %}John Doe{% else %}محمد السالم{% endif %}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">رقم الجوال *</label>
-                            <input type="tel" id="cust-phone" placeholder="0501234567" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600 text-left" dir="ltr">
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Mobile Number *{% else %}رقم الجوال *{% endif %}</label>
+                            <input type="tel" id="cust-phone" placeholder="0501234567" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600 text-start" dir="ltr">
                         </div>
                     </div>
 
                     <!-- Delivery Specific Fields -->
                     <div id="delivery-fields" class="space-y-2.5 hidden">
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">منطقة التوصيل *</label>
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Delivery Area *{% else %}منطقة التوصيل *{% endif %}</label>
                             <select id="delivery-area-select" onchange="updateDeliveryFee()" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
-                                <option value="">— اختر منطقتك أو الكومبوند —</option>
+                                <option value="">{% if CURRENT_LANG == 'en' %}— Select your area or district —{% else %}— اختر منطقتك أو الكومبوند —{% endif %}</option>
                                 {% for a in delivery_areas %}
                                     <option value="{{ a.id }}" data-fee="{{ a.fee }}">
-                                        {{ a.name }} (رسوم: {{ a.fee }} ر.س • {{ a.estimated_time }})
+                                        {{ a.name }} ({% if CURRENT_LANG == 'en' %}Fee: {{ a.fee }} SAR • {{ a.estimated_time }}{% else %}رسوم: {{ a.fee }} ر.س • {{ a.estimated_time }}{% endif %})
                                     </option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">العنوان بالتفصيل *</label>
-                            <input type="text" id="cust-address" placeholder="اسم الشارع، رقم العمارة، رقم الشقة أو المعلم المميز" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Detailed Address *{% else %}العنوان بالتفصيل *{% endif %}</label>
+                            <input type="text" id="cust-address" placeholder="{% if CURRENT_LANG == 'en' %}Street name, building number, apartment or landmark{% else %}اسم الشارع، رقم العمارة، رقم الشقة أو المعلم المميز{% endif %}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
                         </div>
                     </div>
 
                     <!-- Notes -->
                     <div>
-                        <label class="text-[11px] font-bold text-stone-700 block mb-1">ملاحظات إضافية للطلب (اختياري)</label>
-                        <textarea id="cust-notes" rows="2" placeholder="أي تعليمات خاصة للمطبخ أو مندوب التوصيل..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600 resize-none"></textarea>
+                        <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Additional Order Notes (Optional){% else %}ملاحظات إضافية للطلب (اختياري){% endif %}</label>
+                        <textarea id="cust-notes" rows="2" placeholder="{% if CURRENT_LANG == 'en' %}Any special instructions for the kitchen or delivery courier...{% else %}أي تعليمات خاصة للمطبخ أو مندوب التوصيل...{% endif %}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600 resize-none"></textarea>
                     </div>
 
                     <!-- Payment Notice -->
                     <div class="rounded-xl bg-amber-50 border border-amber-200 p-2.5 flex items-center gap-2 text-amber-900 text-[11px] font-bold">
                         <span>💵</span>
-                        <span>طريقة الدفع: الدفع عند الاستلام (كاش أو شبكة مدى/فيزا).</span>
+                        <span>{% if CURRENT_LANG == 'en' %}Payment method: Pay on delivery (Cash or Mada / Card POS).{% else %}طريقة الدفع: الدفع عند الاستلام (كاش أو شبكة مدى/فيزا).{% endif %}</span>
                     </div>
                 </div>
 
                 <!-- Price Summary -->
                 <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-1.5 text-xs">
                     <div class="flex justify-between text-stone-600">
-                        <span>المجموع الفرعي:</span>
-                        <span id="summary-subtotal" class="font-bold">0.00 ر.س</span>
+                        <span>{% if CURRENT_LANG == 'en' %}Subtotal:{% else %}المجموع الفرعي:{% endif %}</span>
+                        <span id="summary-subtotal" class="font-bold">0.00 {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
                     </div>
                     <div id="summary-delivery-row" class="flex justify-between text-stone-600 hidden">
-                        <span>رسوم التوصيل:</span>
-                        <span id="summary-delivery-fee" class="font-bold">0.00 ر.س</span>
+                        <span>{% if CURRENT_LANG == 'en' %}Delivery Fee:{% else %}رسوم التوصيل:{% endif %}</span>
+                        <span id="summary-delivery-fee" class="font-bold">0.00 {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
                     </div>
                     <div class="flex justify-between text-stone-500 text-[10px]">
-                        <span>ضريبة القيمة المضافة (15%):</span>
-                        <span>مشمولة بالأسعار</span>
+                        <span>{% if CURRENT_LANG == 'en' %}Value Added Tax (15%):{% else %}ضريبة القيمة المضافة (15%):{% endif %}</span>
+                        <span>{% if CURRENT_LANG == 'en' %}Included in prices{% else %}مشمولة بالأسعار{% endif %}</span>
                     </div>
                     <div class="pt-1.5 border-t border-stone-200 flex justify-between text-stone-900 font-black text-sm">
-                        <span>المجموع الإجمالي:</span>
-                        <span id="summary-total" class="text-brand-600">0.00 ر.س</span>
+                        <span>{% if CURRENT_LANG == 'en' %}Grand Total:{% else %}المجموع الإجمالي:{% endif %}</span>
+                        <span id="summary-total" class="text-brand-600">0.00 {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}</span>
                     </div>
                 </div>
 
@@ -396,7 +437,7 @@
                 <div id="min-delivery-alert" class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold hidden flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span>🛵</span>
-                        <span id="min-delivery-text">الحد الأدنى لطلب التوصيل: {{ min_delivery_order }} ر.س</span>
+                        <span id="min-delivery-text">{% if CURRENT_LANG == 'en' %}Minimum delivery order: {{ min_delivery_order }} SAR{% else %}الحد الأدنى لطلب التوصيل: {{ min_delivery_order }} ر.س{% endif %}</span>
                     </div>
                 </div>
             </div>
@@ -404,7 +445,7 @@
             <!-- Modal Footer -->
             <div class="p-4 border-t border-stone-200 bg-white">
                 <button type="button" onclick="submitOrder()" id="btn-submit-order" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black shadow-lg transition flex items-center justify-center gap-2">
-                    <span>إرسال الطلب للمطعم الآن</span>
+                    <span>{% if CURRENT_LANG == 'en' %}Send Order to Restaurant Now{% else %}إرسال الطلب للمطعم الآن{% endif %}</span>
                     <span>✓</span>
                 </button>
             </div>
@@ -419,27 +460,27 @@
             <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl mb-4 font-bold">
                 ✓
             </div>
-            <h3 class="text-lg font-black text-stone-900">تم استلام طلبك بنجاح!</h3>
-            <p class="text-xs text-stone-500 mt-1">تم توجيه طلبك فوراً لمطبخ الفرع وجاري تجهيزه طازجاً.</p>
+            <h3 class="text-lg font-black text-stone-900">{% if CURRENT_LANG == 'en' %}Order Received Successfully!{% else %}تم استلام طلبك بنجاح!{% endif %}</h3>
+            <p class="text-xs text-stone-500 mt-1">{% if CURRENT_LANG == 'en' %}Your order has been sent to the branch kitchen and is being freshly prepared.{% else %}تم توجيه طلبك فوراً لمطبخ الفرع وجاري تجهيزه طازجاً.{% endif %}</p>
 
             <div class="my-4 p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-1.5">
-                <span class="text-[11px] text-stone-500 font-bold block">رقم الطلب</span>
+                <span class="text-[11px] text-stone-500 font-bold block">{% if CURRENT_LANG == 'en' %}Order Number{% else %}رقم الطلب{% endif %}</span>
                 <span id="success-order-number" class="text-xl font-black font-mono text-brand-600 tracking-wider">QR-0000</span>
-                <span id="success-order-type" class="text-xs font-bold text-stone-700 block">استلام سفري</span>
+                <span id="success-order-type" class="text-xs font-bold text-stone-700 block">{% if CURRENT_LANG == 'en' %}Takeaway Pickup{% else %}استلام سفري{% endif %}</span>
                 <div class="text-xs font-black text-stone-900 pt-1 border-t border-stone-200">
-                    الإجمالي: <span id="success-order-total" class="text-emerald-700">0.00</span> ر.س
+                    {% if CURRENT_LANG == 'en' %}Total:{% else %}الإجمالي:{% endif %} <span id="success-order-total" class="text-emerald-700">0.00</span> {% if CURRENT_LANG == 'en' %}SAR{% else %}ر.س{% endif %}
                 </div>
             </div>
 
             <div class="space-y-2">
                 {% if tenant.phone %}
                 <a id="success-whatsapp-link" href="#" target="_blank" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition flex items-center justify-center gap-2">
-                    <span>تأكيد المتابعة عبر الواتساب</span>
+                    <span>{% if CURRENT_LANG == 'en' %}Confirm via WhatsApp{% else %}تأكيد المتابعة عبر الواتساب{% endif %}</span>
                     <span>💬</span>
                 </a>
                 {% endif %}
                 <button type="button" onclick="resetOrderAndClose()" class="w-full py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition">
-                    طلب وجبات أخرى
+                    {% if CURRENT_LANG == 'en' %}Order More Items{% else %}طلب وجبات أخرى{% endif %}
                 </button>
             </div>
         </div>
@@ -449,12 +490,42 @@
     <!-- JAVASCRIPT APP LOGIC                       -->
     <!-- ========================================== -->
     <script>
+        const CURRENT_LANG = "{{ CURRENT_LANG|default:'ar' }}";
+        const TENANT_NAME = "{{ tenant.name|escapejs }}";
         const TENANT_SLUG = "{{ tenant.slug }}";
         const SELECTED_BRANCH_ID = {{ selected_branch.id|default:0 }};
         const IS_BRANCH_OPEN = {{ is_open|yesno:"true,false" }};
         const MIN_DELIVERY_ORDER = parseFloat("{{ min_delivery_order|default:0 }}");
         let currentOrderType = 'takeaway';
         let cart = {}; // { [cartKey]: { key, itemId, variantId, variantName, name, price, qty, emoji } }
+
+        const i18n = {
+            currency: CURRENT_LANG === 'en' ? 'SAR' : 'ر.س',
+            branchClosedAlert: CURRENT_LANG === 'en' ? 'Sorry, this branch is currently closed for orders.' : 'عذراً، هذا الفرع مغلق حالياً لاستقبال الطلبات.',
+            addBtn: CURRENT_LANG === 'en' ? 'Add' : 'أضف',
+            emptyCart: CURRENT_LANG === 'en' ? 'Cart is currently empty' : 'السلة فارغة حالياً',
+            minDeliveryAlert: (min, cur) => CURRENT_LANG === 'en'
+                ? `Sorry, minimum delivery order for this branch is ${min} SAR (Current: ${cur} SAR). Please add more items.`
+                : `عذراً، الحد الأدنى لطلب التوصيل من هذا الفرع هو ${min} ر.س. (المجموع الحالي: ${cur} ر.س). يرجى إضافة وجبات أخرى.`,
+            minDeliveryBadgeRemaining: (min, diff) => CURRENT_LANG === 'en'
+                ? `<span>Minimum delivery order: <strong>${min} SAR</strong> (Remaining: ${diff} SAR)</span>`
+                : `<span>الحد الأدنى للتوصيل: <strong>${min} ر.س</strong> (متبقي: ${diff} ر.س)</span>`,
+            minDeliveryBadgeMet: (min) => CURRENT_LANG === 'en'
+                ? `<span>✓ Minimum delivery order reached (${min} SAR)</span>`
+                : `<span>✓ تم استيفاء الحد الأدنى لطلب التوصيل (${min} ر.س)</span>`,
+            valName: CURRENT_LANG === 'en' ? 'Please enter your name correctly' : 'يرجى كتابة الاسم بشكل صحيح',
+            valPhone: CURRENT_LANG === 'en' ? 'Please enter a valid phone number' : 'يرجى إدخال رقم هاتف صالح للتواصل',
+            valArea: CURRENT_LANG === 'en' ? 'Please select your delivery area' : 'يرجى اختيار منطقة التوصيل من القائمة',
+            valAddress: CURRENT_LANG === 'en' ? 'Please enter your detailed address' : 'يرجى إدخال عنوان التوصيل المفصل',
+            valEmptyCart: CURRENT_LANG === 'en' ? 'Cart is empty!' : 'السلة فارغة!',
+            sendingOrder: CURRENT_LANG === 'en' ? 'Sending order to kitchen...' : 'جاري إرسال الطلب للمطبخ...',
+            sendOrderBtn: CURRENT_LANG === 'en' ? 'Send Order to Restaurant Now' : 'إرسال الطلب للمطعم الآن',
+            serverError: CURRENT_LANG === 'en' ? 'Connection error with server. Please try again.' : 'حدث خطأ في الاتصال بالخادم. يرجى المحاولة ثانية.',
+            branchPrefix: CURRENT_LANG === 'en' ? 'Branch' : 'فرع',
+            whatsappText: (name, ordNum) => CURRENT_LANG === 'en'
+                ? `Hello ${name}, I would like to confirm my order #${ordNum} placed via the Digital Menu.`
+                : `مرحباً ${name}، أود تأكيد طلبي رقم (${ordNum}) المسجل عبر المنيو الرقمي.`
+        };
 
         function setOrderType(type) {
             currentOrderType = type;
@@ -535,14 +606,14 @@
             const vPrice = parseFloat(radio.getAttribute('data-price') || 0);
             const priceDisplay = document.getElementById(`price-display-${itemId}`);
             if (priceDisplay) {
-                priceDisplay.innerHTML = `${vPrice.toFixed(2)} <span class="text-[10px] font-bold">ر.س</span>`;
+                priceDisplay.innerHTML = `${vPrice.toFixed(2)} <span class="text-[10px] font-bold">${i18n.currency}</span>`;
             }
             renderItemControls(itemId);
         }
 
         function handleItemAdd(itemId, baseName, basePrice, emoji, hasVariants) {
             if (!IS_BRANCH_OPEN) {
-                alert('عذراً، هذا الفرع مغلق حالياً لاستقبال الطلبات.');
+                alert(i18n.branchClosedAlert);
                 return;
             }
 
@@ -627,7 +698,7 @@
                 container.innerHTML = `
                     <button type="button" onclick="handleItemAdd(${itemId}, '${escapeQuotes(name)}', ${activePrice}, '🍽️', ${hasVariants})" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black transition flex items-center gap-1 shadow-2xs">
                         <span>+</span>
-                        <span>أضف</span>
+                        <span>${i18n.addBtn}</span>
                     </button>
                 `;
             }
@@ -668,9 +739,9 @@
             const deliveryFeeEl = document.getElementById('summary-delivery-fee');
             const totalEl = document.getElementById('summary-total');
 
-            if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' ر.س';
-            if (deliveryFeeEl) deliveryFeeEl.textContent = deliveryFee.toFixed(2) + ' ر.س';
-            if (totalEl) totalEl.textContent = grandTotal.toFixed(2) + ' ر.س';
+            if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' ' + i18n.currency;
+            if (deliveryFeeEl) deliveryFeeEl.textContent = deliveryFee.toFixed(2) + ' ' + i18n.currency;
+            if (totalEl) totalEl.textContent = grandTotal.toFixed(2) + ' ' + i18n.currency;
 
             // Minimum delivery check
             const minAlert = document.getElementById('min-delivery-alert');
@@ -682,10 +753,10 @@
                     if (subtotal < MIN_DELIVERY_ORDER) {
                         minAlert.className = 'p-3 rounded-2xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold flex items-center justify-between';
                         const diff = (MIN_DELIVERY_ORDER - subtotal).toFixed(2);
-                        minText.innerHTML = `<span>الحد الأدنى للتوصيل: <strong>${MIN_DELIVERY_ORDER} ر.س</strong> (متبقي: ${diff} ر.س)</span>`;
+                        minText.innerHTML = i18n.minDeliveryBadgeRemaining(MIN_DELIVERY_ORDER, diff);
                     } else {
                         minAlert.className = 'p-3 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-between';
-                        minText.innerHTML = `<span>✓ تم استيفاء الحد الأدنى لطلب التوصيل (${MIN_DELIVERY_ORDER} ر.س)</span>`;
+                        minText.innerHTML = i18n.minDeliveryBadgeMet(MIN_DELIVERY_ORDER);
                     }
                 } else {
                     minAlert.classList.add('hidden');
@@ -711,7 +782,7 @@
             if (!container) return;
             const items = Object.values(cart);
             if (items.length === 0) {
-                container.innerHTML = '<p class="text-xs text-stone-400 italic text-center py-4">السلة فارغة حالياً</p>';
+                container.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-4">${i18n.emptyCart}</p>`;
                 return;
             }
 
@@ -721,7 +792,7 @@
                         <span class="text-base">${it.emoji || '🍽️'}</span>
                         <div>
                             <span class="font-bold text-stone-900 block">${it.name}</span>
-                            <span class="text-[10px] text-stone-500">${it.price.toFixed(2)} ر.س × ${it.qty}</span>
+                            <span class="text-[10px] text-stone-500">${it.price.toFixed(2)} ${i18n.currency} × ${it.qty}</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-1.5">
@@ -735,7 +806,7 @@
 
         async function submitOrder() {
             if (!IS_BRANCH_OPEN) {
-                alert('عذراً، هذا الفرع مغلق حالياً ولا يستقبل طلبات جديدة.');
+                alert(i18n.branchClosedAlert);
                 return;
             }
 
@@ -745,7 +816,7 @@
             }
 
             if (currentOrderType === 'delivery' && MIN_DELIVERY_ORDER > 0 && subtotal < MIN_DELIVERY_ORDER) {
-                alert(`عذراً، الحد الأدنى لطلب التوصيل من هذا الفرع هو ${MIN_DELIVERY_ORDER} ر.س. (المجموع الحالي: ${subtotal.toFixed(2)} ر.س). يرجى إضافة وجبات أخرى.`);
+                alert(i18n.minDeliveryAlert(MIN_DELIVERY_ORDER, subtotal.toFixed(2)));
                 return;
             }
 
@@ -758,23 +829,23 @@
             const address = (document.getElementById('cust-address').value || '').trim();
 
             if (!name || name.length < 2) {
-                alert('يرجى كتابة الاسم بشكل صحيح');
+                alert(i18n.valName);
                 document.getElementById('cust-name').focus();
                 return;
             }
             if (!phone || phone.length < 7) {
-                alert('يرجى إدخال رقم هاتف صالح للتواصل');
+                alert(i18n.valPhone);
                 document.getElementById('cust-phone').focus();
                 return;
             }
             if (currentOrderType === 'delivery') {
                 if (!areaId) {
-                    alert('يرجى اختيار منطقة التوصيل من القائمة');
+                    alert(i18n.valArea);
                     areaSelect.focus();
                     return;
                 }
                 if (!address) {
-                    alert('يرجى إدخال عنوان التوصيل المفصل');
+                    alert(i18n.valAddress);
                     document.getElementById('cust-address').focus();
                     return;
                 }
@@ -788,12 +859,12 @@
             }));
 
             if (itemsArray.length === 0) {
-                alert('السلة فارغة!');
+                alert(i18n.valEmptyCart);
                 return;
             }
 
             btn.disabled = true;
-            btn.innerHTML = `<span class="inline-block animate-spin">⏳</span> <span>جاري إرسال الطلب للمطبخ...</span>`;
+            btn.innerHTML = `<span class="inline-block animate-spin">⏳</span> <span>${i18n.sendingOrder}</span>`;
 
             try {
                 const res = await fetch(`/api/m/${TENANT_SLUG}/order/`, {
@@ -816,26 +887,28 @@
                     closeCheckoutModal();
                     showSuccessModal(data);
                 } else {
-                    alert(data.message || 'حدث خطأ أثناء معالجة الطلب');
+                    alert(data.message || 'Error processing order');
                     btn.disabled = false;
-                    btn.innerHTML = `<span>إرسال الطلب للمطعم الآن</span> <span>✓</span>`;
+                    btn.innerHTML = `<span>${i18n.sendOrderBtn}</span> <span>✓</span>`;
                 }
             } catch (e) {
-                alert('حدث خطأ في الاتصال بالخادم. يرجى المحاولة ثانية.');
+                alert(i18n.serverError);
                 btn.disabled = false;
-                btn.innerHTML = `<span>إرسال الطلب للمطعم الآن</span> <span>✓</span>`;
+                btn.innerHTML = `<span>${i18n.sendOrderBtn}</span> <span>✓</span>`;
             }
         }
 
         function showSuccessModal(data) {
             document.getElementById('success-order-number').textContent = data.order_number;
-            document.getElementById('success-order-type').textContent = data.order_type + ' • فرع ' + (data.branch_name || '');
+            const orderTypeLabel = (currentOrderType === 'delivery' ? (CURRENT_LANG === 'en' ? 'Home Delivery' : 'توصيل منزلي') : (CURRENT_LANG === 'en' ? 'Takeaway Pickup' : 'استلام سفري'));
+            const branchName = data.branch_name || "{{ selected_branch.display_name|default:selected_branch.name|escapejs }}";
+            document.getElementById('success-order-type').textContent = `${orderTypeLabel} • ${i18n.branchPrefix} ${branchName}`;
             document.getElementById('success-order-total').textContent = (data.total || 0).toFixed(2);
 
             const waLink = document.getElementById('success-whatsapp-link');
             if (waLink) {
                 const phone = "{{ tenant.phone }}".replace(/\D/g, '');
-                const text = encodeURIComponent(`مرحباً ${"{{ tenant.name }}"}، أود تأكيد طلبي رقم (${data.order_number}) المسجل عبر المنيو الرقمي.`);
+                const text = encodeURIComponent(i18n.whatsappText(TENANT_NAME, data.order_number));
                 waLink.href = `https://wa.me/${phone}?text=${text}`;
             }
 

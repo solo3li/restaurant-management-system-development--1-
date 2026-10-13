@@ -142,6 +142,9 @@
                         {% endif %}
                         <div class="min-w-0">
                             <h3 class="font-bold text-sm text-ink leading-tight truncate">{{ row.item.name }}</h3>
+                            {% if row.item.name_en %}
+                                <span class="text-[10px] text-soft font-mono block truncate" dir="ltr">{{ row.item.name_en }}</span>
+                            {% endif %}
                             <span class="text-[10px] font-bold text-soft block mt-0.5">{{ row.item.category }}</span>
                         </div>
                     </div>
@@ -214,16 +217,18 @@
                 {
                     "id": {{ row.item.id }},
                     "name": "{{ row.item.name|escapejs }}",
+                    "name_en": "{{ row.item.name_en|default:''|escapejs }}",
                     "category_id": {{ row.item.category_rel.id|default:"null" }},
                     "category": "{{ row.item.category|escapejs }}",
                     "price": {{ row.item.price }},
                     "cost": {{ row.item.cost }},
                     "description": "{{ row.item.description|default:''|escapejs }}",
+                    "description_en": "{{ row.item.description_en|default:''|escapejs }}",
                     "image_url": "{% if row.item.image %}{{ row.item.image.url }}{% endif %}",
                     "has_variants": {% if row.item.has_variants %}true{% else %}false{% endif %},
                     "variants": [
                         {% for v in row.variants %}
-                            {"id": {{ v.id }}, "name": "{{ v.name|escapejs }}", "price": {{ v.price }}, "cost": {{ v.cost }}}{% if not forloop.last %},{% endif %}
+                            {"id": {{ v.id }}, "name": "{{ v.name|escapejs }}", "name_en": "{{ v.name_en|default:''|escapejs }}", "price": {{ v.price }}, "cost": {{ v.cost }}}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ]
                 }
@@ -668,21 +673,32 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1">اسم الصنف <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold text-ink mb-1">اسم الصنف (بالعربية) <span class="text-rose-500">*</span></label>
                     <input type="text" id="itemModalName" name="name" class="input text-xs w-full" placeholder="مثال: كلاسيك برجر لحم">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1">اسم الصنف بالإنجليزي (اختياري / EN)</label>
+                    <input type="text" id="itemModalNameEn" name="name_en" dir="ltr" class="input text-xs w-full font-mono" placeholder="e.g. Classic Beef Burger">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-ink mb-1">القسم / التصنيف <span class="text-rose-500">*</span></label>
                     <select id="itemModalCategory" name="category_id" class="input text-xs w-full">
                         {% for c in category_objs %}
-                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            <option value="{{ c.id }}">{{ c.name }}{% if c.name_en %} ({{ c.name_en }}){% endif %}</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-ink mb-1">وصف الطبق بالإنجليزي (اختياري / EN)</label>
+                    <input type="text" id="itemModalDescriptionEn" name="description_en" dir="ltr" class="input text-xs w-full font-mono" placeholder="e.g. Fresh grilled beef with melted cheddar...">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-ink mb-1">وصف الطبق والمكونات</label>
+                <label class="block text-xs font-bold text-ink mb-1">وصف الطبق والمكونات (بالعربية)</label>
                 <textarea id="itemModalDescription" name="description" rows="2" class="input text-xs w-full" placeholder="لحم بلدي مشوي طازج، صوص الشيف، جبن شيدر ذائب..."></textarea>
             </div>
 
@@ -778,10 +794,14 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <form id="categoryForm" novalidate onsubmit="saveCategory(event)" class="p-3.5 rounded-2xl bg-paper/70 border border-line space-y-3">
                 <input type="hidden" id="categoryModalId" name="id" value="">
                 <h3 class="text-xs font-bold text-ink" id="catFormTitle">إضافة قسم جديد:</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-soft mb-1">اسم القسم <span class="text-rose-500">*</span></label>
+                        <label class="block text-[11px] font-bold text-soft mb-1">اسم القسم (بالعربية) <span class="text-rose-500">*</span></label>
                         <input type="text" id="catModalName" name="name" class="input text-xs w-full" placeholder="مثال: بيتزا، شاورما، حلويات">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-soft mb-1">اسم القسم بالإنجليزي (اختياري / EN)</label>
+                        <input type="text" id="catModalNameEn" name="name_en" dir="ltr" class="input text-xs w-full font-mono" placeholder="e.g. Pizza, Burgers">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-soft mb-1">ترتيب الظهور</label>
@@ -815,12 +835,17 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                                 <span class="w-8 h-8 rounded-lg bg-paper-light border border-line flex items-center justify-center text-xs text-soft font-bold">📁</span>
                             {% endif %}
                             <div>
-                                <span class="font-bold text-xs text-ink block leading-tight">{{ c.name }}</span>
+                                <span class="font-bold text-xs text-ink block leading-tight">
+                                    {{ c.name }}
+                                    {% if c.name_en %}
+                                        <span class="text-[10px] text-soft font-mono font-normal">({{ c.name_en }})</span>
+                                    {% endif %}
+                                </span>
                                 <span class="text-[10px] text-soft font-bold">الترتيب: {{ c.ordering }} • الأصناف: {{ c.items.count }}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button type="button" onclick="editCategory({{ c.id }}, '{{ c.name|escapejs }}', {{ c.ordering }})" class="p-1.5 rounded-lg text-soft hover:text-ink hover:bg-paper-light transition" title="تعديل">
+                            <button type="button" onclick="editCategory({{ c.id }}, '{{ c.name|escapejs }}', '{{ c.name_en|default:''|escapejs }}', {{ c.ordering }})" class="p-1.5 rounded-lg text-soft hover:text-ink hover:bg-paper-light transition" title="تعديل">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
                             <button type="button" onclick="deleteCategory({{ c.id }}, '{{ c.name|escapejs }}')" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="حذف">
@@ -843,7 +868,9 @@ function openCreateItemModal() {
     document.getElementById('itemModalTitle').innerText = 'إضافة صنف جديد';
     document.getElementById('itemModalId').value = '';
     document.getElementById('itemModalName').value = '';
+    document.getElementById('itemModalNameEn').value = '';
     document.getElementById('itemModalDescription').value = '';
+    document.getElementById('itemModalDescriptionEn').value = '';
     document.getElementById('itemModalPrice').value = '';
     document.getElementById('itemModalCost').value = '';
     document.getElementById('itemModalImage').value = '';
@@ -866,7 +893,9 @@ function openEditItemModal(itemId) {
     document.getElementById('itemModalTitle').innerText = 'تعديل الصنف';
     document.getElementById('itemModalId').value = item.id;
     document.getElementById('itemModalName').value = item.name;
+    document.getElementById('itemModalNameEn').value = item.name_en || '';
     document.getElementById('itemModalDescription').value = item.description || '';
+    document.getElementById('itemModalDescriptionEn').value = item.description_en || '';
     document.getElementById('itemModalPrice').value = item.price;
     document.getElementById('itemModalCost').value = item.cost || '';
     document.getElementById('itemModalImage').value = '';
@@ -891,7 +920,7 @@ function openEditItemModal(itemId) {
     container.innerHTML = '';
     if (hasVariants) {
         item.variants.forEach(v => {
-            addVariantRow(v.name, v.price, v.cost);
+            addVariantRow(v.name, v.name_en || '', v.price, v.cost);
         });
     }
     toggleVariantSection();
@@ -916,9 +945,9 @@ function toggleVariantSection() {
         singleSection.classList.add('hidden');
         variantsSection.classList.remove('hidden');
         if (document.querySelectorAll('.variant-row').length === 0) {
-            addVariantRow('صغير', '', '');
-            addVariantRow('وسط', '', '');
-            addVariantRow('كبير', '', '');
+            addVariantRow('صغير', 'Small', '', '');
+            addVariantRow('وسط', 'Medium', '', '');
+            addVariantRow('كبير', 'Large', '', '');
         }
     } else {
         singleSection.classList.remove('hidden');
@@ -927,12 +956,13 @@ function toggleVariantSection() {
     }
 }
 
-function addVariantRow(name = '', price = '', cost = '') {
+function addVariantRow(name = '', name_en = '', price = '', cost = '') {
     const container = document.getElementById('variantsContainer');
     const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 variant-row p-2 rounded-xl bg-white border border-line';
+    row.className = 'flex flex-wrap items-center gap-2 variant-row p-2 rounded-xl bg-white border border-line';
     row.innerHTML = `
-        <input type="text" name="variant_name[]" class="v-name input text-xs flex-1" placeholder="اسم الحجم (مثال: وسط)" value="${name}">
+        <input type="text" name="variant_name[]" class="v-name input text-xs flex-1 min-w-[120px]" placeholder="الحجم بالعربي (مثال: وسط)" value="${name}">
+        <input type="text" name="variant_name_en[]" class="v-name-en input text-xs flex-1 min-w-[120px] font-mono" dir="ltr" placeholder="Size in EN (Medium)" value="${name_en}">
         <div class="relative w-28">
             <input type="number" step="0.25" min="0" name="variant_price[]" class="v-price input text-xs w-full" placeholder="السعر" value="${price}">
             <span class="absolute left-2 top-2 text-[10px] text-soft">ر.س</span>
@@ -949,8 +979,10 @@ async function saveMenuItem(event) {
     const btn = document.getElementById('btnSaveItem');
     const itemId = document.getElementById('itemModalId').value;
     const name = document.getElementById('itemModalName').value.trim();
+    const nameEn = document.getElementById('itemModalNameEn').value.trim();
     const catId = document.getElementById('itemModalCategory').value;
     const desc = document.getElementById('itemModalDescription').value.trim();
+    const descEn = document.getElementById('itemModalDescriptionEn').value.trim();
     const hasVariants = document.getElementById('itemModalHasVariants').checked;
     const price = document.getElementById('itemModalPrice').value;
     const cost = document.getElementById('itemModalCost').value;
@@ -969,17 +1001,20 @@ async function saveMenuItem(event) {
 
     const formData = new FormData();
     formData.append('name', name);
+    formData.append('name_en', nameEn);
     formData.append('category_id', catId);
     formData.append('description', desc);
+    formData.append('description_en', descEn);
 
     if (hasVariants) {
         const variantRows = document.querySelectorAll('.variant-row');
         const variants = [];
         variantRows.forEach(r => {
             const vName = r.querySelector('.v-name').value.trim();
+            const vNameEn = r.querySelector('.v-name-en') ? r.querySelector('.v-name-en').value.trim() : '';
             const vPrice = r.querySelector('.v-price').value;
             if (vName && vPrice) {
-                variants.push({ name: vName, price: vPrice, cost: 0 });
+                variants.push({ name: vName, name_en: vNameEn, price: vPrice, cost: 0 });
             }
         });
         if (variants.length === 0) {
@@ -1080,15 +1115,17 @@ function resetCategoryForm() {
     document.getElementById('catFormTitle').innerText = 'إضافة قسم جديد:';
     document.getElementById('categoryModalId').value = '';
     document.getElementById('catModalName').value = '';
+    document.getElementById('catModalNameEn').value = '';
     document.getElementById('catModalOrder').value = '10';
     document.getElementById('catModalImage').value = '';
     document.getElementById('btnCancelCatEdit').classList.add('hidden');
 }
 
-function editCategory(id, name, order) {
+function editCategory(id, name, name_en, order) {
     document.getElementById('catFormTitle').innerText = `تعديل قسم «${name}»:`;
     document.getElementById('categoryModalId').value = id;
     document.getElementById('catModalName').value = name;
+    document.getElementById('catModalNameEn').value = name_en || '';
     document.getElementById('catModalOrder').value = order;
     document.getElementById('btnCancelCatEdit').classList.remove('hidden');
     document.getElementById('categoryForm').scrollIntoView({ behavior: 'smooth' });
@@ -1099,6 +1136,7 @@ async function saveCategory(event) {
     const btn = document.getElementById('btnSaveCategory');
     const catId = document.getElementById('categoryModalId').value;
     const name = document.getElementById('catModalName').value.trim();
+    const nameEn = document.getElementById('catModalNameEn').value.trim();
     const order = document.getElementById('catModalOrder').value;
     const imgInput = document.getElementById('catModalImage');
 
@@ -1110,6 +1148,7 @@ async function saveCategory(event) {
 
     const formData = new FormData();
     formData.append('name', name);
+    formData.append('name_en', nameEn);
     formData.append('ordering', order);
     if (imgInput.files.length > 0) {
         formData.append('image', imgInput.files[0]);
