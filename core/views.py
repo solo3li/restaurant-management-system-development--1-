@@ -5130,10 +5130,22 @@ def ai_callcenter_persona_view(request):
         except Exception:
             pass
 
+    # Clean old placeholder restaurant names in welcome message
+    rest_name = tenant.name if (tenant and tenant.name) else "المطعم"
+    if profile_data and "مطاعم كورا" in str(profile_data.get("welcome_message", "")):
+        profile_data["welcome_message"] = str(profile_data["welcome_message"]).replace("مطاعم كورا", rest_name)
+
+    # Fetch full studio metadata from partner API
+    studio_data = ps.get_studio_metadata(client_id)
+    if not isinstance(studio_data, dict) or studio_data.get("status") != "success":
+        studio_data = {}
+
     context = {
         "tenant": tenant,
         "profile": profile_data,
         "profiles": profiles_data,
+        "studio": studio_data,
+        "studio_json": json.dumps(studio_data),
     }
     return render(request, "ai_callcenter/persona.html", context)
 
@@ -5374,14 +5386,34 @@ def api_ai_callcenter_create_profile(request):
 
     # Set smart default for off_topic_response based on dialect if omitted
     dialect = data.get("dialect", "egyptian")
+    if dialect == "modern_standard":
+        dialect = "fusha"
+        data["dialect"] = "fusha"
+
     rest_name = tenant.name.strip() if (tenant and getattr(tenant, "name", None)) else "المطعم"
+    if "welcome_message" in data and "مطاعم كورا" in str(data["welcome_message"]):
+        data["welcome_message"] = str(data["welcome_message"]).replace("مطاعم كورا", rest_name)
+
     if not data.get("off_topic_response"):
         defaults_by_dialect = {
             "saudi": f"أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو {rest_name} فقط، تحب تطلب شيء من عروضنا اليوم؟",
             "emirati": f"السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو {rest_name} فقط، حاب تطلب شي الحين؟",
             "kuwaiti": f"السموحة يا غالي، أنا مخصص لطلبات ومنيو {rest_name} فقط، تبي تطلب شي من المنيو؟",
+            "fusha": f"أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات {rest_name} فقط، هل ترغب بطلب أي وجبة؟",
             "modern_standard": f"أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات {rest_name} فقط، هل ترغب بطلب أي وجبة؟",
+            "levantine": f"بعتذر منك يا غالي، أنا هون لمساعدتك بطلبات وقائمة {rest_name} بس، بتحب تطلب شي هلأ؟",
+            "jordanian_palestinian": f"بعتذر منك يا غالي، أنا هون لمساعدتك بطلبات ومنيو {rest_name} بس، بتحب تطلب إشي هسا؟",
+            "moroccan": f"كنعتذر منك أخاي، أنا هنا باش نعاونك في طلبات ومينو {rest_name} فقط، بغيتي تطلب شي حاجة دابا؟",
+            "algerian": f"نعتذر منك خويا، أنا هنا باش نعاونك في طلبات ومينو {rest_name} برك، تحب تطلب شي حاجة درك؟",
+            "tunisian": f"سامحني يا غالي، أنا لهنا باش نعاونك في منيو وطلبات {rest_name} كهو، تحب تعدي كوموند توا؟",
+            "iraqi": f"أعتذر منك عيوني، أني بخدمتك لطلبات ومنيو {rest_name} وبس، تحب تطلب شي هسة؟",
+            "sudanese": f"العفو منك يا غالي، أنا هنا لمساعدتك في طلبات ومنيو {rest_name} بس، تحب تطلب حاجة هسي؟",
+            "yemeni": f"العفو منك يا طيب، أنا في خدمتك لطلبات ومنيو {rest_name} فقط، تشتي تطلب شي ذلحين؟",
             "egyptian": f"بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات {rest_name} فقط، تؤمر بأي صنف النهارده؟",
+            "english_us": f"I apologize, but I can only assist with {rest_name}'s menu and orders. Would you like to place an order today?",
+            "english_uk": f"I do apologize, but I am only able to help with {rest_name}'s menu and orders. May I take your order?",
+            "english": f"I apologize, I can only assist with {rest_name}'s menu and orders. Would you like to place an order today?",
+            "french_fr": f"Je vous prie de m'excuser, mais je peux uniquement vous aider avec le menu et les commandes de {rest_name}. Souhaitez-vous commander ?",
         }
         data["off_topic_response"] = defaults_by_dialect.get(dialect, defaults_by_dialect["egyptian"])
 
@@ -5411,16 +5443,35 @@ def api_ai_callcenter_update_profile(request, profile_id=None):
         prof = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
         target_profile_id = prof.get("id") or 66
 
-    # Set smart default for off_topic_response based on dialect if empty
     dialect = data.get("dialect", "egyptian")
+    if dialect == "modern_standard":
+        dialect = "fusha"
+        data["dialect"] = "fusha"
+
     rest_name = tenant.name.strip() if (tenant and getattr(tenant, "name", None)) else "المطعم"
+    if "welcome_message" in data and "مطاعم كورا" in str(data["welcome_message"]):
+        data["welcome_message"] = str(data["welcome_message"]).replace("مطاعم كورا", rest_name)
+
     if "off_topic_response" in data and not str(data["off_topic_response"]).strip():
         defaults_by_dialect = {
             "saudi": f"أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو {rest_name} فقط، تحب تطلب شيء من عروضنا اليوم؟",
             "emirati": f"السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو {rest_name} فقط، حاب تطلب شي الحين؟",
             "kuwaiti": f"السموحة يا غالي، أنا مخصص لطلبات ومنيو {rest_name} فقط، تبي تطلب شي من المنيو؟",
+            "fusha": f"أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات {rest_name} فقط، هل ترغب بطلب أي وجبة؟",
             "modern_standard": f"أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات {rest_name} فقط، هل ترغب بطلب أي وجبة؟",
+            "levantine": f"بعتذر منك يا غالي، أنا هون لمساعدتك بطلبات وقائمة {rest_name} بس، بتحب تطلب شي هلأ؟",
+            "jordanian_palestinian": f"بعتذر منك يا غالي، أنا هون لمساعدتك بطلبات ومنيو {rest_name} بس، بتحب تطلب إشي هسا؟",
+            "moroccan": f"كنعتذر منك أخاي، أنا هنا باش نعاونك في طلبات ومينو {rest_name} فقط، بغيتي تطلب شي حاجة دابا؟",
+            "algerian": f"نعتذر منك خويا، أنا هنا باش نعاونك في طلبات ومينو {rest_name} برك، تحب تطلب شي حاجة درك؟",
+            "tunisian": f"سامحني يا غالي، أنا لهنا باش نعاونك في منيو وطلبات {rest_name} كهو، تحب تعدي كوموند توا؟",
+            "iraqi": f"أعتذر منك عيوني، أني بخدمتك لطلبات ومنيو {rest_name} وبس، تحب تطلب شي هسة؟",
+            "sudanese": f"العفو منك يا غالي، أنا هنا لمساعدتك في طلبات ومنيو {rest_name} بس، تحب تطلب حاجة هسي؟",
+            "yemeni": f"العفو منك يا طيب، أنا في خدمتك لطلبات ومنيو {rest_name} فقط، تشتي تطلب شي ذلحين؟",
             "egyptian": f"بعتذر جداً يا فندم، أنا هنا لمساعدتك في منيو وطلبات {rest_name} فقط، تؤمر بأي صنف النهارده؟",
+            "english_us": f"I apologize, but I can only assist with {rest_name}'s menu and orders. Would you like to place an order today?",
+            "english_uk": f"I do apologize, but I am only able to help with {rest_name}'s menu and orders. May I take your order?",
+            "english": f"I apologize, I can only assist with {rest_name}'s menu and orders. Would you like to place an order today?",
+            "french_fr": f"Je vous prie de m'excuser, mais je peux uniquement vous aider avec le menu et les commandes de {rest_name}. Souhaitez-vous commander ?",
         }
         data["off_topic_response"] = defaults_by_dialect.get(dialect, defaults_by_dialect["egyptian"])
 

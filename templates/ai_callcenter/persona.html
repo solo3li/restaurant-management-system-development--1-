@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}شخصية المساعد واللهجة — {{ tenant.name }}{% endblock %}
+{% block title %}شخصية المساعد واللهجة واستوديو الذكاء الاصطناعي — {{ tenant.name }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
-
 
     <!-- Multi-Profile Header & Selector -->
     <div class="card p-5 border-line bg-gradient-to-r from-card to-paper shadow-xs">
@@ -18,7 +17,7 @@
                     </span>
                 </div>
                 <p class="text-xs text-soft font-bold mt-1">
-                    يمكنك إنشاء عدة شخصيات ولهجات للمساعد الصوتي والتبديل بينها أو تفعيل بروفايل مخصص للمناسبات وساعات الذروة.
+                    استوديو شامل يدعم 11 لغة عالمية، 29 لهجة إقليمية، و 30 خامة صوتية استوديو عالية الدقة من Google Gemini Live.
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -37,7 +36,7 @@
                         <span class="font-display text-xs font-black text-ink truncate">{{ p.name|default:"مساعد صوتي" }}</span>
                         {% if p.is_active %}
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-700 border border-emerald-500/30 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> نشط حالياً
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> نشط للمكالمات
                         </span>
                         {% else %}
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600 border border-zinc-200">
@@ -47,21 +46,60 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px]">
+                        <!-- Language Badge -->
+                        <span class="px-2 py-0.5 rounded-md bg-paper border border-line text-ink font-bold">
+                            {% if p.language == 'english' %}🇺🇸 English
+                            {% elif p.language == 'french' %}🇫🇷 Français
+                            {% elif p.language == 'spanish' %}🇪🇸 Español
+                            {% elif p.language == 'german' %}🇩🇪 Deutsch
+                            {% elif p.language == 'italian' %}🇮🇹 Italiano
+                            {% elif p.language == 'turkish' %}🇹🇷 Türkçe
+                            {% elif p.language == 'russian' %}🇷🇺 Русский
+                            {% elif p.language == 'urdu' %}🇵🇰 اردو
+                            {% elif p.language == 'hindi' %}🇮🇳 हिन्दी
+                            {% elif p.language == 'chinese' %}🇨🇳 中文
+                            {% else %}🇸🇦 العربية{% endif %}
+                        </span>
+
+                        <!-- Dialect Badge -->
                         <span class="px-2 py-0.5 rounded-md bg-paper border border-line text-ink font-bold">
                             {% if p.dialect == 'saudi' %}🇸🇦 سعودي
                             {% elif p.dialect == 'egyptian' %}🇪🇬 مصري
                             {% elif p.dialect == 'emirati' %}🇦🇪 إماراتي
                             {% elif p.dialect == 'kuwaiti' %}🇰🇼 كويتي
                             {% elif p.dialect == 'levantine' %}🇱🇧 شامي
-                            {% else %}🌐 فصحى{% endif %}
+                            {% elif p.dialect == 'jordanian_palestinian' %}🇯🇴 أردني وفلسطيني
+                            {% elif p.dialect == 'moroccan' %}🇲🇦 مغربي
+                            {% elif p.dialect == 'algerian' %}🇩🇿 جزائري
+                            {% elif p.dialect == 'tunisian' %}🇹🇳 تونسي
+                            {% elif p.dialect == 'iraqi' %}🇮🇶 عراقي
+                            {% elif p.dialect == 'sudanese' %}🇸🇩 سوداني
+                            {% elif p.dialect == 'yemeni' %}🇾🇪 يمني
+                            {% elif p.dialect == 'fusha' or p.dialect == 'modern_standard' %}🌐 فصحى معاصرة
+                            {% elif p.dialect == 'english_us' %}🇺🇸 US Accent
+                            {% elif p.dialect == 'english_uk' %}🇬🇧 UK Accent
+                            {% elif p.dialect == 'english_aus' %}🇦🇺 Australian
+                            {% elif p.dialect == 'english_ind' %}🇮🇳 Indian English
+                            {% elif p.dialect == 'french_fr' %}🇫🇷 Métropolitain
+                            {% elif p.dialect == 'french_ca' %}🇨🇦 Canadien
+                            {% elif p.dialect == 'spanish_es' %}🇪🇸 España
+                            {% elif p.dialect == 'spanish_latam' %}🌎 LatAm
+                            {% else %}{{ p.dialect_display|default:p.dialect }}{% endif %}
                         </span>
+
+                        <!-- Voice & Gender Badge -->
                         <span class="px-2 py-0.5 rounded-md bg-paper border border-line text-soft font-bold">
                             {% if p.gender == 'male' %}♂ ذكوري{% else %}♀ أنثوي{% endif %} ({{ p.voice_name|default:'Aoede' }})
                         </span>
-                        <span class="px-2 py-0.5 rounded-md bg-paper border border-line text-brand-700 font-bold">
-                            {% if p.persona_role == 'sales_advisor' %}مستشار مبيعات
-                            {% elif p.persona_role == 'customer_service' %}خدمة عملاء
-                            {% else %}استقبال طلبات{% endif %}
+
+                        <!-- Role Badge -->
+                        <span class="px-2 py-0.5 rounded-md bg-brand-50 border border-brand-200 text-brand-700 font-bold">
+                            {% if p.persona_role == 'restaurant_orders' or p.persona_role == 'order_taker' %}🍽️ طلبات وتوصيل
+                            {% elif p.persona_role == 'table_booking_concierge' %}🛎️ حجز طاولات
+                            {% elif p.persona_role == 'sales_advisor' or p.persona_role == 'inbound_telesales' %}💰 مبيعات وعروض
+                            {% elif p.persona_role == 'customer_service' or p.persona_role == 'ecommerce_support' %}🎧 خدمة عملاء
+                            {% elif p.persona_role == 'delivery_dispatch' %}🚚 شحن وتوصيل
+                            {% else %}{{ p.persona_role_display|default:p.persona_role|default:'استقبال وتأكيد طلبات' }}{% endif %}
                         </span>
                     </div>
 
@@ -101,18 +139,18 @@
         <div class="border-b border-line pb-4 flex items-center justify-between flex-wrap gap-3">
             <div>
                 <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg> تعديل البروفايل: <span class="text-brand-600">{{ profile.name|default:tenant.name|default:'المساعد الصوتي الذكي' }}</span>
+                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg> تعديل استوديو المساعد: <span class="text-brand-600">{{ profile.name|default:tenant.name|default:'المساعد الصوتي الذكي' }}</span>
                 </h3>
-                <p class="text-xs text-soft font-bold mt-0.5">تحديد الدور الوظيفي، الجنس، اللهجة، رسالة الاستبعاد (Off-Topic)، والترحيب الأولى</p>
+                <p class="text-xs text-soft font-bold mt-0.5">تخصيص كامل للغة، اللهجة، الصوت الرسمي من Google (30 خامة صوتية)، والدور الوظيفي</p>
             </div>
             <div class="flex items-center gap-2">
                 {% if profile.is_active %}
                 <span class="text-xs px-3 py-1 rounded-full font-black bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> البروفايل النشط حالياً
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> البروفايل النشط حالياً للمكالمات
                 </span>
                 {% else %}
                 <button type="button" onclick="activateProfile({{ profile.id }})" class="text-xs px-3 py-1 rounded-xl font-black bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer">
-                    تفعيل هذا البروفايل
+                    تفعيل هذا البروفايل للمكالمات
                 </button>
                 {% endif %}
             </div>
@@ -126,44 +164,66 @@
             </div>
 
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">الدور الوظيفي (Persona Role)</label>
+                <label class="block text-xs font-black text-ink mb-1.5">الدور والشخصية (Persona Role)</label>
                 <select name="persona_role" id="edit-profile-role" class="input font-bold cursor-pointer">
-                    <option value="order_taker" {% if profile.persona_role == 'order_taker' or not profile.persona_role %}selected{% endif %}>استقبال وتسجيل الطلبات (Order Taker)</option>
-                    <option value="sales_advisor" {% if profile.persona_role == 'sales_advisor' %}selected{% endif %}>مستشار مبيعات وترويج العروض (Sales Advisor)</option>
-                    <option value="customer_service" {% if profile.persona_role == 'customer_service' %}selected{% endif %}>خدمة عملاء واستفسارات (Customer Service)</option>
+                    <optgroup label="🍽️ قطاع المطاعم والضيافة">
+                        <option value="restaurant_orders" {% if profile.persona_role == 'restaurant_orders' or profile.persona_role == 'order_taker' or not profile.persona_role %}selected{% endif %}>استقبال وتأكيد طلبات المطاعم وتوصيلها (Order Taker)</option>
+                        <option value="table_booking_concierge" {% if profile.persona_role == 'table_booking_concierge' %}selected{% endif %}>حجز طاولات ومناسبات خاصة وضيافة (Table Booking)</option>
+                    </optgroup>
+                    <optgroup label="🛍️ خدمة العملاء والمبيعات">
+                        <option value="customer_service" {% if profile.persona_role == 'customer_service' %}selected{% endif %}>خدمة عملاء واستفسارات المنيو (Customer Support)</option>
+                        <option value="sales_advisor" {% if profile.persona_role == 'sales_advisor' or profile.persona_role == 'inbound_telesales' %}selected{% endif %}>مستشار مبيعات وترويج العروض (Sales Advisor)</option>
+                        <option value="ecommerce_support" {% if profile.persona_role == 'ecommerce_support' %}selected{% endif %}>خدمة عملاء ومتابعة الشحنات والطلبات</option>
+                    </optgroup>
+                    <optgroup label="🚚 الخدمات اللوجستية والشحن">
+                        <option value="delivery_dispatch" {% if profile.persona_role == 'delivery_dispatch' %}selected{% endif %}>منسق توصيل وشحن لوجستي ومتابعة عناوين</option>
+                    </optgroup>
+                    <optgroup label="🌟 أدوار عامة وتنفيذية">
+                        <option value="vip_concierge_care" {% if profile.persona_role == 'vip_concierge_care' %}selected{% endif %}>ممثل علاقات كبار العملاء (VIP Concierge)</option>
+                        <option value="executive_personal_assistant" {% if profile.persona_role == 'executive_personal_assistant' %}selected{% endif %}>مساعد تنفيذي شخصي وذكي</option>
+                    </optgroup>
                 </select>
             </div>
 
             <div>
                 <label class="block text-xs font-black text-ink mb-1.5">الجنس الصوتي (Gender)</label>
-                <select name="gender" id="edit-profile-gender" class="input font-bold cursor-pointer">
+                <select name="gender" id="edit-profile-gender" onchange="syncGenderVoices('edit')" class="input font-bold cursor-pointer">
                     <option value="female" {% if profile.gender == 'female' or not profile.gender %}selected{% endif %}>أنثوي (Female)</option>
                     <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>ذكوري (Male)</option>
                 </select>
             </div>
         </div>
 
-        <!-- Row 2: Dialect, Voice, Speaking Style, Verbosity -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <!-- Row 2: Language, Dialect, Google Voice, Style, Verbosity -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة (Dialect)</label>
-                <select name="dialect" id="edit-profile-dialect" onchange="onDialectChange('edit')" class="input font-bold cursor-pointer">
-                    <option value="egyptian" {% if profile.dialect == 'egyptian' or not profile.dialect %}selected{% endif %}>لهجة مصرية عامية (مصر)</option>
-                    <option value="saudi" {% if profile.dialect == 'saudi' %}selected{% endif %}>لهجة سعودية / نجدية وحجازية</option>
-                    <option value="emirati" {% if profile.dialect == 'emirati' %}selected{% endif %}>لهجة إماراتية / خليجية</option>
-                    <option value="kuwaiti" {% if profile.dialect == 'kuwaiti' %}selected{% endif %}>لهجة كويتية</option>
-                    <option value="levantine" {% if profile.dialect == 'levantine' %}selected{% endif %}>لهجة شامية (لبنان / سوريا / الأردن)</option>
-                    <option value="modern_standard" {% if profile.dialect == 'modern_standard' %}selected{% endif %}>لغة عربية فصحى مبسطة</option>
+                <label class="block text-xs font-black text-ink mb-1.5">اللغة الأساسية (Language)</label>
+                <select name="language" id="edit-profile-language" onchange="syncLanguageDialects('edit')" class="input font-bold cursor-pointer">
+                    <option value="arabic" {% if profile.language == 'arabic' or not profile.language %}selected{% endif %}>🇸🇦 العربية (Arabic)</option>
+                    <option value="english" {% if profile.language == 'english' %}selected{% endif %}>🇺🇸 English</option>
+                    <option value="french" {% if profile.language == 'french' %}selected{% endif %}>🇫🇷 Français</option>
+                    <option value="spanish" {% if profile.language == 'spanish' %}selected{% endif %}>🇪🇸 Español</option>
+                    <option value="german" {% if profile.language == 'german' %}selected{% endif %}>🇩🇪 Deutsch</option>
+                    <option value="italian" {% if profile.language == 'italian' %}selected{% endif %}>🇮🇹 Italiano</option>
+                    <option value="turkish" {% if profile.language == 'turkish' %}selected{% endif %}>🇹🇷 Türkçe</option>
+                    <option value="russian" {% if profile.language == 'russian' %}selected{% endif %}>🇷🇺 Русский</option>
+                    <option value="urdu" {% if profile.language == 'urdu' %}selected{% endif %}>🇵🇰 اردو (Urdu)</option>
+                    <option value="hindi" {% if profile.language == 'hindi' %}selected{% endif %}>🇮🇳 हिन्दी (Hindi)</option>
+                    <option value="chinese" {% if profile.language == 'chinese' %}selected{% endif %}>🇨🇳 中文 (Mandarin)</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">الصوت المعتمد (Voice Name)</label>
-                <select name="voice_name" id="edit-profile-voice" class="input font-bold cursor-pointer">
-                    <option value="Aoede" {% if profile.voice_name == 'Aoede' or not profile.voice_name %}selected{% endif %}>Aoede (أنثوي — ناعم وواضح ولطيف)</option>
-                    <option value="Fenrir" {% if profile.voice_name == 'Fenrir' %}selected{% endif %}>Fenrir (ذكوري — دافئ وقوي وموثوق)</option>
-                    <option value="Kore" {% if profile.voice_name == 'Kore' %}selected{% endif %}>Kore (أنثوي — هادئ ومهذب)</option>
-                    <option value="Puck" {% if profile.voice_name == 'Puck' %}selected{% endif %}>Puck (ذكوري — نشيط وسريع)</option>
+                <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة (Dialect)</label>
+                <select name="dialect" id="edit-profile-dialect" onchange="onDialectChange('edit')" class="input font-bold cursor-pointer">
+                    <!-- Populated dynamically via syncLanguageDialects -->
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1.5">صوت Google الرسمي (30 صوت)</label>
+                <select name="voice_name" id="edit-profile-voice" class="input font-bold cursor-pointer font-mono text-xs">
+                    <!-- Populated dynamically via syncGenderVoices -->
                 </select>
             </div>
 
@@ -171,17 +231,18 @@
                 <label class="block text-xs font-black text-ink mb-1.5">أسلوب الحديث والنبرة</label>
                 <select name="speaking_style" id="edit-profile-style" class="input font-bold cursor-pointer">
                     <option value="friendly" {% if profile.speaking_style == 'friendly' or profile.speaking_style == 'ودود ولطيف ومرح' %}selected{% endif %}>ودود ولطيف ومرح</option>
-                    <option value="formal" {% if profile.speaking_style == 'formal' or profile.speaking_style == 'رسمي ومحترف ولبق' %}selected{% endif %}>رسمي ومحترف ولبق</option>
-                    <option value="concise" {% if profile.speaking_style == 'concise' or profile.speaking_style == 'سريع ومباشر' %}selected{% endif %}>سريع ومباشر (للذروة)</option>
+                    <option value="formal" {% if profile.speaking_style == 'formal' or profile.speaking_style == 'رسمي وهادئ ورصين' %}selected{% endif %}>رسمي وهادئ ورصين</option>
+                    <option value="concise" {% if profile.speaking_style == 'concise' or profile.speaking_style == 'مباشر وسريع وموجز' %}selected{% endif %}>سريع وموجز (للذروة)</option>
+                    <option value="enthusiastic" {% if profile.speaking_style == 'enthusiastic' or profile.speaking_style == 'حماسي وتشجيعي' %}selected{% endif %}>حماسي وتشجيعي</option>
                 </select>
             </div>
 
             <div>
                 <label class="block text-xs font-black text-ink mb-1.5">مستوى الإسهاب (Verbosity)</label>
                 <select name="verbosity" id="edit-profile-verbosity" class="input font-bold cursor-pointer">
-                    <option value="balanced" {% if profile.verbosity == 'balanced' or not profile.verbosity %}selected{% endif %}>متوازن (طبيعي ومهذب)</option>
-                    <option value="concise" {% if profile.verbosity == 'concise' %}selected{% endif %}>مختصر جداً (إجابات مقتضبة)</option>
-                    <option value="detailed" {% if profile.verbosity == 'detailed' %}selected{% endif %}>مفصل (شرح تفصيلي للمنيو)</option>
+                    <option value="balanced" {% if profile.verbosity == 'balanced' or not profile.verbosity %}selected{% endif %}>متوازن ⚖️ (طبيعي ومهذب)</option>
+                    <option value="concise" {% if profile.verbosity == 'concise' %}selected{% endif %}>مختصر ⚡ (1-2 جملة)</option>
+                    <option value="detailed" {% if profile.verbosity == 'detailed' %}selected{% endif %}>مفصل 📖 (شرح وافٍ)</option>
                 </select>
             </div>
         </div>
@@ -226,7 +287,7 @@
                 name="welcome_message" 
                 rows="2" 
                 class="input font-bold text-brand-900 bg-brand-50/20"
-            >{{ profile.welcome_message|default:"أهلاً بحضرتك! معاك خدمة العملاء لتسجيل طلبك، تؤمر بإيه النهارده يا فندم؟" }}</textarea>
+            >{{ profile.welcome_message|default:"أهلاً بحضرتك في مطاعمنا! معاك خدمة العملاء لتسجيل طلبك، تؤمر بإيه النهارده يا فندم؟" }}</textarea>
             <p class="text-[11px] text-soft mt-1">هذه أول جملة ينطقها المساعد الصوتي فور رد السنترال على العميل لبدء استقبال طلبه.</p>
         </div>
 
@@ -247,7 +308,7 @@
 
         <div class="pt-3 border-t border-line flex items-center justify-end gap-3">
             <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer flex items-center gap-2">
-                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> حفظ تعديلات البروفايل
+                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> حفظ وتحديث الاستوديو
             </button>
         </div>
     </form>
@@ -255,7 +316,7 @@
 
 <!-- Modal: Create New Profile -->
 <div id="create-profile-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="card max-w-xl w-full p-6 border-line shadow-2xl space-y-5 animate-toast max-h-[90vh] overflow-y-auto" dir="{{ DIR|default:'rtl' }}">
+    <div class="card max-w-2xl w-full p-6 border-line shadow-2xl space-y-5 animate-toast max-h-[90vh] overflow-y-auto" dir="{{ DIR|default:'rtl' }}">
         <div class="flex items-center justify-between border-b border-line pb-3">
             <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
                 <span>🎭</span> إنشاء بروفايل صوتي وشخصية جديدة
@@ -267,46 +328,57 @@
             {% csrf_token %}
             <div>
                 <label class="block text-xs font-black text-ink mb-1.5">اسم البروفايل الصوتي</label>
-                <input type="text" name="name" id="create-prof-name" placeholder="مثال: مساعد المبيعات السعودي أو مسؤولة خدمة العملاء" required class="input">
+                <input type="text" name="name" id="create-prof-name" placeholder="مثال: مسؤولة استقبال الطلبات أو المساعد الإنجليزي" required class="input">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">الدور الوظيفي (Persona Role)</label>
+                    <label class="block text-xs font-black text-ink mb-1.5">الدور والشخصية (Persona Role)</label>
                     <select name="persona_role" id="create-prof-role" class="input font-bold cursor-pointer">
-                        <option value="order_taker" selected>استقبال وتسجيل الطلبات (Order Taker)</option>
-                        <option value="sales_advisor">مستشار مبيعات وترويج العروض (Sales Advisor)</option>
-                        <option value="customer_service">خدمة عملاء واستفسارات (Customer Service)</option>
+                        <option value="restaurant_orders" selected>🍽️ استقبال وتأكيد طلبات المطاعم وتوصيلها</option>
+                        <option value="table_booking_concierge">🛎️ حجز طاولات ومناسبات خاصة وضيافة</option>
+                        <option value="customer_service">🎧 خدمة عملاء واستفسارات المنيو</option>
+                        <option value="sales_advisor">💰 مستشار مبيعات وترويج العروض</option>
+                        <option value="delivery_dispatch">🚚 منسق توصيل وشحن لوجستي</option>
+                        <option value="vip_concierge_care">🌟 ممثل علاقات كبار العملاء (VIP)</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs font-black text-ink mb-1.5">الجنس الصوتي (Gender)</label>
-                    <select name="gender" id="create-prof-gender" class="input font-bold cursor-pointer">
+                    <select name="gender" id="create-prof-gender" onchange="syncGenderVoices('create')" class="input font-bold cursor-pointer">
                         <option value="female" selected>أنثوي (Female)</option>
                         <option value="male">ذكوري (Male)</option>
                     </select>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة (Dialect)</label>
-                    <select name="dialect" id="create-prof-dialect" onchange="onDialectChange('create')" class="input font-bold cursor-pointer">
-                        <option value="egyptian" selected>لهجة مصرية عامية (مصر)</option>
-                        <option value="saudi">لهجة سعودية / نجدية وحجازية</option>
-                        <option value="emirati">لهجة إماراتية / خليجية</option>
-                        <option value="kuwaiti">لهجة كويتية</option>
-                        <option value="levantine">لهجة شامية (لبنان / سوريا / الأردن)</option>
-                        <option value="modern_standard">لغة عربية فصحى مبسطة</option>
+                    <label class="block text-xs font-black text-ink mb-1.5">اللغة (Language)</label>
+                    <select name="language" id="create-prof-language" onchange="syncLanguageDialects('create')" class="input font-bold cursor-pointer">
+                        <option value="arabic" selected>🇸🇦 العربية</option>
+                        <option value="english">🇺🇸 English</option>
+                        <option value="french">🇫🇷 Français</option>
+                        <option value="spanish">🇪🇸 Español</option>
+                        <option value="german">🇩🇪 Deutsch</option>
+                        <option value="italian">🇮🇹 Italiano</option>
+                        <option value="turkish">🇹🇷 Türkçe</option>
+                        <option value="russian">🇷🇺 Русский</option>
+                        <option value="urdu">🇵🇰 اردو</option>
+                        <option value="hindi">🇮🇳 हिन्दी</option>
+                        <option value="chinese">🇨🇳 中文</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1.5">الصوت المعتمد (Voice Name)</label>
-                    <select name="voice_name" id="create-prof-voice" class="input font-bold cursor-pointer">
-                        <option value="Aoede" selected>Aoede (أنثوي — ناعم وواضح)</option>
-                        <option value="Fenrir">Fenrir (ذكوري — دافئ وقوي)</option>
-                        <option value="Kore">Kore (أنثوي — هادئ ومهذب)</option>
-                        <option value="Puck">Puck (ذكوري — نشيط وسريع)</option>
+                    <label class="block text-xs font-black text-ink mb-1.5">اللهجة المعتمدة (Dialect)</label>
+                    <select name="dialect" id="create-prof-dialect" onchange="onDialectChange('create')" class="input font-bold cursor-pointer">
+                        <!-- Populated dynamically via syncLanguageDialects -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1.5">صوت Google الرسمي</label>
+                    <select name="voice_name" id="create-prof-voice" class="input font-bold cursor-pointer font-mono text-xs">
+                        <!-- Populated dynamically via syncGenderVoices -->
                     </select>
                 </div>
             </div>
@@ -316,16 +388,17 @@
                     <label class="block text-xs font-black text-ink mb-1.5">أسلوب الحديث والنبرة</label>
                     <select name="speaking_style" id="create-prof-style" class="input font-bold cursor-pointer">
                         <option value="friendly" selected>ودود ولطيف ومرح</option>
-                        <option value="formal">رسمي ومحترف ولبق</option>
-                        <option value="concise">سريع ومباشر</option>
+                        <option value="formal">رسمي وهادئ ورصين</option>
+                        <option value="concise">سريع ومباشر وموجز</option>
+                        <option value="enthusiastic">حماسي وتشجيعي</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs font-black text-ink mb-1.5">مستوى الإسهاب (Verbosity)</label>
                     <select name="verbosity" id="create-prof-verbosity" class="input font-bold cursor-pointer">
-                        <option value="balanced" selected>متوازن (طبيعي ومهذب)</option>
-                        <option value="concise">مختصر جداً</option>
-                        <option value="detailed">مفصل</option>
+                        <option value="balanced" selected>متوازن ⚖️ (طبيعي ومهذب)</option>
+                        <option value="concise">مختصر ⚡ (1-2 جملة)</option>
+                        <option value="detailed">مفصل 📖 (شرح وافٍ)</option>
                     </select>
                 </div>
             </div>
@@ -346,7 +419,7 @@
             <!-- Welcome Message in Modal -->
             <div>
                 <label class="block text-xs font-black text-ink mb-1">رسالة الترحيب الأولى (Welcome Message)</label>
-                <textarea name="welcome_message" id="create-prof-welcome" rows="2" class="input text-xs font-bold" placeholder="أهلاً بحضرتك! كيف أساعدك اليوم؟"></textarea>
+                <textarea name="welcome_message" id="create-prof-welcome" rows="2" class="input text-xs font-bold" placeholder="أهلاً بحضرتك في مطعمنا! كيف أقدر أساعدك اليوم؟"></textarea>
             </div>
 
             <!-- Custom Instructions in Modal -->
@@ -374,34 +447,199 @@
 </div>
 
 <script>
+    // Studio Metadata from Voice AI Platform API
+    const STUDIO = {{ studio_json|safe }};
     const currentRestName = "{{ tenant.name|default:'المطعم'|escapejs }}";
+
+    // 30 Official Google HD Voices Catalog
+    const ALL_GOOGLE_VOICES = STUDIO.google_voices && STUDIO.google_voices.length ? STUDIO.google_voices : [
+        // Female Voices (15)
+        {"name": "Aoede", "gender": "female", "style": "نشيطة وسريعة", "tag": "افتراضي"},
+        {"name": "Kore", "gender": "female", "style": "واثقة وحازمة", "tag": "رسمي"},
+        {"name": "Leda", "gender": "female", "style": "شابة وودودة", "tag": "ودود"},
+        {"name": "Callisto", "gender": "female", "style": "دافئة ومريحة", "tag": "دافئ"},
+        {"name": "Sulafat", "gender": "female", "style": "رقيقة وواضحة", "tag": "رقيق"},
+        {"name": "Autonoe", "gender": "female", "style": "مشرقة ومتحمسة", "tag": "حيوي"},
+        {"name": "Achernar", "gender": "female", "style": "ناعمة ومطمئنة", "tag": "هادئ"},
+        {"name": "Erinome", "gender": "female", "style": "رنانة ومتمكنة", "tag": "رسمي"},
+        {"name": "Laomedeia", "gender": "female", "style": "تعبيرية وتفاعلية", "tag": "تفاعلي"},
+        {"name": "Gacrux", "gender": "female", "style": "مرحبة ومضيافة", "tag": "مضياف"},
+        {"name": "Vindemiatrix", "gender": "female", "style": "أنيقة وراقية", "tag": "فاخر"},
+        {"name": "Despina", "gender": "female", "style": "واضحة ومباشرة", "tag": "مباشر"},
+        {"name": "Galatea", "gender": "female", "style": "نقية وأنيقة", "tag": "أنيق"},
+        {"name": "Larissa", "gender": "female", "style": "مبهجة ولطيفة", "tag": "لطيف"},
+        {"name": "Naiad", "gender": "female", "style": "سلسة وعفوية", "tag": "طبيعي"},
+
+        // Male Voices (15)
+        {"name": "Puck", "gender": "male", "style": "مرح وحيوي", "tag": "حيوي"},
+        {"name": "Charon", "gender": "male", "style": "هادئ ووقور", "tag": "هادئ"},
+        {"name": "Fenrir", "gender": "male", "style": "عميق وجهوري", "tag": "رسمي"},
+        {"name": "Zephyr", "gender": "male", "style": "منعش ومشرق", "tag": "منعش"},
+        {"name": "Orus", "gender": "male", "style": "حازم ومباشر", "tag": "حازم"},
+        {"name": "Umbriel", "gender": "male", "style": "تلقائي وعفوي", "tag": "تلقائي"},
+        {"name": "Schedar", "gender": "male", "style": "واضح ورصين", "tag": "رصين"},
+        {"name": "Achird", "gender": "male", "style": "عملي وسريع", "tag": "عملي"},
+        {"name": "Sadachbia", "gender": "male", "style": "متفاعل وحيوي", "tag": "حيوي"},
+        {"name": "Zubenelgenubi", "gender": "male", "style": "واقعي وبسيط", "tag": "واقعي"},
+        {"name": "Thalassa", "gender": "male", "style": "مطمئن ومتزن", "tag": "مطمئن"},
+        {"name": "Proteus", "gender": "male", "style": "ديناميكي ومتمكن", "tag": "متمكن"},
+        {"name": "Neso", "gender": "male", "style": "شاب وتقني", "tag": "تقني"},
+        {"name": "Halimede", "gender": "male", "style": "مهذب وسلس", "tag": "مهذب"},
+        {"name": "Sao", "gender": "male", "style": "مختصر وموجز", "tag": "موجز"}
+    ];
+
+    // Language Dialects Map from Studio
+    const LANGUAGE_DIALECTS_MAP = STUDIO.language_dialects_map && Object.keys(STUDIO.language_dialects_map).length ? STUDIO.language_dialects_map : {
+        'arabic': [
+            {'id': 'egyptian', 'label': '🇪🇬 لهجة مصرية عامية (مصر)'},
+            {'id': 'saudi', 'label': '🇸🇦 لهجة سعودية / نجدية وحجازية (السعودية)'},
+            {'id': 'emirati', 'label': '🇦🇪 لهجة إماراتية / خليجية (الإمارات)'},
+            {'id': 'kuwaiti', 'label': '🇰🇼 لهجة كويتية (الكويت)'},
+            {'id': 'levantine', 'label': '🇱🇧 لهجة شامية (سوريا ولبنان)'},
+            {'id': 'jordanian_palestinian', 'label': '🇯🇴 لهجة أردنية وفلسطينية (الأردن وفلسطين)'},
+            {'id': 'moroccan', 'label': '🇲🇦 لهجة مغربية / دارجة (المغرب)'},
+            {'id': 'algerian', 'label': '🇩🇿 لهجة جزائرية (الجزائر)'},
+            {'id': 'tunisian', 'label': '🇹🇳 لهجة تونسية (تونس)'},
+            {'id': 'iraqi', 'label': '🇮🇶 لهجة عراقية (العراق)'},
+            {'id': 'sudanese', 'label': '🇸🇩 لهجة سودانية (السودان)'},
+            {'id': 'yemeni', 'label': '🇾🇪 لهجة يمنية (اليمن)'},
+            {'id': 'fusha', 'label': '🌐 عربية فصحى معاصرة (رسمية)'}
+        ],
+        'english': [
+            {'id': 'english_us', 'label': '🇺🇸 American English (US)'},
+            {'id': 'english_uk', 'label': '🇬🇧 British English (UK)'},
+            {'id': 'english_aus', 'label': '🇦🇺 Australian English'},
+            {'id': 'english_ind', 'label': '🇮🇳 Indian English'},
+            {'id': 'english', 'label': '🌐 General English'}
+        ],
+        'french': [
+            {'id': 'french_fr', 'label': '🇫🇷 Français Métropolitain (France)'},
+            {'id': 'french_ca', 'label': '🇨🇦 Français Canadien (Canada)'}
+        ],
+        'spanish': [
+            {'id': 'spanish_es', 'label': '🇪🇸 Español de España (Spain)'},
+            {'id': 'spanish_latam', 'label': '🌎 Español Latinoamericano'}
+        ],
+        'german': [
+            {'id': 'german_de', 'label': '🇩🇪 Standarddeutsch (Germany & Austria)'}
+        ],
+        'italian': [
+            {'id': 'italian_it', 'label': '🇮🇹 Italiano Standard (Italy)'}
+        ],
+        'turkish': [
+            {'id': 'turkish_tr', 'label': '🇹🇷 Türkçe (Turkey)'}
+        ],
+        'russian': [
+            {'id': 'russian_ru', 'label': '🇷🇺 Русский язык (Russia)'}
+        ],
+        'urdu': [
+            {'id': 'urdu_pk', 'label': '🇵🇰 اردو (Pakistan & India)'}
+        ],
+        'hindi': [
+            {'id': 'hindi_in', 'label': '🇮🇳 हिन्दी (India)'}
+        ],
+        'chinese': [
+            {'id': 'chinese_zh', 'label': '🇨🇳 普通话 (Mandarin Chinese)'}
+        ]
+    };
+
+    // Off-Topic Smart Suggestions by Dialect
     const DIALECT_OFF_TOPIC_DEFAULTS = {
         'saudi': `أعتذر منك يا غالي، أنا في خدمتك لطلبات ومنيو ${currentRestName} فقط، تحب تطلب شيء من عروضنا اليوم؟`,
         'emirati': `السموحة منك طال عمرك، أنا أساعدك في طلبات ومنيو ${currentRestName} فقط، حاب تطلب شي الحين؟`,
         'kuwaiti': `السموحة يا غالي، أنا مخصص لطلبات ومنيو ${currentRestName} فقط، تبي تطلب شي من المنيو؟`,
         'levantine': `بعتذر منك يا غالي، أنا هون لمساعدتك بطلبات وقائمة ${currentRestName} بس، بتحب تطلب شي هلأ؟`,
+        'jordanian_palestinian': `بعتذر منك يا غالي، أنا هون لمساعدتك بطلبات ومنيو ${currentRestName} بس، بتحب تطلب إشي هسا؟`,
+        'moroccan': `كنعتذر منك أخاي، أنا هنا باش نعاونك في طلبات ومينو ${currentRestName} فقط، بغيتي تطلب شي حاجة دابا؟`,
+        'algerian': `نعتذر منك خويا، أنا هنا باش نعاونك في طلبات ومينو ${currentRestName} برك، تحب تطلب شي حاجة درك؟`,
+        'tunisian': `سامحني يا غالي، أنا لهنا باش نعاونك في منيو وطلبات ${currentRestName} كهو، تحب تعدي كوموند توا؟`,
+        'iraqi': `أعتذر منك عيوني، أني بخدمتك لطلبات ومنيو ${currentRestName} وبس، تحب تطلب شي هسة؟`,
+        'sudanese': `العفو منك يا غالي، أنا هنا لمساعدتك في طلبات ومنيو ${currentRestName} بس، تحب تطلب حاجة هسي؟`,
+        'yemeni': `العفو منك يا طيب، أنا في خدمتك لطلبات ومنيو ${currentRestName} فقط، تشتي تطلب شي ذلحين؟`,
+        'fusha': `أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات ${currentRestName} فقط، هل ترغب بطلب أي وجبة؟`,
         'modern_standard': `أعتذر منك يا سيدي، أنا هنا لمساعدتك في قائمة طعام وطلبات ${currentRestName} فقط، هل ترغب بطلب أي وجبة؟`,
-        'egyptian': `بعتذر جداً يا فندم، أنا بساعدك بس في منيو وطلبات ${currentRestName}، تؤمر بحاجة من عروضنا النهارده؟`
+        'egyptian': `بعتذر جداً يا فندم، أنا بساعدك بس في منيو وطلبات ${currentRestName}، تؤمر بحاجة من عروضنا النهارده؟`,
+        'english_us': `I apologize, but I can only assist with ${currentRestName}'s menu and orders. Would you like to place an order today?`,
+        'english_uk': `I do apologize, but I am only able to help with ${currentRestName}'s menu and orders. May I take your order?`,
+        'english': `I apologize, I can only assist with ${currentRestName}'s menu and orders. Would you like to place an order today?`,
+        'french_fr': `Je vous prie de m'excuser, mais je peux uniquement vous aider avec le menu et les commandes de ${currentRestName}. Souhaitez-vous commander ?`,
+        'spanish_es': `Disculpe, solo puedo ayudarle con el menú y pedidos de ${currentRestName}. ¿Le gustaría ordenar algo hoy?`
     };
 
+    function syncLanguageDialects(formType, preserveDialect = null) {
+        const langSelect = document.getElementById(formType === 'create' ? 'create-prof-language' : 'edit-profile-language');
+        const dialectSelect = document.getElementById(formType === 'create' ? 'create-prof-dialect' : 'edit-profile-dialect');
+        if (!langSelect || !dialectSelect) return;
+
+        const lang = langSelect.value || 'arabic';
+        const dialects = LANGUAGE_DIALECTS_MAP[lang] || LANGUAGE_DIALECTS_MAP['arabic'] || [];
+
+        const currentVal = preserveDialect || dialectSelect.value;
+        dialectSelect.innerHTML = '';
+
+        dialects.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.label;
+            if (d.id === currentVal || (d.id === 'fusha' && currentVal === 'modern_standard')) {
+                opt.selected = true;
+            }
+            dialectSelect.appendChild(opt);
+        });
+
+        if (!dialectSelect.value && dialects.length) {
+            dialectSelect.value = dialects[0].id;
+        }
+    }
+
+    function syncGenderVoices(formType, preserveVoice = null) {
+        const genderSelect = document.getElementById(formType === 'create' ? 'create-prof-gender' : 'edit-profile-gender');
+        const voiceSelect = document.getElementById(formType === 'create' ? 'create-prof-voice' : 'edit-profile-voice');
+        if (!genderSelect || !voiceSelect) return;
+
+        const gender = genderSelect.value || 'female';
+        const voices = ALL_GOOGLE_VOICES.filter(v => v.gender === gender);
+
+        const currentVal = preserveVoice || voiceSelect.value;
+        voiceSelect.innerHTML = '';
+
+        voices.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.name;
+            opt.textContent = `${v.name} — ${v.style} (${v.tag || 'HD'})`;
+            if (v.name === currentVal) {
+                opt.selected = true;
+            }
+            voiceSelect.appendChild(opt);
+        });
+
+        if (!voiceSelect.value && voices.length) {
+            voiceSelect.value = voices[0].name;
+        }
+    }
+
     function applyOffTopicSuggestion(formType) {
-        const dialectSelect = formType === 'create' ? document.getElementById('create-prof-dialect') : document.getElementById('edit-profile-dialect');
-        const offTopicArea = formType === 'create' ? document.getElementById('create-prof-off-topic') : document.getElementById('edit-off-topic-response');
+        const dialectSelect = document.getElementById(formType === 'create' ? 'create-prof-dialect' : 'edit-profile-dialect');
+        const offTopicArea = document.getElementById(formType === 'create' ? 'create-prof-off-topic' : 'edit-off-topic-response');
         if (!dialectSelect || !offTopicArea) return;
-        const dialect = dialectSelect.value || 'saudi';
-        offTopicArea.value = DIALECT_OFF_TOPIC_DEFAULTS[dialect] || DIALECT_OFF_TOPIC_DEFAULTS['saudi'];
-        showNotification('تم تطبيق الاقتراح التلقائي حسب اللهجة');
+        const dialect = dialectSelect.value || 'egyptian';
+        offTopicArea.value = DIALECT_OFF_TOPIC_DEFAULTS[dialect] || DIALECT_OFF_TOPIC_DEFAULTS['egyptian'];
+        if (typeof showNotification === 'function') {
+            showNotification('تم تطبيق الاقتراح التلقائي حسب اللهجة واسم المطعم');
+        }
     }
 
     function onDialectChange(formType) {
-        const offTopicArea = formType === 'create' ? document.getElementById('create-prof-off-topic') : document.getElementById('edit-off-topic-response');
-        if (!offTopicArea || offTopicArea.value.trim() === '') {
+        const offTopicArea = document.getElementById(formType === 'create' ? 'create-prof-off-topic' : 'edit-off-topic-response');
+        if (!offTopicArea || !offTopicArea.value || offTopicArea.value.trim() === '') {
             applyOffTopicSuggestion(formType);
         }
     }
 
     function openCreateProfileModal() {
         document.getElementById('create-profile-modal').classList.remove('hidden');
+        syncLanguageDialects('create');
+        syncGenderVoices('create');
         const offTopic = document.getElementById('create-prof-off-topic');
         if (offTopic && !offTopic.value) {
             applyOffTopicSuggestion('create');
@@ -420,6 +658,7 @@
             name: formData.get('name'),
             persona_role: formData.get('persona_role'),
             gender: formData.get('gender'),
+            language: formData.get('language'),
             dialect: formData.get('dialect'),
             voice_name: formData.get('voice_name'),
             speaking_style: formData.get('speaking_style'),
@@ -442,7 +681,7 @@
             const data = await res.json();
             if (data.status === 'success') {
                 showNotification('تم إنشاء البروفايل الصوتي بنجاح!');
-                setTimeout(() => window.location.reload(), 1000);
+                setTimeout(() => window.location.reload(), 800);
             } else {
                 showNotification(data.message || 'حدث خطأ أثناء الإنشاء', true);
             }
@@ -464,7 +703,7 @@
             const data = await res.json();
             if (data.status === 'success') {
                 showNotification('تم اعتماد وتفعيل البروفايل بنجاح!');
-                setTimeout(() => window.location.reload(), 1000);
+                setTimeout(() => window.location.reload(), 800);
             } else {
                 showNotification(data.message || 'فشل التفعيل', true);
             }
@@ -484,6 +723,7 @@
             name: formData.get('name'),
             persona_role: formData.get('persona_role'),
             gender: formData.get('gender'),
+            language: formData.get('language'),
             dialect: formData.get('dialect'),
             voice_name: formData.get('voice_name'),
             speaking_style: formData.get('speaking_style'),
@@ -505,8 +745,8 @@
             });
             const data = await res.json();
             if (data.status === 'success') {
-                showNotification('تم حفظ إعدادات الشخصية والبروفايل بنجاح!');
-                setTimeout(() => window.location.reload(), 1000);
+                showNotification('تم حفظ وتحديث الاستوديو بنجاح!');
+                setTimeout(() => window.location.reload(), 800);
             } else {
                 showNotification(data.message || 'حدث خطأ أثناء الحفظ', true);
             }
@@ -514,6 +754,15 @@
             showNotification('تعذر الاتصال بالخادم', true);
         }
     }
+
+    // Initialize edit form selections on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const initialDialect = "{{ profile.dialect|default:'egyptian'|escapejs }}";
+        const initialVoice = "{{ profile.voice_name|default:'Aoede'|escapejs }}";
+
+        syncLanguageDialects('edit', initialDialect);
+        syncGenderVoices('edit', initialVoice);
+    });
 </script>
 
 {% include "ai_callcenter/_common_scripts.html" %}

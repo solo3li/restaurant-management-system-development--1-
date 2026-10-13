@@ -270,14 +270,26 @@ def get_profile(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/profiles/")
 
 
+def get_studio_metadata(client_id: int) -> Dict[str, Any]:
+    """Fetch studio customization metadata (30 Google voices, 11 languages, 29 dialects, roles)."""
+    return _request(f"/clients/{client_id}/profiles/studio/")
+
+
 def create_profile(client_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
     """Create a new AI voice profile via POST /clients/{client_id}/profiles/"""
+    dialect = data.get("dialect", "egyptian")
+    if dialect == "modern_standard":
+        dialect = "fusha"
+
+    language = data.get("language") or "arabic"
+
     payload = {
         "name": (data.get("name") or "مساعد صوتي جديد").strip(),
+        "language": language,
         "voice_name": data.get("voice_name", "Aoede"),
         "gender": data.get("gender", "female"),
-        "dialect": data.get("dialect", "egyptian"),
-        "persona_role": data.get("persona_role", "order_taker"),
+        "dialect": dialect,
+        "persona_role": data.get("persona_role", "restaurant_orders"),
         "speaking_style": data.get("speaking_style", "friendly"),
         "custom_instructions": (data.get("custom_instructions") or "").strip(),
         "off_topic_response": (data.get("off_topic_response") or "").strip(),
@@ -300,7 +312,10 @@ def create_profile(client_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def update_profile(client_id: int, profile_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
-    return _request(f"/clients/{client_id}/profiles/{profile_id}/", method="PATCH", data=data)
+    clean_data = dict(data)
+    if clean_data.get("dialect") == "modern_standard":
+        clean_data["dialect"] = "fusha"
+    return _request(f"/clients/{client_id}/profiles/{profile_id}/", method="PATCH", data=clean_data)
 
 
 def activate_profile(client_id: int, profile_id: int) -> Dict[str, Any]:
