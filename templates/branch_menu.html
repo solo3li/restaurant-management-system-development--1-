@@ -552,7 +552,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
         <!-- Tab 2: Branding (Logo, Cover, Bio, Color) -->
         <div id="tab-content-branding" class="space-y-4 pt-4 hidden">
-            <form id="brandingForm" onsubmit="submitBrandingForm(event)" class="space-y-4">
+            <form id="brandingForm" novalidate onsubmit="submitBrandingForm(event)" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Logo Upload -->
                     <div class="p-3 rounded-2xl bg-paper/60 border border-line space-y-2">
@@ -616,7 +616,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
         <!-- Tab 3: Custom Domain -->
         <div id="tab-content-domain" class="space-y-4 pt-4 hidden">
-            <form onsubmit="submitCustomDomainForm(event)" class="space-y-4">
+            <form id="customDomainForm" novalidate onsubmit="submitCustomDomainForm(event)" class="space-y-4">
                 <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-300 text-xs text-amber-900 space-y-1">
                     <p class="font-bold text-amber-950">كيفية ربط نطاقك المخصص بالمنيو الرقمي:</p>
                     <p class="leading-relaxed text-amber-800">
@@ -629,7 +629,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 <div>
                     <label class="block text-xs font-bold text-ink mb-1">النطاق المخصص (Custom Domain)</label>
                     <div class="flex items-center gap-2">
-                        <input type="text" id="customDomainInput" value="{{ tenant.custom_domain|default:'' }}" placeholder="مثال: menu.myrestaurant.com" class="input text-xs font-mono font-bold w-full" dir="ltr">
+                        <input type="text" id="customDomainInput" name="custom_domain" value="{{ tenant.custom_domain|default:'' }}" placeholder="مثال: menu.myrestaurant.com" class="input text-xs font-mono font-bold w-full" dir="ltr">
                         <button type="submit" id="btnSaveDomain" class="btn-gold-pill px-5 py-2 text-xs font-black shadow-2xs flex-shrink-0">
                             حفظ النطاق
                         </button>
@@ -663,17 +663,17 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             </button>
         </div>
 
-        <form id="itemForm" onsubmit="saveMenuItem(event)" class="space-y-4 pt-4">
-            <input type="hidden" id="itemModalId" value="">
+        <form id="itemForm" novalidate onsubmit="saveMenuItem(event)" class="space-y-4 pt-4">
+            <input type="hidden" id="itemModalId" name="id" value="">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-ink mb-1">اسم الصنف <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemModalName" required class="input text-xs w-full" placeholder="مثال: كلاسيك برجر لحم">
+                    <input type="text" id="itemModalName" name="name" class="input text-xs w-full" placeholder="مثال: كلاسيك برجر لحم">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-ink mb-1">القسم / التصنيف <span class="text-rose-500">*</span></label>
-                    <select id="itemModalCategory" required class="input text-xs w-full">
+                    <select id="itemModalCategory" name="category_id" class="input text-xs w-full">
                         {% for c in category_objs %}
                             <option value="{{ c.id }}">{{ c.name }}</option>
                         {% endfor %}
@@ -683,7 +683,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
             <div>
                 <label class="block text-xs font-bold text-ink mb-1">وصف الطبق والمكونات</label>
-                <textarea id="itemModalDescription" rows="2" class="input text-xs w-full" placeholder="لحم بلدي مشوي طازج، صوص الشيف، جبن شيدر ذائب..."></textarea>
+                <textarea id="itemModalDescription" name="description" rows="2" class="input text-xs w-full" placeholder="لحم بلدي مشوي طازج، صوص الشيف، جبن شيدر ذائب..."></textarea>
             </div>
 
             <!-- Image Upload -->
@@ -695,7 +695,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                         <span id="itemModalImgPlaceholder" class="text-2xl">🍽️</span>
                     </div>
                     <div class="flex-1">
-                        <input type="file" id="itemModalImage" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
+                        <input type="file" id="itemModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
                         <p class="text-[10px] text-soft mt-1">صورة واضحة للطبق بدقة جيدة (PNG / JPG / WEBP).</p>
                     </div>
                 </div>
@@ -709,7 +709,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                         <span class="text-[10px] text-amber-800">مثل: صغير / وسط / كبير بأسعار مختلفة</span>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="itemModalHasVariants" onchange="toggleVariantSection()" class="sr-only peer">
+                        <input type="checkbox" id="itemModalHasVariants" name="has_variants" onchange="toggleVariantSection()" class="sr-only peer">
                         <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0E382A]"></div>
                     </label>
                 </div>
@@ -718,11 +718,11 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 <div id="singlePriceSection" class="grid grid-cols-2 gap-3 pt-1">
                     <div>
                         <label class="block text-xs font-bold text-ink mb-1">سعر البيع (ر.س) <span class="text-rose-500">*</span></label>
-                        <input type="number" step="0.25" min="0" id="itemModalPrice" class="input text-xs w-full" placeholder="25.00">
+                        <input type="number" step="0.25" min="0" id="itemModalPrice" name="price" class="input text-xs w-full" placeholder="25.00">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-ink mb-1">التكلفة التقريبية (ر.س)</label>
-                        <input type="number" step="0.25" min="0" id="itemModalCost" class="input text-xs w-full" placeholder="10.00">
+                        <input type="number" step="0.25" min="0" id="itemModalCost" name="cost" class="input text-xs w-full" placeholder="10.00">
                     </div>
                 </div>
 
@@ -775,22 +775,22 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
         <div class="space-y-5 pt-4">
             <!-- Add / Edit Form -->
-            <form id="categoryForm" onsubmit="saveCategory(event)" class="p-3.5 rounded-2xl bg-paper/70 border border-line space-y-3">
-                <input type="hidden" id="categoryModalId" value="">
+            <form id="categoryForm" novalidate onsubmit="saveCategory(event)" class="p-3.5 rounded-2xl bg-paper/70 border border-line space-y-3">
+                <input type="hidden" id="categoryModalId" name="id" value="">
                 <h3 class="text-xs font-bold text-ink" id="catFormTitle">إضافة قسم جديد:</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-bold text-soft mb-1">اسم القسم <span class="text-rose-500">*</span></label>
-                        <input type="text" id="catModalName" required class="input text-xs w-full" placeholder="مثال: بيتزا، شاورما، حلويات">
+                        <input type="text" id="catModalName" name="name" class="input text-xs w-full" placeholder="مثال: بيتزا، شاورما، حلويات">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-soft mb-1">ترتيب الظهور</label>
-                        <input type="number" id="catModalOrder" value="10" class="input text-xs w-full">
+                        <input type="number" id="catModalOrder" name="ordering" value="10" class="input text-xs w-full">
                     </div>
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-soft mb-1">صورة القسم (Icon / Image)</label>
-                    <input type="file" id="catModalImage" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
+                    <input type="file" id="catModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-1">
                     <button type="button" id="btnCancelCatEdit" onclick="resetCategoryForm()" class="px-3 py-1.5 rounded-xl border border-line text-xs font-bold text-soft hidden">
@@ -923,6 +923,7 @@ function toggleVariantSection() {
     } else {
         singleSection.classList.remove('hidden');
         variantsSection.classList.add('hidden');
+        document.getElementById('variantsContainer').innerHTML = '';
     }
 }
 
@@ -931,12 +932,12 @@ function addVariantRow(name = '', price = '', cost = '') {
     const row = document.createElement('div');
     row.className = 'flex items-center gap-2 variant-row p-2 rounded-xl bg-white border border-line';
     row.innerHTML = `
-        <input type="text" class="v-name input text-xs flex-1" placeholder="اسم الحجم (مثال: وسط)" value="${name}" required>
+        <input type="text" name="variant_name[]" class="v-name input text-xs flex-1" placeholder="اسم الحجم (مثال: وسط)" value="${name}">
         <div class="relative w-28">
-            <input type="number" step="0.25" min="0" class="v-price input text-xs w-full" placeholder="السعر" value="${price}" required>
+            <input type="number" step="0.25" min="0" name="variant_price[]" class="v-price input text-xs w-full" placeholder="السعر" value="${price}">
             <span class="absolute left-2 top-2 text-[10px] text-soft">ر.س</span>
         </div>
-        <button type="button" onclick="this.closest('.variant-row').remove()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg">
+        <button type="button" onclick="this.closest('.variant-row').remove()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg" title="حذف الحجم">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
     `;
@@ -954,6 +955,17 @@ async function saveMenuItem(event) {
     const price = document.getElementById('itemModalPrice').value;
     const cost = document.getElementById('itemModalCost').value;
     const fileInput = document.getElementById('itemModalImage');
+
+    if (!name) {
+        showToast('يرجى إدخال اسم الصنف أولاً', 'error');
+        document.getElementById('itemModalName').focus();
+        return;
+    }
+    if (!catId) {
+        showToast('يرجى تحديد قسم أو تصنيف للصنف', 'error');
+        document.getElementById('itemModalCategory').focus();
+        return;
+    }
 
     const formData = new FormData();
     formData.append('name', name);
@@ -978,6 +990,7 @@ async function saveMenuItem(event) {
     } else {
         if (!price || parseFloat(price) <= 0) {
             showToast('يرجى تحديد سعر بيع صحيح', 'error');
+            document.getElementById('itemModalPrice').focus();
             return;
         }
         formData.append('price', price);
@@ -1088,6 +1101,12 @@ async function saveCategory(event) {
     const name = document.getElementById('catModalName').value.trim();
     const order = document.getElementById('catModalOrder').value;
     const imgInput = document.getElementById('catModalImage');
+
+    if (!name) {
+        showToast('يرجى إدخال اسم القسم أولاً', 'error');
+        document.getElementById('catModalName').focus();
+        return;
+    }
 
     const formData = new FormData();
     formData.append('name', name);

@@ -609,15 +609,15 @@
 
         <input type="hidden" id="plan-id">
 
-        <form id="plan-form" onsubmit="submitPlanForm(event)" class="space-y-4 overflow-y-auto pr-1 text-xs flex-1">
+        <form id="plan-form" novalidate onsubmit="submitPlanForm(event)" class="space-y-4 overflow-y-auto pr-1 text-xs flex-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="mb-1 block font-bold text-[#666666]">اسم الباقة *</label>
-                    <input type="text" id="plan-name" required placeholder="مثال: الباقة الذهبية" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
+                    <input type="text" id="plan-name" name="name" required placeholder="مثال: الباقة الذهبية" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                 </div>
                 <div>
                     <label class="mb-1 block font-bold text-[#666666]">كود الباقة (Slug) *</label>
-                    <input type="text" id="plan-code" required placeholder="golden" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
+                    <input type="text" id="plan-code" name="code" required placeholder="golden" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
                 </div>
             </div>
 
@@ -796,20 +796,20 @@
             </button>
         </div>
 
-        <form id="add-tenant-form" onsubmit="submitNewTenant(event)" class="space-y-3 text-xs">
+        <form id="add-tenant-form" novalidate onsubmit="submitNewTenant(event)" class="space-y-3 text-xs">
             <div>
                 <label class="mb-1 block font-bold text-[#666666]">اسم المطعم / الشركة *</label>
-                <input type="text" id="tenant-name" required placeholder="مثال: شاورما بلس" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
+                <input type="text" id="tenant-name" name="name" required placeholder="مثال: شاورما بلس" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
             </div>
 
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="mb-1 block font-bold text-[#666666]">المعرف البرمجي (Slug) *</label>
-                    <input type="text" id="tenant-slug" required placeholder="shawarma-plus" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
+                    <input type="text" id="tenant-slug" name="slug" required placeholder="shawarma-plus" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-mono">
                 </div>
                 <div>
                     <label class="mb-1 block font-bold text-[#666666]">باقة الاشتراك *</label>
-                    <select id="tenant-plan" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
+                    <select id="tenant-plan" name="plan_id" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs font-bold text-[#0E382A]">
                         {% for p in plans %}
                         <option value="{{ p.id }}">{{ p.name }}</option>
                         {% endfor %}
@@ -820,17 +820,17 @@
             <div class="grid grid-cols-3 gap-2">
                 <div class="col-span-2">
                     <label class="mb-1 block font-bold text-[#666666]">رقم الهاتف</label>
-                    <input type="text" id="tenant-phone" placeholder="05xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs">
+                    <input type="text" id="tenant-phone" name="phone" placeholder="05xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs">
                 </div>
                 <div>
                     <label class="mb-1 block font-bold text-[#666666]">رمز المطعم</label>
-                    <input type="text" id="tenant-emoji" value="" placeholder="رمز" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs text-center font-bold text-[#0E382A]">
+                    <input type="text" id="tenant-emoji" name="logo_emoji" value="" placeholder="رمز" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs text-center font-bold text-[#0E382A]">
                 </div>
             </div>
 
             <div>
                 <label class="mb-1 block font-bold text-[#666666]">العنوان والمقر الرئيسي</label>
-                <input type="text" id="tenant-address" placeholder="الرياض، حي السليمانية" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs">
+                <input type="text" id="tenant-address" name="address" placeholder="الرياض، حي السليمانية" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs">
             </div>
 
             <div class="rounded-xl bg-[#F9F6F0] p-3 border border-[#D2AB6B]/30 space-y-2">
@@ -838,21 +838,21 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="mb-1 block text-[10px] font-bold text-[#666666]">اسم المالك *</label>
-                        <input type="text" id="owner-name" required placeholder="محمد الدوسري" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
+                        <input type="text" id="owner-name" name="owner_name" required placeholder="محمد الدوسري" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
                     </div>
                     <div>
                         <label class="mb-1 block text-[10px] font-bold text-[#666666]">اسم المستخدم للدخول *</label>
-                        <input type="text" id="owner-username" required placeholder="mdosari" dir="ltr" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs font-mono">
+                        <input type="text" id="owner-username" name="owner_username" required placeholder="mdosari" dir="ltr" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs font-mono">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="mb-1 block text-[10px] font-bold text-[#666666]">كلمة المرور *</label>
-                        <input type="password" id="owner-password" required placeholder="••••••••" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
+                        <input type="password" id="owner-password" name="owner_password" required placeholder="••••••••" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
                     </div>
                     <div>
                         <label class="mb-1 block text-[10px] font-bold text-[#666666]">البريد الإلكتروني</label>
-                        <input type="email" id="owner-email" placeholder="owner@domain.com" dir="ltr" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
+                        <input type="email" id="owner-email" name="owner_email" placeholder="owner@domain.com" dir="ltr" class="w-full px-2.5 py-1.5 rounded border border-[#D2AB6B]/40 bg-white text-xs">
                     </div>
                 </div>
             </div>
