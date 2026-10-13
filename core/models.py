@@ -105,6 +105,12 @@ class Tenant(models.Model):
     voice_username = models.CharField(max_length=150, blank=True, default="", verbose_name="اسم مستخدم السنترال (Voice PBX Username)")
     voice_password = models.CharField(max_length=128, blank=True, default="", verbose_name="كلمة مرور السنترال (Voice PBX Password)")
     voice_is_active = models.BooleanField(default=False, verbose_name="تفعيل الكول سنتر الصوتي")
+    default_currency = models.CharField(
+        max_length=10,
+        default="SAR",
+        verbose_name="العملة الافتراضية للمنشأة",
+        help_text="العملة الرسمية المعتمدة للمطعم والسلسلة وفروعها الجديدة."
+    )
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التسجيل")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
@@ -116,6 +122,18 @@ class Tenant(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.slug})"
+
+    def get_currency_name_ar(self):
+        from core.currencies import get_currency_info
+        return get_currency_info(self.default_currency).get("name_ar", "ريال")
+
+    def get_currency_symbol_ar(self):
+        from core.currencies import get_currency_info
+        return get_currency_info(self.default_currency).get("symbol_ar", "ر.س")
+
+    def get_currency_symbol_en(self):
+        from core.currencies import get_currency_info
+        return get_currency_info(self.default_currency).get("symbol_en", "SAR")
 
     def can_add_branch(self):
         if not self.subscription_plan:

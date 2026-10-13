@@ -40,7 +40,16 @@
             </h1>
             <p class="text-xs font-semibold text-[#666666] mt-1">{{ t.branch_subtitle }}</p>
         </div>
-        <div>
+        <div class="flex items-center gap-2.5">
+            <button onclick="openChainCurrencyModal()" class="rounded-xl border border-[#D2AB6B] bg-white hover:bg-[#F9F6F0] text-[#0E382A] px-3.5 py-2.5 text-xs font-bold transition flex items-center gap-2 shadow-xs" title="تعديل العملة الافتراضية للمنشأة وتوحيدها">
+                <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>عملة السلسلة:</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-[#0E382A] text-[#D2AB6B] text-[10px] font-bold">
+                    {{ default_currency }} ({{ tenant.get_currency_symbol_ar }})
+                </span>
+            </button>
             <button onclick="openAddBranchModal()" class="btn-gold-pill flex items-center gap-2 text-xs font-bold py-2.5 px-5 shadow-sm">
                 <svg class="w-4 h-4 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -68,9 +77,22 @@
                             <p class="text-[11px] text-[#F9F6F0]/80">{{ item.branch.city|default:"الرياض" }}</p>
                         </div>
                     </div>
-                    <span class="rounded-full px-3 py-1 text-[11px] font-bold border {% if item.branch.status == 'active' %}bg-[#0E382A]/80 text-[#D2AB6B] border-[#D2AB6B]/60{% else %}bg-rose-900/60 text-rose-200 border-rose-500/40{% endif %}">
-                        {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            type="button" 
+                            onclick="openBranchCurrencyModal({{ item.branch.id }}, '{{ item.branch.name|escapejs }}', '{{ item.branch.currency }}')"
+                            title="تغيير عملة هذا الفرع"
+                            class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold border border-[#D2AB6B]/50 bg-white/10 hover:bg-white/20 text-[#E6C898] transition cursor-pointer shadow-2xs"
+                        >
+                            <span>{{ item.branch.currency }} ({{ item.branch.get_currency_symbol_ar }})</span>
+                            <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                            </svg>
+                        </button>
+                        <span class="rounded-full px-3 py-1 text-[11px] font-bold border {% if item.branch.status == 'active' %}bg-[#0E382A]/80 text-[#D2AB6B] border-[#D2AB6B]/60{% else %}bg-rose-900/60 text-rose-200 border-rose-500/40{% endif %}">
+                            {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Card Body -->
@@ -116,7 +138,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                                 {{ a.name }}
-                                <span class="text-[#0E382A] font-bold">{{ a.delivery_fee }} ر.س</span>
+                                <span class="text-[#0E382A] font-bold">{{ a.delivery_fee }} {{ item.branch.get_currency_symbol_ar }}</span>
                             </span>
                             {% endfor %}
                             {% if item.areas_count > 6 %}
@@ -150,7 +172,7 @@
                         </div>
                         <div class="rounded-lg bg-[#0E382A]/10 p-2 border border-[#D2AB6B]/40">
                             <p class="font-bold text-[#0E382A] text-sm">{{ item.sales_today|floatformat:0 }}</p>
-                            <p class="text-[10px] text-[#0E382A] font-semibold">مبيعات ر.س</p>
+                            <p class="text-[10px] text-[#0E382A] font-semibold">مبيعات {{ item.branch.get_currency_symbol_ar }}</p>
                         </div>
                     </div>
                 </div>
@@ -236,6 +258,15 @@
                     <div>
                         <label class="mb-1 block font-bold text-[#666666]">رقم هاتف الفرع</label>
                         <input type="text" id="branch-phone-input" placeholder="010xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs focus:outline-none focus:border-[#0E382A]">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="mb-1 block font-bold text-[#666666]">العملة الرسمية للفرع *</label>
+                        <select id="branch-currency-input" class="w-full px-3 py-2 rounded-lg border border-[#D2AB6B]/40 bg-white text-xs focus:outline-none focus:border-[#0E382A]">
+                            {% for c in currencies_list %}
+                            <option value="{{ c.code }}" {% if c.code == default_currency %}selected{% endif %}>{{ c.label }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-[10px] text-[#666666] mt-1">القيمة الافتراضية محددة حسب عملة المنشأة ({{ default_currency }}). يمكنك تخصيص عملة مختلفة لهذا الفرع إذا كان في دولة أخرى.</p>
                     </div>
                 </div>
             </div>
@@ -476,6 +507,140 @@
         </div>
     </div>
 </div>
+
+<!-- ======================================================== -->
+<!-- MODAL 3: BRAND / CHAIN DEFAULT CURRENCY                  -->
+<!-- ======================================================== -->
+<div id="chain-currency-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-lg w-full p-6 shadow-2xl flex flex-col border border-[#D2AB6B] animate-scale-in">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3 mb-4 shrink-0">
+            <div>
+                <h3 class="text-base font-bold font-royal text-[#0E382A] flex items-center gap-2.5">
+                    <span class="medallion-icon w-7 h-7">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </span>
+                    العملة الافتراضية للمنشأة والسلسلة
+                </h3>
+                <p class="text-[11px] text-[#666666] mt-0.5">تحديد العملة الأساسية للمطعم مع إمكانية تعميمها وتوحيدها على كافة الفروع</p>
+            </div>
+            <button onclick="closeChainCurrencyModal()" class="text-[#666666] hover:text-[#0E382A] p-1.5 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="space-y-4 text-xs">
+            <div class="p-3 bg-[#0E382A]/5 border border-[#D2AB6B]/30 rounded-xl space-y-1">
+                <p class="font-bold text-[#0E382A] flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    العملة الحالية للمنشأة:
+                    <span class="text-[#0E382A] font-black underline">{{ default_currency }} — {{ tenant.get_currency_name_ar }} ({{ tenant.get_currency_symbol_ar }})</span>
+                </p>
+                <p class="text-[11px] text-[#666666]">
+                    هذه العملة هي الأساسية المعتمدة تلقائياً عند افتتاح أي فرع جديد، ومرجع التقارير الإجمالية في الإدارة العامة.
+                </p>
+            </div>
+
+            <div>
+                <label class="block font-bold text-[#0E382A] mb-1.5">اختر العملة الجديدة للمنشأة والسلسلة *</label>
+                <select id="chain-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-[#D2AB6B]/50 bg-white text-xs font-semibold focus:outline-none focus:border-[#0E382A] focus:ring-1 focus:ring-[#0E382A]">
+                    {% for c in currencies_list %}
+                    <option value="{{ c.code }}" {% if c.code == default_currency %}selected{% endif %}>
+                        {{ c.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl">
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                    <input type="checkbox" id="chain-currency-apply-all" class="mt-0.5 w-4 h-4 rounded border-[#D2AB6B] text-[#0E382A] focus:ring-[#0E382A]">
+                    <div class="text-xs">
+                        <span class="font-bold text-[#0E382A] block">توحيد وتطبيق على كافة الفروع الحالية</span>
+                        <span class="text-[11px] text-[#666666] block mt-0.5">
+                            عند تفعيل هذا الخيار، سيتم تعديل عملة جميع فروع السلسلة فوراً لتطابق هذه العملة وتحديث الأسعار والمبيعات وطلبات الهاتف.
+                        </span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-6 pt-3 border-t border-[#D2AB6B]/30 flex items-center justify-end gap-2.5">
+            <button type="button" onclick="closeChainCurrencyModal()" class="rounded-lg border border-[#D2AB6B]/50 bg-white hover:bg-[#F9F6F0] text-[#1E130D] px-4 py-2 text-xs font-bold transition">
+                إلغاء
+            </button>
+            <button type="button" id="save-chain-currency-btn" onclick="saveChainCurrency()" class="btn-gold-pill px-5 py-2 text-xs font-bold shadow-sm">
+                حفظ العملة
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL 4: INDIVIDUAL BRANCH CURRENCY                      -->
+<!-- ======================================================== -->
+<div id="branch-currency-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div class="classic-card max-w-lg w-full p-6 shadow-2xl flex flex-col border border-[#D2AB6B] animate-scale-in">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-[#D2AB6B]/30 pb-3 mb-4 shrink-0">
+            <div>
+                <h3 class="text-base font-bold font-royal text-[#0E382A] flex items-center gap-2.5">
+                    <span class="medallion-icon w-7 h-7">
+                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </span>
+                    تعديل عملة الفرع
+                </h3>
+                <p id="branch-currency-modal-subtitle" class="text-[11px] text-[#666666] mt-0.5">تحديد العملة الرسمية الخاصة بالفرع</p>
+            </div>
+            <button onclick="closeBranchCurrencyModal()" class="text-[#666666] hover:text-[#0E382A] p-1.5 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="space-y-4 text-xs">
+            <input type="hidden" id="edit-branch-currency-id" value="">
+
+            <div class="p-3 bg-[#0E382A]/5 border border-[#D2AB6B]/30 rounded-xl space-y-1">
+                <p class="font-bold text-[#0E382A]">الفرع: <span id="branch-currency-target-name" class="font-black text-[#0E382A]"></span></p>
+                <p class="text-[11px] text-[#666666]">
+                    ستظهر هذه العملة على فواتير الفرع، وشاشات نقاط البيع (POS)، وعند اتصال العملاء وطلب أوردر عبر كول سنتر الذكاء الاصطناعي لهذا الفرع.
+                </p>
+            </div>
+
+            <div>
+                <label class="block font-bold text-[#0E382A] mb-1.5">اختر عملة هذا الفرع *</label>
+                <select id="branch-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-[#D2AB6B]/50 bg-white text-xs font-semibold focus:outline-none focus:border-[#0E382A] focus:ring-1 focus:ring-[#0E382A]">
+                    {% for c in currencies_list %}
+                    <option value="{{ c.code }}">{{ c.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-6 pt-3 border-t border-[#D2AB6B]/30 flex items-center justify-end gap-2.5">
+            <button type="button" onclick="closeBranchCurrencyModal()" class="rounded-lg border border-[#D2AB6B]/50 bg-white hover:bg-[#F9F6F0] text-[#1E130D] px-4 py-2 text-xs font-bold transition">
+                إلغاء
+            </button>
+            <button type="button" id="save-branch-currency-btn" onclick="saveBranchCurrency()" class="btn-gold-pill px-5 py-2 text-xs font-bold shadow-sm">
+                حفظ عملة الفرع
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -671,11 +836,15 @@
         const lat = addMarker ? addMarker.getLatLng().lat : null;
         const lng = addMarker ? addMarker.getLatLng().lng : null;
 
+        const currencyEl = document.getElementById('branch-currency-input');
+        const currency = currencyEl ? currencyEl.value : '{{ default_currency }}';
+
         const payload = {
             name,
             city,
             address,
             phone,
+            currency,
             latitude: lat,
             longitude: lng,
             polygon: addPolygonPoints,
@@ -936,6 +1105,122 @@
             setTimeout(() => location.reload(), 500);
         } catch (e) {
             showToast('تعذر تغيير حالة الفرع', 'error');
+        }
+    }
+
+    // ==========================================
+    // CHAIN / BRAND DEFAULT CURRENCY MODAL LOGIC
+    // ==========================================
+    function openChainCurrencyModal() {
+        const modal = document.getElementById('chain-currency-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeChainCurrencyModal() {
+        const modal = document.getElementById('chain-currency-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    async function saveChainCurrency() {
+        const select = document.getElementById('chain-currency-select');
+        const applyCheck = document.getElementById('chain-currency-apply-all');
+        const btn = document.getElementById('save-chain-currency-btn');
+
+        if (!select) return;
+        const currency = select.value;
+        const apply_to_all_branches = applyCheck ? applyCheck.checked : false;
+
+        btn.disabled = true;
+        btn.textContent = 'جارٍ الحفظ...';
+
+        try {
+            const res = await fetch("{% url 'api_update_tenant_currency' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ currency, apply_to_all_branches })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'فشل تحديث عملة المنشأة');
+
+            showToast(data.message || 'تم تحديث العملة بنجاح!');
+            closeChainCurrencyModal();
+            setTimeout(() => location.reload(), 600);
+        } catch (e) {
+            showToast(e.message, 'error');
+            btn.disabled = false;
+            btn.textContent = 'حفظ العملة';
+        }
+    }
+
+    // ==========================================
+    // INDIVIDUAL BRANCH CURRENCY MODAL LOGIC
+    // ==========================================
+    function openBranchCurrencyModal(branchId, branchName, currentCurrency) {
+        document.getElementById('edit-branch-currency-id').value = branchId;
+        const nameEl = document.getElementById('branch-currency-target-name');
+        if (nameEl) nameEl.textContent = branchName;
+        const subtitleEl = document.getElementById('branch-currency-modal-subtitle');
+        if (subtitleEl) subtitleEl.textContent = `الفرع: ${branchName}`;
+
+        const select = document.getElementById('branch-currency-select');
+        if (select && currentCurrency) {
+            select.value = currentCurrency;
+        }
+
+        const modal = document.getElementById('branch-currency-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeBranchCurrencyModal() {
+        const modal = document.getElementById('branch-currency-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    async function saveBranchCurrency() {
+        const branchId = document.getElementById('edit-branch-currency-id').value;
+        const select = document.getElementById('branch-currency-select');
+        const btn = document.getElementById('save-branch-currency-btn');
+
+        if (!branchId || !select) return;
+        const currency = select.value;
+
+        btn.disabled = true;
+        btn.textContent = 'جارٍ الحفظ...';
+
+        try {
+            const res = await fetch(`/api/branches/${branchId}/currency/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ currency })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'فشل تحديث عملة الفرع');
+
+            showToast(data.message || 'تم تحديث عملة الفرع بنجاح!');
+            closeBranchCurrencyModal();
+            setTimeout(() => location.reload(), 600);
+        } catch (e) {
+            showToast(e.message, 'error');
+            btn.disabled = false;
+            btn.textContent = 'حفظ عملة الفرع';
         }
     }
 </script>

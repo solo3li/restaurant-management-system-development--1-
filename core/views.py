@@ -918,6 +918,7 @@ def dashboard_view(request):
         "recent_orders": recent_orders,
         "top_items": top_items_qs,
         "low_stock_items": low_stock[:8],
+        "default_currency": tenant.default_currency if tenant else "SAR",
     }
     return render(request, "hq_dashboard.html", context)
 
@@ -1994,9 +1995,24 @@ def branches_view(request):
             "areas": list(b.delivery_areas.all()),
         })
 
+    from core.currencies import CURRENCIES_DATA
+    currencies_list = [
+        {
+            "code": code,
+            "name_ar": info["name_ar"],
+            "name_en": info["name_en"],
+            "symbol_ar": info["symbol_ar"],
+            "symbol_en": info["symbol_en"],
+            "label": f"{info['name_ar']} ({code} - {info['symbol_ar']})"
+        }
+        for code, info in CURRENCIES_DATA.items()
+    ]
+
     context = {
         "tenant": tenant,
         "branches_data": branch_list,
+        "currencies_list": currencies_list,
+        "default_currency": tenant.default_currency if tenant else "SAR",
     }
     return render(request, "branches.html", context)
 
@@ -3233,12 +3249,18 @@ def api_create_branch(request):
     polygon = data.get("polygon", [])
     radius = data.get("delivery_radius_km", 5.0)
 
+    cur_choice = str(data.get("currency") or (tenant.default_currency if tenant else "SAR")).strip().upper()
+    from core.currencies import CURRENCIES_DATA
+    if cur_choice not in CURRENCIES_DATA:
+        cur_choice = tenant.default_currency if tenant else "SAR"
+
     branch = Branch.objects.create(
         tenant=tenant,
         name=name,
         city=data.get("city", "الرياض"),
         address=data.get("address", ""),
         phone=data.get("phone", ""),
+        currency=cur_choice,
         latitude=Decimal(str(lat)) if lat is not None and str(lat).strip() != "" else None,
         longitude=Decimal(str(lng)) if lng is not None and str(lng).strip() != "" else None,
         delivery_polygon=polygon if isinstance(polygon, list) else [],
@@ -3455,6 +3477,102 @@ def api_toggle_branch(request, branch_id):
         ip_address=_get_client_ip(request),
     )
     return JsonResponse({"ok": True, "status": branch.status})
+
+
+@login_required
+def api_update_branch_currency(request, branch_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner_or_super and not (user_has_perm(request.user, "manage_branches") or user_has_perm(request.user, "branch_manage_branches")):
+        return JsonResponse({"error": "غير مصرح لك بتغيير عملة الفرع"}, status=403)
+
+    branch = get_object_or_404(Branch, tenant=tenant, id=branch_id)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    cur_code = str(data.get("currency", "")).strip().upper()
+    from core.currencies import CURRENCIES_DATA, get_currency_info
+    if cur_code not in CURRENCIES_DATA:
+        return JsonResponse({"error": f"العملة «{cur_code}» غير صالحة أو غير مدعومة في النظام."}, status=400)
+
+    old_cur = branch.currency
+    branch.currency = cur_code
+    branch.save(update_fields=["currency"])
+
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="branch_currency_updated",
+        target_model="Branch",
+        target_id=branch.id,
+        description=f"تغيير عملة الفرع «{branch.name}» من {old_cur} إلى {cur_code} ({branch.get_currency_name_ar()})",
+        ip_address=_get_client_ip(request),
+    )
+
+    info = get_currency_info(cur_code)
+    return JsonResponse({
+        "ok": True,
+        "branch_id": branch.id,
+        "currency": branch.currency,
+        "currency_name": branch.get_currency_name_ar(),
+        "currency_symbol": branch.get_currency_symbol_ar(),
+        "message": f"تم تغيير عملة فرع «{branch.name}» إلى {branch.get_currency_name_ar()} ({cur_code}) بنجاح."
+    })
+
+
+@login_required
+def api_update_tenant_currency(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    tenant = get_active_tenant(request)
+    profile = getattr(request.user, "profile", None)
+    is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    if not is_owner_or_super:
+        return JsonResponse({"error": "تغيير العملة العامة للمطعم متاح للمدير والمالك فقط"}, status=403)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+
+    cur_code = str(data.get("currency", "")).strip().upper()
+    apply_all = bool(data.get("apply_to_all_branches", True))
+
+    from core.currencies import CURRENCIES_DATA, get_currency_info
+    if cur_code not in CURRENCIES_DATA:
+        return JsonResponse({"error": f"العملة «{cur_code}» غير صالحة أو غير مدعومة في النظام."}, status=400)
+
+    old_cur = tenant.default_currency
+    tenant.default_currency = cur_code
+    tenant.save(update_fields=["default_currency"])
+
+    updated_branches = 0
+    if apply_all:
+        updated_branches = Branch.objects.filter(tenant=tenant).update(currency=cur_code)
+
+    log_audit_event(
+        tenant=tenant,
+        user=request.user,
+        action="tenant_currency_updated",
+        target_model="Tenant",
+        target_id=tenant.id,
+        description=f"تغيير العملة الافتراضية للمطعم من {old_cur} إلى {cur_code} وتطبيقها على {updated_branches} فروع",
+        ip_address=_get_client_ip(request),
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "currency": tenant.default_currency,
+        "currency_name": tenant.get_currency_name_ar(),
+        "currency_symbol": tenant.get_currency_symbol_ar(),
+        "updated_branches_count": updated_branches,
+        "message": f"تم اعتماد {tenant.get_currency_name_ar()} ({cur_code}) كعملة افتراضية للمطعم وتحديث {updated_branches} فرع بنجاح."
+    })
 
 
 def get_or_create_employee_user(tenant, employee_code, name, exclude_emp_id=None, password=None):

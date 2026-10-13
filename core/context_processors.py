@@ -235,6 +235,36 @@ def i18n_context(request):
 
     is_rtl = (lang == "ar")
 
+    # Dynamic currency resolution based on active branch or active tenant
+    currency_sym = "ر.س" if is_rtl else "SAR"
+    try:
+        t_obj = getattr(request, "tenant", None)
+        b_obj = None
+        if hasattr(request, "user") and request.user.is_authenticated:
+            profile = getattr(request.user, "profile", None)
+            if not t_obj and profile:
+                t_obj = profile.tenant
+            if not t_obj and hasattr(request, "session"):
+                t_id = request.session.get("active_tenant_id")
+                if t_id:
+                    t_obj = Tenant.objects.filter(id=t_id).first()
+
+            if hasattr(request, "session"):
+                b_id = request.session.get("active_branch_id")
+                if b_id:
+                    b_obj = Branch.objects.filter(id=b_id).first()
+            if not b_obj and profile:
+                b_obj = profile.branch
+            if not b_obj and hasattr(request.user, "employee_profile") and request.user.employee_profile:
+                b_obj = request.user.employee_profile.branch
+
+        if b_obj and hasattr(b_obj, "get_currency_symbol_ar"):
+            currency_sym = b_obj.get_currency_symbol_ar() if is_rtl else b_obj.get_currency_symbol_en()
+        elif t_obj and hasattr(t_obj, "get_currency_symbol_ar"):
+            currency_sym = t_obj.get_currency_symbol_ar() if is_rtl else t_obj.get_currency_symbol_en()
+    except Exception:
+        pass
+
     base_t = {
         # App & Brand
         "app_title": "منظومة كُـورَا لإدارة المطاعم" if is_rtl else "KURA Restaurant Management OS",
@@ -314,7 +344,7 @@ def i18n_context(request):
         "rejected": "مرفوض" if is_rtl else "Rejected",
         "completed": "مكتمل" if is_rtl else "Completed",
         "cancelled": "ملغي" if is_rtl else "Cancelled",
-        "currency": "ر.س" if is_rtl else "SAR",
+        "currency": currency_sym,
         "total": "الإجمالي" if is_rtl else "Total",
         "subtotal": "المجموع الفرعي" if is_rtl else "Subtotal",
         "vat": "ضريبة القيمة المضافة (15%)" if is_rtl else "VAT (15%)",

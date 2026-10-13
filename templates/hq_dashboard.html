@@ -30,6 +30,10 @@
         </div>
 
         <div class="relative z-10 flex flex-wrap items-center gap-2.5 shrink-0">
+            <a href="{% url 'branches' %}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-[#D2AB6B]/40 text-xs font-bold text-[#E6C898] transition shadow-sm font-body" title="إدارة عملة المنشأة والفروع">
+                <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>العملة: {{ tenant.default_currency }} ({{ tenant.get_currency_symbol_ar }})</span>
+            </a>
             <a href="{% url 'hq_orders' %}" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white transition shadow-sm font-body">
                 <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span>{{ t.nav_orders }}</span>
@@ -58,7 +62,7 @@
             </div>
             <div class="mt-3">
                 <p class="text-2xl sm:text-3xl font-black font-body text-brand-700 tracking-tight">
-                    {{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">ر.س</span>
+                    {{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-soft">{{ tenant.get_currency_symbol_ar|default:t.currency }}</span>
                 </p>
                 <div class="mt-1 flex items-center justify-between text-xs">
                     <span class="font-bold text-soft">{{ orders_today }} طلباً محققاً اليوم</span>
@@ -151,7 +155,7 @@
                     </div>
                     <div class="text-left">
                         <span class="text-xs text-soft font-bold block">إجمالي مبيعات الأسبوع</span>
-                        <span class="text-lg font-black text-brand-700">{{ week_total|floatformat:2 }} ر.س</span>
+                        <span class="text-lg font-black text-brand-700">{{ week_total|floatformat:2 }} {{ tenant.get_currency_symbol_ar|default:t.currency }}</span>
                     </div>
                 </div>
 
@@ -161,7 +165,7 @@
                     <div class="group flex h-full flex-1 flex-col items-center justify-end gap-2 relative">
                         <!-- Tooltip on hover -->
                         <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 px-2 py-1 rounded bg-[#0E382A] text-white text-[11px] font-extrabold shadow-lg pointer-events-none whitespace-nowrap z-20 font-body">
-                            {{ d.total|floatformat:0 }} ر.س
+                            {{ d.total|floatformat:0 }} {{ tenant.get_currency_symbol_ar|default:t.currency }}
                         </div>
                         
                         <!-- Bar -->
@@ -189,7 +193,7 @@
                     <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded bg-gradient-to-t from-brand-700 to-[#D2AB6B]"></span> اليوم الحاضر</span>
                     <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded bg-brand-200"></span> الأيام السابقة</span>
                 </div>
-                <span class="text-[11px] text-soft">المعدل اليومي التقريبي: {{ week_total|floatformat:0|default:"0" }} ر.س / أسبوع</span>
+                <span class="text-[11px] text-soft">المعدل اليومي التقريبي: {{ week_total|floatformat:0|default:"0" }} {{ tenant.get_currency_symbol_ar|default:t.currency }} / أسبوع</span>
             </div>
         </div>
 
@@ -244,7 +248,7 @@
 
                         <div class="text-left shrink-0">
                             <p class="text-xs font-black text-brand-700">
-                                {{ item.sales_today|floatformat:0 }} ر.س
+                                {{ item.sales_today|floatformat:0 }} {{ item.branch.get_currency_symbol_ar }}
                             </p>
                             <a href="{% url 'switch_branch' item.branch.id %}" class="inline-flex items-center gap-1 text-[10px] font-bold text-soft group-hover:text-brand-600 hover:underline mt-0.5">
                                 <span>دخول</span>
@@ -333,7 +337,7 @@
                                     <span class="text-[10px]" dir="ltr">{{ o.customer_phone|default:"—" }}</span>
                                 </td>
                                 <td class="td font-black text-brand-700 text-xs">
-                                    {{ o.total|floatformat:2 }} ر.س
+                                    {{ o.total|floatformat:2 }} {{ o.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar|default:t.currency }}
                                 </td>
                                 <td class="td">
                                     <span class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-black 
@@ -398,7 +402,7 @@
                             <p class="truncate text-xs font-bold text-ink">{{ it.name }}</p>
                             <p class="text-[11px] text-soft">{{ it.total_qty }} طبقاً تم إعداده</p>
                         </div>
-                        <span class="text-xs font-black text-brand-700">{{ it.total_revenue|floatformat:0 }} ر.س</span>
+                        <span class="text-xs font-black text-brand-700">{{ it.total_revenue|floatformat:0 }} {{ tenant.get_currency_symbol_ar|default:t.currency }}</span>
                     </div>
                     {% empty %}
                     <p class="py-4 text-center text-xs text-soft font-bold">لا توجد بيانات مبيعات أطباق بعد</p>

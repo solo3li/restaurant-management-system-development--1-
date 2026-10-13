@@ -527,11 +527,16 @@
                         {% if is_hq_mode %}{{ t.all_branches_label }}{% else %}{{ t.branch_prefix }} {{ current_branch.name }}{% endif %}
                     </span>
                 </div>
-                {% if can_switch_branches and not is_hq_mode and 'manage_branches' in user_perms %}
-                <a href="{% url 'switch_branch' 'all' %}" class="context-pill-text text-[10px] font-extrabold text-[#D2AB6B] hover:underline shrink-0 sidebar-text">
-                    HQ
-                </a>
-                {% endif %}
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#E6C898] border border-[#D2AB6B]/30 sidebar-text" title="العملة الرسمية المعتمدة">
+                        {{ t.currency }}
+                    </span>
+                    {% if can_switch_branches and not is_hq_mode and 'manage_branches' in user_perms %}
+                    <a href="{% url 'switch_branch' 'all' %}" class="context-pill-text text-[10px] font-extrabold text-[#D2AB6B] hover:underline sidebar-text">
+                        HQ
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
