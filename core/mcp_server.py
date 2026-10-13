@@ -1250,7 +1250,20 @@ def preview_order(
                     break
 
         if not branch:
-            branch = active_branches[0]
+            if len(active_branches) > 1:
+                branch_names = [b.name for b in active_branches]
+                b_names_str = " أو ".join([f"«{b.name}»" for b in active_branches[:4]])
+                return {
+                    "ok": False,
+                    "is_system_error": False,
+                    "status": "branch_selection_required",
+                    "error": f"يرجى تحديد فرع الاستلام لحساب الأسعار بدقة: ({b_names_str}).",
+                    "available_branches": branch_names,
+                    "ai_speech_response": f"تحب حضرتك تستلم من أي فرع لحساب الإجمالي بدقة؟ متاح عندنا: {b_names_str}.",
+                    "instruction_for_ai": "اسأل العميل بلطف عن الفرع الذي يود الاستلام منه كما في ai_speech_response."
+                }
+            else:
+                branch = active_branches[0]
 
     cur_name = branch.get_currency_name_ar()
     cur_sym = branch.get_currency_symbol_ar()
@@ -1527,7 +1540,20 @@ def create_callcenter_order(
                     break
 
         if not branch:
-            branch = active_branches[0]
+            if len(active_branches) > 1:
+                branch_names = [b.name for b in active_branches]
+                b_names_str = " أو ".join([f"«{b.name}»" for b in active_branches[:4]])
+                return {
+                    "ok": False,
+                    "is_system_error": False,
+                    "status": "branch_selection_required",
+                    "error": f"يرجى تحديد فرع الاستلام من بين فروع المنشأة المتاحة: ({b_names_str}).",
+                    "available_branches": branch_names,
+                    "ai_speech_response": f"تحب حضرتك تستلم الطلب من أي فرع من فروعنا؟ متاح عندنا: {b_names_str}.",
+                    "instruction_for_ai": "اسأل العميل بلطف عن الفرع الذي يود الاستلام منه من بين الفروع المتاحة كما في ai_speech_response ولا تسجل الطلب إلا بعد تحديد الفرع وتأكيده مع العميل."
+                }
+            else:
+                branch = active_branches[0]
 
     # 4. Strict Menu Items Resolver & Total Calculation
     disabled_item_ids = set(
@@ -1649,7 +1675,7 @@ def create_callcenter_order(
             action="order_created",
             target_model="Order",
             target_id=order.id,
-            description=f"إنشاء الطلب #{order.order_number} تلقائياً عبر كول سنتر الذكاء الاصطناعي ({key_obj.name}) للعميل {cust_label} بقيمة {order.total} ر.س",
+            description=f"إنشاء الطلب #{order.order_number} تلقائياً عبر كول سنتر الذكاء الاصطناعي ({key_obj.name}) للعميل {cust_label} بقيمة {order.total} {branch.get_currency_symbol_ar()}",
             ip_address=None,
         )
 
