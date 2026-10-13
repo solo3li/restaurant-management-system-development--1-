@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}مواعيد العمل والاعتذار — {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
+
+    <!-- 1. Luxury Banner -->
+    {% include "ai_callcenter/_header.html" with page_title="جدول مواعيد العمل والاعتذار" page_subtitle="تحديد أيام وساعات استقبال اتصالات العملاء والرد اللبق التلقائي خارج أوقات الدوام لإنهاء المكالمة دون استنزاف رصيد الدقائق." page_icon="🕒" %}
+
+    <!-- 2. Subpages Navigation -->
+    {% include "ai_callcenter/_nav_subpages.html" with active_subpage="hours" %}
+
+    <form id="hours-form" onsubmit="saveHours(event)" class="card p-6 sm:p-7 border-line space-y-6 shadow-xs">
+        {% csrf_token %}
+        <div class="border-b border-line pb-4 flex items-center justify-between flex-wrap gap-3">
+            <div>
+                <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> جدول ساعات العمل والرد خارج الدوام
+                </h3>
+                <p class="text-xs text-soft font-bold mt-0.5">تحديد مواعيد عمل المطعم والرد اللبق على المتصلين في أوقات الإغلاق مع إنهاء المكالمة</p>
+            </div>
+            <label class="flex items-center gap-2 text-xs font-black text-brand-900 bg-brand-50 px-3.5 py-1.5 rounded-xl border border-brand-200 cursor-pointer">
+                <input type="checkbox" name="is_enabled" {% if hours.is_enabled %}checked{% endif %} class="rounded border-line text-brand-600">
+                تفعيل الرقابة على أوقات العمل
+            </label>
+        </div>
+
+        <!-- Off-hours Action Message -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2">
+            <div class="flex items-center gap-2 text-amber-900 font-black text-xs">
+                <svg class="w-4 h-4 inline-block align-middle text-[#D2AB6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg> رسالة الاعتذار الصوتية عند الاتصال خارج الدوام (تُغلق المكالمة بعدها تلقائياً):
+            </div>
+            <textarea 
+                name="ai_message" 
+                rows="2" 
+                class="input bg-white font-bold text-xs"
+            >{{ hours.ai_message|default:"مرحباً بك، نتأسف لاتصالك خارج أوقات العمل الرسمية. نسعد بتواصلك معنا مجدداً خلال أوقات العمل الرسمية." }}</textarea>
+            <p class="text-[10.5px] text-amber-800">
+                يقوم المساعد بنطق هذه الرسالة بصوت ودود ثم إنهاء المكالمة لعدم استنزاف دقائق بلا جدوى.
+            </p>
+        </div>
+
+        <!-- Days Schedule Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                        <th class="py-2.5 px-3">اليوم</th>
+                        <th class="py-2.5 px-3">حالة العمل</th>
+                        <th class="py-2.5 px-3">بداية الدوام</th>
+                        <th class="py-2.5 px-3">نهاية الدوام</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line/60">
+                    <!-- Saturday -->
+                    <tr>
+                        <td class="py-3 px-3 font-bold text-ink">السبت</td>
+                        <td class="py-3 px-3">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="sat_work" checked class="rounded text-brand-600">
+                                <span>يوم عمل</span>
+                            </label>
+                        </td>
+                        <td class="py-3 px-3"><input type="time" id="sat_start" value="12:00" class="input py-1 px-2 w-32 font-mono"></td>
+                        <td class="py-3 px-3"><input type="time" id="sat_end" value="01:00" class="input py-1 px-2 w-32 font-mono"></td>
+                    </tr>
+                    <!-- Sunday -->
+                    <tr>
+                        <td class="py-3 px-3 font-bold text-ink">الأحد</td>
+                        <td class="py-3 px-3">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="sun_work" checked class="rounded text-brand-600">
+                                <span>يوم عمل</span>
+                            </label>
+                        </td>
+                        <td class="py-3 px-3"><input type="time" id="sun_start" value="12:00" class="input py-1 px-2 w-32 font-mono"></td>
+                        <td class="py-3 px-3"><input type="time" id="sun_end" value="01:00" class="input py-1 px-2 w-32 font-mono"></td>
+                    </tr>
+                    <!-- Monday -->
+                    <tr>
+                        <td class="py-3 px-3 font-bold text-ink">الاثنين</td>
+                        <td class="py-3 px-3">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="mon_work" checked class="rounded text-brand-600">
+                                <span>يوم عمل</span>
+                            </label>
+                        </td>
+                        <td class="py-3 px-3"><input type="time" id="mon_start" value="12:00" class="input py-1 px-2 w-32 font-mono"></td>
+                        <td class="py-3 px-3"><input type="time" id="mon_end" value="01:00" class="input py-1 px-2 w-32 font-mono"></td>
+                    </tr>
+                    <!-- Tuesday -->
+                    <tr>
+                        <td class="py-3 px-3 font-bold text-ink">الثلاثاء</td>
+                        <td class="py-3 px-3">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="tue_work" checked class="rounded text-brand-600">
+                                <span>يوم عمل</span>
+                            </label>
+                        </td>
+                        <td class="py-3 px-3"><input type="time" id="tue_start" value="12:00" class="input py-1 px-2 w-32 font-mono"></td>
+                        <td class="py-3 px-3"><input type="time" id="tue_end" value="01:00" class="input py-1 px-2 w-32 font-mono"></td>
+                    </tr>
+                    <!-- Wednesday -->
+                    <tr>
+                        <td class="py-3 px-3 font-bold text-ink">الأربعاء</td>
+                        <td class="py-3 px-3">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="wed_work" checked class="rounded text-brand-600">
+                                <span>يوم عمل</span>
+                            </label>
+                        </td>
+                        <td class="py-3 px-3"><input type="time" id="wed_start" value="12:00" class="input py-1 px-2 w-32 font-mono"></td>
+                        <td class="py-3 px-3"><input type="time" id="wed_end" value="01:00" class="input py-1 px-2 w-32 font-mono"></td>
+                    </tr>
+                    <!-- Thursday -->
+                    <tr>
+                        <td class="py-3 px-3 font-bold text-ink">الخميس</td>
+                        <td class="py-3 px-3">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="thu_work" checked class="rounded text-brand-600">
+                                <span>يوم عمل</span>
+                            </label>
+                        </td>
+                        <td class="py-3 px-3"><input type="time" id="thu_start" value="12:00" class="input py-1 px-2 w-32 font-mono"></td>
+                        <td class="py-3 px-3"><input type="time" id="thu_end" value="02:00" class="input py-1 px-2 w-32 font-mono"></td>
+                    </tr>
+                    <!-- Friday -->
+                    <tr>
+                        <td class="py-3 px-3 font-bold text-ink">الجمعة</td>
+                        <td class="py-3 px-3">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="fri_work" checked class="rounded text-brand-600">
+                                <span>يوم عمل</span>
+                            </label>
+                        </td>
+                        <td class="py-3 px-3"><input type="time" id="fri_start" value="13:00" class="input py-1 px-2 w-32 font-mono"></td>
+                        <td class="py-3 px-3"><input type="time" id="fri_end" value="02:00" class="input py-1 px-2 w-32 font-mono"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pt-3 border-t border-line flex items-center justify-end">
+            <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer flex items-center gap-2">
+                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> حفظ مواعيد العمل
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    async function saveHours(e) {
+        e.preventDefault();
+        const form = e.target;
+        const days = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
+        const daysMap = {
+            'sat': 'saturday', 'sun': 'sunday', 'mon': 'monday',
+            'tue': 'tuesday', 'wed': 'wednesday', 'thu': 'thursday', 'fri': 'friday'
+        };
+
+        const days_config = {};
+        days.forEach(d => {
+            const work = document.getElementById(d + '_work').checked;
+            const start = document.getElementById(d + '_start').value || '12:00';
+            const end = document.getElementById(d + '_end').value || '01:00';
+            days_config[daysMap[d]] = {
+                is_workday: work,
+                start_time: start,
+                end_time: end
+            };
+        });
+
+        const payload = {
+            is_enabled: form.is_enabled.checked,
+            action_type: 'ai_message',
+            ai_message: form.ai_message.value,
+            timezone: 'Asia/Riyadh',
+            days_config: days_config
+        };
+
+        try {
+            const res = await fetch("{% url 'api_ai_callcenter_update_hours' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showNotification('تم حفظ جدول مواعيد العمل ورسالة الاعتذار بنجاح');
+            } else {
+                showNotification(data.message || 'حدث خطأ في الحفظ', true);
+            }
+        } catch (err) {
+            showNotification('تعذر الاتصال بالسيرفر', true);
+        }
+    }
+</script>
+
+{% include "ai_callcenter/_common_scripts.html" %}
+{% endblock %}

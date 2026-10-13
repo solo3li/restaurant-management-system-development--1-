@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}قاعدة المعرفة الذكية (RAG) — {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
+
+    <!-- 1. Luxury Banner -->
+    {% include "ai_callcenter/_header.html" with page_title="قاعدة المعرفة الذكية والاستعلام الدلالي (RAG)" page_subtitle="تغذية المساعد الصوتي بالأسئلة الشائعة وسياسات المطعم ليرد بها بدقة فورية أثناء المكالمات." page_icon="📚" %}
+
+    <!-- 2. Subpages Navigation -->
+    {% include "ai_callcenter/_nav_subpages.html" with active_subpage="knowledge" %}
+
+    <!-- Documents & FAQ Card -->
+    <div class="card p-6 sm:p-7 border-line space-y-6 shadow-xs">
+        <div class="border-b border-line pb-4 flex items-center justify-between flex-wrap gap-3">
+            <div>
+                <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
+                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg> مستندات المعرفة والأسئلة الشائعة
+                </h3>
+                <p class="text-xs text-soft font-bold mt-0.5">الملفات والنصوص المفهرسة دلالياً ليتمكن المساعد من استرجاعها فورياً</p>
+            </div>
+            <button onclick="openAddDocModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs cursor-pointer">
+                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg> إضافة معلومة / سؤال شائع
+            </button>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-line bg-paper/60 text-soft font-black">
+                        <th class="py-2.5 px-3">العنوان / الموضوع</th>
+                        <th class="py-2.5 px-3">النوع</th>
+                        <th class="py-2.5 px-3">المقاطع الدلالية (Chunks)</th>
+                        <th class="py-2.5 px-3">تاريخ الإضافة</th>
+                        <th class="py-2.5 px-3 text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="docs-tbody" class="divide-y divide-line/60">
+                    {% if documents %}
+                        {% for doc in documents %}
+                        <tr id="doc-row-{{ doc.id }}" class="hover:bg-paper/30 transition">
+                            <td class="py-3 px-3 font-bold text-ink">{{ doc.title }}</td>
+                            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-md bg-paper border border-line text-[11px] font-mono">{{ doc.file_type|default:"نص مباشر" }}</span></td>
+                            <td class="py-3 px-3 font-mono font-bold text-soft">{{ doc.chunks_count|default:"1" }} متجهات</td>
+                            <td class="py-3 px-3 text-soft font-mono">{{ doc.created_at }}</td>
+                            <td class="py-3 px-3 text-center">
+                                <button onclick="deleteDoc({{ doc.id }})" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition cursor-pointer" title="حذف">
+                                    <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr id="no-docs-row">
+                            <td colspan="5" class="py-12 text-center text-soft font-bold">
+                                <span class="text-3xl block mb-2">📚</span>
+                                لا توجد مستندات معرفية مضافة بعد. اضغط على «إضافة معلومة / سؤال شائع» لتغذية المساعد الذكي.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Document (RAG) -->
+<div id="add-doc-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                <span>📚</span> إضافة معلومة أو سؤال لقاعدة المعرفة
+            </h3>
+            <button onclick="closeAddDocModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
+        </div>
+
+        <form onsubmit="submitAddDoc(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">عنوان الموضوع أو السؤال</label>
+                <input type="text" id="doc_title" placeholder="مثال: سياسة إلغاء الطلبات، مسببات الحساسية، عروض الحفلات" required class="input">
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">النص / الإجابة المباشرة (FAQ Content)</label>
+                <textarea id="doc_content" rows="4" placeholder="اكتب التفاصيل الكاملة هنا ليجيب بها الذكاء الاصطناعي عند سؤال العميل..." class="input"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-ink mb-1">أو رابط خارجي لمستند (PDF / DOCX URL)</label>
+                <input type="url" id="doc_file_url" placeholder="https://example.com/menu_buffet.pdf" class="input font-mono text-xs">
+            </div>
+
+            <div class="pt-3 border-t border-line flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddDocModal()" class="px-4 py-2 rounded-xl border border-line bg-paper text-ink text-xs font-bold cursor-pointer">إلغاء</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black cursor-pointer">حفظ وإرسال للذكاء الاصطناعي</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddDocModal() { document.getElementById('add-doc-modal').classList.remove('hidden'); }
+    function closeAddDocModal() { document.getElementById('add-doc-modal').classList.add('hidden'); }
+
+    async function submitAddDoc(e) {
+        e.preventDefault();
+        const title = document.getElementById('doc_title').value;
+        const content = document.getElementById('doc_content').value;
+        const file_url = document.getElementById('doc_file_url').value;
+
+        try {
+            const res = await fetch("{% url 'api_ai_callcenter_add_doc' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ title, content, file_url })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showNotification('تمت إضافة المعلومة لقاعدة المعرفة بنجاح');
+                closeAddDocModal();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.message || 'حدث خطأ', true);
+            }
+        } catch (err) {
+            showNotification('تعذر الاتصال', true);
+        }
+    }
+
+    async function deleteDoc(docId) {
+        if (!confirm('هل أنت متأكد من حذف هذه المعلومة من قاعدة المعرفة؟')) return;
+        try {
+            const res = await fetch(`/api/ai-callcenter/docs/${docId}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                document.getElementById('doc-row-' + docId)?.remove();
+                showNotification('تم حذف المستند بنجاح');
+            } else {
+                showNotification(data.message || 'حدث خطأ', true);
+            }
+        } catch (err) {
+            showNotification('تعذر الاتصال', true);
+        }
+    }
+</script>
+
+{% include "ai_callcenter/_common_scripts.html" %}
+{% endblock %}

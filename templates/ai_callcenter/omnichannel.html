@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}قنوات الاتصال الموحدة والواتساب — {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
+
+    <!-- 1. Luxury Banner -->
+    {% include "ai_callcenter/_header.html" with page_title="قنوات الاتصال الموحدة والواتساب الذكي" page_subtitle="ربط رقم واتساب المطعم لإرسال الفواتير والتنبيهات، وإطلاق الاتصالات الصوتية الآلية بالعملاء (Outbound AI)، ومتابعة الخطوط الهاتفية الافتراضية." page_icon="💬" %}
+
+    <!-- 2. Subpages Navigation -->
+    {% include "ai_callcenter/_nav_subpages.html" with active_subpage="omnichannel" %}
+
+    <!-- Grid 1: Outbound AI Calls & WhatsApp Omnichannel -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Card 1: Outbound AI Dialer -->
+        <div class="card p-6 border-line space-y-5 shadow-xs">
+            <div class="border-b border-line pb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-brand-600 text-sm">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                        </span>
+                        الاتصال الصوتي الذكي بالعملاء (Outbound AI)
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-1">توجيه المساعد الذكي لإجراء مكالمة هاتفية فورية لتأكيد الطلب أو استطلاع الرأي</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    مفعل تلقائياً
+                </span>
+            </div>
+
+            <form id="outbound-call-form" onsubmit="handleOutboundCall(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">رقم هاتف العميل</label>
+                    <input type="tel" id="outbound-phone" required placeholder="مثال: +966501234567 أو 0501234567" class="input font-mono dir-ltr text-right">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">اسم العميل (اختياري)</label>
+                    <input type="text" id="outbound-name" placeholder="اسم العميل لترحيب شخصي" class="input">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink mb-1">هدف وسياق المكالمة (Call Goal)</label>
+                    <textarea id="outbound-goal" rows="2" class="input text-xs" placeholder="مثال: تأكيد تجهيز طلب المشويات وتحديد وقت الوصول بدقة، وتقديم كود خصم للطلب القادم."></textarea>
+                </div>
+                <button type="submit" id="outbound-submit-btn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:brightness-105 text-white text-xs font-black transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    <span>بدء الاتصال الصوتي الآلي فوراً</span>
+                </button>
+                <div id="outbound-status-msg" class="text-xs font-bold text-center hidden"></div>
+            </form>
+        </div>
+
+        <!-- Card 2: WhatsApp Omnichannel -->
+        <div class="card p-6 border-line space-y-5 shadow-xs">
+            <div class="border-b border-line pb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 text-sm">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        </span>
+                        قناة الواتساب التفاعلية (WhatsApp)
+                    </h3>
+                    <p class="text-xs text-soft font-bold mt-1">ربط رقم واتساب المطعم لإرسال الفواتير والتنبيهات للعملاء تلقائياً</p>
+                </div>
+                <span id="wa-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-stone-100 text-stone-600 border border-stone-200">
+                    جاري الفحص...
+                </span>
+            </div>
+
+            <div class="space-y-4">
+                <div id="wa-qr-container" class="hidden text-center p-4 bg-paper rounded-xl border border-line">
+                    <p class="text-xs font-bold text-ink mb-2">امسح كود QR عبر تطبيق واتساب لربط الجلسة:</p>
+                    <div id="wa-qr-box" class="flex justify-center my-2"></div>
+                    <p class="text-[11px] text-soft">يتم التحديث تلقائياً فور إتمام المسح بنجاح</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="connectWhatsApp()" id="wa-connect-btn" class="flex-1 py-2 px-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>توليد كود QR / ربط واتساب</span>
+                    </button>
+                    <button type="button" onclick="disconnectWhatsApp()" id="wa-disconnect-btn" class="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-black transition cursor-pointer hidden">
+                        قطع الاتصال
+                    </button>
+                    <button type="button" onclick="refreshWhatsAppStatus()" class="py-2 px-3 rounded-xl bg-card border border-line text-soft hover:text-ink text-xs font-bold transition cursor-pointer" title="تحديث الحالة">
+                        🔄
+                    </button>
+                </div>
+
+                <!-- Quick WhatsApp Send -->
+                <div class="pt-3 border-t border-line space-y-3">
+                    <h4 class="text-xs font-black text-ink">إرسال رسالة تجريبية سريعة عبر واتساب</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="tel" id="wa-send-phone" placeholder="رقم هاتف العميل" class="input text-xs font-mono dir-ltr text-right">
+                        <input type="text" id="wa-send-msg" placeholder="نص الرسالة" class="input text-xs">
+                    </div>
+                    <button type="button" onclick="sendWhatsAppTestMessage()" class="w-full py-2 rounded-xl bg-paper hover:bg-brand-50 border border-line text-ink text-xs font-black transition cursor-pointer">
+                        إرسال الرسالة الآن 📤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: PBX Trunks & Assigned Telephony Numbers -->
+    <div class="card p-6 border-line space-y-4 shadow-xs">
+        <div class="border-b border-line pb-4 flex items-center justify-between">
+            <div>
+                <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#D2AB6B]/15 text-[#8C6527] text-sm">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                    </span>
+                    بيانات الخطوط الهاتفية والربط السحابي (Smart Telephony)
+                </h3>
+                <p class="text-xs text-soft font-bold mt-1">الأرقام الافتراضية المخصصة للمطعم وربطها التلقائي مع المساعد الصوتي</p>
+            </div>
+            <button type="button" onclick="loadTelephonyInfo()" class="py-1.5 px-3 rounded-xl bg-card border border-line text-soft hover:text-ink text-xs font-bold transition cursor-pointer flex items-center gap-1">
+                🔄 <span>تحديث الخطوط</span>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="telephony-info-grid">
+            <!-- Numbers Card -->
+            <div class="p-4 bg-paper rounded-xl border border-line space-y-2">
+                <div class="flex items-center justify-between text-xs font-black text-ink">
+                    <span>أرقام الهواتف المخصصة (DIDs):</span>
+                    <span id="did-count-badge" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px]">1 مخصص</span>
+                </div>
+                <div id="telephony-numbers-list" class="space-y-1.5 pt-1">
+                    <div class="flex items-center justify-between p-2.5 bg-card rounded-lg border border-line text-xs font-mono font-black text-brand-700" dir="ltr">
+                        <span>{{ did_number }}</span>
+                        <span class="text-[10px] font-sans px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">نشط وموجه للمساعد</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PBX Trunk Card -->
+            <div class="p-4 bg-paper rounded-xl border border-line space-y-2">
+                <div class="flex items-center justify-between text-xs font-black text-ink">
+                    <span>حالة الخط والربط الصوتي:</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">متصل ونشط 24/7</span>
+                </div>
+                <div class="space-y-1 text-xs">
+                    <div class="flex justify-between py-1 border-b border-line">
+                        <span class="text-soft">حالة الاستقبال:</span>
+                        <span class="font-bold text-emerald-700">توجيه فوري إلى المساعد الصوتي الذكي</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-line">
+                        <span class="text-soft">بروتوكول البث الصوتي:</span>
+                        <span class="font-bold text-ink">صوت عالي الدقة (HD Audio / Opus)</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-soft">حماية وتشفير الاتصال:</span>
+                        <span class="font-bold text-brand-700">مشفر بالكامل (TLS / SRTP)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+async function handleOutboundCall(e) {
+    e.preventDefault();
+    const btn = document.getElementById('outbound-submit-btn');
+    const msg = document.getElementById('outbound-status-msg');
+    const phone = document.getElementById('outbound-phone').value.trim();
+    const name = document.getElementById('outbound-name').value.trim();
+    const goal = document.getElementById('outbound-goal').value.trim();
+
+    if (!phone) {
+        showNotification('رقم هاتف العميل مطلوب', true);
+        return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+    msg.classList.remove('hidden', 'text-rose-600', 'text-emerald-600');
+    msg.classList.add('text-brand-600');
+    msg.textContent = 'جاري بدء الاتصال الصوتي الذكي بالعميل...';
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_dial_customer' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                phone_number: phone,
+                customer_name: name,
+                call_goal: goal
+            })
+        });
+        const data = await res.json();
+        if (data.status === 'success' || data.call_id) {
+            msg.className = 'text-xs font-bold text-center text-emerald-600';
+            msg.textContent = '✅ تم إطلاق المكالمة الصوتية بنجاح! جاري الاتصال بالعميل...';
+            showNotification('تم إطلاق المكالمة بنجاح');
+        } else {
+            msg.className = 'text-xs font-bold text-center text-rose-600';
+            msg.textContent = '❌ تعذر الاتصال: ' + (data.message || data.error || 'خطأ غير معروف');
+            showNotification(data.message || 'حدث خطأ أثناء إجراء المكالمة', true);
+        }
+    } catch (err) {
+        msg.className = 'text-xs font-bold text-center text-rose-600';
+        msg.textContent = '❌ تعذر الاتصال بالسيرفر';
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+    }
+}
+
+async function refreshWhatsAppStatus() {
+    const badge = document.getElementById('wa-status-badge');
+    const connectBtn = document.getElementById('wa-connect-btn');
+    const disconnectBtn = document.getElementById('wa-disconnect-btn');
+
+    if (!badge) return;
+    badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-black bg-stone-100 text-stone-600 border border-stone-200';
+    badge.textContent = 'جاري الفحص...';
+
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_whatsapp_status' %}");
+        const data = await res.json();
+        const connected = data.connected || data.state === 'open';
+
+        if (connected) {
+            badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200';
+            badge.textContent = '🟢 متصل بنجاح';
+            if (connectBtn) connectBtn.classList.add('hidden');
+            if (disconnectBtn) disconnectBtn.classList.remove('hidden');
+            document.getElementById('wa-qr-container')?.classList.add('hidden');
+        } else if (data.state === 'qrcode' || data.qr) {
+            badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-200';
+            badge.textContent = '🟡 بانتظار مسح QR';
+            if (connectBtn) connectBtn.classList.remove('hidden');
+            if (disconnectBtn) disconnectBtn.classList.add('hidden');
+            if (data.qr) showQrCode(data.qr);
+        } else {
+            badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200';
+            badge.textContent = '🔴 غير متصل';
+            if (connectBtn) connectBtn.classList.remove('hidden');
+            if (disconnectBtn) disconnectBtn.classList.add('hidden');
+        }
+    } catch (err) {
+        badge.textContent = 'تعذر التحقق';
+    }
+}
+
+async function connectWhatsApp() {
+    showNotification('جاري طلب كود QR للجلسة...');
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_whatsapp_connect' %}");
+        const data = await res.json();
+        if (data.qr) {
+            showQrCode(data.qr);
+            showNotification('تم جلب كود QR، يرجى مسحه الآن');
+        } else if (data.status === 'already_connected' || data.connected) {
+            showNotification('الواتساب متصل بالفعل');
+            refreshWhatsAppStatus();
+        } else {
+            showNotification(data.message || 'جاري تجهيز الاتصال، يرجى إعادة المحاولة', true);
+        }
+    } catch (e) {
+        showNotification('تعذر الاتصال بخادم الواتساب', true);
+    }
+}
+
+function showQrCode(qrData) {
+    const container = document.getElementById('wa-qr-container');
+    const box = document.getElementById('wa-qr-box');
+    if (!container || !box) return;
+
+    container.classList.remove('hidden');
+    if (qrData.startsWith('data:image')) {
+        box.innerHTML = `<img src="${qrData}" alt="WhatsApp QR" class="w-48 h-48 rounded-lg shadow-md border border-line">`;
+    } else {
+        box.innerHTML = `<div class="p-3 bg-white text-ink text-xs font-mono break-all max-w-xs border border-line rounded-lg">${qrData}</div>`;
+    }
+}
+
+async function disconnectWhatsApp() {
+    if (!confirm('هل أنت متأكد من رغبتك في قطع جلسة الواتساب الحالية؟')) return;
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_whatsapp_disconnect' %}");
+        const data = await res.json();
+        showNotification(data.message || 'تم قطع الاتصال بنجاح');
+        refreshWhatsAppStatus();
+    } catch (e) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+async function sendWhatsAppTestMessage() {
+    const phone = document.getElementById('wa-send-phone').value.trim();
+    const msg = document.getElementById('wa-send-msg').value.trim();
+    if (!phone || !msg) {
+        showNotification('رقم الهاتف ونص الرسالة مطلوبان', true);
+        return;
+    }
+    showNotification('جاري إرسال الرسالة...');
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_whatsapp_send' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ phone_number: phone, message: msg })
+        });
+        const data = await res.json();
+        if (data.status === 'success' || data.sent) {
+            showNotification('تم إرسال رسالة الواتساب بنجاح');
+        } else {
+            showNotification(data.message || 'تعذر الإرسال عبر واتساب', true);
+        }
+    } catch (e) {
+        showNotification('تعذر الاتصال بالسيرفر', true);
+    }
+}
+
+async function loadTelephonyInfo() {
+    showNotification('جاري تحديث بيانات السنترال والخطوط...');
+    try {
+        const res = await fetch("{% url 'api_ai_callcenter_telephony_info' %}");
+        const data = await res.json();
+        if (data.status === 'success') {
+            const list = document.getElementById('telephony-numbers-list');
+            const badge = document.getElementById('did-count-badge');
+            const nums = data.numbers || [];
+            if (badge) badge.textContent = nums.length + ' مخصص';
+            if (list && nums.length > 0) {
+                list.innerHTML = nums.map(n => {
+                    const numStr = typeof n === 'string' ? n : (n.phone_number || n.number || '—');
+                    return `<div class="flex items-center justify-between p-2.5 bg-card rounded-lg border border-line text-xs font-mono font-black text-brand-700" dir="ltr">
+                        <span>${numStr}</span>
+                        <span class="text-[10px] font-sans px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">نشط وموجه للمساعد</span>
+                    </div>`;
+                }).join('');
+            }
+            if (data.trunks && data.trunks.host_domain) {
+                const hostEl = document.getElementById('trunk-host');
+                if (hostEl) hostEl.textContent = data.trunks.host_domain;
+            }
+            showNotification('تم تحديث بيانات السنترال بنجاح');
+        }
+    } catch (e) {
+        showNotification('تعذر تحديث بيانات السنترال', true);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    refreshWhatsAppStatus();
+});
+</script>
+
+{% include "ai_callcenter/_common_scripts.html" %}
+{% endblock %}

@@ -71,8 +71,16 @@ urlpatterns = [
     path("api/api-keys/<int:key_id>/toggle/", views.api_toggle_api_key, name="api_toggle_api_key"),
     path("api/api-keys/<int:key_id>/delete/", views.api_delete_api_key, name="api_delete_api_key"),
 
-    # AI Call Center Management
+    # AI Call Center Management & Subpages
     path("ai-callcenter/", views.ai_callcenter_management_view, name="ai_callcenter_management"),
+    path("ai-callcenter/overview/", views.ai_callcenter_overview_view, name="ai_callcenter_overview"),
+    path("ai-callcenter/persona/", views.ai_callcenter_persona_view, name="ai_callcenter_persona"),
+    path("ai-callcenter/hours/", views.ai_callcenter_hours_view, name="ai_callcenter_hours"),
+    path("ai-callcenter/knowledge/", views.ai_callcenter_knowledge_view, name="ai_callcenter_knowledge"),
+    path("ai-callcenter/queues/", views.ai_callcenter_queues_view, name="ai_callcenter_queues"),
+    path("ai-callcenter/calls/", views.ai_callcenter_calls_view, name="ai_callcenter_calls"),
+    path("ai-callcenter/capabilities/", views.ai_callcenter_capabilities_view, name="ai_callcenter_capabilities"),
+    path("ai-callcenter/omnichannel/", views.ai_callcenter_omnichannel_view, name="ai_callcenter_omnichannel"),
     path("api/ai-callcenter/profile/", views.api_ai_callcenter_update_profile, name="api_ai_callcenter_update_profile"),
     path("api/ai-callcenter/profile/<int:profile_id>/", views.api_ai_callcenter_update_profile, name="api_ai_callcenter_update_profile_id"),
     path("api/ai-callcenter/profiles/create/", views.api_ai_callcenter_create_profile, name="api_ai_callcenter_create_profile"),

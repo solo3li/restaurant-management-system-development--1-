@@ -646,14 +646,42 @@
                     </div>
                     <span id="acc-ai-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
                 </button>
-                <div id="acc-ai-content" class="{% if request.resolver_match.url_name in 'call_center,ai_callcenter_management' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-8 pl-2 border-r mr-4{% else %}pl-8 pr-2 border-l ml-4{% endif %} space-y-1 border-[#D2AB6B]/30 my-1">
+                <div id="acc-ai-content" class="{% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-8 pl-2 border-r mr-4{% else %}pl-8 pr-2 border-l ml-4{% endif %} space-y-1 border-[#D2AB6B]/30 my-1">
                     <a href="{% url 'call_center' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'call_center' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
                         <span class="text-[8px] text-[#D2AB6B]">◆</span>
                         <span>{{ t.nav_callcenter_live }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_management' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_management' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                    <a href="{% url 'ai_callcenter_overview' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
                         <span class="text-[8px] text-[#D2AB6B]">◆</span>
-                        <span>{{ t.nav_callcenter_mgmt }}</span>
+                        <span>{{ t.nav_callcenter_overview }}</span>
+                    </a>
+                    <a href="{% url 'ai_callcenter_persona' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_persona' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                        <span>{{ t.nav_callcenter_persona }}</span>
+                    </a>
+                    <a href="{% url 'ai_callcenter_hours' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_hours' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                        <span>{{ t.nav_callcenter_hours }}</span>
+                    </a>
+                    <a href="{% url 'ai_callcenter_knowledge' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_knowledge' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                        <span>{{ t.nav_callcenter_knowledge }}</span>
+                    </a>
+                    <a href="{% url 'ai_callcenter_queues' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_queues' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                        <span>{{ t.nav_callcenter_queues }}</span>
+                    </a>
+                    <a href="{% url 'ai_callcenter_calls' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_calls' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                        <span>{{ t.nav_callcenter_calls }}</span>
+                    </a>
+                    <a href="{% url 'ai_callcenter_capabilities' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_capabilities' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                        <span>{{ t.nav_callcenter_capabilities }}</span>
+                    </a>
+                    <a href="{% url 'ai_callcenter_omnichannel' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_omnichannel' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
+                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                        <span>{{ t.nav_callcenter_omnichannel }}</span>
                     </a>
                 </div>
             </div>

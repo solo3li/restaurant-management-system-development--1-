@@ -1,0 +1,134 @@
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showNotification(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-5 {% if IS_RTL %}left-5{% else %}right-5{% endif %} z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-2xl border text-xs font-bold transition-all transform duration-300 ${
+            isError ? 'bg-rose-900/90 text-rose-100 border-rose-500/50' : 'bg-[#0E382A]/95 text-[#FAF5EC] border-[#D2AB6B]/60'
+        }`;
+        toast.innerHTML = `
+            <span>${isError ? '⚠️' : '✓'}</span>
+            <span>${msg}</span>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    function copyTextToClipboard(text, successMsg = 'تم النسخ بنجاح') {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification(successMsg);
+            }).catch(() => fallbackCopy(text, successMsg));
+        } else {
+            fallbackCopy(text, successMsg);
+        }
+    }
+
+    function fallbackCopy(text, successMsg) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showNotification(successMsg);
+        } catch (err) {
+            showNotification('تعذر النسخ التلقائي', true);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    async function toggleMasterStatus() {
+        const btn = document.getElementById('master-status-btn');
+        const dot = document.getElementById('master-status-dot');
+        const text = document.getElementById('master-status-text');
+        if (!dot) return;
+
+        const currentlyActive = dot.classList.contains('bg-emerald-400') || dot.classList.contains('bg-emerald-500');
+        const newStatus = !currentlyActive;
+
+        try {
+            const res = await fetch("{% url 'api_ai_callcenter_update_profile' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ is_active: newStatus })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                if (newStatus) {
+                    dot.className = 'h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse';
+                    if (btn) btn.className = 'px-3.5 py-2 rounded-xl border text-xs font-black transition flex items-center gap-2 shadow-xs bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30';
+                    if (text) text.textContent = 'المساعد: مُفعّل ويستقبل المكالمات';
+                    showNotification('تم تفعيل استقبال المكالمات للمساعد الصوتي');
+                } else {
+                    dot.className = 'h-2.5 w-2.5 rounded-full bg-rose-400';
+                    if (btn) btn.className = 'px-3.5 py-2 rounded-xl border text-xs font-black transition flex items-center gap-2 shadow-xs bg-rose-500/20 text-rose-300 border-rose-400/40 hover:bg-rose-500/30';
+                    if (text) text.textContent = 'المساعد: موقوف مؤقتاً';
+                    showNotification('تم إيقاف المساعد الصوتي مؤقتاً');
+                }
+            } else {
+                showNotification(data.message || 'حدث خطأ أثناء تعديل الحالة', true);
+            }
+        } catch (e) {
+            showNotification('تعذر الاتصال بالسيرفر', true);
+        }
+    }
+
+    async function syncVoiceCaps() {
+        const btn = document.getElementById('sync-caps-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block animate-spin">⏳</span> <span>جاري المزامنة...</span>`;
+        }
+        showNotification('جاري مزامنة سقف الدقائق مع خادم الاتصالات...');
+        try {
+            const res = await fetch("{% url 'api_ai_callcenter_sync_caps' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie('csrftoken') || '{{ csrf_token }}',
+                    "Content-Type": "application/json"
+                }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showNotification('تمت مزامنة حصة وسقف الدقائق بنجاح!');
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                showNotification(data.message || 'تعذر المزامنة مع خادم الاتصالات', true);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>مزامنة الحصة الصوتية</span>`;
+                }
+            }
+        } catch (e) {
+            showNotification('حدث خطأ في الاتصال أثناء المزامنة', true);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>مزامنة الحصة الصوتية</span>`;
+            }
+        }
+    }
+</script>

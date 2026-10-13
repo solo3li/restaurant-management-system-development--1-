@@ -6,6 +6,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 
 from django.contrib.auth import authenticate, login, logout
 import asyncio
@@ -4931,42 +4932,180 @@ def api_delete_api_key(request, key_id):
 # AI Call Center Management (Owner Dashboard & Partner SaaS Integration)
 # ==============================================================================
 
-@login_required
-def ai_callcenter_management_view(request):
+def _validate_callcenter_page_access(request):
     """
-    Comprehensive Owner Dashboard for managing the AI Call Center:
-    - Persona & Voice Studio (Egyptian, Saudi, etc.)
-    - Business Hours & Off-hours AI response
-    - Restaurant Knowledge Base (RAG & FAQ)
-    - Human Staff Directory & WebRTC Extensions
-    - Automated Call Queues (least_recent, ring timeout, AI fallback)
-    - Live Call Logs, Audio Playback & Transcripts
+    Validate permissions and active tenant for AI Call Center pages.
+    Returns (tenant, None) on success or (None, HttpResponse) on error.
     """
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin)) or user_has_perm(request.user, "call_center_manage_ai")
     if not is_owner:
-        return HttpResponseForbidden("صفحة إدارة المساعد الصوتي مخصصة لمالك المنشأة أو المسؤول المخول بالذكاء الاصطناعي")
+        return None, HttpResponseForbidden("صفحة إدارة المساعد الصوتي مخصصة لمالك المنشأة أو المسؤول المخول بالذكاء الاصطناعي")
 
     tenant = get_active_tenant(request)
     if not tenant:
-        return HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
+        return None, HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
 
     if not tenant.has_feature("call_center"):
-        return HttpResponseForbidden("ميزة المساعد الصوتي والكول سنتر غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+        return None, HttpResponseForbidden("ميزة المساعد الصوتي والكول سنتر غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
 
+    return tenant, None
+
+
+def _get_callcenter_client_info(tenant):
     from core import partner_service as ps
-    # Ensure tenant has voice partner registration and credentials
     reg_info = ps.ensure_tenant_registered(tenant, password=tenant.voice_password or "Diyafa@2026!")
     client_id = reg_info.get("client_id") or ps.get_client_id_for_tenant(tenant)
-    owner_username = tenant.voice_username or reg_info.get("username") or "prt_10_restaurant_diyafa_001"
-    owner_password = tenant.voice_password or reg_info.get("password") or "Diyafa@2026!"
+    return client_id, reg_info
 
-    # 1. Fetch live data from Partner API
+
+def _norm_phone(p):
+    if not p:
+        return ""
+    import re
+    digits = re.sub(r"\D", "", str(p))
+    return digits[-9:] if len(digits) >= 9 else digits
+
+
+def _fetch_enriched_calls(tenant, client_id):
+    from core import partner_service as ps
+    calls_resp = ps.get_calls(client_id)
+    calls_data = calls_resp.get("calls") or []
+
+    tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
+
+    for c in calls_data:
+        summary = c.get("summary") or ""
+        turns = str(c.get("dialogue_turns") or "")
+        c_phone = _norm_phone(c.get("caller_phone"))
+        matched_ord = None
+
+        for o in tenant_orders:
+            if o.order_number in summary or o.order_number in turns:
+                matched_ord = o
+                break
+
+        if not matched_ord and c_phone:
+            matching_orders = [o for o in tenant_orders if o.customer_phone and _norm_phone(o.customer_phone) == c_phone]
+            if matching_orders:
+                matched_ord = matching_orders[0]
+
+        c["linked_order"] = matched_ord
+        c["has_order"] = bool(matched_ord)
+
+        if matched_ord and matched_ord.customer_name:
+            c["customer_name"] = matched_ord.customer_name
+        else:
+            raw_phone = c.get("caller_phone") or ""
+            cust = Customer.objects.filter(tenant=tenant).filter(Q(phone=raw_phone) | Q(phone__endswith=c_phone) if c_phone else Q(phone=raw_phone)).first()
+            c["customer_name"] = cust.name if cust else "عميل اتصال هاتفي"
+
+        cid = c.get("call_id")
+        if c.get("recording_url") and cid:
+            c["recording_url"] = f"/api/ai-callcenter/calls/{cid}/recording/"
+
+    total_calls_count = len(calls_data)
+    orders_converted_count = sum(1 for c in calls_data if c.get("linked_order"))
+    inquiries_count = max(0, total_calls_count - orders_converted_count)
+    return calls_data, total_calls_count, orders_converted_count, inquiries_count
+
+
+@login_required
+def ai_callcenter_management_view(request):
+    """
+    Dispatcher and backward compatibility entrypoint.
+    Redirects old ?tab=... query parameters to their dedicated subpage routes,
+    or redirects to /ai-callcenter/overview/ by default.
+    """
+    tab = request.GET.get("tab", "").lower()
+    tab_to_url = {
+        "overview": "ai_callcenter_overview",
+        "persona": "ai_callcenter_persona",
+        "hours": "ai_callcenter_hours",
+        "knowledge": "ai_callcenter_knowledge",
+        "employees": "ai_callcenter_queues",
+        "queues": "ai_callcenter_queues",
+        "calls": "ai_callcenter_calls",
+        "mcp": "ai_callcenter_capabilities",
+        "capabilities": "ai_callcenter_capabilities",
+        "omnichannel": "ai_callcenter_omnichannel",
+    }
+    target_route = tab_to_url.get(tab, "ai_callcenter_overview")
+
+    q_params = request.GET.copy()
+    q_params.pop("tab", None)
+    url = reverse(target_route)
+    if q_params:
+        url = f"{url}?{q_params.urlencode()}"
+    return redirect(url)
+
+
+@login_required
+def ai_callcenter_overview_view(request):
+    """
+    Dedicated Subpage 1: High-Level Overview, KPIs, Usage Quotas & Activity.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
+
+    from core import partner_service as ps
+    client_id, _ = _get_callcenter_client_info(tenant)
+
+    calls_data, total_calls_count, orders_converted_count, inquiries_count = _fetch_enriched_calls(tenant, client_id)
+
+    tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
+    call_orders = [o for o in tenant_orders if o.channel == "call_center"][:15]
+    total_ai_orders = Order.objects.filter(tenant=tenant, channel="call_center").count()
+    total_ai_revenue = Order.objects.filter(tenant=tenant, channel="call_center").aggregate(Sum("total"))["total__sum"] or Decimal("0.00")
+
+    telephony_resp = ps.get_telephony_numbers(client_id)
+    raw_nums = telephony_resp if isinstance(telephony_resp, list) else (telephony_resp.get("numbers") or [])
+    primary_did = ""
+    if raw_nums and len(raw_nums) > 0:
+        first_num = raw_nums[0]
+        if isinstance(first_num, dict):
+            primary_did = first_num.get("phone_number") or first_num.get("number") or first_num.get("did") or ""
+        elif isinstance(first_num, str):
+            primary_did = first_num
+    if not primary_did:
+        primary_did = "لا يوجد خط هاتف مخصص بعد"
+
+    usage_info = ps.get_client_usage(client_id).get("client") or {}
+    plan_caps = ps.get_plan_voice_caps(tenant)
+
+    context = {
+        "tenant": tenant,
+        "calls": calls_data[:10],
+        "total_calls_count": total_calls_count,
+        "orders_converted_count": orders_converted_count,
+        "inquiries_count": inquiries_count,
+        "call_orders": call_orders,
+        "total_ai_orders": total_ai_orders,
+        "total_ai_revenue": total_ai_revenue,
+        "did_number": primary_did,
+        "client_usage": usage_info,
+        "plan_caps": plan_caps,
+    }
+    return render(request, "ai_callcenter/overview.html", context)
+
+
+@login_required
+def ai_callcenter_persona_view(request):
+    """
+    Dedicated Subpage 2: AI Persona, Dialects, Voice Profiles & Personality Tuning.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
+
+    from core import partner_service as ps
+    client_id, _ = _get_callcenter_client_info(tenant)
+
     prof_resp = ps.get_profile(client_id)
     profile_data = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
     profiles_data = prof_resp.get("profiles") or ([profile_data] if profile_data else [])
-    
-    # Allow switching active view/edit context to a specific profile
+
     req_profile_id = request.GET.get("profile_id")
     if req_profile_id and profiles_data:
         try:
@@ -4977,65 +5116,116 @@ def ai_callcenter_management_view(request):
         except Exception:
             pass
 
+    context = {
+        "tenant": tenant,
+        "profile": profile_data,
+        "profiles": profiles_data,
+    }
+    return render(request, "ai_callcenter/persona.html", context)
+
+
+@login_required
+def ai_callcenter_hours_view(request):
+    """
+    Dedicated Subpage 3: Business Hours & Off-Hours Smart Audio Apologies.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
+
+    from core import partner_service as ps
+    client_id, _ = _get_callcenter_client_info(tenant)
+
     hours_data = ps.get_business_hours(client_id).get("schedule") or {}
+    prof_resp = ps.get_profile(client_id)
+    profile_data = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
+
+    context = {
+        "tenant": tenant,
+        "hours": hours_data,
+        "profile": profile_data,
+    }
+    return render(request, "ai_callcenter/hours.html", context)
+
+
+@login_required
+def ai_callcenter_knowledge_view(request):
+    """
+    Dedicated Subpage 4: Restaurant Knowledge Base, FAQs & RAG Documents.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
+
+    from core import partner_service as ps
+    client_id, _ = _get_callcenter_client_info(tenant)
+
     docs_data = ps.get_documents(client_id).get("documents") or []
+
+    context = {
+        "tenant": tenant,
+        "documents": docs_data,
+    }
+    return render(request, "ai_callcenter/knowledge.html", context)
+
+
+@login_required
+def ai_callcenter_queues_view(request):
+    """
+    Dedicated Subpage 5: Human Transfer Queues, Routing Strategies & Staff Directory.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
+
+    from core import partner_service as ps
+    client_id, _ = _get_callcenter_client_info(tenant)
+
     employees_data = ps.get_employees(client_id).get("employees") or []
     queues_data = ps.get_queues(client_id).get("queues") or []
-    calls_resp = ps.get_calls(client_id)
-    calls_data = calls_resp.get("calls") or []
-    wallet_data = ps.get_wallet().get("wallet") or {}
 
-    # 2. Local Restaurant Call Center Orders & Cross-referencing
-    tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
-    call_orders = [o for o in tenant_orders if o.channel == "call_center"][:15]
-    total_ai_orders = Order.objects.filter(tenant=tenant, channel="call_center").count()
-    total_ai_revenue = Order.objects.filter(tenant=tenant, channel="call_center").aggregate(Sum("total"))["total__sum"] or Decimal("0.00")
+    context = {
+        "tenant": tenant,
+        "employees": employees_data,
+        "queues": queues_data,
+        "primary_queue": queues_data[0] if queues_data else None,
+    }
+    return render(request, "ai_callcenter/queues.html", context)
 
-    def _norm_phone(p):
-        if not p:
-            return ""
-        import re
-        digits = re.sub(r"\D", "", str(p))
-        return digits[-9:] if len(digits) >= 9 else digits
 
-    # Cross-reference every inbound call with orders and customer directory
-    for c in calls_data:
-        summary = c.get("summary") or ""
-        turns = str(c.get("dialogue_turns") or "")
-        c_phone = _norm_phone(c.get("caller_phone"))
-        matched_ord = None
+@login_required
+def ai_callcenter_calls_view(request):
+    """
+    Dedicated Subpage 6: Call History, Voice Audio Recordings & AI Transcripts.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
 
-        # 1. Match by order number in summary or dialogue turns
-        for o in tenant_orders:
-            if o.order_number in summary or o.order_number in turns:
-                matched_ord = o
-                break
+    client_id, _ = _get_callcenter_client_info(tenant)
+    calls_data, total_calls_count, orders_converted_count, inquiries_count = _fetch_enriched_calls(tenant, client_id)
 
-        # 2. Match by phone if order was placed
-        if not matched_ord and c_phone:
-            matching_orders = [o for o in tenant_orders if o.customer_phone and _norm_phone(o.customer_phone) == c_phone]
-            if matching_orders:
-                matched_ord = matching_orders[0]
+    context = {
+        "tenant": tenant,
+        "calls": calls_data,
+        "total_calls_count": total_calls_count,
+        "orders_converted_count": orders_converted_count,
+        "inquiries_count": inquiries_count,
+    }
+    return render(request, "ai_callcenter/calls.html", context)
 
-        c["linked_order"] = matched_ord
-        c["has_order"] = bool(matched_ord)
 
-        # Customer display name
-        if matched_ord and matched_ord.customer_name:
-            c["customer_name"] = matched_ord.customer_name
-        else:
-            raw_phone = c.get("caller_phone") or ""
-            cust = Customer.objects.filter(tenant=tenant).filter(Q(phone=raw_phone) | Q(phone__endswith=c_phone) if c_phone else Q(phone=raw_phone)).first()
-            c["customer_name"] = cust.name if cust else "عميل اتصال هاتفي"
+@login_required
+def ai_callcenter_capabilities_view(request):
+    """
+    Dedicated Subpage 7: AI Capabilities, FastMCP Integrated Tools & Redis Live Context.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
 
-        # Mask recording URL through proxy to eliminate IP leak
-        cid = c.get("call_id")
-        if c.get("recording_url") and cid:
-            c["recording_url"] = f"/api/ai-callcenter/calls/{cid}/recording/"
-
-    total_calls_count = len(calls_data)
-    orders_converted_count = sum(1 for c in calls_data if c.get("linked_order"))
-    inquiries_count = max(0, total_calls_count - orders_converted_count)
+    from core import partner_service as ps
+    client_id, _ = _get_callcenter_client_info(tenant)
 
     mcp_resp = ps.get_client_mcp_servers(client_id)
     mcp_servers = mcp_resp.get("servers") or []
@@ -5052,11 +5242,39 @@ def ai_callcenter_management_view(request):
     mcp_sse_url = f"https://{effective_domain}/sse?access_key={access_key}"
     mcp_streamable_url = f"https://{effective_domain}/mcp?access_key={access_key}"
 
-    # 3. Live Structured Context (Redis Cache)
     live_context_resp = ps.get_client_live_context(client_id)
     live_context_info = live_context_resp.get("context", {}) if live_context_resp.get("status") == "success" else {}
     live_context_data = live_context_info.get("data", {})
-    # Telephony numbers
+    live_context_cached = live_context_resp.get("cached_in_redis", False)
+
+    context = {
+        "tenant": tenant,
+        "mcp_servers": mcp_servers,
+        "primary_mcp": primary_mcp,
+        "mcp_tools": primary_mcp.get("cached_tools", []) if primary_mcp else [],
+        "access_key": access_key,
+        "mcp_sse_url": mcp_sse_url,
+        "mcp_streamable_url": mcp_streamable_url,
+        "live_context": live_context_info,
+        "live_context_data": live_context_data,
+        "live_context_cached": live_context_cached,
+        "live_context_raw": live_context_resp,
+    }
+    return render(request, "ai_callcenter/capabilities.html", context)
+
+
+@login_required
+def ai_callcenter_omnichannel_view(request):
+    """
+    Dedicated Subpage 8: Omnichannel Channels, Outbound AI Dialer & WhatsApp Web.
+    """
+    tenant, err_resp = _validate_callcenter_page_access(request)
+    if err_resp:
+        return err_resp
+
+    from core import partner_service as ps
+    client_id, _ = _get_callcenter_client_info(tenant)
+
     telephony_resp = ps.get_telephony_numbers(client_id)
     raw_nums = telephony_resp if isinstance(telephony_resp, list) else (telephony_resp.get("numbers") or [])
     primary_did = ""
@@ -5068,44 +5286,14 @@ def ai_callcenter_management_view(request):
             primary_did = first_num
     if not primary_did:
         primary_did = "لا يوجد خط هاتف مخصص بعد"
-    live_context_cached = live_context_resp.get("cached_in_redis", False)
-
-    usage_info = ps.get_client_usage(client_id).get("client") or {}
-    plan_caps = ps.get_plan_voice_caps(tenant)
 
     context = {
         "tenant": tenant,
-        "profile": profile_data,
-        "profiles": profiles_data,
-        "hours": hours_data,
-        "documents": docs_data,
-        "employees": employees_data,
-        "queues": queues_data,
-        "primary_queue": queues_data[0] if queues_data else None,
-        "calls": calls_data,
-        "total_calls_count": total_calls_count,
-        "orders_converted_count": orders_converted_count,
-        "inquiries_count": inquiries_count,
-        "wallet": wallet_data,
-        "call_orders": call_orders,
-        "total_ai_orders": total_ai_orders,
-        "total_ai_revenue": total_ai_revenue,
         "did_number": primary_did,
         "did_numbers": raw_nums,
-        "mcp_servers": mcp_servers,
-        "primary_mcp": primary_mcp,
-        "mcp_tools": primary_mcp.get("cached_tools", []) if primary_mcp else [],
-        "access_key": access_key,
-        "mcp_sse_url": mcp_sse_url,
-        "mcp_streamable_url": mcp_streamable_url,
-        "live_context": live_context_info,
-        "live_context_data": live_context_data,
-        "live_context_cached": live_context_cached,
-        "live_context_raw": live_context_resp,
-        "client_usage": usage_info,
-        "plan_caps": plan_caps,
     }
-    return render(request, "ai_callcenter.html", context)
+    return render(request, "ai_callcenter/omnichannel.html", context)
+
 
 
 def _check_callcenter_admin(request):
