@@ -297,8 +297,10 @@
                         </button>
 
                         <!-- Quick Outbound Call Button -->
+                        <!-- Quick Outbound Call Button -->
                         <button 
                             type="button" 
+                            id="btn-dial-customer"
                             onclick="dialActiveCustomer()"
                             class="px-3 py-1.5 rounded-xl bg-card hover:bg-paper text-ink border border-line text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                             title="إجراء مكالمة صوتية فورية بالعميل"
@@ -324,7 +326,7 @@
                 </div>
 
                 <!-- Quick Canned Replies Bar -->
-                <div class="px-4 py-2 border-t border-line bg-card/60 flex items-center gap-2 overflow-x-auto text-[11px] scrollbar-none">
+                <div id="chat-canned-bar" class="px-4 py-2 border-t border-line bg-card/60 flex items-center gap-2 overflow-x-auto text-[11px] scrollbar-none">
                     <span class="text-soft font-bold shrink-0">ردود سريعة:</span>
                     <button type="button" onclick="insertCannedReply('تم تأكيد طلبك وجاري تحضيره بعناية 👨‍🍳')" class="px-2.5 py-1 rounded-lg bg-paper hover:bg-brand-50 border border-line text-ink font-bold shrink-0 transition cursor-pointer">
                         👨‍🍳 جاري التحضير
@@ -341,7 +343,7 @@
                 </div>
 
                 <!-- Manual Reply Input Bar -->
-                <div class="p-3 border-t border-line bg-card flex items-end gap-2 shrink-0">
+                <div id="chat-input-bar" class="p-3 border-t border-line bg-card flex items-end gap-2 shrink-0">
                     <div class="flex-1 relative">
                         <textarea 
                             id="reply-input-text" 
@@ -360,6 +362,12 @@
                         <span>إرسال</span>
                         <span>📤</span>
                     </button>
+                </div>
+
+                <!-- Read-Only / Restricted Chat Banner -->
+                <div id="chat-read-only-banner" class="hidden p-4 border-t border-line bg-paper/90 flex items-center justify-center gap-2.5 text-xs font-bold text-soft shrink-0">
+                    <span class="text-base text-stone-500">🔒</span>
+                    <span id="read-only-banner-text" class="text-ink font-black">المشرفون فقط هم من يستطيعون إرسال الرسائل في هذه المجموعة.</span>
                 </div>
 
             </div>
@@ -904,6 +912,13 @@ function renderConversations(searchQuery = '') {
             directionBadge = '<span class="text-[10px] text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded font-black">👤 موظف</span>';
         }
 
+        let typeBadge = '';
+        if (conv.chat_type === 'channel') {
+            typeBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-amber-50 text-amber-700 border border-amber-200 shrink-0">📢 قناة</span>';
+        } else if (conv.can_send === false) {
+            typeBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-stone-100 text-stone-600 border border-stone-200 shrink-0">🔒 للقراءة فقط</span>';
+        }
+
         const initial = (conv.customer_name || conv.display_phone || 'ع')[0];
 
         item.innerHTML = `
@@ -913,7 +928,10 @@ function renderConversations(searchQuery = '') {
                 </div>
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between gap-1">
-                        <h4 class="text-xs font-black text-ink truncate">${conv.customer_name || conv.display_phone}</h4>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <h4 class="text-xs font-black text-ink truncate">${conv.customer_name || conv.display_phone}</h4>
+                            ${typeBadge}
+                        </div>
                         <span class="text-[10px] text-muted font-mono shrink-0">${lastMsg.created_at_time || ''}</span>
                     </div>
                     <p class="text-[11px] text-soft truncate mt-0.5 flex items-center gap-1">
@@ -923,7 +941,7 @@ function renderConversations(searchQuery = '') {
                 </div>
             </div>
             <div class="flex flex-col items-end gap-1 shrink-0">
-                <span class="w-2.5 h-2.5 rounded-full ${conv.ai_active ? 'bg-emerald-500' : 'bg-amber-400'}" title="${conv.ai_active ? 'AI نشط' : 'تدخل بشري'}"></span>
+                <span class="w-2.5 h-2.5 rounded-full ${conv.can_send === false ? 'bg-stone-300' : (conv.ai_active ? 'bg-emerald-500' : 'bg-amber-400')}" title="${conv.can_send === false ? 'للقراءة فقط' : (conv.ai_active ? 'AI نشط' : 'تدخل بشري')}"></span>
                 ${conv.messages_count > 1 ? `<span class="text-[10px] text-muted font-mono bg-paper px-1 rounded">${conv.messages_count}</span>` : ''}
             </div>
         `;
@@ -945,7 +963,47 @@ async function selectConversation(conv) {
     document.getElementById('chat-customer-phone').textContent = conv.display_phone || conv.phone_number;
     document.getElementById('chat-avatar').textContent = (conv.customer_name || 'ع')[0];
     
-    updateAiButtonUI(conv.ai_active);
+    // Read-Only & Permissions Gating
+    const isReadOnly = conv.can_send === false;
+    const cannedBar = document.getElementById('chat-canned-bar');
+    const inputBar = document.getElementById('chat-input-bar');
+    const readOnlyBanner = document.getElementById('chat-read-only-banner');
+    const bannerText = document.getElementById('read-only-banner-text');
+    const aiBtn = document.getElementById('btn-toggle-ai');
+    const dialBtn = document.getElementById('btn-dial-customer');
+
+    if (isReadOnly) {
+        if (cannedBar) cannedBar.classList.add('hidden');
+        if (inputBar) inputBar.classList.add('hidden');
+        if (readOnlyBanner) {
+            readOnlyBanner.classList.remove('hidden');
+            if (bannerText) bannerText.textContent = conv.read_only_reason || 'هذه المحادثة للقراءة فقط ولا تدعم إرسال الرسائل.';
+        }
+        if (aiBtn) {
+            aiBtn.classList.add('opacity-40', 'pointer-events-none');
+            aiBtn.title = 'الرد الآلي معطل لأن المحادثة للقراءة فقط';
+        }
+    } else {
+        if (cannedBar) cannedBar.classList.remove('hidden');
+        if (inputBar) inputBar.classList.remove('hidden');
+        if (readOnlyBanner) readOnlyBanner.classList.add('hidden');
+        if (aiBtn) {
+            aiBtn.classList.remove('opacity-40', 'pointer-events-none');
+            aiBtn.title = 'تبديل الرد الآلي للذكاء الاصطناعي لهذه المحادثة';
+        }
+    }
+
+    if (dialBtn) {
+        if (conv.real_phone && conv.real_phone.match(/\d{5,}/)) {
+            dialBtn.classList.remove('opacity-40', 'pointer-events-none');
+            dialBtn.title = 'إجراء مكالمة صوتية فورية بالعميل';
+        } else {
+            dialBtn.classList.add('opacity-40', 'pointer-events-none');
+            dialBtn.title = 'الاتصال غير متاح (لا يوجد رقم هاتف مباشر)';
+        }
+    }
+
+    updateAiButtonUI(conv.ai_active && !isReadOnly);
     await reloadActiveMessages();
 }
 
