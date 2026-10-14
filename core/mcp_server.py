@@ -745,28 +745,91 @@ def _validate_delivery_address_completeness(
         re.search(r'\b(اول|الاول|تاني|التاني|ثاني|الثاني|تالت|التالت|ثالث|الثالث|رابع|الرابع|خامس|الخامس|سادس|السادس|سابع|السابع|تامن|التامن|ثامن|الثامن|تاسع|التاسع|عاشر|العاشر|ارضي|الارضي|اخير|الاخير)\b', norm_addr)
     )
 
-    # 1. Typology: Malls & Commercial / Business Centers
-    mall_keywords = [
-        "مول", "mall", "كايرو فيستيفال", "سيتي ستارز", "اركان", "القريه الذكيه",
-        "بيزنس بارك", "داون تاون", "سنتر", "مبني اداري", "مجمع البنوك", "بوينت 90",
-        "امريكانا بلازا", "ميدتاون", "مجره"
+    # Check if this is a full residential address specifying building, unit and number
+    # (e.g. "عمارة 15 شقة 4 بجوار كارفور") so we don't misclassify it as an outdoor pickup
+    is_explicit_residential = (has_bldg and (has_unit or "فيلا" in norm_addr) and has_num)
+
+    # 1. Typology: Prominent Landmarks, Malls & Outdoor Meeting Points (سؤال الحسم السريع ونقاط الالتقاء)
+    landmark_keywords = [
+        "كارفور", "carrefour", "هايبر", "سوبر ماركت", "ماركت", "خير زمان", "اولاد رجب", "أولاد رجب",
+        "فتح الله", "كازيون", "بيم", "سعودي", "سبينس", "لولو", "مول", "mall", "كايرو فيستيفال",
+        "سيتي ستارز", "اركان", "القريه الذكيه", "داون تاون", "سنتر", "بيزنس بارك", "مبني اداري",
+        "مجمع البنوك", "بوينت 90", "امريكانا بلازا", "ميدتاون", "مجره", "سيتي سنتر", "سيتي ووك",
+        "تريفيوم", "كونكورد", "واتر واي", "نادي", "نادى", "استاد", "مركز شباب", "وادي دجله",
+        "وادى دجله", "الاهلي", "الأهلي", "الزمالك", "الصيد", "الجزيره", "الجزيرة", "سبورتنج",
+        "هليوبوليس", "بتروسبورت", "رواد", "مستشفي", "مستشفى", "عيادات", "مركز طبي", "معهد الاورام",
+        "القصر العيني", "الدمرداش", "دار الفؤاد", "كليوباترا", "السلام الدولي", "جامعه", "جامعة",
+        "كليه", "كلية", "مدرسه", "مدرسة", "اكاديميه", "اكاديمية", "محطه", "محطة", "مترو",
+        "محطة قطر", "موقف", "بنزينه", "بنزينة", "توتال", "شيل", "موبيل", "امارات مصر", "وطنيه",
+        "وطنية", "تشيل اوت", "chillout", "مسجد", "جامع", "كنيسه", "كنيسة", "ميدان", "حديقه",
+        "حديقة", "بارك", "ماكدونالدز", "ماك", "كنتاكي", "ستاربكس", "كافيه", "سينما"
     ]
-    is_mall = any(k in combined for k in mall_keywords)
-    if is_mall:
-        mall_complete = has_comm and (has_unit or "بوابه" in norm_addr or len(words) >= 4)
-        if not mall_complete:
-            speech = f"يا فندم محتاجة أعرف اسم المحل أو الشركة أو المكتب في {area_label}، والدور أو أقرب بوابة عشان يوصلك الطلب بسرعة وبدون تأخير."
-            return False, {
-                "ok": False,
-                "is_system_error": False,
-                "status": "address_details_required",
-                "typology": "commercial_mall",
-                "area_name": area_label,
-                "error": f"العنوان في المول/المركز التجاري «{area_label}» يتطلب اسم المحل/الشركة ورقم الدور أو البوابة.",
-                "ai_speech_response": speech,
-                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل اسم المحل والدور بدقة ولا تقل إن هناك عطلاً بالسيستم."
-            }
-        return True, None
+    is_landmark = any(k in combined for k in landmark_keywords)
+
+    if is_landmark and not is_explicit_residential:
+        # Determine natural landmark name for speech prompt
+        clean_landmark = re.sub(
+            r'^(هستلمه\s+من|هستلم\s+من|استلام\s+من|من|عند|في|بجوار|جنب|قصاد|امام|أمام|قدام)\s+',
+            '',
+            raw_addr.strip(),
+            flags=re.IGNORECASE
+        ).strip()
+        landmark_label = clean_landmark if (clean_landmark and len(clean_landmark) <= 45) else (area_label or raw_addr.strip())
+
+        # Outdoor pickup tokens (waiting on the street / outside landmark)
+        outdoor_tokens = [
+            "بره", "برة", "خارجي", "خارج", "في الشارع", "عالشارع", "على الشارع", "بالشارع", "في شارع",
+            "قدام", "امام", "أمام", "قصاد", "على الرصيف", "عالرصيف",
+            "في العربيه", "في العربية", "عالعربيه", "عالعربية", "عالسياره", "عالسيارة", "على السياره", "على السيارة",
+            "ناصيه", "ناصية", "على البوابه", "على البوابة", "قدام البوابه", "قدام البوابة", "بره البوابه", "برة البوابة",
+            "على الباب", "قدام الباب", "بره الباب", "برة الباب", "مستني بره", "مستني برة", "مستني في الشارع"
+        ]
+        has_outdoor = any(t in norm_addr for t in outdoor_tokens)
+
+        # Indoor commercial tokens (shop, office, clinic inside mall or complex)
+        indoor_tokens = [
+            "محل", "معرض", "شركه", "شركة", "مكتب", "عياده", "عيادة", "فرع", "ستور", "store",
+            "جوه", "جوا", "داخل", "طابق", "دور", "سويت"
+        ]
+        has_indoor = any(t in norm_addr for t in indoor_tokens)
+
+        # 1A. Explicit Outdoor Meeting Point -> Complete & Accepted Immediately!
+        if has_outdoor and len(words) >= 2:
+            return True, None
+
+        # 1B. Explicit Indoor Venue -> Must specify shop/office and floor/gate
+        if has_indoor:
+            indoor_complete = has_comm and (has_unit or "بوابه" in norm_addr or has_num or "دور" in norm_addr or "طابق" in norm_addr) and len(words) >= 4
+            if not indoor_complete:
+                speech = f"يا فندم محتاجة أعرف اسم المحل أو المكتب في {landmark_label}، والدور أو أقرب بوابة عشان كابتن التوصيل يوصل لحضرتك على طول."
+                return False, {
+                    "ok": False,
+                    "is_system_error": False,
+                    "status": "address_details_required",
+                    "typology": "commercial_indoor",
+                    "area_name": area_label,
+                    "error": f"العنوان داخل المعلم «{landmark_label}» يتطلب اسم المحل/المكتب ورقم الدور أو البوابة.",
+                    "ai_speech_response": speech,
+                    "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل اسم المحل والدور بدقة ولا تقل إن هناك عطلاً بالسيستم."
+                }
+            return True, None
+
+        # 1C. Ambiguous Landmark -> The Single Disambiguation Question (سؤال الحسم السريع)
+        speech = f"يا فندم حضرتك هتستلم من الكابتن برة في الشارع قدام {landmark_label}، ولا التوصيل لمحل أو مكتب جوه؟"
+        return False, {
+            "ok": False,
+            "is_system_error": False,
+            "status": "disambiguation_required",
+            "typology": "landmark_disambiguation",
+            "area_name": area_label,
+            "error": f"العنوان عند المعلم «{landmark_label}» يتطلب حسم ما إذا كان الاستلام بالشارع خارج المعلم أم في محل/مكتب بالداخل.",
+            "ai_speech_response": speech,
+            "instruction_for_ai": (
+                f"لا تسجل الطلب الآن! انطق للعميل نصاً سؤال الحسم السريع: «{speech}». "
+                f"فإذا أجاب بالاستلام برة في الشارع، سجل العنوان فوراً كـ «استلام خارجي بالشارع قدام {landmark_label}» واعتمد الطلب دون طلب عمارة أو شقة أو مجاورة. "
+                f"أما إذا أجاب بالاستلام جوه، فاسأله فقط عن اسم المحل/المكتب ورقم الدور ولا تقل إن هناك عطلاً بالسيستم."
+            )
+        }
 
     # 2. Typology: Gated Communities / Compounds
     compound_keywords = [
@@ -1700,7 +1763,7 @@ def preview_order(
         "delivery_fee": float(delivery_fee),
         "delivery_area": matched_area.name if matched_area else ("سفري" if order_type == "takeaway" else "غير محدد"),
         "estimated_delivery_time": f"{matched_area.estimated_time_minutes} دقيقة" if matched_area else "30-45 دقيقة",
-        "address_status": "complete" if (order_type != "delivery" or addr_valid) else "details_required",
+        "address_status": "complete" if (order_type != "delivery" or addr_valid) else (addr_err.get("status", "details_required") if addr_err else "details_required"),
         "address_notice": (addr_err.get("ai_speech_response") if (order_type == "delivery" and not addr_valid and addr_err) else None),
         "total": float(grand_total),
         "ai_speech_response": speech,
