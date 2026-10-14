@@ -2100,9 +2100,9 @@ def create_callcenter_order(
     est_time = f"{matched_area.estimated_time_minutes} دقيقة" if (matched_area and matched_area.estimated_time_minutes) else "30 إلى 45 دقيقة"
     items_speech = " و ".join([f"{oi['quantity']} {oi['menu_item'].name}" for oi in order_items_prepared])
     if order_type == "delivery":
-        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، ويوصل لحضرتك خلال {est_time} تقريباً."
+        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، ويوصل لحضرتك خلال {est_time} تقريباً، وبعت لحضرتك تفاصيل الفاتورة ورابط المتابعة على الواتساب دلوقتي."
     else:
-        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، وتقدر تستلمه من فرع {branch.name} خلال {est_time}."
+        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، وتقدر تستلمه من فرع {branch.name} خلال {est_time}، وبعت لحضرتك تفاصيل الفاتورة على الواتساب دلوقتي."
 
     # 6. Automatic Instant WhatsApp Confirmation (إذا كان هاتف العميل حقيقياً)
     try:
@@ -2111,6 +2111,12 @@ def create_callcenter_order(
         if wa_cid and clean_phone and clean_phone != "web_dashboard" and "dashboard" not in str(clean_phone).lower():
             import threading
             items_lines = "\n".join([f"• {oi['quantity']} × {oi['menu_item'].name} ({oi['total']:.0f} {cur_sym})" for oi in order_items_prepared])
+
+            domain = os.environ.get("DOMAIN_NAME", "uggu.space").strip().rstrip("/")
+            if not domain.startswith("http"):
+                domain = f"https://{domain}"
+            menu_track_url = f"{domain}/m/{tenant.slug}/?order={order.order_number}"
+
             wa_text = (
                 f"🧾 *تأكيد طلبك من مطعم {tenant.name}*\n"
                 f"📍 *الفرع:* {branch.name}\n"
@@ -2121,6 +2127,9 @@ def create_callcenter_order(
                 f"💵 *الإجمالي المطلوب:* {total:.0f} {cur_sym}\n\n"
                 f"🏠 *عنوان التوصيل:* {clean_addr or 'استلام من الفرع'}\n"
                 f"⏱️ *وقت التوصيل المتوقع:* {est_time}\n\n"
+                f"🔗 *متابعة وتتبع حالة الطلب:*\n{menu_track_url}\n\n"
+                f"⭐ *رأيك يهمنا جداً!*\n"
+                f"كيف كانت تجربتك في المكالمة مع مساعدنا الصوتي الذكي؟ شاركنا تقييمك من 1 إلى 5 نجوم (أو أي ملاحظة) بالرد على هذه الرسالة.\n\n"
                 f"شكراً لطلبك! نسعد دائماً بخدمتكم."
             )
             def _send_wa_async():
