@@ -1019,16 +1019,87 @@ def lookup_customer(
     clean_phone = raw_val.replace(" ", "").replace("-", "")
     customer = Customer.objects.filter(tenant=tenant, phone=clean_phone).first()
 
+    from django.utils import timezone
+    now = timezone.now()
+    one_hour_ago = now - timezone.timedelta(minutes=60)
+
     if not customer:
         key_obj.record_usage(placed_order=False)
+        welcome_speech = f"أهلاً بحضرتك في مطعم «{tenant.name}»! تشرفنا بخدمتك يا فندم.. تحب تطلب إيه اليوم سفري ولا دليفري؟"
         return {
             "ok": True,
             "found": False,
+            "is_new_customer": True,
             "phone": clean_phone,
-            "message": "عميل جديد غير مسجل مسبقاً. سيتم إنشاؤه وحفظ بياناته تلقائياً عند تسجيل الأوردر."
+            "message": "عميل جديد غير مسجل مسبقاً. سيتم حفظ بياناته تلقائياً عند تسجيل الأوردر.",
+            "ai_speech_response": welcome_speech,
+            "instruction_for_ai": "رحب بالعميل الجديد بنص ai_speech_response واستقبل طلبه باحترافية."
         }
 
-    # Fetch recent orders for this customer
+    # 1. Proactive Active Order Check: فحص وجود أوردر جارٍ خلال آخر 60 دقيقة
+    active_order = Order.objects.filter(
+        tenant=tenant,
+        customer=customer,
+        created_at__gte=one_hour_ago,
+        status__in=["new", "preparing", "ready", "out_for_delivery"]
+    ).order_by("-created_at").first()
+
+    if active_order:
+        elapsed_min = max(1, int((now - active_order.created_at).total_seconds() / 60))
+        if active_order.status in ["new", "preparing"]:
+            status_desc = "في المطبخ بنجهزه طازج لحضرتك"
+        elif active_order.status in ["ready", "out_for_delivery"]:
+            status_desc = "خرج مع الطيار وفي الطريق إليك"
+        else:
+            status_desc = active_order.get_status_display()
+
+        area_est = active_order.delivery_area.estimated_time_minutes if active_order.delivery_area else 35
+        rem_min = max(5, area_est - elapsed_min)
+        active_speech = (
+            f"أهلاً بحضرتك يا فندم! بخصوص طلبك الأخير رقم #{active_order.order_number}، "
+            f"هو حالياً {status_desc} ومتوقع يوصلك خلال {rem_min} دقيقة تقريباً.. "
+            f"تحب أساعد حضرتك في أي استفسار بخصوصه؟"
+        )
+
+        key_obj.record_usage(placed_order=False)
+        return {
+            "ok": True,
+            "found": True,
+            "has_active_recent_order": True,
+            "customer": {
+                "id": customer.id,
+                "name": customer.name,
+                "phone": customer.phone,
+                "address": customer.address,
+            },
+            "active_order": {
+                "order_number": active_order.order_number,
+                "status": active_order.status,
+                "status_display": status_desc,
+                "created_minutes_ago": elapsed_min,
+                "estimated_remaining_minutes": rem_min,
+                "total": float(active_order.total),
+                "branch_name": active_order.branch.name if active_order.branch else "",
+            },
+            "ai_speech_response": active_speech,
+            "instruction_for_ai": (
+                "العميل لديه أوردر جارٍ قيد التنفيذ؛ اقرأ عليه نص ai_speech_response فوراً لتطمينه على طلبه. "
+                "إذا كان يتصل للاستفسار عنه، أجب على تساؤلاته. أما إذا ذكر أنه يرغب في عمل طلب جديد إضافي، فابدأ معه في تلقي الأصناف الجديدة."
+            )
+        }
+
+    # 2. Saved Address Recognition: فحص آخر عنوان توصيل مسجل للعميل
+    last_delivery_order = Order.objects.filter(
+        tenant=tenant,
+        customer=customer,
+        order_type="delivery"
+    ).exclude(address="").order_by("-created_at").first()
+
+    saved_addr = last_delivery_order.address if last_delivery_order else customer.address
+    saved_branch = last_delivery_order.branch if last_delivery_order else None
+    saved_area = last_delivery_order.delivery_area if last_delivery_order else None
+
+    # Fetch recent orders for customer history
     recent_orders = Order.objects.filter(tenant=tenant, customer=customer).order_by("-created_at")[:3]
     orders_data = [
         {
@@ -1040,24 +1111,46 @@ def lookup_customer(
         }
         for o in recent_orders
     ]
-
     order_count = customer.orders.count()
     total_spent = float(customer.orders.aggregate(models.Sum("total"))["total__sum"] or 0)
+
+    if saved_addr:
+        greeting_speech = (
+            f"أهلاً بيك يا {customer.name}! نورتنا يا فندم.. "
+            f"تحب نوصل لحضرتك على نفس عنوانك السابق ({saved_addr}) ولا حابب تطلب على عنوان جديد؟"
+        )
+        instruction = (
+            f"العميل مسجل مسبقاً ولديه عنوان محفوظ؛ رحب به باسمه واقرأ عليه نص ai_speech_response واعرض عليه التوصيل لنفس العنوان ({saved_addr}). "
+            f"إذا وافق العميل (قال نعم، أو تمام، أو نفس العنوان)، اعتمد هذا العنوان والفرع فوراً دون الحاجة لسؤاله عن الحي أو المنطقة أو رسم الخريطة مجدداً."
+        )
+    else:
+        greeting_speech = f"أهلاً بيك يا {customer.name}! نورتنا في مطعم «{tenant.name}»، تشرفنا بخدمتك يا فندم.. تحب تطلب إيه اليوم؟"
+        instruction = "رحب بالعميل باسمه بنص ai_speech_response وتلقى طلبه."
 
     key_obj.record_usage(placed_order=False)
     return {
         "ok": True,
         "found": True,
+        "has_active_recent_order": False,
         "customer": {
             "id": customer.id,
             "name": customer.name,
             "phone": customer.phone,
-            "address": customer.address,
+            "address": saved_addr or customer.address,
             "total_orders": order_count,
             "total_spent": total_spent,
             "created_at": customer.created_at.strftime("%Y-%m-%d"),
         },
+        "saved_delivery_profile": {
+            "saved_address": saved_addr,
+            "saved_branch_id": saved_branch.id if saved_branch else None,
+            "saved_branch_name": saved_branch.name if saved_branch else None,
+            "saved_delivery_area_id": saved_area.id if saved_area else None,
+            "saved_delivery_area_name": saved_area.name if saved_area else None,
+        } if saved_addr else None,
         "recent_orders": orders_data,
+        "ai_speech_response": greeting_speech,
+        "instruction_for_ai": instruction,
     }
 
 
@@ -1115,6 +1208,8 @@ def check_delivery_coverage(
 
     cur_name = matched_branch.get_currency_name_ar()
     cur_sym = matched_branch.get_currency_symbol_ar()
+    dist_val = getattr(matched_area, "distance_km", 0.0)
+    min_order_req = matched_branch.get_min_order_for_distance(dist_val)
     return {
         "ok": True,
         "covered": True,
@@ -1123,15 +1218,18 @@ def check_delivery_coverage(
         "currency": matched_branch.currency,
         "currency_name": cur_name,
         "currency_symbol": cur_sym,
+        "minimum_order_amount": float(min_order_req),
         "matched_area": {
             "id": matched_area.id,
             "name": matched_area.name,
             "area_type": matched_area.get_area_type_display(),
             "delivery_fee": float(matched_area.delivery_fee),
             "estimated_time_minutes": matched_area.estimated_time_minutes,
+            "distance_km": float(dist_val) if dist_val else None,
+            "minimum_order_amount": float(min_order_req),
             "notes": matched_area.notes or "",
         },
-        "ai_speech_response": f"تمام يا فندم، منطقة «{matched_area.name}» مغطاة من خلال {matched_branch.name}، ورسوم التوصيل {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري حوالي {matched_area.estimated_time_minutes} دقيقة.",
+        "ai_speech_response": f"تمام يا فندم، منطقة «{matched_area.name}» مغطاة من خلال {matched_branch.name}، ورسوم التوصيل {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري حوالي {matched_area.estimated_time_minutes} دقيقة (والحد الأدنى للطلب {min_order_req:.0f} {cur_name}).",
         "instruction_for_ai": f"أبلغ العميل بأن المنطقة «{matched_area.name}» مغطاة ورسوم التوصيل هي {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري {matched_area.estimated_time_minutes} دقيقة كما في ai_speech_response."
     }
 
@@ -1354,8 +1452,44 @@ def preview_order(
         }
 
     grand_total = subtotal + delivery_fee
-
     items_speech = " و ".join([f"{it['quantity']} {it['name']}" for it in prepared_items])
+
+    # Minimum order check for delivery orders
+    if order_type == "delivery":
+        dist_val = getattr(matched_area, "distance_km", 0.0)
+        min_order_req = branch.get_min_order_for_distance(dist_val)
+        if subtotal < min_order_req:
+            diff = min_order_req - subtotal
+            min_speech = (
+                f"طلبك ({items_speech}) بمجموع أصناف {subtotal:.0f} {cur_name}، "
+                f"ولكن الحد الأدنى لطلب التوصيل لمنطقة «{matched_area.name if matched_area else 'حضرتك'}» هو {min_order_req:.0f} {cur_name} "
+                f"(باقي {diff:.0f} {cur_name} لتكملة الحد الأدنى).. تحب نضيف لحضرتك مشروب أو صنف إضافي لتكملة الطلب؟"
+            )
+            key_obj.record_usage(placed_order=False)
+            return {
+                "ok": True,
+                "below_minimum_order": True,
+                "branch_name": branch.name,
+                "currency": branch.currency,
+                "currency_name": cur_name,
+                "currency_symbol": cur_sym,
+                "order_type": "توصيل",
+                "items": prepared_items,
+                "subtotal": float(subtotal),
+                "minimum_order_required": float(min_order_req),
+                "amount_needed": float(diff),
+                "delivery_fee": float(delivery_fee),
+                "delivery_area": matched_area.name if matched_area else "غير محدد",
+                "estimated_delivery_time": f"{matched_area.estimated_time_minutes} دقيقة" if matched_area else "30-45 دقيقة",
+                "total": float(grand_total),
+                "ai_speech_response": min_speech,
+                "ai_speech_summary": min_speech,
+                "instruction_for_ai": (
+                    f"أبلغ العميل بلطف أن حساب الأصناف ({subtotal:.0f} {cur_name}) أقل من الحد الأدنى المطلوب للتوصيل لهذه المنطقة "
+                    f"({min_order_req:.0f} {cur_name})، واقترح عليه إضافة أصناف إضافية بقيمة {diff:.0f} {cur_name} كما في ai_speech_response."
+                )
+            }
+
     if order_type == "delivery":
         speech = f"إجمالي طلبك ({items_speech}) بقيمة {subtotal:.0f} {cur_name}، ورسوم التوصيل {delivery_fee:.0f} {cur_name}، الإجمالي النهائي {grand_total:.0f} {cur_name}. تحب أسجل لحضرتك الطلب دلوقتي؟"
     else:
@@ -1364,6 +1498,7 @@ def preview_order(
     key_obj.record_usage(placed_order=False)
     return {
         "ok": True,
+        "below_minimum_order": False,
         "branch_name": branch.name,
         "currency": branch.currency,
         "currency_name": cur_name,
@@ -1649,6 +1784,33 @@ def create_callcenter_order(
     tax = (subtotal * Decimal("0.15")).quantize(Decimal("0.01"))
     total = subtotal + delivery_fee
 
+    cur_name = branch.get_currency_name_ar()
+    cur_sym = branch.get_currency_symbol_ar()
+
+    # Minimum order check for delivery orders
+    if order_type == "delivery":
+        dist_val = getattr(matched_area, "distance_km", 0.0)
+        min_order_req = branch.get_min_order_for_distance(dist_val)
+        if subtotal < min_order_req:
+            diff = min_order_req - subtotal
+            items_speech = " و ".join([f"{oi['quantity']} {oi['menu_item'].name}" for oi in order_items_prepared])
+            return {
+                "ok": False,
+                "is_system_error": False,
+                "below_minimum_order": True,
+                "subtotal": float(subtotal),
+                "minimum_order_required": float(min_order_req),
+                "amount_needed": float(diff),
+                "delivery_fee": float(delivery_fee),
+                "branch_name": branch.name,
+                "currency": branch.currency,
+                "currency_name": cur_name,
+                "currency_symbol": cur_sym,
+                "error": f"حساب أصناف الطلب {subtotal:.0f} {cur_name} وهو أقل من الحد الأدنى لطلب التوصيل ({min_order_req:.0f} {cur_name}).",
+                "ai_speech_response": f"يا فندم الحد الأدنى لطلب التوصيل لمنطقتك هو {min_order_req:.0f} {cur_name}، وحساب أصنافك حالياً {subtotal:.0f} {cur_name} (باقي {diff:.0f} {cur_name}). تحب نضيف لحضرتك مشروب أو صنف إضافي لنصل للحد الأدنى؟",
+                "instruction_for_ai": f"لا تسجل الأوردر الآن! أبلغ العميل بلطف أن طلبه أقل من الحد الأدنى للتوصيل ({min_order_req:.0f} {cur_name}) واطلب منه إضافة أصناف بقيمة {diff:.0f} {cur_name} لتكملة الطلب كما في ai_speech_response."
+            }
+
     # Unique Order Number with Tenant Scoped Prefix
     prefix = (tenant.slug[:3] if tenant and tenant.slug else "CC").upper()
     full_notes = f"[AI Call Center: {key_obj.name}] {notes}".strip()
@@ -1742,10 +1904,11 @@ def create_callcenter_order(
         speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، وتقدر تستلمه من فرع {branch.name} خلال {est_time}."
 
     # 6. Automatic Instant WhatsApp Confirmation (إذا كان هاتف العميل حقيقياً)
-    if tenant and getattr(tenant, "voice_client_id", None) and clean_phone and clean_phone != "web_dashboard" and "dashboard" not in str(clean_phone).lower():
-        try:
+    try:
+        from core import partner_service as ps
+        wa_cid = getattr(tenant, "voice_client_id", None) or ps.get_client_id_for_tenant(tenant)
+        if wa_cid and clean_phone and clean_phone != "web_dashboard" and "dashboard" not in str(clean_phone).lower():
             import threading
-            from core import partner_service as ps
             items_lines = "\n".join([f"• {oi['quantity']} × {oi['menu_item'].name} ({oi['total']:.0f} {cur_sym})" for oi in order_items_prepared])
             wa_text = (
                 f"🧾 *تأكيد طلبك من مطعم {tenant.name}*\n"
@@ -1761,14 +1924,15 @@ def create_callcenter_order(
             )
             def _send_wa_async():
                 try:
-                    ps.send_whatsapp_message(tenant.voice_client_id, clean_phone, wa_text)
+                    ps.send_whatsapp_message(wa_cid, clean_phone, wa_text)
                 except Exception as ex:
                     import logging
+                    logging.getLogger(__name__).warning(f"Error sending WhatsApp message: {ex}")
             wa_thread = threading.Thread(target=_send_wa_async)
             wa_thread.start()
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"Error initiating auto WhatsApp confirmation: {e}")
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Error initiating auto WhatsApp confirmation: {e}")
 
     return {
         "ok": True,

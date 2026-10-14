@@ -1,5 +1,6 @@
 import secrets
 from datetime import timedelta
+from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User, Group, Permission
@@ -246,6 +247,11 @@ class Branch(models.Model):
     opening_time = models.TimeField(null=True, blank=True, verbose_name="وقت فتح الفرع")
     closing_time = models.TimeField(null=True, blank=True, verbose_name="وقت إغلاق الفرع")
     min_delivery_order = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="الحد الأدنى لطلب التوصيل")
+    min_order_tier1_km = models.DecimalField(max_digits=5, decimal_places=2, default=3.00, verbose_name="مسافة الشريحة الأولى للحد الأدنى (كم)")
+    min_order_tier1_amount = models.DecimalField(max_digits=8, decimal_places=2, default=50.00, verbose_name="الحد الأدنى للشريحة الأولى")
+    min_order_tier2_km = models.DecimalField(max_digits=5, decimal_places=2, default=6.00, verbose_name="مسافة الشريحة الثانية للحد الأدنى (كم)")
+    min_order_tier2_amount = models.DecimalField(max_digits=8, decimal_places=2, default=100.00, verbose_name="الحد الأدنى للشريحة الثانية")
+    min_order_tier3_amount = models.DecimalField(max_digits=8, decimal_places=2, default=150.00, verbose_name="الحد الأدنى للشريحة البعيدة")
     currency = models.CharField(
         max_length=10,
         default="SAR",
@@ -288,6 +294,26 @@ class Branch(models.Model):
             return self.opening_time <= now_time <= self.closing_time
         else:
             return now_time >= self.opening_time or now_time <= self.closing_time
+
+    def get_min_order_for_distance(self, distance_km: float = 0.0) -> Decimal:
+        """حساب الحد الأدنى للطلب بناءً على شرائح المسافة المحددة للفرع."""
+        try:
+            dist = Decimal(str(max(0.0, float(distance_km or 0))))
+        except (ValueError, TypeError):
+            dist = Decimal("0.0")
+
+        t1_km = self.min_order_tier1_km if self.min_order_tier1_km is not None else Decimal("3.00")
+        t1_amt = self.min_order_tier1_amount if self.min_order_tier1_amount is not None else Decimal("50.00")
+        t2_km = self.min_order_tier2_km if self.min_order_tier2_km is not None else Decimal("6.00")
+        t2_amt = self.min_order_tier2_amount if self.min_order_tier2_amount is not None else Decimal("100.00")
+        t3_amt = self.min_order_tier3_amount if self.min_order_tier3_amount is not None else Decimal("150.00")
+
+        if dist <= t1_km:
+            return t1_amt
+        elif dist <= t2_km:
+            return t2_amt
+        else:
+            return t3_amt
 
     def __str__(self):
         tenant_name = f" [{self.tenant.name}]" if self.tenant else ""

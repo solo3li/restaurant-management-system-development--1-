@@ -483,6 +483,56 @@
                         <span class="text-[10px] text-[#888888] block mt-1">يُضاف لكل كم زائد عن المسافة الأساسية</span>
                     </div>
                 </div>
+
+                <!-- شرائح الحد الأدنى لقيمة الطلب حسب المسافة -->
+                <div class="mt-2.5 pt-2.5 border-t border-[#D2AB6B]/20">
+                    <div class="mb-2">
+                        <label class="block font-bold text-[#0E382A] text-xs flex items-center gap-1.5">
+                            <span class="inline-block w-2 h-2 rounded-full bg-[#D2AB6B]"></span>
+                            شرائح الحد الأدنى لقيمة الطلب حسب بُعد المسافة:
+                        </label>
+                        <p class="text-[10px] text-[#777777]">تحديد أقل قيمة مسموحة للطلب بناءً على بُعد العميل عن الفرع لمنع خسارة المشاوير البعيدة داخل المضلع.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="rounded-lg bg-[#0E382A]/5 p-2.5 border border-[#D2AB6B]/30">
+                            <label class="block font-bold text-[#0E382A] text-[11px] mb-1">
+                                الشريحة 1 (القريبة): حتى
+                                <span class="text-[10px] text-[#D2AB6B] font-bold">(كم)</span>
+                            </label>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" id="edit-branch-tier1-km" step="0.5" min="0.5" value="3.00" class="w-16 px-2 py-1.5 rounded border border-[#D2AB6B]/40 text-xs bg-white font-bold text-[#0E382A]">
+                                <span class="text-[11px] text-[#666666]">كم ➔</span>
+                                <input type="number" id="edit-branch-tier1-amount" step="1" min="0" value="50.00" class="flex-1 px-2 py-1.5 rounded border border-[#D2AB6B]/40 text-xs bg-white font-bold text-[#0E382A]">
+                                <span class="text-[10px] text-[#D2AB6B] font-bold tier-cur-symbol">ج.م</span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-lg bg-[#0E382A]/5 p-2.5 border border-[#D2AB6B]/30">
+                            <label class="block font-bold text-[#0E382A] text-[11px] mb-1">
+                                الشريحة 2 (المتوسطة): حتى
+                                <span class="text-[10px] text-[#D2AB6B] font-bold">(كم)</span>
+                            </label>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" id="edit-branch-tier2-km" step="0.5" min="0.5" value="6.00" class="w-16 px-2 py-1.5 rounded border border-[#D2AB6B]/40 text-xs bg-white font-bold text-[#0E382A]">
+                                <span class="text-[11px] text-[#666666]">كم ➔</span>
+                                <input type="number" id="edit-branch-tier2-amount" step="1" min="0" value="100.00" class="flex-1 px-2 py-1.5 rounded border border-[#D2AB6B]/40 text-xs bg-white font-bold text-[#0E382A]">
+                                <span class="text-[10px] text-[#D2AB6B] font-bold tier-cur-symbol">ج.م</span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-lg bg-[#0E382A]/5 p-2.5 border border-[#D2AB6B]/30">
+                            <label class="block font-bold text-[#0E382A] text-[11px] mb-1">
+                                الشريحة 3 (البعيدة): أكثر من ذلك
+                            </label>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[11px] text-[#666666]">أقصى نطاق ➔</span>
+                                <input type="number" id="edit-branch-tier3-amount" step="1" min="0" value="150.00" class="flex-1 px-2 py-1.5 rounded border border-[#D2AB6B]/40 text-xs bg-white font-bold text-[#0E382A]">
+                                <span class="text-[10px] text-[#D2AB6B] font-bold tier-cur-symbol">ج.م</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Areas & Compounds Management Section -->
@@ -960,6 +1010,19 @@
             if (inputBaseKm) inputBaseKm.value = (data.branch.delivery_base_km !== undefined && data.branch.delivery_base_km !== null) ? data.branch.delivery_base_km : 3.00;
             if (inputPerKm) inputPerKm.value = (data.branch.delivery_per_km_fee !== undefined && data.branch.delivery_per_km_fee !== null) ? data.branch.delivery_per_km_fee : 3.00;
 
+            // Populate min order tier fields
+            document.querySelectorAll('.tier-cur-symbol').forEach(el => el.textContent = curSym);
+            const inputT1Km = document.getElementById('edit-branch-tier1-km');
+            const inputT1Amt = document.getElementById('edit-branch-tier1-amount');
+            const inputT2Km = document.getElementById('edit-branch-tier2-km');
+            const inputT2Amt = document.getElementById('edit-branch-tier2-amount');
+            const inputT3Amt = document.getElementById('edit-branch-tier3-amount');
+            if (inputT1Km) inputT1Km.value = (data.branch.min_order_tier1_km !== undefined && data.branch.min_order_tier1_km !== null) ? data.branch.min_order_tier1_km : 3.00;
+            if (inputT1Amt) inputT1Amt.value = (data.branch.min_order_tier1_amount !== undefined && data.branch.min_order_tier1_amount !== null) ? data.branch.min_order_tier1_amount : 50.00;
+            if (inputT2Km) inputT2Km.value = (data.branch.min_order_tier2_km !== undefined && data.branch.min_order_tier2_km !== null) ? data.branch.min_order_tier2_km : 6.00;
+            if (inputT2Amt) inputT2Amt.value = (data.branch.min_order_tier2_amount !== undefined && data.branch.min_order_tier2_amount !== null) ? data.branch.min_order_tier2_amount : 100.00;
+            if (inputT3Amt) inputT3Amt.value = (data.branch.min_order_tier3_amount !== undefined && data.branch.min_order_tier3_amount !== null) ? data.branch.min_order_tier3_amount : 150.00;
+
             setTimeout(() => {
                 initOrUpdateEditMap(data.branch);
             }, 200);
@@ -1032,6 +1095,11 @@
         const baseFee = parseFloat(document.getElementById('edit-branch-base-fee').value) || 0;
         const baseKm = parseFloat(document.getElementById('edit-branch-base-km').value) || 1;
         const perKmFee = parseFloat(document.getElementById('edit-branch-per-km-fee').value) || 0;
+        const t1Km = parseFloat(document.getElementById('edit-branch-tier1-km').value) || 3;
+        const t1Amt = parseFloat(document.getElementById('edit-branch-tier1-amount').value) || 0;
+        const t2Km = parseFloat(document.getElementById('edit-branch-tier2-km').value) || 6;
+        const t2Amt = parseFloat(document.getElementById('edit-branch-tier2-amount').value) || 0;
+        const t3Amt = parseFloat(document.getElementById('edit-branch-tier3-amount').value) || 0;
 
         btn.disabled = true;
         btn.textContent = 'جارٍ الحفظ...';
@@ -1047,13 +1115,18 @@
                     action: 'save_pricing',
                     delivery_base_fee: baseFee,
                     delivery_base_km: baseKm,
-                    delivery_per_km_fee: perKmFee
+                    delivery_per_km_fee: perKmFee,
+                    min_order_tier1_km: t1Km,
+                    min_order_tier1_amount: t1Amt,
+                    min_order_tier2_km: t2Km,
+                    min_order_tier2_amount: t2Amt,
+                    min_order_tier3_amount: t3Amt
                 })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
 
-            showToast('تم حفظ قواعد تسعير الفرع بنجاح');
+            showToast('تم حفظ قواعد تسعير وحدود الطلب للفرع بنجاح');
         } catch (e) {
             showToast(e.message || 'فشل حفظ التسعير', 'error');
         } finally {
@@ -1068,6 +1141,11 @@
         const baseFee = parseFloat(document.getElementById('edit-branch-base-fee').value) || 0;
         const baseKm = parseFloat(document.getElementById('edit-branch-base-km').value) || 1;
         const perKmFee = parseFloat(document.getElementById('edit-branch-per-km-fee').value) || 0;
+        const t1Km = parseFloat(document.getElementById('edit-branch-tier1-km').value) || 3;
+        const t1Amt = parseFloat(document.getElementById('edit-branch-tier1-amount').value) || 0;
+        const t2Km = parseFloat(document.getElementById('edit-branch-tier2-km').value) || 6;
+        const t2Amt = parseFloat(document.getElementById('edit-branch-tier2-amount').value) || 0;
+        const t3Amt = parseFloat(document.getElementById('edit-branch-tier3-amount').value) || 0;
 
         btn.disabled = true;
         btn.textContent = 'جارٍ الحفظ...';
@@ -1084,7 +1162,12 @@
                     polygon: editPolygonPoints,
                     delivery_base_fee: baseFee,
                     delivery_base_km: baseKm,
-                    delivery_per_km_fee: perKmFee
+                    delivery_per_km_fee: perKmFee,
+                    min_order_tier1_km: t1Km,
+                    min_order_tier1_amount: t1Amt,
+                    min_order_tier2_km: t2Km,
+                    min_order_tier2_amount: t2Amt,
+                    min_order_tier3_amount: t3Amt
                 })
             });
             const data = await res.json();

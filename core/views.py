@@ -3679,6 +3679,11 @@ def api_branch_delivery_areas(request, branch_id):
                 "delivery_base_fee": float(branch.delivery_base_fee),
                 "delivery_base_km": float(branch.delivery_base_km),
                 "delivery_per_km_fee": float(branch.delivery_per_km_fee),
+                "min_order_tier1_km": float(branch.min_order_tier1_km),
+                "min_order_tier1_amount": float(branch.min_order_tier1_amount),
+                "min_order_tier2_km": float(branch.min_order_tier2_km),
+                "min_order_tier2_amount": float(branch.min_order_tier2_amount),
+                "min_order_tier3_amount": float(branch.min_order_tier3_amount),
                 "currency": branch.currency,
                 "currency_symbol": branch.get_currency_symbol_ar(),
             },
@@ -3783,6 +3788,16 @@ def api_branch_delivery_areas(request, branch_id):
                 branch.delivery_base_km = max(Decimal("0.10"), Decimal(str(data["delivery_base_km"] or 1)))
             if "delivery_per_km_fee" in data:
                 branch.delivery_per_km_fee = max(Decimal("0.00"), Decimal(str(data["delivery_per_km_fee"] or 0)))
+            if "min_order_tier1_km" in data:
+                branch.min_order_tier1_km = max(Decimal("0.10"), Decimal(str(data["min_order_tier1_km"] or 3)))
+            if "min_order_tier1_amount" in data:
+                branch.min_order_tier1_amount = max(Decimal("0.00"), Decimal(str(data["min_order_tier1_amount"] or 0)))
+            if "min_order_tier2_km" in data:
+                branch.min_order_tier2_km = max(Decimal("0.10"), Decimal(str(data["min_order_tier2_km"] or 6)))
+            if "min_order_tier2_amount" in data:
+                branch.min_order_tier2_amount = max(Decimal("0.00"), Decimal(str(data["min_order_tier2_amount"] or 0)))
+            if "min_order_tier3_amount" in data:
+                branch.min_order_tier3_amount = max(Decimal("0.00"), Decimal(str(data["min_order_tier3_amount"] or 0)))
             branch.save()
             log_audit_event(
                 tenant=tenant,
@@ -3790,10 +3805,10 @@ def api_branch_delivery_areas(request, branch_id):
                 action="branch_zone_updated",
                 target_model="Branch",
                 target_id=branch.id,
-                description=f"تحديث نطاق ومضلع التوصيل لفرع «{branch.name}» (نصف القطر: {branch.delivery_radius_km} كم)",
+                description=f"تحديث نطاق ومضلع التوصيل وقواعد التسعير لفرع «{branch.name}» (نصف القطر: {branch.delivery_radius_km} كم)",
                 ip_address=_get_client_ip(request),
             )
-            return JsonResponse({"ok": True, "message": "تم حفظ مضلع الزون وإحداثيات الفرع بنجاح"})
+            return JsonResponse({"ok": True, "message": "تم حفظ مضلع الزون وإحداثيات وقواعد تسعير الفرع بنجاح"})
 
         elif action == "save_pricing":
             if "delivery_base_fee" in data:
@@ -3802,6 +3817,16 @@ def api_branch_delivery_areas(request, branch_id):
                 branch.delivery_base_km = max(Decimal("0.10"), Decimal(str(data.get("delivery_base_km") or 1)))
             if "delivery_per_km_fee" in data:
                 branch.delivery_per_km_fee = max(Decimal("0.00"), Decimal(str(data.get("delivery_per_km_fee") or 0)))
+            if "min_order_tier1_km" in data:
+                branch.min_order_tier1_km = max(Decimal("0.10"), Decimal(str(data.get("min_order_tier1_km") or 3)))
+            if "min_order_tier1_amount" in data:
+                branch.min_order_tier1_amount = max(Decimal("0.00"), Decimal(str(data.get("min_order_tier1_amount") or 0)))
+            if "min_order_tier2_km" in data:
+                branch.min_order_tier2_km = max(Decimal("0.10"), Decimal(str(data.get("min_order_tier2_km") or 6)))
+            if "min_order_tier2_amount" in data:
+                branch.min_order_tier2_amount = max(Decimal("0.00"), Decimal(str(data.get("min_order_tier2_amount") or 0)))
+            if "min_order_tier3_amount" in data:
+                branch.min_order_tier3_amount = max(Decimal("0.00"), Decimal(str(data.get("min_order_tier3_amount") or 0)))
             branch.save()
             log_audit_event(
                 tenant=tenant,
@@ -3809,15 +3834,20 @@ def api_branch_delivery_areas(request, branch_id):
                 action="branch_pricing_updated",
                 target_model="Branch",
                 target_id=branch.id,
-                description=f"تحديث قواعد التسعير الديناميكي لفرع «{branch.name}» (الأساس: {branch.delivery_base_fee}، كل كم: {branch.delivery_per_km_fee})",
+                description=f"تحديث قواعد التسعير وحدود الطلب لفرع «{branch.name}»",
                 ip_address=_get_client_ip(request),
             )
             return JsonResponse({
                 "ok": True,
-                "message": "تم حفظ قواعد تسعير الفرع بنجاح",
+                "message": "تم حفظ قواعد تسعير وحدود الطلب للفرع بنجاح",
                 "delivery_base_fee": float(branch.delivery_base_fee),
                 "delivery_base_km": float(branch.delivery_base_km),
                 "delivery_per_km_fee": float(branch.delivery_per_km_fee),
+                "min_order_tier1_km": float(branch.min_order_tier1_km),
+                "min_order_tier1_amount": float(branch.min_order_tier1_amount),
+                "min_order_tier2_km": float(branch.min_order_tier2_km),
+                "min_order_tier2_amount": float(branch.min_order_tier2_amount),
+                "min_order_tier3_amount": float(branch.min_order_tier3_amount),
             })
 
         return JsonResponse({"error": "إجراء غير معروف"}, status=400)
