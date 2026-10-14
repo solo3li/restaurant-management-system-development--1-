@@ -697,6 +697,193 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> t
     return None, f"الصنف «{raw_name}» غير موجود في قائمة طعام المطعم. من الأصناف المتوفرة: {suggest_str}."
 
 
+def _validate_delivery_address_completeness(
+    clean_addr: str,
+    matched_area_name: str = ""
+) -> tuple[bool, Optional[Dict[str, Any]]]:
+    """
+    التحقق الذكي المتكيف من اكتمال عنوان التوصيل وفقاً للنمط الجغرافي والعمراني للمنطقة (5 أنماط):
+    1. المدن الجديدة بنظام الأحياء والمجاورات (زايد، أكتوبر، الشروق، العبور، 15 مايو، بدر، العاشر)
+    2. الكمبوندات السكنية المغلقة (مدينتي، الرحاب، هايد بارك، ميفيدا، بادية، سوديك، بالم هيلز...)
+    3. المولات والمقرات الإدارية والتجارية (مول مصر، مول العرب، كايرو فيستيفال، القرية الذكية...)
+    4. المناطق المقسمة بالنمر والفيلات (التجمع الخامس، النرجس، الياسمين، البنفسج، بيت الوطن...)
+    5. الشوارع التقليدية والمناطق الحضرية العامة (المعادي، مصر الجديدة، مدينة نصر، المهندسين، الدقي، فيصل...)
+    """
+    raw_addr = str(clean_addr or "").strip()
+    if not raw_addr:
+        return False, {
+            "ok": False,
+            "is_system_error": False,
+            "status": "address_details_required",
+            "error": "عنوان التوصيل فارغ أو غير محدد.",
+            "ai_speech_response": "يا فندم محتاجة أعرف عنوان التوصيل بالتفصيل عشان أقدر أسجل لحضرتك الأوردر.",
+            "instruction_for_ai": "اطلب من العميل تزويدك بعنوان التوصيل بالتفصيل كما في ai_speech_response ولا تقل إن هناك عطلاً بالسيستم."
+        }
+
+    norm_addr = _normalize_arabic_text(raw_addr)
+    norm_area = _normalize_arabic_text(matched_area_name)
+    combined = f"{norm_area} {norm_addr}".strip()
+    words = norm_addr.split()
+
+    area_label = matched_area_name.strip() if matched_area_name.strip() else raw_addr.split("،")[0].split("-")[0].strip()
+
+    # Generic building / property tokens
+    bldg_tokens = ["عماره", "فيلا", "بلوك", "قطعه", "منزل", "بيت", "برج", "مبني"]
+    has_bldg = any(t in norm_addr for t in bldg_tokens)
+
+    # Unit / Floor tokens
+    unit_tokens = ["شقه", "دور", "طابق", "ارضي", "وحده", "سويت", "مكتب", "استوديو"]
+    has_unit = any(t in norm_addr for t in unit_tokens)
+
+    # Commercial tokens
+    comm_tokens = ["محل", "معرض", "شركه", "مكتب", "عياده", "كافيه", "مطعم", "فرع", "بنك", "معمل", "ستور", "store"]
+    has_comm = any(t in norm_addr for t in comm_tokens)
+
+    # Numbers (digits or written ordinals)
+    has_num = bool(
+        re.search(r'\d+', norm_addr) or
+        re.search(r'\b(اول|الاول|تاني|التاني|ثاني|الثاني|تالت|التالت|ثالث|الثالث|رابع|الرابع|خامس|الخامس|سادس|السادس|سابع|السابع|تامن|التامن|ثامن|الثامن|تاسع|التاسع|عاشر|العاشر|ارضي|الارضي|اخير|الاخير)\b', norm_addr)
+    )
+
+    # 1. Typology: Malls & Commercial / Business Centers
+    mall_keywords = [
+        "مول", "mall", "كايرو فيستيفال", "سيتي ستارز", "اركان", "القريه الذكيه",
+        "بيزنس بارك", "داون تاون", "سنتر", "مبني اداري", "مجمع البنوك", "بوينت 90",
+        "امريكانا بلازا", "ميدتاون", "مجره"
+    ]
+    is_mall = any(k in combined for k in mall_keywords)
+    if is_mall:
+        mall_complete = has_comm and (has_unit or "بوابه" in norm_addr or len(words) >= 4)
+        if not mall_complete:
+            speech = f"يا فندم محتاجة أعرف اسم المحل أو الشركة أو المكتب في {area_label}، والدور أو أقرب بوابة عشان يوصلك الطلب بسرعة وبدون تأخير."
+            return False, {
+                "ok": False,
+                "is_system_error": False,
+                "status": "address_details_required",
+                "typology": "commercial_mall",
+                "area_name": area_label,
+                "error": f"العنوان في المول/المركز التجاري «{area_label}» يتطلب اسم المحل/الشركة ورقم الدور أو البوابة.",
+                "ai_speech_response": speech,
+                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل اسم المحل والدور بدقة ولا تقل إن هناك عطلاً بالسيستم."
+            }
+        return True, None
+
+    # 2. Typology: Gated Communities / Compounds
+    compound_keywords = [
+        "كمبوند", "كومبوند", "مدينتي", "مدينتى", "الرحاب", "رحاب", "هايد بارك",
+        "ميفيدا", "باديه", "بادية", "سوديك", "بالم هيلز", "ماونتن فيو", "الربوه",
+        "الربوة", "بيفرلي", "سوان ليك", "اب تاون", "تاج سيتي", "ليان", "ديره",
+        "زاد", "zed", "الياسمين ريزيدنس"
+    ]
+    is_compound = any(k in combined for k in compound_keywords)
+    if is_compound:
+        cmpnd_group_tokens = ["مجموعه", "مرحله", "زون", "zone", "قطاع", "جروب", "group", "فيلات", "عمارات", "حرف",
+                              "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10", "b11", "b12"]
+        has_group = any(t in norm_addr for t in cmpnd_group_tokens)
+        compound_complete = (
+            (has_group or has_bldg) and
+            (has_unit or "فيلا" in norm_addr or "بوابه" in norm_addr) and
+            has_num and
+            len(words) >= 4
+        )
+        if not compound_complete:
+            speech = f"يا فندم محتاجة أعرف في {area_label} رقم المجموعة أو المرحلة، ورقم العمارة أو الفيلا ورقم الشقة أو البوابة عشان كابتن التوصيل يدخل لحضرتك علطول."
+            return False, {
+                "ok": False,
+                "is_system_error": False,
+                "status": "address_details_required",
+                "typology": "gated_compound",
+                "area_name": area_label,
+                "error": f"العنوان في الكمبوند «{area_label}» يتطلب رقم المجموعة/المرحلة والعمارة/الفيلا ورقم الشقة/البوابة.",
+                "ai_speech_response": speech,
+                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل تفاصيل الكمبوند بدقة ولا تقل إن هناك عطلاً بالسيستم."
+            }
+        return True, None
+
+    # 3. Typology: New Cities with Neighborhoods & Districts (الأحياء والمجاورات)
+    new_city_keywords = [
+        "زايد", "الشيخ زايد", "اكتوبر", "السادس من اكتوبر", "العاشر", "رمضان",
+        "الشروق", "شروق", "العبور", "عبور", "15 مايو", "مايو", "بدر", "السادات",
+        "برج العرب", "حدائق الاهرام", "هضبه الاهرام", "حدائق اكتوبر"
+    ]
+    is_new_city = any(k in combined for k in new_city_keywords)
+    if is_new_city:
+        has_district_or_mogaweera = any(t in norm_addr for t in ["حي", "الحي", "مجاوره", "منطقه"])
+        new_city_complete = (
+            (has_district_or_mogaweera or len(words) >= 5) and
+            (has_bldg or "مجاوره" in norm_addr) and
+            (has_unit or "فيلا" in norm_addr) and
+            has_num and
+            len(words) >= 4
+        )
+        if not new_city_complete:
+            speech = f"يا فندم محتاجة أعرف في {area_label} الحي والمجاورة كام ورقم العمارة والدور والشقة عشان نوصل الطلب لحضرتك بالظبط."
+            return False, {
+                "ok": False,
+                "is_system_error": False,
+                "status": "address_details_required",
+                "typology": "new_city_districts",
+                "area_name": area_label,
+                "error": f"العنوان في «{area_label}» يتطلب تحديد الحي ورقم المجاورة والعمارة ورقم الدور والشقة.",
+                "ai_speech_response": speech,
+                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل الحي والمجاورة والعمارة والشقة بدقة ولا تقل إن هناك عطلاً بالسيستم."
+            }
+        return True, None
+
+    # 4. Typology: Subdivided Zones & Villas (التجمع والتقسيمات)
+    subdivided_keywords = [
+        "تجمع", "التجمع", "النرجس", "الياسمين", "البنفسج", "اللوتس", "بيت الوطن",
+        "الاندلس", "المستثمرين", "جنوب الاكاديميه", "غرب الجولف", "شمال الرحاب",
+        "الشويفات", "الدبلوماسيين", "القاهره الجديده"
+    ]
+    is_subdivided = any(k in combined for k in subdivided_keywords)
+    if is_subdivided:
+        subdivided_complete = (
+            (has_bldg or "فيلا" in norm_addr) and
+            (has_unit or "فيلا" in norm_addr) and
+            has_num and
+            len(words) >= 4
+        )
+        if not subdivided_complete:
+            speech = f"يا فندم محتاجة أعرف في {area_label} المنطقة أو النمرة كام بالتحديد (زي نرجس كام أو الحي الكام)، ورقم الفيلا أو العمارة والدور والشقة."
+            return False, {
+                "ok": False,
+                "is_system_error": False,
+                "status": "address_details_required",
+                "typology": "subdivided_villas",
+                "area_name": area_label,
+                "error": f"العنوان في «{area_label}» يتطلب تحديد المنطقة/النمرة ورقم الفيلا أو العمارة والدور والشقة.",
+                "ai_speech_response": speech,
+                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل رقم المنطقة والفيلا/العمارة والشقة بدقة ولا تقل إن هناك عطلاً بالسيستم."
+            }
+        return True, None
+
+    # 5. Typology: Traditional Urban Streets & General Areas
+    street_complete = (
+        (has_bldg or "فيلا" in norm_addr or "منزل" in norm_addr) and
+        (has_unit or "فيلا" in norm_addr) and
+        has_num and
+        len(words) >= 4
+    )
+    if not street_complete:
+        if area_label and not area_label.startswith("شارع"):
+            speech = f"يا فندم محتاجة أعرف في {area_label} اسم الشارع بالظبط، ورقم العمارة والدور ورقم الشقة أو أقرب علامة مميزة عشان كابتن التوصيل يوصل لحضرتك بسهولة."
+        else:
+            speech = "يا فندم محتاجة أعرف اسم الشارع بالظبط، ورقم العمارة والدور ورقم الشقة أو أقرب علامة مميزة عشان كابتن التوصيل يوصل لحضرتك بسهولة."
+        return False, {
+            "ok": False,
+            "is_system_error": False,
+            "status": "address_details_required",
+            "typology": "traditional_street",
+            "area_name": area_label,
+            "error": f"العنوان يتطلب اسم الشارع ورقم العمارة والدور ورقم الشقة.",
+            "ai_speech_response": speech,
+            "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل الشارع والعمارة والدور والشقة بدقة ولا تقل إن هناك عطلاً بالسيستم."
+        }
+
+    return True, None
+
+
 def _resolve_delivery_coverage_and_branch(
     tenant,
     customer_address: str,
@@ -1357,6 +1544,10 @@ def preview_order(
         if err:
             return err
         delivery_fee = matched_area.delivery_fee
+        addr_valid, addr_err = _validate_delivery_address_completeness(
+            customer_address or "",
+            matched_area_name=matched_area.name if matched_area else (delivery_area_name or "")
+        )
     else:
         # Takeaway or Dine-in
         active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
@@ -1509,6 +1700,8 @@ def preview_order(
         "delivery_fee": float(delivery_fee),
         "delivery_area": matched_area.name if matched_area else ("سفري" if order_type == "takeaway" else "غير محدد"),
         "estimated_delivery_time": f"{matched_area.estimated_time_minutes} دقيقة" if matched_area else "30-45 دقيقة",
+        "address_status": "complete" if (order_type != "delivery" or addr_valid) else "details_required",
+        "address_notice": (addr_err.get("ai_speech_response") if (order_type == "delivery" and not addr_valid and addr_err) else None),
         "total": float(grand_total),
         "ai_speech_response": speech,
         "ai_speech_summary": speech,
@@ -1684,6 +1877,14 @@ def create_callcenter_order(
         if err:
             return err
         delivery_fee = matched_area.delivery_fee
+
+        # 3.1 Strict Adaptive Delivery Address Completeness Validation
+        addr_valid, addr_err = _validate_delivery_address_completeness(
+            clean_addr,
+            matched_area_name=matched_area.name if matched_area else (delivery_area_name or "")
+        )
+        if not addr_valid:
+            return addr_err
     else:
         # Takeaway or Dine-in
         active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
