@@ -739,18 +739,27 @@ def _resolve_delivery_coverage_and_branch(
             "instruction_for_ai": "أبلغ العميل بلطف أن الفروع مغلقة حالياً."
         }
 
-    # Fetch all active areas for candidate branches
-    all_areas = list(DeliveryArea.objects.filter(branch__in=candidate_branches, is_active=True).select_related("branch"))
-    if not all_areas:
+    # 1. Mandatory polygon rule: only branches with a drawn polygon (>=3 points) are delivery-enabled
+    poly_branches = [
+        b for b in candidate_branches
+        if b.delivery_polygon and isinstance(b.delivery_polygon, list) and len(b.delivery_polygon) >= 3
+    ]
+
+    if not poly_branches:
         return None, None, {
             "ok": False,
             "is_system_error": False,
-            "error": "خدمة التوصيل غير مفعلة حالياً في فروع المنشأة.",
-            "ai_speech_response": "يا فندم خدمة التوصيل غير متاحة حالياً، لكن يشرفنا نجهز لحضرتك الطلب تستلمه بنفسك من الفرع (سفري). تحب نسجله استلام؟",
+            "status": "no_polygons_configured",
+            "error": "خدمة التوصيل غير مفعلة لعدم اكتمال رسم زون التوصيل الجغرافي (المضلع) على الخريطة.",
+            "ai_speech_response": "يا فندم خدمة التوصيل غير مفعلة حالياً لفروعنا لعدم اكتمال تحديد النطاق، لكن يشرفنا نجهز لحضرتك الطلب تستلمه بنفسك من الفرع (سفري). تحب نعمل كده؟",
             "suggested_action": "takeaway",
-            "instruction_for_ai": "أبلغ العميل أن التوصيل غير متاح واقترح الاستلام من الفرع ولا تقل إن هناك عطلاً بالسيستم."
+            "instruction_for_ai": "أبلغ العميل بلطف أن خدمة التوصيل غير متاحة واقترح عليه الاستلام من الفرع سفري ولا تقل إن هناك عطلاً بالسيستم."
         }
 
+    candidate_branches = poly_branches
+
+    # Fetch all active named areas for candidate branches
+    all_areas = list(DeliveryArea.objects.filter(branch__in=candidate_branches, is_active=True).select_related("branch"))
     matched_area = None
 
     # 1. Match by explicit delivery_area_id

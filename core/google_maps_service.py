@@ -130,8 +130,7 @@ def extract_coordinates_from_text(text: str) -> Optional[Tuple[float, float]]:
     """
     if not text:
         return None
-    # إزالة أي نصوص إضافية والبحث عن نمط إحداثيين عشريين
-    m = re.search(r'(-?\d{1,2}\.\d{4,}),\s*(-?\d{1,3}\.\d{4,})', text)
+    m = re.search(r'(-?\d{1,2}\.\d+),\s*(-?\d{1,3}\.\d+)', text)
     if m:
         try:
             lat = float(m.group(1))
@@ -281,110 +280,175 @@ def resolve_smart_delivery_with_google(
     cust_lng = geo["lng"]
     clean_addr_name = geo.get("formatted_address") or customer_address
 
-    # Fetch candidate branches
-    if branch_id is not None:
-        branches = list(Branch.objects.filter(tenant=tenant, id=branch_id, status="active"))
-    else:
-        branches = list(Branch.objects.filter(tenant=tenant, status="active"))
+    # 1. Enforce mandatory polygon rule: only branches with a drawn polygon (>=3 points) are delivery-enabled
+    all_active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
+    poly_branches = [
+        b for b in all_active_branches
+        if b.delivery_polygon and isinstance(b.delivery_polygon, list) and len(b.delivery_polygon) >= 3
+    ]
 
-    if not branches:
-        return None, None, None
-
-    cfg = PlatformConfiguration.get_solo()
-    base_fee = float(cfg.default_delivery_base_fee)
-    base_km = float(cfg.default_base_distance_km)
-    per_km_fee = float(cfg.default_delivery_per_km_fee)
-    max_radius_km = float(cfg.max_delivery_radius_km)
-    kitchen_prep_min = int(cfg.average_kitchen_prep_minutes)
-
-    best_branch = None
-    best_matrix = None
-    in_polygon_match = False
-
-    # 1. First check: Point in polygon for any branch
-    for b in branches:
-        if b.latitude and b.longitude and b.delivery_polygon:
-            if is_point_in_polygon(cust_lat, cust_lng, b.delivery_polygon):
-                matrix = calculate_driving_distance_matrix(
-                    float(b.latitude), float(b.longitude),
-                    cust_lat, cust_lng, api_key
-                )
-                best_branch = b
-                best_matrix = matrix
-                in_polygon_match = True
-                break
-
-    # 2. If not in any explicit polygon, find closest active branch by driving distance
-    if not best_branch:
-        min_distance = 999999.0
-        for b in branches:
-            if b.latitude and b.longitude:
-                matrix = calculate_driving_distance_matrix(
-                    float(b.latitude), float(b.longitude),
-                    cust_lat, cust_lng, api_key
-                )
-                if matrix and matrix["distance_km"] < min_distance:
-                    min_distance = matrix["distance_km"]
-                    best_branch = b
-                    best_matrix = matrix
-
-    if not best_branch or not best_matrix:
-        return None, None, None
-
-    distance_km = best_matrix["distance_km"]
-    driving_minutes = best_matrix["duration_minutes"]
-    branch_radius = float(best_branch.delivery_radius_km or max_radius_km)
-    effective_max_km = max(branch_radius, max_radius_km)
-
-    # Check coverage limit
-    if not in_polygon_match and distance_km > effective_max_km:
+    if not poly_branches:
         return None, None, {
             "ok": False,
             "covered": False,
             "is_system_error": False,
-            "error": f"الموقع يبعد {distance_km:.1f} كم وهو خارج النطاق الأقصى للتوصيل ({effective_max_km:.0f} كم).",
-            "distance_km": distance_km,
+            "status": "no_polygons_configured",
             "suggested_action": "takeaway",
-            "ai_speech_response": f"بعتذر لحضرتك يا فندم، العنوان يبعد حوالي {distance_km:.0f} كم وهو خارج نطاق التوصيل لفروعنا حالياً. نقدر نجهز لحضرتك الطلب تستلمه سفري من أقرب فرع، تحب نسجله استلام؟",
-            "instruction_for_ai": "أبلغ العميل بلطف أن المسافة خارج نطاق التوصيل واقترح عليه الاستلام من الفرع."
+            "error": "خدمة التوصيل غير مفعلة لعدم اكتمال رسم زون التوصيل الجغرافي (المضلع) على الخريطة.",
+            "ai_speech_response": "يا فندم خدمة التوصيل غير مفعلة حالياً لفروعنا لعدم اكتمال تحديد النطاق، لكن يشرفنا نجهز لحضرتك الطلب تستلمه بنفسك من الفرع (سفري). تحب نسجله استلام؟",
+            "instruction_for_ai": "أبلغ العميل بلطف أن خدمة التوصيل غير متاحة واقترح عليه الاستلام من الفرع سفري."
         }
 
-    # Calculate dynamic fee
-    if distance_km <= base_km:
-        delivery_fee = base_fee
-    else:
-        extra_km = distance_km - base_km
-        delivery_fee = base_fee + (extra_km * per_km_fee)
+    cfg = PlatformConfiguration.get_solo()
+    kitchen_prep_min = int(cfg.average_kitchen_prep_minutes)
 
-    delivery_fee = round(delivery_fee, 2)
-    total_est_minutes = driving_minutes + kitchen_prep_min
+    best_branch = None
+
+    # 2. If branch_id was specified
+    if branch_id is not None:
+        target_b = next((b for b in all_active_branches if b.id == branch_id), None)
+        in_target = (
+            target_b is not None
+            and target_b.delivery_polygon
+            and isinstance(target_b.delivery_polygon, list)
+            and len(target_b.delivery_polygon) >= 3
+            and is_point_in_polygon(cust_lat, cust_lng, target_b.delivery_polygon)
+        )
+
+        if in_target:
+            best_branch = target_b
+        else:
+            # Check if any OTHER branch covers this customer location
+            other_matches = [
+                b for b in poly_branches
+                if b.id != branch_id and is_point_in_polygon(cust_lat, cust_lng, b.delivery_polygon)
+            ]
+
+            if other_matches:
+                suggested_b = other_matches[0]
+                target_name = target_b.name if target_b else "الفرع المطلوب"
+                return None, None, {
+                    "ok": False,
+                    "is_system_error": False,
+                    "status": "branch_switch_suggested",
+                    "covered": True,
+                    "requested_branch_id": target_b.id if target_b else branch_id,
+                    "requested_branch_name": target_name,
+                    "suggested_branch_id": suggested_b.id,
+                    "suggested_branch_name": suggested_b.name,
+                    "ai_speech_response": f"يا فندم عنوان حضرتك خارج نطاق زون توصيل «{target_name}»، لكنه مغطى بالكامل من خلال «{suggested_b.name}». تحب نحول طلبك لـ «{suggested_b.name}» ونكمله مع حضرتك؟",
+                    "instruction_for_ai": f"أبلغ العميل بلطف أن عنوانه خارج تغطية «{target_name}» لكنه مغطى من «{suggested_b.name}»، واطلب موافقته الصريحة على تحويل الطلب لـ «{suggested_b.name}» ولا تنفذ الأوردر إلا بعد موافقته."
+                }
+            else:
+                # STRICT GEOFENCE: Outside coverage completely!
+                target_name = target_b.name if target_b else "فروعنا"
+                return None, None, {
+                    "ok": False,
+                    "covered": False,
+                    "is_system_error": False,
+                    "status": "outside_coverage",
+                    "suggested_action": "takeaway",
+                    "error": f"العنوان المحدد «{clean_addr_name}» يقع خارج زون التوصيل الجغرافي المعتمد لـ {target_name}.",
+                    "ai_speech_response": f"بعتذر لحضرتك جداً يا فندم، العنوان يقع خارج زون التوصيل المعتمد لفرعنا. نقدر نجهز لحضرتك الطلب تستلمه بنفسك من الفرع (سفري)، تحب نعمل كده؟",
+                    "instruction_for_ai": "أبلغ العميل بلطف أن العنوان خارج زون التوصيل الجغرافي للفرع واقترح عليه الاستلام من الفرع سفري."
+                }
+
+    # 3. If branch_id was NOT specified: find which branch's polygon contains the customer
+    if not best_branch:
+        matches = [b for b in poly_branches if is_point_in_polygon(cust_lat, cust_lng, b.delivery_polygon)]
+        if not matches:
+            # STRICT GEOFENCE: Not in any branch's polygon!
+            return None, None, {
+                "ok": False,
+                "covered": False,
+                "is_system_error": False,
+                "status": "outside_coverage",
+                "suggested_action": "takeaway",
+                "error": f"العنوان المحدد «{clean_addr_name}» يقع خارج زون التوصيل الجغرافي المعتمد لجميع فروعنا.",
+                "ai_speech_response": "بعتذر لحضرتك جداً يا فندم، عنوانك خارج نطاق زون التوصيل المعتمد لفروعنا حالياً. نقدر نجهز لحضرتك الطلب تستلمه بنفسك من أقرب فرع (سفري)، تحب نعمل كده؟",
+                "instruction_for_ai": "أبلغ العميل بلطف أن العنوان خارج زون التوصيل المعتمد واقترح عليه الاستلام من الفرع سفري."
+            }
+        elif len(matches) == 1:
+            best_branch = matches[0]
+        else:
+            # Multiple polygons overlap: pick branch with closest distance
+            min_dist = 999999.0
+            for b in matches:
+                matrix = calculate_driving_distance_matrix(
+                    float(b.latitude or 0), float(b.longitude or 0),
+                    cust_lat, cust_lng, api_key
+                )
+                if matrix and matrix["distance_km"] < min_dist:
+                    min_dist = matrix["distance_km"]
+                    best_branch = b
+
+    # 4. Calculate driving distance & duration for the confirmed in-polygon branch
+    matrix = calculate_driving_distance_matrix(
+        float(best_branch.latitude or 0), float(best_branch.longitude or 0),
+        cust_lat, cust_lng, api_key
+    ) or {
+        "distance_km": 3.0,
+        "duration_minutes": 15,
+        "distance_text": "3 كم",
+        "duration_text": "15 دقيقة",
+    }
+
+    distance_km = matrix["distance_km"]
+    driving_minutes = matrix["duration_minutes"]
+
+    # 5. Delivery Pricing inside the Polygon (تطبيق تسعيرة مناطق الفرع)
+    branch_areas = list(best_branch.delivery_areas.filter(is_active=True))
+    matched_area_obj = None
+
+    if branch_areas:
+        # Check if address text matches a specific compound / area name
+        norm_addr = customer_address.replace("،", " ").replace("-", " ")
+        for a in branch_areas:
+            if a.name in norm_addr or norm_addr in a.name:
+                matched_area_obj = a
+                break
+        if not matched_area_obj:
+            # Default to the primary / base area of this branch (e.g. 'داخل الشروق')
+            matched_area_obj = min(branch_areas, key=lambda x: x.delivery_fee)
+
+    if matched_area_obj:
+        delivery_fee = matched_area_obj.delivery_fee
+        estimated_time_minutes = matched_area_obj.estimated_time_minutes
+        area_name_display = matched_area_obj.name
+        area_db_id = matched_area_obj.id
+    else:
+        delivery_fee = cfg.default_delivery_base_fee
+        estimated_time_minutes = driving_minutes + kitchen_prep_min
+        area_name_display = f"زون {best_branch.name}"
+        area_db_id = None
 
     cur_name = best_branch.get_currency_name_ar()
     cur_sym = best_branch.get_currency_symbol_ar()
 
     delivery_info = {
-        "id": None,
-        "name": clean_addr_name,
-        "area_type": "توصيل ذكي (خرائط جوجل)",
+        "id": area_db_id,
+        "name": area_name_display,
+        "area_type": "داخل زون التوصيل",
         "delivery_fee": Decimal(str(delivery_fee)),
-        "estimated_time_minutes": total_est_minutes,
+        "estimated_time_minutes": estimated_time_minutes,
         "distance_km": distance_km,
         "driving_minutes": driving_minutes,
         "is_google_resolved": True,
+        "in_polygon": True,
         "latitude": cust_lat,
         "longitude": cust_lng,
-        "notes": f"المسافة بالقيادة: {distance_km:.1f} كم - زمن الطريق: {driving_minutes} دقيقة",
+        "notes": f"داخل زون الفرع (المسافة: {distance_km:.1f} كم - زمن الطريق: {driving_minutes} دقيقة)",
     }
 
     speech = (
-        f"تمام يا فندم، تم تحديد موقعك «{clean_addr_name}» والتوصيل متاح من {best_branch.name} "
-        f"(يبعد {distance_km:.1f} كم)، رسوم التوصيل {delivery_fee:.0f} {cur_name}، "
-        f"ووقت الوصول المتوقع بالتحضير حوالي {total_est_minutes} دقيقة."
+        f"تمام يا فندم، عنوان حضرتك داخل زون توصيل «{best_branch.name}»، "
+        f"ورسوم التوصيل {delivery_fee:.0f} {cur_name}، "
+        f"ووقت الوصول المتوقع حوالي {estimated_time_minutes} دقيقة."
     )
 
     instruction = (
-        f"أبلغ العميل بأن العنوان مغطى من {best_branch.name} ورسوم التوصيل {delivery_fee:.0f} {cur_name}، "
-        f"ووقت الوصول حوالي {total_est_minutes} دقيقة كما في ai_speech_response."
+        f"أبلغ العميل بأن العنوان داخل زون التوصيل لـ «{best_branch.name}» ورسوم التوصيل {delivery_fee:.0f} {cur_name}، "
+        f"ووقت الوصول حوالي {estimated_time_minutes} دقيقة كما في ai_speech_response."
     )
 
     result = {
