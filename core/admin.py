@@ -23,6 +23,7 @@ from .models import (
     RestaurantOwner,
     TenantSubscription,
     TenantApiKey,
+    PlatformConfiguration,
 )
 
 
@@ -233,6 +234,15 @@ class TenantAdmin(admin.ModelAdmin):
         ("الاشتراك والباقة", {
             "fields": ("subscription_plan", "subscription_status", "billing_cycle", "subscription_start", "subscription_end")
         }),
+        ("العملة والخرائط (Google Maps & Localization)", {
+            "fields": ("default_currency", "google_maps_api_key"),
+            "description": "حدد العملة الافتراضية للمنشأة. كما يمكنك تخصيص مفتاح Google Maps خاص بهذه المنشأة فقط للاستفادة من رصيدها، أو تركه فارغاً لاستخدام المفتاح المركزي العام للمنصة."
+        }),
+        ("الكول سنتر الصوتي والذكاء الاصطناعي (Voice AI PBX)", {
+            "fields": ("voice_is_active", "voice_client_id", "voice_username", "voice_password"),
+            "classes": ("collapse",),
+            "description": "بيانات الربط مع سنترال الذكاء الاصطناعي السحابي وخدمة الرد الآلي."
+        }),
     )
 
     @admin.display(description="حالة الاشتراك")
@@ -246,6 +256,44 @@ class TenantAdmin(admin.ModelAdmin):
     @admin.display(description="الفروع")
     def branches_count(self, obj):
         return obj.branches.count()
+
+
+@admin.register(PlatformConfiguration)
+class PlatformConfigurationAdmin(admin.ModelAdmin):
+    list_display = (
+        "__str__",
+        "has_google_key",
+        "default_delivery_base_fee",
+        "default_delivery_per_km_fee",
+        "max_delivery_radius_km",
+        "updated_at",
+    )
+    fieldsets = (
+        ("تكامل خرائط وذكاء التوصيل (Google Maps Platform)", {
+            "fields": ("google_maps_api_key",),
+            "description": "ضع هنا مفتاح Google Maps API العام للمنصة للاستفادة من تحويل العناوين (Geocoding)، وقراءة معالم الأحياء والكومبوندات، وحساب مسافة ووقت القيادة اللحظي (Distance Matrix)، وتتبع روابط خرائط جوجل المرسلة على الواتساب."
+        }),
+        ("قواعد تسعير التوصيل الذكي (Dynamic Delivery Pricing)", {
+            "fields": (
+                "default_delivery_base_fee",
+                "default_base_distance_km",
+                "default_delivery_per_km_fee",
+                "max_delivery_radius_km",
+                "average_kitchen_prep_minutes",
+            ),
+            "description": "المعادلة المطبقة عندما يكون العنوان حراً وخارج الكومبوندات المحددة سلفاً: السعر = رسوم فتحة العداد + (المسافة الزائدة عن الكيلومترات الأساسية × سعر الكيلومتر الإضافي)."
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return not PlatformConfiguration.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.display(boolean=True, description="مفتاح Google مفعل")
+    def has_google_key(self, obj):
+        return bool(obj.google_maps_api_key and len(obj.google_maps_api_key.strip()) > 8)
 
 
 @admin.register(DeliveryArea)

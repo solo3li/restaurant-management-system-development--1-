@@ -111,6 +111,13 @@ class Tenant(models.Model):
         verbose_name="العملة الافتراضية للمنشأة",
         help_text="العملة الرسمية المعتمدة للمطعم والسلسلة وفروعها الجديدة."
     )
+    google_maps_api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="مفتاح Google Maps الخاص بالمنشأة (اختياري)",
+        help_text="إن تُرك فارغاً، يتم استخدام المفتاح المركزي العام للمنصة تلقائياً."
+    )
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التسجيل")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
@@ -1559,6 +1566,67 @@ class KnowledgeDocument(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.tenant.name})"
+
+
+class PlatformConfiguration(models.Model):
+    """
+    إعدادات المنصة المركزية الموحدة (Singleton Configuration):
+    تُدار حصرياً من لوحة تحكم الإدارة الرئيسية (Django Admin /admin/) للمديرين.
+    """
+    google_maps_api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="مفتاح خرائط جوجل العام (Google Maps API Key)",
+        help_text="يُستخدم في تحويل العناوين غير الدقيقة إلى إحداثيات (Geocoding)، والتعرف على معالم الخريطة وروابط الواتساب، وحساب مسافة ووقت التوصيل اللحظي (Distance Matrix)."
+    )
+    default_delivery_base_fee = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=15.00,
+        verbose_name="رسوم فتحة عداد التوصيل الافتراضية (Base Fee)",
+        help_text="تُطبق عند حساب رسوم التوصيل الحر بالمسافة في حال عدم وجود تسعيرة منطقة محددة."
+    )
+    default_delivery_per_km_fee = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=3.00,
+        verbose_name="رسوم الكيلومتر الإضافي (Per KM Fee)",
+        help_text="سعر كل كيلومتر بعد المسافة الأساسية."
+    )
+    default_base_distance_km = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=3.00,
+        verbose_name="المسافة الأساسية المغطاة بفتحة العداد (كم)",
+        help_text="المسافة المشمولة في السعر الأساسي قبل تطبيق رسوم الكيلومتر الإضافي."
+    )
+    max_delivery_radius_km = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=25.00,
+        verbose_name="أقصى نطاق توصيل مسموح به (كم)",
+        help_text="إذا زادت مسافة العميل عن هذا الحد يعتبر خارج نطاق التوصيل ويُقترح عليه الاستلام من الفرع."
+    )
+    average_kitchen_prep_minutes = models.PositiveIntegerField(
+        default=20,
+        verbose_name="متوسط وقت تجهيز الوجبة بالمطبخ (دقيقة)",
+        help_text="يُضاف إلى زمن مسار التوصيل من جوجل لحساب وقت التسليم الكلي للعميل."
+    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
+
+    class Meta:
+        verbose_name = "إعدادات المنصة المركزية"
+        verbose_name_plural = "إعدادات المنصة المركزية (Google Maps & Delivery)"
+
+    def __str__(self):
+        return "إعدادات المنصة المركزية (Google Maps & Delivery)"
+
+    @classmethod
+    def get_solo(cls):
+        obj, created = cls.objects.get_or_create(id=1)
+        return obj
+
 
 
 

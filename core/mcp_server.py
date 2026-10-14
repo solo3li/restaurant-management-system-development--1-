@@ -792,6 +792,35 @@ def _resolve_delivery_coverage_and_branch(
     if matched_area:
         return matched_area.branch, matched_area, None
 
+    # 5. Smart Google Maps & Geofencing Fallback (إذا لم يتطابق مع أي منطقة نصية مسجلة)
+    try:
+        from core.google_maps_service import resolve_smart_delivery_with_google
+        g_branch, g_area_info, g_res = resolve_smart_delivery_with_google(tenant, clean_addr, branch_id=branch_id)
+        if g_branch and g_res and g_res.get("ok"):
+            class DynamicDeliveryArea:
+                def __init__(self, data, branch_obj):
+                    self.id = None
+                    self.pk = None
+                    self.name = data["name"]
+                    self.branch = branch_obj
+                    self.area_type = data.get("area_type", "zone")
+                    self.delivery_fee = Decimal(str(data["delivery_fee"]))
+                    self.estimated_time_minutes = int(data.get("estimated_time_minutes", 35))
+                    self.notes = data.get("notes", "")
+
+                def get_area_type_display(self):
+                    return self.area_type
+
+                def __str__(self):
+                    return f"{self.name} - {self.branch.name}"
+
+            dyn_area = DynamicDeliveryArea(g_area_info, g_branch)
+            return g_branch, dyn_area, None
+        elif g_res and not g_res.get("ok"):
+            return None, None, g_res
+    except Exception as e:
+        logger.warning(f"Error in smart Google Maps delivery resolution: {e}")
+
     # Outside coverage
     covered_names = list(dict.fromkeys(a.name for a in all_areas))
     covered_str = "، ".join(covered_names[:5])
@@ -1629,6 +1658,11 @@ def create_callcenter_order(
 
             try:
                 sid = transaction.savepoint()
+                db_delivery_area = matched_area if (matched_area and hasattr(matched_area, "pk") and matched_area.pk) else None
+                order_notes = full_notes
+                if matched_area and getattr(matched_area, "notes", None) and str(matched_area.notes) not in order_notes:
+                    order_notes = f"{order_notes} | {matched_area.notes}".strip(" |")
+
                 order = Order.objects.create(
                     tenant=tenant,
                     branch=branch,
@@ -1639,14 +1673,14 @@ def create_callcenter_order(
                     customer_name=customer.name if customer else "عميل هاتف",
                     customer_phone=customer.phone if customer else clean_phone,
                     address=clean_addr,
-                    delivery_area=matched_area,
+                    delivery_area=db_delivery_area,
                     subtotal=subtotal,
                     delivery_fee=delivery_fee,
                     discount=Decimal("0.00"),
                     total=total,
                     paid=False,
                     cashier=f"AI: {key_obj.name}",
-                    notes=full_notes,
+                    notes=order_notes,
                     status="new",
                 )
                 transaction.savepoint_commit(sid)
