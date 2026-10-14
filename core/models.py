@@ -222,6 +222,27 @@ class Branch(models.Model):
     longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True, verbose_name="خط الطول")
     delivery_polygon = models.JSONField(default=list, blank=True, verbose_name="مضلع التغطية على الخريطة")
     delivery_radius_km = models.DecimalField(max_digits=5, decimal_places=2, default=5.00, verbose_name="نصف قطر التغطية (كم)")
+    delivery_base_fee = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=15.00,
+        verbose_name="رسوم فتحة العداد / الحد الأدنى للتوصيل",
+        help_text="الرسوم الأساسية لتوصيل أي عنوان داخل مضلع الزون غير مسجل في جدول الكومبوندات."
+    )
+    delivery_base_km = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=3.00,
+        verbose_name="المسافة الأساسية المشمولة بفتحة العداد (كم)",
+        help_text="المسافة المغطاة ضمن رسوم فتحة العداد قبل تطبيق رسوم الكيلومترات الإضافية."
+    )
+    delivery_per_km_fee = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=3.00,
+        verbose_name="رسوم الكيلومتر الإضافي",
+        help_text="سعر كل كيلومتر قيادة إضافي بعد المسافة الأساسية."
+    )
     opening_time = models.TimeField(null=True, blank=True, verbose_name="وقت فتح الفرع")
     closing_time = models.TimeField(null=True, blank=True, verbose_name="وقت إغلاق الفرع")
     min_delivery_order = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="الحد الأدنى لطلب التوصيل")

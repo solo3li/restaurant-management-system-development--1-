@@ -3676,6 +3676,11 @@ def api_branch_delivery_areas(request, branch_id):
                 "longitude": float(branch.longitude) if branch.longitude else None,
                 "delivery_polygon": branch.delivery_polygon,
                 "delivery_radius_km": float(branch.delivery_radius_km),
+                "delivery_base_fee": float(branch.delivery_base_fee),
+                "delivery_base_km": float(branch.delivery_base_km),
+                "delivery_per_km_fee": float(branch.delivery_per_km_fee),
+                "currency": branch.currency,
+                "currency_symbol": branch.get_currency_symbol_ar(),
             },
             "areas": areas
         })
@@ -3772,6 +3777,12 @@ def api_branch_delivery_areas(request, branch_id):
                 branch.delivery_polygon = polygon
             if radius is not None:
                 branch.delivery_radius_km = Decimal(str(radius))
+            if "delivery_base_fee" in data:
+                branch.delivery_base_fee = max(Decimal("0.00"), Decimal(str(data["delivery_base_fee"] or 0)))
+            if "delivery_base_km" in data:
+                branch.delivery_base_km = max(Decimal("0.10"), Decimal(str(data["delivery_base_km"] or 1)))
+            if "delivery_per_km_fee" in data:
+                branch.delivery_per_km_fee = max(Decimal("0.00"), Decimal(str(data["delivery_per_km_fee"] or 0)))
             branch.save()
             log_audit_event(
                 tenant=tenant,
@@ -3783,6 +3794,31 @@ def api_branch_delivery_areas(request, branch_id):
                 ip_address=_get_client_ip(request),
             )
             return JsonResponse({"ok": True, "message": "تم حفظ مضلع الزون وإحداثيات الفرع بنجاح"})
+
+        elif action == "save_pricing":
+            if "delivery_base_fee" in data:
+                branch.delivery_base_fee = max(Decimal("0.00"), Decimal(str(data.get("delivery_base_fee") or 0)))
+            if "delivery_base_km" in data:
+                branch.delivery_base_km = max(Decimal("0.10"), Decimal(str(data.get("delivery_base_km") or 1)))
+            if "delivery_per_km_fee" in data:
+                branch.delivery_per_km_fee = max(Decimal("0.00"), Decimal(str(data.get("delivery_per_km_fee") or 0)))
+            branch.save()
+            log_audit_event(
+                tenant=tenant,
+                user=request.user,
+                action="branch_pricing_updated",
+                target_model="Branch",
+                target_id=branch.id,
+                description=f"تحديث قواعد التسعير الديناميكي لفرع «{branch.name}» (الأساس: {branch.delivery_base_fee}، كل كم: {branch.delivery_per_km_fee})",
+                ip_address=_get_client_ip(request),
+            )
+            return JsonResponse({
+                "ok": True,
+                "message": "تم حفظ قواعد تسعير الفرع بنجاح",
+                "delivery_base_fee": float(branch.delivery_base_fee),
+                "delivery_base_km": float(branch.delivery_base_km),
+                "delivery_per_km_fee": float(branch.delivery_per_km_fee),
+            })
 
         return JsonResponse({"error": "إجراء غير معروف"}, status=400)
 

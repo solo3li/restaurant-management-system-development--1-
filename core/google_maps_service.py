@@ -142,14 +142,15 @@ def extract_coordinates_from_text(text: str) -> Optional[Tuple[float, float]]:
     return None
 
 
-def geocode_address(address_text: str, api_key: str, region: str = "eg") -> Optional[Dict[str, Any]]:
+def geocode_address(address_text: str, api_key: str = "", region: str = "eg") -> Optional[Dict[str, Any]]:
     """
     تحويل العنوان النصي أو اسم المعلم إلى إحداثيات وبيانات دقيقة عبر Google Geocoding API.
+    يدعم الروابط المباشرة والإحداثيات النصية حتى بدون وجود مفتاح API.
     """
-    if not api_key or not address_text:
+    if not address_text:
         return None
 
-    # التحقق أولاً إن كان النص رابطاً
+    # التحقق أولاً إن كان النص رابطاً لخرائط جوجل (لا يتطلب مفتاح API)
     coords_from_url = extract_coordinates_from_url(address_text)
     if coords_from_url:
         lat, lng = coords_from_url
@@ -160,7 +161,7 @@ def geocode_address(address_text: str, api_key: str, region: str = "eg") -> Opti
             "is_from_url": True,
         }
 
-    # التحقق ثانياً إن كان النص إحداثيات مباشرة
+    # التحقق ثانياً إن كان النص إحداثيات مباشرة (لا يتطلب مفتاح API)
     coords_from_text = extract_coordinates_from_text(address_text)
     if coords_from_text:
         lat, lng = coords_from_text
@@ -170,6 +171,10 @@ def geocode_address(address_text: str, api_key: str, region: str = "eg") -> Opti
             "formatted_address": f"إحداثيات ({lat:.4f}, {lng:.4f})",
             "is_from_coords": True,
         }
+
+    # التحقق من وجود مفتاح API للعناوين النصية الصرفة
+    if not api_key:
+        return None
 
     encoded_address = urllib.parse.quote(address_text)
     url = f"https://maps.googleapis.com/maps/api/geocode/json?address={encoded_address}&key={api_key}&language=ar&region={region}"
@@ -202,41 +207,39 @@ def calculate_driving_distance_matrix(
     origin_lng: float,
     dest_lat: float,
     dest_lng: float,
-    api_key: str
+    api_key: str = ""
 ) -> Optional[Dict[str, Any]]:
     """
-    حساب مسافة القيادة الحقيقية ووقت الوصول اللحظي عبر Google Distance Matrix API.
+    حساب مسافة القيادة ووقت الوصول: عبر Google Distance Matrix API عند توفر المفتاح،
+    أو عبر مسافة هاڤرسين التقديرية (× 1.3) كبديل فوري آمن ومجاني.
     """
-    if not api_key:
-        return None
+    if api_key:
+        origins = f"{origin_lat},{origin_lng}"
+        destinations = f"{dest_lat},{dest_lng}"
+        url = (
+            f"https://maps.googleapis.com/maps/api/distancematrix/json?"
+            f"origins={origins}&destinations={destinations}&mode=driving&language=ar&key={api_key}"
+        )
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Motaem-Voice-AI/1.0"})
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
 
-    origins = f"{origin_lat},{origin_lng}"
-    destinations = f"{dest_lat},{dest_lng}"
-    url = (
-        f"https://maps.googleapis.com/maps/api/distancematrix/json?"
-        f"origins={origins}&destinations={destinations}&mode=driving&language=ar&key={api_key}"
-    )
+            if data.get("status") == "OK" and data.get("rows"):
+                element = data["rows"][0]["elements"][0]
+                if element.get("status") == "OK":
+                    distance_meters = element["distance"]["value"]
+                    duration_seconds = element["duration"]["value"]
+                    return {
+                        "distance_km": round(distance_meters / 1000.0, 2),
+                        "duration_minutes": math.ceil(duration_seconds / 60.0),
+                        "distance_text": element["distance"]["text"],
+                        "duration_text": element["duration"]["text"],
+                    }
+        except Exception as e:
+            logger.error(f"Error calling Google Distance Matrix API: {e}")
 
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Motaem-Voice-AI/1.0"})
-        with urllib.request.urlopen(req, timeout=4) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-
-        if data.get("status") == "OK" and data.get("rows"):
-            element = data["rows"][0]["elements"][0]
-            if element.get("status") == "OK":
-                distance_meters = element["distance"]["value"]
-                duration_seconds = element["duration"]["value"]
-                return {
-                    "distance_km": round(distance_meters / 1000.0, 2),
-                    "duration_minutes": math.ceil(duration_seconds / 60.0),
-                    "distance_text": element["distance"]["text"],
-                    "duration_text": element["duration"]["text"],
-                }
-    except Exception as e:
-        logger.error(f"Error calling Google Distance Matrix API: {e}")
-
-    # Fallback to Haversine if matrix fails
+    # Fallback to Haversine if matrix fails or if no API key
     dist_straight = haversine_distance_km(origin_lat, origin_lng, dest_lat, dest_lng)
     # تقدير تقريبي للطريق: المسافة الفعلية = المسافة المستقيمة × 1.3
     est_driving_km = round(dist_straight * 1.3, 2)
@@ -268,10 +271,8 @@ def resolve_smart_delivery_with_google(
     from core.models import Branch, PlatformConfiguration
 
     api_key = get_active_google_maps_key(tenant)
-    if not api_key:
-        return None, None, None
 
-    # Geocode customer address
+    # Geocode customer address (works with URLs/coordinates even without API key)
     geo = geocode_address(customer_address, api_key)
     if not geo:
         return None, None, None
@@ -396,7 +397,7 @@ def resolve_smart_delivery_with_google(
     distance_km = matrix["distance_km"]
     driving_minutes = matrix["duration_minutes"]
 
-    # 5. Delivery Pricing inside the Polygon (تطبيق تسعيرة مناطق الفرع)
+    # 5. Delivery Pricing inside the Polygon (أولوية الكمبوند المحدد أولاً، ثم تسعير عداد المسافة للفرع)
     branch_areas = list(best_branch.delivery_areas.filter(is_active=True))
     matched_area_obj = None
 
@@ -404,23 +405,35 @@ def resolve_smart_delivery_with_google(
         # Check if address text matches a specific compound / area name
         norm_addr = customer_address.replace("،", " ").replace("-", " ")
         for a in branch_areas:
-            if a.name in norm_addr or norm_addr in a.name:
+            # If area name is distinct (not generic like 'داخل الشروق' or 'نطاق الفرع') and in address
+            if len(a.name) > 2 and (a.name in norm_addr or norm_addr in a.name):
                 matched_area_obj = a
                 break
-        if not matched_area_obj:
-            # Default to the primary / base area of this branch (e.g. 'داخل الشروق')
-            matched_area_obj = min(branch_areas, key=lambda x: x.delivery_fee)
 
     if matched_area_obj:
         delivery_fee = matched_area_obj.delivery_fee
         estimated_time_minutes = matched_area_obj.estimated_time_minutes
         area_name_display = matched_area_obj.name
         area_db_id = matched_area_obj.id
+        notes_str = f"كمبوند معتمد: {matched_area_obj.name} (المسافة: {distance_km:.1f} كم - زمن الطريق: {driving_minutes} دقيقة)"
     else:
-        delivery_fee = cfg.default_delivery_base_fee
+        # Dynamic distance-based formula from the branch itself!
+        base_fee = float(best_branch.delivery_base_fee if best_branch.delivery_base_fee is not None else cfg.default_delivery_base_fee)
+        base_km = float(best_branch.delivery_base_km if best_branch.delivery_base_km is not None else cfg.default_base_distance_km)
+        per_km = float(best_branch.delivery_per_km_fee if best_branch.delivery_per_km_fee is not None else cfg.default_delivery_per_km_fee)
+
+        if distance_km <= base_km:
+            raw_fee = base_fee
+        else:
+            extra_km = distance_km - base_km
+            raw_fee = base_fee + (extra_km * per_km)
+
+        # Rule A2: Ceil rounding to whole integer
+        delivery_fee = Decimal(str(math.ceil(raw_fee)))
         estimated_time_minutes = driving_minutes + kitchen_prep_min
         area_name_display = f"زون {best_branch.name}"
         area_db_id = None
+        notes_str = f"تسعير ديناميكي بالمسافة: {distance_km:.1f} كم (الأساس: {base_fee:.0f} لأول {base_km:.0f} كم + {per_km:.0f}/كم)"
 
     cur_name = best_branch.get_currency_name_ar()
     cur_sym = best_branch.get_currency_symbol_ar()
@@ -437,7 +450,7 @@ def resolve_smart_delivery_with_google(
         "in_polygon": True,
         "latitude": cust_lat,
         "longitude": cust_lng,
-        "notes": f"داخل زون الفرع (المسافة: {distance_km:.1f} كم - زمن الطريق: {driving_minutes} دقيقة)",
+        "notes": notes_str,
     }
 
     speech = (
