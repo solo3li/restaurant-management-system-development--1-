@@ -19,19 +19,19 @@
                         brand: {
                             50: '#FAF5EC',
                             100: '#F5EBD9',
-                            500: '{{ brand_color|default:"#0E382A" }}',
-                            600: '{{ brand_color|default:"#0E382A" }}',
+                            500: '{{ brand_color|default:"#2563EB" }}',
+                            600: '{{ brand_color|default:"#2563EB" }}',
                             700: '#09241B',
                         },
                         gold: {
                             400: '#E6C898',
-                            500: '#D2AB6B',
-                            600: '#B88B46',
+                            500: '#2563EB',
+                            600: '#1D4ED8',
                         }
                     },
                     fontFamily: {
                         sans: {% if CURRENT_LANG == 'en' %}['Inter', 'Cairo', 'sans-serif']{% else %}['Cairo', 'Inter', 'sans-serif']{% endif %},
-                        royal: ['Amiri', 'serif'],
+                        royal: ['Cairo', 'Inter', 'sans-serif'],
                     }
                 }
             }
@@ -41,7 +41,7 @@
     <style>
         body {
             font-family: {% if CURRENT_LANG == 'en' %}'Inter', 'Cairo', sans-serif{% else %}'Cairo', 'Inter', sans-serif{% endif %};
-            background-color: #F8F6F0;
+            background-color: #F8FAFC;
             color: #1A1A1A;
             -webkit-tap-highlight-color: transparent;
         }
@@ -60,7 +60,7 @@
         {% if tenant.cover_image %}
             <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ tenant.cover_image.url }}');"></div>
         {% else %}
-            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#D2AB6B_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#2563EB_1px,transparent_1px)] [background-size:16px_16px]"></div>
         {% endif %}
         <div class="absolute inset-0 bg-gradient-to-t from-brand-700 via-brand-600/80 to-transparent"></div>
 
@@ -78,7 +78,7 @@
                 <!-- Info -->
                 <div>
                     <div class="flex items-center justify-center sm:justify-start gap-2">
-                        <h1 class="text-2xl sm:text-3xl font-black font-royal text-white tracking-wide">{{ tenant.name }}</h1>
+                        <h1 class="text-2xl sm:text-3xl font-black font-sans text-white tracking-wide">{{ tenant.name }}</h1>
                         {% if is_open %}
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                                 {% if CURRENT_LANG == 'en' %}Open for Orders{% else %}مفتوح للطلب{% endif %}
@@ -200,7 +200,7 @@
     <!-- ========================================== -->
     <!-- STICKY CATEGORIES BAR & SEARCH             -->
     <!-- ========================================== -->
-    <div class="sticky top-0 z-20 bg-[#F8F6F0]/95 backdrop-blur-md border-b border-stone-200 py-3 shadow-xs">
+    <div class="sticky top-0 z-20 bg-[#F8FAFC]/95 backdrop-blur-md border-b border-stone-200 py-3 shadow-xs">
         <div class="max-w-4xl mx-auto px-4 space-y-2.5">
             <!-- Search Input -->
             <div class="relative">
