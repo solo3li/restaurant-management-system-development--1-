@@ -66,28 +66,18 @@
             <div>
                 <!-- Card Header -->
                 <div class="flex items-center justify-between bg-gradient-to-r from-[#0E382A] to-[#144D3B] p-4 text-white border-b border-[#D2AB6B]/40">
-                    <div class="flex items-center gap-3">
-                        <span class="medallion-icon w-10 h-10 shadow-sm">
-                            <svg class="w-5 h-5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                            </svg>
-                        </span>
-                        <div>
-                            <h2 class="text-sm font-bold font-royal text-[#E6C898]">{{ item.branch.name }}</h2>
-                            <p class="text-[11px] text-[#F9F6F0]/80">{{ item.branch.city|default:"الرياض" }}</p>
-                        </div>
+                    <div>
+                        <h2 class="text-base font-bold font-royal text-[#E6C898]">{{ item.branch.name }}</h2>
+                        <p class="text-[11px] text-[#F9F6F0]/80">{{ item.branch.city|default:"الرياض" }}</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button 
                             type="button" 
                             onclick="openBranchCurrencyModal({{ item.branch.id }}, '{{ item.branch.name|escapejs }}', '{{ item.branch.currency }}')"
                             title="تغيير عملة هذا الفرع"
-                            class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold border border-[#D2AB6B]/50 bg-white/10 hover:bg-white/20 text-[#E6C898] transition cursor-pointer shadow-2xs"
+                            class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold border border-[#D2AB6B]/50 bg-white/10 hover:bg-white/20 text-[#E6C898] transition cursor-pointer shadow-2xs"
                         >
                             <span>{{ item.branch.currency }} ({{ item.branch.get_currency_symbol_ar }})</span>
-                            <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                            </svg>
                         </button>
                         <span class="rounded-full px-3 py-1 text-[11px] font-bold border {% if item.branch.status == 'active' %}bg-[#0E382A]/80 text-[#D2AB6B] border-[#D2AB6B]/60{% else %}bg-rose-900/60 text-rose-200 border-rose-500/40{% endif %}">
                             {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
@@ -99,18 +89,14 @@
                 <div class="p-4 space-y-4 text-xs">
                     <div class="space-y-1.5 text-[#666666]">
                         {% if item.branch.address %}
-                        <p class="flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
+                        <p class="flex items-center gap-1.5">
+                            <span class="font-semibold text-[#0E382A]">العنوان:</span>
                             <span>{{ item.branch.address }}</span>
                         </p>
                         {% endif %}
                         {% if item.branch.phone %}
-                        <p class="flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                            </svg>
+                        <p class="flex items-center gap-1.5">
+                            <span class="font-semibold text-[#0E382A]">الهاتف:</span>
                             <span dir="ltr">{{ item.branch.phone }}</span>
                         </p>
                         {% endif %}
@@ -119,10 +105,7 @@
                     <!-- Delivery Zone & Covered Areas Badge Box -->
                     <div class="rounded-xl border border-[#D2AB6B]/40 bg-[#F9F6F0]/80 p-3 space-y-2.5">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-[#0E382A] flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                                </svg>
+                            <span class="font-bold text-[#0E382A]">
                                 نطاق التوصيل الجغرافي
                             </span>
                             <span class="rounded-full bg-[#0E382A]/10 text-[#0E382A] border border-[#D2AB6B]/40 px-2.5 py-0.5 text-[10px] font-bold">
@@ -133,11 +116,8 @@
                         {% if item.areas %}
                         <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto pt-1">
                             {% for a in item.areas|slice:":6" %}
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-[#D2AB6B]/30 px-2 py-0.5 text-[10px] font-semibold text-[#1E130D] shadow-2xs">
-                                <svg class="w-3 h-3 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                                {{ a.name }}
+                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-[#D2AB6B]/30 px-2.5 py-1 text-[10px] font-semibold text-[#1E130D] shadow-2xs">
+                                <span>{{ a.name }}</span>
                                 <span class="text-[#0E382A] font-bold">{{ a.delivery_fee }} {{ item.branch.get_currency_symbol_ar }}</span>
                             </span>
                             {% endfor %}
@@ -151,11 +131,8 @@
 
                         <button 
                             onclick="openBranchZoneModal({{ item.branch.id }}, '{{ item.branch.name|escapejs }}')"
-                            class="w-full mt-2 flex items-center justify-center gap-2 rounded-lg border border-[#D2AB6B]/60 bg-white hover:bg-[#F9F6F0] text-[#0E382A] text-[11px] font-bold py-2 transition"
+                            class="w-full mt-2 flex items-center justify-center rounded-lg border border-[#D2AB6B]/60 bg-white hover:bg-[#F9F6F0] text-[#0E382A] text-[11px] font-bold py-2 transition cursor-pointer"
                         >
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                            </svg>
                             تفاصيل الخريطة وإدارة الأحياء والكمبوندات
                         </button>
                     </div>
@@ -182,23 +159,18 @@
             <div class="p-4 border-t border-[#D2AB6B]/30 bg-[#F9F6F0]/50 flex items-center justify-between gap-2">
                 <button 
                     onclick="toggleBranchStatus({{ item.branch.id }})" 
-                    class="rounded-lg border border-[#D2AB6B]/50 bg-white px-3.5 py-1.5 text-xs font-bold text-[#1E130D] hover:bg-[#F9F6F0] transition"
+                    class="rounded-lg border border-[#D2AB6B]/50 bg-white px-3.5 py-1.5 text-xs font-bold text-[#1E130D] hover:bg-[#F9F6F0] transition cursor-pointer"
                 >
                     {% if item.branch.status == 'active' %}إغلاق مؤقت{% else %}تفعيل الفرع{% endif %}
                 </button>
                 <a href="{% url 'switch_branch' item.branch.id %}" class="btn-gold-pill px-4 py-1.5 text-xs font-bold shadow-sm inline-flex items-center gap-1.5">
-                    لوحة الفرع
+                    <span>لوحة الفرع</span>
                     <span class="inline-block transition-transform group-hover:-translate-x-1">←</span>
                 </a>
             </div>
         </div>
         {% empty %}
         <div class="col-span-3 classic-card p-12 text-center text-xs text-[#666666]">
-            <div class="medallion-icon w-14 h-14 mx-auto mb-3">
-                <svg class="w-7 h-7 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                </svg>
-            </div>
             لا توجد فروع مسجلة حتى الآن. اضغط على «افتتاح فرع وتحديد النطاق» للبدء.
         </div>
         {% endfor %}
