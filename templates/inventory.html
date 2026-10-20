@@ -7,32 +7,32 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">{{ t.inv_title }}</h1>
-            <p class="text-xs font-bold text-soft mt-1">{{ t.inv_subtitle }}</p>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{{ t.inv_title }}</h1>
+            <p class="text-xs text-slate-500 mt-1">{{ t.inv_subtitle }}</p>
         </div>
         <div class="flex items-center gap-2.5">
             {% if low_count > 0 %}
-            <span class="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-xs font-bold text-amber-800 shadow-2xs">
+            <span class="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3.5 py-1.5 text-xs font-medium text-amber-800">
                 <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <span>{{ low_count }} {% if IS_RTL %}صنف تحت حد الأمان{% else %}items below threshold{% endif %}</span>
             </span>
             {% else %}
-            <span class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs">
+            <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-xs font-medium text-emerald-700">
                 <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 <span>{% if IS_RTL %}كافة المواد فوق حد الأمان{% else %}All items stocked safely{% endif %}</span>
             </span>
             {% endif %}
-            <button onclick="openAddInvModal()" class="btn-gold-pill px-4 py-2 text-xs font-black shadow-sm">
+            <button onclick="openAddInvModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-medium transition cursor-pointer">
                 + {{ t.create }}
             </button>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="classic-card p-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3 shadow-none">
         <form method="GET" action="{% url 'inventory' %}" class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-soft">الفرع:</span>
+                <span class="text-xs font-medium text-slate-600">الفرع:</span>
                 <select name="branch" onchange="this.form.submit()" class="input !w-44 text-xs">
                     <option value="all">كافة الفروع</option>
                     {% for b in branches %}
@@ -49,20 +49,20 @@
                     class="input text-xs"
                 >
             </div>
-            <button type="submit" class="rounded-lg bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">
+            <button type="submit" class="rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer">
                 تصفية
             </button>
             {% if search_query or selected_branch != 'all' %}
-            <a href="{% url 'inventory' %}" class="text-xs font-bold text-bad-700 hover:underline">إلغاء التصفية</a>
+            <a href="{% url 'inventory' %}" class="text-xs font-medium text-rose-600 hover:underline">إلغاء التصفية</a>
             {% endif %}
         </form>
     </div>
 
     <!-- Inventory Table -->
-    <div class="card overflow-hidden shadow-md">
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-none">
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs table-responsive-cards">
-                <thead class="border-b border-line bg-paper/70">
+                <thead class="border-b border-slate-200 bg-slate-50 text-slate-600 font-semibold">
                     <tr>
                         <th class="th">المادة الغذائية</th>
                         <th class="th">الفرع</th>
@@ -73,41 +73,41 @@
                         <th class="th text-center">إجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/70">
+                <tbody class="divide-y divide-slate-100">
                     {% for it in items %}
-                    <tr class="hover:bg-paper/30 transition">
-                        <td class="td font-bold text-ink" data-label="المادة الغذائية">
-                            <p class="text-sm font-extrabold">{{ it.name }}</p>
-                            <p class="text-[10px] text-soft">الوحدة: {{ it.unit }}</p>
+                    <tr class="hover:bg-slate-50/70 transition">
+                        <td class="td font-medium text-slate-900" data-label="المادة الغذائية">
+                            <p class="text-sm font-semibold text-slate-900">{{ it.name }}</p>
+                            <p class="text-[10px] text-slate-400">الوحدة: {{ it.unit }}</p>
                         </td>
-                        <td class="td text-soft" data-label="الفرع">{{ it.branch.name }}</td>
+                        <td class="td text-slate-600" data-label="الفرع">{{ it.branch.name }}</td>
                         <td class="td" data-label="الكمية الحالية">
-                            <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-black text-xs
-                                {% if it.quantity == 0 %}bg-bad-100 text-bad-700
-                                {% elif it.quantity <= it.min_quantity %}bg-warn-100 text-warn-700
-                                {% else %}bg-good-100 text-good-700{% endif %}">
+                            <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-medium text-xs
+                                {% if it.quantity == 0 %}bg-rose-50 text-rose-700 border border-rose-200/60
+                                {% elif it.quantity <= it.min_quantity %}bg-amber-50 text-amber-700 border border-amber-200/60
+                                {% else %}bg-emerald-50 text-emerald-700 border border-emerald-200/60{% endif %}">
                                 {{ it.quantity|floatformat:1 }} {{ it.unit }}
                                 {% if it.quantity == 0 %} (نفد)
                                 {% elif it.quantity <= it.min_quantity %} (منخفض)
                                 {% endif %}
                             </span>
                         </td>
-                        <td class="td font-mono" data-label="حد الأمان">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
-                        <td class="td text-soft" data-label="المورد">{{ it.supplier|default:"—" }}</td>
+                        <td class="td font-mono text-slate-600" data-label="حد الأمان">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
+                        <td class="td text-slate-500" data-label="المورد">{{ it.supplier|default:"—" }}</td>
                         <td class="td" data-label="تعديل سريع">
                             <div class="flex items-center gap-1">
-                                <button onclick="adjustStock({{ it.id }}, 5)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-brand-100 text-brand-700">+5</button>
-                                <button onclick="adjustStock({{ it.id }}, 1)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-brand-100 text-brand-700">+1</button>
-                                <button onclick="adjustStock({{ it.id }}, -1)" class="rounded bg-paper border border-line px-2 py-0.5 text-xs font-bold hover:bg-bad-100 text-bad-700">-1</button>
+                                <button onclick="adjustStock({{ it.id }}, 5)" class="rounded bg-white border border-slate-200 px-2 py-0.5 text-xs font-medium hover:bg-slate-50 text-blue-600 cursor-pointer">+5</button>
+                                <button onclick="adjustStock({{ it.id }}, 1)" class="rounded bg-white border border-slate-200 px-2 py-0.5 text-xs font-medium hover:bg-slate-50 text-blue-600 cursor-pointer">+1</button>
+                                <button onclick="adjustStock({{ it.id }}, -1)" class="rounded bg-white border border-slate-200 px-2 py-0.5 text-xs font-medium hover:bg-rose-50 text-rose-600 cursor-pointer">-1</button>
                             </div>
                         </td>
                         <td class="td text-center" data-label="الإجراءات">
                             <div class="flex items-center justify-center gap-2">
-                                <button onclick="openEditInvModal({{ it.id }}, '{{ it.name }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier }}')" class="text-brand-600 hover:text-brand-700 font-bold">
+                                <button onclick="openEditInvModal({{ it.id }}, '{{ it.name }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier }}')" class="text-blue-600 hover:text-blue-700 font-medium cursor-pointer">
                                     تعديل
                                 </button>
-                                <span>•</span>
-                                <button onclick="deleteInventoryItem({{ it.id }}, '{{ it.name }}')" class="text-bad-600 hover:text-bad-700 font-bold">
+                                <span class="text-slate-300">•</span>
+                                <button onclick="deleteInventoryItem({{ it.id }}, '{{ it.name }}')" class="text-rose-600 hover:text-rose-700 font-medium cursor-pointer">
                                     حذف
                                 </button>
                             </div>
@@ -115,7 +115,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="py-12 text-center text-xs text-soft font-bold">لا توجد مواد مطابقة في المخزون</td>
+                        <td colspan="7" class="py-12 text-center text-xs text-slate-400">لا توجد مواد مطابقة في المخزون</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -125,17 +125,17 @@
 </div>
 
 <!-- Add Modal -->
-<div id="add-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-sm font-black font-display text-ink mb-4">إضافة مادة جديدة للمخزون</h3>
+<div id="add-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-xl border border-slate-200 max-w-md w-full p-6 shadow-xl">
+        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-4">إضافة مادة جديدة للمخزون</h3>
         <div class="space-y-3 text-xs">
             <div>
-                <label class="mb-1 block font-bold text-soft">اسم المادة *</label>
+                <label class="mb-1 block font-medium text-slate-600">اسم المادة *</label>
                 <input type="text" id="add-inv-name" placeholder="أرز بسمتي" class="input text-xs">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">الفرع *</label>
+                    <label class="mb-1 block font-medium text-slate-600">الفرع *</label>
                     <select id="add-inv-branch" class="input text-xs">
                         {% for b in branches %}
                         <option value="{{ b.id }}">{{ b.name }}</option>
@@ -143,7 +143,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">وحدة القياس</label>
+                    <label class="mb-1 block font-medium text-slate-600">وحدة القياس</label>
                     <select id="add-inv-unit" class="input text-xs">
                         {% for u in units %}
                         <option value="{{ u }}">{{ u }}</option>
@@ -153,51 +153,51 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">الكمية المتوفرة</label>
+                    <label class="mb-1 block font-medium text-slate-600">الكمية المتوفرة</label>
                     <input type="number" id="add-inv-qty" placeholder="20" class="input text-xs">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">حد الأمان الأدنى</label>
+                    <label class="mb-1 block font-medium text-slate-600">حد الأمان الأدنى</label>
                     <input type="number" id="add-inv-min" placeholder="5" class="input text-xs">
                 </div>
             </div>
             <div>
-                <label class="mb-1 block font-bold text-soft">اسم المورد</label>
+                <label class="mb-1 block font-medium text-slate-600">اسم المورد</label>
                 <input type="text" id="add-inv-supplier" placeholder="مؤسسة الريف" class="input text-xs">
             </div>
         </div>
         <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeAddInvModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
-            <button onclick="saveNewInventoryItem()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ المادة</button>
+            <button onclick="closeAddInvModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">إلغاء</button>
+            <button onclick="saveNewInventoryItem()" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition cursor-pointer">حفظ المادة</button>
         </div>
     </div>
 </div>
 
 <!-- Edit Modal -->
-<div id="edit-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="card max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-sm font-black font-display text-ink mb-1">تعديل بيانات المخزون</h3>
-        <p id="edit-inv-title" class="text-xs font-bold text-brand-700 mb-4"></p>
+<div id="edit-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-xl border border-slate-200 max-w-md w-full p-6 shadow-xl">
+        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-1">تعديل بيانات المخزون</h3>
+        <p id="edit-inv-title" class="text-xs font-semibold text-blue-600 mb-4"></p>
         <input type="hidden" id="edit-inv-id">
         <div class="space-y-3 text-xs">
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">الكمية المتوفرة</label>
+                    <label class="mb-1 block font-medium text-slate-600">الكمية المتوفرة</label>
                     <input type="number" id="edit-inv-qty" class="input text-xs">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">حد الأمان</label>
+                    <label class="mb-1 block font-medium text-slate-600">حد الأمان</label>
                     <input type="number" id="edit-inv-min" class="input text-xs">
                 </div>
             </div>
             <div>
-                <label class="mb-1 block font-bold text-soft">المورد</label>
+                <label class="mb-1 block font-medium text-slate-600">المورد</label>
                 <input type="text" id="edit-inv-supplier" class="input text-xs">
             </div>
         </div>
         <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeEditInvModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft">إلغاء</button>
-            <button onclick="saveEditInventoryItem()" class="rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-700">حفظ التعديلات</button>
+            <button onclick="closeEditInvModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">إلغاء</button>
+            <button onclick="saveEditInventoryItem()" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition cursor-pointer">حفظ التعديلات</button>
         </div>
     </div>
 </div>
