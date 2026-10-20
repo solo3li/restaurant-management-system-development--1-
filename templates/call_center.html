@@ -7,11 +7,11 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">{{ t.cc_heading|default:"الكول سنتر وخدمة العملاء" }}</h1>
-            <p class="text-xs font-bold text-soft mt-1">{{ t.cc_subtitle|default:"استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل" }}</p>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{{ t.cc_heading|default:"الكول سنتر وخدمة العملاء" }}</h1>
+            <p class="text-xs text-slate-500 mt-1">{{ t.cc_subtitle|default:"استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل" }}</p>
         </div>
         <div>
-            <span class="inline-flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs">
+            <span class="inline-flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-xs font-medium text-emerald-700">
                 <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span>{{ t.cc_lines_ready|default:"الخطوط جاهزة لاستقبال الاتصالات" }}</span>
             </span>
@@ -22,15 +22,15 @@
         <!-- Left: Customer Lookup & Menu Picker -->
         <div class="space-y-5">
             <!-- 1. Customer Search Card -->
-            <div class="classic-card p-5">
-                <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
-                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-2">
-                        <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
-                            <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-none">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                    <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         </span>
                         <span>البحث عن العميل المتصل</span>
                     </h2>
-                    <span class="text-xs text-soft">أدخل رقم الجوال أو الاسم</span>
+                    <span class="text-xs text-slate-400">أدخل رقم الجوال أو الاسم</span>
                 </div>
 
                 <div class="flex gap-2">
@@ -45,37 +45,37 @@
                     <button 
                         type="button" 
                         onclick="searchCustomer()" 
-                        class="btn-gold-pill shrink-0 px-4 py-2 text-xs font-black shadow-2xs"
+                        class="shrink-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-medium transition cursor-pointer"
                     >
                         بحث
                     </button>
                 </div>
 
                 <!-- Search Results Box -->
-                <div id="customer-results-box" class="hidden mt-3 space-y-2 border-t border-line pt-3"></div>
+                <div id="customer-results-box" class="hidden mt-3 space-y-2 border-t border-slate-100 pt-3"></div>
 
                 <!-- Active Customer Details Form -->
-                <div id="active-customer-box" class="mt-4 rounded-xl border border-brand-500/30 bg-paper/60 p-4 space-y-3">
+                <div id="active-customer-box" class="mt-4 rounded-lg border border-slate-200 bg-slate-50/70 p-4 space-y-3">
                     <div class="flex items-center justify-between">
-                        <span id="cust-status-badge" class="rounded bg-brand-100 border border-brand-300 px-2 py-0.5 text-[11px] font-bold text-brand-800">عميل جديد</span>
-                        <span id="cust-stats-badge" class="text-xs font-bold text-brand-700">0 طلبات سابقة</span>
+                        <span id="cust-status-badge" class="rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-semibold text-blue-700">عميل جديد</span>
+                        <span id="cust-stats-badge" class="text-xs font-medium text-slate-600">0 طلبات سابقة</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                         <div>
-                            <label class="mb-1 block font-bold text-soft">اسم العميل *</label>
+                            <label class="mb-1 block font-medium text-slate-600">اسم العميل *</label>
                             <input type="text" id="order-cust-name" placeholder="الاسم الكامل" class="input text-xs">
                         </div>
                         <div>
-                            <label class="mb-1 block font-bold text-soft">رقم الجوال *</label>
+                            <label class="mb-1 block font-medium text-slate-600">رقم الجوال *</label>
                             <input type="text" id="order-cust-phone" placeholder="05xxxxxxxx" dir="ltr" class="input text-xs">
                         </div>
                     </div>
                     <!-- Delivery Area / Compound Selection -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                         <div>
-                            <label class="mb-1 block font-bold text-soft flex items-center justify-between">
+                            <label class="mb-1 block font-medium text-slate-600 flex items-center justify-between">
                                 <span>المنطقة / الكومبوند المغطى</span>
-                                <span id="area-route-badge" class="hidden text-[10px] text-brand-800 bg-brand-100 px-1.5 py-0.5 rounded font-bold"></span>
+                                <span id="area-route-badge" class="hidden text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded font-medium border border-blue-200"></span>
                             </label>
                             <select id="order-delivery-area" class="input text-xs" onchange="onDeliveryAreaChanged()">
                                 <option value="">-- اختر المنطقة أو الكومبوند لتوجيه الفرع --</option>
@@ -87,7 +87,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mb-1 block font-bold text-soft">عنوان التوصيل بالتفصيل *</label>
+                            <label class="mb-1 block font-medium text-slate-600">عنوان التوصيل بالتفصيل *</label>
                             <input type="text" id="order-cust-address" placeholder="الحي، اسم الشارع، رقم المبنى أو الشقة..." class="input text-xs">
                         </div>
                     </div>
@@ -95,11 +95,11 @@
             </div>
 
             <!-- 2. Menu Item Picker -->
-            <div class="classic-card p-5">
-                <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
-                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-2">
-                        <span class="medallion-icon-light flex h-6 w-6 items-center justify-center rounded-md">
-                            <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-none">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                    <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         </span>
                         <span>اختيار أصناف الوجبات</span>
                     </h2>
@@ -115,20 +115,20 @@
                 <div id="call-menu-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto">
                     {% for m in menu_items %}
                     <div 
-                        class="call-menu-card flex items-center justify-between rounded-xl border border-line p-3 hover:border-[#D2AB6B] hover:bg-white transition cursor-pointer"
+                        class="call-menu-card flex items-center justify-between rounded-lg border border-slate-200 p-3 hover:border-blue-300 hover:bg-blue-50/20 transition cursor-pointer"
                         data-name="{{ m.name }}"
                         onclick="addCallItem({{ m.id }}, '{{ m.name }}', {{ m.price }})"
                     >
                         <div class="flex items-center gap-2.5">
-                            <span class="medallion-icon-light flex h-8 w-8 items-center justify-center rounded-lg shadow-2xs">
-                                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                             </span>
                             <div>
-                                <p class="text-xs font-bold text-ink">{{ m.name }}</p>
-                                <p class="text-[10px] text-soft">{{ m.category }}</p>
+                                <p class="text-xs font-medium text-slate-900">{{ m.name }}</p>
+                                <p class="text-[10px] text-slate-400">{{ m.category }}</p>
                             </div>
                         </div>
-                        <span class="text-xs font-black text-brand-700 font-body">{{ m.price }} {{ tenant_currency_symbol }}</span>
+                        <span class="text-xs font-bold text-slate-900">{{ m.price }} {{ tenant_currency_symbol }}</span>
                     </div>
                     {% endfor %}
                 </div>
@@ -138,25 +138,25 @@
         <!-- Right: Current Order Invoice & Recent Calls -->
         <div class="space-y-5">
             <!-- Delivery Invoice Card -->
-            <div id="call-order-ticket-container" class="classic-card p-5 shadow-lg border-line transition-all duration-300">
-                <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
-                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div id="call-order-ticket-container" class="bg-white rounded-xl border border-slate-200 p-5 shadow-none transition-all duration-300">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                    <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span>طلب التوصيل</span>
                     </h2>
-                    <span id="call-cart-count" class="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
+                    <span id="call-cart-count" class="rounded-full bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 text-xs font-semibold text-blue-700">0 أصناف</span>
                 </div>
 
-                <div id="call-cart-items" class="max-h-52 min-h-[100px] overflow-y-auto divide-y divide-line/60">
-                    <div id="call-cart-empty" class="py-6 text-center text-xs text-soft font-bold">
+                <div id="call-cart-items" class="max-h-52 min-h-[100px] overflow-y-auto divide-y divide-slate-100">
+                    <div id="call-cart-empty" class="py-6 text-center text-xs text-slate-400">
                         لم يتم اختيار وجبات بعد
                     </div>
                 </div>
 
-                <div class="space-y-3 border-t border-line pt-3 mt-3 text-xs">
+                <div class="space-y-3 border-t border-slate-100 pt-3 mt-3 text-xs">
                     <div>
-                        <label class="mb-1 block font-bold text-soft">الفرع المنفذ للطلب</label>
-                        <select id="call-order-branch" class="input text-xs font-bold" onchange="onBranchChanged()">
+                        <label class="mb-1 block font-medium text-slate-600">الفرع المنفذ للطلب</label>
+                        <select id="call-order-branch" class="input text-xs" onchange="onBranchChanged()">
                             {% for b in branches %}
                             <option value="{{ b.id }}" data-currency="{{ b.get_currency_symbol_ar }}">{{ b.name }} ({{ b.get_currency_symbol_ar }})</option>
                             {% endfor %}
@@ -165,35 +165,35 @@
 
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="mb-1 block font-bold text-soft">طريقة الدفع</label>
-                            <select id="call-order-pay" class="input text-xs font-bold">
+                            <label class="mb-1 block font-medium text-slate-600">طريقة الدفع</label>
+                            <select id="call-order-pay" class="input text-xs">
                                 <option value="cash">عند الاستلام (نقداً)</option>
                                 <option value="card">مدى / بطاقة</option>
                                 <option value="wallet">محفظة</option>
                             </select>
                         </div>
                         <div>
-                            <label class="mb-1 block font-bold text-soft">ملاحظات التحضير</label>
+                            <label class="mb-1 block font-medium text-slate-600">ملاحظات التحضير</label>
                             <input type="text" id="call-order-notes" placeholder="بدون بصل، حار..." class="input text-xs">
                         </div>
                     </div>
 
                     <!-- Totals -->
-                    <div class="rounded-xl bg-paper p-3 space-y-1.5 border border-line">
-                        <div class="flex justify-between text-soft">
+                    <div class="rounded-lg bg-slate-50 p-3 space-y-1.5 border border-slate-200">
+                        <div class="flex justify-between text-slate-500">
                             <span>قيمة الأصناف</span>
-                            <span id="call-subtotal" class="font-bold">0.00 {{ tenant_currency_symbol }}</span>
+                            <span id="call-subtotal" class="font-medium text-slate-900">0.00 {{ tenant_currency_symbol }}</span>
                         </div>
-                        <div class="flex justify-between text-soft items-center">
+                        <div class="flex justify-between text-slate-500 items-center">
                             <span class="flex items-center gap-1.5">
                                 <span>رسوم التوصيل</span>
-                                <span id="call-est-time-badge" class="hidden text-[10px] text-brand-800 bg-brand-100 px-1.5 py-0.5 rounded font-bold"></span>
+                                <span id="call-est-time-badge" class="hidden text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded font-medium"></span>
                             </span>
-                            <span id="call-delivery-fee" class="font-bold text-brand-700">8.00 {{ tenant_currency_symbol }}</span>
+                            <span id="call-delivery-fee" class="font-medium text-slate-900">8.00 {{ tenant_currency_symbol }}</span>
                         </div>
-                        <div class="flex justify-between border-t border-line pt-2 text-sm font-bold text-ink">
+                        <div class="flex justify-between border-t border-slate-200 pt-2 text-sm font-bold text-slate-900">
                             <span>المجموع الكلي</span>
-                            <span id="call-total" class="text-base text-brand-700 font-black font-body">8.00 {{ tenant_currency_symbol }}</span>
+                            <span id="call-total" class="text-base text-blue-600 font-bold">8.00 {{ tenant_currency_symbol }}</span>
                         </div>
                     </div>
 
@@ -201,7 +201,7 @@
                         type="button" 
                         id="call-submit-btn" 
                         onclick="submitCallOrder()" 
-                        class="btn-gold-pill w-full py-3 text-sm font-black shadow-lg"
+                        class="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white py-3 text-sm font-medium transition cursor-pointer"
                     >
                         اعتماد طلب التوصيل
                     </button>
@@ -209,19 +209,19 @@
             </div>
 
             <!-- Recent Call Center Orders -->
-            <div class="classic-card p-5">
-                <h3 class="text-xs font-bold font-royal text-ink mb-3 border-b border-line pb-2">آخر طلبات الكول سنتر</h3>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-none">
+                <h3 class="text-xs font-bold text-slate-900 tracking-tight mb-3 border-b border-slate-100 pb-2">آخر طلبات الكول سنتر</h3>
                 <div class="space-y-2.5 max-h-60 overflow-y-auto">
                     {% for o in recent_orders %}
-                    <div class="rounded-lg border border-line p-2.5 bg-paper/40 hover:bg-white hover:border-[#D2AB6B] transition text-xs">
+                    <div class="rounded-lg border border-slate-100 p-2.5 bg-slate-50 hover:bg-white hover:border-slate-300 transition text-xs">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-ink">{{ o.order_number }}</span>
-                            <span class="font-black text-brand-700 font-body">{{ o.total|floatformat:2 }} {{ o.branch.get_currency_symbol_ar|default:tenant_currency_symbol }}</span>
+                            <span class="font-semibold text-slate-900">{{ o.order_number }}</span>
+                            <span class="font-bold text-blue-600">{{ o.total|floatformat:2 }} {{ o.branch.get_currency_symbol_ar|default:tenant_currency_symbol }}</span>
                         </div>
-                        <p class="text-[11px] text-soft mt-0.5">{{ o.customer_name }} • {{ o.created_at|time:"H:i" }}</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">{{ o.customer_name }} • {{ o.created_at|time:"H:i" }}</p>
                     </div>
                     {% empty %}
-                    <p class="text-center py-4 text-xs text-soft font-bold">لا توجد طلبات سابقة</p>
+                    <p class="text-center py-4 text-xs text-slate-400">لا توجد طلبات سابقة</p>
                     {% endfor %}
                 </div>
             </div>
@@ -229,18 +229,18 @@
     </div>
 
     <!-- Floating Bottom Ticket Bar for Mobile & Small Tablets (< lg) -->
-    <div id="call-mobile-ticket-bar" class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0E382A] text-white border-t border-[#D2AB6B]/40 shadow-[0_-6px_25px_rgba(0,0,0,0.35)] px-4 py-3 flex items-center justify-between">
+    <div id="call-mobile-ticket-bar" class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-slate-900 text-white border-t border-slate-800 shadow-xl px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <span class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 border border-[#D2AB6B]/30 text-[#D2AB6B]">
+            <span class="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span id="call-mobile-badge" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#D2AB6B] text-[10px] font-black text-[#1E130D]">0</span>
+                <span id="call-mobile-badge" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">0</span>
             </span>
             <div>
-                <p class="text-[11px] text-[#E6C898] font-bold">تذكرة التوصيل</p>
-                <p id="call-mobile-total" class="text-sm font-black text-white">8.00 {{ tenant_currency_symbol }}</p>
+                <p class="text-[11px] text-slate-300 font-medium">تذكرة التوصيل</p>
+                <p id="call-mobile-total" class="text-sm font-bold text-white">8.00 {{ tenant_currency_symbol }}</p>
             </div>
         </div>
-        <button type="button" onclick="scrollToCallTicket()" class="btn-gold-pill px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-md">
+        <button type="button" onclick="scrollToCallTicket()" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer">
             <span>مراجعة واعتماد الطلب</span>
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
         </button>
@@ -331,7 +331,7 @@
                 let html = '<p class="text-xs font-bold text-ink mb-1">النتائج المطابقة:</p>';
                 data.customers.forEach(c => {
                     html += `
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-card border border-line hover:border-[#D2AB6B] cursor-pointer" onclick='selectCustomer(${JSON.stringify(c)})'>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/20 cursor-pointer transition" onclick='selectCustomer(${JSON.stringify(c)})'>
                             <div>
                                 <p class="text-xs font-bold text-ink">${c.name} (${c.phone})</p>
                                 <p class="text-[11px] text-soft">${c.address || 'بدون عنوان مسجل'}</p>
@@ -437,8 +437,8 @@
         const el = document.getElementById('call-order-ticket-container');
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            el.classList.add('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl');
-            setTimeout(() => el.classList.remove('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl'), 1500);
+            el.classList.add('ring-2', 'ring-blue-500', 'rounded-xl');
+            setTimeout(() => el.classList.remove('ring-2', 'ring-blue-500', 'rounded-xl'), 1500);
         }
     }
 
