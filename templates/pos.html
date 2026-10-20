@@ -3,16 +3,16 @@
 {% block title %}{{ t.pos_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
-<div class="space-y-5">
+<div class="space-y-5 font-body">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">{{ t.pos_title }}</h1>
-            <p class="text-xs font-bold text-soft mt-1 font-body">{{ t.pos_subtitle }}</p>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{{ t.pos_title }}</h1>
+            <p class="text-xs text-slate-500 mt-1 font-body">{{ t.pos_subtitle }}</p>
         </div>
         <div>
-            <button onclick="openMenuManager()" class="inline-flex items-center gap-2 rounded-xl border border-line bg-card px-4 py-2 text-xs font-bold text-ink shadow-sm hover:border-[#D2AB6B] transition font-body">
-                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <button onclick="openMenuManager()" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition font-body cursor-pointer">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 <span>{{ t.pos_manage_menu }}</span>
             </button>
         </div>
@@ -29,7 +29,7 @@
                     <button 
                         onclick="setCategory('{{ c }}')" 
                         id="cat-btn-{{ forloop.counter }}"
-                        class="cat-btn rounded-full px-3.5 py-1 text-xs font-bold transition {% if forloop.first %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}border border-line bg-card text-soft hover:text-ink hover:border-[#D2AB6B]{% endif %}"
+                        class="cat-btn rounded-full px-3.5 py-1 text-xs font-medium transition cursor-pointer {% if forloop.first %}bg-blue-600 text-white shadow-none{% else %}border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}"
                         data-cat="{{ c }}"
                     >
                         {{ c }}
@@ -37,8 +37,8 @@
                     {% endfor %}
                 </div>
                 <div class="relative w-full sm:w-64">
-                    <span class="absolute {% if IS_RTL %}right-3{% else %}left-3{% endif %} top-1/2 -translate-y-1/2 text-xs text-soft pointer-events-none">
-                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span class="absolute {% if IS_RTL %}right-3{% else %}left-3{% endif %} top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </span>
                     <input 
                         type="text" 
@@ -54,70 +54,70 @@
             <div id="menu-grid" class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4">
                 {% for m in menu_items %}
                 <div 
-                    class="menu-item classic-card group relative p-3.5 text-right transition hover:border-[#D2AB6B] hover:shadow-md cursor-pointer {% if not m.available %}opacity-45 pointer-events-none{% endif %}"
+                    class="menu-item bg-white rounded-xl border border-slate-200 group relative p-3.5 text-right transition hover:border-blue-500 hover:bg-blue-50/10 cursor-pointer shadow-none {% if not m.available %}opacity-45 pointer-events-none{% endif %}"
                     data-id="{{ m.id }}"
                     data-name="{{ m.name }}"
                     data-price="{{ m.price }}"
                     data-category="{{ m.category }}"
                     onclick="addToCart({{ m.id }}, '{{ m.name }}', {{ m.price }})"
                 >
-                    <span class="medallion-icon-light flex h-12 w-12 items-center justify-center rounded-xl mb-2.5">
-                        <svg class="w-6 h-6 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    <span class="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-200 transition mb-2.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </span>
-                    <p class="truncate text-xs font-black text-ink group-hover:text-brand-700 transition">{{ m.name }}</p>
+                    <p class="truncate text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition">{{ m.name }}</p>
                     <div class="mt-1 flex items-center justify-between">
-                        <span class="text-xs font-black text-brand-700">{{ m.price|floatformat:0 }} {{ branch_currency_symbol }}</span>
-                        <span class="text-[10px] font-bold text-soft">{{ m.category }}</span>
+                        <span class="text-xs font-bold text-slate-900">{{ m.price|floatformat:0 }} {{ branch_currency_symbol }}</span>
+                        <span class="text-[10px] text-slate-400">{{ m.category }}</span>
                     </div>
                     {% if not m.available %}
-                    <span class="absolute top-2 left-2 rounded bg-bad-100 px-1.5 py-0.5 text-[10px] font-bold text-bad-700">غير متوفر</span>
+                    <span class="absolute top-2 left-2 rounded bg-rose-50 border border-rose-200 px-1.5 py-0.5 text-[10px] font-medium text-rose-700">غير متوفر</span>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
-            <div id="no-items-msg" class="hidden py-12 text-center text-xs text-soft font-bold">لا توجد أصناف مطابقة للبحث</div>
+            <div id="no-items-msg" class="hidden py-12 text-center text-xs text-slate-400">لا توجد أصناف مطابقة للبحث</div>
         </div>
 
         <!-- Invoice / Cart Section -->
         <div id="cart-section-container" class="transition-all duration-300">
-            <div class="classic-card sticky top-4 shadow-xl border-line">
-                <div class="flex items-center justify-between border-b border-line px-5 py-3.5 bg-paper/40 rounded-t-2xl">
-                    <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="bg-white rounded-xl border border-slate-200 sticky top-4 shadow-none">
+                <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 bg-slate-50/70 rounded-t-xl">
+                    <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <span>الفاتورة الحالية</span>
                     </h2>
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="scrollToMenu()" class="lg:hidden text-[11px] font-bold text-soft hover:text-ink px-2 py-1 rounded-lg border border-line bg-card flex items-center gap-1">
+                        <button type="button" onclick="scrollToMenu()" class="lg:hidden text-[11px] font-medium text-slate-600 hover:text-slate-900 px-2 py-1 rounded-lg border border-slate-200 bg-white flex items-center gap-1 cursor-pointer">
                             <span>الأصناف</span>
                             <span>↑</span>
                         </button>
-                        <span id="cart-badge" class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700">0 أصناف</span>
+                        <span id="cart-badge" class="rounded-full bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 text-xs font-semibold text-blue-700">0 أصناف</span>
                     </div>
                 </div>
 
                 <!-- Items list -->
-                <div id="cart-items-container" class="max-h-56 min-h-[120px] overflow-y-auto p-4 divide-y divide-line/60">
-                    <div id="cart-empty" class="py-8 text-center text-xs text-soft">
-                        <span class="medallion-icon-light mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl">
-                            <svg class="w-5 h-5 text-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                <div id="cart-items-container" class="max-h-56 min-h-[120px] overflow-y-auto p-4 divide-y divide-slate-100">
+                    <div id="cart-empty" class="py-8 text-center text-xs text-slate-400">
+                        <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-400">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </span>
-                        <p class="font-bold">اضغط على أي صنف لإضافته إلى الفاتورة</p>
+                        <p class="font-medium text-slate-500">اضغط على أي صنف لإضافته إلى الفاتورة</p>
                     </div>
                 </div>
 
                 <!-- Order Controls -->
-                <div class="space-y-3 border-t border-line p-4 bg-paper/20">
+                <div class="space-y-3 border-t border-slate-100 p-4 bg-slate-50/40">
                     <!-- Order Type Selector -->
                     <div class="grid grid-cols-3 gap-1.5">
-                        <button type="button" onclick="setOrderType('dine_in')" id="btn-type-dine_in" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition">
+                        <button type="button" onclick="setOrderType('dine_in')" id="btn-type-dine_in" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 py-2 text-xs font-medium text-white transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                             <span>محلي</span>
                         </button>
-                        <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-[#D2AB6B]">
+                        <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                             <span>سفري</span>
                         </button>
-                        <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-[#D2AB6B]">
+                        <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             <span>توصيل</span>
                         </button>
@@ -126,7 +126,7 @@
                     <!-- Branch & Payment -->
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div>
-                            <label class="mb-1 block font-bold text-soft">الفرع</label>
+                            <label class="mb-1 block font-medium text-slate-600">الفرع</label>
                             <select id="order-branch" class="input text-xs">
                                 {% for b in branches %}
                                 <option value="{{ b.id }}">{{ b.name }}</option>
@@ -134,7 +134,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mb-1 block font-bold text-soft">طريقة الدفع</label>
+                            <label class="mb-1 block font-medium text-slate-600">طريقة الدفع</label>
                             <select id="order-pay" class="input text-xs">
                                 <option value="cash">نقداً</option>
                                 <option value="card">بطاقة / مدى</option>
@@ -144,8 +144,8 @@
                     </div>
 
                     <!-- Delivery info (conditionally shown) -->
-                    <div id="delivery-fields" class="hidden space-y-2 rounded-xl border border-sky-300 bg-sky-50/60 p-3 text-xs">
-                        <p class="font-bold text-sky-800">بيانات التوصيل:</p>
+                    <div id="delivery-fields" class="hidden space-y-2 rounded-lg border border-blue-200 bg-blue-50/60 p-3 text-xs">
+                        <p class="font-semibold text-blue-900">بيانات التوصيل:</p>
                         <div class="grid grid-cols-2 gap-2">
                             <input type="text" id="cust-name" placeholder="اسم العميل" class="input text-xs">
                             <input type="text" id="cust-phone" placeholder="رقم الجوال" dir="ltr" class="input text-xs">
@@ -159,30 +159,30 @@
                         {% if perms.core.pos_apply_discount or "pos_apply_discount" in user_perms %}
                         <input type="number" id="order-discount" placeholder="خصم ({{ branch_currency_symbol }})" min="0" step="1" oninput="updateTotals()" class="input text-xs">
                         {% else %}
-                        <div class="flex items-center justify-between text-xs text-muted px-2.5 border border-line rounded-lg bg-surface/60" title="غير مصرح لك بتطبيق خصومات على الفاتورة">
-                            <span class="text-2xs font-semibold text-soft flex items-center gap-1">🔒 الخصم مقفل</span>
+                        <div class="flex items-center justify-between text-xs text-slate-400 px-2.5 border border-slate-200 rounded-lg bg-slate-50" title="غير مصرح لك بتطبيق خصومات على الفاتورة">
+                            <span class="text-[11px] font-medium text-slate-500 flex items-center gap-1">🔒 الخصم مقفل</span>
                             <input type="hidden" id="order-discount" value="0">
                         </div>
                         {% endif %}
                     </div>
 
                     <!-- Invoice Totals Box -->
-                    <div class="rounded-xl bg-paper p-3 text-xs space-y-1.5 border border-line">
-                        <div class="flex justify-between text-soft">
+                    <div class="rounded-lg bg-slate-50 p-3 text-xs space-y-1.5 border border-slate-200">
+                        <div class="flex justify-between text-slate-500">
                             <span>المجموع الفرعي</span>
-                            <span id="sum-subtotal" class="font-bold">0.00 {{ branch_currency_symbol }}</span>
+                            <span id="sum-subtotal" class="font-medium text-slate-900">0.00 {{ branch_currency_symbol }}</span>
                         </div>
-                        <div id="row-delivery-fee" class="hidden flex justify-between text-soft">
+                        <div id="row-delivery-fee" class="hidden flex justify-between text-slate-500">
                             <span>رسوم التوصيل</span>
-                            <span class="font-bold">8.00 {{ branch_currency_symbol }}</span>
+                            <span class="font-medium text-slate-900">8.00 {{ branch_currency_symbol }}</span>
                         </div>
-                        <div id="row-discount" class="hidden flex justify-between text-good-700">
+                        <div id="row-discount" class="hidden flex justify-between text-rose-600">
                             <span>الخصم</span>
-                            <span id="sum-discount" class="font-bold">- 0.00 {{ branch_currency_symbol }}</span>
+                            <span id="sum-discount" class="font-medium">- 0.00 {{ branch_currency_symbol }}</span>
                         </div>
-                        <div class="flex justify-between border-t border-line pt-2 text-sm font-bold text-ink">
+                        <div class="flex justify-between border-t border-slate-200 pt-2 text-sm font-bold text-slate-900">
                             <span>الإجمالي المستحق</span>
-                            <span id="sum-total" class="text-base text-brand-700 font-black">0.00 {{ branch_currency_symbol }}</span>
+                            <span id="sum-total" class="text-base text-blue-600 font-bold">0.00 {{ branch_currency_symbol }}</span>
                         </div>
                     </div>
 
@@ -191,7 +191,7 @@
                         id="submit-order-btn"
                         type="button" 
                         onclick="submitOrder()" 
-                        class="btn-gold-pill w-full py-3 text-sm font-black shadow-lg disabled:opacity-50 disabled:pointer-events-none"
+                        class="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white py-3 text-sm font-medium transition cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                         disabled
                     >
                         تحصيل الفاتورة
@@ -202,18 +202,18 @@
     </div>
 
     <!-- Floating Bottom Cart Bar for Mobile & Tablets (< lg) -->
-    <div id="pos-mobile-cart-bar" class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0E382A] text-white border-t border-[#D2AB6B]/40 shadow-[0_-6px_25px_rgba(0,0,0,0.35)] px-4 py-3 transition-transform duration-300 translate-y-full flex items-center justify-between">
+    <div id="pos-mobile-cart-bar" class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-slate-900 text-white border-t border-slate-800 shadow-xl px-4 py-3 transition-transform duration-300 translate-y-full flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <span class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 border border-[#D2AB6B]/30 text-[#D2AB6B]">
+            <span class="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                <span id="mobile-cart-badge" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#D2AB6B] text-[10px] font-black text-[#1E130D]">0</span>
+                <span id="mobile-cart-badge" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">0</span>
             </span>
             <div>
-                <p class="text-[11px] text-[#E6C898] font-bold">الفاتورة الحالية</p>
-                <p id="mobile-cart-total" class="text-sm font-black text-white">0.00 {{ branch_currency_symbol }}</p>
+                <p class="text-[11px] text-slate-300 font-medium">الفاتورة الحالية</p>
+                <p id="mobile-cart-total" class="text-sm font-bold text-white">0.00 {{ branch_currency_symbol }}</p>
             </div>
         </div>
-        <button type="button" onclick="scrollToCart()" class="btn-gold-pill px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-md">
+        <button type="button" onclick="scrollToCart()" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer">
             <span>عرض الفاتورة والتحصيل</span>
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
         </button>
@@ -221,48 +221,48 @@
 </div>
 
 <!-- Success Modal -->
-<div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 font-body">
-    <div class="classic-card max-w-sm w-full p-6 text-center shadow-2xl">
-        <div class="wax-seal-gold mx-auto mb-3">
-            <svg class="w-6 h-6 text-[#1E130D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+<div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 font-body backdrop-blur-xs">
+    <div class="bg-white rounded-xl border border-slate-200 max-w-sm w-full p-6 text-center shadow-xl">
+        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 mx-auto mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
-        <h3 class="text-base font-bold font-royal text-ink">تم إصدار الطلب بنجاح</h3>
-        <p id="modal-order-number" class="text-2xl font-black font-body text-brand-700 my-2">ORD-1000</p>
-        <p class="text-xs text-soft mb-5">تم إرسال الطلب للمطبخ وحفظ الفاتورة في النظام</p>
-        <button onclick="closeOrderModal()" class="btn-gold-pill w-full py-2.5 text-xs font-black">
+        <h3 class="text-base font-bold text-slate-900 tracking-tight">تم إصدار الطلب بنجاح</h3>
+        <p id="modal-order-number" class="text-2xl font-bold text-blue-600 my-2">ORD-1000</p>
+        <p class="text-xs text-slate-500 mb-5">تم إرسال الطلب للمطبخ وحفظ الفاتورة في النظام</p>
+        <button onclick="closeOrderModal()" class="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white py-2.5 text-xs font-medium transition cursor-pointer">
             فاتورة جديدة
         </button>
     </div>
 </div>
 
 <!-- Menu Manager Modal -->
-<div id="menu-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 font-body">
-    <div class="classic-card max-w-xl w-full p-6 shadow-2xl">
-        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+<div id="menu-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 font-body backdrop-blur-xs">
+    <div class="bg-white rounded-xl border border-slate-200 max-w-xl w-full p-6 shadow-xl">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
             <div>
-                <h3 class="text-sm font-bold font-royal text-ink">إدارة أصناف القائمة</h3>
-                <p class="text-xs text-soft">تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة</p>
+                <h3 class="text-sm font-bold text-slate-900 tracking-tight">إدارة أصناف القائمة</h3>
+                <p class="text-xs text-slate-500">تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة</p>
             </div>
-            <button onclick="openAddMenuModal()" class="btn-gold-pill px-3.5 py-1.5 text-xs font-black">
+            <button onclick="openAddMenuModal()" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 text-xs font-medium transition cursor-pointer">
                 + صنف جديد
             </button>
         </div>
 
-        <div class="max-h-72 overflow-y-auto divide-y divide-line/60 border border-line rounded-lg">
+        <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-lg">
             {% for m in menu_items %}
             <div class="flex items-center justify-between p-3">
                 <div class="flex items-center gap-2.5">
-                    <span class="medallion-icon-light flex h-8 w-8 items-center justify-center rounded-lg">
-                        <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </span>
                     <div>
-                        <p class="text-xs font-bold text-ink">{{ m.name }}</p>
-                        <p class="text-[10px] text-soft">{{ m.category }} • {{ m.price }} {{ branch_currency_symbol }}</p>
+                        <p class="text-xs font-semibold text-slate-900">{{ m.name }}</p>
+                        <p class="text-[10px] text-slate-400">{{ m.category }} • {{ m.price }} {{ branch_currency_symbol }}</p>
                     </div>
                 </div>
                 <button 
                     onclick="toggleMenuItem({{ m.id }}, this)" 
-                    class="rounded-full px-3 py-1 text-[11px] font-bold transition {% if m.available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
+                    class="rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer {% if m.available %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %}"
                 >
                     {% if m.available %}متوفر{% else %}غير متوفر{% endif %}
                 </button>
@@ -270,8 +270,8 @@
             {% endfor %}
         </div>
 
-        <div class="mt-4 pt-3 border-t border-line text-left">
-            <button onclick="closeMenuManager()" class="rounded-lg border border-line bg-paper px-4 py-1.5 text-xs font-bold text-soft hover:text-ink">
+        <div class="mt-4 pt-3 border-t border-slate-100 text-left">
+            <button onclick="closeMenuManager()" class="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">
                 إغلاق
             </button>
         </div>
@@ -279,17 +279,17 @@
 </div>
 
 <!-- Add Menu Item Modal -->
-<div id="add-menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 font-body">
-    <div class="classic-card max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-sm font-bold font-royal text-ink mb-4">إضافة صنف جديد للمنيو</h3>
+<div id="add-menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 font-body backdrop-blur-xs">
+    <div class="bg-white rounded-xl border border-slate-200 max-w-md w-full p-6 shadow-xl">
+        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-4">إضافة صنف جديد للمنيو</h3>
         <div class="space-y-3 text-xs">
             <div>
-                <label class="mb-1 block font-bold text-soft">اسم الصنف</label>
+                <label class="mb-1 block font-medium text-slate-600">اسم الصنف</label>
                 <input type="text" id="new-item-name" placeholder="مثال: مقلوبة دجاج فاخرة" class="input text-xs">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">الفئة</label>
+                    <label class="mb-1 block font-medium text-slate-600">الفئة</label>
                     <select id="new-item-cat" class="input text-xs">
                         <option value="أطباق رئيسية">أطباق رئيسية</option>
                         <option value="مشويات">مشويات</option>
@@ -300,25 +300,25 @@
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">التصنيف</label>
+                    <label class="mb-1 block font-medium text-slate-600">التصنيف</label>
                     <input type="text" id="new-item-emoji" placeholder="طبق رئيسي" class="input text-xs">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-bold text-soft">سعر البيع ({{ branch_currency_symbol }})</label>
+                    <label class="mb-1 block font-medium text-slate-600">سعر البيع ({{ branch_currency_symbol }})</label>
                     <input type="number" id="new-item-price" placeholder="45" class="input text-xs">
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-soft">التكلفة ({{ branch_currency_symbol }})</label>
+                    <label class="mb-1 block font-medium text-slate-600">التكلفة ({{ branch_currency_symbol }})</label>
                     <input type="number" id="new-item-cost" placeholder="18" class="input text-xs">
                 </div>
             </div>
         </div>
 
         <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeAddMenuModal()" class="rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-soft hover:text-ink">إلغاء</button>
-            <button onclick="saveNewMenuItem()" class="btn-gold-pill px-4 py-1.5 text-xs font-black">حفظ الصنف</button>
+            <button onclick="closeAddMenuModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">إلغاء</button>
+            <button onclick="saveNewMenuItem()" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 text-xs font-medium transition cursor-pointer">حفظ الصنف</button>
         </div>
     </div>
 </div>
@@ -335,9 +335,9 @@
         currentCategory = cat;
         document.querySelectorAll('.cat-btn').forEach(btn => {
             if (btn.dataset.cat === cat) {
-                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-bold transition bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs';
+                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-medium transition cursor-pointer bg-blue-600 text-white shadow-none';
             } else {
-                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-bold transition border border-line bg-card text-soft hover:text-ink hover:border-[#D2AB6B]';
+                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-medium transition cursor-pointer border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50';
             }
         });
         filterMenu();
@@ -376,9 +376,343 @@
         types.forEach(t => {
             const btn = document.getElementById(`btn-type-${t}`);
             if (t === type) {
-                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-600 bg-brand-600 py-2 text-xs font-bold text-white transition';
+                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 py-2 text-xs font-medium text-white transition cursor-pointer';
             } else {
-                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-card py-2 text-xs font-bold text-soft transition hover:border-[#D2AB6B]';
+                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer';
+            }
+        });
+
+        const delFields = document.getElementById('delivery-fields');
+        const delFeeRow = document.getElementById('row-delivery-fee');
+        if (type === 'delivery') {
+            delFields.classList.remove('hidden');
+            delFeeRow.classList.remove('hidden');
+        } else {
+            delFields.classList.add('hidden');
+            delFeeRow.classList.add('hidden');
+        }
+
+        updateTotals();
+    }
+
+    function addToCart(id, name, price) {
+        if (!cart[id]) {
+            cart[id] = { id, name, price, qty: 1 };
+        } else {
+            cart[id].qty += 1;
+        }
+        renderCart();
+    }
+
+    function updateCartQty(id, delta) {
+        if (!cart[id]) return;
+        cart[id].qty += delta;
+        if (cart[id].qty <= 0) {
+            delete cart[id];
+        }
+        renderCart();
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items-container');
+        const keys = Object.keys(cart);
+        const totalCount = keys.reduce((sum, k) => sum + cart[k].qty, 0);
+        document.getElementById('cart-badge').textContent = `${totalCount} أصناف`;
+
+        const mobileBar = document.getElementById('pos-mobile-cart-bar');
+        const mobileBadge = document.getElementById('mobile-cart-badge');
+        if (mobileBar) {
+            if (totalCount > 0) {
+                mobileBar.classList.remove('translate-y-full');
+                if (mobileBadge) mobileBadge.textContent = totalCount;
+            } else {
+                mobileBar.classList.add('translate-y-full');
+            }
+        }
+
+        if (keys.length === 0) {
+            container.innerHTML = `
+                <div id="cart-empty" class="py-8 text-center text-xs text-slate-400">
+                    <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-400">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    </span>
+                    <p class="font-medium text-slate-500">اضغط على أي صنف لإضافته إلى الفاتورة</p>
+                </div>
+            `;
+            document.getElementById('submit-order-btn').disabled = true;
+            updateTotals();
+            return;
+        }
+
+        document.getElementById('submit-order-btn').disabled = false;
+        let html = '';
+        keys.forEach(k => {
+            const item = cart[k];
+            html += `
+                <div class="flex items-center justify-between py-2 text-xs">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-slate-900 truncate">${item.name}</p>
+                        <p class="text-[11px] text-slate-400">${item.price} ${CURRENCY_SYMBOL} × ${item.qty}</p>
+                    </div>
+                    <div class="flex items-center gap-1 mx-2 border border-slate-200 rounded-lg p-0.5 bg-slate-50">
+                        <button onclick="updateCartQty(${item.id}, 1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 font-bold text-slate-700 cursor-pointer">+</button>
+                        <span class="w-5 text-center font-bold text-slate-900">${item.qty}</span>
+                        <button onclick="updateCartQty(${item.id}, -1)" class="w-5 h-5 flex items-center justify-center rounded hover:bg-rose-100 font-bold text-rose-600 cursor-pointer">-</button>
+                    </div>
+                    <span class="font-bold text-slate-900 w-16 text-left">${(item.price * item.qty).toFixed(2)} ${CURRENCY_SYMBOL}</span>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        updateTotals();
+    }
+
+    function scrollToCart() {
+        const cartEl = document.getElementById('cart-section-container');
+        if (cartEl) {
+            cartEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            cartEl.classList.add('ring-2', 'ring-blue-500', 'rounded-xl');
+            setTimeout(() => cartEl.classList.remove('ring-2', 'ring-blue-500', 'rounded-xl'), 1500);
+        }
+    }
+
+    function scrollToMenu() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateTotals() {
+        const keys = Object.keys(cart);
+        let subtotal = 0;
+        keys.forEach(k => {
+            subtotal += cart[k].price * cart[k].qty;
+        });
+
+        const fee = selectedOrderType === 'delivery' ? 8 : 0;
+        const discountInput = parseFloat(document.getElementById('order-discount').value) || 0;
+        const discount = Math.min(Math.max(discountInput, 0), subtotal);
+        const total = Math.max(0, subtotal + fee - discount);
+
+        document.getElementById('sum-subtotal').textContent = `${subtotal.toFixed(2)} ${CURRENCY_SYMBOL}`;
+        document.getElementById('sum-total').textContent = `${total.toFixed(2)} ${CURRENCY_SYMBOL}`;
+
+        const mobileTotal = document.getElementById('mobile-cart-total');
+        if (mobileTotal) {
+            mobileTotal.textContent = `${total.toFixed(2)} ${CURRENCY_SYMBOL}`;
+        }
+
+        const discRow = document.getElementById('row-discount');
+        if (discount > 0) {
+            discRow.classList.remove('hidden');
+            document.getElementById('sum-discount').textContent = `- ${discount.toFixed(2)} ${CURRENCY_SYMBOL}`;
+        } else {
+            discRow.classList.add('hidden');
+        }
+
+        const submitBtn = document.getElementById('submit-order-btn');
+        submitBtn.textContent = `تحصيل ${total.toFixed(2)} ${CURRENCY_SYMBOL}`;
+    }
+
+    async function submitOrder() {
+        const keys = Object.keys(cart);
+        if (keys.length === 0) return;
+
+        const custName = document.getElementById('cust-name').value.trim();
+        const custPhone = document.getElementById('cust-phone').value.trim();
+        const custAddress = document.getElementById('cust-address').value.trim();
+
+        if (selectedOrderType === 'delivery' && (!custName || !custPhone)) {
+            showToast('طلبات التوصيل تتطلب اسم العميل ورقم الجوال', 'error');
+            return;
+        }
+
+        const items = keys.map(k => ({ menuItemId: cart[k].id, qty: cart[k].qty }));
+        const branchId = document.getElementById('order-branch').value;
+        const payMethod = document.getElementById('order-pay').value;
+        const cashier = document.getElementById('cashier-name').value;
+        const discount = parseFloat(document.getElementById('order-discount').value) || 0;
+
+        const submitBtn = document.getElementById('submit-order-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'جارٍ الإصدار…';
+
+        try {
+            const res = await fetch("{% url 'api_create_order' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    type: selectedOrderType,
+                    channel: 'cashier',
+                    branchId: branchId,
+                    payMethod: payMethod,
+                    cashier: cashier,
+                    discount: discount,
+                    customerName: custName,
+                    customerPhone: custPhone,
+                    address: custAddress,
+                    items: items
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'تعذر إصدار الطلب');
+
+            // Show success modal
+            document.getElementById('modal-order-number').textContent = data.order.orderNumber;
+            document.getElementById('order-modal').classList.remove('hidden');
+            document.getElementById('order-modal').classList.add('flex');
+
+            // Reset cart
+            cart = {};
+            document.getElementById('order-discount').value = '';
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('cust-address').value = '';
+            renderCart();
+            showToast(`تم إصدار الطلب ${data.order.orderNumber} بنجاح!`);
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    function closeOrderModal() {
+        document.getElementById('order-modal').classList.add('hidden');
+        document.getElementById('order-modal').classList.remove('flex');
+    }
+
+    // Menu Manager
+    function openMenuManager() {
+        document.getElementById('menu-manager-modal').classList.remove('hidden');
+        document.getElementById('menu-manager-modal').classList.add('flex');
+    }
+    function closeMenuManager() {
+        document.getElementById('menu-manager-modal').classList.add('hidden');
+        document.getElementById('menu-manager-modal').classList.remove('flex');
+    }
+
+    async function toggleMenuItem(id, btn) {
+        try {
+            const res = await fetch(`/api/menu/toggle/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const data = await res.json();
+            if (data.available) {
+                btn.className = 'rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer bg-emerald-50 text-emerald-700 border border-emerald-200';
+                btn.textContent = 'متوفر';
+                showToast(`تم تفعيل «${data.name}»`);
+            } else {
+                btn.className = 'rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer bg-rose-50 text-rose-700 border border-rose-200';
+                btn.textContent = 'غير متوفر';
+                showToast(`تم إيقاف «${data.name}» مؤقتاً`);
+            }
+        } catch (e) {
+            showToast('خطأ في تحديث الصنف', 'error');
+        }
+    }
+
+    function openAddMenuModal() {
+        document.getElementById('add-menu-modal').classList.remove('hidden');
+        document.getElementById('add-menu-modal').classList.add('flex');
+    }
+    function closeAddMenuModal() {
+        document.getElementById('add-menu-modal').classList.add('hidden');
+        document.getElementById('add-menu-modal').classList.remove('flex');
+    }
+
+    async function saveNewMenuItem() {
+        const name = document.getElementById('new-item-name').value.trim();
+        const cat = document.getElementById('new-item-cat').value;
+        const emoji = document.getElementById('new-item-emoji').value.trim() || 'طبق';
+        const price = parseFloat(document.getElementById('new-item-price').value);
+        const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
+
+        if (!name || isNaN(price) || price <= 0) {
+            showToast('اسم الصنف وسعر البيع مطلوبان', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch("{% url 'api_create_menu_item' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ name, category: cat, emoji, price, cost })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            showToast(`تمت إضافة «${data.name}» للقائمة!`);
+            closeAddMenuModal();
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const CURRENCY_SYMBOL = "{{ branch_currency_symbol|default:'ر.س'|escapejs }}";
+    let cart = {};
+    let selectedOrderType = 'dine_in';
+    let currentCategory = 'الكل';
+
+    function setCategory(cat) {
+        currentCategory = cat;
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            if (btn.dataset.cat === cat) {
+                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-medium transition cursor-pointer bg-blue-600 text-white shadow-none';
+            } else {
+                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-medium transition cursor-pointer border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50';
+            }
+        });
+        filterMenu();
+    }
+
+    function filterMenu() {
+        const query = document.getElementById('menu-search').value.trim().toLowerCase();
+        const items = document.querySelectorAll('.menu-item');
+        let visibleCount = 0;
+
+        items.forEach(el => {
+            const name = el.dataset.name.toLowerCase();
+            const cat = el.dataset.category;
+            const matchesCat = currentCategory === 'الكل' || cat === currentCategory;
+            const matchesQuery = !query || name.includes(query);
+
+            if (matchesCat && matchesQuery) {
+                el.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                el.classList.add('hidden');
+            }
+        });
+
+        const noItems = document.getElementById('no-items-msg');
+        if (visibleCount === 0) {
+            noItems.classList.remove('hidden');
+        } else {
+            noItems.classList.add('hidden');
+        }
+    }
+
+    function setOrderType(type) {
+        selectedOrderType = type;
+        const types = ['dine_in', 'takeaway', 'delivery'];
+        types.forEach(t => {
+            const btn = document.getElementById(`btn-type-${t}`);
+            if (t === type) {
+                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 py-2 text-xs font-medium text-white transition cursor-pointer';
+            } else {
+                btn.className = 'type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer';
             }
         });
 
@@ -471,8 +805,8 @@
         const cartEl = document.getElementById('cart-section-container');
         if (cartEl) {
             cartEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            cartEl.classList.add('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl');
-            setTimeout(() => cartEl.classList.remove('ring-2', 'ring-[#D2AB6B]', 'rounded-2xl'), 1500);
+            cartEl.classList.add('ring-2', 'ring-blue-500', 'rounded-xl');
+            setTimeout(() => cartEl.classList.remove('ring-2', 'ring-blue-500', 'rounded-xl'), 1500);
         }
     }
 
