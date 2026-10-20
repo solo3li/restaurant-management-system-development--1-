@@ -4,24 +4,24 @@
 {% block title %}قائمة أصناف الفرع والتوفر — منظومة كُـورَا{% endblock %}
 
 {% block content %}
-<div id="branchMenuApp" class="space-y-5 font-body">
+<div id="branchMenuApp" class="space-y-5 font-sans">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">قائمة أطعمة الفرع وإدارة التوفر</h1>
-            <p class="text-xs font-bold text-soft mt-1 flex items-center gap-1.5">
+            <h1 class="text-2xl font-bold font-sans text-slate-900">قائمة أطعمة الفرع وإدارة التوفر</h1>
+            <p class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1.5">
                 {% if branch %}
-                    <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>فرع: <span class="text-ink font-extrabold">{{ branch.name }}</span> • التحكم في توفر الأطباق في مطبخ الفرع ونقاط البيع</span>
+                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>فرع: <span class="text-slate-900 font-extrabold">{{ branch.name }}</span> • التحكم في توفر الأطباق في مطبخ الفرع ونقاط البيع</span>
                 {% else %}
-                    <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>كل الفروع • التعديل هنا يؤثر على الحالة العامة للأصناف</span>
                 {% endif %}
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            <span class="rounded-xl bg-paper border border-line px-3 py-1.5 text-xs font-bold text-soft shadow-2xs">
-                إجمالي الأصناف: <span class="font-extrabold text-ink font-body">{{ items_data|length }}</span>
+            <span class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-500 shadow-2xs">
+                إجمالي الأصناف: <span class="font-extrabold text-slate-900 font-sans">{{ items_data|length }}</span>
             </span>
             <a 
                 href="/m/{{ tenant.slug }}/{% if branch %}branch/{{ branch.id }}/{% endif %}" 
@@ -34,24 +34,24 @@
             <button 
                 type="button" 
                 onclick="openQrBrandingModal()" 
-                class="rounded-xl bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-[#D2AB6B] transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-900 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 <span>الـ QR والهوية</span>
             </button>
             {% if can_manage_menu %}
             <button 
                 type="button" 
                 onclick="openCategoryModal()" 
-                class="rounded-xl bg-paper border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-[#D2AB6B] transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-900 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 <span>إدارة الأقسام</span>
             </button>
             <button 
                 type="button" 
                 onclick="openCreateItemModal()" 
-                class="btn-gold-pill px-4 py-1.5 text-xs font-black shadow-2xs flex items-center gap-1.5"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-1.5 text-xs font-black shadow-2xs flex items-center gap-1.5"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>+ إضافة صنف جديد</span>
@@ -74,21 +74,21 @@
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="classic-card p-4 space-y-3">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
         <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-3">
             <!-- Category Pills -->
             <!-- Category Pills with images -->
             <div class="flex flex-wrap items-center gap-1.5">
                 <a 
                     href="?cat=الكل{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all {% if selected_cat == 'الكل' %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}bg-paper text-soft hover:text-ink border border-line hover:border-[#D2AB6B]{% endif %}"
+                    class="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all {% if selected_cat == 'الكل' %}bg-blue-600 text-white border border-blue-600/40 shadow-xs{% else %}bg-slate-50 text-slate-500 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
                 >
                     الكل
                 </a>
                 {% for c in category_objs %}
                 <a 
                     href="?cat={{ c.name }}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-xl px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 {% if selected_cat == c.name %}bg-[#0E382A] text-[#E6C898] border border-[#D2AB6B]/40 shadow-xs{% else %}bg-paper text-soft hover:text-ink border border-line hover:border-[#D2AB6B]{% endif %}"
+                    class="rounded-xl px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 {% if selected_cat == c.name %}bg-blue-600 text-white border border-blue-600/40 shadow-xs{% else %}bg-slate-50 text-slate-500 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
                 >
                     {% if c.image %}
                         <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-4 h-4 rounded-full object-cover">
@@ -114,7 +114,7 @@
                         class="input text-xs w-full"
                     >
                 </div>
-                <button type="submit" class="btn-gold-pill px-4 py-2 text-xs font-black shadow-2xs">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-2 text-xs font-black shadow-2xs">
                     بحث
                 </button>
                 {% if search_query or selected_cat != 'الكل' %}
@@ -129,25 +129,25 @@
         {% for row in items_data %}
         <div 
             id="item-card-{{ row.item.id }}" 
-            class="classic-card p-4 flex flex-col justify-between transition-all duration-200 hover:border-[#D2AB6B] hover:shadow-md {% if not row.is_available %}opacity-75 bg-paper/50 border-rose-200{% endif %}"
+            class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between transition-all duration-200 hover:border-blue-600 hover:shadow-md {% if not row.is_available %}opacity-75 bg-slate-50/50 border-rose-200{% endif %}"
         >
             <div>
                 <!-- Top Row: Icon/Image + Name + Category & Actions (Badges + Edit/Delete) -->
                 <div class="flex items-start justify-between gap-2.5 mb-2.5">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
                         {% if row.item.image %}
-                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="h-12 w-12 rounded-xl object-cover shadow-2xs border border-line flex-shrink-0">
+                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="h-12 w-12 rounded-xl object-cover shadow-2xs border border-slate-200 flex-shrink-0">
                         {% else %}
-                            <span class="medallion-icon-light flex h-12 w-12 items-center justify-center rounded-xl shadow-2xs flex-shrink-0 text-xl">
+                            <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-12 w-12 items-center justify-center rounded-xl shadow-2xs flex-shrink-0 text-xl">
                                 {{ row.item.emoji|default:"🍽️" }}
                             </span>
                         {% endif %}
                         <div class="min-w-0 flex-1">
-                            <h3 class="font-bold text-sm text-ink leading-tight truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
+                            <h3 class="font-bold text-sm text-slate-900 leading-tight truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
                             {% if row.item.name_en %}
-                                <span class="text-[10px] text-soft font-mono block truncate" dir="ltr">{{ row.item.name_en }}</span>
+                                <span class="text-[10px] text-slate-500 font-mono block truncate" dir="ltr">{{ row.item.name_en }}</span>
                             {% endif %}
-                            <span class="text-[10px] font-bold text-soft block mt-0.5">{{ row.item.category }}</span>
+                            <span class="text-[10px] font-bold text-slate-500 block mt-0.5">{{ row.item.category }}</span>
                         </div>
                     </div>
 
@@ -158,10 +158,10 @@
                             <button 
                                 type="button" 
                                 onclick="openEditItemModal({{ row.item.id }})" 
-                                class="w-6 h-6 rounded-lg bg-paper border border-line text-soft hover:text-ink hover:border-[#D2AB6B] transition flex items-center justify-center shadow-2xs"
+                                class="w-6 h-6 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-blue-600 transition flex items-center justify-center shadow-2xs"
                                 title="تعديل بيانات الصنف"
                             >
-                                <svg class="w-3.5 h-3.5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
                             <button 
                                 type="button" 
@@ -188,13 +188,13 @@
                 </div>
 
                 {% if row.item.description %}
-                    <p class="text-[11px] text-soft line-clamp-2 my-1.5 leading-relaxed">{{ row.item.description }}</p>
+                    <p class="text-[11px] text-slate-500 line-clamp-2 my-1.5 leading-relaxed">{{ row.item.description }}</p>
                 {% endif %}
 
                 <!-- Price Row -->
-                <div class="flex items-center justify-between text-xs py-2 my-2 border-y border-line/60">
+                <div class="flex items-center justify-between text-xs py-2 my-2 border-y border-slate-200/60">
                     <div class="flex flex-col">
-                        <span class="text-soft font-bold">{% if row.item.has_variants %}يبدأ من:{% else %}سعر البيع:{% endif %}</span>
+                        <span class="text-slate-500 font-bold">{% if row.item.has_variants %}يبدأ من:{% else %}سعر البيع:{% endif %}</span>
                         {% if row.custom_price %}
                         <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
                             سعر مخصص للفرع
@@ -202,9 +202,9 @@
                         {% endif %}
                     </div>
                     <div class="text-left">
-                        <span class="font-extrabold text-ink font-body text-sm">{{ row.effective_min_price }} <span class="text-[10px] font-bold text-soft">{{ branch_currency_symbol }}</span></span>
+                        <span class="font-extrabold text-slate-900 font-sans text-sm">{{ row.effective_min_price }} <span class="text-[10px] font-bold text-slate-500">{{ branch_currency_symbol }}</span></span>
                         {% if row.custom_price %}
-                        <span class="block text-[10px] text-soft line-through">{{ row.item.min_price }} {{ tenant.get_currency_symbol_ar|default:"ر.س" }}</span>
+                        <span class="block text-[10px] text-slate-500 line-through">{{ row.item.min_price }} {{ tenant.get_currency_symbol_ar|default:"ر.س" }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -235,10 +235,10 @@
                     <button 
                         type="button" 
                         onclick="openBranchPriceModal({{ row.item.id }}, '{{ row.item.name|escapejs }}', {{ row.custom_price|default:'null' }}, {{ row.item.price|default:'0' }})" 
-                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-[#0E382A]/5 border border-[#D2AB6B]/50 text-[#0E382A] hover:bg-[#0E382A]/10 transition flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
+                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-blue-600/5 border border-blue-600/50 text-blue-600 hover:bg-blue-600/10 transition flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
                         title="تخصيص سعر الصنف لهذا الفرع"
                     >
-                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>تسعير الفرع</span>
                     </button>
                     {% endlocalize %}
@@ -282,11 +282,11 @@
             {% endlocalize %}
         </div>
         {% empty %}
-        <div class="col-span-full py-16 text-center text-soft classic-card p-8">
-            <span class="medallion-icon-light mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
-                <svg class="w-6 h-6 text-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div class="col-span-full py-16 text-center text-slate-500 bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
+                <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </span>
-            <p class="font-bold text-sm text-ink">لا توجد أصناف مطابقة للبحث أو التصنيف الحالي</p>
+            <p class="font-bold text-sm text-slate-900">لا توجد أصناف مطابقة للبحث أو التصنيف الحالي</p>
         </div>
         {% endfor %}
     </div>
@@ -330,7 +330,7 @@ async function toggleItemAvailability(itemId, itemName) {
                 btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100';
                 btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>تعطيل من المطبخ</span>';
 
-                card.classList.remove('opacity-70', 'bg-paper/60', 'border-bad-200');
+                card.classList.remove('opacity-70', 'bg-slate-50/60', 'border-bad-200');
             } else {
                 // Now unavailable
                 badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300';
@@ -339,7 +339,7 @@ async function toggleItemAvailability(itemId, itemName) {
                 btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs bg-emerald-700 text-white hover:bg-emerald-800';
                 btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>إعادة التفعيل بالفرع</span>';
 
-                card.classList.add('opacity-70', 'bg-paper/60', 'border-bad-200');
+                card.classList.add('opacity-70', 'bg-slate-50/60', 'border-bad-200');
             }
             showToast(`تم تحديث توفر «${itemName}» بنجاح`);
         } else {
@@ -398,10 +398,10 @@ function switchQrModalTab(tab) {
         const content = document.getElementById(`tab-content-${t}`);
         if (!btn || !content) return;
         if (t === tab) {
-            btn.className = 'px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-[#0E382A] text-[#E6C898]';
+            btn.className = 'px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-blue-600 text-white';
             content.classList.remove('hidden');
         } else {
-            btn.className = 'px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink rounded-lg transition-all';
+            btn.className = 'px-3.5 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 rounded-lg transition-all';
             content.classList.add('hidden');
         }
     });
@@ -533,60 +533,60 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 </script>
 
 <!-- Interactive Modal: QR Code, Branding & Custom Domain -->
-<div id="qr-branding-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-body" onclick="closeQrBrandingModal()">
-    <div class="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto classic-card p-6 shadow-2xl" onclick="event.stopPropagation()">
+<div id="qr-branding-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-sans" onclick="closeQrBrandingModal()">
+    <div class="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6 shadow-2xl" onclick="event.stopPropagation()">
         
         <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-line pb-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
             <div class="flex items-center gap-3">
-                <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
-                    <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 </span>
                 <div>
-                    <h2 class="text-lg font-bold font-royal text-ink">المنيو الرقمي — الـ QR Code والهوية البصرية</h2>
-                    <p class="text-xs font-bold text-soft">تخصيص شعار وغلاف المطعم، نسخ الـ QR، وربط النطاق المخصص</p>
+                    <h2 class="text-lg font-bold font-sans text-slate-900">المنيو الرقمي — الـ QR Code والهوية البصرية</h2>
+                    <p class="text-xs font-bold text-slate-500">تخصيص شعار وغلاف المطعم، نسخ الـ QR، وربط النطاق المخصص</p>
                 </div>
             </div>
-            <button type="button" onclick="closeQrBrandingModal()" class="rounded-lg p-1.5 text-soft hover:bg-paper hover:text-ink transition">
+            <button type="button" onclick="closeQrBrandingModal()" class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="flex items-center gap-2 border-b border-line mt-4 pb-2">
-            <button type="button" id="tab-btn-qr" onclick="switchQrModalTab('qr')" class="px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-[#0E382A] text-[#E6C898]">
+        <div class="flex items-center gap-2 border-b border-slate-200 mt-4 pb-2">
+            <button type="button" id="tab-btn-qr" onclick="switchQrModalTab('qr')" class="px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-blue-600 text-white">
                 📱 رمز الـ QR والرابط
             </button>
-            <button type="button" id="tab-btn-branding" onclick="switchQrModalTab('branding')" class="px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink rounded-lg transition-all">
+            <button type="button" id="tab-btn-branding" onclick="switchQrModalTab('branding')" class="px-3.5 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 rounded-lg transition-all">
                 🎨 الشعار والهوية البصرية
             </button>
-            <button type="button" id="tab-btn-domain" onclick="switchQrModalTab('domain')" class="px-3.5 py-1.5 text-xs font-bold text-soft hover:text-ink rounded-lg transition-all">
+            <button type="button" id="tab-btn-domain" onclick="switchQrModalTab('domain')" class="px-3.5 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 rounded-lg transition-all">
                 🌐 النطاق المخصص (Domain)
             </button>
         </div>
 
         <!-- Tab 1: QR & Link -->
         <div id="tab-content-qr" class="space-y-4 pt-4">
-            <div class="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-2xl bg-paper/60 border border-line">
+            <div class="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-2xl bg-slate-50/60 border border-slate-200">
                 <div class="flex flex-col items-center gap-2">
-                    <div class="bg-white p-3 rounded-2xl border border-line shadow-sm">
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
                         <img id="qrCodeImage" src="" alt="QR Code" class="w-48 h-48 rounded-lg object-contain bg-white">
                     </div>
-                    <button type="button" onclick="downloadQrImage()" class="btn-gold-pill px-4 py-2 text-xs font-black shadow-2xs flex items-center gap-1.5">
+                    <button type="button" onclick="downloadQrImage()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-2 text-xs font-black shadow-2xs flex items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span>تحميل كصورة (PNG)</span>
                     </button>
                 </div>
                 <div class="flex-1 space-y-3 text-right">
-                    <h3 class="font-bold text-sm text-ink font-royal">رابط المنيو الرقمي للزبائن</h3>
-                    <p class="text-xs text-soft leading-relaxed">
+                    <h3 class="font-bold text-sm text-slate-900 font-sans">رابط المنيو الرقمي للزبائن</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
                         يستطيع عملاؤك مسح هذا الرمز بواسطة كاميرا هواتفهم لفتح المنيو والطلب ذاتياً (سفري أو توصيل)، دون الحاجة لتحميل أي تطبيق.
                     </p>
                     <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-soft">الرابط المباشر:</label>
+                        <label class="text-[11px] font-bold text-slate-500">الرابط المباشر:</label>
                         <div class="flex items-center gap-2">
-                            <input type="text" id="qr-menu-link-input" readonly class="input text-xs font-mono font-bold w-full bg-paper" dir="ltr">
-                            <button type="button" onclick="copyMenuUrl()" class="px-3 py-2 rounded-xl bg-[#0E382A] text-[#E6C898] hover:bg-[#124634] text-xs font-black shadow-2xs transition flex items-center gap-1 flex-shrink-0">
+                            <input type="text" id="qr-menu-link-input" readonly class="input text-xs font-mono font-bold w-full bg-slate-50" dir="ltr">
+                            <button type="button" onclick="copyMenuUrl()" class="px-3 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-black shadow-2xs transition flex items-center gap-1 flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                 <span>نسخ</span>
                             </button>
@@ -607,31 +607,31 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <form id="brandingForm" novalidate onsubmit="submitBrandingForm(event)" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Logo Upload -->
-                    <div class="p-3 rounded-2xl bg-paper/60 border border-line space-y-2">
-                        <label class="block text-xs font-bold text-ink">شعار المطعم (Logo)</label>
+                    <div class="p-3 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-2">
+                        <label class="block text-xs font-bold text-slate-900">شعار المطعم (Logo)</label>
                         <div class="flex items-center gap-3">
-                            <div class="w-14 h-14 rounded-2xl bg-white border border-line flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
                                 <img id="logoPreviewImg" src="{% if tenant.logo_image %}{{ tenant.logo_image.url }}{% endif %}" alt="Logo" class="w-full h-full object-cover {% if not tenant.logo_image %}hidden{% endif %}">
                                 <span id="logoPlaceholder" class="text-2xl {% if tenant.logo_image %}hidden{% endif %}">{{ tenant.logo_emoji|default:"🍽️" }}</span>
                             </div>
                             <div class="flex-1">
-                                <input type="file" name="logo_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
-                                <p class="text-[10px] text-soft mt-1">يفضل بصيغة PNG أو JPG أو SVG بمقاس مربع.</p>
+                                <input type="file" name="logo_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
+                                <p class="text-[10px] text-slate-500 mt-1">يفضل بصيغة PNG أو JPG أو SVG بمقاس مربع.</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Cover Banner Upload -->
-                    <div class="p-3 rounded-2xl bg-paper/60 border border-line space-y-2">
-                        <label class="block text-xs font-bold text-ink">صورة غلاف المنيو (Banner)</label>
+                    <div class="p-3 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-2">
+                        <label class="block text-xs font-bold text-slate-900">صورة غلاف المنيو (Banner)</label>
                         <div class="flex items-center gap-3">
-                            <div class="w-20 h-14 rounded-xl bg-white border border-line flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                            <div class="w-20 h-14 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
                                 <img id="coverPreviewImg" src="{% if tenant.cover_image %}{{ tenant.cover_image.url }}{% endif %}" alt="Cover" class="w-full h-full object-cover {% if not tenant.cover_image %}hidden{% endif %}">
-                                <span id="coverPlaceholder" class="text-xs text-soft font-bold {% if tenant.cover_image %}hidden{% endif %}">لا يوجد</span>
+                                <span id="coverPlaceholder" class="text-xs text-slate-500 font-bold {% if tenant.cover_image %}hidden{% endif %}">لا يوجد</span>
                             </div>
                             <div class="flex-1">
-                                <input type="file" name="cover_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
-                                <p class="text-[10px] text-soft mt-1">تظهر أعلى صفحة المنيو في الهواتف.</p>
+                                <input type="file" name="cover_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
+                                <p class="text-[10px] text-slate-500 mt-1">تظهر أعلى صفحة المنيو في الهواتف.</p>
                             </div>
                         </div>
                     </div>
@@ -640,26 +640,26 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 <!-- Restaurant Name & Bio -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-ink mb-1">اسم المطعم / البراند</label>
+                        <label class="block text-xs font-bold text-slate-900 mb-1">اسم المطعم / البراند</label>
                         <input type="text" name="name" value="{{ tenant.name }}" required class="input text-xs w-full">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-ink mb-1">لون هوية البراند الأساسي</label>
+                        <label class="block text-xs font-bold text-slate-900 mb-1">لون هوية البراند الأساسي</label>
                         <div class="flex items-center gap-2">
-                            <input type="color" id="brandColorPicker" name="brand_color" value="{{ tenant.brand_color|default:'#0E382A' }}" class="w-10 h-9 p-0.5 rounded-lg border border-line cursor-pointer bg-transparent">
-                            <input type="text" id="brandColorHex" value="{{ tenant.brand_color|default:'#0E382A' }}" oninput="document.getElementById('brandColorPicker').value=this.value" class="input text-xs font-mono font-bold w-full" dir="ltr">
+                            <input type="color" id="brandColorPicker" name="brand_color" value="{{ tenant.brand_color|default:'#2563EB' }}" class="w-10 h-9 p-0.5 rounded-lg border border-slate-200 cursor-pointer bg-transparent">
+                            <input type="text" id="brandColorHex" value="{{ tenant.brand_color|default:'#2563EB' }}" oninput="document.getElementById('brandColorPicker').value=this.value" class="input text-xs font-mono font-bold w-full" dir="ltr">
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1">نبذة عن المطعم (Bio / Slogan)</label>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">نبذة عن المطعم (Bio / Slogan)</label>
                     <input type="text" name="bio" value="{{ tenant.bio|default:'' }}" placeholder="مثال: أشهى المأكولات والمشويات الطازجة بإتقان يومي" class="input text-xs w-full">
-                    <p class="text-[10px] text-soft mt-1">تظهر هذه النبذة تحت اسم المطعم مباشرة في المنيو الرقمي.</p>
+                    <p class="text-[10px] text-slate-500 mt-1">تظهر هذه النبذة تحت اسم المطعم مباشرة في المنيو الرقمي.</p>
                 </div>
 
                 <div class="pt-2 flex justify-end">
-                    <button type="submit" id="btnSaveBranding" class="btn-gold-pill px-5 py-2.5 text-xs font-black shadow-2xs">
+                    <button type="submit" id="btnSaveBranding" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2.5 text-xs font-black shadow-2xs">
                         حفظ الهوية والشعار
                     </button>
                 </div>
@@ -679,14 +679,14 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1">النطاق المخصص (Custom Domain)</label>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">النطاق المخصص (Custom Domain)</label>
                     <div class="flex items-center gap-2">
                         <input type="text" id="customDomainInput" name="custom_domain" value="{{ tenant.custom_domain|default:'' }}" placeholder="مثال: menu.myrestaurant.com" class="input text-xs font-mono font-bold w-full" dir="ltr">
-                        <button type="submit" id="btnSaveDomain" class="btn-gold-pill px-5 py-2 text-xs font-black shadow-2xs flex-shrink-0">
+                        <button type="submit" id="btnSaveDomain" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 text-xs font-black shadow-2xs flex-shrink-0">
                             حفظ النطاق
                         </button>
                     </div>
-                    <p class="text-[10px] text-soft mt-1">اتركه فارغاً واضغط حفظ إذا كنت تريد إزالة الربط واستخدام الرابط الافتراضي.</p>
+                    <p class="text-[10px] text-slate-500 mt-1">اتركه فارغاً واضغط حفظ إذا كنت تريد إزالة الربط واستخدام الرابط الافتراضي.</p>
                 </div>
             </form>
         </div>
@@ -697,20 +697,20 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 <!-- ========================================== -->
 <!-- Modal: Item Create & Edit Modal -->
 <!-- ========================================== -->
-<div id="item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-body" onclick="closeItemModal()">
-    <div class="relative w-full max-w-xl max-h-[92vh] overflow-y-auto classic-card p-6 shadow-2xl" onclick="event.stopPropagation()">
+<div id="item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-sans" onclick="closeItemModal()">
+    <div class="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6 shadow-2xl" onclick="event.stopPropagation()">
         
-        <div class="flex items-center justify-between border-b border-line pb-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
             <div class="flex items-center gap-3">
-                <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
-                    <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                 </span>
                 <div>
-                    <h2 class="text-lg font-bold font-royal text-ink" id="itemModalTitle">إضافة صنف جديد</h2>
-                    <p class="text-xs font-bold text-soft">بيانات الطبق، الأسعار، الأحجام والصورة</p>
+                    <h2 class="text-lg font-bold font-sans text-slate-900" id="itemModalTitle">إضافة صنف جديد</h2>
+                    <p class="text-xs font-bold text-slate-500">بيانات الطبق، الأسعار، الأحجام والصورة</p>
                 </div>
             </div>
-            <button type="button" onclick="closeItemModal()" class="rounded-lg p-1.5 text-soft hover:bg-paper hover:text-ink transition">
+            <button type="button" onclick="closeItemModal()" class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -720,18 +720,18 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1">اسم الصنف (بالعربية) <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">اسم الصنف (بالعربية) <span class="text-rose-500">*</span></label>
                     <input type="text" id="itemModalName" name="name" class="input text-xs w-full" placeholder="مثال: كلاسيك برجر لحم">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1">اسم الصنف بالإنجليزي (اختياري / EN)</label>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">اسم الصنف بالإنجليزي (اختياري / EN)</label>
                     <input type="text" id="itemModalNameEn" name="name_en" dir="ltr" class="input text-xs w-full font-mono" placeholder="e.g. Classic Beef Burger">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1">القسم / التصنيف <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">القسم / التصنيف <span class="text-rose-500">*</span></label>
                     <select id="itemModalCategory" name="category_id" class="input text-xs w-full">
                         {% for c in category_objs %}
                             <option value="{{ c.id }}">{{ c.name }}{% if c.name_en %} ({{ c.name_en }}){% endif %}</option>
@@ -739,27 +739,27 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1">وصف الطبق بالإنجليزي (اختياري / EN)</label>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">وصف الطبق بالإنجليزي (اختياري / EN)</label>
                     <input type="text" id="itemModalDescriptionEn" name="description_en" dir="ltr" class="input text-xs w-full font-mono" placeholder="e.g. Fresh grilled beef with melted cheddar...">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-ink mb-1">وصف الطبق والمكونات (بالعربية)</label>
+                <label class="block text-xs font-bold text-slate-900 mb-1">وصف الطبق والمكونات (بالعربية)</label>
                 <textarea id="itemModalDescription" name="description" rows="2" class="input text-xs w-full" placeholder="لحم بلدي مشوي طازج، صوص الشيف، جبن شيدر ذائب..."></textarea>
             </div>
 
             <!-- Image Upload -->
-            <div class="p-3 rounded-2xl bg-paper/60 border border-line space-y-2">
-                <label class="block text-xs font-bold text-ink">صورة الصنف</label>
+            <div class="p-3 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-2">
+                <label class="block text-xs font-bold text-slate-900">صورة الصنف</label>
                 <div class="flex items-center gap-3">
-                    <div class="w-14 h-14 rounded-xl bg-white border border-line flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                    <div class="w-14 h-14 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
                         <img id="itemModalImgPreview" src="" alt="Preview" class="w-full h-full object-cover hidden">
                         <span id="itemModalImgPlaceholder" class="text-2xl">🍽️</span>
                     </div>
                     <div class="flex-1">
-                        <input type="file" id="itemModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
-                        <p class="text-[10px] text-soft mt-1">صورة واضحة للطبق بدقة جيدة (PNG / JPG / WEBP).</p>
+                        <input type="file" id="itemModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
+                        <p class="text-[10px] text-slate-500 mt-1">صورة واضحة للطبق بدقة جيدة (PNG / JPG / WEBP).</p>
                     </div>
                 </div>
             </div>
@@ -768,15 +768,15 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
                 <div class="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
                     <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#B88B46]"></span>
-                        <h4 class="text-xs font-black font-royal text-[#0E382A]">إعدادات التسعير ونطاق التطبيق</h4>
+                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                        <h4 class="text-xs font-black font-sans text-blue-600">إعدادات التسعير ونطاق التطبيق</h4>
                     </div>
                     {% if branch %}
-                        <span class="text-[10px] font-bold text-[#0E382A] bg-white border border-[#D2AB6B]/40 px-2 py-0.5 rounded-lg shadow-2xs">
+                        <span class="text-[10px] font-bold text-blue-600 bg-white border border-blue-600/40 px-2 py-0.5 rounded-lg shadow-2xs">
                             📍 {{ branch.name }} ({{ branch_currency_symbol }})
                         </span>
                     {% else %}
-                        <span class="text-[10px] font-bold text-soft bg-paper px-2 py-0.5 rounded-lg">
+                        <span class="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-lg">
                             🏢 الإدارة العامة (لكل الفروع)
                         </span>
                     {% endif %}
@@ -785,20 +785,20 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 {% if branch %}
                 <!-- Price Scope Selector (Branch vs All Branches) -->
                 <div>
-                    <label class="block text-xs font-bold text-ink mb-1.5">حدد نطاق تطبيق السعر:</label>
+                    <label class="block text-xs font-bold text-slate-900 mb-1.5">حدد نطاق تطبيق السعر:</label>
                     <div class="grid grid-cols-2 gap-2 text-xs">
-                        <label id="scope-branch-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-[#0E382A] text-[#0E382A] font-extrabold shadow-2xs">
-                            <input type="radio" name="price_scope" value="branch" checked class="accent-[#0E382A]" onchange="onPriceScopeChange('branch')">
+                        <label id="scope-branch-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-blue-600 text-blue-600 font-extrabold shadow-2xs">
+                            <input type="radio" name="price_scope" value="branch" checked class="accent-blue-600" onchange="onPriceScopeChange('branch')">
                             <div class="flex flex-col">
                                 <span class="text-xs font-black">لهذا الفرع فقط</span>
-                                <span class="text-[9px] font-normal text-soft">يخصص السعر لـ «{{ branch.name }}» فقط</span>
+                                <span class="text-[9px] font-normal text-slate-500">يخصص السعر لـ «{{ branch.name }}» فقط</span>
                             </div>
                         </label>
-                        <label id="scope-all-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-line text-soft hover:border-[#D2AB6B]/60 font-bold">
-                            <input type="radio" name="price_scope" value="all" class="accent-[#0E382A]" onchange="onPriceScopeChange('all')">
+                        <label id="scope-all-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-blue-600/60 font-bold">
+                            <input type="radio" name="price_scope" value="all" class="accent-blue-600" onchange="onPriceScopeChange('all')">
                             <div class="flex flex-col">
-                                <span class="text-xs font-black text-ink">لكل الفروع</span>
-                                <span class="text-[9px] font-normal text-soft">يعدل السعر العام للمطعم</span>
+                                <span class="text-xs font-black text-slate-900">لكل الفروع</span>
+                                <span class="text-[9px] font-normal text-slate-500">يعدل السعر العام للمطعم</span>
                             </div>
                         </label>
                     </div>
@@ -806,7 +806,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <!-- Scope Info Banner -->
                     <div id="priceScopeInfo" class="mt-2 text-[10px] p-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center justify-between">
                         <span id="priceScopeNotice">⚡ سيتم حفظ السعر وتطبيقه حصراً على فرع «{{ branch.name }}» بعملة ({{ branch_currency_symbol }}).</span>
-                        <span id="masterPriceBadge" class="hidden text-soft font-bold">السعر العام: <b id="masterPriceValText" class="text-ink">0.00</b> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
+                        <span id="masterPriceBadge" class="hidden text-slate-500 font-bold">السعر العام: <b id="masterPriceValText" class="text-slate-900">0.00</b> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
                     </div>
                 </div>
                 {% else %}
@@ -822,21 +822,21 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="itemModalHasVariants" name="has_variants" onchange="toggleVariantSection()" class="sr-only peer">
-                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0E382A]"></div>
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
 
                     <!-- Single Price Inputs (if no variants) -->
                     <div id="singlePriceSection" class="grid grid-cols-2 gap-3 pt-2">
                         <div>
-                            <label class="block text-xs font-bold text-ink mb-1">
+                            <label class="block text-xs font-bold text-slate-900 mb-1">
                                 <span id="labelPriceText">سعر البيع المخصص للفرع</span>
                                 ({{ branch_currency_symbol }}) <span class="text-rose-500">*</span>
                             </label>
                             <input type="number" step="0.25" min="0" id="itemModalPrice" name="price" class="input text-xs w-full font-bold" placeholder="25.00">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-ink mb-1">التكلفة التقريبية ({{ branch_currency_symbol }})</label>
+                            <label class="block text-xs font-bold text-slate-900 mb-1">التكلفة التقريبية ({{ branch_currency_symbol }})</label>
                             <input type="number" step="0.25" min="0" id="itemModalCost" name="cost" class="input text-xs w-full" placeholder="10.00">
                         </div>
                     </div>
@@ -844,8 +844,8 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <!-- Variants Table (if has variants) -->
                     <div id="variantsSection" class="space-y-2 hidden pt-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-ink">قائمة الأحجام والأسعار:</span>
-                            <button type="button" id="btnAddVariantBtn" onclick="addVariantRow()" class="px-2.5 py-1 rounded-lg bg-[#0E382A] text-[#E6C898] text-[10px] font-bold shadow-2xs hover:bg-[#124634]">
+                            <span class="text-[11px] font-bold text-slate-900">قائمة الأحجام والأسعار:</span>
+                            <button type="button" id="btnAddVariantBtn" onclick="addVariantRow()" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold shadow-2xs hover:bg-blue-700">
                                 + إضافة حجم
                             </button>
                         </div>
@@ -856,11 +856,11 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </div>
             </div>
 
-            <div class="pt-2 flex items-center justify-end gap-2 border-t border-line">
-                <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-xl border border-line text-xs font-bold text-soft hover:bg-paper">
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-slate-200">
+                <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50">
                     إلغاء
                 </button>
-                <button type="submit" id="btnSaveItem" class="btn-gold-pill px-5 py-2 text-xs font-black shadow-2xs">
+                <button type="submit" id="btnSaveItem" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 text-xs font-black shadow-2xs">
                     حفظ الصنف
                 </button>
             </div>
@@ -871,52 +871,52 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 <!-- ========================================== -->
 <!-- Modal: Category Management Modal -->
 <!-- ========================================== -->
-<div id="category-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-body" onclick="closeCategoryModal()">
-    <div class="relative w-full max-w-xl max-h-[92vh] overflow-y-auto classic-card p-6 shadow-2xl" onclick="event.stopPropagation()">
+<div id="category-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-sans" onclick="closeCategoryModal()">
+    <div class="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6 shadow-2xl" onclick="event.stopPropagation()">
         
-        <div class="flex items-center justify-between border-b border-line pb-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
             <div class="flex items-center gap-3">
-                <span class="medallion-icon-light flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
-                    <svg class="w-5 h-5 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 </span>
                 <div>
-                    <h2 class="text-lg font-bold font-royal text-ink">إدارة أقسام وتصنيفات المنيو</h2>
-                    <p class="text-xs font-bold text-soft">إضافة، تعديل، وترتيب أقسام المنيو مع صور الأقسام</p>
+                    <h2 class="text-lg font-bold font-sans text-slate-900">إدارة أقسام وتصنيفات المنيو</h2>
+                    <p class="text-xs font-bold text-slate-500">إضافة، تعديل، وترتيب أقسام المنيو مع صور الأقسام</p>
                 </div>
             </div>
-            <button type="button" onclick="closeCategoryModal()" class="rounded-lg p-1.5 text-soft hover:bg-paper hover:text-ink transition">
+            <button type="button" onclick="closeCategoryModal()" class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
         <div class="space-y-5 pt-4">
             <!-- Add / Edit Form -->
-            <form id="categoryForm" novalidate onsubmit="saveCategory(event)" class="p-3.5 rounded-2xl bg-paper/70 border border-line space-y-3">
+            <form id="categoryForm" novalidate onsubmit="saveCategory(event)" class="p-3.5 rounded-2xl bg-slate-50/70 border border-slate-200 space-y-3">
                 <input type="hidden" id="categoryModalId" name="id" value="">
-                <h3 class="text-xs font-bold text-ink" id="catFormTitle">إضافة قسم جديد:</h3>
+                <h3 class="text-xs font-bold text-slate-900" id="catFormTitle">إضافة قسم جديد:</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-soft mb-1">اسم القسم (بالعربية) <span class="text-rose-500">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">اسم القسم (بالعربية) <span class="text-rose-500">*</span></label>
                         <input type="text" id="catModalName" name="name" class="input text-xs w-full" placeholder="مثال: بيتزا، شاورما، حلويات">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-soft mb-1">اسم القسم بالإنجليزي (اختياري / EN)</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">اسم القسم بالإنجليزي (اختياري / EN)</label>
                         <input type="text" id="catModalNameEn" name="name_en" dir="ltr" class="input text-xs w-full font-mono" placeholder="e.g. Pizza, Burgers">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-soft mb-1">ترتيب الظهور</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">ترتيب الظهور</label>
                         <input type="number" id="catModalOrder" name="ordering" value="10" class="input text-xs w-full">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-soft mb-1">صورة القسم (Icon / Image)</label>
-                    <input type="file" id="catModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#0E382A] file:text-[#E6C898] hover:file:bg-[#124634] text-soft cursor-pointer">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1">صورة القسم (Icon / Image)</label>
+                    <input type="file" id="catModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-1">
-                    <button type="button" id="btnCancelCatEdit" onclick="resetCategoryForm()" class="px-3 py-1.5 rounded-xl border border-line text-xs font-bold text-soft hidden">
+                    <button type="button" id="btnCancelCatEdit" onclick="resetCategoryForm()" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hidden">
                         إلغاء التعديل
                     </button>
-                    <button type="submit" id="btnSaveCategory" class="btn-gold-pill px-4 py-1.5 text-xs font-black shadow-2xs">
+                    <button type="submit" id="btnSaveCategory" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-1.5 text-xs font-black shadow-2xs">
                         حفظ القسم
                     </button>
                 </div>
@@ -924,28 +924,28 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
             <!-- Categories List -->
             <div>
-                <h3 class="text-xs font-bold text-ink mb-2">الأقسام الحالية ({{ category_objs|length }}):</h3>
+                <h3 class="text-xs font-bold text-slate-900 mb-2">الأقسام الحالية ({{ category_objs|length }}):</h3>
                 <div class="space-y-1.5 max-h-60 overflow-y-auto">
                     {% for c in category_objs %}
-                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-paper border border-line" id="cat-row-{{ c.id }}">
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200" id="cat-row-{{ c.id }}">
                         <div class="flex items-center gap-2.5">
                             {% if c.image %}
-                                <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-8 h-8 rounded-lg object-cover border border-line">
+                                <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200">
                             {% else %}
-                                <span class="w-8 h-8 rounded-lg bg-paper-light border border-line flex items-center justify-center text-xs text-soft font-bold">📁</span>
+                                <span class="w-8 h-8 rounded-lg bg-slate-50-light border border-slate-200 flex items-center justify-center text-xs text-slate-500 font-bold">📁</span>
                             {% endif %}
                             <div>
-                                <span class="font-bold text-xs text-ink block leading-tight">
+                                <span class="font-bold text-xs text-slate-900 block leading-tight">
                                     {{ c.name }}
                                     {% if c.name_en %}
-                                        <span class="text-[10px] text-soft font-mono font-normal">({{ c.name_en }})</span>
+                                        <span class="text-[10px] text-slate-500 font-mono font-normal">({{ c.name_en }})</span>
                                     {% endif %}
                                 </span>
-                                <span class="text-[10px] text-soft font-bold">الترتيب: {{ c.ordering }} • الأصناف: {{ c.items.count }}</span>
+                                <span class="text-[10px] text-slate-500 font-bold">الترتيب: {{ c.ordering }} • الأصناف: {{ c.items.count }}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button type="button" onclick="editCategory({{ c.id }}, '{{ c.name|escapejs }}', '{{ c.name_en|default:''|escapejs }}', {{ c.ordering }})" class="p-1.5 rounded-lg text-soft hover:text-ink hover:bg-paper-light transition" title="تعديل">
+                            <button type="button" onclick="editCategory({{ c.id }}, '{{ c.name|escapejs }}', '{{ c.name_en|default:''|escapejs }}', {{ c.ordering }})" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-50-light transition" title="تعديل">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
                             <button type="button" onclick="deleteCategory({{ c.id }}, '{{ c.name|escapejs }}')" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="حذف">
@@ -960,35 +960,35 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 <!-- MODAL: CUSTOM BRANCH PRICE MODAL                              -->
 <!-- ============================================================ -->
 <div id="branch-price-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-    <div class="classic-card max-w-md w-full p-6 shadow-2xl flex flex-col border border-[#D2AB6B] animate-scale-in">
-        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-md w-full p-6 shadow-2xl flex flex-col border border-blue-600 animate-scale-in">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
             <div class="flex items-center gap-2.5">
-                <span class="medallion-icon w-8 h-8 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 w-8 h-8 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-sm font-bold font-royal text-ink">تخصيص سعر الصنف للفرع</h3>
-                    <p class="text-[11px] text-soft">فرع: <span id="bpm-branch-name" class="font-bold text-[#0E382A]">{{ branch.name|default:'الفرع النشط' }}</span></p>
+                    <h3 class="text-sm font-bold font-sans text-slate-900">تخصيص سعر الصنف للفرع</h3>
+                    <p class="text-[11px] text-slate-500">فرع: <span id="bpm-branch-name" class="font-bold text-blue-600">{{ branch.name|default:'الفرع النشط' }}</span></p>
                 </div>
             </div>
-            <button onclick="closeBranchPriceModal()" class="text-soft hover:text-ink p-1">✕</button>
+            <button onclick="closeBranchPriceModal()" class="text-slate-500 hover:text-slate-900 p-1">✕</button>
         </div>
 
         <form id="branchPriceForm" onsubmit="saveBranchItemPrice(event)" class="space-y-4 text-xs">
             <input type="hidden" id="bpm-item-id" value="">
 
-            <div class="p-3 rounded-xl bg-paper border border-line space-y-1.5">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
                 <div class="flex justify-between items-center">
-                    <span class="text-soft font-bold">الصنف:</span>
-                    <span id="bpm-item-name" class="font-extrabold text-ink text-sm"></span>
+                    <span class="text-slate-500 font-bold">الصنف:</span>
+                    <span id="bpm-item-name" class="font-extrabold text-slate-900 text-sm"></span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-soft font-bold">السعر الافتراضي العام (Master):</span>
-                    <span class="font-mono font-bold text-soft"><span id="bpm-default-price">0.00</span> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
+                    <span class="text-slate-500 font-bold">السعر الافتراضي العام (Master):</span>
+                    <span class="font-mono font-bold text-slate-500"><span id="bpm-default-price">0.00</span> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-soft font-bold">عملة هذا الفرع:</span>
-                    <span class="font-bold text-[#0E382A] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <span class="text-slate-500 font-bold">عملة هذا الفرع:</span>
+                    <span class="font-bold text-blue-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         {{ branch.currency|default:'SAR' }} ({{ branch.get_currency_symbol_ar|default:'ر.س' }})
                     </span>
                 </div>
@@ -996,15 +996,15 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
             <!-- Single Price Customization Input -->
             <div id="bpm-single-price-box">
-                <label class="block font-bold text-ink mb-1">
+                <label class="block font-bold text-slate-900 mb-1">
                     السعر المخصص لهذا الفرع ({{ branch.get_currency_symbol_ar|default:'ر.س' }}):
                 </label>
                 <div class="relative">
-                    <input type="number" step="0.25" min="0" id="bpm-custom-price-input" placeholder="اتركه فارغاً لاستخدام السعر العام" class="input w-full font-bold text-ink">
-                    <span class="absolute left-3 top-2.5 text-xs text-soft font-bold">{{ branch.get_currency_symbol_ar|default:'ر.س' }}</span>
+                    <input type="number" step="0.25" min="0" id="bpm-custom-price-input" placeholder="اتركه فارغاً لاستخدام السعر العام" class="input w-full font-bold text-slate-900">
+                    <span class="absolute left-3 top-2.5 text-xs text-slate-500 font-bold">{{ branch.get_currency_symbol_ar|default:'ر.س' }}</span>
                 </div>
                 <div class="flex items-center justify-between mt-1.5">
-                    <p class="text-[10px] text-soft">إذا ترك فارغاً، سيتم تطبيق السعر العام للمطعم تلقائياً.</p>
+                    <p class="text-[10px] text-slate-500">إذا ترك فارغاً، سيتم تطبيق السعر العام للمطعم تلقائياً.</p>
                     <button type="button" onclick="document.getElementById('bpm-custom-price-input').value = '';" class="text-[10px] font-bold text-amber-800 hover:text-amber-950 underline transition">
                         🔄 استعادة السعر العام
                     </button>
@@ -1012,16 +1012,16 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             </div>
 
             <!-- Variants List (if item has variants) -->
-            <div id="bpm-variants-box" class="hidden space-y-2.5 border-t border-line pt-3">
-                <span class="text-xs font-bold text-ink block">أسعار الأحجام المخصصة لهذا الفرع:</span>
+            <div id="bpm-variants-box" class="hidden space-y-2.5 border-t border-slate-200 pt-3">
+                <span class="text-xs font-bold text-slate-900 block">أسعار الأحجام المخصصة لهذا الفرع:</span>
                 <div id="bpm-variants-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
                     <!-- Populated dynamically -->
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-3 border-t border-line">
-                <button type="button" onclick="closeBranchPriceModal()" class="rounded-xl px-4 py-2 border border-line bg-white hover:bg-paper text-ink font-bold">إلغاء</button>
-                <button type="submit" id="btnSaveBranchPrice" class="btn-gold-pill px-5 py-2 font-bold shadow-sm">حفظ سعر الفرع</button>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+                <button type="button" onclick="closeBranchPriceModal()" class="rounded-xl px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 font-bold">إلغاء</button>
+                <button type="submit" id="btnSaveBranchPrice" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 font-bold shadow-sm">حفظ سعر الفرع</button>
             </div>
         </form>
     </div>
@@ -1031,41 +1031,41 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 <!-- MODAL: ALL BRANCHES PRICING MATRIX MODAL                      -->
 <!-- ============================================================ -->
 <div id="all-branches-price-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-    <div class="classic-card max-w-2xl w-full p-6 shadow-2xl flex flex-col border border-[#D2AB6B] animate-scale-in max-h-[90vh]">
-        <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-2xl w-full p-6 shadow-2xl flex flex-col border border-blue-600 animate-scale-in max-h-[90vh]">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
             <div class="flex items-center gap-2.5">
-                <span class="medallion-icon w-8 h-8 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <span class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 w-8 h-8 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-sm font-bold font-royal text-ink">جدول أسعار الصنف بكافة فروع السلسلة</h3>
-                    <p class="text-[11px] text-soft">الصنف: <span id="abpm-item-name" class="font-extrabold text-ink"></span></p>
+                    <h3 class="text-sm font-bold font-sans text-slate-900">جدول أسعار الصنف بكافة فروع السلسلة</h3>
+                    <p class="text-[11px] text-slate-500">الصنف: <span id="abpm-item-name" class="font-extrabold text-slate-900"></span></p>
                 </div>
             </div>
-            <button onclick="closeAllBranchesPriceModal()" class="text-soft hover:text-ink p-1">✕</button>
+            <button onclick="closeAllBranchesPriceModal()" class="text-slate-500 hover:text-slate-900 p-1">✕</button>
         </div>
 
-        <div id="abpm-loading" class="py-12 text-center text-xs text-soft font-bold">
+        <div id="abpm-loading" class="py-12 text-center text-xs text-slate-500 font-bold">
             جاري جلب بيانات فروع السلسلة...
         </div>
 
         <form id="allBranchesPriceForm" onsubmit="saveAllBranchesPrices(event)" class="space-y-4 overflow-y-auto flex-1 hidden text-xs">
             <input type="hidden" id="abpm-item-id" value="">
 
-            <div class="p-3 rounded-xl bg-paper border border-line flex items-center justify-between">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div>
-                    <span class="text-soft font-bold block">السعر العام للمطعم (HQ Master):</span>
+                    <span class="text-slate-500 font-bold block">السعر العام للمطعم (HQ Master):</span>
                     <span id="abpm-master-price" class="font-black text-brand-700 text-sm"></span>
                 </div>
-                <p class="text-[11px] text-soft max-w-xs text-left">
+                <p class="text-[11px] text-slate-500 max-w-xs text-left">
                     الفروع التي تترك خانة السعر المخصص فيها فارغة ستعتمد السعر العام تلقائياً.
                 </p>
             </div>
 
             <!-- Branches Table -->
-            <div class="border border-line rounded-xl overflow-hidden shadow-2xs">
+            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
                 <table class="w-full text-right text-xs">
-                    <thead class="bg-[#F9F6F0] border-b border-line text-soft font-bold text-[11px]">
+                    <thead class="bg-[#F8FAFC] border-b border-slate-200 text-slate-500 font-bold text-[11px]">
                         <tr>
                             <th class="p-3">الفرع</th>
                             <th class="p-3">العملة</th>
@@ -1079,9 +1079,9 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </table>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-3 border-t border-line">
-                <button type="button" onclick="closeAllBranchesPriceModal()" class="rounded-xl px-4 py-2 border border-line bg-white hover:bg-paper text-ink font-bold">إلغاء</button>
-                <button type="submit" id="btnSaveAllBranches" class="btn-gold-pill px-5 py-2 font-bold shadow-sm">حفظ أسعار الفروع</button>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+                <button type="button" onclick="closeAllBranchesPriceModal()" class="rounded-xl px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 font-bold">إلغاء</button>
+                <button type="submit" id="btnSaveAllBranches" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 font-bold shadow-sm">حفظ أسعار الفروع</button>
             </div>
         </form>
     </div>
@@ -1101,10 +1101,10 @@ function onPriceScopeChange(scope) {
 
     if (scope === 'branch') {
         if (branchLabel) {
-            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-[#0E382A] text-[#0E382A] font-extrabold shadow-2xs';
+            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-blue-600 text-blue-600 font-extrabold shadow-2xs';
         }
         if (allLabel) {
-            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-line text-soft hover:border-[#D2AB6B]/60 font-bold';
+            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-blue-600/60 font-bold';
         }
         if (notice) {
             notice.innerText = `⚡ سيتم حفظ السعر وتطبيقه حصراً على فرع «${branchName}» بعملة (${curSym}).`;
@@ -1114,10 +1114,10 @@ function onPriceScopeChange(scope) {
         }
     } else {
         if (allLabel) {
-            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-[#0E382A] text-[#0E382A] font-extrabold shadow-2xs';
+            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-blue-600 text-blue-600 font-extrabold shadow-2xs';
         }
         if (branchLabel) {
-            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-line text-soft hover:border-[#D2AB6B]/60 font-bold';
+            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-blue-600/60 font-bold';
         }
         if (notice) {
             notice.innerText = '⚠️ تنبيه: سيتم تحديث السعر العام الأساسي وتطبيقه على كافة فروع المطعم.';
@@ -1252,7 +1252,7 @@ function toggleVariantSection() {
 function addVariantRow(name = '', name_en = '', price = '', cost = '', id = null, defaultPrice = null) {
     const container = document.getElementById('variantsContainer');
     const row = document.createElement('div');
-    row.className = 'flex flex-wrap items-center gap-2 variant-row p-2 rounded-xl bg-white border border-line shadow-2xs';
+    row.className = 'flex flex-wrap items-center gap-2 variant-row p-2 rounded-xl bg-white border border-slate-200 shadow-2xs';
     if (id) {
         row.setAttribute('data-variant-id', id);
     }
@@ -1262,7 +1262,7 @@ function addVariantRow(name = '', name_en = '', price = '', cost = '', id = null
         <input type="text" name="variant_name_en[]" class="v-name-en input text-xs flex-1 min-w-[120px] font-mono" dir="ltr" placeholder="Size in EN (Medium)" value="${name_en}">
         <div class="relative w-32">
             <input type="number" step="0.25" min="0" name="variant_price[]" class="v-price input text-xs w-full font-bold" ${defHint} value="${price}">
-            <span class="absolute left-2 top-2 text-[10px] text-soft">{{ branch_currency_symbol }}</span>
+            <span class="absolute left-2 top-2 text-[10px] text-slate-500">{{ branch_currency_symbol }}</span>
         </div>
         <button type="button" onclick="this.closest('.variant-row').remove()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="حذف الحجم">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1424,7 +1424,7 @@ async function openBranchPriceModal(itemId, itemName, currentPrice, defaultPrice
     
     const variantsBox = document.getElementById('bpm-variants-box');
     const variantsContainer = document.getElementById('bpm-variants-container');
-    variantsContainer.innerHTML = '<p class="text-soft text-[11px]">جاري فحص الأحجام...</p>';
+    variantsContainer.innerHTML = '<p class="text-slate-500 text-[11px]">جاري فحص الأحجام...</p>';
     variantsBox.classList.remove('hidden');
 
     modal.classList.remove('hidden');
@@ -1441,11 +1441,11 @@ async function openBranchPriceModal(itemId, itemName, currentPrice, defaultPrice
                     variantsContainer.innerHTML = '';
                     vList.forEach(v => {
                         const div = document.createElement('div');
-                        div.className = 'flex items-center justify-between gap-3 p-2 rounded-lg bg-paper border border-line';
+                        div.className = 'flex items-center justify-between gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200';
                         div.innerHTML = `
                             <div class="flex-1">
-                                <span class="font-bold text-ink block">${v.name}</span>
-                                <span class="text-[10px] text-soft">السعر العام: ${Number(v.default_price).toFixed(2)}</span>
+                                <span class="font-bold text-slate-900 block">${v.name}</span>
+                                <span class="text-[10px] text-slate-500">السعر العام: ${Number(v.default_price).toFixed(2)}</span>
                             </div>
                             <div class="w-32 relative">
                                 <input type="number" step="0.25" min="0" class="input text-xs font-bold w-full bpm-variant-input" data-variant-id="${v.variant_id}" value="${v.custom_price !== null ? v.custom_price : ''}" placeholder="${Number(v.effective_price).toFixed(2)}">
@@ -1551,23 +1551,23 @@ async function openItemAllBranchesPriceModal(itemId) {
 
             data.branches.forEach(b => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-paper/40 transition';
+                tr.className = 'hover:bg-slate-50/40 transition';
                 const isCurrent = String(b.branch_id) === String(currentBranchId);
                 tr.innerHTML = `
                     <td class="p-3">
-                        <span class="font-bold text-ink block">${b.branch_name} ${isCurrent ? '<span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mr-1">الفرع الحالي</span>' : ''}</span>
-                        <span class="text-[10px] text-soft">${b.is_available ? 'متوفر' : 'غير متوفر'}</span>
+                        <span class="font-bold text-slate-900 block">${b.branch_name} ${isCurrent ? '<span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mr-1">الفرع الحالي</span>' : ''}</span>
+                        <span class="text-[10px] text-slate-500">${b.is_available ? 'متوفر' : 'غير متوفر'}</span>
                     </td>
                     <td class="p-3">
-                        <span class="font-bold text-[#0E382A] bg-paper px-2 py-0.5 rounded border border-line">${b.currency} (${b.currency_symbol})</span>
+                        <span class="font-bold text-blue-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">${b.currency} (${b.currency_symbol})</span>
                     </td>
                     <td class="p-3">
                         <div class="relative max-w-[140px]">
                             <input type="number" step="0.25" min="0" class="input w-full text-xs font-bold abpm-branch-input" data-branch-id="${b.branch_id}" value="${b.custom_price !== null ? b.custom_price : ''}" placeholder="${Number(b.effective_price).toFixed(2)}">
                         </div>
                     </td>
-                    <td class="p-3 font-mono font-bold text-ink">
-                        ${Number(b.effective_price).toFixed(2)} <span class="text-[10px] text-soft font-body">${b.currency_symbol}</span>
+                    <td class="p-3 font-mono font-bold text-slate-900">
+                        ${Number(b.effective_price).toFixed(2)} <span class="text-[10px] text-slate-500 font-sans">${b.currency_symbol}</span>
                     </td>
                 `;
                 tbody.appendChild(tr);
