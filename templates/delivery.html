@@ -3,16 +3,16 @@
 {% block title %}{{ t.deliv_title|default:"إدارة التوصيل — منظومة كُـورَا" }}{% endblock %}
 
 {% block content %}
-<div class="space-y-5 font-body">
+<div class="space-y-5 font-sans">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold font-royal text-ink">{{ t.deliv_heading|default:"إدارة وتوزيع طلبات التوصيل" }}</h1>
-            <p class="text-xs font-bold text-soft mt-1">{{ t.deliv_subtitle|default:"متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين" }}</p>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{{ t.deliv_heading|default:"إدارة وتوزيع طلبات التوصيل" }}</h1>
+            <p class="text-xs font-semibold text-slate-500 mt-1">{{ t.deliv_subtitle|default:"متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين" }}</p>
         </div>
         <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-2 rounded-xl bg-brand-100/70 border border-[#D2AB6B]/40 px-3.5 py-1.5 text-xs font-bold text-brand-800 shadow-2xs">
-                <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span class="inline-flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-bold text-blue-700 shadow-sm">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 <span>{{ active_count }} {% if IS_RTL %}طلب قيد المتابعة والتوصيل{% else %}Orders in Tracking & Dispatch{% endif %}</span>
             </span>
         </div>
@@ -23,118 +23,118 @@
         <!-- Kanban Delivery Columns (Horizontal Snap-Scroll on Mobile, Grid on Tablet/Desktop) -->
         <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:pb-0 sm:overflow-visible">
             <!-- 1. New (جديد) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-info-600 bg-card px-3 py-2.5 rounded-t-xl">
-                    <span class="text-xs font-black font-display text-ink">1. جديد</span>
-                    <span class="rounded-full bg-info-100 px-2 py-0.5 text-[11px] font-bold text-info-700">{{ orders_by_status.new|length }}</span>
+            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
+                <div class="flex items-center justify-between border-b-2 border-b-blue-600 bg-white px-3.5 py-2.5 rounded-t-2xl">
+                    <span class="text-xs font-bold text-slate-900">1. جديد</span>
+                    <span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.new|length }}</span>
                 </div>
                 <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
                     {% for o in orders_by_status.new %}
                         {% include "delivery_card.html" with order=o next_status="preparing" next_label="بدء التحضير" %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
                     {% endfor %}
                 </div>
             </div>
 
             <!-- 2. Preparing (قيد التحضير) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-warn-600 bg-card px-3 py-2.5 rounded-t-xl">
-                    <span class="text-xs font-black font-display text-ink">2. قيد التحضير</span>
-                    <span class="rounded-full bg-warn-100 px-2 py-0.5 text-[11px] font-bold text-warn-700">{{ orders_by_status.preparing|length }}</span>
+            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
+                <div class="flex items-center justify-between border-b-2 border-b-amber-500 bg-white px-3.5 py-2.5 rounded-t-2xl">
+                    <span class="text-xs font-bold text-slate-900">2. قيد التحضير</span>
+                    <span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.preparing|length }}</span>
                 </div>
                 <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
                     {% for o in orders_by_status.preparing %}
                         {% include "delivery_card.html" with order=o next_status="ready" next_label="جاهز للتسليم" %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
                     {% endfor %}
                 </div>
             </div>
 
             <!-- 3. Ready (جاهز للتسليم) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-good-600 bg-card px-3 py-2.5 rounded-t-xl">
-                    <span class="text-xs font-black font-display text-ink">3. جاهز للتسليم</span>
-                    <span class="rounded-full bg-good-100 px-2 py-0.5 text-[11px] font-bold text-good-700">{{ orders_by_status.ready|length }}</span>
+            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
+                <div class="flex items-center justify-between border-b-2 border-b-emerald-500 bg-white px-3.5 py-2.5 rounded-t-2xl">
+                    <span class="text-xs font-bold text-slate-900">3. جاهز للتسليم</span>
+                    <span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.ready|length }}</span>
                 </div>
                 <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
                     {% for o in orders_by_status.ready %}
                         {% include "delivery_card.html" with order=o next_status="out_for_delivery" next_label="تسليم للسائق" need_driver=True %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
                     {% endfor %}
                 </div>
             </div>
 
             <!-- 4. Out for delivery (في الطريق) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-brand-600 bg-card px-3 py-2.5 rounded-t-xl">
-                    <span class="text-xs font-black font-display text-ink">4. في الطريق</span>
-                    <span class="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700">{{ orders_by_status.out_for_delivery|length }}</span>
+            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
+                <div class="flex items-center justify-between border-b-2 border-b-indigo-500 bg-white px-3.5 py-2.5 rounded-t-2xl">
+                    <span class="text-xs font-bold text-slate-900">4. في الطريق</span>
+                    <span class="rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.out_for_delivery|length }}</span>
                 </div>
                 <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
                     {% for o in orders_by_status.out_for_delivery %}
                         {% include "delivery_card.html" with order=o next_status="delivered" next_label="تم التوصيل" %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
                     {% endfor %}
                 </div>
             </div>
 
             <!-- 5. Delivered (تم التسليم) -->
-            <div class="flex flex-col rounded-xl border border-line bg-paper/40 min-h-[400px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-night bg-card px-3 py-2.5 rounded-t-xl">
-                    <span class="text-xs font-black font-display text-ink">5. تم التسليم</span>
-                    <span class="rounded-full bg-night-2 text-gold-300 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.delivered|length }}</span>
+            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
+                <div class="flex items-center justify-between border-b-2 border-b-slate-400 bg-white px-3.5 py-2.5 rounded-t-2xl">
+                    <span class="text-xs font-bold text-slate-900">5. تم التسليم</span>
+                    <span class="rounded-full bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.delivered|length }}</span>
                 </div>
                 <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
                     {% for o in orders_by_status.delivered %}
                         {% include "delivery_card.html" with order=o %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-soft">لا توجد طلبات</p>
+                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
         <!-- Drivers Panel -->
-        <div class="classic-card p-4 h-fit sticky top-4 shadow-md font-body">
-            <div class="flex items-center justify-between border-b border-line pb-3 mb-3">
-                <h2 class="text-sm font-bold font-royal text-ink flex items-center gap-1.5">
-                    <svg class="w-4 h-4 text-[#B88B46]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 h-fit sticky top-4 shadow-sm font-sans">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span>أسطول السائقين</span>
                 </h2>
-                <span class="rounded-full bg-[#0E382A] px-2.5 py-0.5 text-xs font-bold text-[#E6C898] border border-[#D2AB6B]/30">{{ driver_stats|length }} سائقين</span>
+                <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-200">{{ driver_stats|length }} سائقين</span>
             </div>
 
             <div class="space-y-3">
                 {% for d in driver_stats %}
-                <div class="rounded-xl border border-line p-3 bg-paper/50 hover:bg-white hover:border-[#D2AB6B] transition shadow-2xs">
+                <div class="rounded-xl border border-slate-200 p-3 bg-white hover:border-blue-300 transition shadow-xs">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
-                            <span class="medallion-icon flex h-8 w-8 items-center justify-center rounded-xl shadow-2xs">
-                                <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             </span>
                             <div>
-                                <p class="text-xs font-bold text-ink">{{ d.name }}</p>
-                                <p class="text-[11px] text-soft font-mono" dir="ltr">{{ d.phone|default:"—" }}</p>
+                                <p class="text-xs font-bold text-slate-900">{{ d.name }}</p>
+                                <p class="text-[11px] text-slate-500 font-mono" dir="ltr">{{ d.phone|default:"—" }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="mt-2.5 grid grid-cols-2 gap-1.5 text-center text-xs">
-                        <div class="rounded-lg bg-brand-100 p-1.5">
-                            <p class="font-extrabold text-brand-700 text-sm">{{ d.active }}</p>
-                            <p class="text-[10px] text-brand-700/80">في الطريق</p>
+                        <div class="rounded-lg bg-blue-50 border border-blue-100 p-1.5">
+                            <p class="font-bold text-blue-600 text-sm">{{ d.active }}</p>
+                            <p class="text-[10px] text-slate-500">في الطريق</p>
                         </div>
-                        <div class="rounded-lg bg-good-100 p-1.5">
-                            <p class="font-extrabold text-good-700 text-sm">{{ d.done }}</p>
-                            <p class="text-[10px] text-good-700/80">سُلّمت اليوم</p>
+                        <div class="rounded-lg bg-emerald-50 border border-emerald-100 p-1.5">
+                            <p class="font-bold text-emerald-600 text-sm">{{ d.done }}</p>
+                            <p class="text-[10px] text-slate-500">سُلّمت اليوم</p>
                         </div>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-xs text-soft py-4 text-center">لا يوجد سائقون مسجلون</p>
+                <p class="text-xs text-slate-400 py-4 text-center">لا يوجد سائقون مسجلون</p>
                 {% endfor %}
             </div>
         </div>
