@@ -8,10 +8,10 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
     <link rel="shortcut icon" href="/static/img/favicon.png">
-    <!-- Google Fonts: Luxury Arabic Amiri, Cairo & Tajawal Typography + English Inter & Playfair -->
+    <!-- Google Fonts: Cairo, Tajawal & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -20,60 +20,56 @@
                 extend: {
                     fontFamily: {
                         sans: ['Tajawal', 'Inter', 'Cairo', 'sans-serif'],
-                        display: ['Amiri', 'Playfair Display', 'Cairo', 'serif'],
-                        royal: ['Amiri', 'Playfair Display', 'serif'],
+                        display: ['Tajawal', 'Inter', 'Cairo', 'sans-serif'],
+                        royal: ['Tajawal', 'Inter', 'Cairo', 'sans-serif'],
                         body: ['Tajawal', 'Inter', 'Cairo', 'sans-serif'],
                     },
                     colors: {
-                        paper: '#F9F6F0',
-                        'paper-soft': '#F3EFE6',
+                        paper: '#F8FAFC',
+                        'paper-soft': '#F1F5F9',
                         card: '#FFFFFF',
-                        ink: '#1E130D',
-                        'ink-soft': '#5C4B3F',
-                        soft: '#6E5D4F',
-                        line: '#E8DFD3',
-                        night: '#0B2920',
-                        'night-2': '#0E382A',
-                        'night-3': '#144D3B',
+                        ink: '#0F172A',
+                        'ink-soft': '#475569',
+                        soft: '#64748B',
+                        line: '#E2E8F0',
                         brand: {
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            200: '#BFDBFE',
+                            300: '#93C5FD',
+                            400: '#60A5FA',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                            800: '#1E40AF',
+                            900: '#1E3A8A',
+                        },
+                        good: {
                             50: '#F0FDF4',
                             100: '#DCFCE7',
                             200: '#BBF7D0',
-                            300: '#86EFAC',
-                            400: '#22C55E',
-                            500: '#1B634D',
-                            600: '#144D3B',
-                            700: '#0F3B2E',
-                            800: '#0A2B21',
-                            900: '#061D16',
-                        },
-                        gold: {
-                            100: '#FFF9F0',
-                            200: '#F5E8D3',
-                            300: '#E4C79C',
-                            400: '#D2AB6B',
-                            500: '#B88B46',
-                            600: '#9C6212',
-                        },
-                        good: {
-                            100: '#E1F4EC',
-                            600: '#1B634D',
-                            700: '#144D3B',
+                            600: '#16A34A',
+                            700: '#15803D',
                         },
                         warn: {
-                            100: '#FDF3DF',
-                            600: '#C07D1E',
-                            700: '#9C6212',
+                            50: '#FFFBEB',
+                            100: '#FEF3C7',
+                            200: '#FDE68A',
+                            600: '#D97706',
+                            700: '#B45309',
                         },
                         bad: {
-                            100: '#FCEBE8',
-                            600: '#C53030',
-                            700: '#9B2C2C',
+                            50: '#FEF2F2',
+                            100: '#FEE2E2',
+                            200: '#FECACA',
+                            600: '#DC2626',
+                            700: '#B91C1C',
                         },
                         info: {
-                            100: '#E3F2FD',
-                            600: '#1976D2',
-                            700: '#0D47A1',
+                            50: '#F0F9FF',
+                            100: '#E0F2FE',
+                            600: '#0284C7',
+                            700: '#0369A1',
                         }
                     }
                 }
@@ -82,103 +78,77 @@
     </script>
     <style>
         :root {
-            --color-parchment: #F9F6F0;
-            --color-parchment-soft: #F3EFE6;
-            --color-emerald-deep: #144D3B;
-            --color-emerald-primary: #1B634D;
-            --color-emerald-night: #0B2920;
-            --color-gold-antique: #D2AB6B;
-            --color-gold-deep: #B88B46;
-            --color-gold-light: #E8D3B0;
-            --color-ink: #1E130D;
-            --color-ink-soft: #5C4B3F;
-            --color-border: #E8DFD3;
+            --color-parchment: #F8FAFC;
+            --color-parchment-soft: #F1F5F9;
+            --color-emerald-deep: #2563EB;
+            --color-emerald-primary: #2563EB;
+            --color-emerald-night: #1E40AF;
+            --color-gold-antique: #2563EB;
+            --color-gold-deep: #1D4ED8;
+            --color-gold-light: #DBEAFE;
+            --color-ink: #0F172A;
+            --color-ink-soft: #475569;
+            --color-border: #E2E8F0;
         }
         body {
-            background-color: #F9F6F0;
-            color: #1E130D;
-            font-family: 'Tajawal', 'Cairo', sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+            font-family: 'Tajawal', 'Inter', 'Cairo', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
-        .font-royal { font-family: 'Amiri', serif; }
-        .font-display { font-family: 'Amiri', 'Cairo', serif; }
-        .font-body { font-family: 'Tajawal', 'Cairo', sans-serif; }
+        .font-royal, .font-display { font-family: 'Tajawal', 'Inter', 'Cairo', sans-serif; font-weight: 700; }
+        .font-body { font-family: 'Tajawal', 'Inter', 'Cairo', sans-serif; }
         
-        .card {
+        .card, .classic-card {
             background-color: #FFFFFF;
-            border: 1px solid #E8DFD3;
-            border-radius: 1rem;
-            box-shadow: 0 4px 16px -2px rgba(30, 19, 13, 0.04), 0 2px 6px -1px rgba(30, 19, 13, 0.02);
-            transition: all 0.25s ease;
-        }
-        .classic-card {
-            background-color: #FFFFFF;
-            border: 1px solid #E8DFD3;
-            border-radius: 1.125rem;
-            box-shadow: 0 10px 25px -5px rgba(30, 19, 13, 0.04), 0 8px 10px -6px rgba(30, 19, 13, 0.02);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid #E2E8F0;
+            border-radius: 0.75rem;
+            box-shadow: none;
+            transition: border-color 0.2s ease;
             position: relative;
         }
-        .classic-card:hover {
-            border-color: #D2AB6B;
-            box-shadow: 0 18px 28px -6px rgba(27, 99, 77, 0.1), 0 8px 12px -3px rgba(210, 171, 107, 0.12);
+        .card:hover, .classic-card:hover {
+            border-color: #CBD5E1;
         }
         .btn-gold-pill {
-            background: linear-gradient(135deg, #E6C898 0%, #D2AB6B 50%, #B88B46 100%);
-            color: #1A130B;
-            border: 1px solid #F3E2C4;
-            box-shadow: 0 4px 14px rgba(184, 139, 70, 0.3);
-            font-weight: 800;
-            transition: all 0.25s ease;
+            background: #2563EB;
+            color: #FFFFFF;
+            border: 1px solid #2563EB;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            box-shadow: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
         .btn-gold-pill:hover {
-            background: linear-gradient(135deg, #F0D7AE 0%, #DCB779 50%, #C49852 100%);
-            box-shadow: 0 6px 18px rgba(184, 139, 70, 0.4);
-            transform: translateY(-1px);
+            background: #1D4ED8;
+            border-color: #1D4ED8;
+            box-shadow: none;
         }
         .wax-seal {
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            padding: 0.3rem 0.75rem;
-            border-radius: 9999px;
-            background: linear-gradient(135deg, #FFF9F0 0%, #F5E8D3 100%);
-            border: 1px solid #D2AB6B;
-            color: #8C6527;
-            font-size: 0.72rem;
-            font-weight: 800;
-            box-shadow: 0 2px 5px rgba(184, 139, 70, 0.12);
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.375rem;
+            background: #EFF6FF;
+            border: 1px solid #DBEAFE;
+            color: #1D4ED8;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
-        .medallion-icon {
+        .medallion-icon, .medallion-icon-light {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 0.65rem;
-            background: linear-gradient(135deg, #0A261C 0%, #144D3B 100%);
-            border: 1px solid rgba(210, 171, 107, 0.35);
-            color: #D2AB6B;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 0.375rem;
+            background: transparent;
+            border: none;
+            color: #64748B;
             flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-            transition: all 0.2s ease;
-        }
-        .group:hover .medallion-icon {
-            border-color: #D2AB6B;
-            transform: scale(1.06);
-            box-shadow: 0 4px 12px rgba(210, 171, 107, 0.3);
-        }
-        .medallion-icon-light {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2.25rem;
-            height: 2.25rem;
-            border-radius: 0.75rem;
-            background: linear-gradient(135deg, #FFF9F0 0%, #F5E8D3 100%);
-            border: 1px solid rgba(210, 171, 107, 0.5);
-            color: #B88B46;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(184, 139, 70, 0.15);
+            transition: all 0.15s ease;
         }
         .ornate-divider {
             display: flex;
@@ -186,41 +156,43 @@
             justify-content: center;
             gap: 0.75rem;
             margin: 1.25rem auto;
-            color: #D2AB6B;
+            color: #E2E8F0;
         }
         .ornate-divider::before, .ornate-divider::after {
             content: '';
             height: 1px;
             width: 60px;
-            background: linear-gradient(90deg, transparent, #D2AB6B, transparent);
+            background: #E2E8F0;
         }
         .input {
             width: 100%;
             border-radius: 0.5rem;
-            border: 1px solid #E8DFD3;
+            border: 1px solid #E2E8F0;
             background-color: #FFFFFF;
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
-            color: #1E130D;
+            color: #0F172A;
             outline: none;
             transition: all 0.15s ease-in-out;
         }
         .input:focus {
-            border-color: #1B634D;
-            box-shadow: 0 0 0 3px rgba(27, 99, 77, 0.15);
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
         .th {
             padding: 0.625rem 1rem;
             text-align: right;
             font-size: 0.75rem;
-            font-weight: 700;
-            color: #6E5D4F;
-            background-color: #F4EFE6;
+            font-weight: 600;
+            color: #475569;
+            background-color: #F8FAFC;
+            border-bottom: 1px solid #E2E8F0;
         }
         .td {
             padding: 0.75rem 1rem;
             font-size: 0.875rem;
-            border-bottom: 1px solid #E8DFD3;
+            border-bottom: 1px solid #F1F5F9;
+            color: #0F172A;
         }
         @keyframes toastIn {
             from { opacity: 0; transform: translateY(12px) scale(0.95); }
@@ -235,14 +207,14 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #F4EFE6;
+            background: #F8FAFC;
         }
         ::-webkit-scrollbar-thumb {
-            background: #D2AB6B;
+            background: #CBD5E1;
             border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #1B634D;
+            background: #94A3B8;
         }
 
         /* ============================================================ */
@@ -260,18 +232,18 @@
             }
             .table-responsive-cards tr {
                 background: #FFFFFF !important;
-                border: 1px solid #E8DFD3 !important;
-                border-radius: 1rem !important;
+                border: 1px solid #E2E8F0 !important;
+                border-radius: 0.75rem !important;
                 padding: 0.875rem 1rem !important;
                 margin-bottom: 0.875rem !important;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+                box-shadow: none !important;
             }
             .table-responsive-cards td {
                 display: flex !important;
                 align-items: center !important;
                 justify-content: space-between !important;
                 padding: 0.5rem 0 !important;
-                border-bottom: 1px solid #F4EFE6 !important;
+                border-bottom: 1px solid #F1F5F9 !important;
                 font-size: 0.8125rem !important;
             }
             .table-responsive-cards td:last-child {
@@ -281,8 +253,8 @@
             }
             .table-responsive-cards td[data-label]::before {
                 content: attr(data-label);
-                font-weight: 700;
-                color: #6E5D4F;
+                font-weight: 600;
+                color: #64748B;
                 font-size: 0.75rem;
                 flex-shrink: 0;
                 margin-inline-end: 1rem;
@@ -293,7 +265,6 @@
         /* SMART COMPACT SIDEBAR (MINI RAIL MODE - 80px)                */
         /* ============================================================ */
         @media (min-width: 768px) and (max-width: 1023px) {
-            /* Automatically apply mini rail mode on tablets (iPads) */
             html:not(.sidebar-expanded) #app-sidebar,
             body:not(.sidebar-expanded) #app-sidebar {
                 width: 5rem !important; /* 80px */
@@ -338,8 +309,8 @@
             body:not(.sidebar-expanded) #app-sidebar .context-pill {
                 padding: 0.5rem !important;
                 justify-content: center !important;
-                background: rgba(0,0,0,0.2) !important;
-                border: none !important;
+                background: #F1F5F9 !important;
+                border: 1px solid #E2E8F0 !important;
             }
             html:not(.sidebar-expanded) #app-sidebar nav,
             body:not(.sidebar-expanded) #app-sidebar nav {
@@ -351,10 +322,6 @@
                 justify-content: center !important;
                 padding-left: 0.5rem !important;
                 padding-right: 0.5rem !important;
-            }
-            html:not(.sidebar-expanded) #app-sidebar nav .medallion-icon,
-            body:not(.sidebar-expanded) #app-sidebar nav .medallion-icon {
-                margin: 0 !important;
             }
             html:not(.sidebar-expanded) #app-sidebar [id$="-content"],
             body:not(.sidebar-expanded) #app-sidebar [id$="-content"] {
@@ -407,8 +374,8 @@
             body.sidebar-mini #app-sidebar .context-pill {
                 padding: 0.5rem !important;
                 justify-content: center !important;
-                background: rgba(0,0,0,0.2) !important;
-                border: none !important;
+                background: #F1F5F9 !important;
+                border: 1px solid #E2E8F0 !important;
             }
             html.sidebar-mini #app-sidebar nav,
             body.sidebar-mini #app-sidebar nav {
@@ -420,10 +387,6 @@
                 justify-content: center !important;
                 padding-left: 0.5rem !important;
                 padding-right: 0.5rem !important;
-            }
-            html.sidebar-mini #app-sidebar nav .medallion-icon,
-            body.sidebar-mini #app-sidebar nav .medallion-icon {
-                margin: 0 !important;
             }
             html.sidebar-mini #app-sidebar [id$="-content"],
             body.sidebar-mini #app-sidebar [id$="-content"] {
@@ -475,26 +438,26 @@
     <!-- ============================================================ -->
     <!-- MOBILE SIDEBAR BACKDROP OVERLAY                              -->
     <!-- ============================================================ -->
-    <div id="sidebar-backdrop" onclick="toggleSidebar(false)" class="hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden transition-opacity"></div>
+    <div id="sidebar-backdrop" onclick="toggleSidebar(false)" class="hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-xs md:hidden transition-opacity"></div>
 
     <!-- ============================================================ -->
-    <!-- LUXURY EMERALD SIDEBAR WITH NESTED ACCORDIONS                 -->
+    <!-- LIGHT CLEAN MINIMALIST SIDEBAR                               -->
     <!-- ============================================================ -->
-    <aside id="app-sidebar" class="fixed inset-y-0 {% if IS_RTL %}right-0 border-l border-[#D2AB6B]/25 translate-x-full{% else %}left-0 border-r border-[#D2AB6B]/25 -translate-x-full{% endif %} z-50 w-72 bg-gradient-to-b from-[#0A261C] via-[#0E382A] to-[#082218] text-white shadow-2xl flex flex-col justify-between transform md:translate-x-0 transition-all duration-300 ease-in-out">
+    <aside id="app-sidebar" class="fixed inset-y-0 {% if IS_RTL %}right-0 border-l border-slate-200 translate-x-full{% else %}left-0 border-r border-slate-200 -translate-x-full{% endif %} z-50 w-72 bg-white text-slate-800 flex flex-col justify-between transform md:translate-x-0 transition-all duration-300 ease-in-out">
         
         <!-- TOP: Brand Cartouche & Logo -->
-        <div class="p-3.5 border-b border-white/10 shrink-0">
+        <div class="p-3.5 border-b border-slate-100 shrink-0">
             <div class="brand-header flex items-center justify-between">
                 <a href="{% if is_hq_mode %}{% url 'dashboard' %}{% else %}{% url 'branch_dashboard' %}{% endif %}" class="brand-link flex items-center gap-3 group">
-                    <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1B634D] to-[#0B2E22] border border-[#D2AB6B]/40 shadow-lg shadow-black/30 group-hover:border-[#D2AB6B] transition">
-                        <img src="/static/img/kura_symbol.png" alt="{{ t.brand_name }}" class="h-8 w-8 object-contain drop-shadow-[0_2px_8px_rgba(210,171,107,0.35)]">
+                    <div class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 group-hover:border-blue-400 transition">
+                        <img src="/static/img/kura_symbol.png" alt="{{ t.brand_name }}" class="h-6 w-6 object-contain">
                     </div>
                     <div class="min-w-0 sidebar-text">
                         <div class="flex items-center gap-1.5">
-                            <span class="font-royal text-xl font-bold text-[#D2AB6B] tracking-wide">{{ t.brand_name }}</span>
-                            <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#E4C79C] border border-[#D2AB6B]/30 font-body">HQ</span>
+                            <span class="text-base font-bold text-slate-900 tracking-tight">{{ t.brand_name }}</span>
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/80">HQ</span>
                         </div>
-                        <p class="text-[11px] font-bold text-[#E2D9CE]/80 truncate max-w-[145px]">
+                        <p class="text-[11px] text-slate-500 truncate max-w-[145px]">
                             {{ tenant_name|default:t.brand_subtitle }}
                         </p>
                     </div>
@@ -505,34 +468,34 @@
                     type="button" 
                     id="sidebar-collapse-btn" 
                     onclick="toggleSidebarCollapse()" 
-                    class="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#D2AB6B] hover:bg-white/15 hover:text-white transition shadow-xs cursor-pointer" 
+                    class="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer" 
                     title="{{ t.collapse_sidebar }}"
                 >
-                    <svg id="collapse-icon" class="w-4 h-4 transition-transform duration-300 {% if not IS_RTL %}rotate-180{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg id="collapse-icon" class="w-4 h-4 transition-transform duration-300 {% if not IS_RTL %}rotate-180{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </button>
 
                 <!-- Mobile Close Button -->
-                <button type="button" onclick="toggleSidebar(false)" class="md:hidden flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#E4C79C] hover:bg-white/20 transition">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button type="button" onclick="toggleSidebar(false)" class="md:hidden flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 transition">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
             <!-- Active Context Pill (HQ vs Branch) -->
-            <div class="context-pill mt-3 p-2 rounded-xl bg-black/30 border border-white/10 flex items-center justify-between text-xs">
+            <div class="context-pill mt-3 p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                 <div class="flex items-center gap-2 truncate">
-                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-                    <span class="context-pill-text font-bold text-[#E2D9CE] truncate font-display text-[13px] sidebar-text">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="context-pill-text font-semibold text-slate-700 truncate text-xs sidebar-text">
                         {% if is_hq_mode %}{{ t.all_branches_label }}{% else %}{{ t.branch_prefix }} {{ current_branch.name }}{% endif %}
                     </span>
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
-                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#E6C898] border border-[#D2AB6B]/30 sidebar-text" title="العملة الرسمية المعتمدة">
+                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-700 border border-slate-300/60 sidebar-text" title="العملة الرسمية المعتمدة">
                         {{ t.currency }}
                     </span>
                     {% if can_switch_branches and not is_hq_mode and 'manage_branches' in user_perms %}
-                    <a href="{% url 'switch_branch' 'all' %}" class="context-pill-text text-[10px] font-extrabold text-[#D2AB6B] hover:underline sidebar-text">
+                    <a href="{% url 'switch_branch' 'all' %}" class="context-pill-text text-[10px] font-bold text-blue-600 hover:underline sidebar-text">
                         HQ
                     </a>
                     {% endif %}
@@ -540,28 +503,28 @@
             </div>
         </div>
 
-        <!-- MIDDLE: Scrollable Navigation Menu with Accordions & Medallions -->
-        <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-xs">
+        <!-- MIDDLE: Scrollable Navigation Menu -->
+        <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-xs font-sans">
             <!-- 1. General Dashboard (HQ / Branch) -->
             {% if is_hq_mode and 'view_hq_dashboard' in user_perms or not is_hq_mode and 'view_branch_dashboard' in user_perms %}
             <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
-                <a href="{% url 'dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'dashboard' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'dashboard' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'dashboard' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_dashboard }}</span>
+                        <span class="sidebar-text">{{ t.nav_dashboard }}</span>
                     </div>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#D2AB6B] font-extrabold font-body sidebar-text">{{ t.live }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-medium sidebar-text">{{ t.live }}</span>
                 </a>
                 {% else %}
-                <a href="{% url 'branch_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'branch_dashboard' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'branch_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'branch_dashboard' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'branch_dashboard' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3L2 7h20L12 3z"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_branch_dashboard }}</span>
+                        <span class="sidebar-text">{{ t.nav_branch_dashboard }}</span>
                     </div>
                 </a>
                 {% endif %}
@@ -571,23 +534,23 @@
             <!-- 2. Branches & Locations (Nested Accordion) -->
             {% if is_hq_mode and 'manage_branches' in user_perms or is_hq_mode and 'branch_manage_branches' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-branches')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
+                <button type="button" onclick="toggleAccordion('acc-branches')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3L2 7h20L12 3z"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_branches }}</span>
+                        <span class="sidebar-text">{{ t.nav_branches }}</span>
                     </div>
-                    <span id="acc-branches-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
+                    <span id="acc-branches-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
                 </button>
-                <div id="acc-branches-content" class="{% if request.resolver_match.url_name == 'branches' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-8 pl-2 border-r mr-4{% else %}pl-8 pr-2 border-l ml-4{% endif %} space-y-1 border-[#D2AB6B]/30 my-1">
-                    <a href="{% url 'branches' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'branches' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                <div id="acc-branches-content" class="{% if request.resolver_match.url_name == 'branches' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
+                    <a href="{% url 'branches' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branches' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_all_branches }}</span>
                     </a>
                     {% if can_switch_branches and not is_hq_mode %}
-                    <a href="{% url 'switch_branch' 'all' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold text-[#C9BFB2] hover:text-white hover:bg-white/5 transition">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'switch_branch' 'all' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_switch_hq }}</span>
                     </a>
                     {% endif %}
@@ -598,25 +561,25 @@
             <!-- 3. POS & Menu (Nested Accordion) -->
             {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms or 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-pos')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
+                <button type="button" onclick="toggleAccordion('acc-pos')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="7" cy="15" r="1.5"/><circle cx="12" cy="15" r="1.5"/><line x1="16" y1="15" x2="18" y2="15"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_pos_menu }}</span>
+                        <span class="sidebar-text">{{ t.nav_pos_menu }}</span>
                     </div>
-                    <span id="acc-pos-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
+                    <span id="acc-pos-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
                 </button>
-                <div id="acc-pos-content" class="{% if request.resolver_match.url_name in 'pos,branch_menu' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-8 pl-2 border-r mr-4{% else %}pl-8 pr-2 border-l ml-4{% endif %} space-y-1 border-[#D2AB6B]/30 my-1">
+                <div id="acc-pos-content" class="{% if request.resolver_match.url_name in 'pos,branch_menu' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
                     {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms %}
-                    <a href="{% url 'pos' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'pos' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'pos' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'pos' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_pos }}</span>
                     </a>
                     {% endif %}
                     {% if 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms %}
-                    <a href="{% url 'branch_menu' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'branch_menu' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'branch_menu' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branch_menu' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_menu }}</span>
                     </a>
                     {% endif %}
@@ -627,14 +590,14 @@
             <!-- 4. Kitchen Display System (KDS) -->
             {% if 'kds_access' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'kitchen' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'kitchen' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'kitchen' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'kitchen' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'kitchen' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.8a4.5 4.5 0 1 1 2.6-8.2 5 5 0 0 1 6.8 0 4.5 4.5 0 1 1 2.6 8.2v4.2H6v-4.2zM6 18h12v3H6z"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_kitchen }}</span>
+                        <span class="sidebar-text">{{ t.nav_kitchen }}</span>
                     </div>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-extrabold font-body sidebar-text">{{ t.live }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200/80 font-medium sidebar-text">{{ t.live }}</span>
                 </a>
             </div>
             {% endif %}
@@ -642,50 +605,50 @@
             <!-- 5. AI Call Center (Nested Accordion) -->
             {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-ai')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
+                <button type="button" onclick="toggleAccordion('acc-ai')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/><circle cx="12" cy="11" r="1"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_ai_callcenter }}</span>
+                        <span class="sidebar-text">{{ t.nav_ai_callcenter }}</span>
                     </div>
-                    <span id="acc-ai-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
+                    <span id="acc-ai-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
                 </button>
-                <div id="acc-ai-content" class="{% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-8 pl-2 border-r mr-4{% else %}pl-8 pr-2 border-l ml-4{% endif %} space-y-1 border-[#D2AB6B]/30 my-1">
-                    <a href="{% url 'call_center' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'call_center' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                <div id="acc-ai-content" class="{% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
+                    <a href="{% url 'call_center' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'call_center' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_live }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_overview' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_overview' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_overview }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_persona' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_persona' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_persona' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_persona' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_persona }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_hours' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_hours' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_hours' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_hours' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_hours }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_knowledge' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_knowledge' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_knowledge' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_knowledge' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_knowledge }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_queues' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_queues' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_queues' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_queues' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_queues }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_calls' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_calls' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_calls' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_calls' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_calls }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_capabilities' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_capabilities' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_capabilities' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_capabilities' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_capabilities }}</span>
                     </a>
-                    <a href="{% url 'ai_callcenter_omnichannel' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'ai_callcenter_omnichannel' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                    <a href="{% url 'ai_callcenter_omnichannel' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_omnichannel' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_callcenter_omnichannel }}</span>
                     </a>
                 </div>
@@ -695,18 +658,18 @@
             <!-- 6. Inventory & Warehouses (Nested Accordion) -->
             {% if 'manage_inventory' in user_perms or 'inventory_view' in user_perms %}
             <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-inventory')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE] hover:bg-white/10 hover:text-white transition group">
+                <button type="button" onclick="toggleAccordion('acc-inventory')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_inventory }}</span>
+                        <span class="sidebar-text">{{ t.nav_inventory }}</span>
                     </div>
-                    <span id="acc-inventory-arrow" class="text-[10px] text-[#D2AB6B] transition-transform sidebar-text">▼</span>
+                    <span id="acc-inventory-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
                 </button>
-                <div id="acc-inventory-content" class="{% if request.resolver_match.url_name == 'inventory' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-8 pl-2 border-r mr-4{% else %}pl-8 pr-2 border-l ml-4{% endif %} space-y-1 border-[#D2AB6B]/30 my-1">
-                    <a href="{% url 'inventory' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition {% if request.resolver_match.url_name == 'inventory' %}text-[#D2AB6B] bg-white/10{% else %}text-[#C9BFB2] hover:text-white hover:bg-white/5{% endif %}">
-                        <span class="text-[8px] text-[#D2AB6B]">◆</span>
+                <div id="acc-inventory-content" class="{% if request.resolver_match.url_name == 'inventory' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
+                    <a href="{% url 'inventory' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'inventory' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
                         <span>{{ t.nav_stock_audit }}</span>
                     </a>
                 </div>
@@ -716,12 +679,12 @@
             <!-- 7. Delivery & Dispatch -->
             {% if 'delivery_access' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'delivery' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'delivery' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'delivery' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'delivery' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'delivery' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><path d="M15 6h-3l-3 6h7.5l2-3.5L15 6zM5.5 17.5l3.5-5.5h6l3.5 5.5"/><path d="M9 12H4l2-4h4"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_delivery }}</span>
+                        <span class="sidebar-text">{{ t.nav_delivery }}</span>
                     </div>
                 </a>
             </div>
@@ -731,21 +694,21 @@
             {% if 'view_orders' in user_perms %}
             <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
-                <a href="{% url 'hq_orders' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'hq_orders' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'hq_orders' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'hq_orders' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'hq_orders' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_orders }}</span>
+                        <span class="sidebar-text">{{ t.nav_orders }}</span>
                     </div>
                 </a>
                 {% else %}
-                <a href="{% url 'branch_orders' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'branch_orders' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'branch_orders' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'branch_orders' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'branch_orders' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_branch_orders }}</span>
+                        <span class="sidebar-text">{{ t.nav_branch_orders }}</span>
                     </div>
                 </a>
                 {% endif %}
@@ -755,12 +718,12 @@
             <!-- 9. Staff & Payroll -->
             {% if 'manage_employees' in user_perms or 'hr_view_employees' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'employees' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'employees' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'employees' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'employees' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'employees' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_employees }}</span>
+                        <span class="sidebar-text">{{ t.nav_employees }}</span>
                     </div>
                 </a>
             </div>
@@ -769,30 +732,29 @@
             <!-- 10. Subscription & Billing -->
             {% if is_owner or 'system_manage_billing' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'owner_subscription' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'owner_subscription' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'owner_subscription' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-6h14l3 6-10 13L2 9z"/><path d="M2 9h20M12 22 8 9l2-6h4l2 6-4 13z"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_subscription }}</span>
+                        <span class="sidebar-text">{{ t.nav_subscription }}</span>
                     </div>
                     {% if tenant_subscription %}
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold font-body sidebar-text">{{ tenant_subscription.plan_name }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/80 font-medium sidebar-text">{{ tenant_subscription.plan_name }}</span>
                     {% endif %}
                 </a>
             </div>
             {% endif %}
 
-
             <!-- 11. SaaS Platform SuperAdmin -->
             {% if is_platform_admin %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'platform_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold transition group {% if request.resolver_match.url_name == 'platform_dashboard' %}bg-[#1B634D] text-white {% if IS_RTL %}border-r-4{% else %}border-l-4{% endif %} border-[#D2AB6B] shadow-md{% else %}text-[#E2D9CE] hover:bg-white/10 hover:text-white{% endif %}">
+                <a href="{% url 'platform_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'platform_dashboard' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'platform_dashboard' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_platform }}</span>
+                        <span class="sidebar-text">{{ t.nav_platform }}</span>
                     </div>
                 </a>
             </div>
@@ -801,35 +763,35 @@
             <!-- 12. Django Admin Staff -->
             {% if user.is_staff %}
             <div class="nav-item-wrapper relative">
-                <a href="/admin/" target="_blank" class="flex items-center justify-between px-3 py-2 rounded-xl font-bold text-[#E2D9CE]/70 hover:bg-white/10 hover:text-white transition group">
+                <a href="/admin/" target="_blank" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition group">
                     <div class="flex items-center gap-2.5">
-                        <span class="medallion-icon">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                         </span>
-                        <span class="font-display text-sm sidebar-text">{{ t.nav_django_admin }}</span>
+                        <span class="sidebar-text">{{ t.nav_django_admin }}</span>
                     </div>
-                    <span class="text-[10px] text-[#D2AB6B] sidebar-text">↗</span>
+                    <span class="text-[10px] text-slate-400 sidebar-text">↗</span>
                 </a>
             </div>
             {% endif %}
         </nav>
 
         <!-- BOTTOM: User Quick Profile & Logout -->
-        <div class="user-card-wrapper nav-item-wrapper relative p-3 border-t border-white/10 shrink-0 bg-black/25">
-            <div class="user-card flex items-center justify-between gap-2 p-2 rounded-xl bg-white/5 border border-white/10">
+        <div class="user-card-wrapper nav-item-wrapper relative p-3 border-t border-slate-100 shrink-0 bg-white">
+            <div class="user-card flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#D2AB6B] to-[#B88B46] text-[#1E130D] text-xs font-black shadow">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-semibold">
                         {{ user.username|slice:":1"|upper }}
                     </span>
                     <div class="min-w-0 text-right sidebar-text">
-                        <p class="text-xs font-bold text-white truncate leading-tight font-display">{{ user.first_name|default:user.username }}</p>
-                        <p class="text-[10px] text-[#D2AB6B] truncate mt-0.5">
+                        <p class="text-xs font-semibold text-slate-900 truncate leading-tight">{{ user.first_name|default:user.username }}</p>
+                        <p class="text-[10px] text-slate-500 truncate mt-0.5">
                             {% if is_owner %}{% if IS_RTL %}مالك المنشأة (HQ){% else %}Owner (HQ){% endif %}{% elif user_profile and user_profile.job_role %}{{ user_profile.job_role.name }}{% elif user_profile %}{{ user_profile.get_role_display }}{% else %}{% if IS_RTL %}مسؤول النظام{% else %}Administrator{% endif %}{% endif %}
                         </p>
                     </div>
                 </div>
-                <a href="{% url 'logout' %}" class="sidebar-text flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition text-xs" title="{{ t.logout }}">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <a href="{% url 'logout' %}" class="sidebar-text flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition text-xs" title="{{ t.logout }}">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </a>
             </div>
         </div>
@@ -838,17 +800,17 @@
     <!-- ============================================================ -->
     <!-- TOP UTILITY HEADER BAR                                       -->
     <!-- ============================================================ -->
-    <header id="app-header" class="fixed top-0 {% if IS_RTL %}right-0 left-0 md:right-72{% else %}left-0 right-0 md:left-72{% endif %} h-16 bg-[#F9F6F0]/95 backdrop-blur-md border-b border-[#E8DFD3] z-30 px-3 sm:px-6 flex items-center justify-between shadow-xs transition-all duration-300">
+    <header id="app-header" class="fixed top-0 {% if IS_RTL %}right-0 left-0 md:right-72{% else %}left-0 right-0 md:left-72{% endif %} h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 z-30 px-3 sm:px-6 flex items-center justify-between shadow-none transition-all duration-300">
         <!-- Start Side: Mobile Hamburger + Desktop Sidebar Toggle + Breadcrumb + Status -->
         <div class="flex items-center gap-2 sm:gap-3 min-w-0">
             <!-- Mobile Menu Toggle Button -->
             <button 
                 type="button" 
                 onclick="toggleSidebar(true)" 
-                class="md:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0E382A] text-[#D2AB6B] border border-[#D2AB6B]/30 shadow-xs hover:opacity-90 transition"
+                class="md:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-700 border border-slate-200 shadow-none hover:bg-slate-50 transition cursor-pointer"
                 title="{{ t.open_menu }}"
             >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
 
             <!-- Desktop Sidebar Collapse Toggle Button -->
@@ -856,7 +818,7 @@
                 type="button" 
                 onclick="toggleSidebarCollapse()" 
                 id="navbar-sidebar-toggle"
-                class="hidden md:flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#1B634D] hover:bg-[#0E382A] hover:text-[#D2AB6B] border border-[#D2AB6B]/40 shadow-xs hover:border-[#D2AB6B] transition group cursor-pointer"
+                class="hidden md:flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 shadow-none transition group cursor-pointer"
                 title="{{ t.collapse_sidebar }}"
             >
                 <svg class="w-4 h-4 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -868,7 +830,7 @@
 
             <!-- Breadcrumb / Location Badge -->
             <div class="flex items-center gap-2 min-w-0">
-                <span class="medallion-icon-light h-9 w-9 shrink-0 !rounded-xl">
+                <span class="h-8 w-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0">
                     {% if is_hq_mode %}
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
                     {% else %}
@@ -876,7 +838,7 @@
                     {% endif %}
                 </span>
                 <div class="min-w-0">
-                    <h1 class="font-royal text-sm sm:text-base font-bold text-[#1E130D] leading-tight truncate">
+                    <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight truncate">
                         {% if is_hq_mode %}
                             {{ t.all_branches_label }}
                         {% else %}
@@ -887,29 +849,29 @@
                             {% endif %}
                         {% endif %}
                     </h1>
-                    <p class="text-[10px] font-bold text-[#6E5D4F] hidden sm:block font-body truncate">
+                    <p class="text-[10px] text-slate-500 hidden sm:block truncate">
                         {{ tenant_name|default:t.app_title }} • {{ t.brand_tagline }}
                     </p>
                 </div>
             </div>
 
-            <div class="h-6 w-px bg-[#E8DFD3] hidden xl:block shrink-0"></div>
+            <div class="h-5 w-px bg-slate-200 hidden xl:block shrink-0"></div>
 
             <!-- Live Status Pill -->
-            <span class="hidden xl:inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 font-body shrink-0 shadow-2xs">
-                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="hidden xl:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-xs font-medium text-emerald-700 shrink-0">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span>{{ t.online_system }}</span>
             </span>
         </div>
 
         <!-- End Side: Actions, Language Switcher & Profile Menu -->
         <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <!-- Branch Switcher Dropdown (HQ vs Branches) - hidden on mobile phones to prevent header overflow (accessible in mobile menu) -->
+            <!-- Branch Switcher Dropdown (HQ vs Branches) -->
             {% if can_switch_branches and all_branches %}
             <div class="relative hidden sm:flex items-center shrink-0">
                 <select 
                     onchange="location.href='/branch/switch/' + this.value + '/';" 
-                    class="h-9 bg-white text-[#1E130D] border border-[#E8DFD3] rounded-xl px-2.5 text-xs font-bold focus:border-[#1B634D] outline-none cursor-pointer shadow-xs max-w-[125px] sm:max-w-[160px] truncate font-body hover:border-[#D2AB6B] transition"
+                    class="h-9 bg-white text-slate-800 border border-slate-200 rounded-lg px-2.5 text-xs font-medium focus:border-blue-500 outline-none cursor-pointer max-w-[125px] sm:max-w-[160px] truncate hover:border-slate-300 transition"
                     title="{{ t.nav_branches }}"
                 >
                     <option value="all" {% if is_hq_mode %}selected{% endif %}>{{ t.all_branches_label }}</option>
@@ -925,24 +887,24 @@
             <!-- Quick Action CTA: + Cashier / POS -->
             {% if 'pos_access' in user_perms %}
             <a href="{% url 'pos' %}" 
-               class="btn-gold-pill h-9 inline-flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-black shadow-xs font-body whitespace-nowrap shrink-0 hover:scale-[1.02] active:scale-[0.98] transition"
+               class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap shrink-0 transition"
                title="{{ t.nav_pos }}">
-                <svg class="w-3.5 h-3.5 text-[#1E130D]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 <span>{% if IS_RTL %}+ كاشير<span class="hidden sm:inline"> (POS)</span>{% else %}+ POS{% endif %}</span>
             </a>
             {% endif %}
 
-            <!-- Royal Bilingual Switcher Capsule [ 🇸🇦 عربي | 🇬🇧 EN ] -->
+            <!-- Bilingual Switcher [ 🇸🇦 عربي | 🇬🇧 EN ] -->
             <div class="flex items-center shrink-0">
-                <div class="h-9 flex items-center p-0.5 rounded-xl bg-white border border-[#D2AB6B]/50 shadow-xs text-[11px] font-bold">
+                <div class="h-9 flex items-center p-0.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-medium">
                     <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
-                       class="h-full px-2.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-[#1B634D] text-[#E4C79C] shadow-xs font-black{% else %}text-[#6E5D4F] hover:text-[#1E130D]{% endif %}"
+                       class="h-full px-2.5 rounded-md transition-all flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-white text-slate-900 font-semibold shadow-xs{% else %}text-slate-500 hover:text-slate-900{% endif %}"
                        title="التبديل إلى اللغة العربية">
                         <span class="text-xs">🇸🇦</span>
                         <span class="hidden sm:inline">عربي</span>
                     </a>
                     <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
-                       class="h-full px-2.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-[#1B634D] text-[#E4C79C] shadow-xs font-black{% else %}text-[#6E5D4F] hover:text-[#1E130D]{% endif %}"
+                       class="h-full px-2.5 rounded-md transition-all flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-white text-slate-900 font-semibold shadow-xs{% else %}text-slate-500 hover:text-slate-900{% endif %}"
                        title="Switch to English">
                         <span class="text-xs">🇬🇧</span>
                         <span class="hidden sm:inline">EN</span>
@@ -951,8 +913,8 @@
             </div>
 
             <!-- Date Indicator (Desktop) -->
-            <span class="hidden 2xl:inline-flex items-center gap-1.5 h-9 rounded-xl bg-white border border-[#E8DFD3] px-3 text-xs font-bold text-[#6E5D4F] shadow-xs font-body shrink-0">
-                <svg class="w-3.5 h-3.5 text-[#B88B46]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span class="hidden 2xl:inline-flex items-center gap-1.5 h-9 rounded-lg bg-white border border-slate-200 px-3 text-xs font-medium text-slate-500 shrink-0">
+                <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 <span>{% now "l, j F" %}</span>
             </span>
 
@@ -962,24 +924,24 @@
                     type="button" 
                     id="profile-dropdown-trigger" 
                     onclick="toggleProfileDropdown()" 
-                    class="h-9 flex items-center gap-2 px-2 sm:px-2.5 rounded-xl bg-white border border-[#E8DFD3] hover:border-[#D2AB6B] transition shadow-xs cursor-pointer"
+                    class="h-9 flex items-center gap-2 px-2 sm:px-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition cursor-pointer"
                 >
-                    <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[#0E382A] text-[#D2AB6B] text-[11px] font-black">
+                    <span class="flex h-6 w-6 items-center justify-center rounded bg-blue-600 text-white text-[11px] font-semibold">
                         {{ user.username|slice:":1"|upper }}
                     </span>
-                    <span class="hidden sm:inline text-xs font-bold text-[#1E130D] truncate max-w-[85px] font-display">
+                    <span class="hidden sm:inline text-xs font-medium text-slate-800 truncate max-w-[85px]">
                         {{ user.first_name|default:user.username }}
                     </span>
-                    <svg class="w-3 h-3 text-[#6E5D4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
 
                 <!-- Profile Dropdown Menu -->
-                <div id="profile-dropdown-menu" class="hidden absolute {% if IS_RTL %}left-0{% else %}right-0{% endif %} mt-2 w-56 rounded-2xl bg-white border border-[#E8DFD3] shadow-2xl p-2.5 text-xs text-[#1E130D] z-50 animate-toast">
-                    <div class="p-2 border-b border-[#E8DFD3]">
-                        <p class="font-royal text-sm font-bold text-[#1E130D]">{{ user.get_full_name|default:user.username }}</p>
-                        <p class="text-[11px] text-[#6E5D4F] font-body">{{ user.email|default:user.username }}</p>
-                        <div class="mt-1.5 flex items-center gap-1.5 font-body">
-                            <span class="px-2 py-0.5 rounded bg-[#F4EFE6] text-[10px] font-bold text-[#6E5D4F]">
+                <div id="profile-dropdown-menu" class="hidden absolute {% if IS_RTL %}left-0{% else %}right-0{% endif %} mt-2 w-56 rounded-xl bg-white border border-slate-200 shadow-xl p-2 text-xs text-slate-900 z-50 animate-toast">
+                    <div class="p-2 border-b border-slate-100">
+                        <p class="text-sm font-semibold text-slate-900">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-[11px] text-slate-500">{{ user.email|default:user.username }}</p>
+                        <div class="mt-1.5 flex items-center gap-1.5">
+                            <span class="px-2 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-700">
                                 {% if is_hq_mode %}{{ t.all_branches_label }}{% else %}{{ current_branch.name }}{% endif %}
                             </span>
                             {% if tenant_subscription %}
@@ -990,25 +952,25 @@
                         </div>
                     </div>
 
-                    <div class="py-1 space-y-0.5 font-body">
-                        <a href="{% url 'owner_subscription' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#1E130D] hover:bg-[#F4EFE6] transition font-bold">
-                            <span class="medallion-icon-light w-5 h-5 !rounded-md">
-                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 9 3-6h14l3 6-10 13L2 9z"/></svg>
+                    <div class="py-1 space-y-0.5">
+                        <a href="{% url 'owner_subscription' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition font-medium">
+                            <span class="w-4 h-4 flex items-center justify-center text-slate-400">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 9 3-6h14l3 6-10 13L2 9z"/></svg>
                             </span>
                             <span>{{ t.nav_subscription }}</span>
                         </a>
                         {% if user.is_staff %}
-                        <a href="/admin/" target="_blank" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#1E130D] hover:bg-[#F4EFE6] transition font-bold">
-                            <span class="medallion-icon-light w-5 h-5 !rounded-md">
-                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        <a href="/admin/" target="_blank" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition font-medium">
+                            <span class="w-4 h-4 flex items-center justify-center text-slate-400">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                             </span>
                             <span>{{ t.nav_django_admin }}</span>
                         </a>
                         {% endif %}
                     </div>
 
-                    <div class="pt-1 border-t border-[#E8DFD3] font-body">
-                        <a href="{% url 'logout' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 transition font-bold">
+                    <div class="pt-1 border-t border-slate-100">
+                        <a href="{% url 'logout' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition font-medium">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                             <span>{{ t.logout }}</span>
                         </a>
@@ -1026,22 +988,22 @@
             <!-- Subscription Warning Banner -->
             {% if tenant_subscription and not is_platform_admin %}
                 {% if not tenant_subscription.is_active %}
-                <div class="mb-5 rounded-xl border border-bad-600/30 bg-bad-100 p-4 text-bad-700 shadow-sm flex items-center justify-between">
+                <div class="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-full bg-red-100 border border-red-300 flex items-center justify-center text-red-600 flex-shrink-0">
+                        <span class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </span>
                         <div>
-                            <p class="font-extrabold text-sm">تنبيه: اشتراك المنشأة منتهي أو معلق</p>
+                            <p class="font-bold text-sm">تنبيه: اشتراك المنشأة منتهي أو معلق</p>
                             <p class="text-xs">باقتك الحالية «{{ tenant_subscription.plan_name }}» انتهت صلاحيتها. يرجى التواصل مع إدارة المنصة لتجديد الاشتراك واستعادة كافة الصلاحيات.</p>
                         </div>
                     </div>
-                    <span class="rounded-lg bg-bad-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs">منتهي الصلاحية</span>
+                    <span class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white">منتهي الصلاحية</span>
                 </div>
                 {% elif tenant_subscription.is_expiring_soon %}
-                <div class="mb-5 rounded-xl border border-warn-600/30 bg-warn-100 p-3.5 text-warn-700 shadow-sm flex items-center justify-between">
+                <div class="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-3.5 text-amber-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 flex-shrink-0">
+                        <span class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>
                         <div>
@@ -1049,7 +1011,7 @@
                             <p class="text-[11px]">ينتهي اشتراك باقة «{{ tenant_subscription.plan_name }}» بتاريخ {{ tenant_subscription.end_date|date:"Y-m-d" }}. يرجى التجديد لضمان استمرارية التشغيل دون انقطاع.</p>
                         </div>
                     </div>
-                    <span class="rounded-lg bg-warn-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs">قرب الانتهاء</span>
+                    <span class="rounded-md bg-amber-600 px-2.5 py-1 text-[11px] font-medium text-white">قرب الانتهاء</span>
                 </div>
                 {% endif %}
             {% endif %}
@@ -1059,21 +1021,21 @@
     </main>
 
     <!-- ============================================================ -->
-    <!-- LUXURY FLOATING FLYOUT POPOVER (MINI SIDEBAR MODE)           -->
+    <!-- CLEAN FLOATING FLYOUT POPOVER (MINI SIDEBAR MODE)            -->
     <!-- ============================================================ -->
-    <div id="sidebar-flyout-card" class="hidden fixed z-50 pointer-events-auto bg-[#0A261C]/95 border border-[#D2AB6B]/50 rounded-2xl shadow-2xl p-3 min-w-[210px] max-w-[280px] text-white backdrop-blur-md transition-opacity duration-150 opacity-0 font-body">
+    <div id="sidebar-flyout-card" class="hidden fixed z-50 pointer-events-auto bg-white border border-slate-200 rounded-xl shadow-xl p-3 min-w-[210px] max-w-[280px] text-slate-900 transition-opacity duration-150 opacity-0 font-sans">
         <!-- Header: Title + Badge -->
-        <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-white/10">
+        <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100">
             <div class="flex items-center gap-2 min-w-0">
-                <span id="flyout-icon" class="medallion-icon scale-90 shrink-0"></span>
-                <span id="flyout-title" class="font-royal text-sm font-bold text-[#E4C79C] truncate"></span>
+                <span id="flyout-icon" class="text-blue-600 shrink-0"></span>
+                <span id="flyout-title" class="text-sm font-semibold text-slate-900 truncate"></span>
             </div>
-            <span id="flyout-badge" class="hidden text-[10px] px-1.5 py-0.5 rounded bg-[#D2AB6B]/20 text-[#D2AB6B] font-extrabold shrink-0"></span>
+            <span id="flyout-badge" class="hidden text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/80 font-medium shrink-0"></span>
         </div>
         <!-- Sublinks container -->
         <div id="flyout-sublinks" class="space-y-1"></div>
         <!-- Direct action button (for single pages) -->
-        <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-2 px-3 rounded-xl text-xs font-bold bg-[#1B634D] text-white hover:bg-[#257a4e] transition mt-1">
+        <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition mt-1">
             <span>{% if IS_RTL %}فتح الصفحة{% else %}Open Page{% endif %}</span>
             <span class="text-xs">{% if IS_RTL %}←{% else %}→{% endif %}</span>
         </a>
@@ -1106,14 +1068,14 @@
             const container = document.getElementById('toast-container');
             if (!container) return;
             const toast = document.createElement('div');
-            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-bold animate-toast ${
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-lg border text-xs font-medium animate-toast ${
                 type === 'error' 
-                ? 'bg-bad-100 border-bad-600 text-bad-700' 
-                : 'bg-card border-brand-500 text-ink'
+                ? 'bg-rose-50 border-rose-200 text-rose-700' 
+                : 'bg-white border-slate-200 text-slate-900 shadow-sm'
             }`;
             const iconSvg = type === 'error'
-                ? `<svg class="w-4 h-4 text-bad-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`
-                : `<svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+                ? `<svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`
+                : `<svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
             toast.innerHTML = `<span class="flex items-center justify-center">${iconSvg}</span><span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
@@ -1198,12 +1160,12 @@
                     cancelHideFlyout();
 
                     // 1. Title
-                    const titleEl = wrapper.querySelector('.font-display') || wrapper.querySelector('.font-royal');
+                    const titleEl = wrapper.querySelector('.sidebar-text');
                     const title = titleEl ? titleEl.textContent.trim() : (wrapper.getAttribute('data-title') || '');
                     flyoutTitle.textContent = title;
 
                     // 2. Icon clone
-                    const iconSource = wrapper.querySelector('.medallion-icon svg') || wrapper.querySelector('svg');
+                    const iconSource = wrapper.querySelector('svg');
                     if (iconSource) {
                         flyoutIcon.innerHTML = iconSource.outerHTML;
                         flyoutIcon.classList.remove('hidden');
@@ -1212,7 +1174,7 @@
                     }
 
                     // 3. Badge
-                    const badgeEl = wrapper.querySelector('.font-body.sidebar-text');
+                    const badgeEl = wrapper.querySelector('.sidebar-text span');
                     if (badgeEl && badgeEl.textContent.trim()) {
                         flyoutBadge.textContent = badgeEl.textContent.trim();
                         flyoutBadge.classList.remove('hidden');
@@ -1232,18 +1194,18 @@
                             links.forEach(link => {
                                 const a = document.createElement('a');
                                 a.href = link.href;
-                                a.className = 'flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition ' + 
-                                    (link.classList.contains('text-[#D2AB6B]') || link.classList.contains('bg-white/10')
-                                        ? 'bg-[#1B634D] text-white shadow-xs' 
-                                        : 'text-[#E2D9CE] hover:text-white hover:bg-white/10');
-                                a.innerHTML = `<span class="text-[8px] text-[#D2AB6B]">◆</span><span>${link.querySelector('span:last-child')?.textContent.trim() || link.textContent.trim()}</span>`;
+                                a.className = 'flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition ' + 
+                                    (link.classList.contains('text-blue-600') || link.classList.contains('bg-blue-50/70')
+                                        ? 'bg-blue-50 text-blue-700 font-semibold' 
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50');
+                                a.innerHTML = `<span class="text-[8px] text-slate-400">•</span><span>${link.querySelector('span:last-child')?.textContent.trim() || link.textContent.trim()}</span>`;
                                 flyoutSublinks.appendChild(a);
                             });
                         }
                     } else if (wrapper.classList.contains('user-card-wrapper')) {
                         // User Profile Flyout
                         flyoutDirectLink.classList.add('hidden');
-                        const userName = wrapper.querySelector('.font-display')?.textContent.trim() || '';
+                        const userName = wrapper.querySelector('.font-semibold')?.textContent.trim() || '';
                         const userRole = wrapper.querySelector('p:last-child')?.textContent.trim() || '';
                         const logoutLink = wrapper.querySelector('a[href*="logout"]')?.href || '/logout/';
                         
@@ -1253,7 +1215,7 @@
 
                         flyoutSublinks.innerHTML = `
                             <div class="pt-1">
-                                <a href="${logoutLink}" class="flex items-center justify-between py-2 px-3 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition">
+                                <a href="${logoutLink}" class="flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium bg-rose-50 text-rose-600 hover:bg-rose-100 transition">
                                     <span>تسجيل الخروج</span>
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                                 </a>
