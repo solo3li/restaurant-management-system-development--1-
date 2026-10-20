@@ -4,143 +4,97 @@
 {% block title %}تسجيل الدخول — منظومة كُـورَا لإدارة سلاسل المطاعم{% endblock %}
 
 {% block unauth_content %}
-<!-- Google Fonts: Classical Arabic & English Luxury Typography -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-
-<style>
-    .font-royal { font-family: 'Amiri', serif; }
-    .font-headline { font-family: 'Cairo', sans-serif; }
-    .font-body { font-family: 'Tajawal', sans-serif; }
-
-    /* Luxury Gold Plaque Button */
-    .btn-gold-pill {
-        background: linear-gradient(135deg, #F4DC9E 0%, #D4A759 50%, #BA8B42 100%);
-        color: #1E130D;
-        border: 1px solid #FFF1D6;
-        box-shadow: 0 6px 18px rgba(186, 139, 66, 0.35);
-        font-weight: 800;
-        transition: all 0.25s ease;
-    }
-    .btn-gold-pill:hover {
-        background: linear-gradient(135deg, #F9E7BA 0%, #DCB267 50%, #C4954A 100%);
-        box-shadow: 0 8px 24px rgba(186, 139, 66, 0.45);
-        transform: translateY(-2px);
-    }
-    .btn-gold-pill:active {
-        transform: translateY(0);
-    }
-
-    /* Ambient Arabesque Pattern Background */
-    .bg-arabesque-emerald {
-        background-color: #0E382A;
-        background-image: 
-            radial-gradient(circle at 50% 20%, rgba(27, 99, 77, 0.7) 0%, transparent 70%),
-            radial-gradient(circle at 80% 80%, rgba(210, 171, 107, 0.15) 0%, transparent 50%),
-            linear-gradient(180deg, #134A38 0%, #0A291F 100%);
-    }
-
-    /* Architectural Mihrab Arch SVG */
-    .arch-frame {
-        border-top-left-radius: 9999px;
-        border-top-right-radius: 9999px;
-    }
-</style>
-
-<div class="min-h-screen bg-[#F9F6F0] font-body text-[#1E130D] flex flex-col justify-center selection:bg-[#1B634D] selection:text-white" dir="{{ DIR|default:'rtl' }}">
+<div class="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col justify-center selection:bg-blue-600 selection:text-white" dir="{{ DIR|default:'rtl' }}">
     
     <!-- Full-Width Split-Screen Container -->
-    <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 overflow-hidden shadow-2xl">
+    <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         
         <!-- ======================================================== -->
-        <!-- SHOWCASE PANEL: OPULENT HERITAGE SHOWCASE                -->
+        <!-- SHOWCASE PANEL: MODERN ENTERPRISE TECH BRAND             -->
         <!-- ======================================================== -->
-        <div class="lg:col-span-6 xl:col-span-7 bg-arabesque-emerald relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 text-white overflow-hidden order-2 lg:order-1">
+        <div class="lg:col-span-6 xl:col-span-7 bg-slate-900 relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 text-white overflow-hidden order-2 lg:order-1 border-e border-slate-800">
             
-            <!-- Ambient Islamic Geometric Lattice Overlay -->
-            <svg class="absolute inset-0 w-full h-full opacity-10 pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-                <defs>
-                    <pattern id="loginGrid" width="60" height="60" patternUnits="userSpaceOnUse">
-                        <path d="M30 0 L60 30 L30 60 L0 30 Z" fill="none" stroke="#D2AB6B" stroke-width="1"/>
-                        <circle cx="30" cy="30" r="10" fill="none" stroke="#D2AB6B" stroke-width="0.8"/>
-                        <circle cx="0" cy="0" r="8" fill="none" stroke="#D2AB6B" stroke-width="0.6"/>
-                        <circle cx="60" cy="0" r="8" fill="none" stroke="#D2AB6B" stroke-width="0.6"/>
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#loginGrid)"/>
-            </svg>
+            <!-- Subtle Radial Gradient Background Glow -->
+            <div class="absolute -left-20 -top-20 w-96 h-96 rounded-full bg-blue-600/15 blur-3xl pointer-events-none"></div>
+            <div class="absolute right-0 bottom-0 w-80 h-80 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none"></div>
 
             <!-- Top Header in Showcase -->
             <div class="relative z-10 flex items-center justify-between">
                 <a href="{% url 'landing' %}" class="inline-flex items-center gap-3 group">
-                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="{{ t.brand_name }}" class="h-10 sm:h-12 w-auto drop-shadow-md group-hover:scale-105 transition-transform" />
+                    <img src="{% static 'img/diyafa_symbol.png' %}" alt="{{ t.brand_name }}" class="h-10 sm:h-11 w-auto group-hover:scale-105 transition-transform" />
                     <div>
-                        <span class="font-royal text-2xl sm:text-3xl font-bold text-white tracking-tight">{{ t.brand_name }}</span>
-                        <span class="block text-[10px] font-bold text-[#D2AB6B] tracking-widest uppercase">Heritage Culinary OS</span>
+                        <span class="text-2xl sm:text-3xl font-bold text-white tracking-tight">{{ t.brand_name }}</span>
+                        <span class="block text-[10px] font-bold text-blue-400 tracking-wider uppercase">Cloud Restaurant OS</span>
                     </div>
                 </a>
 
                 <div class="flex items-center gap-2.5 sm:gap-3">
-                    <!-- Royal Bilingual Switcher Capsule -->
-                    <div class="flex items-center p-0.5 rounded-full bg-white/10 border border-[#D2AB6B]/40 shadow-xs backdrop-blur-xs text-[11px] font-bold">
+                    <!-- Bilingual Switcher Capsule -->
+                    <div class="flex items-center p-0.5 rounded-full bg-slate-800/90 border border-slate-700 text-[11px] font-semibold">
                         <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
-                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-[#1B634D] text-[#E4C79C] shadow-sm font-extrabold{% else %}text-[#E8D3B0] hover:text-white{% endif %}"
+                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-blue-600 text-white font-bold{% else %}text-slate-400 hover:text-white{% endif %}"
                            title="التبديل إلى اللغة العربية">
                             <span>🇸🇦</span>
                             <span>عربي</span>
                         </a>
                         <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
-                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-[#1B634D] text-[#E4C79C] shadow-sm font-extrabold{% else %}text-[#E8D3B0] hover:text-white{% endif %}"
+                           class="px-2.5 py-1 rounded-full transition flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-blue-600 text-white font-bold{% else %}text-slate-400 hover:text-white{% endif %}"
                            title="Switch to English">
                             <span>🇬🇧</span>
                             <span>EN</span>
                         </a>
                     </div>
 
-                    <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-[#D2AB6B]/40 bg-white/5 hover:bg-white/10 text-xs font-bold text-[#E8D3B0] hover:text-white transition flex items-center gap-1.5 backdrop-blur-xs">
+                    <a href="{% url 'landing' %}" class="px-3.5 py-1.5 rounded-full border border-slate-700 bg-slate-800/60 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-1.5">
                         <span>{% if IS_RTL %}← العودة للرئيسية{% else %}Back to Home →{% endif %}</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Middle Core: Brand Title & Framed Traditional Feast Image -->
+            <!-- Middle Core: Brand Title & SaaS Showcase Highlights -->
             <div class="relative z-10 my-8 sm:my-12 space-y-6 max-w-xl mx-auto text-center lg:text-right">
                 
-                <!-- Royal Monogram & Title Banner (Matching Photo) -->
                 <div class="space-y-3">
                     <div class="inline-block mx-auto lg:mx-0">
-                        <img src="{% static 'img/kura_symbol.png' %}" alt="KURA Emblem" class="h-20 sm:h-24 w-auto mx-auto lg:mx-0 drop-shadow-xl" />
+                        <img src="{% static 'img/kura_symbol.png' %}" alt="KURA Emblem" class="h-16 sm:h-20 w-auto mx-auto lg:mx-0" />
                     </div>
 
-                    <h2 class="font-royal text-3xl sm:text-5xl font-black text-white leading-tight">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">
                         كُـورَا
                     </h2>
                     
-                    <p class="font-headline text-lg sm:text-2xl font-bold text-[#EAD8B8] tracking-tight">
-                        بوابتك لإدارة التراث السحابي والضيافة الراقية
+                    <p class="text-base sm:text-xl font-bold text-blue-400 tracking-tight">
+                        منظومة التشغيل السحابية لسلاسل المطاعم والضيافة الحديثة
                     </p>
                     
-                    <p class="text-xs sm:text-sm text-white/75 leading-relaxed font-medium">
-                        المنظومة السحابية الموحدة لربط فروع المطاعم وسلاسل الضيافة، شاشات الكاشير، تنظيم المطبخ الفوري، وكول سنتر الذكاء الاصطناعي 24/7.
+                    <p class="text-xs sm:text-sm text-slate-400 leading-relaxed font-normal">
+                        منصة موحدة ومترابطة لإدارة سلاسل الفروع المتعددة، نقاط البيع السريعة، شاشات المطبخ الحية (KDS Live)، وكول سنتر الذكاء الاصطناعي على مدار الساعة.
                     </p>
                 </div>
 
-                <!-- Ornate Framed Feast Photo (Matching Selected Design) -->
+                <!-- Showcase Preview Card -->
                 <div class="relative mx-auto lg:mx-0 max-w-md pt-2">
-                    <div class="relative rounded-2xl overflow-hidden border-2 border-[#D2AB6B]/60 shadow-2xl p-1 bg-gradient-to-b from-[#D2AB6B]/30 to-transparent">
-                        <img 
-                            src="{% static 'img/classic_feast_hero.jpg' %}" 
-                            alt="مائدة الضيافة العربية" 
-                            class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-inner"
-                        />
-                        <!-- Subtle Inset Gold Glow -->
-                        <div class="absolute inset-1 rounded-xl pointer-events-none ring-1 ring-inset ring-[#D2AB6B]/30"></div>
-                        
-                        <!-- Floating Badge -->
-                        <div class="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto px-3.5 py-1.5 rounded-full bg-[#082119]/85 border border-[#D2AB6B]/50 backdrop-blur-md text-[11px] font-bold text-[#EAD8B8] flex items-center gap-2 shadow-lg">
-                            <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
-                            <span>المنظومة السحابية متصلة ولحظية 24/7</span>
+                    <div class="relative rounded-2xl overflow-hidden border border-slate-700 shadow-xl bg-slate-800/60 p-4 space-y-3">
+                        <div class="flex items-center justify-between text-xs font-semibold pb-2 border-b border-slate-700">
+                            <span class="text-slate-300">مؤشرات تشغيل السلسلة اللحظية</span>
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                بث حي بالملي ثانية
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="rounded-xl bg-slate-900/80 p-2.5 border border-slate-800">
+                                <span class="block text-slate-400 text-[10px]">كاشير POS</span>
+                                <span class="text-sm font-bold text-white mt-0.5 block">0ms مزامنة</span>
+                            </div>
+                            <div class="rounded-xl bg-slate-900/80 p-2.5 border border-slate-800">
+                                <span class="block text-slate-400 text-[10px]">شاشات KDS</span>
+                                <span class="text-sm font-bold text-blue-400 mt-0.5 block">SSE فوري</span>
+                            </div>
+                            <div class="rounded-xl bg-slate-900/80 p-2.5 border border-slate-800">
+                                <span class="block text-slate-400 text-[10px]">كول سنتر AI</span>
+                                <span class="text-sm font-bold text-emerald-400 mt-0.5 block">LiveKit AI</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -148,80 +102,72 @@
             </div>
 
             <!-- Bottom Highlights in Showcase -->
-            <div class="relative z-10 pt-4 border-t border-[#D2AB6B]/20 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-white/70">
+            <div class="relative z-10 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-400">
                 <div class="flex items-center gap-2">
-                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                    <span>كاشير POS سريع وفواتير إلكترونية</span>
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                    <span>كاشير POS وفواتير إلكترونية</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                    <span>شاشات مطبخ KDS فورية</span>
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    <span>شاشات مطبخ KDS للمحطات</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    <span>كول سنتر AI ببروتوكول FastMCP</span>
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <span>كول سنتر ذكي متكامل</span>
                 </div>
             </div>
 
         </div>
 
         <!-- ======================================================== -->
-        <!-- LEFT PANEL: PARCHMENT LOGIN CARD (From Selected UI)      -->
+        <!-- FORM PANEL: CRISP MINIMALIST LOGIN CARD                  -->
         <!-- ======================================================== -->
-        <div class="lg:col-span-6 xl:col-span-5 bg-[#F9F6F0] flex items-center justify-center p-6 sm:p-10 lg:p-14 order-1 lg:order-2 relative">
+        <div class="lg:col-span-6 xl:col-span-5 bg-slate-50 flex items-center justify-center p-6 sm:p-10 lg:p-14 order-1 lg:order-2 relative">
             
-            <!-- Subtle Corner Arabesque Accents -->
-            <div class="absolute top-4 left-4 text-[#D2AB6B]/30 select-none">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
-            </div>
-            <div class="absolute bottom-4 right-4 text-[#D2AB6B]/30 select-none">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
-            </div>
-
-            <!-- Login Card (Matching Selected UI Card) -->
-            <div class="w-full max-w-md bg-white rounded-3xl p-7 sm:p-9 shadow-2xl border border-[#E8DFD3] relative">
+            <!-- Login Card -->
+            <div class="w-full max-w-md bg-white rounded-2xl p-7 sm:p-9 shadow-sm border border-slate-200 relative">
                 
-                <!-- Golden Dallah Monogram at top of Card (Exact UI match) -->
+                <!-- Logo & Heading -->
                 <div class="text-center mb-6">
                     <img 
                         src="{% static 'img/kura_symbol.png' %}" 
                         alt="شعار كورا" 
-                        class="h-16 w-auto mx-auto mb-2 drop-shadow-md select-none hover:scale-105 transition-transform"
+                        class="h-12 w-auto mx-auto mb-3 select-none"
                     />
-                    <h1 class="font-headline text-2xl sm:text-3xl font-black text-[#1E130D] tracking-tight">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                         {% if IS_RTL %}تسجيل الدخول إلى النظام{% else %}Sign In to System{% endif %}
                     </h1>
-                    <p class="text-xs font-bold text-[#6E5D4F] mt-1.5">
+                    <p class="text-xs font-semibold text-slate-500 mt-1.5">
                         {% if IS_RTL %}أدخل بيانات الاعتماد لإدارة مطعمك وفروعك{% else %}Enter your credentials to manage your restaurant & branches{% endif %}
                     </p>
                 </div>
 
                 <!-- Role / Method Tabs -->
-                <div class="flex items-center gap-1.5 p-1 bg-[#F5EFE6] rounded-xl mb-6 border border-[#E8DFD3]">
+                <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl mb-6 border border-slate-200">
                     <button 
                         type="button" 
                         id="tab-btn-credentials" 
                         onclick="switchTab('credentials')" 
-                        class="flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-[#1B634D] shadow-sm border border-[#D2AB6B]/30 flex items-center justify-center gap-1.5"
+                        class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-blue-600 shadow-sm border border-slate-200 flex items-center justify-center gap-1.5"
                     >
-                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         {% if IS_RTL %}حساب المالك والإدارة{% else %}Owner & Management{% endif %}
                     </button>
                     <button 
                         type="button" 
                         id="tab-btn-pin" 
                         onclick="switchTab('pin')" 
-                        class="flex-1 py-2 rounded-lg text-xs font-black transition-all text-[#6E5D4F] hover:text-[#1E130D] flex items-center justify-center gap-1.5"
+                        class="flex-1 py-2 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5"
                     >
-                        <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                         {% if IS_RTL %}كود الموظف السريع (PIN){% else %}Quick Staff PIN{% endif %}
                     </button>
                 </div>
 
                 <!-- Error Alert (if any) -->
                 {% if error %}
-                <div class="mb-5 flex items-center gap-2.5 rounded-xl border border-rose-300 bg-rose-50 p-3.5 text-xs font-bold text-rose-800 shadow-xs">
-                    <svg class="w-4 h-4 text-rose-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div class="mb-5 flex items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-bold text-rose-700 shadow-xs">
+                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     <span>{{ error }}</span>
                 </div>
                 {% endif %}
@@ -233,19 +179,19 @@
                     
                     <div class="space-y-4">
                         <div>
-                            <label for="username" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                            <label for="username" class="mb-1.5 block text-xs font-bold text-slate-800">
                                 {% if IS_RTL %}اسم المستخدم أو البريد الإلكتروني{% else %}Username or Email{% endif %}
                             </label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 {% if IS_RTL %}right-0 pr-3.5{% else %}left-0 pl-3.5{% endif %} flex items-center text-[#8C6527] pointer-events-none">
-                                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span class="absolute inset-y-0 {% if IS_RTL %}right-0 pr-3.5{% else %}left-0 pl-3.5{% endif %} flex items-center text-slate-400 pointer-events-none">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </span>
                                 <input 
                                     type="text" 
                                     id="username" 
                                     name="username" 
                                     required 
-                                    class="w-full {% if IS_RTL %}pr-10 pl-3.5{% else %}pl-10 pr-3.5{% endif %} py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                    class="w-full {% if IS_RTL %}pr-10 pl-3.5{% else %}pl-10 pr-3.5{% endif %} py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition" 
                                     placeholder="{% if IS_RTL %}اسم المستخدم (مثال: admin أو emp_cashier){% else %}Username (e.g. admin or emp_cashier){% endif %}"
                                 >
                             </div>
@@ -253,23 +199,23 @@
 
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
-                                <label for="password" class="block text-xs font-bold text-[#1E130D]">
+                                <label for="password" class="block text-xs font-bold text-slate-800">
                                     {% if IS_RTL %}كلمة المرور{% else %}Password{% endif %}
                                 </label>
-                                <a href="javascript:void(0)" onclick="alert('{% if IS_RTL %}يرجى التواصل مع مدير النظام أو استخدام أحد الحسابات التجريبية بالأسفل.{% else %}Please contact your system admin or use a demo account below.{% endif %}')" class="text-[11px] font-bold text-[#8C6527] hover:underline">
+                                <a href="javascript:void(0)" onclick="alert('{% if IS_RTL %}يرجى التواصل مع مدير النظام أو استخدام أحد الحسابات التجريبية بالأسفل.{% else %}Please contact your system admin or use a demo account below.{% endif %}')" class="text-[11px] font-semibold text-blue-600 hover:underline">
                                     {% if IS_RTL %}نسيت كلمة المرور؟{% else %}Forgot Password?{% endif %}
                                 </a>
                             </div>
                             <div class="relative">
-                                <span class="absolute inset-y-0 {% if IS_RTL %}right-0 pr-3.5{% else %}left-0 pl-3.5{% endif %} flex items-center text-[#8C6527] pointer-events-none">
-                                    <svg class="w-4 h-4 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span class="absolute inset-y-0 {% if IS_RTL %}right-0 pr-3.5{% else %}left-0 pl-3.5{% endif %} flex items-center text-slate-400 pointer-events-none">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                 </span>
                                 <input 
                                     type="password" 
                                     id="password" 
                                     name="password" 
                                     required 
-                                    class="w-full {% if IS_RTL %}pr-10 pl-3.5{% else %}pl-10 pr-3.5{% endif %} py-3 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-xs font-bold text-[#1E130D] placeholder-[#A49486] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition font-mono" 
+                                    class="w-full {% if IS_RTL %}pr-10 pl-3.5{% else %}pl-10 pr-3.5{% endif %} py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition font-mono" 
                                     placeholder="••••••••"
                                 >
                             </div>
@@ -277,16 +223,16 @@
 
                         <!-- Remember Me -->
                         <div class="flex items-center justify-between pt-1">
-                            <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-[#5C4B3F]">
-                                <input type="checkbox" checked class="rounded border-[#D2AB6B] text-[#1B634D] focus:ring-[#D2AB6B]">
+                            <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600">
+                                <input type="checkbox" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                                 <span>{% if IS_RTL %}تذكرني على هذا الجهاز{% else %}Remember me on this device{% endif %}</span>
                             </label>
                         </div>
 
-                        <!-- Grand Gold Plaque Button (Matching UI Photo) -->
+                        <!-- Primary Tech Blue Button -->
                         <button 
                             type="submit" 
-                            class="w-full mt-2 btn-gold-pill py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                            class="w-full mt-2 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 shadow-sm transition cursor-pointer active:scale-95"
                         >
                             <span>{% if IS_RTL %}دخول إلى المنظومة{% else %}Sign In to System{% endif %}</span>
                             <span class="text-xs">{% if IS_RTL %}←{% else %}→{% endif %}</span>
@@ -301,7 +247,7 @@
                     
                     <div class="space-y-4">
                         <div>
-                            <label for="employee_code" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                            <label for="employee_code" class="mb-1.5 block text-xs font-bold text-slate-800">
                                 {% if IS_RTL %}كود الموظف (ID / Badge Code){% else %}Staff Badge Code (ID){% endif %}
                             </label>
                             <input 
@@ -309,13 +255,13 @@
                                 id="employee_code" 
                                 name="employee_code" 
                                 required 
-                                class="w-full py-3 px-3.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-center text-sm font-black font-mono tracking-wider focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                class="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center text-sm font-bold font-mono tracking-wider focus:outline-none focus:border-blue-600 focus:bg-white transition" 
                                 placeholder="{% if IS_RTL %}مثال: 104 للكاشير أو 106 للشيف{% else %}e.g. 104 for cashier or 106 for chef{% endif %}"
                             >
                         </div>
 
                         <div>
-                            <label for="pin" class="mb-1.5 block text-xs font-bold text-[#1E130D]">
+                            <label for="pin" class="mb-1.5 block text-xs font-bold text-slate-800">
                                 {% if IS_RTL %}رمز الـ PIN السريع (4 أرقام){% else %}Quick PIN (4 digits){% endif %}
                             </label>
                             <input 
@@ -324,55 +270,55 @@
                                 name="pin" 
                                 maxlength="6"
                                 required 
-                                class="w-full py-3 px-3.5 rounded-xl bg-[#FAF8F5] border border-[#E5DDD0] text-center text-xl font-black font-mono tracking-[0.3em] focus:outline-none focus:border-[#D2AB6B] focus:ring-2 focus:ring-[#D2AB6B]/30 transition" 
+                                class="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center text-xl font-bold font-mono tracking-[0.3em] focus:outline-none focus:border-blue-600 focus:bg-white transition" 
                                 placeholder="••••"
                             >
                         </div>
 
                         <button 
                             type="submit" 
-                            class="w-full mt-2 btn-gold-pill py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                            class="w-full mt-2 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 shadow-sm transition cursor-pointer active:scale-95"
                         >
-                            <svg class="w-4 h-4 text-[#0E382A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
                             <span>{% if IS_RTL %}بدء الوردية والدخول{% else %}Clock-In & Shift Login{% endif %}</span>
                         </button>
                     </div>
                 </form>
 
-                <!-- Switch Link: Register New Restaurant (From UI design) -->
-                <div class="mt-6 pt-5 border-t border-[#E8DFD3] text-center">
-                    <p class="text-xs font-bold text-[#5C4B3F]">
+                <!-- Switch Link: Register New Restaurant -->
+                <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+                    <p class="text-xs font-semibold text-slate-500">
                         {% if IS_RTL %}ليس لديك حساب منشأة؟{% else %}Don't have an account?{% endif %}
-                        <a href="{% url 'register' %}" class="text-[#1B634D] hover:text-[#8C6527] underline font-extrabold transition">
+                        <a href="{% url 'register' %}" class="text-blue-600 hover:text-blue-700 underline font-bold transition">
                             {% if IS_RTL %}تسجيل منشأة ومطعم جديد ←{% else %}Register Restaurant & Branch →{% endif %}
                         </a>
                     </p>
                 </div>
 
                 <!-- 1-Click Demo Helper Accordion -->
-                <div class="mt-5 pt-4 border-t border-dashed border-[#E8DFD3] text-[11px] text-[#5C4B3F]">
+                <div class="mt-5 pt-4 border-t border-slate-100 text-[11px] text-slate-500">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="font-extrabold text-[#1E130D] flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             حسابات تجريبية جاهزة للاختبار:
                         </span>
-                        <span class="text-[10px] text-[#8C6527] font-bold">نقرة واحدة للملء</span>
+                        <span class="text-[10px] text-blue-600 font-semibold">نقرة واحدة للملء</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-1.5 font-bold">
-                        <button type="button" onclick="fillCreds('superadmin', 'admin123')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#1E130D] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px] flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <div class="grid grid-cols-2 gap-1.5 font-semibold">
+                        <button type="button" onclick="fillCreds('superadmin', 'admin123')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-right border border-slate-200 hover:border-blue-400 transition text-[11px] flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             <span>مدير المنصة (SaaS)</span>
                         </button>
-                        <button type="button" onclick="fillCreds('admin', 'admin123')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#1E130D] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px] flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        <button type="button" onclick="fillCreds('admin', 'admin123')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-right border border-slate-200 hover:border-blue-400 transition text-[11px] flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             <span>مالك مطاعم كورا</span>
                         </button>
-                        <button type="button" onclick="fillCreds('owner_burger', 'admin123')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#1E130D] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px] flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <button type="button" onclick="fillCreds('owner_burger', 'admin123')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-right border border-slate-200 hover:border-blue-400 transition text-[11px] flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             <span>مالك برجر كلاسيك</span>
                         </button>
-                        <button type="button" onclick="fillPin('104', '1234')" class="p-2 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#144D3B] text-right border border-[#E5DDD0] hover:border-[#D2AB6B] transition text-[11px] flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#D2AB6B] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                        <button type="button" onclick="fillPin('104', '1234')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-right border border-slate-200 hover:border-blue-400 transition text-[11px] flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                             <span>كاشير (104 / 1234)</span>
                         </button>
                     </div>
@@ -396,13 +342,13 @@ function switchTab(mode) {
     if (mode === 'credentials') {
         credForm.classList.remove('hidden');
         pinForm.classList.add('hidden');
-        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-[#1B634D] shadow-sm border border-[#D2AB6B]/30';
-        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-[#6E5D4F] hover:text-[#1E130D]';
+        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-blue-600 shadow-sm border border-slate-200 flex items-center justify-center gap-1.5';
+        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5';
     } else {
         credForm.classList.add('hidden');
         pinForm.classList.remove('hidden');
-        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all bg-white text-[#1B634D] shadow-sm border border-[#D2AB6B]/30';
-        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-black transition-all text-[#6E5D4F] hover:text-[#1E130D]';
+        btnPin.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-blue-600 shadow-sm border border-slate-200 flex items-center justify-center gap-1.5';
+        btnCred.className = 'flex-1 py-2 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5';
     }
 }
 
