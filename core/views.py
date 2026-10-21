@@ -1726,13 +1726,23 @@ def call_center_view(request):
     recent_orders = Order.objects.filter(tenant=tenant, channel="call_center").order_by("-id")[:10]
     delivery_areas = DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).select_related("branch").order_by("branch__name", "name")
 
+    seen_cats = []
+    for m in menu_items:
+        if m.category and m.category not in seen_cats:
+            seen_cats.append(m.category)
+    categories = ["الكل"] + (seen_cats if seen_cats else ["أطباق رئيسية", "مشويات", "ساندويتشات", "مشروبات"])
+
+    currency_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+
     context = {
         "tenant": tenant,
         "branches": branches,
         "delivery_areas": delivery_areas,
+        "categories": categories,
         "menu_items": menu_items,
         "recent_orders": recent_orders,
-        "tenant_currency_symbol": tenant.get_currency_symbol_ar() if tenant else "ر.س",
+        "tenant_currency_symbol": currency_sym,
+        "branch_currency_symbol": currency_sym,
     }
     return render(request, "call_center.html", context)
 
