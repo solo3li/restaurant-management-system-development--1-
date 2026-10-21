@@ -3,83 +3,79 @@
 {% block title %}{{ t.hq_orders_title|default:"سجل كل الطلبات — الإدارة العامة (HQ)" }}{% endblock %}
 
 {% block content %}
-<div class="space-y-3 font-sans">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-        <div>
+<div class="space-y-2.5 font-sans">
+    <!-- NO CARD: Flat Unified Header, Stats & Filters Toolbar -->
+    <div class="space-y-2 pb-2.5 border-b border-slate-300">
+        <!-- Row 1: Header + Action Buttons -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div class="flex items-center gap-2">
-                <span class="rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-semibold text-blue-700">{% if IS_RTL %}HQ • الإدارة العامة{% else %}HQ • Central Operations{% endif %}</span>
-                <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">{{ t.hq_orders_heading|default:"سجل كافة طلبات وفواتير الفروع" }}</h1>
+                <span class="rounded-md bg-blue-100 border border-blue-300 px-2 py-0.5 text-xs font-black text-blue-900">{% if IS_RTL %}HQ • الإدارة العامة{% else %}HQ • Central Operations{% endif %}</span>
+                <h1 class="text-sm sm:text-base font-black text-slate-950 tracking-tight">{{ t.hq_orders_heading|default:"سجل كافة طلبات وفواتير الفروع" }}</h1>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">
-                {{ t.hq_orders_subtitle|default:"متابعة مركزية فورية لجميع المعاملات، الفواتير، وحالات الطلبات عبر كل فروع المنشأة" }}
-            </p>
-        </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-            <a href="{% url 'call_center' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white h-8 px-3 text-xs font-medium transition cursor-pointer shadow-2xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-                <span>+ طلب كول سنتر</span>
-            </a>
-            <a href="{% url 'dashboard' %}" class="rounded-lg bg-white border border-slate-200 h-8 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer flex items-center">
-                ← لوحة HQ
-            </a>
-        </div>
-    </div>
-
-    <!-- Inline Stats Strip -->
-    <div class="bg-white rounded-xl border border-slate-200 px-3.5 py-2 shadow-2xs flex flex-wrap items-center justify-between gap-2.5 text-xs">
-        <div class="flex items-center gap-3 flex-wrap">
-            <!-- Total Orders -->
-            <div class="flex items-center gap-1.5">
-                <span class="text-slate-500 text-[11px] font-medium">الطلبات:</span>
-                <span class="font-bold text-slate-900 text-sm">{{ total_orders }}</span>
-            </div>
-            
-            <span class="text-slate-300 hidden sm:inline">•</span>
-
-            <!-- Total Revenue -->
-            <div class="flex items-center gap-1.5">
-                <span class="text-slate-500 text-[11px] font-medium">الإيرادات:</span>
-                <span class="font-bold text-blue-600 text-sm">{{ total_revenue|floatformat:2 }}</span>
-                <span class="text-[10px] text-slate-400 font-normal">{{ t.currency }}</span>
-            </div>
-
-            <span class="text-slate-300 hidden sm:inline">•</span>
-
-            <!-- Pending Orders -->
-            <div class="flex items-center gap-1.5">
-                <span class="text-slate-500 text-[11px] font-medium">قيد المعالجة:</span>
-                <span class="font-bold text-amber-600 text-sm">{{ pending_orders }}</span>
-            </div>
-
-            <span class="text-slate-300 hidden sm:inline">•</span>
-
-            <!-- Delivered Orders -->
-            <div class="flex items-center gap-1.5">
-                <span class="text-slate-500 text-[11px] font-medium">مكتملة:</span>
-                <span class="font-bold text-emerald-600 text-sm">{{ delivered_orders }}</span>
-            </div>
-
-            <span class="text-slate-300 hidden sm:inline">•</span>
-
-            <!-- Cancelled Orders -->
-            <div class="flex items-center gap-1.5">
-                <span class="text-slate-500 text-[11px] font-medium">ملغاة:</span>
-                <span class="font-bold text-rose-600 text-sm">{{ cancelled_orders }}</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <a href="{% url 'call_center' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white h-7 px-3 text-xs font-bold transition cursor-pointer shadow-2xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                    <span>+ طلب كول سنتر</span>
+                </a>
+                <a href="{% url 'dashboard' %}" class="rounded-lg bg-white border border-slate-300 h-7 px-2.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition cursor-pointer flex items-center">
+                    ← لوحة HQ
+                </a>
             </div>
         </div>
 
-        <div class="text-[10px] text-slate-400 hidden lg:block">
-            إحصائيات مطابقة للفلاتر المحددة
-        </div>
-    </div>
+        <!-- Row 2: High-Contrast Stats Strip (Flat) -->
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs pt-0.5">
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Total Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">الطلبات:</span>
+                    <span class="font-black text-slate-950 text-sm">{{ total_orders }}</span>
+                </div>
+                
+                <span class="text-slate-300 hidden sm:inline">•</span>
 
-    <!-- Unified Single-Line Filter & Search Toolbar -->
-    <div class="bg-white rounded-xl border border-slate-200 p-2 sm:p-2.5 shadow-2xs">
-        <form method="GET" action="{% url 'hq_orders' %}" id="hq-orders-filter-form" class="flex flex-wrap items-center gap-2">
+                <!-- Total Revenue -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">الإيرادات:</span>
+                    <span class="font-black text-blue-900 text-sm">{{ total_revenue|floatformat:2 }}</span>
+                    <span class="text-xs text-blue-800 font-bold">{{ t.currency }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Pending Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">قيد المعالجة:</span>
+                    <span class="font-black text-amber-700 text-sm">{{ pending_orders }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Delivered Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">مكتملة:</span>
+                    <span class="font-black text-emerald-800 text-sm">{{ delivered_orders }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Cancelled Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">ملغاة:</span>
+                    <span class="font-black text-rose-800 text-sm">{{ cancelled_orders }}</span>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-slate-600 font-bold hidden lg:block">
+                متابعة مركزية لكافة الفروع
+            </div>
+        </div>
+
+        <!-- Row 3: High-Contrast Search & Filters Bar (Flat) -->
+        <form method="GET" action="{% url 'hq_orders' %}" id="hq-orders-filter-form" class="flex flex-wrap items-center gap-1.5 pt-0.5">
             <!-- Search Input -->
             <div class="relative flex-1 min-w-[200px] sm:min-w-[240px]">
-                <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-500">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </span>
                 <input 
@@ -87,12 +83,12 @@
                     name="q" 
                     value="{{ search_query }}" 
                     placeholder="بحث برقم الطلب، العميل، الهاتف، أو الكاشير..." 
-                    class="w-full h-8 pr-8 pl-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white"
+                    class="w-full h-7 pr-8 pl-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-950 placeholder-slate-500 focus:outline-none focus:border-blue-600 transition"
                 >
             </div>
 
             <!-- Branch Dropdown -->
-            <select name="branch" onchange="this.form.submit()" class="h-8 px-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer">
+            <select name="branch" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
                 <option value="all">كل الفروع</option>
                 {% for b in branches %}
                 <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:"i" %}selected{% endif %}>
@@ -102,7 +98,7 @@
             </select>
 
             <!-- Status Dropdown -->
-            <select name="status" onchange="this.form.submit()" class="h-8 px-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer">
+            <select name="status" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
                 <option value="all">كافة الحالات</option>
                 {% for st_val, st_lbl in statuses %}
                 <option value="{{ st_val }}" {% if status_filter == st_val %}selected{% endif %}>{{ st_lbl }}</option>
@@ -110,7 +106,7 @@
             </select>
 
             <!-- Type Dropdown -->
-            <select name="type" onchange="this.form.submit()" class="h-8 px-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer">
+            <select name="type" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
                 <option value="all">كافة الأنواع</option>
                 {% for t_val, t_lbl in order_types %}
                 <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
@@ -118,7 +114,7 @@
             </select>
 
             <!-- Pay Method Dropdown -->
-            <select name="pay_method" onchange="this.form.submit()" class="h-8 px-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer">
+            <select name="pay_method" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
                 <option value="all">طرق الدفع</option>
                 {% for p_val, p_lbl in pay_choices %}
                 <option value="{{ p_val }}" {% if pay_method_filter == p_val %}selected{% endif %}>{{ p_lbl }}</option>
@@ -126,7 +122,7 @@
             </select>
 
             <!-- Date Range Dropdown -->
-            <select name="date" onchange="this.form.submit()" class="h-8 px-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer">
+            <select name="date" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
                 <option value="all" {% if date_filter == 'all' %}selected{% endif %}>كافة التواريخ</option>
                 <option value="today" {% if date_filter == 'today' %}selected{% endif %}>اليوم</option>
                 <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>أمس</option>
@@ -135,36 +131,36 @@
             </select>
 
             <!-- Submit Button -->
-            <button type="submit" class="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1 shrink-0">
+            <button type="submit" class="h-7 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1 shrink-0 shadow-2xs">
                 <span>بحث</span>
             </button>
 
             <!-- Reset Button (if any filter active) -->
             {% if branch_filter != 'all' or status_filter != 'all' or type_filter != 'all' or pay_method_filter != 'all' or date_filter != 'all' or search_query %}
-            <a href="{% url 'hq_orders' %}" class="h-8 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-medium transition flex items-center justify-center shrink-0 cursor-pointer" title="إلغاء الفلاتر">
-                ✕ مسح الفلاتر
+            <a href="{% url 'hq_orders' %}" class="h-7 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer" title="إلغاء الفلاتر">
+                ✕ مسح
             </a>
             {% endif %}
         </form>
     </div>
 
-    <!-- Orders Table Card (High-Density) -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-        <div class="flex items-center justify-between border-b border-slate-200 px-3.5 py-2 bg-slate-50/80">
+    <!-- Orders Table Card (High-Density High-Contrast) -->
+    <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-2xs">
+        <div class="flex items-center justify-between border-b border-slate-300 px-3.5 py-2 bg-slate-100/90">
             <div class="flex items-center gap-2">
-                <h2 class="text-xs font-bold text-slate-900 tracking-tight">سجل الطلبات</h2>
-                <span class="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                <h2 class="text-xs font-black text-slate-950 tracking-tight">سجل الطلبات</h2>
+                <span class="rounded-full bg-blue-100 border border-blue-300 px-2 py-0.5 text-[10.5px] font-black text-blue-900">
                     {{ orders|length }} من {{ total_orders }} طلب
                 </span>
             </div>
-            <p class="text-[10px] text-slate-500 hidden sm:block">
+            <p class="text-[11px] font-semibold text-slate-600 hidden sm:block">
                 انقر على أي صف للمعاينة السريعة أو استخدم القائمة (⋮) للخيارات المتقدمة
             </p>
         </div>
 
         <div class="overflow-x-auto min-h-[300px]">
             <table class="w-full text-right text-xs table-responsive-cards">
-                <thead class="border-b border-slate-200 bg-slate-50/90 text-slate-600 font-semibold text-[11px]">
+                <thead class="border-b border-slate-300 bg-slate-100/90 text-slate-900 font-black text-[11.5px]">
                     <tr>
                         <th class="px-3 py-2">رقم الطلب / القناة</th>
                         <th class="px-2.5 py-2">الفرع</th>
@@ -184,78 +180,78 @@
                         <!-- Order Number & Channel -->
                         <td class="px-3 py-1.5 whitespace-nowrap" data-label="رقم الطلب والقناة">
                             <div class="flex items-center gap-1.5">
-                                <span class="font-bold text-slate-900 text-xs">{{ o.order_number }}</span>
+                                <span class="font-black text-slate-950 text-xs">#{{ o.order_number }}</span>
                                 {% if o.channel == 'call_center' %}
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">هاتف</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">هاتف</span>
                                 {% elif o.channel == 'qr_menu' %}
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">QR</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300">QR</span>
                                 {% else %}
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 text-slate-600">كاشير</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800">كاشير</span>
                                 {% endif %}
                             </div>
                         </td>
 
                         <!-- Branch -->
-                        <td class="px-2.5 py-1.5 text-xs text-slate-700 whitespace-nowrap" data-label="الفرع">
+                        <td class="px-2.5 py-1.5 text-xs font-bold text-slate-800 whitespace-nowrap" data-label="الفرع">
                             {{ o.branch.name|default:"—" }}
                         </td>
 
                         <!-- Order Type -->
                         <td class="px-2 py-1.5 whitespace-nowrap" data-label="النوع">
-                            <span class="rounded px-1.5 py-0.5 text-[10px] font-medium
-                                {% if o.order_type == 'dine_in' %}bg-blue-50 text-blue-700 border border-blue-200/60
-                                {% elif o.order_type == 'takeaway' %}bg-slate-100 text-slate-700 border border-slate-200
-                                {% else %}bg-purple-50 text-purple-700 border border-purple-200/60{% endif %}">
+                            <span class="rounded px-2 py-0.5 text-[10.5px] font-bold
+                                {% if o.order_type == 'dine_in' %}bg-blue-100 text-blue-900 border border-blue-300
+                                {% elif o.order_type == 'takeaway' %}bg-slate-200 text-slate-900 border border-slate-300
+                                {% else %}bg-purple-100 text-purple-900 border border-purple-300{% endif %}">
                                 {{ o.get_order_type_display }}
                             </span>
                         </td>
 
                         <!-- Customer -->
                         <td class="px-2.5 py-1.5 whitespace-nowrap" data-label="العميل">
-                            <span class="font-semibold text-slate-900 text-xs">{{ o.customer_name }}</span>
+                            <span class="font-black text-slate-950 text-xs">{{ o.customer_name }}</span>
                             {% if o.customer_phone %}
-                            <span class="text-[10px] text-slate-400 font-mono mr-1" dir="ltr">{{ o.customer_phone }}</span>
+                            <span class="text-[11px] text-slate-600 font-bold font-mono mr-1" dir="ltr">{{ o.customer_phone }}</span>
                             {% endif %}
                         </td>
 
                         <!-- Staff / Driver -->
-                        <td class="px-2 py-1.5 text-xs text-slate-600 whitespace-nowrap" data-label="الكاشير / السائق">
+                        <td class="px-2 py-1.5 text-xs font-semibold text-slate-700 whitespace-nowrap" data-label="الكاشير / السائق">
                             <span>{{ o.cashier|default:"—" }}</span>
                             {% if o.driver %}
-                            <span class="text-[10px] text-blue-600 mr-1" title="سائق التوصيل">🚴 {{ o.driver.name }}</span>
+                            <span class="text-[11px] font-bold text-blue-700 mr-1" title="سائق التوصيل">🚴 {{ o.driver.name }}</span>
                             {% endif %}
                         </td>
 
                         <!-- Payment -->
                         <td class="px-2 py-1.5 whitespace-nowrap text-xs" data-label="طريقة الدفع">
-                            <span class="font-medium text-slate-800">{{ o.get_pay_method_display }}</span>
-                            <span class="text-[10px] mr-1 font-semibold {% if o.paid %}text-emerald-600{% else %}text-rose-600{% endif %}">
-                                {% if o.paid %}✓{% else %}معلق{% endif %}
+                            <span class="font-bold text-slate-900">{{ o.get_pay_method_display }}</span>
+                            <span class="text-xs mr-1 font-black {% if o.paid %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                                {% if o.paid %}✓ مدفوع{% else %}معلق{% endif %}
                             </span>
                         </td>
 
                         <!-- Total -->
                         <td class="px-2.5 py-1.5 whitespace-nowrap" data-label="الإجمالي">
-                            <span class="font-bold text-slate-900 text-xs">{{ o.total|floatformat:2 }}</span>
-                            <span class="text-[10px] text-slate-500">{{ o.branch.get_currency_symbol_ar|default:t.currency }}</span>
+                            <span class="font-black text-blue-900 text-xs">{{ o.total|floatformat:2 }}</span>
+                            <span class="text-[10.5px] font-bold text-slate-700">{{ o.branch.get_currency_symbol_ar|default:t.currency }}</span>
                         </td>
 
                         <!-- Status Badge -->
                         <td class="px-2 py-1.5 whitespace-nowrap" data-label="الحالة">
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold
-                                {% if o.status == 'delivered' %}bg-emerald-50 text-emerald-700 border border-emerald-200
-                                {% elif o.status == 'out_for_delivery' %}bg-purple-50 text-purple-700 border border-purple-200
-                                {% elif o.status == 'ready' %}bg-teal-50 text-teal-700 border border-teal-200
-                                {% elif o.status == 'preparing' %}bg-amber-50 text-amber-700 border border-amber-200
-                                {% elif o.status == 'cancelled' %}bg-rose-50 text-rose-700 border border-rose-200
-                                {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10.5px] font-bold
+                                {% if o.status == 'delivered' %}bg-emerald-100 text-emerald-900 border border-emerald-300
+                                {% elif o.status == 'out_for_delivery' %}bg-indigo-100 text-indigo-900 border border-indigo-300
+                                {% elif o.status == 'ready' %}bg-teal-100 text-teal-900 border border-teal-300
+                                {% elif o.status == 'preparing' %}bg-amber-100 text-amber-900 border border-amber-300
+                                {% elif o.status == 'cancelled' %}bg-rose-100 text-rose-900 border border-rose-300
+                                {% else %}bg-blue-100 text-blue-900 border border-blue-300{% endif %}">
                                 {{ o.get_status_display }}
                             </span>
                         </td>
 
                         <!-- Date/Time -->
-                        <td class="px-2 py-1.5 whitespace-nowrap text-[11px] text-slate-500 font-mono" data-label="التاريخ والوقت">
-                            {{ o.created_at|date:"Y-m-d" }} <span class="text-slate-400 text-[10px]">{{ o.created_at|time:"H:i" }}</span>
+                        <td class="px-2 py-1.5 whitespace-nowrap text-xs text-slate-700 font-bold font-mono" data-label="التاريخ والوقت">
+                            {{ o.created_at|date:"Y-m-d" }} <span class="text-slate-600 font-bold text-[11px]">{{ o.created_at|time:"H:i" }}</span>
                         </td>
 
                         <!-- Action Buttons (A4 Choice: Preview + Dropdown ⋮) -->

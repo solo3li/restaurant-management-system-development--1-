@@ -5,35 +5,35 @@
 {% block content %}
 {% include "_admin_nav_tabs.html" %}
 <div class="space-y-3.5">
-    <!-- Header (Compact) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-3">
+    <!-- Header (Flat Command Toolbar) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2.5 border-b border-slate-300">
         <div>
-            <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-200/80">
-                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <h1 class="text-lg sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-2">
+                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-100 text-blue-900 border border-blue-300">
+                    <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                 </span>
-                {{ t.emp_title }}
+                <span>{{ t.emp_title }}</span>
             </h1>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="text-xs text-slate-700 font-bold mt-0.5">
                 {{ t.emp_subtitle }}
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{% url 'api_export_employees_csv' %}" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer" title="تصدير كملف Excel / CSV">
-                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <a href="{% url 'api_export_employees_csv' %}" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="تصدير كملف Excel / CSV">
+                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 <span>تصدير CSV</span>
             </a>
-            <button onclick="openJobRolesModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <button onclick="openJobRolesModal()" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
                 <span>الصلاحيات والمسميات</span>
             </button>
-            <button onclick="openAddEmpModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 px-3.5 transition cursor-pointer">
+            <button onclick="openAddEmpModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-black py-1.5 px-3.5 shadow-2xs transition cursor-pointer">
                 <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -43,14 +43,14 @@
     </div>
 
     <!-- Role Filters & Search (Compact) -->
-    <div class="bg-white rounded-xl border border-slate-200 p-2.5 space-y-2 shadow-2xs">
+    <div class="bg-white rounded-xl border border-slate-300 p-2.5 space-y-2 shadow-2xs">
         <!-- Role & Scope Pills -->
-        <div class="flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-2">
-            <a href="?job_role=all&role=all&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-lg px-2.5 py-1 text-xs font-bold transition {% if job_role_filter == 'all' and role_filter == 'all' %}bg-blue-600 text-white{% else %}border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 font-medium{% endif %}">
+        <div class="flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-2">
+            <a href="?job_role=all&role=all&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-lg px-2.5 py-1 text-xs font-black transition {% if job_role_filter == 'all' and role_filter == 'all' %}bg-blue-600 text-white shadow-xs{% else %}border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 font-bold{% endif %}">
                 الكل ({{ roles_summary.all }})
             </a>
             {% for jr in job_roles %}
-            <a href="?job_role={{ jr.id }}&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-lg px-2.5 py-1 text-xs font-medium transition {% if job_role_filter == jr.id|stringformat:'s' %}bg-blue-600 text-white font-bold{% else %}border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100{% endif %}">
+            <a href="?job_role={{ jr.id }}&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-lg px-2.5 py-1 text-xs font-bold transition {% if job_role_filter == jr.id|stringformat:'s' %}bg-blue-600 text-white font-black shadow-xs{% else %}border border-slate-300 bg-white text-slate-800 hover:bg-slate-100{% endif %}">
                 {{ jr.name }} ({{ jr.emp_count }})
             </a>
             {% endfor %}
@@ -61,8 +61,8 @@
             <input type="hidden" name="job_role" value="{{ job_role_filter }}">
             <input type="hidden" name="role" value="{{ role_filter }}">
             <div class="flex items-center gap-1.5">
-                <span class="text-xs font-medium text-slate-500">الفرع:</span>
-                <select name="branch" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:border-blue-500">
+                <span class="text-xs font-black text-slate-800">الفرع:</span>
+                <select name="branch" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:border-blue-500">
                     <option value="all">كافة الفروع</option>
                     {% for b in branches %}
                     <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:'s' or branch_filter == b.id %}selected{% endif %}>{{ b.name }}</option>
@@ -75,56 +75,56 @@
                     name="q" 
                     value="{{ search_query }}" 
                     placeholder="بحث بالاسم، الجوال، أو الكود…" 
-                    class="w-full px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
+                    class="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
                 >
             </div>
-            <button type="submit" class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+            <button type="submit" class="rounded-lg bg-white border border-slate-300 px-3 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-2xs cursor-pointer">
                 بحث
             </button>
             {% if search_query or branch_filter != 'all' or role_filter != 'all' or job_role_filter != 'all' %}
-            <a href="{% url 'employees' %}" class="text-xs font-medium text-rose-600 hover:underline">إلغاء</a>
+            <a href="{% url 'employees' %}" class="text-xs font-black text-rose-700 hover:underline">إلغاء</a>
             {% endif %}
         </form>
     </div>
 
     <!-- Employees Table (Compact) -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+    <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-2xs">
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs table-responsive-cards">
-                <thead class="border-b border-slate-200 bg-slate-50/80 text-slate-600 font-semibold">
+                <thead class="border-b border-slate-300 bg-slate-100 text-slate-900 font-black">
                     <tr>
-                        <th class="py-2 px-3">الموظف</th>
-                        <th class="py-2 px-3">كود الدخول وPIN</th>
-                        <th class="py-2 px-3">المسمى الوظيفي والصلاحيات</th>
-                        <th class="py-2 px-3">نطاق العمل</th>
-                        <th class="py-2 px-3">الفرع</th>
-                        <th class="py-2 px-3">الراتب الأساسي</th>
-                        <th class="py-2 px-3">الحالة</th>
-                        <th class="py-2 px-3 text-center">إجراءات</th>
+                        <th class="py-2.5 px-3 font-black text-slate-950">الموظف</th>
+                        <th class="py-2.5 px-3 font-black text-slate-950">كود الدخول وPIN</th>
+                        <th class="py-2.5 px-3 font-black text-slate-950">المسمى الوظيفي والصلاحيات</th>
+                        <th class="py-2.5 px-3 font-black text-slate-950">نطاق العمل</th>
+                        <th class="py-2.5 px-3 font-black text-slate-950">الفرع</th>
+                        <th class="py-2.5 px-3 font-black text-slate-950">الراتب الأساسي</th>
+                        <th class="py-2.5 px-3 font-black text-slate-950">الحالة</th>
+                        <th class="py-2.5 px-3 text-center font-black text-slate-950">إجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-200">
                     {% for emp in employees %}
-                    <tr class="hover:bg-slate-50/70 transition">
-                        <td class="py-1.5 px-3" data-label="الموظف">
-                            <p class="font-bold text-slate-900 text-xs">{{ emp.name }}</p>
-                            <p class="text-[10px] text-slate-400 font-mono" dir="ltr">{{ emp.phone|default:"—" }}</p>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2 px-3 font-bold text-slate-950" data-label="الموظف">
+                            <p class="font-black text-slate-950 text-xs">{{ emp.name }}</p>
+                            <p class="text-[10px] text-slate-600 font-bold font-mono" dir="ltr">{{ emp.phone|default:"—" }}</p>
                         </td>
-                        <td class="py-1.5 px-3" data-label="كود الدخول وPIN">
+                        <td class="py-2 px-3" data-label="كود الدخول وPIN">
                             <div class="flex items-center gap-1.5">
-                                <span class="rounded bg-blue-50 border border-blue-200 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-blue-700">
+                                <span class="rounded bg-blue-100 border border-blue-300 px-2 py-0.5 font-mono text-[11px] font-black text-blue-900 shadow-2xs">
                                     #{{ emp.employee_code|default:"—" }}
                                 </span>
                                 {% if emp.pin_code %}
-                                <span class="rounded bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">PIN مفعل</span>
+                                <span class="rounded bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-black text-emerald-950">PIN مفعل</span>
                                 {% else %}
-                                <span class="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">بدون PIN</span>
+                                <span class="rounded bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-black text-amber-950">بدون PIN</span>
                                 {% endif %}
                             </div>
                         </td>
-                        <td class="py-1.5 px-3" data-label="المسمى والصلاحيات">
-                            <span class="rounded-md bg-slate-50 px-2 py-0.5 font-medium text-slate-800 inline-flex items-center gap-1 border border-slate-200 text-xs">
-                                <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <td class="py-2 px-3" data-label="المسمى والصلاحيات">
+                            <span class="rounded-md bg-slate-100 px-2.5 py-1 font-bold text-slate-900 inline-flex items-center gap-1 border border-slate-300 text-xs shadow-2xs">
+                                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                                 {% if emp.job_role %}
@@ -134,31 +134,31 @@
                                 {% endif %}
                             </span>
                         </td>
-                        <td class="py-1.5 px-3" data-label="نطاق العمل">
+                        <td class="py-2 px-3" data-label="نطاق العمل">
                             {% if emp.job_role %}
                                 {% if emp.job_role.scope == 'hq' %}
-                                    <span class="rounded bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[10px] font-medium">إدارة عامة (HQ)</span>
+                                    <span class="rounded bg-blue-100 text-blue-950 border border-blue-300 px-2 py-0.5 text-[10px] font-black">إدارة عامة (HQ)</span>
                                 {% elif emp.job_role.scope == 'both' %}
-                                    <span class="rounded bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold">شامل (إدارة وفروع)</span>
+                                    <span class="rounded bg-emerald-100 text-emerald-950 border border-emerald-300 px-2 py-0.5 text-[10px] font-black">شامل (إدارة وفروع)</span>
                                 {% else %}
-                                    <span class="rounded bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-[10px] font-medium">تشغيل فرع</span>
+                                    <span class="rounded bg-slate-100 text-slate-900 border border-slate-300 px-2 py-0.5 text-[10px] font-bold">تشغيل فرع</span>
                                 {% endif %}
                             {% else %}
-                                <span class="text-slate-500 text-[10px]">تشغيلي</span>
+                                <span class="text-slate-700 text-[10px] font-bold">تشغيلي</span>
                             {% endif %}
                         </td>
-                        <td class="py-1.5 px-3 text-slate-600 text-xs" data-label="الفرع">
+                        <td class="py-2 px-3 text-slate-800 font-bold text-xs" data-label="الفرع">
                             {{ emp.branch.name|default:"الإدارة العامة" }}
                         </td>
-                        <td class="py-1.5 px-3 font-mono font-bold text-slate-900 text-xs" data-label="الراتب الأساسي">
+                        <td class="py-2 px-3 font-mono font-black text-slate-950 text-xs" data-label="الراتب الأساسي">
                             {% if can_manage_salaries or is_owner or 'hr_manage_salaries' in user_perms or 'manage_employees' in user_perms %}
-                                {{ emp.salary }} <span class="text-[10px] text-slate-500 font-sans font-normal">ر.س</span>
+                                {{ emp.salary }} <span class="text-[10px] text-slate-700 font-sans font-bold">ر.س</span>
                             {% else %}
-                                <span class="text-xs font-mono text-muted tracking-widest" title="محتوى محجوب — يتطلب صلاحية إدارة الرواتب">••••</span>
+                                <span class="text-xs font-mono text-slate-400 tracking-widest" title="محتوى محجوب — يتطلب صلاحية إدارة الرواتب">••••</span>
                             {% endif %}
                         </td>
-                        <td class="py-1.5 px-3" data-label="الحالة">
-                            <span class="rounded px-2 py-0.5 text-[10px] font-semibold border {% if emp.status == 'active' %}bg-emerald-50 text-emerald-700 border-emerald-200/80{% elif emp.status == 'vacation' %}bg-amber-50 text-amber-700 border-amber-200/80{% else %}bg-rose-50 text-rose-700 border-rose-200/80{% endif %}">
+                        <td class="py-2 px-3" data-label="الحالة">
+                            <span class="rounded px-2.5 py-0.5 text-[10px] font-black border {% if emp.status == 'active' %}bg-emerald-100 text-emerald-950 border-emerald-300{% elif emp.status == 'vacation' %}bg-amber-100 text-amber-950 border-amber-300{% else %}bg-rose-100 text-rose-950 border-rose-300{% endif %}">
                                 {{ emp.get_status_display }}
                             </span>
                         </td>
@@ -168,7 +168,7 @@
                                     type="button"
                                     onclick="viewEmployeeDetail({{ emp.id }})" 
                                     title="عرض الملف الكامل والصلاحيات" 
-                                    class="rounded-md border border-slate-200 bg-white p-1 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition"
+                                    class="rounded-md border border-slate-300 bg-white p-1 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition shadow-2xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </button>
@@ -176,7 +176,7 @@
                                     type="button"
                                     onclick="openEditEmpModal({{ emp.id }})" 
                                     title="تعديل الموظف ورمز PIN" 
-                                    class="rounded-md border border-slate-200 bg-white p-1 text-slate-600 hover:bg-slate-50 hover:border-blue-500 hover:text-blue-600 transition"
+                                    class="rounded-md border border-slate-300 bg-white p-1 text-slate-700 hover:bg-slate-100 hover:border-blue-500 hover:text-blue-700 transition shadow-2xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
@@ -184,7 +184,7 @@
                                     type="button"
                                     onclick="toggleEmpStatus({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.status }}')" 
                                     title="{% if emp.status == 'active' %}تجميد الحساب{% else %}تفعيل الحساب{% endif %}" 
-                                    class="rounded-md border p-1 transition {% if emp.status == 'active' %}border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100{% endif %}"
+                                    class="rounded-md border p-1 transition {% if emp.status == 'active' %}border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200 shadow-2xs{% else %}border-emerald-300 bg-emerald-100 text-emerald-950 hover:bg-emerald-200 shadow-2xs{% endif %}"
                                 >
                                     {% if emp.status == 'active' %}
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -196,7 +196,7 @@
                                     type="button"
                                     onclick="openDeleteEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.employee_code|default:'' }}')" 
                                     title="حذف الموظف" 
-                                    class="rounded-md border border-rose-200 bg-rose-50 p-1 text-rose-700 hover:bg-rose-100 transition"
+                                    class="rounded-md border border-rose-300 bg-rose-100 p-1 text-rose-950 hover:bg-rose-200 transition shadow-2xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
@@ -205,7 +205,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="py-6 text-center text-xs text-slate-400">لا يوجد موظفون مطابقون للشروط</td>
+                        <td colspan="8" class="py-6 text-center text-xs font-bold text-slate-500">لا يوجد موظفون مطابقون للشروط</td>
                     </tr>
                     {% endfor %}
                 </tbody>

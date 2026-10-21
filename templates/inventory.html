@@ -5,36 +5,41 @@
 {% block content %}
 {% include "_admin_nav_tabs.html" %}
 <div class="space-y-3.5 font-body">
-    <!-- Header (Compact) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-200 pb-3">
+    <!-- Header (Flat Command Toolbar) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-2.5 border-b border-slate-300">
         <div>
-            <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">{{ t.inv_title }}</h1>
-            <p class="text-xs text-slate-500 mt-0.5">{{ t.inv_subtitle }}</p>
+            <h1 class="text-lg sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-2">
+                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </span>
+                <span>{{ t.inv_title }}</span>
+            </h1>
+            <p class="text-xs text-slate-700 font-bold mt-0.5">{{ t.inv_subtitle }}</p>
         </div>
         <div class="flex items-center gap-2">
             {% if low_count > 0 %}
-            <span class="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                <svg class="w-3.5 h-3.5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span class="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 border border-amber-300 px-2.5 py-1 text-xs font-black text-amber-950 shadow-2xs">
+                <svg class="w-3.5 h-3.5 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <span>{{ low_count }} {% if IS_RTL %}صنف تحت حد الأمان{% else %}items below threshold{% endif %}</span>
             </span>
             {% else %}
-            <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                <svg class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 border border-emerald-300 px-2.5 py-1 text-xs font-black text-emerald-950 shadow-2xs">
+                <svg class="w-3.5 h-3.5 text-emerald-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 <span>{% if IS_RTL %}كافة المواد آمنة بالمستودع{% else %}All items stocked safely{% endif %}</span>
             </span>
             {% endif %}
-            <button onclick="openAddInvModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs font-semibold transition cursor-pointer">
+            <button onclick="openAddInvModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 text-xs font-black transition shadow-2xs cursor-pointer">
                 + {{ t.create }}
             </button>
         </div>
     </div>
 
     <!-- Filters (Compact) -->
-    <div class="bg-white rounded-xl border border-slate-200 p-2.5 flex flex-wrap items-center justify-between gap-2.5 shadow-2xs">
+    <div class="bg-white rounded-xl border border-slate-300 p-2.5 flex flex-wrap items-center justify-between gap-2.5 shadow-2xs">
         <form method="GET" action="{% url 'inventory' %}" class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             <div class="flex items-center gap-1.5">
-                <span class="text-xs font-medium text-slate-500">الفرع:</span>
-                <select name="branch" onchange="this.form.submit()" class="input !w-40 !py-1 text-xs">
+                <span class="text-xs font-black text-slate-800">الفرع:</span>
+                <select name="branch" onchange="this.form.submit()" class="input !w-40 !py-1 text-xs border-slate-300 font-bold text-slate-900">
                     <option value="all">كافة الفروع</option>
                     {% for b in branches %}
                     <option value="{{ b.id }}" {% if selected_branch == b.id %}selected{% endif %}>{{ b.name }}</option>
@@ -47,68 +52,68 @@
                     name="q" 
                     value="{{ search_query }}" 
                     placeholder="بحث عن مادة أو مورد…" 
-                    class="input !py-1 text-xs"
+                    class="input !py-1 text-xs border-slate-300 font-bold text-slate-900 placeholder:text-slate-500"
                 >
             </div>
-            <button type="submit" class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+            <button type="submit" class="rounded-lg bg-white border border-slate-300 px-3 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-2xs cursor-pointer">
                 تصفية
             </button>
             {% if search_query or selected_branch != 'all' %}
-            <a href="{% url 'inventory' %}" class="text-xs font-medium text-rose-600 hover:underline">إلغاء</a>
+            <a href="{% url 'inventory' %}" class="text-xs font-black text-rose-700 hover:underline">إلغاء</a>
             {% endif %}
         </form>
     </div>
 
     <!-- Inventory Table (Compact) -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+    <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-2xs">
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs table-responsive-cards">
-                <thead class="border-b border-slate-200 bg-slate-50/80 text-slate-600 font-semibold">
+                <thead class="border-b border-slate-300 bg-slate-100 text-slate-900 font-black">
                     <tr>
-                        <th class="th !py-2 !px-3">المادة الغذائية</th>
-                        <th class="th !py-2 !px-3">الفرع</th>
-                        <th class="th !py-2 !px-3">الكمية الحالية</th>
-                        <th class="th !py-2 !px-3">حد الأمان الأدنى</th>
-                        <th class="th !py-2 !px-3">المورد</th>
-                        <th class="th !py-2 !px-3">تعديل سريع</th>
-                        <th class="th !py-2 !px-3 text-center">إجراءات</th>
+                        <th class="th !py-2.5 !px-3 font-black text-slate-950">المادة الغذائية</th>
+                        <th class="th !py-2.5 !px-3 font-black text-slate-950">الفرع</th>
+                        <th class="th !py-2.5 !px-3 font-black text-slate-950">الكمية الحالية</th>
+                        <th class="th !py-2.5 !px-3 font-black text-slate-950">حد الأمان الأدنى</th>
+                        <th class="th !py-2.5 !px-3 font-black text-slate-950">المورد</th>
+                        <th class="th !py-2.5 !px-3 font-black text-slate-950">تعديل سريع</th>
+                        <th class="th !py-2.5 !px-3 text-center font-black text-slate-950">إجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-200">
                     {% for it in items %}
-                    <tr class="hover:bg-slate-50/70 transition">
-                        <td class="td !py-1.5 !px-3 font-medium text-slate-900" data-label="المادة الغذائية">
-                            <p class="text-xs font-bold text-slate-900">{{ it.name }}</p>
-                            <p class="text-[10px] text-slate-400">الوحدة: {{ it.unit }}</p>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="td !py-2 !px-3 font-bold text-slate-950" data-label="المادة الغذائية">
+                            <p class="text-xs font-black text-slate-950">{{ it.name }}</p>
+                            <p class="text-[10px] text-slate-700 font-bold">الوحدة: {{ it.unit }}</p>
                         </td>
-                        <td class="td !py-1.5 !px-3 text-slate-600" data-label="الفرع">{{ it.branch.name }}</td>
-                        <td class="td !py-1.5 !px-3" data-label="الكمية الحالية">
-                            <span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px]
-                                {% if it.quantity == 0 %}bg-rose-50 text-rose-700 border border-rose-200/80
-                                {% elif it.quantity <= it.min_quantity %}bg-amber-50 text-amber-700 border border-amber-200/80
-                                {% else %}bg-emerald-50 text-emerald-700 border border-emerald-200/80{% endif %}">
+                        <td class="td !py-2 !px-3 text-slate-800 font-bold" data-label="الفرع">{{ it.branch.name }}</td>
+                        <td class="td !py-2 !px-3" data-label="الكمية الحالية">
+                            <span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-black text-[11px]
+                                {% if it.quantity == 0 %}bg-rose-100 text-rose-950 border border-rose-300
+                                {% elif it.quantity <= it.min_quantity %}bg-amber-100 text-amber-950 border border-amber-300
+                                {% else %}bg-emerald-100 text-emerald-950 border border-emerald-300{% endif %}">
                                 {{ it.quantity|floatformat:1 }} {{ it.unit }}
                                 {% if it.quantity == 0 %} (نفد)
                                 {% elif it.quantity <= it.min_quantity %} (منخفض)
                                 {% endif %}
                             </span>
                         </td>
-                        <td class="td !py-1.5 !px-3 font-mono text-slate-600" data-label="حد الأمان">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
-                        <td class="td !py-1.5 !px-3 text-slate-500" data-label="المورد">{{ it.supplier|default:"—" }}</td>
-                        <td class="td !py-1.5 !px-3" data-label="تعديل سريع">
+                        <td class="td !py-2 !px-3 font-mono font-bold text-slate-900" data-label="حد الأمان">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
+                        <td class="td !py-2 !px-3 text-slate-700 font-bold" data-label="المورد">{{ it.supplier|default:"—" }}</td>
+                        <td class="td !py-2 !px-3" data-label="تعديل سريع">
                             <div class="flex items-center gap-1">
-                                <button onclick="adjustStock({{ it.id }}, 5)" class="rounded bg-white border border-slate-200 px-1.5 py-0.5 text-[11px] font-medium hover:bg-slate-50 text-blue-600 cursor-pointer">+5</button>
-                                <button onclick="adjustStock({{ it.id }}, 1)" class="rounded bg-white border border-slate-200 px-1.5 py-0.5 text-[11px] font-medium hover:bg-slate-50 text-blue-600 cursor-pointer">+1</button>
-                                <button onclick="adjustStock({{ it.id }}, -1)" class="rounded bg-white border border-slate-200 px-1.5 py-0.5 text-[11px] font-medium hover:bg-rose-50 text-rose-600 cursor-pointer">-1</button>
+                                <button onclick="adjustStock({{ it.id }}, 5)" class="rounded bg-white border border-slate-300 px-1.5 py-0.5 text-[11px] font-black hover:bg-slate-100 text-blue-700 shadow-2xs cursor-pointer">+5</button>
+                                <button onclick="adjustStock({{ it.id }}, 1)" class="rounded bg-white border border-slate-300 px-1.5 py-0.5 text-[11px] font-black hover:bg-slate-100 text-blue-700 shadow-2xs cursor-pointer">+1</button>
+                                <button onclick="adjustStock({{ it.id }}, -1)" class="rounded bg-white border border-slate-300 px-1.5 py-0.5 text-[11px] font-black hover:bg-rose-50 text-rose-700 shadow-2xs cursor-pointer">-1</button>
                             </div>
                         </td>
-                        <td class="td !py-1.5 !px-3 text-center" data-label="إجراءات">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <button onclick="openEditInvModal({{ it.id }}, '{{ it.name }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier }}')" class="text-blue-600 hover:text-blue-700 font-medium text-xs cursor-pointer">
+                        <td class="td !py-2 !px-3 text-center" data-label="إجراءات">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="openEditInvModal({{ it.id }}, '{{ it.name }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier }}')" class="text-blue-700 hover:text-blue-900 font-bold text-xs cursor-pointer">
                                     تعديل
                                 </button>
-                                <span class="text-slate-300">•</span>
-                                <button onclick="deleteInventoryItem({{ it.id }}, '{{ it.name }}')" class="text-rose-600 hover:text-rose-700 font-medium text-xs cursor-pointer">
+                                <span class="text-slate-400">•</span>
+                                <button onclick="deleteInventoryItem({{ it.id }}, '{{ it.name }}')" class="text-rose-700 hover:text-rose-900 font-bold text-xs cursor-pointer">
                                     حذف
                                 </button>
                             </div>
@@ -116,7 +121,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="py-8 text-center text-xs text-slate-400">لا توجد مواد مطابقة في المخزون</td>
+                        <td colspan="7" class="py-8 text-center text-xs font-bold text-slate-500">لا توجد مواد مطابقة في المخزون</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -126,26 +131,26 @@
 </div>
 
 <!-- Add Modal -->
-<div id="add-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
-    <div class="bg-white rounded-xl border border-slate-200 max-w-md w-full p-6 shadow-xl">
-        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-4">إضافة مادة جديدة للمخزون</h3>
+<div id="add-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-xl border border-slate-300 max-w-md w-full p-6 shadow-xl">
+        <h3 class="text-sm font-black text-slate-950 tracking-tight mb-4">إضافة مادة جديدة للمخزون</h3>
         <div class="space-y-3 text-xs">
             <div>
-                <label class="mb-1 block font-medium text-slate-600">اسم المادة *</label>
-                <input type="text" id="add-inv-name" placeholder="أرز بسمتي" class="input text-xs">
+                <label class="mb-1 block font-bold text-slate-800">اسم المادة *</label>
+                <input type="text" id="add-inv-name" placeholder="أرز بسمتي" class="input text-xs border-slate-300 font-bold text-slate-900">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">الفرع *</label>
-                    <select id="add-inv-branch" class="input text-xs">
+                    <label class="mb-1 block font-bold text-slate-800">الفرع *</label>
+                    <select id="add-inv-branch" class="input text-xs border-slate-300 font-bold text-slate-900">
                         {% for b in branches %}
                         <option value="{{ b.id }}">{{ b.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">وحدة القياس</label>
-                    <select id="add-inv-unit" class="input text-xs">
+                    <label class="mb-1 block font-bold text-slate-800">وحدة القياس</label>
+                    <select id="add-inv-unit" class="input text-xs border-slate-300 font-bold text-slate-900">
                         {% for u in units %}
                         <option value="{{ u }}">{{ u }}</option>
                         {% endfor %}
@@ -154,51 +159,51 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">الكمية المتوفرة</label>
-                    <input type="number" id="add-inv-qty" placeholder="20" class="input text-xs">
+                    <label class="mb-1 block font-bold text-slate-800">الكمية المتوفرة</label>
+                    <input type="number" id="add-inv-qty" placeholder="20" class="input text-xs border-slate-300 font-bold text-slate-900">
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">حد الأمان الأدنى</label>
-                    <input type="number" id="add-inv-min" placeholder="5" class="input text-xs">
+                    <label class="mb-1 block font-bold text-slate-800">حد الأمان الأدنى</label>
+                    <input type="number" id="add-inv-min" placeholder="5" class="input text-xs border-slate-300 font-bold text-slate-900">
                 </div>
             </div>
             <div>
-                <label class="mb-1 block font-medium text-slate-600">اسم المورد</label>
-                <input type="text" id="add-inv-supplier" placeholder="مؤسسة الريف" class="input text-xs">
+                <label class="mb-1 block font-bold text-slate-800">اسم المورد</label>
+                <input type="text" id="add-inv-supplier" placeholder="مؤسسة الريف" class="input text-xs border-slate-300 font-bold text-slate-900">
             </div>
         </div>
         <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeAddInvModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">إلغاء</button>
-            <button onclick="saveNewInventoryItem()" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition cursor-pointer">حفظ المادة</button>
+            <button onclick="closeAddInvModal()" class="rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-100 cursor-pointer shadow-2xs">إلغاء</button>
+            <button onclick="saveNewInventoryItem()" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-700 transition cursor-pointer shadow-2xs">حفظ المادة</button>
         </div>
     </div>
 </div>
 
 <!-- Edit Modal -->
-<div id="edit-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
-    <div class="bg-white rounded-xl border border-slate-200 max-w-md w-full p-6 shadow-xl">
-        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-1">تعديل بيانات المخزون</h3>
-        <p id="edit-inv-title" class="text-xs font-semibold text-blue-600 mb-4"></p>
+<div id="edit-inv-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-xl border border-slate-300 max-w-md w-full p-6 shadow-xl">
+        <h3 class="text-sm font-black text-slate-950 tracking-tight mb-1">تعديل بيانات المخزون</h3>
+        <p id="edit-inv-title" class="text-xs font-bold text-blue-700 mb-4"></p>
         <input type="hidden" id="edit-inv-id">
         <div class="space-y-3 text-xs">
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">الكمية المتوفرة</label>
-                    <input type="number" id="edit-inv-qty" class="input text-xs">
+                    <label class="mb-1 block font-bold text-slate-800">الكمية المتوفرة</label>
+                    <input type="number" id="edit-inv-qty" class="input text-xs border-slate-300 font-bold text-slate-900">
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">حد الأمان</label>
-                    <input type="number" id="edit-inv-min" class="input text-xs">
+                    <label class="mb-1 block font-bold text-slate-800">حد الأمان</label>
+                    <input type="number" id="edit-inv-min" class="input text-xs border-slate-300 font-bold text-slate-900">
                 </div>
             </div>
             <div>
-                <label class="mb-1 block font-medium text-slate-600">المورد</label>
-                <input type="text" id="edit-inv-supplier" class="input text-xs">
+                <label class="mb-1 block font-bold text-slate-800">المورد</label>
+                <input type="text" id="edit-inv-supplier" class="input text-xs border-slate-300 font-bold text-slate-900">
             </div>
         </div>
         <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeEditInvModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">إلغاء</button>
-            <button onclick="saveEditInventoryItem()" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition cursor-pointer">حفظ التعديلات</button>
+            <button onclick="closeEditInvModal()" class="rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-100 cursor-pointer shadow-2xs">إلغاء</button>
+            <button onclick="saveEditInventoryItem()" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-700 transition cursor-pointer shadow-2xs">حفظ التعديلات</button>
         </div>
     </div>
 </div>

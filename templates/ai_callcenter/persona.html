@@ -7,12 +7,12 @@
 <div class="space-y-3 pb-8 font-sans" dir="{{ DIR|default:'rtl' }}">
 
     <!-- Multi-Profile Header & Selector -->
-    <div class="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 space-y-2.5 shadow-2xs">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+    <div class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-2.5 shadow-2xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-300 pb-2.5">
             <div>
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
-                    <h3 class="text-sm font-bold text-slate-800">بروفايلات المساعد الصوتي (Persona Profiles)</h3>
+                    <h3 class="text-sm font-black text-slate-950">بروفايلات المساعد الصوتي (Persona Profiles)</h3>
                     <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                         {{ profiles|length }} بروفايل
                     </span>
@@ -32,16 +32,16 @@
         <!-- Profile Cards Carousel/Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {% for p in profiles %}
-            <div class="relative rounded-lg border transition p-2.5 flex flex-col justify-between {% if p.id == profile.id %}border-brand-500 bg-brand-50/20 shadow-2xs ring-1 ring-brand-500/20{% else %}border-slate-200 bg-white hover:border-slate-300{% endif %}">
+            <div class="relative rounded-lg border transition p-2.5 flex flex-col justify-between {% if p.id == profile.id %}border-brand-500 bg-brand-50/20 shadow-2xs ring-1 ring-brand-500/20{% else %}border-slate-300 bg-white hover:border-slate-300{% endif %}">
                 <div>
                     <div class="flex items-center justify-between gap-1.5">
-                        <span class="text-xs font-bold text-slate-800 truncate">{{ p.name|default:"مساعد صوتي" }}</span>
+                        <span class="text-xs font-black text-slate-950 truncate">{{ p.name|default:"مساعد صوتي" }}</span>
                         {% if p.is_active %}
-                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> نشط للمكالمات
                         </span>
                         {% else %}
-                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 border border-slate-300">
                             غير نشط
                         </span>
                         {% endif %}
@@ -49,7 +49,7 @@
 
                     <div class="flex flex-wrap items-center gap-1 mt-2 text-[10px]">
                         <!-- Language Badge -->
-                        <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-200 text-slate-700 font-medium">
+                        <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-300 text-slate-700 font-medium">
                             {% if p.language == 'english' %}🇺🇸 English
                             {% elif p.language == 'french' %}🇫🇷 Français
                             {% elif p.language == 'spanish' %}🇪🇸 Español
@@ -64,7 +64,7 @@
                         </span>
 
                         <!-- Dialect Badge -->
-                        <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-200 text-slate-700 font-medium">
+                        <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-300 text-slate-700 font-medium">
                             {% if p.dialect == 'saudi' %}🇸🇦 سعودي
                             {% elif p.dialect == 'egyptian' %}🇪🇬 مصري
                             {% elif p.dialect == 'emirati' %}🇦🇪 إماراتي
@@ -90,7 +90,7 @@
                         </span>
 
                         <!-- Voice & Gender Badge -->
-                        <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-200 text-slate-500 font-medium">
+                        <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-300 text-slate-500 font-medium">
                             {% if p.gender == 'male' %}♂ ذكوري{% else %}♀ أنثوي{% endif %} ({{ p.voice_name|default:'Aoede' }})
                         </span>
 
@@ -106,13 +106,13 @@
                     </div>
 
                     {% if p.off_topic_response %}
-                    <p class="text-[10px] text-slate-500 line-clamp-1 mt-1.5 bg-slate-50 p-1 rounded border border-slate-200" title="{{ p.off_topic_response }}">
+                    <p class="text-[10px] text-slate-500 line-clamp-1 mt-1.5 bg-slate-50 p-1 rounded border border-slate-300" title="{{ p.off_topic_response }}">
                         <span class="font-bold text-slate-700">الاستبعاد:</span> {{ p.off_topic_response }}
                     </p>
                     {% endif %}
                 </div>
 
-                <div class="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-100">
+                <div class="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-300">
                     <a href="?profile_id={{ p.id }}" class="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         <span>{% if p.id == profile.id %}قيد التعديل الآن{% else %}تعديل هذا البروفايل{% endif %}</span>
@@ -134,13 +134,13 @@
     </div>
 
     <!-- Active / Selected Profile Edit Form -->
-    <form id="persona-form" onsubmit="savePersona(event)" class="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 space-y-3 shadow-2xs">
+    <form id="persona-form" onsubmit="savePersona(event)" class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-3 shadow-2xs">
         {% csrf_token %}
         <input type="hidden" name="profile_id" id="edit-profile-id" value="{{ profile.id }}">
 
-        <div class="border-b border-slate-200 pb-2.5 flex items-center justify-between flex-wrap gap-2">
+        <div class="border-b border-slate-300 pb-2.5 flex items-center justify-between flex-wrap gap-2">
             <div>
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                     <svg class="w-4 h-4 inline-block align-middle text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
                     <span>تعديل استوديو المساعد:</span>
                     <span class="text-brand-600">{{ profile.name|default:tenant.name|default:'المساعد الصوتي الذكي' }}</span>
@@ -252,10 +252,10 @@
         </div>
 
         <!-- Off-Topic Response -->
-        <div class="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5 space-y-1.5">
+        <div class="rounded-lg border border-slate-300 bg-slate-50/60 p-2.5 space-y-1.5">
             <div class="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <label class="block text-xs font-black text-slate-950 flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                         <span>الرد على الأسئلة الخارجة عن السياق (Off-Topic)</span>
                     </label>
@@ -263,7 +263,7 @@
                         الرسالة التي يعتذر بها المساعد بلباقة ويوجه العميل مجدداً لمنيو وخدمات المطعم عند سؤاله عن مواضيع غير ذات صلة.
                     </p>
                 </div>
-                <button type="button" onclick="applyOffTopicSuggestion('edit')" class="px-2 py-0.5 rounded border border-slate-200 bg-white hover:bg-slate-50 text-brand-700 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                <button type="button" onclick="applyOffTopicSuggestion('edit')" class="px-2 py-0.5 rounded border border-slate-300 bg-white hover:bg-slate-50 text-brand-700 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> اقتراح نص ذكي
                 </button>
             </div>
@@ -310,7 +310,7 @@
             </p>
         </div>
 
-        <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
+        <div class="pt-2 border-t border-slate-300 flex items-center justify-end gap-2">
             <button type="submit" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                 <span>حفظ وتحديث الاستوديو</span>
@@ -321,9 +321,9 @@
 
 <!-- Modal: Create New Profile -->
 <div id="create-profile-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-xl w-full p-4 sm:p-5 border border-slate-200 shadow-2xl space-y-3 animate-toast max-h-[90vh] overflow-y-auto" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3 animate-toast max-h-[90vh] overflow-y-auto" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
+            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                 <span>🎭</span> إنشاء بروفايل صوتي وشخصية جديدة
             </h3>
             <button type="button" onclick="closeCreateProfileModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
@@ -409,7 +409,7 @@
             </div>
 
             <!-- Off-Topic Response in Modal -->
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-2.5 space-y-1">
+            <div class="rounded-lg border border-slate-300 bg-slate-50 p-2.5 space-y-1">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-slate-700">
                         الرد على الأسئلة الخارجة عن السياق (Off-Topic)
@@ -433,7 +433,7 @@
                 <textarea name="custom_instructions" id="create-prof-instructions" rows="2" class="input py-1.5 px-2.5 text-xs font-mono" placeholder="تعليمات وسياق عمل المساعد..."></textarea>
             </div>
 
-            <div class="pt-2 flex items-center justify-between border-t border-slate-200">
+            <div class="pt-2 flex items-center justify-between border-t border-slate-300">
                 <label class="flex items-center gap-1.5 text-xs font-medium text-slate-700 cursor-pointer">
                     <input type="checkbox" name="is_active" checked class="rounded border-slate-300 text-brand-600">
                     تفعيل هذا البروفايل فوراً

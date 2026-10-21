@@ -3,22 +3,22 @@
 {% block title %}{% if IS_RTL %}لوحة تشغيل {{ branch.name }}{% else %}{{ branch.name }} Operations{% endif %} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
-<div class="space-y-6 font-sans">
-    <!-- Branch Header Banner -->
-    <div class="p-5 rounded-xl bg-white border border-slate-200 text-slate-900 shadow-none">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+<div class="space-y-5 font-sans">
+    <!-- Branch Flat Header Toolbar (No Card Box, Space Saver) -->
+    <div class="pb-3 border-b border-slate-300">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div class="flex items-center gap-3">
-                <span class="h-10 w-10 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <span class="h-10 w-10 rounded-lg bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </span>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{{ branch.name }}</h1>
-                        <span class="rounded-full px-2.5 py-0.5 text-[10px] font-medium {% if branch.status == 'active' %}bg-emerald-50 text-emerald-700 border border-emerald-200/80{% else %}bg-slate-100 text-slate-600 border border-slate-200{% endif %}">
+                        <h1 class="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">{{ branch.name }}</h1>
+                        <span class="rounded-full px-2.5 py-0.5 text-xs font-bold {% if branch.status == 'active' %}bg-emerald-100 text-emerald-900 border border-emerald-300{% else %}bg-slate-200 text-slate-900 border border-slate-300{% endif %}">
                             {% if branch.status == 'active' %}{% if IS_RTL %}الفرع يعمل ومتاح{% else %}Branch Active &amp; Open{% endif %}{% else %}{% if IS_RTL %}مغلق مؤقتاً{% else %}Temporarily Closed{% endif %}{% endif %}
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                    <p class="text-xs text-slate-700 font-bold mt-0.5 flex items-center gap-1.5">
                         <span>{{ branch.address|default:branch.city|default:"الرياض" }}</span>
                         <span>• {% if IS_RTL %}هاتف:{% else %}Tel:{% endif %} <span dir="ltr">{{ branch.phone|default:"—" }}</span></span>
                     </p>
@@ -27,8 +27,8 @@
 
             {% if can_switch_branches %}
             <div>
-                <a href="{% url 'switch_branch' 'all' %}" class="inline-flex items-center gap-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-700 transition">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <a href="{% url 'switch_branch' 'all' %}" class="inline-flex items-center gap-2 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 px-3.5 py-1.5 text-xs font-bold text-slate-900 transition shadow-2xs">
+                    <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>{% if IS_RTL %}العودة إلى لوحة الإدارة العامة (HQ){% else %}Return to HQ Dashboard{% endif %}</span>
                 </a>
             </div>
@@ -36,182 +36,182 @@
         </div>
     </div>
 
-    <!-- 4 Branch KPI Cards -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <!-- 4 Branch KPI Cards (High Contrast & Crisp Borders) -->
+    <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
         <!-- Branch Sales -->
         {% if 'view_financials' in user_perms %}
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-none">
+        <div class="bg-white rounded-xl border border-slate-300 p-4 shadow-2xs">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">مبيعات الفرع اليوم</span>
-                <span class="h-9 w-9 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-xs font-bold text-slate-700">مبيعات الفرع اليوم</span>
+                <span class="h-9 w-9 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </span>
             </div>
-            <p class="mt-2 text-2xl font-bold text-slate-900 tracking-tight">{{ sales_today|floatformat:2 }} <span class="text-xs font-medium text-slate-500">{{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span></p>
-            <p class="mt-1 text-xs text-slate-500">{{ orders_today }} طلباً مسجلاً اليوم</p>
+            <p class="mt-2 text-2xl font-black text-slate-950 tracking-tight font-mono">{{ sales_today|floatformat:2 }} <span class="text-xs font-bold text-blue-900 font-sans">{{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span></p>
+            <p class="mt-1 text-xs text-slate-700 font-bold">{{ orders_today }} طلباً مسجلاً اليوم</p>
         </div>
         {% elif 'view_orders' in user_perms %}
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-none">
+        <div class="bg-white rounded-xl border border-slate-300 p-4 shadow-2xs">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">طلبات الفرع اليوم</span>
-                <span class="h-9 w-9 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="text-xs font-bold text-slate-700">طلبات الفرع اليوم</span>
+                <span class="h-9 w-9 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </span>
             </div>
-            <p class="mt-2 text-2xl font-bold text-slate-900 tracking-tight">{{ orders_today }} <span class="text-xs font-medium text-slate-500">طلب</span></p>
-            <p class="mt-1 text-xs text-slate-500">إجمالي طلبات اليوم المسجلة</p>
+            <p class="mt-2 text-2xl font-black text-slate-950 tracking-tight font-mono">{{ orders_today }} <span class="text-xs font-bold text-slate-700 font-sans">طلب</span></p>
+            <p class="mt-1 text-xs text-slate-700 font-bold">إجمالي طلبات اليوم المسجلة</p>
         </div>
         {% endif %}
 
         <!-- Kitchen Pending Orders -->
         {% if 'kds_access' in user_perms %}
-        <a href="{% url 'kitchen' %}" class="bg-white rounded-xl border border-slate-200 p-5 shadow-none hover:border-slate-300 transition group block">
+        <a href="{% url 'kitchen' %}" class="bg-white rounded-xl border border-slate-300 p-4 shadow-2xs hover:border-amber-500 transition group block">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">طلبات المطبخ قيد التحضير</span>
-                <span class="h-9 w-9 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span class="text-xs font-bold text-slate-700">طلبات المطبخ قيد التحضير</span>
+                <span class="h-9 w-9 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 </span>
             </div>
-            <p class="mt-2 text-2xl font-bold text-amber-600 tracking-tight">{{ kitchen_pending_count }} <span class="text-xs font-medium text-slate-500">وجبة للتحضير</span></p>
-            <p class="mt-1 text-xs font-medium text-blue-600 group-hover:underline">فتح شاشة المطبخ (KDS) ←</p>
+            <p class="mt-2 text-2xl font-black text-amber-700 tracking-tight font-mono">{{ kitchen_pending_count }} <span class="text-xs font-bold text-slate-700 font-sans">وجبة للتحضير</span></p>
+            <p class="mt-1 text-xs font-bold text-blue-800 group-hover:underline">فتح شاشة المطبخ (KDS) ←</p>
         </a>
         {% endif %}
 
         <!-- Active Deliveries -->
         {% if 'delivery_access' in user_perms %}
-        <a href="{% url 'delivery' %}" class="bg-white rounded-xl border border-slate-200 p-5 shadow-none hover:border-slate-300 transition group block">
+        <a href="{% url 'delivery' %}" class="bg-white rounded-xl border border-slate-300 p-4 shadow-2xs hover:border-blue-600 transition group block">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">توصيلات الفرع النشطة</span>
-                <span class="h-9 w-9 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-600 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span class="text-xs font-bold text-slate-700">توصيلات الفرع النشطة</span>
+                <span class="h-9 w-9 rounded-lg bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </span>
             </div>
-            <p class="mt-2 text-2xl font-bold text-blue-600 tracking-tight">{{ active_deliveries_count }} <span class="text-xs font-medium text-slate-500">طلب</span></p>
-            <p class="mt-1 text-xs font-medium text-blue-600 group-hover:underline">متابعة مسارات السائقين ←</p>
+            <p class="mt-2 text-2xl font-black text-blue-900 tracking-tight font-mono">{{ active_deliveries_count }} <span class="text-xs font-bold text-slate-700 font-sans">طلب</span></p>
+            <p class="mt-1 text-xs font-bold text-blue-800 group-hover:underline">متابعة مسارات السائقين ←</p>
         </a>
         {% endif %}
 
         <!-- Branch Low Stock -->
         {% if 'manage_inventory' in user_perms %}
-        <a href="{% url 'inventory' %}" class="bg-white rounded-xl border border-slate-200 p-5 shadow-none hover:border-slate-300 transition group block">
+        <a href="{% url 'inventory' %}" class="bg-white rounded-xl border border-slate-300 p-4 shadow-2xs hover:border-rose-500 transition group block">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">نواقص مخزون الفرع</span>
-                <span class="h-9 w-9 rounded-lg {% if low_stock_count > 0 %}bg-rose-50 text-rose-600 border border-rose-200/80{% else %}bg-emerald-50 text-emerald-600 border border-emerald-200/80{% endif %} flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <span class="text-xs font-bold text-slate-700">نواقص مخزون الفرع</span>
+                <span class="h-9 w-9 rounded-lg {% if low_stock_count > 0 %}bg-rose-100 text-rose-900 border border-rose-300{% else %}bg-emerald-100 text-emerald-900 border border-emerald-300{% endif %} flex items-center justify-center">
+                    <svg class="w-4 h-4 {% if low_stock_count > 0 %}text-rose-700{% else %}text-emerald-700{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </span>
             </div>
-            <p class="mt-2 text-2xl font-bold {% if low_stock_count > 0 %}text-rose-600{% else %}text-emerald-600{% endif %} tracking-tight">{{ low_stock_count }} <span class="text-xs font-medium text-slate-500">مادة</span></p>
-            <p class="mt-1 text-xs text-slate-500">من أصل {{ employees_count }} موظف مسجل بالفرع</p>
+            <p class="mt-2 text-2xl font-black {% if low_stock_count > 0 %}text-rose-700{% else %}text-emerald-700{% endif %} tracking-tight font-mono">{{ low_stock_count }} <span class="text-xs font-bold text-slate-700 font-sans">مادة</span></p>
+            <p class="mt-1 text-xs text-slate-700 font-bold">من أصل {{ employees_count }} موظف مسجل بالفرع</p>
         </a>
         {% endif %}
     </div>
 
     <!-- Branch Operational Modules Hub (Cards) -->
-    <div class="mt-7">
-        <h2 class="text-base font-bold text-slate-900 mb-3.5 flex items-center gap-2">
+    <div class="mt-5">
+        <h2 class="text-base font-black text-slate-950 mb-3 flex items-center gap-2">
             <span>الأنظمة التشغيلية للفرع</span>
         </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
             {% if 'pos_access' in user_perms %}
             <!-- 1. POS Cashier -->
-            <a href="{% url 'pos' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <a href="{% url 'pos' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-blue-600 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">كاشير الفرع (POS)</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">تسجيل الطلبات، الفواتير الفورية، والتحصيل</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-blue-700">كاشير الفرع (POS)</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">تسجيل الطلبات، الفواتير الفورية، والتحصيل</p>
                 </div>
             </a>
             {% endif %}
 
             {% if 'kds_access' in user_perms %}
             <!-- 2. Kitchen KDS -->
-            <a href="{% url 'kitchen' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            <a href="{% url 'kitchen' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-amber-500 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">شاشة المطبخ (KDS)</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">أوامر التحضير الحية ومؤقتات الوجبات</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-amber-700">شاشة المطبخ (KDS)</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">أوامر التحضير الحية ومؤقتات الوجبات</p>
                 </div>
             </a>
             {% endif %}
 
             {% if 'view_orders' in user_perms %}
             <!-- 3. Branch Orders -->
-            <a href="{% url 'branch_orders' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <a href="{% url 'branch_orders' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-slate-400 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">طلبات وفواتير الفرع</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">أرشيف المعاملات ومتابعة الحالات</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-blue-700">طلبات وفواتير الفرع</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">أرشيف المعاملات ومتابعة الحالات</p>
                 </div>
             </a>
             {% endif %}
 
             {% if 'delivery_access' in user_perms %}
             <!-- 4. Branch Delivery -->
-            <a href="{% url 'delivery' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <a href="{% url 'delivery' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-blue-600 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">توصيل وسائقي الفرع</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">توزيع الطلبات وتعيين السائقين</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-blue-700">توصيل وسائقي الفرع</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">توزيع الطلبات وتعيين السائقين</p>
                 </div>
             </a>
             {% endif %}
 
             {% if 'manage_menu' in user_perms %}
             <!-- 5. Branch Menu Availability -->
-            <a href="{% url 'branch_menu' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <a href="{% url 'branch_menu' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-emerald-500 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-emerald-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">منيو وتوفر الوجبات</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">تفعيل أو إيقاف توفر الأطباق بمطبخ الفرع</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-emerald-700">منيو وتوفر الوجبات</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">تفعيل أو إيقاف توفر الأطباق بمطبخ الفرع</p>
                 </div>
             </a>
             {% endif %}
 
             {% if 'manage_inventory' in user_perms %}
             <!-- 6. Branch Inventory -->
-            <a href="{% url 'inventory' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <a href="{% url 'inventory' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-slate-400 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">مخزون الفرع</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">كميات المواد الغذائية، النواقص، والتوريد</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-blue-700">مخزون الفرع</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">كميات المواد الغذائية، النواقص، والتوريد</p>
                 </div>
             </a>
             {% endif %}
 
             {% if 'manage_employees' in user_perms %}
             <!-- 7. Branch Employees -->
-            <a href="{% url 'employees' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <a href="{% url 'employees' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-slate-400 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">موظفو الفرع</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">طاقم العمل (كاشير، طهاة، سائقون، نُدُل)</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-blue-700">موظفو الفرع</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">طاقم العمل (كاشير، طهاة، سائقون، نُدُل)</p>
                 </div>
             </a>
             {% endif %}
 
             {% if 'call_center_access' in user_perms %}
             <!-- 8. Call Center -->
-            <a href="{% url 'call_center' %}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-300 transition flex items-start gap-3 group">
-                <span class="h-10 w-10 shrink-0 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            <a href="{% url 'call_center' %}" class="bg-white rounded-xl border border-slate-300 p-3.5 hover:border-blue-600 transition flex items-start gap-3 group shadow-2xs">
+                <span class="h-10 w-10 shrink-0 rounded-lg bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-xs font-semibold text-slate-900 group-hover:text-blue-600">الكول سنتر والمكالمات</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">استقبال الطلبات الهاتفية والمكالمات الواردة</p>
+                    <h3 class="text-xs font-black text-slate-950 group-hover:text-blue-700">الكول سنتر والمكالمات</h3>
+                    <p class="text-xs text-slate-700 font-semibold mt-0.5">استقبال الطلبات الهاتفية والمكالمات الواردة</p>
                 </div>
             </a>
             {% endif %}
@@ -220,51 +220,51 @@
 
     {% if 'kds_access' in user_perms or 'view_orders' in user_perms %}
     <!-- Live Kitchen Queue & Recent Orders for Branch -->
-    <div class="mt-6 grid grid-cols-1 gap-5 {% if 'kds_access' in user_perms and 'view_orders' in user_perms %}xl:grid-cols-3{% endif %}">
+    <div class="mt-5 grid grid-cols-1 gap-5 {% if 'kds_access' in user_perms and 'view_orders' in user_perms %}xl:grid-cols-3{% endif %}">
         {% if 'kds_access' in user_perms %}
         <!-- Live Kitchen Queue Preview -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-none {% if 'view_orders' in user_perms %}xl:col-span-2{% endif %}">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div class="bg-white rounded-xl border border-slate-300 p-4 shadow-2xs {% if 'view_orders' in user_perms %}xl:col-span-2{% endif %}">
+            <div class="flex items-center justify-between border-b border-slate-300 pb-3 mb-3">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900">مطبخ الفرع — أوامر الطهي الحالية</h2>
-                    <p class="text-[11px] text-slate-500">الطلبات قيد الإعداد الآن في صالة المطبخ</p>
+                    <h2 class="text-sm font-black text-slate-950">مطبخ الفرع — أوامر الطهي الحالية</h2>
+                    <p class="text-xs text-slate-700 font-semibold">الطلبات قيد الإعداد الآن في صالة المطبخ</p>
                 </div>
-                <a href="{% url 'kitchen' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs font-medium transition cursor-pointer">
+                <a href="{% url 'kitchen' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs font-bold transition shadow-2xs cursor-pointer">
                     شاشة المطبخ الكاملة ←
                 </a>
             </div>
 
-            <div class="space-y-2.5">
+            <div class="space-y-2">
                 {% for item in kitchen_preview_data %}
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-lg border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition gap-2">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border border-slate-300 bg-slate-50 hover:bg-white hover:border-slate-400 transition gap-2 shadow-2xs">
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-sm text-slate-900">{{ item.order.order_number }}</span>
-                            <span class="rounded px-2 py-0.5 text-[10px] font-medium {% if item.order.status == 'new' %}bg-blue-50 text-blue-700 border border-blue-200/80{% else %}bg-amber-50 text-amber-700 border border-amber-200/80{% endif %}">
+                            <span class="font-black text-sm text-slate-950 font-mono">{{ item.order.order_number }}</span>
+                            <span class="rounded-md px-2 py-0.5 text-xs font-bold {% if item.order.status == 'new' %}bg-blue-100 text-blue-900 border border-blue-300{% else %}bg-amber-100 text-amber-900 border border-amber-300{% endif %}">
                                 {{ item.order.get_status_display }}
                             </span>
-                            <span class="text-[11px] text-slate-500">
+                            <span class="text-xs text-slate-700 font-bold">
                                 منذ {{ item.elapsed_minutes }} دقيقة
                             </span>
                         </div>
-                        <div class="mt-2 flex flex-wrap gap-1.5 text-xs">
+                        <div class="mt-1.5 flex flex-wrap gap-1.5 text-xs">
                             {% for oi in item.order.items.all %}
-                            <span class="rounded bg-white border border-slate-200 px-2 py-0.5 font-medium text-slate-800">
+                            <span class="rounded-md bg-white border border-slate-300 px-2 py-0.5 font-bold text-slate-900 shadow-2xs">
                                 {{ oi.qty }}x {{ oi.name }}
                             </span>
                             {% endfor %}
                         </div>
                     </div>
                     <div>
-                        <a href="{% url 'kitchen' %}" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
+                        <a href="{% url 'kitchen' %}" class="rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-2xs">
                             تحديث الحالة
                         </a>
                     </div>
                 </div>
                 {% empty %}
-                <div class="py-8 text-center text-xs text-slate-500">
-                    <p class="font-medium text-slate-700">لا توجد طلبات في قائمة الانتظار</p>
-                    <p class="mt-0.5 text-slate-400">المطبخ جاهز بالكامل لاستقبال الطلبات القادمة</p>
+                <div class="py-8 text-center text-xs text-slate-700 font-bold">
+                    <p class="font-black text-slate-950">لا توجد طلبات في قائمة الانتظار</p>
+                    <p class="mt-0.5 text-slate-600">المطبخ جاهز بالكامل لاستقبال الطلبات القادمة</p>
                 </div>
                 {% endfor %}
             </div>
@@ -273,30 +273,30 @@
 
         {% if 'view_orders' in user_perms %}
         <!-- Recent Branch Orders -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-none">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-                <h3 class="text-xs font-bold text-slate-900">أحدث فواتير الفرع</h3>
-                <a href="{% url 'branch_orders' %}" class="text-xs font-medium text-blue-600 hover:underline">الكل</a>
+        <div class="bg-white rounded-xl border border-slate-300 p-4 shadow-2xs">
+            <div class="flex items-center justify-between border-b border-slate-300 pb-2.5 mb-2.5">
+                <h3 class="text-xs font-black text-slate-950">أحدث فواتير الفرع</h3>
+                <a href="{% url 'branch_orders' %}" class="text-xs font-bold text-blue-800 hover:underline">الكل</a>
             </div>
 
             <div class="space-y-2 max-h-80 overflow-y-auto">
                 {% for o in recent_orders %}
-                <div class="rounded-lg border border-slate-100 p-2.5 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition text-xs">
+                <div class="rounded-lg border border-slate-300 p-2.5 bg-slate-50 hover:bg-white hover:border-slate-400 transition text-xs shadow-2xs">
                     <div class="flex items-center justify-between">
-                        <span class="font-semibold text-slate-900">{{ o.order_number }}</span>
+                        <span class="font-black text-slate-950 font-mono">{{ o.order_number }}</span>
                         {% if 'view_financials' in user_perms %}
-                        <span class="font-bold text-blue-600">{{ o.total|floatformat:2 }} {{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
+                        <span class="font-black text-blue-900 font-mono">{{ o.total|floatformat:2 }} {{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
                         {% else %}
-                        <span class="font-medium text-slate-600">{{ o.get_status_display }}</span>
+                        <span class="font-bold text-slate-800">{{ o.get_status_display }}</span>
                         {% endif %}
                     </div>
-                    <div class="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+                    <div class="mt-1 flex items-center justify-between text-xs text-slate-700 font-bold">
                         <span>{{ o.customer_name }}</span>
-                        <span>{{ o.created_at|time:"H:i" }}</span>
+                        <span class="font-mono">{{ o.created_at|time:"H:i" }}</span>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-center py-6 text-xs text-slate-500">لا توجد طلبات مسجلة</p>
+                <p class="text-center py-6 text-xs text-slate-700 font-bold">لا توجد طلبات مسجلة</p>
                 {% endfor %}
             </div>
         </div>
@@ -304,4 +304,5 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
 {% endblock %}

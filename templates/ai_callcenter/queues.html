@@ -7,10 +7,10 @@
 <div class="space-y-3 pb-8 font-sans" dir="{{ DIR|default:'rtl' }}">
 
     <!-- SECTION 1: CALL QUEUES -->
-    <div class="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 space-y-3 shadow-2xs">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 pb-3">
+    <div class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-3 shadow-2xs">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-300 pb-3">
             <div>
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <h3 class="text-sm font-black text-slate-950 flex items-center gap-2">
                     <svg class="w-4 h-4 inline-block text-brand-600 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     <span>طوابير الانتظار وتوجيه المكالمات (Call Queues & Routing)</span>
                 </h3>
@@ -27,10 +27,10 @@
         </div>
 
         <!-- Master Queues Table -->
-        <div class="overflow-x-auto rounded-lg border border-slate-200">
+        <div class="overflow-x-auto rounded-lg border border-slate-300">
             <table class="w-full text-right border-collapse text-xs">
                 <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50/90 text-slate-600 font-semibold text-[11px] whitespace-nowrap">
+                    <tr class="border-b border-slate-300 bg-slate-50/90 text-slate-600 font-semibold text-[11px] whitespace-nowrap">
                         <th class="py-2 px-2.5 min-w-[200px]">اسم واختصاص الطابور للـ AI</th>
                         <th class="py-2 px-2 text-center">كود الطابور</th>
                         <th class="py-2 px-2">استراتيجية التوزيع</th>
@@ -40,13 +40,13 @@
                         <th class="py-2 px-2.5 text-center">إجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
+                <tbody class="divide-y divide-slate-200 bg-white">
                     {% for q in queues %}
                     <tr id="queue-row-{{ q.id }}" class="hover:bg-slate-50/70 transition">
                         <td class="py-1.5 px-2.5">
                             <div class="flex items-center gap-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-brand-600 shrink-0"></span>
-                                <span class="font-bold text-slate-800 text-xs">{{ q.name }}</span>
+                                <span class="font-black text-slate-950 text-xs">{{ q.name }}</span>
                                 {% if forloop.first or q.code == '200' %}
                                 <span class="text-[9px] px-1.5 py-0.2 rounded font-bold bg-brand-50 text-brand-700 border border-brand-200">الافتراضي</span>
                                 {% endif %}
@@ -77,14 +77,14 @@
                             {% endif %}
                         </td>
                         <td class="py-1.5 px-2 text-center font-mono space-y-0.5">
-                            <div class="text-[11px] font-bold text-slate-800">رنين: {{ q.ring_timeout_seconds|default:20 }}ث</div>
+                            <div class="text-[11px] font-black text-slate-950">رنين: {{ q.ring_timeout_seconds|default:20 }}ث</div>
                             <div class="text-[10px] text-slate-400">انتظار: {{ q.total_timeout_seconds|default:60 }}ث</div>
                         </td>
                         <td class="py-1.5 px-2.5">
                             <div class="flex flex-wrap items-center gap-1" id="queue-members-container-{{ q.id }}">
                                 {% if q.members %}
                                     {% for m in q.members %}
-                                    <div id="qm-chip-{{ q.id }}-{{ m.employee_id }}" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-[11px] font-medium shadow-2xs hover:border-brand-300 transition">
+                                    <div id="qm-chip-{{ q.id }}-{{ m.employee_id }}" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-50 border border-slate-300 text-[11px] font-medium shadow-2xs hover:border-brand-300 transition">
                                         <span class="w-1.5 h-1.5 rounded-full {% if m.status == 'ready' %}bg-emerald-500{% elif m.status == 'busy' %}bg-amber-500{% else %}bg-slate-400{% endif %}" title="حالة الموظف"></span>
                                         <span class="text-slate-800">{{ m.name }}</span>
                                         <span class="text-brand-600 font-mono text-[10px]">#{{ m.extension }}</span>
@@ -112,7 +112,7 @@
                                     <span>+</span>
                                     <span>عضو</span>
                                 </button>
-                                <button type="button" onclick="openEditQueueModal({{ q.id }}, '{{ q.name|escapejs }}', '{{ q.code|escapejs }}', '{{ q.description|default:''|escapejs }}', '{{ q.strategy|default:'round_robin'|escapejs }}', {{ q.ring_timeout_seconds|default:20 }}, {{ q.total_timeout_seconds|default:60 }}, '{{ q.fallback_action|default:'ai_assistant'|escapejs }}')" class="p-1 rounded bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-xs transition cursor-pointer" title="تعديل الطابور">
+                                <button type="button" onclick="openEditQueueModal({{ q.id }}, '{{ q.name|escapejs }}', '{{ q.code|escapejs }}', '{{ q.description|default:''|escapejs }}', '{{ q.strategy|default:'round_robin'|escapejs }}', {{ q.ring_timeout_seconds|default:20 }}, {{ q.total_timeout_seconds|default:60 }}, '{{ q.fallback_action|default:'ai_assistant'|escapejs }}')" class="p-1 rounded bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-300 text-xs transition cursor-pointer" title="تعديل الطابور">
                                     ✏️
                                 </button>
                                 <button type="button" onclick="deleteQueue({{ q.id }}, '{{ q.name|escapejs }}')" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs transition cursor-pointer" title="حذف الطابور">
@@ -134,10 +134,10 @@
     </div>
 
     <!-- SECTION 2: HUMAN STAFF & EXTENSIONS -->
-    <div class="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 space-y-3 shadow-2xs">
-        <div class="border-b border-slate-200 pb-3 flex items-center justify-between flex-wrap gap-2">
+    <div class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-3 shadow-2xs">
+        <div class="border-b border-slate-300 pb-3 flex items-center justify-between flex-wrap gap-2">
             <div>
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <h3 class="text-sm font-black text-slate-950 flex items-center gap-2">
                     <svg class="w-4 h-4 inline-block text-brand-600 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span>موظفو الاستقبال والتحويل البشري (Human Staff Directory)</span>
                 </h3>
@@ -150,10 +150,10 @@
         </div>
 
         <!-- Employees Table -->
-        <div class="overflow-x-auto rounded-lg border border-slate-200">
+        <div class="overflow-x-auto rounded-lg border border-slate-300">
             <table class="w-full text-right border-collapse text-xs">
                 <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50/90 text-slate-600 font-semibold text-[11px] whitespace-nowrap">
+                    <tr class="border-b border-slate-300 bg-slate-50/90 text-slate-600 font-semibold text-[11px] whitespace-nowrap">
                         <th class="py-2 px-2.5">اسم الموظف</th>
                         <th class="py-2 px-2">اسم المستخدم (Login ID)</th>
                         <th class="py-2 px-2 text-center">رقم التحويلة الداخلية</th>
@@ -162,11 +162,11 @@
                         <th class="py-2 px-2.5 text-center">إجراءات</th>
                     </tr>
                 </thead>
-                <tbody id="emps-tbody" class="divide-y divide-slate-100 bg-white">
+                <tbody id="emps-tbody" class="divide-y divide-slate-200 bg-white">
                     {% if employees %}
                         {% for emp in employees %}
                         <tr id="emp-row-{{ emp.id }}" class="hover:bg-slate-50/70 transition">
-                            <td class="py-1.5 px-2.5 font-bold text-slate-800 text-xs">{{ emp.display_name }}</td>
+                            <td class="py-1.5 px-2.5 font-black text-slate-950 text-xs">{{ emp.display_name }}</td>
                             <td class="py-1.5 px-2 font-mono text-slate-500 text-xs">{{ emp.username|default:"—" }}</td>
                             <td class="py-1.5 px-2 text-center">
                                 <span class="font-mono font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded text-xs">
@@ -175,7 +175,7 @@
                             </td>
                             <td class="py-1.5 px-2 text-slate-600 font-medium text-xs">{{ emp.department }}</td>
                             <td class="py-1.5 px-2.5 text-center">
-                                <select onchange="updateEmpStatus({{ emp.id }}, this.value)" id="emp-status-select-{{ emp.id }}" class="text-xs font-semibold py-1 px-2 rounded-lg border border-slate-200 bg-white cursor-pointer focus:border-brand-500 focus:outline-none transition">
+                                <select onchange="updateEmpStatus({{ emp.id }}, this.value)" id="emp-status-select-{{ emp.id }}" class="text-xs font-semibold py-1 px-2 rounded-lg border border-slate-300 bg-white cursor-pointer focus:border-brand-500 focus:outline-none transition">
                                     <option value="ready" {% if emp.status == 'ready' %}selected{% endif %}>🟢 متاح (Ready)</option>
                                     <option value="busy" {% if emp.status == 'busy' %}selected{% endif %}>🟡 مشغول (Busy)</option>
                                     <option value="offline" {% if emp.status == 'offline' %}selected{% endif %}>⚪ غير متصل (Offline)</option>
@@ -208,9 +208,9 @@
 
 <!-- Modal: Create / Edit Queue -->
 <div id="create-queue-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 border border-slate-200 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-            <h3 id="modal-queue-title" class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
+            <h3 id="modal-queue-title" class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                 <span>➕</span> إنشاء طابور انتظار جديد (Call Queue)
             </h3>
             <button type="button" onclick="closeCreateQueueModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
@@ -265,8 +265,8 @@
                 </select>
             </div>
 
-            <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeCreateQueueModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
+            <div class="pt-2 border-t border-slate-300 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeCreateQueueModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
                 <button type="submit" id="cq-submit-btn" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer">حفظ الطابور</button>
             </div>
         </form>
@@ -275,9 +275,9 @@
 
 <!-- Modal: Add Queue Member -->
 <div id="add-queue-member-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-200 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
+            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                 <span>👤</span> إضافة موظف إلى: <span id="modal-queue-name" class="text-brand-600 font-bold">طابور الانتظار</span>
             </h3>
             <button onclick="closeAddQueueMemberModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
@@ -301,8 +301,8 @@
                 <input type="number" id="qm_order" value="1" min="1" max="100" class="input py-1.5 px-2.5 font-mono font-bold text-xs">
             </div>
 
-            <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeAddQueueMemberModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
+            <div class="pt-2 border-t border-slate-300 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddQueueMemberModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
                 <button type="submit" id="qm-submit-btn" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-2xs cursor-pointer">تأكيد الإضافة</button>
             </div>
         </form>
@@ -311,9 +311,9 @@
 
 <!-- Modal: Add Employee -->
 <div id="add-emp-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-200 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
+            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                 <span>➕</span> إضافة موظف تحويل واستقبال
             </h3>
             <button onclick="closeAddEmpModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
@@ -361,8 +361,8 @@
                 </select>
             </div>
 
-            <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeAddEmpModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
+            <div class="pt-2 border-t border-slate-300 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddEmpModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
                 <button type="submit" id="btn-add-emp-submit" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-2xs cursor-pointer">إضافة الموظف</button>
             </div>
         </form>
@@ -371,8 +371,8 @@
 
 <!-- Modal: Show Employee Credentials (SIP) -->
 <div id="credentials-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-200 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
             <h3 class="text-sm font-bold text-brand-700 flex items-center gap-1.5">
                 <span>📱</span> بيانات اتصال الهاتف السحابي (SIP)
             </h3>
@@ -382,19 +382,19 @@
         <div class="bg-brand-50/50 border border-brand-200 rounded-xl p-3 space-y-2">
             <p class="text-xs text-brand-900 font-bold">بيانات تسجيل الدخول وتوصيل هاتف الموظف (Softphone / IP Phone):</p>
             <div class="space-y-1.5 text-xs">
-                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200">
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-300">
                     <span class="text-slate-500 font-medium">الموظف:</span>
-                    <span id="cred-name" class="font-bold text-slate-800"></span>
+                    <span id="cred-name" class="font-black text-slate-950"></span>
                 </div>
-                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200">
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-300">
                     <span class="text-slate-500 font-medium">خادم الاتصال (SIP Server):</span>
                     <span id="cred-sip-server" class="font-bold text-brand-700 font-mono text-xs">uggu.space:5070</span>
                 </div>
-                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200">
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-300">
                     <span class="text-slate-500 font-medium">اسم المستخدم (Extension):</span>
                     <span id="cred-username" class="font-bold text-emerald-700 font-mono text-xs"></span>
                 </div>
-                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200">
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-300">
                     <span class="text-slate-500 font-medium">كلمة المرور (Password):</span>
                     <span id="cred-password-display" class="font-bold text-emerald-700 font-mono text-xs">••••••••</span>
                 </div>
@@ -403,9 +403,9 @@
 
         <input type="hidden" id="cred-active-empid" value="">
 
-        <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+        <div class="pt-2 border-t border-slate-300 flex items-center justify-between gap-2">
             <button type="button" onclick="copyCredentialsText()" class="px-3.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold cursor-pointer">نسخ البيانات</button>
-            <button type="button" onclick="closeCredentialsModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إغلاق</button>
+            <button type="button" onclick="closeCredentialsModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إغلاق</button>
         </div>
     </div>
 </div>

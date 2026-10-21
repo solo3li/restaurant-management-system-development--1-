@@ -3,31 +3,32 @@
 {% block title %}طلبات وفواتير الفرع — منظومة كُـورَا{% endblock %}
 
 {% block content %}
-<div class="space-y-5 font-body">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">سجل طلبات وفواتير الفرع</h1>
-            <p class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span class="font-medium text-slate-700">{% if branch %}{{ branch.name }}{% else %}كل الفروع{% endif %}</span>
-                <span>• استعراض الفواتير ومتابعة الحالات والمدفوعات</span>
-            </p>
+<div class="space-y-3 font-sans">
+    <!-- 1. Unified Flat Header & Filter Toolbar (No Card Box, Space Saver) -->
+    <div class="space-y-2 pb-2.5 border-b border-slate-300">
+        <!-- Top Row: Page Title + Badges + Action Buttons -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+                <h1 class="text-lg sm:text-xl font-black text-slate-950 tracking-tight">سجل طلبات وفواتير الفرع</h1>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                    <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>{% if branch %}{{ branch.name }}{% else %}كل الفروع{% endif %}</span>
+                </span>
+                <span class="text-xs text-slate-600 font-bold hidden md:inline">• استعراض الفواتير ومتابعة الحالات والمدفوعات</span>
+            </div>
+            <div>
+                <a href="{% url 'pos' %}" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 text-xs font-bold transition shadow-2xs cursor-pointer">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>فاتورة كاشير جديدة</span>
+                </a>
+            </div>
         </div>
-        <div>
-            <a href="{% url 'pos' %}" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-medium transition cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>فاتورة كاشير جديدة</span>
-            </a>
-        </div>
-    </div>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-none">
-        <form method="GET" action="{% url 'branch_orders' %}" class="flex flex-wrap items-center gap-3">
+        <!-- Bottom Row: High-Density Search & Filters Form -->
+        <form method="GET" action="{% url 'branch_orders' %}" class="flex flex-wrap items-center gap-2 pt-1">
             <div class="flex items-center gap-1.5">
-                <span class="text-xs font-medium text-slate-600">الحالة:</span>
-                <select name="status" onchange="this.form.submit()" class="input !w-36 text-xs">
+                <span class="text-xs font-bold text-slate-800">الحالة:</span>
+                <select name="status" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
                     <option value="all">كافة الحالات</option>
                     {% for st_val, st_lbl in statuses %}
                     <option value="{{ st_val }}" {% if status_filter == st_val %}selected{% endif %}>{{ st_lbl }}</option>
@@ -36,8 +37,8 @@
             </div>
 
             <div class="flex items-center gap-1.5">
-                <span class="text-xs font-medium text-slate-600">نوع الطلب:</span>
-                <select name="type" onchange="this.form.submit()" class="input !w-32 text-xs">
+                <span class="text-xs font-bold text-slate-800">نوع الطلب:</span>
+                <select name="type" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
                     <option value="all">كافة الأنواع</option>
                     {% for t_val, t_lbl in order_types %}
                     <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
@@ -45,111 +46,111 @@
                 </select>
             </div>
 
-            <div class="relative w-full sm:w-60">
+            <div class="relative w-full sm:w-64">
                 <input 
                     type="text" 
                     name="q" 
                     value="{{ search_query }}" 
                     placeholder="رقم الطلب، اسم العميل، الجوال…" 
-                    class="input text-xs"
+                    class="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 placeholder:text-slate-500 focus:border-blue-600 focus:outline-none"
                 >
             </div>
 
-            <button type="submit" class="rounded-lg bg-white border border-slate-200 px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+            <button type="submit" class="rounded-lg bg-slate-100 border border-slate-300 px-3 py-1 text-xs font-bold text-slate-900 hover:bg-slate-200 transition cursor-pointer">
                 بحث وتصفية
             </button>
             {% if status_filter != 'all' or type_filter != 'all' or search_query %}
-            <a href="{% url 'branch_orders' %}" class="text-xs font-medium text-rose-600 hover:underline">إلغاء التصفية</a>
+            <a href="{% url 'branch_orders' %}" class="text-xs font-bold text-rose-700 hover:underline">إلغاء التصفية</a>
             {% endif %}
         </form>
     </div>
 
-    <!-- Orders Table -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-none">
+    <!-- Orders Table (High Density & High Contrast) -->
+    <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-2xs">
         <div class="overflow-x-auto">
             <table class="w-full text-right text-xs table-responsive-cards">
-                <thead class="border-b border-slate-200 bg-slate-50 text-slate-600 font-semibold">
+                <thead class="border-b border-slate-300 bg-slate-100 text-slate-900 font-black">
                     <tr>
-                        <th class="th">رقم الطلب</th>
-                        <th class="th">النوع</th>
-                        <th class="th">العميل</th>
-                        <th class="th">طريقة الدفع</th>
-                        <th class="th">السائق</th>
-                        <th class="th">الإجمالي</th>
-                        <th class="th">الحالة</th>
-                        <th class="th">التاريخ والوقت</th>
-                        <th class="th text-center">الإجراءات</th>
+                        <th class="px-3 py-2">رقم الطلب</th>
+                        <th class="px-2.5 py-2">النوع</th>
+                        <th class="px-2.5 py-2">العميل</th>
+                        <th class="px-2.5 py-2">طريقة الدفع</th>
+                        <th class="px-2.5 py-2">السائق</th>
+                        <th class="px-2.5 py-2">الإجمالي</th>
+                        <th class="px-2.5 py-2">الحالة</th>
+                        <th class="px-2.5 py-2">التاريخ والوقت</th>
+                        <th class="px-2.5 py-2 text-center">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-200">
                     {% for o in orders %}
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="td" data-label="رقم الطلب">
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-3 py-2" data-label="رقم الطلب">
                             <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="font-bold text-slate-900 text-sm">{{ o.order_number }}</span>
+                                <span class="font-black text-slate-950 text-sm font-mono">{{ o.order_number }}</span>
                                 {% if o.channel == 'qr_menu' %}
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200" title="طلب ذاتي منيو رقمي (QR)">📱 QR</span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-blue-100 text-blue-900 border border-blue-300" title="طلب ذاتي منيو رقمي (QR)">📱 QR</span>
                                 {% elif o.channel == 'call_center' %}
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200" title="طلب كول سنتر">📞 هاتف</span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-300" title="طلب كول سنتر">📞 هاتف</span>
                                 {% endif %}
                             </div>
-                            <span class="block text-[10px] text-slate-400">الكاشير: {{ o.cashier|default:"—" }}</span>
+                            <span class="block text-xs font-semibold text-slate-700">الكاشير: {{ o.cashier|default:"—" }}</span>
                         </td>
-                        <td class="td" data-label="النوع">
-                            <span class="rounded px-2 py-0.5 text-[11px] font-medium
-                                {% if o.order_type == 'dine_in' %}bg-blue-50 text-blue-700 border border-blue-200/50
-                                {% elif o.order_type == 'takeaway' %}bg-slate-100 text-slate-700 border border-slate-200
-                                {% else %}bg-purple-50 text-purple-700 border border-purple-200/50{% endif %}">
+                        <td class="px-2.5 py-2" data-label="النوع">
+                            <span class="rounded-md px-2 py-0.5 text-xs font-bold
+                                {% if o.order_type == 'dine_in' %}bg-blue-100 text-blue-900 border border-blue-300
+                                {% elif o.order_type == 'takeaway' %}bg-slate-100 text-slate-900 border border-slate-300
+                                {% else %}bg-purple-100 text-purple-900 border border-purple-300{% endif %}">
                                 {{ o.get_order_type_display }}
                             </span>
                         </td>
-                        <td class="td" data-label="العميل">
-                            <p class="font-semibold text-slate-900">{{ o.customer_name }}</p>
+                        <td class="px-2.5 py-2" data-label="العميل">
+                            <p class="font-bold text-slate-950">{{ o.customer_name }}</p>
                             {% if o.customer_phone %}
-                            <p class="text-[10px] text-slate-400 font-mono" dir="ltr">{{ o.customer_phone }}</p>
+                            <p class="text-xs text-slate-700 font-bold font-mono" dir="ltr">{{ o.customer_phone }}</p>
                             {% endif %}
                         </td>
-                        <td class="td text-slate-600 font-medium" data-label="طريقة الدفع">{{ o.get_pay_method_display }}</td>
-                        <td class="td text-slate-600" data-label="السائق">{{ o.driver.name|default:"—" }}</td>
-                        <td class="td font-bold text-slate-900 font-mono text-sm" data-label="الإجمالي">{{ o.total|floatformat:2 }} {{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
-                        <td class="td" data-label="الحالة">
-                            <span class="rounded-full px-2.5 py-0.5 text-[11px] font-medium
-                                {% if o.status == 'delivered' %}bg-emerald-50 text-emerald-700 border border-emerald-200/60
-                                {% elif o.status == 'ready' %}bg-teal-50 text-teal-700 border border-teal-200/60
-                                {% elif o.status == 'out_for_delivery' %}bg-purple-50 text-purple-700 border border-purple-200/60
-                                {% elif o.status == 'preparing' %}bg-amber-50 text-amber-700 border border-amber-200/60
-                                {% elif o.status == 'cancelled' %}bg-rose-50 text-rose-700 border border-rose-200/60
-                                {% else %}bg-blue-50 text-blue-700 border border-blue-200/60{% endif %}">
+                        <td class="px-2.5 py-2 text-slate-900 font-bold" data-label="طريقة الدفع">{{ o.get_pay_method_display }}</td>
+                        <td class="px-2.5 py-2 text-slate-800 font-bold" data-label="السائق">{{ o.driver.name|default:"—" }}</td>
+                        <td class="px-2.5 py-2 font-black text-blue-900 font-mono text-sm whitespace-nowrap" data-label="الإجمالي">{{ o.total|floatformat:2 }} {{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
+                        <td class="px-2.5 py-2 whitespace-nowrap" data-label="الحالة">
+                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold
+                                {% if o.status == 'delivered' %}bg-emerald-100 text-emerald-900 border border-emerald-300
+                                {% elif o.status == 'ready' %}bg-teal-100 text-teal-900 border border-teal-300
+                                {% elif o.status == 'out_for_delivery' %}bg-indigo-100 text-indigo-900 border border-indigo-300
+                                {% elif o.status == 'preparing' %}bg-amber-100 text-amber-900 border border-amber-300
+                                {% elif o.status == 'cancelled' %}bg-rose-100 text-rose-900 border border-rose-300
+                                {% else %}bg-blue-100 text-blue-900 border border-blue-300{% endif %}">
                                 {{ o.get_status_display }}
                             </span>
                         </td>
-                        <td class="td text-slate-500" data-label="التاريخ والوقت">
-                            <span class="font-medium text-slate-700">{{ o.created_at|date:"j M Y" }}</span>
-                            <span class="block text-[10px] font-mono text-slate-400">{{ o.created_at|time:"H:i" }}</span>
+                        <td class="px-2.5 py-2 text-xs font-bold text-slate-800 whitespace-nowrap" data-label="التاريخ والوقت">
+                            <span class="font-bold text-slate-900">{{ o.created_at|date:"j M Y" }}</span>
+                            <span class="block text-xs font-mono font-bold text-slate-600">{{ o.created_at|time:"H:i" }}</span>
                         </td>
-                        <td class="td text-center" data-label="الإجراءات">
+                        <td class="px-2.5 py-2 text-center" data-label="الإجراءات">
                             <div class="flex items-center justify-center gap-1.5 flex-wrap">
                                 <a 
                                     href="{% url 'order_detail' o.id %}"
                                     title="تفاصيل الطلب والفاتورة"
-                                    class="inline-flex items-center gap-1 rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                                    class="inline-flex items-center gap-1 rounded-lg bg-white border border-slate-300 px-2 py-1 text-xs font-bold text-slate-800 hover:bg-slate-100 transition shadow-2xs"
                                 >
-                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     <span>تفاصيل</span>
                                 </a>
                                 <a 
                                     href="{% url 'order_edit' o.id %}"
                                     title="تعديل الطلب"
-                                    class="inline-flex items-center gap-1 rounded-lg bg-blue-50 border border-blue-200 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition"
+                                    class="inline-flex items-center gap-1 rounded-lg bg-blue-100 border border-blue-300 px-2 py-1 text-xs font-bold text-blue-900 hover:bg-blue-200 transition shadow-2xs"
                                 >
-                                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <svg class="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     <span>تعديل</span>
                                 </a>
                                 <button 
                                     type="button" 
                                     onclick="cancelOrder({{ o.id }}, '{{ o.order_number }}')"
                                     title="إلغاء الطلب"
-                                    class="rounded-lg bg-amber-50 border border-amber-200 p-1.5 text-amber-700 hover:bg-amber-100 transition cursor-pointer"
+                                    class="rounded-lg bg-amber-100 border border-amber-300 p-1 text-amber-900 hover:bg-amber-200 transition cursor-pointer shadow-2xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 </button>
@@ -157,7 +158,7 @@
                                     type="button" 
                                     onclick="deleteOrder({{ o.id }}, '{{ o.order_number }}')"
                                     title="حذف نهائي"
-                                    class="rounded-lg bg-rose-50 border border-rose-200 p-1.5 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                                    class="rounded-lg bg-rose-100 border border-rose-300 p-1 text-rose-900 hover:bg-rose-200 transition cursor-pointer shadow-2xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
@@ -166,24 +167,24 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="py-12 text-center text-xs text-slate-400">لا توجد طلبات مطابقة للبحث</td>
+                        <td colspan="9" class="py-12 text-center text-xs text-slate-600 font-bold">لا توجد طلبات مطابقة للبحث</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% if page_obj.paginator.num_pages > 1 %}
-        <div class="flex items-center justify-between border-t border-slate-200 px-4 py-3 bg-slate-50/70 rounded-b-xl">
-            <div class="text-xs text-slate-500">
-                عرض الصفحة <span class="text-slate-900 font-semibold">{{ page_obj.number }}</span> من <span class="text-slate-900 font-semibold">{{ page_obj.paginator.num_pages }}</span>
+        <div class="flex items-center justify-between border-t border-slate-300 px-4 py-3 bg-slate-50 rounded-b-xl">
+            <div class="text-xs text-slate-700 font-bold">
+                عرض الصفحة <span class="text-slate-950 font-black">{{ page_obj.number }}</span> من <span class="text-slate-950 font-black">{{ page_obj.paginator.num_pages }}</span>
             </div>
             <div class="flex items-center gap-1.5">
                 {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition">السابق</a>
+                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-900 transition shadow-2xs">السابق</a>
                 {% endif %}
-                <span class="px-2 py-1 text-xs font-bold text-slate-900">{{ page_obj.number }}</span>
+                <span class="px-2 py-1 text-xs font-black text-slate-950">{{ page_obj.number }}</span>
                 {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition">التالي</a>
+                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-900 transition shadow-2xs">التالي</a>
                 {% endif %}
             </div>
         </div>

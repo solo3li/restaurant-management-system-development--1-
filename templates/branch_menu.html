@@ -5,85 +5,85 @@
 
 {% block content %}
 {% include "_admin_nav_tabs.html" %}
-<div id="branchMenuApp" class="space-y-3.5 font-sans">
-    <!-- Header (Compact) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-200 pb-3">
+<div id="branchMenuApp" class="space-y-3 font-sans">
+    <!-- Header (Flat Command Toolbar) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-300 pb-2.5">
         <div>
-            <h1 class="text-lg sm:text-xl font-bold font-sans text-slate-900">قائمة أطعمة الفرع وإدارة التوفر</h1>
-            <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+            <h1 class="text-lg sm:text-xl font-black font-sans text-slate-950">قائمة أطعمة الفرع وإدارة التوفر</h1>
+            <p class="text-xs text-slate-700 font-bold mt-0.5 flex items-center gap-1.5">
                 {% if branch %}
-                    <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>فرع: <span class="text-slate-900 font-bold">{{ branch.name }}</span> • التحكم في توفر الأطباق في المطبخ ونقاط البيع</span>
+                    <svg class="w-3.5 h-3.5 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>فرع: <span class="text-slate-950 font-black">{{ branch.name }}</span> • التحكم في توفر الأطباق في المطبخ ونقاط البيع</span>
                 {% else %}
-                    <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <svg class="w-3.5 h-3.5 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>كل الفروع • التعديل يؤثر على الحالة العامة للأصناف</span>
                 {% endif %}
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-1.5">
-            <span class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-2xs">
-                الأصناف: <span class="font-bold text-slate-900 font-sans">{{ items_data|length }}</span>
+            <span class="rounded-lg bg-slate-100 border border-slate-300 px-2.5 py-1 text-xs font-black text-slate-900 shadow-2xs">
+                الأصناف: <span class="font-black text-blue-900 font-mono">{{ items_data|length }}</span>
             </span>
             <a 
                 href="/m/{{ tenant.slug }}/{% if branch %}branch/{{ branch.id }}/{% endif %}" 
                 target="_blank" 
-                class="rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs"
+                class="rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 px-2.5 py-1 text-xs font-black transition flex items-center gap-1.5 shadow-2xs"
             >
-                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 <span>المنيو الرقمي</span>
             </a>
             <button 
                 type="button" 
                 onclick="openQrBrandingModal()" 
-                class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 <span>الـ QR</span>
             </button>
             {% if can_manage_menu %}
             <button 
                 type="button" 
                 onclick="openCategoryModal()" 
-                class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 <span>إدارة الأقسام</span>
             </button>
             <button 
                 type="button" 
                 onclick="openCreateItemModal()" 
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-3 py-1 text-xs shadow-2xs flex items-center gap-1.5"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-3 py-1 text-xs shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 <span>+ إضافة صنف</span>
             </button>
             {% endif %}
         </div>
     </div>
 
-    <!-- Notice Banner (Compact) -->
-    <div class="rounded-xl bg-amber-50/70 border border-amber-200 px-3 py-2 flex items-center gap-2.5 text-amber-900 shadow-2xs text-xs">
-        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <p class="leading-tight text-[11px] text-amber-800">
-            الأصناف المحددة كـ <strong class="text-amber-950 font-bold">"غير متوفر"</strong> تُستبعد فوراً وتلقائياً من شاشات الكاشير (POS) والكول سنتر لتفادي إحراج العملاء.
+    <!-- Notice Banner (Compact High Contrast) -->
+    <div class="rounded-xl bg-amber-100 border border-amber-300 px-3 py-2 flex items-center gap-2.5 text-amber-950 shadow-2xs text-xs font-bold">
+        <svg class="w-4 h-4 text-amber-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="leading-tight text-xs text-amber-950">
+            الأصناف المحددة كـ <strong class="text-amber-950 font-black">"غير متوفر"</strong> تُستبعد فوراً وتلقائياً من شاشات الكاشير (POS) والكول سنتر لتفادي إحراج العملاء.
         </p>
     </div>
 
-    <!-- Filter & Search Bar (Compact) -->
-    <div class="bg-white rounded-xl border border-slate-200 p-2.5 space-y-2">
+    <!-- Filter & Search Bar (Compact High Contrast) -->
+    <div class="bg-white rounded-xl border border-slate-300 p-2.5 space-y-2 shadow-2xs">
         <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-2.5">
             <!-- Category Pills -->
             <div class="flex flex-wrap items-center gap-1">
                 <a 
                     href="?cat=الكل{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-lg px-2.5 py-1 text-xs font-bold transition-all {% if selected_cat == 'الكل' %}bg-blue-600 text-white shadow-2xs{% else %}bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
+                    class="rounded-lg px-2.5 py-1 text-xs font-black transition-all {% if selected_cat == 'الكل' %}bg-blue-600 text-white shadow-2xs{% else %}bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 hover:border-blue-600{% endif %}"
                 >
                     الكل
                 </a>
                 {% for c in category_objs %}
                 <a 
                     href="?cat={{ c.name }}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-lg px-2 py-1 text-xs font-medium transition-all flex items-center gap-1 {% if selected_cat == c.name %}bg-blue-600 text-white font-bold shadow-2xs{% else %}bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
+                    class="rounded-lg px-2 py-1 text-xs font-bold transition-all flex items-center gap-1 {% if selected_cat == c.name %}bg-blue-600 text-white font-black shadow-2xs{% else %}bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 hover:border-blue-600{% endif %}"
                 >
                     {% if c.image %}
                         <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-3.5 h-3.5 rounded-full object-cover">
@@ -106,14 +106,14 @@
                         name="q" 
                         value="{{ search_query }}" 
                         placeholder="ابحث عن وجبة أو مشروب…" 
-                        class="input !py-1 text-xs w-full"
+                        class="input !py-1 text-xs w-full font-bold border-slate-300 placeholder:text-slate-500"
                     >
                 </div>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-3 py-1 text-xs shadow-2xs">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-3 py-1 text-xs shadow-2xs">
                     بحث
                 </button>
                 {% if search_query or selected_cat != 'الكل' %}
-                <a href="{% url 'branch_menu' %}" class="text-xs text-rose-600 hover:underline">إلغاء</a>
+                <a href="{% url 'branch_menu' %}" class="text-xs text-rose-700 font-bold hover:underline">إلغاء</a>
                 {% endif %}
             </div>
         </form>
@@ -124,22 +124,22 @@
         {% for row in items_data %}
         <div 
             id="item-card-{{ row.item.id }}" 
-            class="bg-white rounded-xl border border-slate-200 p-3 flex flex-col justify-between transition-colors hover:border-slate-300 {% if not row.is_available %}opacity-75 bg-slate-50/50 border-rose-200{% endif %}"
+            class="bg-white rounded-xl border border-slate-300 p-3 flex flex-col justify-between transition-colors hover:border-blue-600 shadow-2xs {% if not row.is_available %}opacity-75 bg-slate-50 border-rose-300{% endif %}"
         >
             <div>
                 <!-- Top Row: 36px Image + Name + Category & Actions -->
                 <div class="flex items-start justify-between gap-2 mb-1.5">
                     <div class="flex items-center gap-2 min-w-0 flex-1">
                         {% if row.item.image %}
-                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0">
+                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="w-9 h-9 rounded-lg object-cover border border-slate-300 shrink-0">
                         {% else %}
-                            <span class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-slate-700 shrink-0 text-base">
+                            <span class="w-9 h-9 rounded-lg bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-900 shrink-0 text-base">
                                 {{ row.item.emoji|default:"🍽️" }}
                             </span>
                         {% endif %}
                         <div class="min-w-0 flex-1">
-                            <h3 class="font-bold text-xs text-slate-900 leading-snug truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
-                            <span class="text-[10px] text-slate-400 font-medium truncate block">{{ row.item.category }}</span>
+                            <h3 class="font-black text-xs text-slate-950 leading-snug truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
+                            <span class="text-xs text-slate-700 font-bold truncate block">{{ row.item.category }}</span>
                         </div>
                     </div>
 
@@ -150,15 +150,15 @@
                             <button 
                                 type="button" 
                                 onclick="openEditItemModal({{ row.item.id }})" 
-                                class="w-5 h-5 rounded-md bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-blue-600 transition flex items-center justify-center"
+                                class="w-5 h-5 rounded-md bg-white border border-slate-300 text-slate-700 hover:text-slate-950 hover:border-blue-600 transition flex items-center justify-center shadow-2xs"
                                 title="تعديل بيانات الصنف"
                             >
-                                <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <svg class="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
                             <button 
                                 type="button" 
                                 onclick="deleteMenuItem({{ row.item.id }}, '{{ row.item.name|escapejs }}')" 
-                                class="w-5 h-5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition flex items-center justify-center"
+                                class="w-5 h-5 rounded-md bg-rose-100 border border-rose-300 text-rose-900 hover:bg-rose-200 transition flex items-center justify-center shadow-2xs"
                                 title="حذف الصنف"
                             >
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -166,7 +166,7 @@
                             {% endif %}
                             <span 
                                 id="badge-{{ row.item.id }}" 
-                                class="rounded px-1.5 py-0.5 text-[10px] font-semibold {% if row.is_available %}bg-emerald-50 text-emerald-700 border border-emerald-200/80{% else %}bg-rose-50 text-rose-700 border border-rose-200/80{% endif %}"
+                                class="rounded-md px-1.5 py-0.5 text-xs font-black {% if row.is_available %}bg-emerald-100 text-emerald-900 border border-emerald-300{% else %}bg-rose-100 text-rose-900 border border-rose-300{% endif %}"
                             >
                                 {% if row.is_available %}متوفر{% else %}غير متوفر{% endif %}
                             </span>

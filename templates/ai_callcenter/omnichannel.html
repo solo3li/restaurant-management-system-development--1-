@@ -26,18 +26,18 @@
 <div class="space-y-3 pb-8 font-sans" dir="{{ DIR|default:'rtl' }}">
 
     <!-- ==================== Header & Global Controls ==================== -->
-    <div class="bg-white rounded-xl border border-slate-200 p-2.5 sm:p-3 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+    <div class="bg-white rounded-xl border border-slate-300 p-2.5 sm:p-3 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-2.5">
         <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-700 text-white flex items-center justify-center text-base shadow-2xs shrink-0">
                 💬
             </div>
             <div>
                 <div class="flex flex-wrap items-center gap-1.5">
-                    <h1 class="text-sm font-bold text-slate-800">قنوات الاتصال وصندوق محادثات الواتساب</h1>
-                    <span id="wa-status-badge" class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                    <h1 class="text-sm font-black text-slate-950">قنوات الاتصال وصندوق محادثات الواتساب</h1>
+                    <span id="wa-status-badge" class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
                         جاري الفحص...
                     </span>
-                    <span id="did-status-badge" class="px-2 py-0.2 rounded-full text-[10px] font-bold {% if has_did %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+                    <span id="did-status-badge" class="px-2 py-0.2 rounded-full text-[10px] font-bold {% if has_did %}bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold{% else %}bg-amber-100 text-amber-950 border border-amber-300 font-bold{% endif %}">
                         {% if has_did %}📞 خط: {{ did_number }}{% else %}☁️ سنترال سحابي{% endif %}
                     </span>
                 </div>
@@ -64,7 +64,7 @@
                 type="button" 
                 onclick="openPairingModal()" 
                 id="btn-open-pairing"
-                class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
             >
                 <span>📱 ربط واتساب (QR)</span>
             </button>
@@ -81,7 +81,7 @@
             <button 
                 type="button" 
                 onclick="loadConversationsList()" 
-                class="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200 text-xs transition shadow-2xs cursor-pointer"
+                class="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-300 text-xs transition shadow-2xs cursor-pointer"
                 title="تحديث المحادثات"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,16 +92,16 @@
     </div>
 
     <!-- ==================== Initial Loading State while checking WhatsApp status ==================== -->
-    <div id="wa-checking-state" class="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-3 shadow-2xs min-h-[300px] flex flex-col items-center justify-center">
+    <div id="wa-checking-state" class="bg-white rounded-xl border border-slate-300 p-8 text-center space-y-3 shadow-2xs min-h-[300px] flex flex-col items-center justify-center">
         <div class="w-10 h-10 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
         <div class="space-y-0.5">
-            <p class="text-xs font-bold text-slate-800">جاري التحقق من حالة جلسة الواتساب...</p>
+            <p class="text-xs font-black text-slate-950">جاري التحقق من حالة جلسة الواتساب...</p>
             <p class="text-[11px] text-slate-500">يرجى الانتظار لحظات لمزامنة صندوق المحادثات</p>
         </div>
     </div>
 
     <!-- ==================== WhatsApp Disconnected Gate (Option A) ==================== -->
-    <div id="wa-disconnected-gate" class="hidden bg-white rounded-xl border border-slate-200 p-6 sm:p-8 text-center shadow-2xs min-h-[400px] flex flex-col items-center justify-center">
+    <div id="wa-disconnected-gate" class="hidden bg-white rounded-xl border border-slate-300 p-6 sm:p-8 text-center shadow-2xs min-h-[400px] flex flex-col items-center justify-center">
         <div class="max-w-md mx-auto space-y-4">
             <!-- Icon Badge -->
             <div class="relative w-14 h-14 mx-auto">
@@ -115,7 +115,7 @@
 
             <!-- Title & Subtitle -->
             <div class="space-y-1">
-                <h2 class="text-base font-bold text-slate-800">
+                <h2 class="text-base font-black text-slate-950">
                     ربط واتساب المطعم مطلوب للبدء
                 </h2>
                 <p class="text-xs text-slate-500 font-normal leading-normal">
@@ -125,19 +125,19 @@
 
             <!-- Steps Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-right pt-1">
-                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-0.5">
+                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-300 space-y-0.5">
                     <span class="inline-flex w-5 h-5 rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold items-center justify-center">1</span>
-                    <h4 class="text-xs font-bold text-slate-800">طلب الرمز</h4>
+                    <h4 class="text-xs font-black text-slate-950">طلب الرمز</h4>
                     <p class="text-[10px] text-slate-500">اضغط زر الربط لتوليد QR Code.</p>
                 </div>
-                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-0.5">
+                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-300 space-y-0.5">
                     <span class="inline-flex w-5 h-5 rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold items-center justify-center">2</span>
-                    <h4 class="text-xs font-bold text-slate-800">مسح الرمز</h4>
+                    <h4 class="text-xs font-black text-slate-950">مسح الرمز</h4>
                     <p class="text-[10px] text-slate-500">الأجهزة المرتبطة > ربط جهاز.</p>
                 </div>
-                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-0.5">
+                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-300 space-y-0.5">
                     <span class="inline-flex w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold items-center justify-center">3</span>
-                    <h4 class="text-xs font-bold text-slate-800">فتح المحادثات</h4>
+                    <h4 class="text-xs font-black text-slate-950">فتح المحادثات</h4>
                     <p class="text-[10px] text-slate-500">تفتح الشاشة تلقائياً للبدء.</p>
                 </div>
             </div>
@@ -155,7 +155,7 @@
                 <button 
                     type="button" 
                     onclick="refreshWhatsAppStatus(true)" 
-                    class="px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                    class="px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
                 >
                     <span>🔄</span>
                     <span>إعادة الفحص</span>
@@ -165,13 +165,13 @@
     </div>
 
     <!-- ==================== Main Omnichannel Chat Workspace ==================== -->
-    <div id="omnichannel-workspace" class="hidden bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[560px] h-[75vh] max-h-[800px]">
+    <div id="omnichannel-workspace" class="hidden bg-white rounded-xl border border-slate-300 shadow-2xs overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[560px] h-[75vh] max-h-[800px]">
 
         <!-- ==================== Right Side: Conversations Sidebar (4 cols) ==================== -->
-        <div class="lg:col-span-4 border-b lg:border-b-0 lg:border-l border-slate-200 flex flex-col bg-slate-50/40 min-h-0">
+        <div class="lg:col-span-4 border-b lg:border-b-0 lg:border-l border-slate-300 flex flex-col bg-slate-50/40 min-h-0">
             
             <!-- Search & Filters Toolbar -->
-            <div class="p-2.5 border-b border-slate-200 bg-white space-y-2">
+            <div class="p-2.5 border-b border-slate-300 bg-white space-y-2">
                 <div class="relative">
                     <span class="absolute inset-y-0 right-2.5 flex items-center text-slate-400 text-xs">🔍</span>
                     <input 
@@ -179,7 +179,7 @@
                         id="search-conversations"
                         placeholder="بحث بالاسم أو الهاتف..." 
                         oninput="handleSearchConversations(this.value)"
-                        class="w-full bg-slate-50 border border-slate-200 rounded-lg pr-7 pl-2.5 py-1 text-xs text-slate-800 focus:ring-1 focus:ring-brand-500 focus:outline-none transition"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-lg pr-7 pl-2.5 py-1 text-xs text-slate-800 focus:ring-1 focus:ring-brand-500 focus:outline-none transition"
                     />
                 </div>
 
@@ -209,7 +209,7 @@
             </div>
 
             <!-- Conversation List Items Container -->
-            <div id="conversations-list-container" class="flex-1 overflow-y-auto chat-scroll divide-y divide-slate-100">
+            <div id="conversations-list-container" class="flex-1 overflow-y-auto chat-scroll divide-y divide-slate-200">
                 <!-- Loading Skeleton -->
                 <div id="conv-loading-state" class="p-3 space-y-2">
                     <div class="flex items-center gap-2.5 animate-pulse">
@@ -239,7 +239,7 @@
             </div>
 
             <!-- Sidebar Footer Status -->
-            <div class="p-2 border-t border-slate-200 bg-white flex items-center justify-between text-[10px] text-slate-500 font-medium px-2.5">
+            <div class="p-2 border-t border-slate-300 bg-white flex items-center justify-between text-[10px] text-slate-500 font-medium px-2.5">
                 <span id="conv-total-count">0 محادثة</span>
                 <button type="button" onclick="openTestModal()" class="text-brand-600 hover:underline flex items-center gap-0.5 cursor-pointer font-bold">
                     ⚡ إرسال تجريبي
@@ -255,7 +255,7 @@
                 <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-2xs border border-emerald-100">
                     💬
                 </div>
-                <h3 class="text-xs font-bold text-slate-800">حدد محادثة من القائمة للبدء</h3>
+                <h3 class="text-xs font-black text-slate-950">حدد محادثة من القائمة للبدء</h3>
                 <p class="text-[11px] text-slate-400 max-w-xs">
                     مراقبة ردود الموظف الذكي، الرد يدوياً على العميل، أو إجراء اتصال صوتي ذكي مباشر.
                 </p>
@@ -265,15 +265,15 @@
             <div id="chat-active-workspace" class="hidden flex-1 flex flex-col min-h-0">
 
                 <!-- Thread Header -->
-                <div class="p-2.5 px-3.5 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="p-2.5 px-3.5 border-b border-slate-300 bg-white flex flex-wrap items-center justify-between gap-2 shrink-0">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-full bg-brand-50 border border-brand-200 text-brand-700 flex items-center justify-center font-bold text-xs shrink-0" id="chat-avatar">
                             ع
                         </div>
                         <div>
                             <div class="flex items-center gap-1.5">
-                                <h2 class="text-xs font-bold text-slate-800" id="chat-customer-name">اسم العميل</h2>
-                                <span id="chat-ai-status-badge" class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <h2 class="text-xs font-black text-slate-950" id="chat-customer-name">اسم العميل</h2>
+                                <span id="chat-ai-status-badge" class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold">
                                     🤖 AI نشط
                                 </span>
                             </div>
@@ -302,7 +302,7 @@
                             type="button" 
                             id="btn-dial-customer"
                             onclick="dialActiveCustomer()"
-                            class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                            class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
                             title="إجراء مكالمة صوتية فورية"
                         >
                             <span>📞 اتصال</span>
@@ -312,7 +312,7 @@
                         <button 
                             type="button" 
                             onclick="reloadActiveMessages()"
-                            class="p-1 rounded-lg bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200 text-xs transition cursor-pointer"
+                            class="p-1 rounded-lg bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-300 text-xs transition cursor-pointer"
                             title="تحديث الرسائل"
                         >
                             🔄
@@ -343,31 +343,31 @@
                 </div>
 
                 <!-- Quick Canned Replies Bar -->
-                <div id="chat-canned-bar" class="px-3 py-1 border-t border-slate-200 bg-slate-50 flex items-center gap-1.5 overflow-x-auto text-[10px] scrollbar-none">
+                <div id="chat-canned-bar" class="px-3 py-1 border-t border-slate-300 bg-slate-50 flex items-center gap-1.5 overflow-x-auto text-[10px] scrollbar-none">
                     <span class="text-slate-400 font-bold shrink-0">ردود سريعة:</span>
-                    <button type="button" onclick="insertCannedReply('تم تأكيد طلبك وجاري تحضيره بعناية 👨‍🍳')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-200 text-slate-700 font-medium shrink-0 transition cursor-pointer">
+                    <button type="button" onclick="insertCannedReply('تم تأكيد طلبك وجاري تحضيره بعناية 👨‍🍳')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-300 text-slate-700 font-medium shrink-0 transition cursor-pointer">
                         👨‍🍳 جاري التحضير
                     </button>
-                    <button type="button" onclick="insertCannedReply('طلبك مع المندوب وفي الطريق إليك الآن 🛵')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-200 text-slate-700 font-medium shrink-0 transition cursor-pointer">
+                    <button type="button" onclick="insertCannedReply('طلبك مع المندوب وفي الطريق إليك الآن 🛵')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-300 text-slate-700 font-medium shrink-0 transition cursor-pointer">
                         🛵 مع المندوب
                     </button>
-                    <button type="button" onclick="insertCannedReply('أهلاً بك في مطعم {{ tenant.name }}! كيف يمكننا مساعدتك اليوم؟ ✨')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-200 text-slate-700 font-medium shrink-0 transition cursor-pointer">
+                    <button type="button" onclick="insertCannedReply('أهلاً بك في مطعم {{ tenant.name }}! كيف يمكننا مساعدتك اليوم؟ ✨')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-300 text-slate-700 font-medium shrink-0 transition cursor-pointer">
                         ✨ ترحيب
                     </button>
-                    <button type="button" onclick="insertCannedReply('نسعد بخدمتك دائماً ونشكرك لاختيارك لنا! ❤️')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-200 text-slate-700 font-medium shrink-0 transition cursor-pointer">
+                    <button type="button" onclick="insertCannedReply('نسعد بخدمتك دائماً ونشكرك لاختيارك لنا! ❤️')" class="px-2 py-0.5 rounded bg-white hover:bg-brand-50 border border-slate-300 text-slate-700 font-medium shrink-0 transition cursor-pointer">
                         ❤️ شكر
                     </button>
                 </div>
 
                 <!-- Manual Reply Input Bar -->
-                <div id="chat-input-bar" class="p-2 border-t border-slate-200 bg-white flex items-end gap-1.5 shrink-0">
+                <div id="chat-input-bar" class="p-2 border-t border-slate-300 bg-white flex items-end gap-1.5 shrink-0">
                     <div class="flex-1 relative">
                         <textarea 
                             id="reply-input-text" 
                             rows="2" 
                             placeholder="اكتب ردك المباشر للعميل عبر الواتساب... (Ctrl+Enter للإرسال)"
                             onkeydown="handleReplyKeydown(event)"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:ring-1 focus:ring-brand-500 focus:outline-none resize-none transition"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:ring-1 focus:ring-brand-500 focus:outline-none resize-none transition"
                         ></textarea>
                     </div>
                     <button 
@@ -382,9 +382,9 @@
                 </div>
 
                 <!-- Read-Only / Restricted Chat Banner -->
-                <div id="chat-read-only-banner" class="hidden p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-center gap-2 text-xs font-medium text-slate-500 shrink-0">
+                <div id="chat-read-only-banner" class="hidden p-3 border-t border-slate-300 bg-slate-50 flex items-center justify-center gap-2 text-xs font-medium text-slate-500 shrink-0">
                     <span class="text-sm text-slate-400">🔒</span>
-                    <span id="read-only-banner-text" class="text-slate-800 font-bold">المشرفون فقط هم من يستطيعون إرسال الرسائل في هذه المجموعة.</span>
+                    <span id="read-only-banner-text" class="text-slate-950 font-black">المشرفون فقط هم من يستطيعون إرسال الرسائل في هذه المجموعة.</span>
                 </div>
 
             </div>
@@ -392,10 +392,10 @@
     </div>
 
     <!-- ==================== Section 2: PBX Trunks & Assigned Telephony Numbers ==================== -->
-    <div class="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 space-y-3 shadow-2xs">
-        <div class="border-b border-slate-200 pb-2.5 flex items-center justify-between">
+    <div class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-3 shadow-2xs">
+        <div class="border-b border-slate-300 pb-2.5 flex items-center justify-between">
             <div>
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                     <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-50 text-amber-700 text-xs">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
                     </span>
@@ -403,15 +403,15 @@
                 </h3>
                 <p class="text-[11px] text-slate-500 font-normal mt-0.5">الأرقام الافتراضية المخصصة للمطعم وربطها التلقائي مع المساعد الصوتي الذكي</p>
             </div>
-            <button type="button" onclick="loadTelephonyInfo()" class="py-1 px-2.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-bold transition cursor-pointer flex items-center gap-1 shadow-2xs">
+            <button type="button" onclick="loadTelephonyInfo()" class="py-1 px-2.5 rounded-lg bg-white border border-slate-300 text-slate-600 hover:text-slate-950 text-xs font-bold transition cursor-pointer flex items-center gap-1 shadow-2xs">
                 🔄 <span>تحديث الخطوط</span>
             </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5" id="telephony-info-grid">
             <!-- Numbers Card -->
-            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
-                <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-300 space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-black text-slate-950">
                     <span>أرقام الهواتف المخصصة (DIDs):</span>
                     <span id="did-count-badge" class="px-1.5 py-0.2 rounded-full {% if has_did %}bg-emerald-100 text-emerald-800{% else %}bg-slate-200 text-slate-700{% endif %} text-[10px] font-bold">
                         {% if has_did %}1 مخصص{% else %}0 مخصص{% endif %}
@@ -419,13 +419,13 @@
                 </div>
                 <div id="telephony-numbers-list" class="space-y-1 pt-0.5">
                     {% if has_did %}
-                    <div class="flex items-center justify-between p-2 bg-white rounded-md border border-slate-200 text-xs font-mono font-bold text-brand-700" dir="ltr">
+                    <div class="flex items-center justify-between p-2 bg-white rounded-md border border-slate-300 text-xs font-mono font-bold text-brand-700" dir="ltr">
                         <span>{{ did_number }}</span>
-                        <span class="text-[9px] font-sans px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">نشط وموجه للمساعد</span>
+                        <span class="text-[9px] font-sans px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold">نشط وموجه للمساعد</span>
                     </div>
                     {% else %}
-                    <div class="p-2 bg-white rounded-md border border-dashed border-slate-200 text-xs space-y-0.5">
-                        <p class="font-bold text-slate-800">لم يتم تعيين رقم هاتف مباشر (DID) خاص بعد</p>
+                    <div class="p-2 bg-white rounded-md border border-dashed border-slate-300 text-xs space-y-0.5">
+                        <p class="font-black text-slate-950">لم يتم تعيين رقم هاتف مباشر (DID) خاص بعد</p>
                         <p class="text-[10px] text-slate-400">المكالمات تعمل عبر السنترال السحابي الموحد تلقائياً وتوجه للمساعد الذكي.</p>
                     </div>
                     {% endif %}
@@ -433,19 +433,19 @@
             </div>
 
             <!-- PBX Trunk Card -->
-            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
-                <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-300 space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-black text-slate-950">
                     <span>حالة الخط والربط الصوتي:</span>
                     <span class="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">متصل ونشط 24/7</span>
                 </div>
                 <div class="space-y-1 text-xs">
-                    <div class="flex justify-between py-0.5 border-b border-slate-200">
+                    <div class="flex justify-between py-0.5 border-b border-slate-300">
                         <span class="text-slate-500">حالة الاستقبال:</span>
                         <span class="font-bold text-emerald-700">توجيه فوري إلى المساعد الصوتي</span>
                     </div>
-                    <div class="flex justify-between py-0.5 border-b border-slate-200">
+                    <div class="flex justify-between py-0.5 border-b border-slate-300">
                         <span class="text-slate-500">بروتوكول البث:</span>
-                        <span class="font-bold text-slate-800">صوت عالي الدقة (HD Opus)</span>
+                        <span class="font-black text-slate-950">صوت عالي الدقة (HD Opus)</span>
                     </div>
                     <div class="flex justify-between py-0.5">
                         <span class="text-slate-500">حماية وتشفير:</span>
@@ -462,9 +462,9 @@
 
 <!-- 1. WhatsApp Pairing Modal -->
 <div id="wa-pair-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs hidden">
-    <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+    <div class="bg-white border border-slate-300 rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
+            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                 <span>📱</span>
                 <span>ربط رقم واتساب المطعم</span>
             </h3>
@@ -472,7 +472,7 @@
         </div>
 
         <div class="text-xs text-slate-500 space-y-0.5">
-            <p class="font-bold text-slate-800">خطوات الربط عبر الهاتف:</p>
+            <p class="font-black text-slate-950">خطوات الربط عبر الهاتف:</p>
             <ol class="list-decimal list-inside space-y-0.5 text-[11px]">
                 <li>افتح تطبيق واتساب على هاتفك.</li>
                 <li>انتقل إلى <strong>الإعدادات</strong> واختر <strong>الأجهزة المرتبطة</strong>.</li>
@@ -481,7 +481,7 @@
         </div>
 
         <!-- QR Display Box -->
-        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center min-h-[200px]">
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-300 flex flex-col items-center justify-center min-h-[200px]">
             <div id="modal-qr-loading" class="text-center space-y-1.5">
                 <div class="w-7 h-7 border-2 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 <p class="text-xs text-slate-500 font-medium">جاري توليد كود QR للجلسة...</p>
@@ -489,7 +489,7 @@
             <div id="modal-qr-box" class="hidden"></div>
             <div id="modal-pairing-code-box" class="hidden mt-2 text-center">
                 <span class="text-[10px] text-slate-500">أو أدخل كود الاقتران التالي في هاتفك:</span>
-                <div id="modal-pairing-code" class="mt-1 font-mono text-sm font-bold tracking-widest text-brand-700 bg-white p-1.5 rounded-lg border border-slate-200"></div>
+                <div id="modal-pairing-code" class="mt-1 font-mono text-sm font-bold tracking-widest text-brand-700 bg-white p-1.5 rounded-lg border border-slate-300"></div>
             </div>
         </div>
 
@@ -509,9 +509,9 @@
 
 <!-- 2. Outbound AI Call Modal -->
 <div id="outbound-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs hidden">
-    <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+    <div class="bg-white border border-slate-300 rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
+            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                 <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 text-xs">📞</span>
                 <span>بدء اتصال صوتي ذكي بالعميل (Outbound AI)</span>
             </h3>
@@ -541,9 +541,9 @@
 
 <!-- 3. Quick Test Message Modal -->
 <div id="test-msg-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs hidden">
-    <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+    <div class="bg-white border border-slate-300 rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
+            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
                 <span>⚡</span>
                 <span>إرسال رسالة تجريبية سريعة عبر واتساب</span>
             </h3>
@@ -624,7 +624,7 @@ async function refreshWhatsAppStatus(notifyManual = false) {
         }
 
         if (isConnected) {
-            badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200';
+            badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold';
             badge.textContent = '🟢 واتساب متصل بنجاح';
             if (disconnectBtn) disconnectBtn.classList.remove('hidden');
             if (syncBtn) {
@@ -682,10 +682,10 @@ async function refreshWhatsAppStatus(notifyManual = false) {
         } else {
             // Not connected: strictly lock out and show connection gate
             if (data.state === 'qrcode' || data.qr || data.state === 'connecting') {
-                badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-200';
+                badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-950 border border-amber-300 font-bold';
                 badge.textContent = '🟡 بانتظار مسح الرمز';
             } else {
-                badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200';
+                badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-100 text-rose-950 border border-rose-300 font-bold';
                 badge.textContent = '🔴 واتساب غير متصل';
             }
 
@@ -955,14 +955,14 @@ function renderConversations(searchQuery = '') {
 
         let typeBadge = '';
         if (conv.chat_type === 'channel') {
-            typeBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-amber-50 text-amber-700 border border-amber-200 shrink-0">📢 قناة</span>';
+            typeBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-amber-100 text-amber-950 border border-amber-300 font-bold shrink-0">📢 قناة</span>';
         } else if (conv.can_send === false) {
             typeBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-stone-100 text-stone-600 border border-stone-200 shrink-0">🔒 للقراءة فقط</span>';
         }
 
         let escalationBadge = '';
         if (conv.needs_human_attention) {
-            escalationBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-rose-50 text-rose-700 border border-rose-200 shrink-0 flex items-center gap-1 animate-pulse" title="${conv.escalation_reason || 'شكوى'}">⚠️ شكوى</span>`;
+            escalationBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-rose-100 text-rose-950 border border-rose-300 font-bold shrink-0 flex items-center gap-1 animate-pulse" title="${conv.escalation_reason || 'شكوى'}">⚠️ شكوى</span>`;
         }
 
         let statusDotClass = 'bg-amber-400';
@@ -1102,12 +1102,12 @@ function updateAiButtonUI(aiActive) {
     const text = document.getElementById('ai-toggle-text');
 
     if (aiActive) {
-        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold';
         badge.textContent = '🤖 AI نشط';
         btn.className = 'px-3 py-1.5 rounded-xl border text-xs font-black transition flex items-center gap-1.5 cursor-pointer bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
         text.textContent = 'الـ AI مفعل';
     } else {
-        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-950 border border-amber-300 font-bold';
         badge.textContent = '👤 تدخل بشري';
         btn.className = 'px-3 py-1.5 rounded-xl border text-xs font-black transition flex items-center gap-1.5 cursor-pointer bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100';
         text.textContent = 'الـ AI معطل';
@@ -1176,7 +1176,7 @@ function renderMessageMedia(msg) {
                         1x
                     </button>
 
-                    <div class="w-7 h-7 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0 text-xs" title="تسجيل صوتي PTT">
+                    <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold flex items-center justify-center shrink-0 text-xs" title="تسجيل صوتي PTT">
                         🎤
                     </div>
                 </div>
@@ -1746,7 +1746,7 @@ async function loadTelephonyInfo() {
                         const numStr = typeof n === 'string' ? n : (n.phone_number || n.number || '—');
                         return `<div class="flex items-center justify-between p-2.5 bg-card rounded-lg border border-line text-xs font-mono font-black text-brand-700" dir="ltr">
                             <span>${numStr}</span>
-                            <span class="text-[10px] font-sans px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">نشط وموجه للمساعد</span>
+                            <span class="text-[10px] font-sans px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold">نشط وموجه للمساعد</span>
                         </div>`;
                     }).join('');
                 } else {
