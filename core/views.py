@@ -1698,10 +1698,12 @@ def pos_view(request):
         recent_orders = recent_orders.filter(branch=branch)
 
     currency_sym = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+    branches = list(tenant.branches.filter(status="active").order_by("name")) if tenant else []
 
     context = {
         "tenant": tenant,
         "current_branch": branch,
+        "branches": branches,
         "categories": categories,
         "menu_items": menu_items,
         "recent_orders": recent_orders[:10],
