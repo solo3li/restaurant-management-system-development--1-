@@ -602,56 +602,18 @@
             </div>
             {% endif %}
 
-            <!-- 5. AI Call Center (Nested Accordion) -->
+            <!-- 5. AI Call Center (Single Clean Nav Item) -->
             {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
-            <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-ai')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+            <div class="nav-item-wrapper relative">
+                <a href="{% url 'ai_callcenter_overview' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}bg-blue-50 text-blue-600 font-semibold shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/><circle cx="12" cy="11" r="1"/></svg>
                         </span>
-                        <span class="sidebar-text">{{ t.nav_ai_callcenter }}</span>
+                        <span class="sidebar-text">{{ t.nav_ai_callcenter|default:"كول سنتر الذكاء الاصطناعي" }}</span>
                     </div>
-                    <span id="acc-ai-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
-                </button>
-                <div id="acc-ai-content" class="{% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
-                    <a href="{% url 'call_center' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'call_center' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_live }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_overview' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_overview }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_persona' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_persona' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_persona }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_hours' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_hours' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_hours }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_knowledge' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_knowledge' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_knowledge }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_queues' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_queues' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_queues }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_calls' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_calls' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_calls }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_capabilities' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_capabilities' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_capabilities }}</span>
-                    </a>
-                    <a href="{% url 'ai_callcenter_omnichannel' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'ai_callcenter_omnichannel' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_callcenter_omnichannel }}</span>
-                    </a>
-                </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold sidebar-text">AI</span>
+                </a>
             </div>
             {% endif %}
 
