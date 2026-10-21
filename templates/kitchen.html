@@ -4,103 +4,56 @@
 {% block title %}شاشة المطبخ وإدارة المحطات (KDS Live) — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
-<div class="space-y-5 font-sans">
+<div class="space-y-3 font-sans">
 
     <!-- ======================================================== -->
-    <!-- KDS CONTROL HEADER: Live SSE Status, Stations, Actions   -->
+    <!-- KDS COMPACT UNIFIED CONTROL & STATIONS TOOLBAR           -->
     <!-- ======================================================== -->
-    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div class="bg-white rounded-xl p-2.5 sm:p-3 border border-slate-200 shadow-2xs flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2.5">
         
-        <!-- Left: Icon & Title -->
-        <div class="flex items-center gap-3.5">
-            <div class="h-11 w-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        <!-- Left: Status Badge & Live Beacon -->
+        <div class="flex items-center gap-2 shrink-0 flex-wrap">
+            <div class="flex items-center gap-1.5">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 border border-blue-200 text-blue-600">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                </span>
+                <span class="text-sm font-bold text-slate-900 tracking-tight">المطبخ KDS</span>
+                <span id="header-total-badge" class="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-bold text-blue-700">
+                    <span id="total-pending-count">{{ total_pending }}</span>
+                </span>
             </div>
-            <div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                        شاشة المطبخ وإدارة المحطات
-                    </h1>
-                    <span id="header-total-badge" class="rounded-full bg-blue-50 border border-blue-200 px-3 py-0.5 text-xs font-bold text-blue-700">
-                        <span id="total-pending-count">{{ total_pending }}</span> طلب نشط
-                    </span>
-                </div>
-                <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <span id="active-branch-label">{% if branch %}{{ branch.name }}{% else %}كافة الفروع{% endif %}</span>
-                    </span>
-                    <span>•</span>
-                    <span>بث حي بالملي ثانية عبر SSE بدون إعادة تحميل</span>
-                </p>
-            </div>
-        </div>
 
-        <!-- Right: Real-Time SSE Indicator & Toolbar -->
-        <div class="flex flex-wrap items-center gap-2.5">
-            
             <!-- SSE Connection Status Beacon -->
-            <div id="sse-status-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 transition">
-                <span id="sse-status-dot" class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-                <span id="sse-status-text" class="text-emerald-600 font-bold">متصل بالبث المباشر (0ms)</span>
+            <div id="sse-status-pill" class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700">
+                <span id="sse-status-dot" class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <span id="sse-status-text" class="text-emerald-600 font-bold">مباشر 0ms</span>
             </div>
 
-            <!-- Audio Chime Toggle -->
-            <button 
-                id="btn-sound-toggle" 
-                type="button" 
-                onclick="toggleSound()" 
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 transition cursor-pointer"
-                title="تفعيل أو كتم جرس تنبيه المطبخ"
-            >
-                <span id="sound-icon">🔔</span>
-                <span id="sound-label">جرس التنبيه: مفعّل</span>
-            </button>
-
-            <!-- Fullscreen Toggle -->
-            <button 
-                type="button" 
-                onclick="toggleFullscreen()" 
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 transition cursor-pointer"
-                title="وضع ملء الشاشة لشاشات العرض الجدارية"
-            >
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                <span class="hidden sm:inline">ملء الشاشة</span>
-            </button>
-
-            <!-- Branch Filter Dropdown (if multiple branches exist) -->
+            <!-- Branch Filter Dropdown -->
             {% if branches and branches|length > 1 %}
             <select 
                 id="kds-branch-select" 
                 onchange="changeBranchFilter(this.value)" 
-                class="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
-                <option value="" {% if not target_branch_id %}selected{% endif %}>كل الفروع (شاشة عامة)</option>
+                <option value="" {% if not target_branch_id %}selected{% endif %}>كل الفروع</option>
                 {% for b in branches %}
                 <option value="{{ b.id }}" {% if target_branch_id == b.id %}selected{% endif %}>{{ b.name }}</option>
                 {% endfor %}
             </select>
             {% endif %}
-
         </div>
 
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- KITCHEN STATIONS & CATEGORIES FILTER BAR                 -->
-    <!-- ======================================================== -->
-    <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        
-        <!-- Stations Horizontal Scrollable Pills -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 text-xs font-bold no-scrollbar" id="stations-pills-container">
+        <!-- Center: Stations Scrollable Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 xl:pb-0 text-xs font-bold no-scrollbar flex-1 xl:max-w-xl" id="stations-pills-container">
             <button 
                 type="button" 
                 onclick="setStationFilter('all')" 
                 id="station-pill-all" 
-                class="station-pill active px-4 py-2 rounded-xl border border-blue-600 bg-blue-600 text-white shadow-sm shrink-0 flex items-center gap-2 transition"
+                class="station-pill active px-3 py-1.5 rounded-lg border border-blue-600 bg-blue-600 text-white shadow-none shrink-0 flex items-center gap-1.5 transition text-xs font-bold cursor-pointer"
             >
-                <span>🍽️ كافة الأقسام</span>
-                <span id="badge-station-all" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[11px] font-bold">{{ total_pending }}</span>
+                <span>🍽️ الكل</span>
+                <span id="badge-station-all" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-bold">{{ total_pending }}</span>
             </button>
             
             {% for cat in menu_categories %}
@@ -108,7 +61,7 @@
                 type="button" 
                 onclick="setStationFilter('{{ cat }}')" 
                 id="station-pill-{{ cat|slugify }}" 
-                class="station-pill px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 shrink-0 flex items-center gap-1.5 transition"
+                class="station-pill px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 shrink-0 flex items-center gap-1.5 transition text-xs font-semibold cursor-pointer"
             >
                 <span>{{ cat }}</span>
                 <span id="badge-station-{{ cat|slugify }}" class="station-count-badge px-1.5 py-0.2 rounded-full bg-slate-200 text-[10px] font-bold text-slate-800">
@@ -118,44 +71,70 @@
             {% endfor %}
         </div>
 
-        <!-- Quick Search & Station Actions Indicator -->
-        <div class="flex items-center gap-2 shrink-0">
-            <button 
-                type="button" 
-                id="toggle-completed-btn"
-                onclick="toggleShowCompleted()" 
-                class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition shrink-0 flex items-center gap-1.5 cursor-pointer"
-                title="إظهار أو إخفاء الطلبات المكتملة في هذا القسم"
-            >
-                <span id="toggle-completed-icon">👁️</span>
-                <span class="hidden sm:inline" id="toggle-completed-text">المكتملة</span>
-            </button>
-            <div class="relative w-full sm:w-56">
+        <!-- Right: Search, Sound, Fullscreen & Refresh -->
+        <div class="flex items-center gap-1.5 shrink-0">
+            <!-- Search -->
+            <div class="relative w-36 sm:w-44">
                 <input 
                     type="text" 
                     id="kds-search-input" 
                     oninput="handleSearch(this.value)" 
-                    placeholder="بحث برقم الطلب أو اسم الصنف..." 
-                    class="w-full pl-3 pr-8 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white"
+                    placeholder="بحث برقم الطلب..." 
+                    class="w-full pl-2 pr-7 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white"
                 >
-                <svg class="w-4 h-4 text-slate-400 absolute right-2.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
+
+            <!-- Toggle Completed In Station -->
+            <button 
+                type="button" 
+                id="toggle-completed-btn"
+                onclick="toggleShowCompleted()" 
+                class="h-7 px-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium transition flex items-center gap-1 cursor-pointer"
+                title="إظهار / إخفاء المكتملة"
+            >
+                <span id="toggle-completed-icon">👁️</span>
+                <span class="hidden sm:inline" id="toggle-completed-text">المكتملة</span>
+            </button>
+
+            <!-- Sound toggle -->
+            <button 
+                id="btn-sound-toggle" 
+                type="button" 
+                onclick="toggleSound()" 
+                class="h-7 px-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 transition flex items-center gap-1 cursor-pointer"
+                title="تفعيل أو كتم جرس تنبيه المطبخ"
+            >
+                <span id="sound-icon">🔔</span>
+            </button>
+
+            <!-- Fullscreen -->
+            <button 
+                type="button" 
+                onclick="toggleFullscreen()" 
+                class="h-7 w-7 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition flex items-center justify-center cursor-pointer"
+                title="ملء الشاشة"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            </button>
+
+            <!-- Manual Refresh -->
             <button 
                 type="button" 
                 onclick="manualRefresh()" 
-                class="h-8 w-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 transition shrink-0 cursor-pointer"
+                class="h-7 w-7 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition flex items-center justify-center cursor-pointer"
                 title="مزامنة فورية"
             >
-                <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <svg id="refresh-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
         </div>
 
     </div>
 
     <!-- ======================================================== -->
-    <!-- KITCHEN ORDERS GRID CONTAINER                            -->
+    <!-- KITCHEN ORDERS GRID CONTAINER (High-Density Columns)     -->
     <!-- ======================================================== -->
-    <div id="kitchen-orders-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 font-sans min-h-[350px]">
+    <div id="kitchen-orders-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3 font-sans min-h-[350px]">
         <!-- Cards are dynamically rendered and updated in real-time -->
     </div>
 
@@ -595,13 +574,13 @@
             ? (order.items || []).filter(it => it.category === activeStationFilter)
             : (order.items || []);
 
-        // Timer badge color thresholds
+        // Timer badge color thresholds (A4 Choice: Normal <5m Green, Warning 5-10m Amber, Urgent >10m Red pulsing)
         let timerColorClass = 'text-emerald-700 bg-emerald-50 border-emerald-200';
         let topBorderClass = 'border-t-2 border-t-emerald-500';
-        if (order.elapsed_minutes > 15) {
+        if (order.elapsed_minutes > 10) {
             timerColorClass = 'text-rose-700 bg-rose-50 border-rose-200 animate-pulse font-bold';
             topBorderClass = 'border-t-2 border-t-rose-500';
-        } else if (order.elapsed_minutes > 8) {
+        } else if (order.elapsed_minutes > 5) {
             timerColorClass = 'text-amber-700 bg-amber-50 border-amber-200 font-bold';
             topBorderClass = 'border-t-2 border-t-amber-500';
         }
@@ -620,7 +599,7 @@
         const progressPct = totalItemsInView > 0 ? Math.round((checkedCountInView / totalItemsInView) * 100) : 0;
         const isStationAllDone = totalItemsInView > 0 && checkedCountInView === totalItemsInView;
 
-        // Items list HTML - Strictly showing relevant items only!
+        // Items list HTML - Compact discrete box per item with checkbox (A2 Choice)
         let itemsHtml = '';
         relevantItems.forEach(it => {
             const isChecked = !!checkedItemsState[`order_${order.id}_item_${it.id}`];
@@ -628,17 +607,17 @@
             itemsHtml += `
                 <div 
                     onclick="toggleItemCheck(${order.id}, ${it.id})" 
-                    class="flex items-center gap-2.5 p-2 rounded-xl border ${isChecked ? 'opacity-50 line-through bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200 hover:border-blue-400'} transition cursor-pointer select-none"
+                    class="flex items-center gap-2 p-1.5 rounded-lg border ${isChecked ? 'opacity-50 line-through bg-emerald-50/70 border-emerald-200' : 'bg-white border-slate-200 hover:border-blue-400'} transition cursor-pointer select-none"
                 >
-                    <div class="h-4 w-4 rounded border ${isChecked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300 bg-white'} flex items-center justify-center shrink-0">
-                        ${isChecked ? '<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+                    <div class="h-3.5 w-3.5 rounded border ${isChecked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300 bg-white'} flex items-center justify-center shrink-0">
+                        ${isChecked ? '<svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
                     </div>
-                    <div class="flex-1 min-w-0 flex items-center justify-between gap-1.5">
-                        <span class="text-xs font-bold text-slate-800 leading-snug truncate">
-                            <span class="text-blue-600 font-bold">${it.qty}x</span> ${it.name}
+                    <div class="flex-1 min-w-0 flex items-center justify-between gap-1">
+                        <span class="text-xs font-bold text-slate-800 leading-tight truncate">
+                            <span class="text-blue-600 font-bold">${it.qty}×</span> ${it.name}
                         </span>
                         ${isStationMode ? `
-                            <span class="text-[10px] font-semibold text-slate-500">
+                            <span class="text-[10px] font-semibold text-slate-500 shrink-0">
                                 ${it.qty > 1 ? (it.qty * it.price) + ' ج.م' : it.price + ' ج.م'}
                             </span>
                         ` : `
@@ -657,16 +636,16 @@
             // Station Mode Action
             if (isStationAllDone) {
                 actionBtnHtml = `
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 py-2 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold text-center flex items-center justify-center gap-1.5">
-                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>أصناف القسم مكتملة ✓</span>
+                    <div class="flex items-center gap-1.5">
+                        <div class="flex-1 py-1.5 px-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold text-center flex items-center justify-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>مكتمل بالقسم ✓</span>
                         </div>
                         <button 
                             type="button" 
                             onclick="undoStationCompletion(${order.id}, '${activeStationFilter}')" 
-                            class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold transition cursor-pointer"
-                            title="تراجع عن الإنجاز"
+                            class="px-2 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold transition cursor-pointer"
+                            title="تراجع"
                         >
                             ↩
                         </button>
@@ -678,10 +657,10 @@
                         id="btn-station-${order.id}" 
                         type="button" 
                         onclick="completeStationForOrder(${order.id}, '${activeStationFilter}')" 
-                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 py-2.5 text-xs font-bold text-white transition shadow-sm cursor-pointer active:scale-95"
+                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 py-1.5 text-xs font-bold text-white transition shadow-2xs cursor-pointer active:scale-95"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        <span>جاهز في قسم ${activeStationFilter} ✓</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span>جاهز (${activeStationFilter}) ✓</span>
                     </button>
                 `;
             }
@@ -693,10 +672,10 @@
                         id="btn-action-${order.id}" 
                         type="button" 
                         onclick="updateOrderStatusInPlace(${order.id}, 'preparing')" 
-                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 py-2.5 text-xs font-bold text-white transition shadow-sm cursor-pointer active:scale-95"
+                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 py-1.5 text-xs font-bold text-white transition shadow-2xs cursor-pointer active:scale-95"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-                        <span>بدء التحضير العام</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+                        <span>بدء التحضير</span>
                     </button>
                 `;
             } else if (order.status === 'preparing') {
@@ -705,72 +684,72 @@
                         id="btn-action-${order.id}" 
                         type="button" 
                         onclick="updateOrderStatusInPlace(${order.id}, 'ready')" 
-                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 text-xs font-bold text-white transition shadow-sm cursor-pointer active:scale-95"
+                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 py-1.5 text-xs font-bold text-white transition shadow-2xs cursor-pointer active:scale-95"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>جاهز للتسليم النهائي 🚀</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>جاهز للتسليم 🚀</span>
                     </button>
                 `;
             }
         }
 
         return `
-            <div id="order-card-${order.id}" class="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between ${topBorderClass} ${glowClass}">
+            <div id="order-card-${order.id}" class="rounded-xl bg-white border border-slate-200 overflow-hidden shadow-2xs flex flex-col justify-between ${topBorderClass} ${glowClass}">
                 
                 <!-- Card Header -->
-                <div class="p-3 bg-slate-50/75 border-b border-slate-200 flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-sm font-bold text-slate-900">${order.order_number}</span>
+                <div class="px-2.5 py-2 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between gap-1.5">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1 flex-wrap">
+                            <span class="text-xs font-bold text-slate-900 tracking-tight">${order.order_number}</span>
                             ${isStationMode ? `
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                    قسم ${activeStationFilter}
+                                <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                    ${activeStationFilter}
                                 </span>
-                                ${isStationAllDone ? '<span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">مكتمل ✓</span>' : ''}
+                                ${isStationAllDone ? '<span class="px-1 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">✓</span>' : ''}
                             ` : `
-                                ${isPreparing ? '<span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">قيد الطهي</span>' : '<span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">جديد</span>'}
+                                ${isPreparing ? '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">طهي</span>' : '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">جديد</span>'}
                             `}
                         </div>
-                        <span class="block text-[11px] font-medium text-slate-500 mt-0.5">
+                        <span class="block text-[10px] font-medium text-slate-500 truncate mt-0.5">
                             ${order.created_at_time} • ${order.customer_name}
                         </span>
                     </div>
-                    <div class="text-left space-y-1">
-                        <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold inline-block
+                    <div class="text-left shrink-0 space-y-0.5">
+                        <span class="rounded px-1.5 py-0.5 text-[9px] font-semibold inline-block
                             ${isTakeaway ? 'bg-slate-100 border border-slate-200 text-slate-700' : (isDelivery ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200')}">
                             ${order.order_type_display}
                         </span>
                         <div class="flex items-center justify-end gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border ${timerColorClass}">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>${order.elapsed_minutes} د</span>
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>${order.elapsed_minutes}د</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Progress Bar -->
-                <div class="w-full bg-slate-100 h-1">
-                    <div class="bg-blue-600 h-1 transition-all duration-300" style="width: ${progressPct}%"></div>
+                <div class="w-full bg-slate-100 h-0.5">
+                    <div class="bg-blue-600 h-0.5 transition-all duration-300" style="width: ${progressPct}%"></div>
                 </div>
 
                 <!-- Items Checklist -->
-                <div class="p-3.5 flex-1 space-y-2">
-                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-600 mb-1">
-                        <span>${isStationMode ? `أصناف قسم ${activeStationFilter} (${totalItemsInView}):` : `الوجبات المطلوبة (${totalItemsInView}):`}</span>
-                        <span class="text-[10px] text-blue-600 font-semibold">${checkedCountInView}/${totalItemsInView} ${isStationMode ? 'جاهز' : 'منجز'}</span>
+                <div class="p-2.5 flex-1 space-y-1.5">
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-0.5">
+                        <span>${isStationMode ? `أصناف (${totalItemsInView}):` : `الأصناف (${totalItemsInView}):`}</span>
+                        <span class="text-[10px] text-blue-600 font-semibold">${checkedCountInView}/${totalItemsInView}</span>
                     </div>
 
                     ${itemsHtml}
 
                     ${order.notes ? `
-                        <div class="mt-2.5 rounded-xl bg-amber-50 border border-amber-200 p-2 text-xs font-medium text-amber-800 flex items-start gap-1.5">
-                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            <span>ملاحظات الشيف: ${order.notes}</span>
+                        <div class="mt-1.5 rounded-lg bg-amber-50 border border-amber-200 p-1.5 text-[10px] font-medium text-amber-800 flex items-start gap-1">
+                            <svg class="w-3 h-3 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span class="leading-tight">${order.notes}</span>
                         </div>
                     ` : ''}
                 </div>
 
                 <!-- Action Button Container -->
-                <div class="p-3 bg-slate-50/75 border-t border-slate-200">
+                <div class="p-2 bg-slate-50/80 border-t border-slate-200">
                     ${actionBtnHtml}
                 </div>
 
