@@ -632,64 +632,18 @@
             </div>
             {% endif %}
 
-            <!-- 8. General Administration (الإدارة العامة - Unified Accordion) -->
+            <!-- 8. General Administration (Single Clean Link) -->
             {% if is_owner or 'manage_branches' in user_perms or 'manage_menu' in user_perms or 'manage_inventory' in user_perms or 'inventory_view' in user_perms or 'manage_employees' in user_perms or 'hr_view_employees' in user_perms or 'system_manage_billing' in user_perms %}
-            <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-admin')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+            <div class="nav-item-wrapper relative">
+                <a href="{% url 'branches' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}bg-blue-50 text-blue-600 font-semibold shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
                         <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                         </span>
-                        <span class="sidebar-text font-semibold">الإدارة العامة</span>
+                        <span class="sidebar-text font-medium">{{ t.nav_general_admin|default:"الإدارة العامة" }}</span>
                     </div>
-                    <span id="acc-admin-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}rotate-180{% endif %}">▼</span>
-                </button>
-                <div id="acc-admin-content" class="{% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
-                    <!-- Branches -->
-                    {% if is_hq_mode and 'manage_branches' in user_perms or is_hq_mode and 'branch_manage_branches' in user_perms or is_owner %}
-                    <a href="{% url 'branches' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branches' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>إدارة الفروع والمواقع</span>
-                    </a>
-                    {% endif %}
-
-                    <!-- Menu & Dishes -->
-                    {% if 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms or is_owner %}
-                    <a href="{% url 'branch_menu' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branch_menu' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>قائمة الأطباق والأسعار</span>
-                    </a>
-                    {% endif %}
-
-                    <!-- Inventory & Stock Audit -->
-                    {% if 'manage_inventory' in user_perms or 'inventory_view' in user_perms or is_owner %}
-                    <a href="{% url 'inventory' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'inventory' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>جرد المخزون والمستودعات</span>
-                    </a>
-                    {% endif %}
-
-                    <!-- Staff & Payroll -->
-                    {% if 'manage_employees' in user_perms or 'hr_view_employees' in user_perms or is_owner %}
-                    <a href="{% url 'employees' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'employees' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>فريق العمل والرواتب</span>
-                    </a>
-                    {% endif %}
-
-                    <!-- Subscriptions & Financials -->
-                    {% if is_owner or 'system_manage_billing' in user_perms %}
-                    <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'owner_subscription' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[8px] text-slate-400">•</span>
-                            <span>الاشتراكات والتقارير المالية</span>
-                        </div>
-                        {% if tenant_subscription %}
-                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200/80 font-medium">{{ tenant_subscription.plan_name }}</span>
-                        {% endif %}
-                    </a>
-                    {% endif %}
-                </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60 font-semibold sidebar-text">HQ</span>
+                </a>
             </div>
             {% endif %}
 

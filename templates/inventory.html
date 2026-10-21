@@ -3,6 +3,7 @@
 {% block title %}{{ t.inv_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
+{% include "_admin_nav_tabs.html" %}
 <div class="space-y-5 font-body">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
