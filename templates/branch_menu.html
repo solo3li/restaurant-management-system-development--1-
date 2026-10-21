@@ -5,94 +5,88 @@
 
 {% block content %}
 {% include "_admin_nav_tabs.html" %}
-<div id="branchMenuApp" class="space-y-5 font-sans">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+<div id="branchMenuApp" class="space-y-3.5 font-sans">
+    <!-- Header (Compact) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-200 pb-3">
         <div>
-            <h1 class="text-2xl font-bold font-sans text-slate-900">قائمة أطعمة الفرع وإدارة التوفر</h1>
-            <p class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1.5">
+            <h1 class="text-lg sm:text-xl font-bold font-sans text-slate-900">قائمة أطعمة الفرع وإدارة التوفر</h1>
+            <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
                 {% if branch %}
-                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>فرع: <span class="text-slate-900 font-extrabold">{{ branch.name }}</span> • التحكم في توفر الأطباق في مطبخ الفرع ونقاط البيع</span>
+                    <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>فرع: <span class="text-slate-900 font-bold">{{ branch.name }}</span> • التحكم في توفر الأطباق في المطبخ ونقاط البيع</span>
                 {% else %}
-                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    <span>كل الفروع • التعديل هنا يؤثر على الحالة العامة للأصناف</span>
+                    <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>كل الفروع • التعديل يؤثر على الحالة العامة للأصناف</span>
                 {% endif %}
             </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <span class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-500 shadow-2xs">
-                إجمالي الأصناف: <span class="font-extrabold text-slate-900 font-sans">{{ items_data|length }}</span>
+        <div class="flex flex-wrap items-center gap-1.5">
+            <span class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-2xs">
+                الأصناف: <span class="font-bold text-slate-900 font-sans">{{ items_data|length }}</span>
             </span>
             <a 
                 href="/m/{{ tenant.slug }}/{% if branch %}branch/{{ branch.id }}/{% endif %}" 
                 target="_blank" 
-                class="rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
+                class="rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs"
             >
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                <span>معاينة المنيو الرقمي (Online)</span>
+                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span>المنيو الرقمي</span>
             </a>
             <button 
                 type="button" 
                 onclick="openQrBrandingModal()" 
-                class="rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-900 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                <span>الـ QR والهوية</span>
+                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <span>الـ QR</span>
             </button>
             {% if can_manage_menu %}
             <button 
                 type="button" 
                 onclick="openCategoryModal()" 
-                class="rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-900 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-blue-600 transition shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 <span>إدارة الأقسام</span>
             </button>
             <button 
                 type="button" 
                 onclick="openCreateItemModal()" 
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-1.5 text-xs font-black shadow-2xs flex items-center gap-1.5"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-3 py-1 text-xs shadow-2xs flex items-center gap-1.5"
             >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>+ إضافة صنف جديد</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>+ إضافة صنف</span>
             </button>
             {% endif %}
         </div>
     </div>
 
-    <!-- Notice Banner -->
-    <div class="rounded-2xl bg-amber-50/70 border border-amber-300 p-4 flex items-start gap-3 text-amber-900 shadow-2xs">
-        <span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-        </span>
-        <div class="text-xs space-y-1">
-            <p class="font-bold text-amber-950">ملاحظة تشغيلية لمطبخ الفرع:</p>
-            <p class="text-amber-800 leading-relaxed">
-                الأصناف المحددة كـ <strong class="text-amber-950">"غير متوفر"</strong> تُستبعد فوراً وبشكل تلقائي من شاشات الكاشير (POS) ومركز الاتصال عند إسناد الطلب لهذا الفرع، لتفادي إحراج العملاء عند نفاد المكونات اليومية بالمطبخ.
-            </p>
-        </div>
+    <!-- Notice Banner (Compact) -->
+    <div class="rounded-xl bg-amber-50/70 border border-amber-200 px-3 py-2 flex items-center gap-2.5 text-amber-900 shadow-2xs text-xs">
+        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="leading-tight text-[11px] text-amber-800">
+            الأصناف المحددة كـ <strong class="text-amber-950 font-bold">"غير متوفر"</strong> تُستبعد فوراً وتلقائياً من شاشات الكاشير (POS) والكول سنتر لتفادي إحراج العملاء.
+        </p>
     </div>
 
-    <!-- Filter & Search Bar -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
-        <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-3">
+    <!-- Filter & Search Bar (Compact) -->
+    <div class="bg-white rounded-xl border border-slate-200 p-2.5 space-y-2">
+        <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-2.5">
             <!-- Category Pills -->
-            <!-- Category Pills with images -->
-            <div class="flex flex-wrap items-center gap-1.5">
+            <div class="flex flex-wrap items-center gap-1">
                 <a 
                     href="?cat=الكل{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all {% if selected_cat == 'الكل' %}bg-blue-600 text-white border border-blue-600/40 shadow-xs{% else %}bg-slate-50 text-slate-500 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
+                    class="rounded-lg px-2.5 py-1 text-xs font-bold transition-all {% if selected_cat == 'الكل' %}bg-blue-600 text-white shadow-2xs{% else %}bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
                 >
                     الكل
                 </a>
                 {% for c in category_objs %}
                 <a 
                     href="?cat={{ c.name }}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-xl px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 {% if selected_cat == c.name %}bg-blue-600 text-white border border-blue-600/40 shadow-xs{% else %}bg-slate-50 text-slate-500 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
+                    class="rounded-lg px-2 py-1 text-xs font-medium transition-all flex items-center gap-1 {% if selected_cat == c.name %}bg-blue-600 text-white font-bold shadow-2xs{% else %}bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-blue-600{% endif %}"
                 >
                     {% if c.image %}
-                        <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-4 h-4 rounded-full object-cover">
+                        <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-3.5 h-3.5 rounded-full object-cover">
                     {% endif %}
                     <span>{{ c.name }}</span>
                 </a>
@@ -100,146 +94,131 @@
             </div>
 
             <!-- Search -->
-            <div class="flex items-center gap-2 w-full sm:w-auto">
+            <div class="flex items-center gap-1.5 w-full sm:w-auto">
                 <input 
                     type="hidden" 
                     name="cat" 
                     value="{{ selected_cat }}"
                 >
-                <div class="relative w-full sm:w-64">
+                <div class="relative w-full sm:w-56">
                     <input 
                         type="text" 
                         name="q" 
                         value="{{ search_query }}" 
                         placeholder="ابحث عن وجبة أو مشروب…" 
-                        class="input text-xs w-full"
+                        class="input !py-1 text-xs w-full"
                     >
                 </div>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-2 text-xs font-black shadow-2xs">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-3 py-1 text-xs shadow-2xs">
                     بحث
                 </button>
                 {% if search_query or selected_cat != 'الكل' %}
-                <a href="{% url 'branch_menu' %}" class="text-xs font-bold text-bad-700 hover:underline">إلغاء</a>
+                <a href="{% url 'branch_menu' %}" class="text-xs text-rose-600 hover:underline">إلغاء</a>
                 {% endif %}
             </div>
         </form>
     </div>
 
-    <!-- Dishes Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+    <!-- Dishes Grid (Compact 36px Thumbnails) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
         {% for row in items_data %}
         <div 
             id="item-card-{{ row.item.id }}" 
-            class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between transition-all duration-200 hover:border-blue-600 hover:shadow-md {% if not row.is_available %}opacity-75 bg-slate-50/50 border-rose-200{% endif %}"
+            class="bg-white rounded-xl border border-slate-200 p-3 flex flex-col justify-between transition-colors hover:border-slate-300 {% if not row.is_available %}opacity-75 bg-slate-50/50 border-rose-200{% endif %}"
         >
             <div>
-                <!-- Top Row: Icon/Image + Name + Category & Actions (Badges + Edit/Delete) -->
-                <div class="flex items-start justify-between gap-2.5 mb-2.5">
-                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <!-- Top Row: 36px Image + Name + Category & Actions -->
+                <div class="flex items-start justify-between gap-2 mb-1.5">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
                         {% if row.item.image %}
-                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="h-12 w-12 rounded-xl object-cover shadow-2xs border border-slate-200 flex-shrink-0">
+                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0">
                         {% else %}
-                            <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-12 w-12 items-center justify-center rounded-xl shadow-2xs flex-shrink-0 text-xl">
+                            <span class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-slate-700 shrink-0 text-base">
                                 {{ row.item.emoji|default:"🍽️" }}
                             </span>
                         {% endif %}
                         <div class="min-w-0 flex-1">
-                            <h3 class="font-bold text-sm text-slate-900 leading-tight truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
-                            {% if row.item.name_en %}
-                                <span class="text-[10px] text-slate-500 font-mono block truncate" dir="ltr">{{ row.item.name_en }}</span>
-                            {% endif %}
-                            <span class="text-[10px] font-bold text-slate-500 block mt-0.5">{{ row.item.category }}</span>
+                            <h3 class="font-bold text-xs text-slate-900 leading-snug truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
+                            <span class="text-[10px] text-slate-400 font-medium truncate block">{{ row.item.category }}</span>
                         </div>
                     </div>
 
-                    <!-- Top-Left Badges & Management Icons -->
-                    <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    <!-- Actions & Badge -->
+                    <div class="flex flex-col items-end gap-1 shrink-0">
                         <div class="flex items-center gap-1">
                             {% if can_manage_menu %}
                             <button 
                                 type="button" 
                                 onclick="openEditItemModal({{ row.item.id }})" 
-                                class="w-6 h-6 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-blue-600 transition flex items-center justify-center shadow-2xs"
+                                class="w-5 h-5 rounded-md bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-blue-600 transition flex items-center justify-center"
                                 title="تعديل بيانات الصنف"
                             >
-                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
                             <button 
                                 type="button" 
                                 onclick="deleteMenuItem({{ row.item.id }}, '{{ row.item.name|escapejs }}')" 
-                                class="w-6 h-6 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition flex items-center justify-center shadow-2xs"
+                                class="w-5 h-5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition flex items-center justify-center"
                                 title="حذف الصنف"
                             >
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                             {% endif %}
                             <span 
                                 id="badge-{{ row.item.id }}" 
-                                class="rounded-lg px-2 py-0.5 text-[10px] font-bold {% if row.is_available %}bg-emerald-100 text-emerald-800 border border-emerald-300{% else %}bg-rose-100 text-rose-800 border border-rose-300{% endif %}"
+                                class="rounded px-1.5 py-0.5 text-[10px] font-semibold {% if row.is_available %}bg-emerald-50 text-emerald-700 border border-emerald-200/80{% else %}bg-rose-50 text-rose-700 border border-rose-200/80{% endif %}"
                             >
-                                {% if row.is_available %}متوفر بالفرع{% else %}غير متوفر (نافد){% endif %}
+                                {% if row.is_available %}متوفر{% else %}غير متوفر{% endif %}
                             </span>
                         </div>
-                        {% if row.item.has_variants %}
-                            <span class="rounded bg-sky-50 border border-sky-200 text-sky-800 text-[9px] font-extrabold px-1.5 py-0.2">
-                                {{ row.variants|length }} أحجام
-                            </span>
-                        {% endif %}
                     </div>
                 </div>
 
                 {% if row.item.description %}
-                    <p class="text-[11px] text-slate-500 line-clamp-2 my-1.5 leading-relaxed">{{ row.item.description }}</p>
+                    <p class="text-[10px] text-slate-500 line-clamp-1 my-1">{{ row.item.description }}</p>
                 {% endif %}
 
-                <!-- Price Row -->
-                <div class="flex items-center justify-between text-xs py-2 my-2 border-y border-slate-200/60">
-                    <div class="flex flex-col">
-                        <span class="text-slate-500 font-bold">{% if row.item.has_variants %}يبدأ من:{% else %}سعر البيع:{% endif %}</span>
+                <!-- Price Row (Compact) -->
+                <div class="flex items-center justify-between text-xs py-1.5 my-1.5 border-y border-slate-100">
+                    <span class="text-[11px] text-slate-500 font-medium">{% if row.item.has_variants %}يبدأ من:{% else %}السعر:{% endif %}</span>
+                    <div class="text-left flex items-center gap-1">
+                        <span class="font-bold text-slate-900 font-sans text-xs">{{ row.effective_min_price }} <span class="text-[10px] font-medium text-slate-500">{{ branch_currency_symbol }}</span></span>
                         {% if row.custom_price %}
-                        <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
-                            سعر مخصص للفرع
-                        </span>
-                        {% endif %}
-                    </div>
-                    <div class="text-left">
-                        <span class="font-extrabold text-slate-900 font-sans text-sm">{{ row.effective_min_price }} <span class="text-[10px] font-bold text-slate-500">{{ branch_currency_symbol }}</span></span>
-                        {% if row.custom_price %}
-                        <span class="block text-[10px] text-slate-500 line-through">{{ row.item.min_price }} {{ tenant.get_currency_symbol_ar|default:"ر.س" }}</span>
+                        <span class="text-[10px] text-slate-400 line-through">{{ row.item.min_price }}</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Action Buttons: Clean & Spacious -->
-            <div class="mt-2 space-y-2">
+            <!-- Action Buttons (Compact) -->
+            <div class="mt-1.5 space-y-1.5">
                 <!-- 1. Availability Toggle (Full Width) -->
                 <button 
                     type="button" 
                     id="btn-{{ row.item.id }}"
                     onclick="toggleItemAvailability({{ row.item.id }}, '{{ row.item.name|escapejs }}')"
-                    class="w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs {% if row.is_available %}bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100{% else %}bg-emerald-700 text-white hover:bg-emerald-800{% endif %}"
+                    class="w-full rounded-lg py-1 px-2 text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-2xs {% if row.is_available %}bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100{% else %}bg-emerald-600 text-white hover:bg-emerald-700{% endif %}"
                 >
                     {% if row.is_available %}
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                         <span>تعطيل من المطبخ</span>
                     {% else %}
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>إعادة التفعيل بالفرع</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>إعادة التفعيل</span>
                     {% endif %}
                 </button>
 
                 <!-- 2. Pricing Buttons (Grid of 2) -->
-                <div class="{% if branch %}grid grid-cols-2 gap-2{% else %}flex{% endif %}">
+                <div class="{% if branch %}grid grid-cols-2 gap-1.5{% else %}flex{% endif %}">
                     {% if branch %}
                     {% localize off %}
                     <button 
                         type="button" 
                         onclick="openBranchPriceModal({{ row.item.id }}, '{{ row.item.name|escapejs }}', {{ row.custom_price|default:'null' }}, {{ row.item.price|default:'0' }})" 
-                        class="rounded-xl py-1.5 px-2 text-xs font-bold bg-blue-600/5 border border-blue-600/50 text-blue-600 hover:bg-blue-600/10 transition flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
+                        class="rounded-lg py-1 px-1.5 text-[11px] font-medium bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition flex items-center justify-center gap-1 whitespace-nowrap"
                         title="تخصيص سعر الصنف لهذا الفرع"
                     >
-                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>تسعير الفرع</span>
                     </button>
                     {% endlocalize %}
@@ -247,10 +226,10 @@
                     <button 
                         type="button" 
                         onclick="openItemAllBranchesPriceModal({{ row.item.id }})" 
-                        class="{% if not branch %}w-full{% endif %} rounded-xl py-1.5 px-2 text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 transition flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
+                        class="{% if not branch %}w-full{% endif %} rounded-lg py-1 px-1.5 text-[11px] font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition flex items-center justify-center gap-1 whitespace-nowrap"
                         title="تخصيص أسعار كافة الفروع"
                     >
-                        <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         <span>كل الفروع</span>
                     </button>
                 </div>
