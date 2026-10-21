@@ -304,6 +304,7 @@ def i18n_context(request):
         "nav_branch_orders": "طلبات وفواتير الفرع" if is_rtl else "Branch Orders & Invoices",
         "nav_employees": "الموظفون والرواتب" if is_rtl else "Staff & Payroll",
         "nav_subscription": "الاشتراك والتقارير المالية" if is_rtl else "Subscription & Financials",
+        "nav_general_admin": "الإدارة العامة" if is_rtl else "General Admin",
         "nav_platform": "إدارة منصة SaaS العامة" if is_rtl else "SaaS Platform Admin",
         "nav_django_admin": "لوحة Django Admin" if is_rtl else "Django Admin Console",
 
