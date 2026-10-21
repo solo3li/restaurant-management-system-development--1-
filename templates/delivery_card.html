@@ -1,77 +1,114 @@
-<div class="bg-white rounded-xl p-3.5 text-xs font-sans border border-slate-200 hover:border-blue-400 transition shadow-sm">
-    <div class="flex items-center justify-between">
-        <span class="font-bold text-slate-900">{{ order.order_number }}</span>
-        <span class="text-[10px] text-slate-400 font-semibold">{{ order.created_at|time:"H:i" }}</span>
-    </div>
+<div 
+    id="order-card-{{ order.id }}" 
+    class="delivery-order-card bg-white rounded-xl p-2.5 text-xs font-sans border border-slate-200/90 hover:border-blue-400 hover:shadow-2xs transition duration-150 flex flex-col justify-between gap-1.5 relative"
+    data-order-id="{{ order.id }}" 
+    data-search="{{ order.order_number }} {{ order.customer_name }} {{ order.customer_phone|default:'' }} {{ order.address|default:'' }} {{ order.notes|default:'' }} {{ order.driver.name|default:'' }} {{ order.branch.name|default:'' }}"
+>
+    <!-- Row 1: Header (Checkbox + Order Number + Elapsed Time + Price Badge) -->
+    <div>
+        <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center gap-1.5 min-w-0">
+                <input 
+                    type="checkbox" 
+                    class="order-select-cb rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer shrink-0" 
+                    value="{{ order.id }}" 
+                    onchange="handleCardSelect(this)"
+                    title="تحديد الطلب للإجراء الجماعي"
+                >
+                <span class="font-extrabold text-slate-900 tracking-tight text-xs truncate">#{{ order.order_number }}</span>
+                <span class="text-[10px] text-slate-400 font-semibold font-mono shrink-0" title="{{ order.created_at }}">
+                    {{ order.created_at|time:"H:i" }}
+                </span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+                <span class="text-[11px] font-black text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded-md border border-blue-100">
+                    {{ order.total|floatformat:2 }} ر.س
+                </span>
+            </div>
+        </div>
 
-    <p class="font-bold text-slate-800 mt-1 truncate">{{ order.customer_name }}</p>
-    {% if order.customer_phone %}
-    <p class="text-[11px] text-slate-500 font-mono" dir="ltr">{{ order.customer_phone }}</p>
-    {% endif %}
-    {% if order.address %}
-    <p class="text-[11px] text-slate-500 line-clamp-2 mt-0.5 flex items-start gap-1">
-        <svg class="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        <span>{{ order.address }}</span>
-    </p>
-    {% endif %}
+        <!-- Row 2: Customer info & Phone -->
+        <div class="mt-1 flex items-center justify-between text-[11px] gap-1">
+            <span class="font-bold text-slate-800 truncate" title="{{ order.customer_name }}">{{ order.customer_name }}</span>
+            {% if order.customer_phone %}
+            <a href="tel:{{ order.customer_phone }}" class="text-[10px] text-slate-500 hover:text-blue-600 font-mono shrink-0 flex items-center gap-0.5 transition" dir="ltr" title="اتصال">
+                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                <span>{{ order.customer_phone }}</span>
+            </a>
+            {% endif %}
+        </div>
 
-    <div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-1.5">
-        <span class="font-bold text-blue-600">{{ order.total|floatformat:2 }} ر.س</span>
-        <span class="text-[10px] font-semibold text-slate-500">{{ order.get_pay_method_display }}</span>
-    </div>
-
-    <p class="text-[10px] text-slate-400 mt-0.5">{{ order.branch.name|default:"—" }}</p>
-
-    {% if order.notes %}
-    <p class="mt-1 rounded-lg bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-        {{ order.notes }}
-    </p>
-    {% endif %}
-
-    <!-- Driver Selector -->
-    {% if order.status != 'delivered' and order.status != 'cancelled' %}
-    <div class="mt-2">
-        <select 
-            id="driver-select-{{ order.id }}" 
-            class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-[11px] py-1 px-2 focus:border-blue-500 focus:bg-white focus:outline-none" 
-            onchange="updateOrderDriver({{ order.id }}, this)"
-        >
-            <option value="">— اختر السائق —</option>
-            {% for d in drivers %}
-            <option value="{{ d.id }}" {% if order.driver_id == d.id %}selected{% endif %}>{{ d.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    {% elif order.driver %}
-    <p class="text-[11px] font-semibold text-slate-800 mt-1 flex items-center gap-1">
-        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        <span>السائق: {{ order.driver.name }}</span>
-    </p>
-    {% endif %}
-
-    <!-- Action Buttons -->
-    <div class="mt-2.5 flex items-center gap-1.5">
-        {% if next_status %}
-        <button 
-            type="button" 
-            onclick="advanceOrderStatus({{ order.id }}, '{{ next_status }}', {% if need_driver %}true{% else %}false{% endif %})" 
-            class="flex-1 rounded-lg bg-blue-600 hover:bg-blue-700 py-1.5 text-center text-[11px] font-bold text-white transition shadow-sm"
-        >
-            {{ next_label }}
-        </button>
+        <!-- Row 3: Address (Compact truncated line with tooltip) -->
+        {% if order.address %}
+        <div class="mt-1 flex items-center gap-1 text-[10px] text-slate-500 truncate" title="{{ order.address }}">
+            <svg class="w-3 h-3 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+            <span class="truncate">{{ order.address }}</span>
+        </div>
         {% endif %}
 
-        {% if is_owner or 'pos_cancel_order' in user_perms or 'cancel_orders' in user_perms %}
-        {% if order.status == 'new' or order.status == 'preparing' %}
-        <button 
-            type="button" 
-            onclick="cancelOrder({{ order.id }})" 
-            title="إلغاء الطلب"
-            class="rounded-lg bg-rose-50 border border-rose-200 px-2 py-1.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 transition"
-        >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+        <!-- Row 3.5: Notes pill (if exists) -->
+        {% if order.notes %}
+        <div class="mt-1 rounded bg-amber-50/90 border border-amber-200/80 px-1.5 py-0.5 text-[9.5px] font-semibold text-amber-800 truncate" title="{{ order.notes }}">
+            {{ order.notes }}
+        </div>
         {% endif %}
+    </div>
+
+    <!-- Row 4: Action & Driver Controls -->
+    <div class="pt-1.5 border-t border-slate-100 flex items-center gap-1.5 mt-auto">
+        {% if order.status != 'delivered' and order.status != 'cancelled' %}
+            <!-- Compact Driver Select -->
+            <select 
+                id="driver-select-{{ order.id }}" 
+                class="flex-1 min-w-0 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-[10.5px] py-1 px-1.5 focus:border-blue-500 focus:bg-white focus:outline-none transition cursor-pointer" 
+                onchange="updateOrderDriver({{ order.id }}, this)"
+                title="تعيين السائق لهذا الطلب"
+            >
+                <option value="">— السائق —</option>
+                {% for d in drivers %}
+                <option value="{{ d.id }}" {% if order.driver_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Advance Status Button -->
+            {% if next_status %}
+            <button 
+                type="button" 
+                onclick="advanceOrderStatus({{ order.id }}, '{{ next_status }}', {% if need_driver %}true{% else %}false{% endif %})" 
+                class="rounded-lg bg-blue-600 hover:bg-blue-700 px-2 py-1 text-center text-[10.5px] font-bold text-white transition shrink-0 cursor-pointer shadow-2xs"
+            >
+                {{ next_label }}
+            </button>
+            {% endif %}
+
+            <!-- Cancel Button -->
+            {% if is_owner or 'pos_cancel_order' in user_perms or 'cancel_orders' in user_perms %}
+            {% if order.status == 'new' or order.status == 'preparing' %}
+            <button 
+                type="button" 
+                onclick="cancelOrder({{ order.id }})" 
+                title="إلغاء الطلب"
+                class="rounded-lg bg-rose-50 border border-rose-200 p-1 text-rose-600 hover:bg-rose-100 transition shrink-0 cursor-pointer"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            {% endif %}
+            {% endif %}
+
+        {% else %}
+            <!-- Completed / Cancelled Status Indicator -->
+            {% if order.driver %}
+            <span class="text-[10.5px] text-slate-600 flex items-center gap-1 truncate" title="السائق: {{ order.driver.name }}">
+                <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span class="truncate">{{ order.driver.name }}</span>
+            </span>
+            {% else %}
+            <span class="text-[10px] text-slate-400">بدون سائق</span>
+            {% endif %}
+
+            <span class="ms-auto text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                {% if order.status == 'delivered' %}تم التسليم{% else %}ملغي{% endif %}
+            </span>
         {% endif %}
     </div>
 </div>
