@@ -18,88 +18,177 @@
         </div>
     </div>
 
-    <!-- Board & Drivers Layout -->
-    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_300px]">
-        <!-- Kanban Delivery Columns (Horizontal Snap-Scroll on Mobile, Grid on Tablet/Desktop) -->
-        <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:pb-0 sm:overflow-visible">
-            <!-- 1. New (جديد) -->
-            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-b-blue-600 bg-white px-3.5 py-2.5 rounded-t-2xl">
-                    <span class="text-xs font-bold text-slate-900">1. جديد</span>
-                    <span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.new|length }}</span>
-                </div>
-                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+    <!-- Board & Drivers Layout (Tab-based Spacious Workspace) -->
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_290px] xl:grid-cols-[1fr_310px]">
+        <!-- Left: Status Tabs & Orders Grid Area -->
+        <div class="space-y-3.5">
+            <!-- 1. Horizontal Status Tabs Bar (M3 Pills with Live Counts) -->
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-white rounded-2xl border border-slate-200 p-2 shadow-2xs overflow-x-auto [scrollbar-width:none]">
+                <!-- Tab 1: New (جديد) -->
+                <button 
+                    type="button" 
+                    onclick="switchDeliveryTab('new')" 
+                    id="tab-btn-new"
+                    class="delivery-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-blue-600 text-white shadow-2xs shrink-0"
+                    data-tab="new"
+                >
+                    <span class="flex h-2 w-2 rounded-full bg-blue-300"></span>
+                    <span>1. جديد</span>
+                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/20 text-white">
+                        {{ orders_by_status.new|length }}
+                    </span>
+                </button>
+
+                <!-- Tab 2: Preparing (قيد التحضير) -->
+                <button 
+                    type="button" 
+                    onclick="switchDeliveryTab('preparing')" 
+                    id="tab-btn-preparing"
+                    class="delivery-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80 shrink-0"
+                    data-tab="preparing"
+                >
+                    <span class="flex h-2 w-2 rounded-full bg-amber-400"></span>
+                    <span>2. قيد التحضير</span>
+                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                        {{ orders_by_status.preparing|length }}
+                    </span>
+                </button>
+
+                <!-- Tab 3: Ready (جاهز للتسليم) -->
+                <button 
+                    type="button" 
+                    onclick="switchDeliveryTab('ready')" 
+                    id="tab-btn-ready"
+                    class="delivery-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80 shrink-0"
+                    data-tab="ready"
+                >
+                    <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                    <span>3. جاهز للتسليم</span>
+                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                        {{ orders_by_status.ready|length }}
+                    </span>
+                </button>
+
+                <!-- Tab 4: Out for Delivery (في الطريق) -->
+                <button 
+                    type="button" 
+                    onclick="switchDeliveryTab('out_for_delivery')" 
+                    id="tab-btn-out_for_delivery"
+                    class="delivery-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80 shrink-0"
+                    data-tab="out_for_delivery"
+                >
+                    <span class="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                    <span>4. في الطريق</span>
+                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                        {{ orders_by_status.out_for_delivery|length }}
+                    </span>
+                </button>
+
+                <!-- Tab 5: Delivered (تم التسليم) -->
+                <button 
+                    type="button" 
+                    onclick="switchDeliveryTab('delivered')" 
+                    id="tab-btn-delivered"
+                    class="delivery-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80 shrink-0"
+                    data-tab="delivered"
+                >
+                    <span class="flex h-2 w-2 rounded-full bg-slate-400"></span>
+                    <span>5. تم التسليم</span>
+                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ orders_by_status.delivered|length }}
+                    </span>
+                </button>
+            </div>
+
+            <!-- 2. Tab Panes (Wide Responsive Cards Grid 2-3 Columns) -->
+            <!-- Pane 1: New (جديد) -->
+            <div id="pane-new" class="tab-pane">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
                     {% for o in orders_by_status.new %}
                         {% include "delivery_card.html" with order=o next_status="preparing" next_label="بدء التحضير" %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
+                        <div class="col-span-full py-16 text-center rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-200 mx-auto mb-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">لا توجد طلبات جديدة</p>
+                            <p class="text-xs text-slate-400 mt-1">الطلبات الواردة من الكول سنتر أو التطبيق ستظهر هنا فورياً</p>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- 2. Preparing (قيد التحضير) -->
-            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-b-amber-500 bg-white px-3.5 py-2.5 rounded-t-2xl">
-                    <span class="text-xs font-bold text-slate-900">2. قيد التحضير</span>
-                    <span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.preparing|length }}</span>
-                </div>
-                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+            <!-- Pane 2: Preparing (قيد التحضير) -->
+            <div id="pane-preparing" class="tab-pane hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
                     {% for o in orders_by_status.preparing %}
                         {% include "delivery_card.html" with order=o next_status="ready" next_label="جاهز للتسليم" %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
+                        <div class="col-span-full py-16 text-center rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-200 mx-auto mb-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">لا توجد طلبات قيد التحضير</p>
+                            <p class="text-xs text-slate-400 mt-1">جميع الطلبات جاهزة أو تم تسليمها للفرسان</p>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- 3. Ready (جاهز للتسليم) -->
-            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-b-emerald-500 bg-white px-3.5 py-2.5 rounded-t-2xl">
-                    <span class="text-xs font-bold text-slate-900">3. جاهز للتسليم</span>
-                    <span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.ready|length }}</span>
-                </div>
-                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+            <!-- Pane 3: Ready (جاهز للتسليم) -->
+            <div id="pane-ready" class="tab-pane hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
                     {% for o in orders_by_status.ready %}
                         {% include "delivery_card.html" with order=o next_status="out_for_delivery" next_label="تسليم للسائق" need_driver=True %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
+                        <div class="col-span-full py-16 text-center rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 mx-auto mb-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">لا توجد طلبات جاهزة للتسليم</p>
+                            <p class="text-xs text-slate-400 mt-1">عند انتهاء المطبخ من تجهيز أي طلب سيظهر هنا لتعيين السائق</p>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- 4. Out for delivery (في الطريق) -->
-            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-b-indigo-500 bg-white px-3.5 py-2.5 rounded-t-2xl">
-                    <span class="text-xs font-bold text-slate-900">4. في الطريق</span>
-                    <span class="rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.out_for_delivery|length }}</span>
-                </div>
-                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+            <!-- Pane 4: Out for Delivery (في الطريق) -->
+            <div id="pane-out_for_delivery" class="tab-pane hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
                     {% for o in orders_by_status.out_for_delivery %}
                         {% include "delivery_card.html" with order=o next_status="delivered" next_label="تم التوصيل" %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
+                        <div class="col-span-full py-16 text-center rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200 mx-auto mb-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">لا توجد طلبات في المسار حالياً</p>
+                            <p class="text-xs text-slate-400 mt-1">الطلبات المسلمة للسائقين والتي في طريقها للعملاء ستظهر هنا</p>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- 5. Delivered (تم التسليم) -->
-            <div class="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[420px] shrink-0 w-[280px] snap-center sm:w-auto sm:shrink sm:min-w-0">
-                <div class="flex items-center justify-between border-b-2 border-b-slate-400 bg-white px-3.5 py-2.5 rounded-t-2xl">
-                    <span class="text-xs font-bold text-slate-900">5. تم التسليم</span>
-                    <span class="rounded-full bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-[11px] font-bold">{{ orders_by_status.delivered|length }}</span>
-                </div>
-                <div class="p-2 space-y-2.5 flex-1 overflow-y-auto">
+            <!-- Pane 5: Delivered (تم التسليم) -->
+            <div id="pane-delivered" class="tab-pane hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
                     {% for o in orders_by_status.delivered %}
                         {% include "delivery_card.html" with order=o %}
                     {% empty %}
-                        <p class="text-center py-8 text-xs text-slate-400">لا توجد طلبات</p>
+                        <div class="col-span-full py-16 text-center rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200 mx-auto mb-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">لا توجد طلبات مسلّمة اليوم</p>
+                            <p class="text-xs text-slate-400 mt-1">الطلبات المكتملة والمستلمة بنجاح تسجل في هذا التبويب</p>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
-        <!-- Drivers Panel -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 h-fit sticky top-4 shadow-sm font-sans">
+        <!-- Right: Drivers Fleet Panel (Sticky) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 h-fit sticky top-4 shadow-2xs font-sans">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
                 <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -108,12 +197,12 @@
                 <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-200">{{ driver_stats|length }} سائقين</span>
             </div>
 
-            <div class="space-y-3">
+            <div class="space-y-2.5">
                 {% for d in driver_stats %}
-                <div class="rounded-xl border border-slate-200 p-3 bg-white hover:border-blue-300 transition shadow-xs">
+                <div class="rounded-xl border border-slate-200 p-3 bg-white hover:border-blue-300 transition shadow-2xs">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
-                            <span class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                            <span class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-2xs">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             </span>
                             <div>
@@ -144,6 +233,47 @@
 
 {% block extra_scripts %}
 <script>
+    function switchDeliveryTab(status) {
+        document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+        const targetPane = document.getElementById(`pane-${status}`);
+        if (targetPane) targetPane.classList.remove('hidden');
+
+        const tabColors = {
+            'new': { active: 'bg-blue-600 text-white shadow-2xs', badge: 'bg-white/20 text-white' },
+            'preparing': { active: 'bg-amber-500 text-white shadow-2xs', badge: 'bg-white/20 text-white' },
+            'ready': { active: 'bg-emerald-600 text-white shadow-2xs', badge: 'bg-white/20 text-white' },
+            'out_for_delivery': { active: 'bg-indigo-600 text-white shadow-2xs', badge: 'bg-white/20 text-white' },
+            'delivered': { active: 'bg-slate-700 text-white shadow-2xs', badge: 'bg-white/20 text-white' }
+        };
+
+        document.querySelectorAll('.delivery-tab-btn').forEach(btn => {
+            const tab = btn.dataset.tab;
+            const badge = btn.querySelector('.tab-badge');
+            if (tab === status) {
+                btn.className = `delivery-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${tabColors[tab].active} shrink-0`;
+                if (badge) badge.className = `tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold ${tabColors[tab].badge}`;
+            } else {
+                btn.className = 'delivery-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80 shrink-0';
+                if (badge) {
+                    if (tab === 'new') badge.className = 'tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80';
+                    else if (tab === 'preparing') badge.className = 'tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80';
+                    else if (tab === 'ready') badge.className = 'tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80';
+                    else if (tab === 'out_for_delivery') badge.className = 'tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80';
+                    else badge.className = 'tab-badge rounded-full px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200';
+                }
+            }
+        });
+
+        try { localStorage.setItem('motaem_active_delivery_tab', status); } catch(e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTab = localStorage.getItem('motaem_active_delivery_tab');
+        if (savedTab && document.getElementById(`pane-${savedTab}`)) {
+            switchDeliveryTab(savedTab);
+        }
+    });
+
     async function updateOrderDriver(orderId, selectEl) {
         const driverId = selectEl.value;
         try {
