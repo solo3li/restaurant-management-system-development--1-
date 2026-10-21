@@ -4,95 +4,93 @@
 
 {% block content %}
 {% include "ai_callcenter/_nav_tabs.html" %}
-<div class="space-y-6 pb-14" dir="{{ DIR|default:'rtl' }}">
+<div class="space-y-3 pb-8 font-sans" dir="{{ DIR|default:'rtl' }}">
 
     <!-- Documents & FAQ Card -->
-    <div class="card p-6 sm:p-7 border-line space-y-6 shadow-xs">
-        <div class="border-b border-line pb-4 flex items-center justify-between flex-wrap gap-3">
+    <div class="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 space-y-3 shadow-2xs">
+        <div class="border-b border-slate-200 pb-3 flex items-center justify-between flex-wrap gap-2">
             <div>
-                <h3 class="font-display text-lg font-black text-ink flex items-center gap-2">
-                    <svg class="w-5 h-5 inline-block text-brand-600 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg> مستندات المعرفة وقوائم الطعام والأسئلة الشائعة
+                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <svg class="w-4 h-4 inline-block text-brand-600 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    <span>مستندات وقاعدة المعرفة والأسئلة الشائعة (RAG)</span>
                 </h3>
-                <p class="text-xs text-soft font-bold mt-0.5">الملفات والنصوص المفهرسة بالذكاء الاصطناعي (RAG Vector Search) ليتمكن المساعد الصوتي من استرجاعها فورياً والإجابة بدقة أثناء المكالمات</p>
+                <p class="text-[11px] text-slate-500 font-normal mt-0.5">الملفات والنصوص المفهرسة دلالياً ليتمكن المساعد الصوتي من استرجاعها فورياً والإجابة بدقة أثناء المكالمات</p>
             </div>
-            <button onclick="openAddDocModal()" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-md shadow-brand-600/20 cursor-pointer">
-                <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg> إضافة مستند / معلومة جديدة
+            <button onclick="openAddDocModal()" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>إضافة مستند / معلومة</span>
             </button>
         </div>
 
         <!-- Documents Table -->
-        <div class="overflow-x-auto rounded-xl border border-line">
+        <div class="overflow-x-auto rounded-lg border border-slate-200">
             <table class="w-full text-right border-collapse text-xs">
                 <thead>
-                    <tr class="border-b border-line bg-paper text-soft font-black">
-                        <th class="py-3 px-3.5 min-w-[200px]">العنوان / موضوع المستند</th>
-                        <th class="py-3 px-3">النوع والمصدر</th>
-                        <th class="py-3 px-3 text-center">المقاطع الدلالية (Chunks)</th>
-                        <th class="py-3 px-3 text-center">حجم الملف</th>
-                        <th class="py-3 px-3">تاريخ الإضافة</th>
-                        <th class="py-3 px-3.5 text-center">إجراءات</th>
+                    <tr class="border-b border-slate-200 bg-slate-50/90 text-slate-600 font-semibold text-[11px] whitespace-nowrap">
+                        <th class="py-2 px-2.5 min-w-[200px]">العنوان / موضوع المستند</th>
+                        <th class="py-2 px-2">النوع والمصدر</th>
+                        <th class="py-2 px-2 text-center">المقاطع الدلالية (Chunks)</th>
+                        <th class="py-2 px-2 text-center">حجم الملف</th>
+                        <th class="py-2 px-2">تاريخ الإضافة</th>
+                        <th class="py-2 px-2.5 text-center">إجراءات</th>
                     </tr>
                 </thead>
-                <tbody id="docs-tbody" class="divide-y divide-line/60 bg-card">
+                <tbody id="docs-tbody" class="divide-y divide-slate-100 bg-white">
                     {% if documents %}
                         {% for doc in documents %}
-                        <tr id="doc-row-{{ doc.id }}" class="hover:bg-paper/30 transition">
-                            <td class="py-3.5 px-3.5">
+                        <tr id="doc-row-{{ doc.id }}" class="hover:bg-slate-50/70 transition">
+                            <td class="py-1.5 px-2.5 font-bold text-slate-800">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-brand-600 shrink-0"></span>
-                                    <span class="font-black text-ink text-sm">{{ doc.title }}</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-brand-600 shrink-0"></span>
+                                    <span class="truncate max-w-xs">{{ doc.title }}</span>
                                 </div>
                             </td>
-                            <td class="py-3.5 px-3">
+                            <td class="py-1.5 px-2">
                                 {% if doc.file_type == 'pdf' %}
-                                <span class="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold font-mono inline-flex items-center gap-1">
+                                <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold font-mono inline-flex items-center gap-1">
                                     <span>📄</span> PDF
                                 </span>
                                 {% elif doc.file_type == 'docx' or doc.file_type == 'doc' %}
-                                <span class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold font-mono inline-flex items-center gap-1">
+                                <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold font-mono inline-flex items-center gap-1">
                                     <span>📝</span> Word
                                 </span>
                                 {% elif doc.file_type == 'csv' or doc.file_type == 'json' %}
-                                <span class="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-bold font-mono inline-flex items-center gap-1">
+                                <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold font-mono inline-flex items-center gap-1">
                                     <span>📊</span> {{ doc.file_type|upper }}
                                 </span>
                                 {% elif doc.source_type == 'url' %}
-                                <span class="px-2.5 py-1 rounded-lg bg-purple-50 border border-purple-200 text-purple-700 text-[11px] font-bold font-mono inline-flex items-center gap-1">
+                                <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold font-mono inline-flex items-center gap-1">
                                     <span>🔗</span> رابط خارجي
                                 </span>
                                 {% else %}
-                                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold inline-flex items-center gap-1">
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold inline-flex items-center gap-1">
                                     <span>💬</span> نص / FAQ
                                 </span>
                                 {% endif %}
                             </td>
-                            <td class="py-3.5 px-3 text-center">
-                                <span class="font-mono font-black text-brand-600 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-md text-xs">
+                            <td class="py-1.5 px-2 text-center">
+                                <span class="font-mono font-bold text-brand-700 bg-brand-50 border border-brand-200 px-1.5 py-0.5 rounded text-[11px]">
                                     {{ doc.chunks_count|default:"1" }} متجهات
                                 </span>
                             </td>
-                            <td class="py-3.5 px-3 text-center text-soft font-mono">
+                            <td class="py-1.5 px-2 text-center text-slate-500 font-mono text-[11px]">
                                 {% if doc.file_size %}
-                                    {% if doc.file_size > 1048576 %}
-                                        {{ doc.file_size|filesizeformat }}
-                                    {% else %}
-                                        {{ doc.file_size|filesizeformat }}
-                                    {% endif %}
+                                    {{ doc.file_size|filesizeformat }}
                                 {% else %}
                                     —
                                 {% endif %}
                             </td>
-                            <td class="py-3.5 px-3 text-soft font-mono text-[11px]">{{ doc.created_at }}</td>
-                            <td class="py-3.5 px-3.5 text-center">
-                                <div class="inline-flex items-center gap-1.5 justify-center">
+                            <td class="py-1.5 px-2 text-slate-500 font-mono text-[11px] whitespace-nowrap">{{ doc.created_at|date:"Y-m-d H:i"|default:doc.created_at }}</td>
+                            <td class="py-1.5 px-2.5 text-center">
+                                <div class="inline-flex items-center gap-1 justify-center">
                                     {% if doc.file_download_url %}
-                                    <a href="{{ doc.file_download_url }}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-paper hover:bg-brand-50 text-brand-700 border border-line text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="معاينة أو تنزيل الملف الأصلي">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    <a href="{{ doc.file_download_url }}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-slate-50 hover:bg-brand-50 text-brand-700 border border-slate-200 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer" title="معاينة أو تنزيل الملف">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                         <span>معاينة</span>
                                     </a>
                                     {% endif %}
-                                    <button onclick="deleteDoc({{ doc.id }})" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-rose-200/50 transition cursor-pointer" title="حذف من قاعدة المعرفة">
-                                        <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <button onclick="deleteDoc({{ doc.id }})" class="p-1 rounded text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer" title="حذف من قاعدة المعرفة">
+                                        <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
                             </td>
@@ -100,9 +98,9 @@
                         {% endfor %}
                     {% else %}
                         <tr id="no-docs-row">
-                            <td colspan="6" class="py-12 text-center text-soft font-bold">
-                                <span class="text-3xl block mb-2">📚</span>
-                                لا توجد مستندات معرفية مضافة بعد. اضغط على «إضافة مستند / معلومة جديدة» لرفع ملف المنيو أو سياسات المطعم.
+                            <td colspan="6" class="py-8 text-center text-slate-400 font-medium text-xs">
+                                <span class="text-2xl block mb-1">📚</span>
+                                لا توجد مستندات معرفية مضافة بعد. اضغط على «إضافة مستند / معلومة» لرفع ملف المنيو أو سياسات المطعم.
                             </td>
                         </tr>
                     {% endif %}
@@ -113,86 +111,86 @@
 </div>
 
 <!-- Modal: Add Document (RAG) -->
-<div id="add-doc-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="card max-w-lg w-full p-6 border-line shadow-2xl space-y-5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-line pb-3">
-            <h3 class="font-display text-base font-black text-ink flex items-center gap-2">
+<div id="add-doc-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 border border-slate-200 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                 <span>📚</span> إضافة معلومة أو ملف لقاعدة المعرفة
             </h3>
-            <button onclick="closeAddDocModal()" class="text-soft hover:text-ink text-xl cursor-pointer">✕</button>
+            <button onclick="closeAddDocModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
         </div>
 
         <!-- Mode Tabs -->
-        <div class="flex items-center gap-1.5 p-1 bg-paper border border-line rounded-xl text-xs font-black">
-            <button type="button" onclick="switchDocMode('file')" id="doc-tab-file" class="flex-1 py-1.5 rounded-lg bg-brand-600 text-white shadow-xs transition flex items-center justify-center gap-1 cursor-pointer">
+        <div class="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold">
+            <button type="button" onclick="switchDocMode('file')" id="doc-tab-file" class="flex-1 py-1 rounded-md bg-brand-600 text-white shadow-2xs transition flex items-center justify-center gap-1 cursor-pointer">
                 <span>📁</span>
-                <span>رفع ملف من جهازك</span>
+                <span>ملف من جهازك</span>
             </button>
-            <button type="button" onclick="switchDocMode('text')" id="doc-tab-text" class="flex-1 py-1.5 rounded-lg text-soft hover:text-ink transition flex items-center justify-center gap-1 cursor-pointer">
+            <button type="button" onclick="switchDocMode('text')" id="doc-tab-text" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1 cursor-pointer">
                 <span>✍️</span>
-                <span>نص مباشر / سؤال FAQ</span>
+                <span>نص مباشر / FAQ</span>
             </button>
-            <button type="button" onclick="switchDocMode('url')" id="doc-tab-url" class="flex-1 py-1.5 rounded-lg text-soft hover:text-ink transition flex items-center justify-center gap-1 cursor-pointer">
+            <button type="button" onclick="switchDocMode('url')" id="doc-tab-url" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1 cursor-pointer">
                 <span>🔗</span>
                 <span>رابط خارجي</span>
             </button>
         </div>
 
-        <form id="add-doc-form" onsubmit="submitAddDoc(event)" class="space-y-4">
+        <form id="add-doc-form" onsubmit="submitAddDoc(event)" class="space-y-3">
             <!-- Title (Common to all modes) -->
             <div>
-                <label class="block text-xs font-black text-ink mb-1.5">عنوان المستند أو الموضوع *</label>
-                <input type="text" id="doc_title" placeholder="مثال: منيو المشروبات والوجبات، سياسة إلغاء الطلبات، مسببات الحساسية" required class="input">
+                <label class="block text-xs font-bold text-slate-700 mb-1">عنوان المستند أو الموضوع *</label>
+                <input type="text" id="doc_title" placeholder="مثال: منيو المشروبات والوجبات، سياسة إلغاء الطلبات، مسببات الحساسية" required class="input py-1.5 px-2.5 text-xs">
             </div>
 
             <!-- Tab 1: File Upload (Drag & Drop Zone) -->
-            <div id="doc-panel-file" class="space-y-3">
+            <div id="doc-panel-file" class="space-y-2">
                 <input type="file" id="doc_file_input" accept=".pdf,.docx,.doc,.txt,.csv,.md,.json" onchange="handleFileSelect(event)" class="hidden">
                 
-                <div id="dropzone-box" onclick="document.getElementById('doc_file_input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" class="border-2 border-dashed border-line hover:border-brand-500 rounded-2xl p-6 text-center cursor-pointer transition bg-paper/40 hover:bg-paper space-y-2">
-                    <div class="w-12 h-12 mx-auto rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-2xl">
+                <div id="dropzone-box" onclick="document.getElementById('doc_file_input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" class="border-2 border-dashed border-slate-200 hover:border-brand-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 hover:bg-slate-50 space-y-1.5">
+                    <div class="w-10 h-10 mx-auto rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xl">
                         📤
                     </div>
                     <div>
-                        <p class="text-xs font-black text-ink">انقر لاختيار ملف من جهازك أو اسحبه وأفلته هنا</p>
-                        <p class="text-[11px] text-soft mt-1">يدعم: PDF, Word (DOCX), Text, CSV, Markdown</p>
+                        <p class="text-xs font-bold text-slate-800">انقر لاختيار ملف من جهازك أو اسحبه وأفلته هنا</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">يدعم: PDF, Word (DOCX), Text, CSV, Markdown</p>
                     </div>
-                    <span class="inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-paper border border-line text-soft">
-                        الحد الأقصى لحجم الملف: 25 ميجابايت
+                    <span class="inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-500">
+                        الحد الأقصى: 25 ميجابايت
                     </span>
                 </div>
 
                 <!-- Selected File Preview Badge -->
-                <div id="selected-file-card" class="hidden p-3 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-between gap-3 text-xs">
-                    <div class="flex items-center gap-2.5 overflow-hidden">
-                        <span class="text-lg">📄</span>
+                <div id="selected-file-card" class="hidden p-2.5 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="text-base">📄</span>
                         <div class="truncate">
-                            <p id="selected-file-name" class="font-black text-ink truncate"></p>
-                            <p id="selected-file-size" class="text-[10px] text-soft font-mono"></p>
+                            <p id="selected-file-name" class="font-bold text-slate-800 truncate text-xs"></p>
+                            <p id="selected-file-size" class="text-[10px] text-slate-500 font-mono"></p>
                         </div>
                     </div>
-                    <button type="button" onclick="clearSelectedFile()" class="p-1 rounded-lg text-rose-600 hover:bg-rose-100 transition cursor-pointer" title="إلغاء الملف">
+                    <button type="button" onclick="clearSelectedFile()" class="p-1 rounded text-rose-600 hover:bg-rose-100 transition cursor-pointer" title="إلغاء الملف">
                         ✕
                     </button>
                 </div>
             </div>
 
             <!-- Tab 2: Text / FAQ Direct Content -->
-            <div id="doc-panel-text" class="hidden space-y-2">
-                <label class="block text-xs font-black text-ink mb-1">النص / الإجابة المباشرة (FAQ Content)</label>
-                <textarea id="doc_content" rows="5" placeholder="اكتب التفاصيل الكاملة هنا ليجيب بها الذكاء الاصطناعي بدقة عند سؤال العميل..." class="input leading-relaxed"></textarea>
+            <div id="doc-panel-text" class="hidden space-y-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1">النص / الإجابة المباشرة (FAQ Content)</label>
+                <textarea id="doc_content" rows="4" placeholder="اكتب التفاصيل الكاملة هنا ليجيب بها الذكاء الاصطناعي بدقة عند سؤال العميل..." class="input py-1.5 px-2.5 text-xs leading-relaxed"></textarea>
             </div>
 
             <!-- Tab 3: External URL -->
-            <div id="doc-panel-url" class="hidden space-y-2">
-                <label class="block text-xs font-black text-ink mb-1">رابط مباشر للمستند (PDF / DOCX URL)</label>
-                <input type="url" id="doc_file_url" placeholder="https://example.com/menu_buffet.pdf" class="input font-mono text-xs">
-                <p class="text-[10px] text-soft">يقوم السيرفر بتحميل الملف تلقائياً وفهرسته.</p>
+            <div id="doc-panel-url" class="hidden space-y-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1">رابط مباشر للمستند (PDF / DOCX URL)</label>
+                <input type="url" id="doc_file_url" placeholder="https://example.com/menu_buffet.pdf" class="input py-1.5 px-2.5 font-mono text-xs">
+                <p class="text-[10px] text-slate-500">يقوم السيرفر بتحميل الملف تلقائياً وفهرسته.</p>
             </div>
 
-            <div class="pt-3 border-t border-line flex items-center justify-end gap-2.5">
-                <button type="button" onclick="closeAddDocModal()" class="px-4 py-2 rounded-xl border border-line bg-paper text-ink text-xs font-bold cursor-pointer">إلغاء</button>
-                <button type="submit" id="btn-add-doc-submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-600/20 transition cursor-pointer flex items-center gap-2">
+            <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddDocModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
+                <button type="submit" id="btn-add-doc-submit" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer flex items-center gap-1.5">
                     <span id="btn-add-doc-spinner" class="hidden animate-spin">⏳</span>
                     <span id="btn-add-doc-text">حفظ وفهرسة بالذكاء الاصطناعي</span>
                 </button>
