@@ -245,7 +245,7 @@ def get_post_login_redirect(user):
 
     profile = getattr(user, "profile", None)
     if user.is_superuser or (profile and profile.is_platform_admin):
-        return "platform_dashboard"
+        return "/admin/"
 
     is_owner = (profile and profile.role == "owner")
     if profile and profile.tenant and not profile.tenant.is_active:
@@ -449,9 +449,9 @@ def login_view(request):
                         if hasattr(user, cache_field):
                             delattr(user, cache_field)
 
-                    # Route platform admin
-                    if profile and profile.is_platform_admin:
-                        return redirect("platform_dashboard")
+                    # Route platform admin / superuser directly to Django Admin
+                    if user.is_superuser or (profile and profile.is_platform_admin):
+                        return redirect("/admin/")
 
                     # Bind tenant
                     if profile and profile.tenant:
@@ -611,83 +611,11 @@ def switch_branch_view(request, branch_id):
 
 @login_required
 def platform_dashboard_view(request):
+    """Graceful redirect for deprecated /platform/ URL to Django Admin or dashboard."""
     profile = getattr(request.user, "profile", None)
-    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
-        return HttpResponseForbidden("غير مصرح بالوصول إلى لوحة المنصة العامة")
-
-    tenants = Tenant.objects.select_related("subscription_plan").all().order_by("-id")
-    tenants_data = []
-    for t in tenants:
-        b_count = Branch.objects.filter(tenant=t).count()
-        e_count = Employee.objects.filter(tenant=t).count()
-        o_count = Order.objects.filter(tenant=t).count()
-        tenants_data.append({
-            "tenant": t,
-            "branches_count": b_count,
-            "employees_count": e_count,
-            "orders_count": o_count,
-            "plan_name": t.subscription_plan.name if t.subscription_plan else "بدون باقة",
-            "max_branches": t.subscription_plan.max_branches if t.subscription_plan else 0,
-            "max_employees": t.subscription_plan.max_employees if t.subscription_plan else 0,
-            "days_left": t.days_until_expiry(),
-            "status_display": t.get_subscription_status_display(),
-        })
-
-    plans = SubscriptionPlan.objects.all().order_by("ordering", "price_monthly")
-    plans_data = []
-    for p in plans:
-        plans_data.append({
-            "plan": p,
-            "tenants_count": p.tenants.count(),
-        })
-
-    pending_upgrade_requests = UpgradeRequest.objects.filter(status="pending").select_related(
-        "tenant", "requested_plan", "requested_by"
-    ).order_by("-created_at")
-
-    all_upgrade_requests = UpgradeRequest.objects.select_related(
-        "tenant", "requested_plan", "requested_by"
-    ).order_by("-created_at")[:25]
-
-    owners = UserProfile.objects.filter(role="owner").select_related(
-        "user", "tenant", "tenant__subscription_plan"
-    ).order_by("-id")
-
-    owners_data = []
-    for o in owners:
-        b_count = Branch.objects.filter(tenant=o.tenant).count() if o.tenant else 0
-        emp_prof = getattr(o.user, "employee_profile", None)
-        phone = emp_prof.phone if (emp_prof and emp_prof.phone) else (o.tenant.phone if o.tenant else "—")
-        owners_data.append({
-            "profile": o,
-            "user": o.user,
-            "tenant": o.tenant,
-            "plan_name": o.tenant.subscription_plan.name if (o.tenant and o.tenant.subscription_plan) else "بدون باقة",
-            "subscription_status": o.tenant.get_subscription_status_display() if o.tenant else "—",
-            "status_code": o.tenant.subscription_status if o.tenant else "none",
-            "branches_count": b_count,
-            "phone": phone,
-            "email": o.user.email or (o.tenant.email if o.tenant else "—"),
-            "date_joined": o.user.date_joined,
-            "last_login": o.user.last_login,
-        })
-
-    context = {
-        "tenants_data": tenants_data,
-        "plans_data": plans_data,
-        "plans": plans,
-        "features_catalog": SAAS_FEATURES_CATALOG,
-        "total_tenants": tenants.count(),
-        "total_branches": Branch.objects.count(),
-        "total_employees": Employee.objects.count(),
-        "total_orders": Order.objects.count(),
-        "pending_upgrade_requests": pending_upgrade_requests,
-        "all_upgrade_requests": all_upgrade_requests,
-        "pending_requests_count": pending_upgrade_requests.count(),
-        "owners_data": owners_data,
-        "total_owners": owners.count(),
-    }
-    return render(request, "platform_dashboard.html", context)
+    if request.user.is_superuser or (profile and profile.is_platform_admin):
+        return redirect("/admin/")
+    return redirect("dashboard")
 
 
 @login_required
@@ -702,78 +630,6 @@ def switch_tenant_view(request, tenant_id):
     return redirect("dashboard")
 
 
-@login_required
-def api_create_tenant(request):
-    if request.method != "POST":
-        return HttpResponseBadRequest("POST required")
-
-    profile = getattr(request.user, "profile", None)
-    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
-        return JsonResponse({"error": "غير مصرح"}, status=403)
-
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
-
-    name = str(data.get("name", "")).strip()
-    slug = str(data.get("slug", "")).strip().lower()
-    if not name or not slug:
-        return JsonResponse({"error": "اسم المطعم والمعرف (Slug) مطلوبان"}, status=400)
-
-    if Tenant.objects.filter(slug=slug).exists():
-        return JsonResponse({"error": "المعرف اللاتيني (Slug) مستخدم بالفعل"}, status=400)
-
-    # Pre-validate owner username collision before creating tenant record
-    owner_username = str(data.get("owner_username", "")).strip()
-    owner_password = str(data.get("owner_password", "")).strip()
-    if owner_username and User.objects.filter(username=owner_username).exists():
-        return JsonResponse({"error": f"اسم المستخدم «{owner_username}» محجوز مسبقاً في النظام"}, status=400)
-
-    plan_code = data.get("plan", "starter")
-    plan_obj = SubscriptionPlan.objects.filter(code=plan_code).first() or SubscriptionPlan.objects.filter(is_active=True).first()
-
-    with transaction.atomic():
-        tenant = Tenant.objects.create(
-            name=name,
-            slug=slug,
-            logo_emoji=data.get("emoji", "🍽️"),
-            phone=data.get("phone", ""),
-            plan=data.get("plan", "standard"),
-            subscription_plan=plan_obj,
-            subscription_status="active",
-            subscription_start=timezone.now(),
-            subscription_end=timezone.now() + timedelta(days=30),
-            address=data.get("address", ""),
-            is_active=True,
-        )
-
-        # 1. Create Initial Main Branch
-        Branch.objects.create(
-            tenant=tenant,
-            name=f"الفرع الرئيسي — {name}",
-            phone=data.get("phone", ""),
-            status="active",
-        )
-
-        # 2. Seed standard preset roles
-        ensure_tenant_preset_roles(tenant)
-
-        # 3. Provision Initial Owner
-        if owner_username:
-            import secrets
-            pwd_to_use = owner_password if owner_password else f"Rest@{secrets.token_hex(4)}"
-            owner_user = User.objects.create_user(username=owner_username, password=pwd_to_use, first_name=name)
-            UserProfile.objects.create(
-                user=owner_user,
-                tenant=tenant,
-                role="owner",
-                branch=None,
-            )
-
-    return JsonResponse({"ok": True, "tenantId": tenant.id})
-
-
 # ==========================================
 # 1. OWNER / HQ DASHBOARD (SCOPED TO TENANT)
 # ==========================================
@@ -784,9 +640,9 @@ def dashboard_view(request):
     profile = getattr(request.user, "profile", None)
     is_platform_admin = request.user.is_superuser or (profile and profile.is_platform_admin)
 
-    # If platform admin and no tenant selected, go to platform dashboard
+    # If platform admin and no tenant selected, go to Django Admin
     if is_platform_admin and not request.session.get("active_tenant_id") and request.GET.get("view") != "tenant":
-        return redirect("platform_dashboard")
+        return redirect("/admin/")
 
     tenant = get_active_tenant(request)
     active_branch = get_active_branch(request)
@@ -4858,246 +4714,7 @@ def api_job_role_detail(request, role_id):
 # 9. SAAS SUBSCRIPTION PLANS & TENANT LIMITS
 # ==========================================
 
-@login_required
-def api_subscription_plans(request):
-    profile = getattr(request.user, "profile", None)
-    is_platform_admin = request.user.is_superuser or (profile and profile.is_platform_admin)
 
-    if request.method == "GET":
-        plans = SubscriptionPlan.objects.all().order_by("ordering", "price_monthly")
-        data = []
-        for p in plans:
-            data.append({
-                "id": p.id,
-                "name": p.name,
-                "code": p.code,
-                "description": p.description,
-                "price_monthly": str(p.price_monthly),
-                "price_yearly": str(p.price_yearly),
-                "max_branches": p.max_branches,
-                "max_employees": p.max_employees,
-                "features": p.features or [],
-                "trial_days": p.trial_days,
-                "is_active": p.is_active,
-                "is_popular": p.is_popular,
-                "ordering": p.ordering,
-                "tenants_count": p.tenants.count(),
-            })
-        return JsonResponse({"ok": True, "plans": data, "catalog": SAAS_FEATURES_CATALOG})
-
-    elif request.method == "POST":
-        if not is_platform_admin:
-            return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
-
-        try:
-            body = json.loads(request.body.decode("utf-8"))
-        except Exception:
-            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
-
-        name = str(body.get("name", "")).strip()
-        code = str(body.get("code", "")).strip().lower()
-        if not name:
-            return JsonResponse({"error": "اسم الباقة مطلوب"}, status=400)
-        if not code:
-            code = name.replace(" ", "-").lower()
-
-        if SubscriptionPlan.objects.filter(code=code).exists():
-            return JsonResponse({"error": f"كود الباقة «{code}» مستخدم مسبقاً"}, status=400)
-
-        try:
-            price_m = Decimal(str(body.get("price_monthly") or 0))
-            price_y = Decimal(str(body.get("price_yearly") or 0))
-        except Exception:
-            return JsonResponse({"error": "الأسعار غير صالحة"}, status=400)
-
-        max_branches = int(body.get("max_branches") if body.get("max_branches") is not None else 1)
-        max_employees = int(body.get("max_employees") if body.get("max_employees") is not None else 5)
-        features = body.get("features", [])
-        if not isinstance(features, list):
-            features = []
-
-        plan = SubscriptionPlan.objects.create(
-            name=name,
-            code=code,
-            description=str(body.get("description", "")).strip(),
-            price_monthly=price_m,
-            price_yearly=price_y,
-            max_branches=max_branches,
-            max_employees=max_employees,
-            features=features,
-            trial_days=int(body.get("trial_days") or 0),
-            is_active=bool(body.get("is_active", True)),
-            is_popular=bool(body.get("is_popular", False)),
-            ordering=int(body.get("ordering") or 0),
-        )
-
-        return JsonResponse({
-            "ok": True,
-            "plan": {
-                "id": plan.id,
-                "name": plan.name,
-                "code": plan.code,
-                "price_monthly": str(plan.price_monthly),
-                "price_yearly": str(plan.price_yearly),
-                "max_branches": plan.max_branches,
-                "max_employees": plan.max_employees,
-                "features": plan.features,
-                "tenants_count": 0,
-            }
-        })
-
-    return HttpResponseBadRequest("GET or POST required")
-
-
-@login_required
-def api_subscription_plan_detail(request, plan_id):
-    profile = getattr(request.user, "profile", None)
-    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
-        return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
-
-    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
-
-    if request.method in ["POST", "PATCH", "PUT"]:
-        try:
-            body = json.loads(request.body.decode("utf-8"))
-        except Exception:
-            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
-
-        action = body.get("action")
-        if action == "delete" or request.method == "DELETE":
-            if plan.tenants.exists():
-                return JsonResponse({
-                    "error": f"لا يمكن حذف الباقة «{plan.name}» لوجود {plan.tenants.count()} منشآت مشتركة فيها. يرجى نقلهم لباقة أخرى أولاً."
-                }, status=400)
-            plan.delete()
-            return JsonResponse({"ok": True, "message": "تم حذف الباقة بنجاح"})
-
-        name = str(body.get("name", "")).strip()
-        if name:
-            plan.name = name
-
-        if "description" in body:
-            plan.description = str(body["description"]).strip()
-
-        if "price_monthly" in body:
-            try:
-                plan.price_monthly = Decimal(str(body["price_monthly"]))
-            except Exception:
-                pass
-
-        if "price_yearly" in body:
-            try:
-                plan.price_yearly = Decimal(str(body["price_yearly"]))
-            except Exception:
-                pass
-
-        if "max_branches" in body:
-            plan.max_branches = int(body["max_branches"])
-
-        if "max_employees" in body:
-            plan.max_employees = int(body["max_employees"])
-
-        if "features" in body and isinstance(body["features"], list):
-            plan.features = body["features"]
-
-        if "is_active" in body:
-            plan.is_active = bool(body["is_active"])
-
-        if "is_popular" in body:
-            plan.is_popular = bool(body["is_popular"])
-
-        plan.save()
-        return JsonResponse({
-            "ok": True,
-            "plan": {
-                "id": plan.id,
-                "name": plan.name,
-                "code": plan.code,
-                "price_monthly": str(plan.price_monthly),
-                "price_yearly": str(plan.price_yearly),
-                "max_branches": plan.max_branches,
-                "max_employees": plan.max_employees,
-                "features": plan.features,
-                "tenants_count": plan.tenants.count(),
-            }
-        })
-
-    elif request.method == "DELETE":
-        if plan.tenants.exists():
-            return JsonResponse({
-                "error": f"لا يمكن حذف الباقة «{plan.name}» لوجود {plan.tenants.count()} منشآت مشتركة فيها."
-            }, status=400)
-        plan.delete()
-        return JsonResponse({"ok": True, "message": "تم حذف الباقة بنجاح"})
-
-    return HttpResponseBadRequest("Invalid method")
-
-
-@login_required
-def api_update_tenant_subscription(request, tenant_id):
-    if request.method != "POST":
-        return HttpResponseBadRequest("POST required")
-
-    profile = getattr(request.user, "profile", None)
-    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
-        return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
-
-    tenant = get_object_or_404(Tenant, id=tenant_id)
-    try:
-        body = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
-
-    plan_id = body.get("plan_id")
-    if plan_id:
-        plan = get_object_or_404(SubscriptionPlan, id=plan_id)
-        tenant.subscription_plan = plan
-
-    if "is_active" in body:
-        tenant.is_active = bool(body["is_active"])
-
-    if "status" in body and body["status"] in dict(Tenant.SUBSCRIPTION_STATUS_CHOICES):
-        tenant.subscription_status = body["status"]
-        if tenant.subscription_status == "active":
-            tenant.is_active = True
-
-    if "billing_cycle" in body and body["billing_cycle"] in dict(Tenant.BILLING_CYCLE_CHOICES):
-        tenant.billing_cycle = body["billing_cycle"]
-
-    extend_days = body.get("extend_days")
-    if extend_days and str(extend_days).isdigit():
-        days = int(extend_days)
-        base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
-        tenant.subscription_end = base_time + timedelta(days=days)
-
-    custom_end = body.get("subscription_end")
-    if custom_end:
-        try:
-            tenant.subscription_end = timezone.datetime.fromisoformat(custom_end)
-        except Exception:
-            pass
-
-    tenant.save()
-
-    # Synchronize call minute & spending caps with Partner API
-    try:
-        from core import partner_service as ps
-        ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
-    except Exception as e:
-        logger.warning(f"Failed to sync voice caps for tenant '{tenant.slug}' on subscription update: {e}")
-
-    return JsonResponse({
-        "ok": True,
-        "message": f"تم تحديث اشتراك منشأة «{tenant.name}» بنجاح",
-        "subscription": {
-            "plan_name": tenant.subscription_plan.name if tenant.subscription_plan else "—",
-            "status": tenant.subscription_status,
-            "status_display": tenant.get_subscription_status_display(),
-            "billing_cycle": tenant.get_billing_cycle_display(),
-            "subscription_end": tenant.subscription_end.strftime("%Y-%m-%d") if tenant.subscription_end else None,
-            "days_left": tenant.days_until_expiry(),
-        }
-    })
 
 
 # ==========================================
@@ -5275,74 +4892,7 @@ def api_request_upgrade(request):
     })
 
 
-@login_required
-def api_review_upgrade_request(request, req_id):
-    """API for platform super admin to approve or reject an upgrade request."""
-    if request.method != "POST":
-        return HttpResponseBadRequest("POST required")
 
-    profile = getattr(request.user, "profile", None)
-    if not (request.user.is_superuser or (profile and profile.is_platform_admin)):
-        return JsonResponse({"error": "مقتصر على إدارة المنصة فقط"}, status=403)
-
-    upgrade_req = get_object_or_404(UpgradeRequest, id=req_id)
-
-    try:
-        body = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
-
-    action = body.get("action")
-    if action not in ["approve", "reject"]:
-        return JsonResponse({"error": "إجراء غير صالح. يرجى اختيار approve أو reject"}, status=400)
-
-    if action == "approve":
-        upgrade_req.status = "approved"
-        upgrade_req.reviewed_at = timezone.now()
-        upgrade_req.save()
-
-        # Refresh tenant instance after automatic apply_upgrade
-        tenant = upgrade_req.tenant
-        tenant.refresh_from_db()
-
-        log_audit_event(
-            tenant=tenant,
-            user=request.user,
-            action="upgrade_request_approved",
-            target_model="UpgradeRequest",
-            target_id=upgrade_req.id,
-            description=f"الموافقة على طلب ترقية المنشأة إلى باقة «{upgrade_req.requested_plan.name}» وتفعيل الاشتراك حتى {tenant.subscription_end.strftime('%Y-%m-%d') if tenant.subscription_end else ''}",
-            ip_address=_get_client_ip(request),
-        )
-
-        return JsonResponse({
-            "ok": True,
-            "message": f"تمت الموافقة على طلب ترقية «{tenant.name}» إلى باقة «{upgrade_req.requested_plan.name}» بنجاح وتم تفعيل الاشتراك.",
-            "status": "approved",
-            "plan_name": tenant.subscription_plan.name,
-            "subscription_end": tenant.subscription_end.strftime("%Y-%m-%d") if tenant.subscription_end else "",
-        })
-
-    elif action == "reject":
-        upgrade_req.status = "rejected"
-        upgrade_req.reviewed_at = timezone.now()
-        upgrade_req.save()
-
-        log_audit_event(
-            tenant=upgrade_req.tenant,
-            user=request.user,
-            action="upgrade_request_rejected",
-            target_model="UpgradeRequest",
-            target_id=upgrade_req.id,
-            description=f"رفض طلب ترقية المنشأة إلى باقة «{upgrade_req.requested_plan.name}»",
-            ip_address=_get_client_ip(request),
-        )
-
-        return JsonResponse({
-            "ok": True,
-            "message": f"تم رفض طلب الترقية للمنشأة «{upgrade_req.tenant.name}».",
-            "status": "rejected",
-        })
 
 
 @login_required

@@ -221,6 +221,7 @@ class TenantAdmin(admin.ModelAdmin):
         "subscription_end",
         "is_active",
         "branches_count",
+        "enter_dashboard_button",
         "created_at",
     )
     list_filter = ("subscription_status", "billing_cycle", "subscription_plan", "is_active")
@@ -256,6 +257,16 @@ class TenantAdmin(admin.ModelAdmin):
     @admin.display(description="الفروع")
     def branches_count(self, obj):
         return obj.branches.count()
+
+    @admin.display(description="لوحة التحكم")
+    def enter_dashboard_button(self, obj):
+        url = reverse("switch_tenant", args=[obj.id])
+        return format_html(
+            '<a href="{}" target="_blank" style="background-color: #2563eb; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 11px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">'
+            'دخول المنشأة ↗'
+            '</a>',
+            url
+        )
 
 
 @admin.register(PlatformConfiguration)
