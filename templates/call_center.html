@@ -33,79 +33,10 @@
     </div>
 
     <!-- Main POS Layout: Menu Left + Invoice Right -->
-    <div class="grid grid-cols-1 gap-3.5 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_390px] pb-24 lg:pb-0">
-        <!-- Left Section: Customer Fast Bar + Categories + POS Menu Grid -->
+    <div class="grid grid-cols-1 gap-3.5 lg:grid-cols-[1fr_370px] xl:grid-cols-[1fr_400px] pb-24 lg:pb-0">
+        <!-- Left Section: Categories + POS Menu Grid (Distraction-Free) -->
         <div class="space-y-3">
-            <!-- 1. Customer Fast Lookup Card (Integrated High-Density) -->
-            <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-2xs space-y-2">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                    <h2 class="text-xs font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <span>بيانات العميل المتصل</span>
-                    </h2>
-                    <div class="flex items-center gap-1.5">
-                        <span id="cust-status-badge" class="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">عميل جديد</span>
-                        <span id="cust-stats-badge" class="text-[10px] font-medium text-slate-500">0 طلبات سابقة</span>
-                    </div>
-                </div>
-
-                <!-- Phone Search & Customer Quick Form -->
-                <div class="space-y-1.5">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                        <div class="flex gap-1 sm:col-span-1">
-                            <input 
-                                type="text" 
-                                id="phone-lookup-input" 
-                                placeholder="رقم الجوال (Enter للبحث)..." 
-                                dir="ltr"
-                                class="input !py-1 text-xs font-mono w-full"
-                                onkeydown="if(event.key === 'Enter') searchCustomer()"
-                            >
-                            <button 
-                                type="button" 
-                                onclick="searchCustomer()" 
-                                class="shrink-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 text-xs font-semibold transition cursor-pointer"
-                                title="بحث عن العميل"
-                            >
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            </button>
-                        </div>
-                        <div>
-                            <input type="text" id="order-cust-name" placeholder="اسم العميل *" class="input !py-1 text-xs">
-                        </div>
-                        <div>
-                            <input type="text" id="order-cust-phone" placeholder="رقم الجوال لتأكيد الطلب *" dir="ltr" class="input !py-1 text-xs font-mono">
-                        </div>
-                    </div>
-
-                    <!-- Search Results (Appears dynamically) -->
-                    <div id="customer-results-box" class="hidden space-y-1.5 border-t border-slate-100 pt-1.5"></div>
-
-                    <!-- Delivery-Specific Fields (Hidden when Takeaway is active) -->
-                    <div id="delivery-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 border-t border-slate-100 transition-all">
-                        <div>
-                            <div class="flex items-center justify-between mb-0.5">
-                                <label class="text-[10px] font-medium text-slate-500">المنطقة / الكومبوند المغطى *</label>
-                                <span id="area-route-badge" class="hidden text-[9px] text-blue-700 bg-blue-50 px-1 py-0.2 rounded font-semibold border border-blue-200"></span>
-                            </div>
-                            <select id="order-delivery-area" class="input !py-1 text-xs" onchange="onDeliveryAreaChanged()">
-                                <option value="">-- اختر المنطقة لتوجيه الفرع وحساب التوصيل --</option>
-                                {% for a in delivery_areas %}
-                                <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.name }}" data-currency="{{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol }}">
-                                    [{{ a.get_area_type_display|default:"منطقة" }}] {{ a.name }} (فرع: {{ a.branch.name }} • {{ a.delivery_fee }} {{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol }})
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-medium text-slate-500 block mb-0.5">عنوان التوصيل بالتفصيل *</label>
-                            <input type="text" id="order-cust-address" placeholder="الحي، اسم الشارع، رقم العمارة أو الشقة..." class="input !py-1 text-xs">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Categories & Search Bar (Exact POS Style) -->
+            <!-- 1. Categories & Search Bar (Exact POS Style) -->
             <div class="flex flex-wrap items-center justify-between gap-2 bg-white rounded-xl border border-slate-200 p-2.5 shadow-2xs">
                 <div class="flex flex-wrap items-center gap-1 overflow-x-auto pb-0.5 [scrollbar-width:none]">
                     {% for c in categories %}
@@ -131,7 +62,7 @@
                 </div>
             </div>
 
-            <!-- 3. Menu Items Grid (High-Density Touch Buttons - Exact POS Style) -->
+            <!-- 2. Menu Items Grid (High-Density Touch Buttons - Exact POS Style) -->
             <div id="menu-grid" class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {% for m in menu_items %}
                 <button 
@@ -169,8 +100,108 @@
             <div id="no-items-msg" class="hidden py-10 text-center text-xs text-slate-400">لا توجد أصناف مطابقة للبحث أو القسم المحدد</div>
         </div>
 
-        <!-- Right Section: Cart / Invoice Panel (Exact POS Style) -->
+        <!-- Right Section: Caller Info + Cart / Invoice Panel -->
         <div id="cart-section-container" class="space-y-3 lg:sticky lg:top-3 self-start">
+            <!-- 1. Caller / Customer Information Card (Moved here) -->
+            <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-2xs space-y-2.5">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                    <h2 class="text-xs font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <span>بيانات العميل المتصل</span>
+                    </h2>
+                    <div class="flex items-center gap-1.5">
+                        <span id="cust-status-badge" class="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">عميل جديد</span>
+                        <span id="cust-stats-badge" class="text-[10px] font-medium text-slate-500">0 طلبات</span>
+                    </div>
+                </div>
+
+                <!-- Order Type Selector (توصيل + سفري) -->
+                <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">نوع الطلب:</label>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button 
+                            type="button" 
+                            onclick="setOrderType('delivery')" 
+                            id="btn-type-delivery" 
+                            class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 py-1.5 text-xs font-bold text-white transition cursor-pointer shadow-2xs"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span>توصيل</span>
+                        </button>
+                        <button 
+                            type="button" 
+                            onclick="setOrderType('takeaway')" 
+                            id="btn-type-takeaway" 
+                            class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                            <span>سفري (استلام)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Phone Search & Customer Quick Form -->
+                <div class="space-y-1.5">
+                    <div>
+                        <div class="flex gap-1">
+                            <input 
+                                type="text" 
+                                id="phone-lookup-input" 
+                                placeholder="بحث سريع برقم الجوال (Enter)..." 
+                                dir="ltr"
+                                class="input !py-1 text-xs font-mono w-full"
+                                onkeydown="if(event.key === 'Enter') searchCustomer()"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="searchCustomer()" 
+                                class="shrink-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 text-xs font-semibold transition cursor-pointer"
+                                title="بحث عن العميل"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-500 block mb-0.5">اسم العميل *</label>
+                            <input type="text" id="order-cust-name" placeholder="الاسم الكامل" class="input !py-1 text-xs w-full">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-500 block mb-0.5">رقم التأكيد *</label>
+                            <input type="text" id="order-cust-phone" placeholder="جوال العميل" dir="ltr" class="input !py-1 text-xs font-mono w-full">
+                        </div>
+                    </div>
+
+                    <!-- Search Results (Appears dynamically) -->
+                    <div id="customer-results-box" class="hidden space-y-1.5 border-t border-slate-100 pt-1.5"></div>
+
+                    <!-- Delivery-Specific Fields (Hidden when Takeaway is active) -->
+                    <div id="delivery-fields" class="space-y-1.5 pt-1 border-t border-slate-100 transition-all">
+                        <div>
+                            <div class="flex items-center justify-between mb-0.5">
+                                <label class="text-[10px] font-medium text-slate-500">المنطقة / الكومبوند المغطى *</label>
+                                <span id="area-route-badge" class="hidden text-[9px] text-blue-700 bg-blue-50 px-1 py-0.2 rounded font-semibold border border-blue-200"></span>
+                            </div>
+                            <select id="order-delivery-area" class="input !py-1 text-xs w-full" onchange="onDeliveryAreaChanged()">
+                                <option value="">-- اختر المنطقة لتوجيه الفرع وحساب التوصيل --</option>
+                                {% for a in delivery_areas %}
+                                <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.name }}" data-currency="{{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol }}">
+                                    [{{ a.get_area_type_display|default:"منطقة" }}] {{ a.name }} ({{ a.branch.name }} • {{ a.delivery_fee }} {{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-500 block mb-0.5">عنوان التوصيل بالتفصيل *</label>
+                            <input type="text" id="order-cust-address" placeholder="الحي، اسم الشارع، رقم العمارة أو الشقة..." class="input !py-1 text-xs w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Invoice / Cart Panel (Exact POS Style) -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-2xs">
                 <!-- Cart Header -->
                 <div class="flex items-center justify-between border-b border-slate-200 px-3.5 py-2.5 bg-slate-50/70 rounded-t-xl">
@@ -193,31 +224,6 @@
 
                 <!-- Order Controls & Checkout -->
                 <div class="space-y-2.5 border-t border-slate-100 p-3 bg-slate-50/40 rounded-b-xl">
-                    <!-- Order Type Selector (توصيل + سفري) -->
-                    <div>
-                        <label class="block text-[10px] font-semibold text-slate-500 mb-1">نوع الطلب:</label>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <button 
-                                type="button" 
-                                onclick="setOrderType('delivery')" 
-                                id="btn-type-delivery" 
-                                class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 py-1.5 text-xs font-bold text-white transition cursor-pointer shadow-2xs"
-                            >
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span>توصيل</span>
-                            </button>
-                            <button 
-                                type="button" 
-                                onclick="setOrderType('takeaway')" 
-                                id="btn-type-takeaway" 
-                                class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer"
-                            >
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                                <span>سفري (استلام)</span>
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Branch & Payment Method -->
                     <div class="grid grid-cols-2 gap-1.5 text-xs">
                         <div>
