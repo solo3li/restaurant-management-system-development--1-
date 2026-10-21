@@ -449,8 +449,8 @@
         <div class="p-3.5 border-b border-slate-100 shrink-0">
             <div class="brand-header flex items-center justify-between">
                 <a href="{% if is_hq_mode %}{% url 'dashboard' %}{% else %}{% url 'branch_dashboard' %}{% endif %}" class="brand-link flex items-center gap-3 group">
-                    <div class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 group-hover:border-blue-400 transition">
-                        <img src="/static/img/kura_symbol.png" alt="{{ t.brand_name }}" class="h-6 w-6 object-contain">
+                    <div class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50/60 border border-blue-200/60 group-hover:border-blue-400 transition">
+                        <img src="{% static 'img/motaem_symbol_trans.png' %}" alt="{{ t.brand_name }}" class="h-7 w-7 object-contain">
                     </div>
                     <div class="min-w-0 sidebar-text">
                         <div class="flex items-center gap-1.5">
