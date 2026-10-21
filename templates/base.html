@@ -597,7 +597,6 @@
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_dashboard }}</span>
                     </div>
-                    <span class="sidebar-text text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300">{{ t.live }}</span>
                 </a>
                 {% else %}
                 <a href="{% url 'branch_dashboard' %}" class="m3-nav-item flex items-center justify-between px-3.5 py-2.5 rounded-full transition-all duration-200 group {% if request.resolver_match.url_name == 'branch_dashboard' %}m3-active bg-blue-100 text-blue-950 font-black border border-blue-300 shadow-2xs{% else %}text-slate-800 hover:bg-slate-100 hover:text-slate-950 font-bold border border-transparent{% endif %}">
@@ -636,7 +635,6 @@
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_kitchen }}</span>
                     </div>
-                    <span class="sidebar-text text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-300">{{ t.live }}</span>
                 </a>
             </div>
             {% endif %}
@@ -651,10 +649,6 @@
                         </span>
                         <span class="sidebar-text tracking-tight">مركز الاتصالات المباشر</span>
                     </div>
-                    <span class="sidebar-text flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                        {{ t.live|default:"مباشر" }}
-                    </span>
                 </a>
             </div>
             {% endif %}
@@ -708,7 +702,6 @@
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_ai_callcenter|default:"كول سنتر الذكاء الاصطناعي" }}</span>
                     </div>
-                    <span class="sidebar-text text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-950 border border-blue-300">AI</span>
                 </a>
             </div>
             {% endif %}
@@ -723,7 +716,6 @@
                         </span>
                         <span class="sidebar-text font-bold tracking-tight">{% if CURRENT_LANG == 'en' %}{{ t.nav_general_admin|default:"General Admin" }}{% else %}{{ t.nav_general_admin|default:"الإدارة العامة" }}{% endif %}</span>
                     </div>
-                    <span class="sidebar-text text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-200 text-slate-900 border border-slate-300">HQ</span>
                 </a>
             </div>
             {% endif %}
