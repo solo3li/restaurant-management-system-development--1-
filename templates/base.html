@@ -531,63 +531,21 @@
             </div>
             {% endif %}
 
-            <!-- 2. Branches & Locations (Nested Accordion) -->
-            {% if is_hq_mode and 'manage_branches' in user_perms or is_hq_mode and 'branch_manage_branches' in user_perms %}
-            <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-branches')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+            <!-- 2. POS (Cashier - Direct Single Link) -->
+            {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms %}
+            <div class="nav-item-wrapper relative">
+                <a href="{% url 'pos' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'pos' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3L2 7h20L12 3z"/></svg>
-                        </span>
-                        <span class="sidebar-text">{{ t.nav_branches }}</span>
-                    </div>
-                    <span id="acc-branches-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
-                </button>
-                <div id="acc-branches-content" class="{% if request.resolver_match.url_name == 'branches' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
-                    <a href="{% url 'branches' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branches' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_all_branches }}</span>
-                    </a>
-                    {% if can_switch_branches and not is_hq_mode %}
-                    <a href="{% url 'switch_branch' 'all' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_switch_hq }}</span>
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- 3. POS & Menu (Nested Accordion) -->
-            {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms or 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms %}
-            <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-pos')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'pos' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="7" cy="15" r="1.5"/><circle cx="12" cy="15" r="1.5"/><line x1="16" y1="15" x2="18" y2="15"/></svg>
                         </span>
-                        <span class="sidebar-text">{{ t.nav_pos_menu }}</span>
+                        <span class="sidebar-text">{{ t.nav_pos|default:"نقطة البيع (POS)" }}</span>
                     </div>
-                    <span id="acc-pos-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
-                </button>
-                <div id="acc-pos-content" class="{% if request.resolver_match.url_name in 'pos,branch_menu' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
-                    {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms %}
-                    <a href="{% url 'pos' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'pos' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_pos }}</span>
-                    </a>
-                    {% endif %}
-                    {% if 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms %}
-                    <a href="{% url 'branch_menu' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branch_menu' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_menu }}</span>
-                    </a>
-                    {% endif %}
-                </div>
+                </a>
             </div>
             {% endif %}
 
-            <!-- 4. Kitchen Display System (KDS) -->
+            <!-- 3. Kitchen Display System (KDS) -->
             {% if 'kds_access' in user_perms %}
             <div class="nav-item-wrapper relative">
                 <a href="{% url 'kitchen' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'kitchen' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
@@ -602,43 +560,25 @@
             </div>
             {% endif %}
 
-            <!-- 5. AI Call Center (Single Clean Nav Item) -->
-            {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
+            <!-- 4. Live Call Center (Direct Independent Screen) -->
+            {% if 'call_center_access' in user_perms or 'call_center_create_order' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'ai_callcenter_overview' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}bg-blue-50 text-blue-600 font-semibold shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <a href="{% url 'call_center' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'call_center' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'call_center,ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/><circle cx="12" cy="11" r="1"/></svg>
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'call_center' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                         </span>
-                        <span class="sidebar-text">{{ t.nav_ai_callcenter|default:"كول سنتر الذكاء الاصطناعي" }}</span>
+                        <span class="sidebar-text">مركز الاتصالات المباشر</span>
                     </div>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold sidebar-text">AI</span>
+                    <span class="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-medium sidebar-text">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        {{ t.live|default:"مباشر" }}
+                    </span>
                 </a>
             </div>
             {% endif %}
 
-            <!-- 6. Inventory & Warehouses (Nested Accordion) -->
-            {% if 'manage_inventory' in user_perms or 'inventory_view' in user_perms %}
-            <div class="space-y-1 nav-item-wrapper relative">
-                <button type="button" onclick="toggleAccordion('acc-inventory')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-5 h-5 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-slate-700">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
-                        </span>
-                        <span class="sidebar-text">{{ t.nav_inventory }}</span>
-                    </div>
-                    <span id="acc-inventory-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text">▼</span>
-                </button>
-                <div id="acc-inventory-content" class="{% if request.resolver_match.url_name == 'inventory' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
-                    <a href="{% url 'inventory' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'inventory' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
-                        <span class="text-[8px] text-slate-400">•</span>
-                        <span>{{ t.nav_stock_audit }}</span>
-                    </a>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- 7. Delivery & Dispatch -->
+            <!-- 5. Delivery & Dispatch -->
             {% if 'delivery_access' in user_perms %}
             <div class="nav-item-wrapper relative">
                 <a href="{% url 'delivery' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'delivery' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
@@ -652,7 +592,7 @@
             </div>
             {% endif %}
 
-            <!-- 8. Orders Archive -->
+            <!-- 6. Orders Archive -->
             {% if 'view_orders' in user_perms %}
             <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
@@ -677,34 +617,79 @@
             </div>
             {% endif %}
 
-            <!-- 9. Staff & Payroll -->
-            {% if 'manage_employees' in user_perms or 'hr_view_employees' in user_perms %}
+            <!-- 7. AI Call Center Management & Hub -->
+            {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'employees' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'employees' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <a href="{% url 'ai_callcenter_overview' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}bg-blue-50 text-blue-600 font-semibold shadow-xs{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center gap-2.5">
-                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'employees' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/><circle cx="12" cy="11" r="1"/></svg>
                         </span>
-                        <span class="sidebar-text">{{ t.nav_employees }}</span>
+                        <span class="sidebar-text">{{ t.nav_ai_callcenter|default:"كول سنتر الذكاء الاصطناعي" }}</span>
                     </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold sidebar-text">AI</span>
                 </a>
             </div>
             {% endif %}
 
-            <!-- 10. Subscription & Billing -->
-            {% if is_owner or 'system_manage_billing' in user_perms %}
-            <div class="nav-item-wrapper relative">
-                <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition group {% if request.resolver_match.url_name == 'owner_subscription' %}bg-blue-50 text-blue-700 font-semibold {% if IS_RTL %}border-r-2{% else %}border-l-2{% endif %} border-blue-600{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+            <!-- 8. General Administration (الإدارة العامة - Unified Accordion) -->
+            {% if is_owner or 'manage_branches' in user_perms or 'manage_menu' in user_perms or 'manage_inventory' in user_perms or 'inventory_view' in user_perms or 'manage_employees' in user_perms or 'hr_view_employees' in user_perms or 'system_manage_billing' in user_perms %}
+            <div class="space-y-1 nav-item-wrapper relative">
+                <button type="button" onclick="toggleAccordion('acc-admin')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
                     <div class="flex items-center gap-2.5">
-                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'owner_subscription' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-6h14l3 6-10 13L2 9z"/><path d="M2 9h20M12 22 8 9l2-6h4l2 6-4 13z"/></svg>
+                        <span class="w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}text-blue-600{% else %}text-slate-400 group-hover:text-slate-700{% endif %}">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                         </span>
-                        <span class="sidebar-text">{{ t.nav_subscription }}</span>
+                        <span class="sidebar-text font-semibold">الإدارة العامة</span>
                     </div>
-                    {% if tenant_subscription %}
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/80 font-medium sidebar-text">{{ tenant_subscription.plan_name }}</span>
+                    <span id="acc-admin-arrow" class="text-[10px] text-slate-400 transition-transform sidebar-text {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}rotate-180{% endif %}">▼</span>
+                </button>
+                <div id="acc-admin-content" class="{% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}{% else %}hidden{% endif %} {% if IS_RTL %}pr-6 pl-2 border-r mr-3{% else %}pl-6 pr-2 border-l ml-3{% endif %} space-y-1 border-slate-200 my-1">
+                    <!-- Branches -->
+                    {% if is_hq_mode and 'manage_branches' in user_perms or is_hq_mode and 'branch_manage_branches' in user_perms or is_owner %}
+                    <a href="{% url 'branches' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branches' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
+                        <span>إدارة الفروع والمواقع</span>
+                    </a>
                     {% endif %}
-                </a>
+
+                    <!-- Menu & Dishes -->
+                    {% if 'manage_menu' in user_perms or 'menu_view' in user_perms or 'menu_toggle_availability' in user_perms or is_owner %}
+                    <a href="{% url 'branch_menu' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'branch_menu' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
+                        <span>قائمة الأطباق والأسعار</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Inventory & Stock Audit -->
+                    {% if 'manage_inventory' in user_perms or 'inventory_view' in user_perms or is_owner %}
+                    <a href="{% url 'inventory' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'inventory' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
+                        <span>جرد المخزون والمستودعات</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Staff & Payroll -->
+                    {% if 'manage_employees' in user_perms or 'hr_view_employees' in user_perms or is_owner %}
+                    <a href="{% url 'employees' %}" class="flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'employees' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <span class="text-[8px] text-slate-400">•</span>
+                        <span>فريق العمل والرواتب</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Subscriptions & Financials -->
+                    {% if is_owner or 'system_manage_billing' in user_perms %}
+                    <a href="{% url 'owner_subscription' %}" class="flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium transition {% if request.resolver_match.url_name == 'owner_subscription' %}text-blue-600 font-semibold bg-blue-50/70{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %}">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[8px] text-slate-400">•</span>
+                            <span>الاشتراكات والتقارير المالية</span>
+                        </div>
+                        {% if tenant_subscription %}
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200/80 font-medium">{{ tenant_subscription.plan_name }}</span>
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                </div>
             </div>
             {% endif %}
 
