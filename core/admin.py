@@ -26,6 +26,11 @@ from .models import (
     PlatformConfiguration,
 )
 
+# Super Admin Custom Branding
+admin.site.site_header = "لوحة السوبر أدمن"
+admin.site.site_title = "لوحة السوبر أدمن"
+admin.site.index_title = "لوحة السوبر أدمن"
+
 
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):

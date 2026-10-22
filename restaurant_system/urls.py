@@ -19,6 +19,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# Super Admin Branding
+admin.site.site_header = "لوحة السوبر أدمن"
+admin.site.site_title = "لوحة السوبر أدمن"
+admin.site.index_title = "لوحة السوبر أدمن"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
