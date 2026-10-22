@@ -65,6 +65,10 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 # Application definition
 
 INSTALLED_APPS = [
+    'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
+    'unfold.contrib.inlines',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -253,4 +257,46 @@ LOGGING = {
         },
     },
 }
+
+# ==============================================================================
+# DJANGO UNFOLD MODERN THEME CONFIGURATION
+# ==============================================================================
+from django.templatetags.static import static
+
+UNFOLD = {
+    "SITE_TITLE": "لوحة السوبر أدمن — مطاعم",
+    "SITE_HEADER": "مطاعم",
+    "SITE_SUBHEADER": "Cloud Restaurant OS",
+    "SITE_ICON": {
+        "light": lambda request: static("img/motaem_symbol_trans.png"),
+        "dark": lambda request: static("img/motaem_symbol_trans.png"),
+    },
+    "SITE_LOGO": {
+        "light": lambda request: static("img/motaem_symbol_trans.png"),
+        "dark": lambda request: static("img/motaem_symbol_trans.png"),
+    },
+    "SITE_SYMBOL": "speed",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+    },
+    "COLORS": {
+        "primary": {
+            "50": "#F5F3FF",
+            "100": "#EDE9FE",
+            "200": "#DDD6FE",
+            "300": "#C4B5FD",
+            "400": "#A78BFA",
+            "500": "#818CF8",
+            "600": "#6366F1",
+            "700": "#4F46E5",
+            "800": "#4338CA",
+            "900": "#312E81",
+            "950": "#1E1B4B",
+        },
+    },
+}
+
 

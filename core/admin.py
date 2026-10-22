@@ -1,10 +1,13 @@
 from datetime import timedelta
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin as BaseGroupAdmin
+from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.urls import path, reverse
 from django.shortcuts import redirect, get_object_or_404
+from unfold.admin import ModelAdmin, TabularInline
 from .models import (
     Tenant,
     Branch,
@@ -31,9 +34,24 @@ admin.site.site_header = "لوحة السوبر أدمن"
 admin.site.site_title = "لوحة السوبر أدمن"
 admin.site.index_title = "لوحة السوبر أدمن"
 
+# Style Django built-in auth models with Unfold
+try:
+    admin.site.unregister(User)
+    admin.site.unregister(Group)
+
+    @admin.register(User)
+    class UserAdmin(BaseUserAdmin, ModelAdmin):
+        pass
+
+    @admin.register(Group)
+    class GroupAdmin(BaseGroupAdmin, ModelAdmin):
+        pass
+except Exception:
+    pass
+
 
 @admin.register(SubscriptionPlan)
-class SubscriptionPlanAdmin(admin.ModelAdmin):
+class SubscriptionPlanAdmin(ModelAdmin):
     list_display = (
         "name",
         "code",
@@ -85,7 +103,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
 
 
 @admin.register(UpgradeRequest)
-class UpgradeRequestAdmin(admin.ModelAdmin):
+class UpgradeRequestAdmin(ModelAdmin):
     list_display = (
         "id",
         "tenant",
@@ -216,7 +234,7 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
 
 
 @admin.register(Tenant)
-class TenantAdmin(admin.ModelAdmin):
+class TenantAdmin(ModelAdmin):
     list_display = (
         "name",
         "slug",
@@ -275,7 +293,7 @@ class TenantAdmin(admin.ModelAdmin):
 
 
 @admin.register(PlatformConfiguration)
-class PlatformConfigurationAdmin(admin.ModelAdmin):
+class PlatformConfigurationAdmin(ModelAdmin):
     list_display = (
         "__str__",
         "has_google_key",
@@ -313,14 +331,14 @@ class PlatformConfigurationAdmin(admin.ModelAdmin):
 
 
 @admin.register(DeliveryArea)
-class DeliveryAreaAdmin(admin.ModelAdmin):
+class DeliveryAreaAdmin(ModelAdmin):
     list_display = ("name", "branch", "area_type", "delivery_fee", "estimated_time_minutes", "is_active", "created_at")
     list_filter = ("branch__tenant", "branch", "area_type", "is_active")
     search_fields = ("name", "notes", "branch__name")
 
 
 @admin.register(JobRole)
-class JobRoleAdmin(admin.ModelAdmin):
+class JobRoleAdmin(ModelAdmin):
     list_display = ("name", "tenant", "scope", "is_system", "permissions_count", "employees_count", "created_at")
     list_filter = ("scope", "is_system", "tenant")
     search_fields = ("name", "description")
@@ -335,47 +353,47 @@ class JobRoleAdmin(admin.ModelAdmin):
 
 
 @admin.register(Branch)
-class BranchAdmin(admin.ModelAdmin):
+class BranchAdmin(ModelAdmin):
     list_display = ("name", "tenant", "city", "phone", "status", "created_at")
     list_filter = ("tenant", "status", "city")
     search_fields = ("name", "city", "phone")
 
 
 @admin.register(Employee)
-class EmployeeAdmin(admin.ModelAdmin):
+class EmployeeAdmin(ModelAdmin):
     list_display = ("name", "employee_code", "job_role", "tenant", "branch", "phone", "salary", "status")
     list_filter = ("tenant", "job_role", "role", "status", "branch")
     search_fields = ("name", "employee_code", "phone")
 
 
 @admin.register(MenuItem)
-class MenuItemAdmin(admin.ModelAdmin):
+class MenuItemAdmin(ModelAdmin):
     list_display = ("name", "tenant", "category", "price", "cost", "available")
     list_filter = ("tenant", "category", "available")
     search_fields = ("name", "category")
 
 
 @admin.register(InventoryItem)
-class InventoryItemAdmin(admin.ModelAdmin):
+class InventoryItemAdmin(ModelAdmin):
     list_display = ("name", "tenant", "branch", "quantity", "min_quantity", "unit", "supplier")
     list_filter = ("tenant", "branch", "unit")
     search_fields = ("name", "supplier")
 
 
 @admin.register(Customer)
-class CustomerAdmin(admin.ModelAdmin):
+class CustomerAdmin(ModelAdmin):
     list_display = ("name", "tenant", "phone", "address", "created_at")
     list_filter = ("tenant",)
     search_fields = ("name", "phone", "address")
 
 
-class OrderItemInline(admin.TabularInline):
+class OrderItemInline(TabularInline):
     model = OrderItem
     extra = 0
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ModelAdmin):
     list_display = ("order_number", "tenant", "order_type", "channel", "branch", "customer_name", "total", "status", "created_at")
     list_filter = ("tenant", "order_type", "channel", "status", "branch")
     search_fields = ("order_number", "customer_name", "customer_phone")
@@ -383,21 +401,21 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(ModelAdmin):
     list_display = ("user", "tenant", "job_role", "role", "branch", "is_platform_admin")
     list_filter = ("tenant", "job_role", "role", "is_platform_admin", "branch")
     search_fields = ("user__username", "user__email")
 
 
 @admin.register(BranchMenuAvailability)
-class BranchMenuAvailabilityAdmin(admin.ModelAdmin):
+class BranchMenuAvailabilityAdmin(ModelAdmin):
     list_display = ("branch", "menu_item", "is_available")
     list_filter = ("branch__tenant", "branch", "is_available", "menu_item__category")
     search_fields = ("menu_item__name", "branch__name")
 
 
 @admin.register(RestaurantOwner)
-class RestaurantOwnerAdmin(admin.ModelAdmin):
+class RestaurantOwnerAdmin(ModelAdmin):
     list_display = (
         "owner_name",
         "username",
@@ -489,7 +507,7 @@ class RestaurantOwnerAdmin(admin.ModelAdmin):
 
 
 @admin.register(TenantSubscription)
-class TenantSubscriptionAdmin(admin.ModelAdmin):
+class TenantSubscriptionAdmin(ModelAdmin):
     list_display = (
         "tenant_name",
         "owner_name",
@@ -575,7 +593,7 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
 
 
 @admin.register(TenantApiKey)
-class TenantApiKeyAdmin(admin.ModelAdmin):
+class TenantApiKeyAdmin(ModelAdmin):
     list_display = (
         "name",
         "tenant",
