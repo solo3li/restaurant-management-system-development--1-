@@ -7,27 +7,27 @@
 {% include "_admin_nav_tabs.html" %}
 <div id="branchMenuApp" class="space-y-3 font-sans">
     <!-- Header (Flat Command Toolbar) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-300 pb-2.5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-200/60 pb-3">
         <div>
-            <h1 class="text-lg sm:text-xl font-black font-sans text-slate-950">قائمة أطعمة الفرع وإدارة التوفر</h1>
-            <p class="text-xs text-slate-700 font-bold mt-0.5 flex items-center gap-1.5">
+            <h1 class="text-lg sm:text-xl font-semibold font-sans text-slate-900">قائمة أطعمة الفرع وإدارة التوفر</h1>
+            <p class="text-xs text-xs text-slate-500 font-normal mt-0.5 flex items-center gap-1.5">
                 {% if branch %}
-                    <svg class="w-3.5 h-3.5 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>فرع: <span class="text-slate-950 font-black">{{ branch.name }}</span> • التحكم في توفر الأطباق في المطبخ ونقاط البيع</span>
+                    <svg class="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>فرع: <span class="text-slate-900 font-semibold">{{ branch.name }}</span> • التحكم في توفر الأطباق في المطبخ ونقاط البيع</span>
                 {% else %}
-                    <svg class="w-3.5 h-3.5 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <svg class="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>كل الفروع • التعديل يؤثر على الحالة العامة للأصناف</span>
                 {% endif %}
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-1.5">
-            <span class="rounded-lg bg-slate-100 border border-slate-300 px-2.5 py-1 text-xs font-black text-slate-900 shadow-2xs">
-                الأصناف: <span class="font-black text-blue-900 font-mono">{{ items_data|length }}</span>
+            <span class="rounded-lg bg-slate-100 border border-slate-200/70 px-2.5 py-1 text-xs font-bold text-slate-900 shadow-xs">
+                الأصناف: <span class="font-bold text-violet-700 font-mono">{{ items_data|length }}</span>
             </span>
             <a 
                 href="/m/{{ tenant.slug }}/{% if branch %}branch/{{ branch.id }}/{% endif %}" 
                 target="_blank" 
-                class="rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 px-2.5 py-1 text-xs font-black transition flex items-center gap-1.5 shadow-2xs"
+                class="rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border border-emerald-300 px-2.5 py-1 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs"
             >
                 <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 <span>المنيو الرقمي</span>
@@ -35,24 +35,24 @@
             <button 
                 type="button" 
                 onclick="openQrBrandingModal()" 
-                class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-lg bg-white border border-slate-200/70 px-2.5 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-xs flex items-center gap-1.5"
             >
-                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 <span>الـ QR</span>
             </button>
             {% if can_manage_menu %}
             <button 
                 type="button" 
                 onclick="openCategoryModal()" 
-                class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-2xs flex items-center gap-1.5"
+                class="rounded-lg bg-white border border-slate-200/70 px-2.5 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-xs flex items-center gap-1.5"
             >
-                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 <span>إدارة الأقسام</span>
             </button>
             <button 
                 type="button" 
                 onclick="openCreateItemModal()" 
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-3 py-1 text-xs shadow-2xs flex items-center gap-1.5"
+                class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-lg px-3 py-1 text-xs shadow-xs flex items-center gap-1.5"
             >
                 <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 <span>+ إضافة صنف</span>
@@ -62,28 +62,28 @@
     </div>
 
     <!-- Notice Banner (Compact High Contrast) -->
-    <div class="rounded-xl bg-amber-100 border border-amber-300 px-3 py-2 flex items-center gap-2.5 text-amber-950 shadow-2xs text-xs font-bold">
+    <div class="rounded-xl bg-amber-100 border border-amber-300 px-3 py-2 flex items-center gap-2.5 text-amber-950 shadow-xs text-xs font-bold">
         <svg class="w-4 h-4 text-amber-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <p class="leading-tight text-xs text-amber-950">
-            الأصناف المحددة كـ <strong class="text-amber-950 font-black">"غير متوفر"</strong> تُستبعد فوراً وتلقائياً من شاشات الكاشير (POS) والكول سنتر لتفادي إحراج العملاء.
+            الأصناف المحددة كـ <strong class="text-amber-950 font-semibold">"غير متوفر"</strong> تُستبعد فوراً وتلقائياً من شاشات الكاشير (POS) والكول سنتر لتفادي إحراج العملاء.
         </p>
     </div>
 
     <!-- Filter & Search Bar (Compact High Contrast) -->
-    <div class="bg-white rounded-xl border border-slate-300 p-2.5 space-y-2 shadow-2xs">
+    <div class="bg-white rounded-xl border border-slate-200/70 p-2.5 space-y-2 shadow-xs">
         <form method="GET" action="{% url 'branch_menu' %}" class="flex flex-wrap items-center justify-between gap-2.5">
             <!-- Category Pills -->
             <div class="flex flex-wrap items-center gap-1">
                 <a 
                     href="?cat=الكل{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-lg px-2.5 py-1 text-xs font-black transition-all {% if selected_cat == 'الكل' %}bg-blue-600 text-white shadow-2xs{% else %}bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 hover:border-blue-600{% endif %}"
+                    class="rounded-lg px-2.5 py-1 text-xs font-semibold transition-all {% if selected_cat == 'الكل' %}bg-violet-600 text-white shadow-xs{% else %}bg-slate-100 text-slate-800 hover:text-slate-900 border border-slate-200/70 hover:border-violet-600{% endif %}"
                 >
                     الكل
                 </a>
                 {% for c in category_objs %}
                 <a 
                     href="?cat={{ c.name }}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                    class="rounded-lg px-2 py-1 text-xs font-bold transition-all flex items-center gap-1 {% if selected_cat == c.name %}bg-blue-600 text-white font-black shadow-2xs{% else %}bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 hover:border-blue-600{% endif %}"
+                    class="rounded-lg px-2 py-1 text-xs font-bold transition-all flex items-center gap-1 {% if selected_cat == c.name %}bg-violet-600 text-white font-semibold shadow-xs{% else %}bg-slate-100 text-slate-800 hover:text-slate-900 border border-slate-200/70 hover:border-violet-600{% endif %}"
                 >
                     {% if c.image %}
                         <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-3.5 h-3.5 rounded-full object-cover">
@@ -106,10 +106,10 @@
                         name="q" 
                         value="{{ search_query }}" 
                         placeholder="ابحث عن وجبة أو مشروب…" 
-                        class="input !py-1 text-xs w-full font-bold border-slate-300 placeholder:text-slate-500"
+                        class="input !py-1 text-xs w-full font-bold border-slate-200/70 placeholder:text-slate-500"
                     >
                 </div>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-3 py-1 text-xs shadow-2xs">
+                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-lg px-3 py-1 text-xs shadow-xs">
                     بحث
                 </button>
                 {% if search_query or selected_cat != 'الكل' %}
@@ -124,21 +124,21 @@
         {% for row in items_data %}
         <div 
             id="item-card-{{ row.item.id }}" 
-            class="bg-white rounded-xl border border-slate-300 p-3 flex flex-col justify-between transition-colors hover:border-blue-600 shadow-2xs {% if not row.is_available %}opacity-75 bg-slate-50 border-rose-300{% endif %}"
+            class="bg-white rounded-xl border border-slate-200/70 p-3 flex flex-col justify-between transition-colors hover:border-violet-600 shadow-xs {% if not row.is_available %}opacity-75 bg-slate-50 border-rose-300{% endif %}"
         >
             <div>
                 <!-- Top Row: 36px Image + Name + Category & Actions -->
                 <div class="flex items-start justify-between gap-2 mb-1.5">
                     <div class="flex items-center gap-2 min-w-0 flex-1">
                         {% if row.item.image %}
-                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="w-9 h-9 rounded-lg object-cover border border-slate-300 shrink-0">
+                            <img src="{{ row.item.image.url }}" alt="{{ row.item.name }}" class="w-9 h-9 rounded-lg object-cover border border-slate-200/70 shrink-0">
                         {% else %}
-                            <span class="w-9 h-9 rounded-lg bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-900 shrink-0 text-base">
+                            <span class="w-9 h-9 rounded-lg bg-violet-50 border border-violet-200/60 flex items-center justify-center text-violet-800 shrink-0 text-base">
                                 {{ row.item.emoji|default:"🍽️" }}
                             </span>
                         {% endif %}
                         <div class="min-w-0 flex-1">
-                            <h3 class="font-black text-xs text-slate-950 leading-snug truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
+                            <h3 class="font-semibold text-xs text-slate-900 leading-snug truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
                             <span class="text-xs text-slate-700 font-bold truncate block">{{ row.item.category }}</span>
                         </div>
                     </div>
@@ -150,15 +150,15 @@
                             <button 
                                 type="button" 
                                 onclick="openEditItemModal({{ row.item.id }})" 
-                                class="w-5 h-5 rounded-md bg-white border border-slate-300 text-slate-700 hover:text-slate-950 hover:border-blue-600 transition flex items-center justify-center shadow-2xs"
+                                class="w-5 h-5 rounded-md bg-white border border-slate-200/70 text-slate-700 hover:text-slate-900 hover:border-violet-600 transition flex items-center justify-center shadow-xs"
                                 title="تعديل بيانات الصنف"
                             >
-                                <svg class="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <svg class="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
                             <button 
                                 type="button" 
                                 onclick="deleteMenuItem({{ row.item.id }}, '{{ row.item.name|escapejs }}')" 
-                                class="w-5 h-5 rounded-md bg-rose-100 border border-rose-300 text-rose-900 hover:bg-rose-200 transition flex items-center justify-center shadow-2xs"
+                                class="w-5 h-5 rounded-md bg-rose-100 border border-rose-300 text-rose-900 hover:bg-rose-200 transition flex items-center justify-center shadow-xs"
                                 title="حذف الصنف"
                             >
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -166,7 +166,7 @@
                             {% endif %}
                             <span 
                                 id="badge-{{ row.item.id }}" 
-                                class="rounded-md px-1.5 py-0.5 text-xs font-black {% if row.is_available %}bg-emerald-100 text-emerald-900 border border-emerald-300{% else %}bg-rose-100 text-rose-900 border border-rose-300{% endif %}"
+                                class="rounded-md px-1.5 py-0.5 text-xs font-semibold {% if row.is_available %}bg-emerald-50 text-emerald-700 border border-emerald-200/60{% else %}bg-rose-50 text-rose-700 border border-rose-200/60{% endif %}"
                             >
                                 {% if row.is_available %}متوفر{% else %}غير متوفر{% endif %}
                             </span>
@@ -197,7 +197,7 @@
                     type="button" 
                     id="btn-{{ row.item.id }}"
                     onclick="toggleItemAvailability({{ row.item.id }}, '{{ row.item.name|escapejs }}')"
-                    class="w-full rounded-lg py-1 px-2 text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-2xs {% if row.is_available %}bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100{% else %}bg-emerald-600 text-white hover:bg-emerald-700{% endif %}"
+                    class="w-full rounded-lg py-1 px-2 text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-xs {% if row.is_available %}bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100{% else %}bg-emerald-600 text-white hover:bg-emerald-700{% endif %}"
                 >
                     {% if row.is_available %}
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
@@ -215,7 +215,7 @@
                     <button 
                         type="button" 
                         onclick="openBranchPriceModal({{ row.item.id }}, '{{ row.item.name|escapejs }}', {{ row.custom_price|default:'null' }}, {{ row.item.price|default:'0' }})" 
-                        class="rounded-lg py-1 px-1.5 text-[11px] font-medium bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition flex items-center justify-center gap-1 whitespace-nowrap"
+                        class="rounded-lg py-1 px-1.5 text-[11px] font-medium bg-blue-50 border border-violet-200/50 text-violet-600 hover:bg-violet-50 transition flex items-center justify-center gap-1 whitespace-nowrap"
                         title="تخصيص سعر الصنف لهذا الفرع"
                     >
                         <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -307,7 +307,7 @@ async function toggleItemAvailability(itemId, itemName) {
                 badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
                 badge.innerText = 'متوفر بالفرع';
 
-                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100';
+                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100';
                 btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg><span>تعطيل من المطبخ</span>';
 
                 card.classList.remove('opacity-70', 'bg-slate-50/60', 'border-bad-200');
@@ -316,7 +316,7 @@ async function toggleItemAvailability(itemId, itemName) {
                 badge.className = 'rounded-lg px-2 py-0.5 text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300';
                 badge.innerText = 'غير متوفر (نافد)';
 
-                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-2xs bg-emerald-700 text-white hover:bg-emerald-800';
+                btn.className = 'w-full rounded-xl py-2 px-3 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs bg-emerald-700 text-white hover:bg-emerald-800';
                 btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>إعادة التفعيل بالفرع</span>';
 
                 card.classList.add('opacity-70', 'bg-slate-50/60', 'border-bad-200');
@@ -378,7 +378,7 @@ function switchQrModalTab(tab) {
         const content = document.getElementById(`tab-content-${t}`);
         if (!btn || !content) return;
         if (t === tab) {
-            btn.className = 'px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-blue-600 text-white';
+            btn.className = 'px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all bg-violet-600 text-white';
             content.classList.remove('hidden');
         } else {
             btn.className = 'px-3.5 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 rounded-lg transition-all';
@@ -519,7 +519,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
         <!-- Modal Header -->
         <div class="flex items-center justify-between border-b border-slate-200 pb-4">
             <div class="flex items-center gap-3">
-                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-xs">
                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 </span>
                 <div>
@@ -534,7 +534,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
         <!-- Navigation Tabs -->
         <div class="flex items-center gap-2 border-b border-slate-200 mt-4 pb-2">
-            <button type="button" id="tab-btn-qr" onclick="switchQrModalTab('qr')" class="px-3.5 py-1.5 text-xs font-black rounded-lg transition-all bg-blue-600 text-white">
+            <button type="button" id="tab-btn-qr" onclick="switchQrModalTab('qr')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all bg-violet-600 text-white">
                 📱 رمز الـ QR والرابط
             </button>
             <button type="button" id="tab-btn-branding" onclick="switchQrModalTab('branding')" class="px-3.5 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 rounded-lg transition-all">
@@ -552,7 +552,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
                         <img id="qrCodeImage" src="" alt="QR Code" class="w-48 h-48 rounded-lg object-contain bg-white">
                     </div>
-                    <button type="button" onclick="downloadQrImage()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-2 text-xs font-black shadow-2xs flex items-center gap-1.5">
+                    <button type="button" onclick="downloadQrImage()" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-4 py-2 text-xs font-semibold shadow-xs flex items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span>تحميل كصورة (PNG)</span>
                     </button>
@@ -566,14 +566,14 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                         <label class="text-[11px] font-bold text-slate-500">الرابط المباشر:</label>
                         <div class="flex items-center gap-2">
                             <input type="text" id="qr-menu-link-input" readonly class="input text-xs font-mono font-bold w-full bg-slate-50" dir="ltr">
-                            <button type="button" onclick="copyMenuUrl()" class="px-3 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-black shadow-2xs transition flex items-center gap-1 flex-shrink-0">
+                            <button type="button" onclick="copyMenuUrl()" class="px-3 py-2 rounded-xl bg-violet-600 text-white hover:bg-violet-700 text-xs font-semibold shadow-xs transition flex items-center gap-1 flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                 <span>نسخ</span>
                             </button>
                         </div>
                     </div>
                     <div class="pt-2">
-                        <a id="qr-open-menu-link" href="#" target="_blank" class="inline-flex items-center gap-1 text-xs font-black text-brand-700 hover:underline">
+                        <a id="qr-open-menu-link" href="#" target="_blank" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline">
                             <span>فتح المنيو في نافذة جديدة</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </a>
@@ -590,12 +590,12 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <div class="p-3 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-2">
                         <label class="block text-xs font-bold text-slate-900">شعار المطعم (Logo)</label>
                         <div class="flex items-center gap-3">
-                            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-xs">
                                 <img id="logoPreviewImg" src="{% if tenant.logo_image %}{{ tenant.logo_image.url }}{% endif %}" alt="Logo" class="w-full h-full object-cover {% if not tenant.logo_image %}hidden{% endif %}">
                                 <span id="logoPlaceholder" class="text-2xl {% if tenant.logo_image %}hidden{% endif %}">{{ tenant.logo_emoji|default:"🍽️" }}</span>
                             </div>
                             <div class="flex-1">
-                                <input type="file" name="logo_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
+                                <input type="file" name="logo_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer">
                                 <p class="text-[10px] text-slate-500 mt-1">يفضل بصيغة PNG أو JPG أو SVG بمقاس مربع.</p>
                             </div>
                         </div>
@@ -605,12 +605,12 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <div class="p-3 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-2">
                         <label class="block text-xs font-bold text-slate-900">صورة غلاف المنيو (Banner)</label>
                         <div class="flex items-center gap-3">
-                            <div class="w-20 h-14 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                            <div class="w-20 h-14 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-xs">
                                 <img id="coverPreviewImg" src="{% if tenant.cover_image %}{{ tenant.cover_image.url }}{% endif %}" alt="Cover" class="w-full h-full object-cover {% if not tenant.cover_image %}hidden{% endif %}">
                                 <span id="coverPlaceholder" class="text-xs text-slate-500 font-bold {% if tenant.cover_image %}hidden{% endif %}">لا يوجد</span>
                             </div>
                             <div class="flex-1">
-                                <input type="file" name="cover_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
+                                <input type="file" name="cover_image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer">
                                 <p class="text-[10px] text-slate-500 mt-1">تظهر أعلى صفحة المنيو في الهواتف.</p>
                             </div>
                         </div>
@@ -639,7 +639,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </div>
 
                 <div class="pt-2 flex justify-end">
-                    <button type="submit" id="btnSaveBranding" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2.5 text-xs font-black shadow-2xs">
+                    <button type="submit" id="btnSaveBranding" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-5 py-2.5 text-xs font-semibold shadow-xs">
                         حفظ الهوية والشعار
                     </button>
                 </div>
@@ -662,7 +662,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <label class="block text-xs font-bold text-slate-900 mb-1">النطاق المخصص (Custom Domain)</label>
                     <div class="flex items-center gap-2">
                         <input type="text" id="customDomainInput" name="custom_domain" value="{{ tenant.custom_domain|default:'' }}" placeholder="مثال: menu.myrestaurant.com" class="input text-xs font-mono font-bold w-full" dir="ltr">
-                        <button type="submit" id="btnSaveDomain" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 text-xs font-black shadow-2xs flex-shrink-0">
+                        <button type="submit" id="btnSaveDomain" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-5 py-2 text-xs font-semibold shadow-xs flex-shrink-0">
                             حفظ النطاق
                         </button>
                     </div>
@@ -682,7 +682,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
         
         <div class="flex items-center justify-between border-b border-slate-200 pb-4">
             <div class="flex items-center gap-3">
-                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-xs">
                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                 </span>
                 <div>
@@ -733,12 +733,12 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <div class="p-3 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-2">
                 <label class="block text-xs font-bold text-slate-900">صورة الصنف</label>
                 <div class="flex items-center gap-3">
-                    <div class="w-14 h-14 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                    <div class="w-14 h-14 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-xs">
                         <img id="itemModalImgPreview" src="" alt="Preview" class="w-full h-full object-cover hidden">
                         <span id="itemModalImgPlaceholder" class="text-2xl">🍽️</span>
                     </div>
                     <div class="flex-1">
-                        <input type="file" id="itemModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
+                        <input type="file" id="itemModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer">
                         <p class="text-[10px] text-slate-500 mt-1">صورة واضحة للطبق بدقة جيدة (PNG / JPG / WEBP).</p>
                     </div>
                 </div>
@@ -748,11 +748,11 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
                 <div class="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
                     <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                        <h4 class="text-xs font-black font-sans text-blue-600">إعدادات التسعير ونطاق التطبيق</h4>
+                        <span class="w-2 h-2 rounded-full bg-violet-600"></span>
+                        <h4 class="text-xs font-semibold font-sans text-blue-600">إعدادات التسعير ونطاق التطبيق</h4>
                     </div>
                     {% if branch %}
-                        <span class="text-[10px] font-bold text-blue-600 bg-white border border-blue-600/40 px-2 py-0.5 rounded-lg shadow-2xs">
+                        <span class="text-[10px] font-bold text-blue-600 bg-white border border-violet-600/40 px-2 py-0.5 rounded-lg shadow-xs">
                             📍 {{ branch.name }} ({{ branch_currency_symbol }})
                         </span>
                     {% else %}
@@ -767,17 +767,17 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 <div>
                     <label class="block text-xs font-bold text-slate-900 mb-1.5">حدد نطاق تطبيق السعر:</label>
                     <div class="grid grid-cols-2 gap-2 text-xs">
-                        <label id="scope-branch-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-blue-600 text-blue-600 font-extrabold shadow-2xs">
+                        <label id="scope-branch-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-violet-600 text-blue-600 font-semibold shadow-xs">
                             <input type="radio" name="price_scope" value="branch" checked class="accent-blue-600" onchange="onPriceScopeChange('branch')">
                             <div class="flex flex-col">
-                                <span class="text-xs font-black">لهذا الفرع فقط</span>
+                                <span class="text-xs font-semibold">لهذا الفرع فقط</span>
                                 <span class="text-[9px] font-normal text-slate-500">يخصص السعر لـ «{{ branch.name }}» فقط</span>
                             </div>
                         </label>
-                        <label id="scope-all-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-blue-600/60 font-bold">
+                        <label id="scope-all-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-violet-600/60 font-bold">
                             <input type="radio" name="price_scope" value="all" class="accent-blue-600" onchange="onPriceScopeChange('all')">
                             <div class="flex flex-col">
-                                <span class="text-xs font-black text-slate-900">لكل الفروع</span>
+                                <span class="text-xs font-bold text-slate-900">لكل الفروع</span>
                                 <span class="text-[9px] font-normal text-slate-500">يعدل السعر العام للمطعم</span>
                             </div>
                         </label>
@@ -802,7 +802,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="itemModalHasVariants" name="has_variants" onchange="toggleVariantSection()" class="sr-only peer">
-                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-violet-600"></div>
                         </label>
                     </div>
 
@@ -825,7 +825,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <div id="variantsSection" class="space-y-2 hidden pt-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-bold text-slate-900">قائمة الأحجام والأسعار:</span>
-                            <button type="button" id="btnAddVariantBtn" onclick="addVariantRow()" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold shadow-2xs hover:bg-blue-700">
+                            <button type="button" id="btnAddVariantBtn" onclick="addVariantRow()" class="px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[10px] font-bold shadow-xs hover:bg-violet-700">
                                 + إضافة حجم
                             </button>
                         </div>
@@ -840,7 +840,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50">
                     إلغاء
                 </button>
-                <button type="submit" id="btnSaveItem" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 text-xs font-black shadow-2xs">
+                <button type="submit" id="btnSaveItem" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-5 py-2 text-xs font-semibold shadow-xs">
                     حفظ الصنف
                 </button>
             </div>
@@ -856,7 +856,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
         
         <div class="flex items-center justify-between border-b border-slate-200 pb-4">
             <div class="flex items-center gap-3">
-                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-2xs">
+                <span class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex h-10 w-10 items-center justify-center rounded-xl shadow-xs">
                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 </span>
                 <div>
@@ -890,13 +890,13 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 mb-1">صورة القسم (Icon / Image)</label>
-                    <input type="file" id="catModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 text-slate-500 cursor-pointer">
+                    <input type="file" id="catModalImage" name="image" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer">
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-1">
                     <button type="button" id="btnCancelCatEdit" onclick="resetCategoryForm()" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hidden">
                         إلغاء التعديل
                     </button>
-                    <button type="submit" id="btnSaveCategory" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-1.5 text-xs font-black shadow-2xs">
+                    <button type="submit" id="btnSaveCategory" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-4 py-1.5 text-xs font-semibold shadow-xs">
                         حفظ القسم
                     </button>
                 </div>
@@ -940,7 +940,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 <!-- MODAL: CUSTOM BRANCH PRICE MODAL                              -->
 <!-- ============================================================ -->
 <div id="branch-price-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-md w-full p-6 shadow-2xl flex flex-col border border-blue-600 animate-scale-in">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-md w-full p-6 shadow-2xl flex flex-col border border-violet-600 animate-scale-in">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
             <div class="flex items-center gap-2.5">
                 <span class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 w-8 h-8 flex items-center justify-center">
@@ -960,7 +960,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
                 <div class="flex justify-between items-center">
                     <span class="text-slate-500 font-bold">الصنف:</span>
-                    <span id="bpm-item-name" class="font-extrabold text-slate-900 text-sm"></span>
+                    <span id="bpm-item-name" class="font-semibold text-slate-900 text-sm"></span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-slate-500 font-bold">السعر الافتراضي العام (Master):</span>
@@ -1001,7 +1001,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
             <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button type="button" onclick="closeBranchPriceModal()" class="rounded-xl px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 font-bold">إلغاء</button>
-                <button type="submit" id="btnSaveBranchPrice" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 font-bold shadow-sm">حفظ سعر الفرع</button>
+                <button type="submit" id="btnSaveBranchPrice" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-5 py-2 font-bold shadow-sm">حفظ سعر الفرع</button>
             </div>
         </form>
     </div>
@@ -1011,7 +1011,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 <!-- MODAL: ALL BRANCHES PRICING MATRIX MODAL                      -->
 <!-- ============================================================ -->
 <div id="all-branches-price-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-2xl w-full p-6 shadow-2xl flex flex-col border border-blue-600 animate-scale-in max-h-[90vh]">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-2xl w-full p-6 shadow-2xl flex flex-col border border-violet-600 animate-scale-in max-h-[90vh]">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
             <div class="flex items-center gap-2.5">
                 <span class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 w-8 h-8 flex items-center justify-center">
@@ -1019,7 +1019,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </span>
                 <div>
                     <h3 class="text-sm font-bold font-sans text-slate-900">جدول أسعار الصنف بكافة فروع السلسلة</h3>
-                    <p class="text-[11px] text-slate-500">الصنف: <span id="abpm-item-name" class="font-extrabold text-slate-900"></span></p>
+                    <p class="text-[11px] text-slate-500">الصنف: <span id="abpm-item-name" class="font-semibold text-slate-900"></span></p>
                 </div>
             </div>
             <button onclick="closeAllBranchesPriceModal()" class="text-slate-500 hover:text-slate-900 p-1">✕</button>
@@ -1035,7 +1035,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div>
                     <span class="text-slate-500 font-bold block">السعر العام للمطعم (HQ Master):</span>
-                    <span id="abpm-master-price" class="font-black text-brand-700 text-sm"></span>
+                    <span id="abpm-master-price" class="font-semibold text-brand-700 text-sm"></span>
                 </div>
                 <p class="text-[11px] text-slate-500 max-w-xs text-left">
                     الفروع التي تترك خانة السعر المخصص فيها فارغة ستعتمد السعر العام تلقائياً.
@@ -1043,7 +1043,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             </div>
 
             <!-- Branches Table -->
-            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
                 <table class="w-full text-right text-xs">
                     <thead class="bg-[#F8FAFC] border-b border-slate-200 text-slate-500 font-bold text-[11px]">
                         <tr>
@@ -1061,7 +1061,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
             <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button type="button" onclick="closeAllBranchesPriceModal()" class="rounded-xl px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 font-bold">إلغاء</button>
-                <button type="submit" id="btnSaveAllBranches" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-5 py-2 font-bold shadow-sm">حفظ أسعار الفروع</button>
+                <button type="submit" id="btnSaveAllBranches" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-5 py-2 font-bold shadow-sm">حفظ أسعار الفروع</button>
             </div>
         </form>
     </div>
@@ -1081,10 +1081,10 @@ function onPriceScopeChange(scope) {
 
     if (scope === 'branch') {
         if (branchLabel) {
-            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-blue-600 text-blue-600 font-extrabold shadow-2xs';
+            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-violet-600 text-blue-600 font-semibold shadow-xs';
         }
         if (allLabel) {
-            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-blue-600/60 font-bold';
+            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-violet-600/60 font-bold';
         }
         if (notice) {
             notice.innerText = `⚡ سيتم حفظ السعر وتطبيقه حصراً على فرع «${branchName}» بعملة (${curSym}).`;
@@ -1094,10 +1094,10 @@ function onPriceScopeChange(scope) {
         }
     } else {
         if (allLabel) {
-            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-blue-600 text-blue-600 font-extrabold shadow-2xs';
+            allLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-violet-600 text-blue-600 font-semibold shadow-xs';
         }
         if (branchLabel) {
-            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-blue-600/60 font-bold';
+            branchLabel.className = 'cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-violet-600/60 font-bold';
         }
         if (notice) {
             notice.innerText = '⚠️ تنبيه: سيتم تحديث السعر العام الأساسي وتطبيقه على كافة فروع المطعم.';
@@ -1232,7 +1232,7 @@ function toggleVariantSection() {
 function addVariantRow(name = '', name_en = '', price = '', cost = '', id = null, defaultPrice = null) {
     const container = document.getElementById('variantsContainer');
     const row = document.createElement('div');
-    row.className = 'flex flex-wrap items-center gap-2 variant-row p-2 rounded-xl bg-white border border-slate-200 shadow-2xs';
+    row.className = 'flex flex-wrap items-center gap-2 variant-row p-2 rounded-xl bg-white border border-slate-200 shadow-xs';
     if (id) {
         row.setAttribute('data-variant-id', id);
     }

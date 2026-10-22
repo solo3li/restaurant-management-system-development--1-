@@ -5,19 +5,19 @@
 {% block content %}
 <div class="space-y-2.5 font-sans">
     <!-- NO CARD: Flat Unified Header, Stats & Filters Toolbar -->
-    <div class="space-y-2 pb-2.5 border-b border-slate-300">
+    <div class="space-y-2 pb-2.5 border-b border-slate-100">
         <!-- Row 1: Header + Action Buttons -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div class="flex items-center gap-2">
-                <span class="rounded-md bg-blue-100 border border-blue-300 px-2 py-0.5 text-xs font-black text-blue-900">{% if IS_RTL %}HQ • الإدارة العامة{% else %}HQ • Central Operations{% endif %}</span>
-                <h1 class="text-sm sm:text-base font-black text-slate-950 tracking-tight">{{ t.hq_orders_heading|default:"سجل كافة طلبات وفواتير الفروع" }}</h1>
+                <span class="rounded-md bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-xs font-bold text-violet-700">{% if IS_RTL %}HQ • الإدارة العامة{% else %}HQ • Central Operations{% endif %}</span>
+                <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">{{ t.hq_orders_heading|default:"سجل كافة طلبات وفواتير الفروع" }}</h1>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-                <a href="{% url 'call_center' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white h-7 px-3 text-xs font-bold transition cursor-pointer shadow-2xs">
+                <a href="{% url 'call_center' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium h-7 px-3 text-xs font-bold transition cursor-pointer shadow-xs">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
                     <span>+ طلب كول سنتر</span>
                 </a>
-                <a href="{% url 'dashboard' %}" class="rounded-lg bg-white border border-slate-300 h-7 px-2.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition cursor-pointer flex items-center">
+                <a href="{% url 'dashboard' %}" class="rounded-lg bg-white border border-slate-200/70 h-7 px-2.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition cursor-pointer flex items-center">
                     ← لوحة HQ
                 </a>
             </div>
@@ -29,7 +29,7 @@
                 <!-- Total Orders -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-slate-700 text-xs font-bold">الطلبات:</span>
-                    <span class="font-black text-slate-950 text-sm">{{ total_orders }}</span>
+                    <span class="font-bold text-slate-900 text-sm">{{ total_orders }}</span>
                 </div>
                 
                 <span class="text-slate-300 hidden sm:inline">•</span>
@@ -37,8 +37,8 @@
                 <!-- Total Revenue -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-slate-700 text-xs font-bold">الإيرادات:</span>
-                    <span class="font-black text-blue-900 text-sm">{{ total_revenue|floatformat:2 }}</span>
-                    <span class="text-xs text-blue-800 font-bold">{{ t.currency }}</span>
+                    <span class="font-bold text-violet-700 text-sm">{{ total_revenue|floatformat:2 }}</span>
+                    <span class="text-xs text-violet-700 font-bold">{{ t.currency }}</span>
                 </div>
 
                 <span class="text-slate-300 hidden sm:inline">•</span>
@@ -46,7 +46,7 @@
                 <!-- Pending Orders -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-slate-700 text-xs font-bold">قيد المعالجة:</span>
-                    <span class="font-black text-amber-700 text-sm">{{ pending_orders }}</span>
+                    <span class="font-bold text-amber-700 text-sm">{{ pending_orders }}</span>
                 </div>
 
                 <span class="text-slate-300 hidden sm:inline">•</span>
@@ -54,7 +54,7 @@
                 <!-- Delivered Orders -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-slate-700 text-xs font-bold">مكتملة:</span>
-                    <span class="font-black text-emerald-800 text-sm">{{ delivered_orders }}</span>
+                    <span class="font-semibold text-emerald-800 text-sm">{{ delivered_orders }}</span>
                 </div>
 
                 <span class="text-slate-300 hidden sm:inline">•</span>
@@ -62,7 +62,7 @@
                 <!-- Cancelled Orders -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-slate-700 text-xs font-bold">ملغاة:</span>
-                    <span class="font-black text-rose-800 text-sm">{{ cancelled_orders }}</span>
+                    <span class="font-semibold text-rose-800 text-sm">{{ cancelled_orders }}</span>
                 </div>
             </div>
 
@@ -83,12 +83,12 @@
                     name="q" 
                     value="{{ search_query }}" 
                     placeholder="بحث برقم الطلب، العميل، الهاتف، أو الكاشير..." 
-                    class="w-full h-7 pr-8 pl-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-950 placeholder-slate-500 focus:outline-none focus:border-blue-600 transition"
+                    class="w-full h-7 pr-8 pl-2 rounded-lg bg-white border border-slate-200/70 text-xs font-semibold text-slate-900 placeholder-slate-500 focus:outline-none focus:border-violet-600 transition"
                 >
             </div>
 
             <!-- Branch Dropdown -->
-            <select name="branch" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
+            <select name="branch" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
                 <option value="all">كل الفروع</option>
                 {% for b in branches %}
                 <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:"i" %}selected{% endif %}>
@@ -98,7 +98,7 @@
             </select>
 
             <!-- Status Dropdown -->
-            <select name="status" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
+            <select name="status" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
                 <option value="all">كافة الحالات</option>
                 {% for st_val, st_lbl in statuses %}
                 <option value="{{ st_val }}" {% if status_filter == st_val %}selected{% endif %}>{{ st_lbl }}</option>
@@ -106,7 +106,7 @@
             </select>
 
             <!-- Type Dropdown -->
-            <select name="type" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
+            <select name="type" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
                 <option value="all">كافة الأنواع</option>
                 {% for t_val, t_lbl in order_types %}
                 <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
@@ -114,7 +114,7 @@
             </select>
 
             <!-- Pay Method Dropdown -->
-            <select name="pay_method" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
+            <select name="pay_method" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
                 <option value="all">طرق الدفع</option>
                 {% for p_val, p_lbl in pay_choices %}
                 <option value="{{ p_val }}" {% if pay_method_filter == p_val %}selected{% endif %}>{{ p_lbl }}</option>
@@ -122,7 +122,7 @@
             </select>
 
             <!-- Date Range Dropdown -->
-            <select name="date" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer">
+            <select name="date" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
                 <option value="all" {% if date_filter == 'all' %}selected{% endif %}>كافة التواريخ</option>
                 <option value="today" {% if date_filter == 'today' %}selected{% endif %}>اليوم</option>
                 <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>أمس</option>
@@ -131,7 +131,7 @@
             </select>
 
             <!-- Submit Button -->
-            <button type="submit" class="h-7 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1 shrink-0 shadow-2xs">
+            <button type="submit" class="h-7 px-3 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition cursor-pointer flex items-center gap-1 shrink-0 shadow-xs">
                 <span>بحث</span>
             </button>
 
@@ -145,11 +145,11 @@
     </div>
 
     <!-- Orders Table Card (High-Density High-Contrast) -->
-    <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-2xs">
-        <div class="flex items-center justify-between border-b border-slate-300 px-3.5 py-2 bg-slate-100/90">
+    <div class="bg-white rounded-xl border border-slate-200/70 overflow-hidden shadow-xs">
+        <div class="flex items-center justify-between border-b border-slate-100 px-3.5 py-2 bg-slate-100/90">
             <div class="flex items-center gap-2">
-                <h2 class="text-xs font-black text-slate-950 tracking-tight">سجل الطلبات</h2>
-                <span class="rounded-full bg-blue-100 border border-blue-300 px-2 py-0.5 text-[10.5px] font-black text-blue-900">
+                <h2 class="text-xs font-bold text-slate-900 tracking-tight">سجل الطلبات</h2>
+                <span class="rounded-full bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-[10.5px] font-bold text-violet-700">
                     {{ orders|length }} من {{ total_orders }} طلب
                 </span>
             </div>
@@ -160,7 +160,7 @@
 
         <div class="overflow-x-auto min-h-[300px]">
             <table class="w-full text-right text-xs table-responsive-cards">
-                <thead class="border-b border-slate-300 bg-slate-100/90 text-slate-900 font-black text-[11.5px]">
+                <thead class="border-b border-slate-100 bg-slate-100/90 text-slate-900 font-semibold text-[11.5px]">
                     <tr>
                         <th class="px-3 py-2">رقم الطلب / القناة</th>
                         <th class="px-2.5 py-2">الفرع</th>
@@ -180,11 +180,11 @@
                         <!-- Order Number & Channel -->
                         <td class="px-3 py-1.5 whitespace-nowrap" data-label="رقم الطلب والقناة">
                             <div class="flex items-center gap-1.5">
-                                <span class="font-black text-slate-950 text-xs">#{{ o.order_number }}</span>
+                                <span class="font-bold text-slate-900 text-xs">#{{ o.order_number }}</span>
                                 {% if o.channel == 'call_center' %}
                                     <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">هاتف</span>
                                 {% elif o.channel == 'qr_menu' %}
-                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300">QR</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60">QR</span>
                                 {% else %}
                                     <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800">كاشير</span>
                                 {% endif %}
@@ -199,8 +199,8 @@
                         <!-- Order Type -->
                         <td class="px-2 py-1.5 whitespace-nowrap" data-label="النوع">
                             <span class="rounded px-2 py-0.5 text-[10.5px] font-bold
-                                {% if o.order_type == 'dine_in' %}bg-blue-100 text-blue-900 border border-blue-300
-                                {% elif o.order_type == 'takeaway' %}bg-slate-200 text-slate-900 border border-slate-300
+                                {% if o.order_type == 'dine_in' %}bg-violet-50 text-violet-700 border border-violet-200/60
+                                {% elif o.order_type == 'takeaway' %}bg-slate-200 text-slate-900 border border-slate-200/70
                                 {% else %}bg-purple-100 text-purple-900 border border-purple-300{% endif %}">
                                 {{ o.get_order_type_display }}
                             </span>
@@ -208,7 +208,7 @@
 
                         <!-- Customer -->
                         <td class="px-2.5 py-1.5 whitespace-nowrap" data-label="العميل">
-                            <span class="font-black text-slate-950 text-xs">{{ o.customer_name }}</span>
+                            <span class="font-bold text-slate-900 text-xs">{{ o.customer_name }}</span>
                             {% if o.customer_phone %}
                             <span class="text-[11px] text-slate-600 font-bold font-mono mr-1" dir="ltr">{{ o.customer_phone }}</span>
                             {% endif %}
@@ -218,33 +218,33 @@
                         <td class="px-2 py-1.5 text-xs font-semibold text-slate-700 whitespace-nowrap" data-label="الكاشير / السائق">
                             <span>{{ o.cashier|default:"—" }}</span>
                             {% if o.driver %}
-                            <span class="text-[11px] font-bold text-blue-700 mr-1" title="سائق التوصيل">🚴 {{ o.driver.name }}</span>
+                            <span class="text-[11px] font-bold text-violet-600 mr-1" title="سائق التوصيل">🚴 {{ o.driver.name }}</span>
                             {% endif %}
                         </td>
 
                         <!-- Payment -->
                         <td class="px-2 py-1.5 whitespace-nowrap text-xs" data-label="طريقة الدفع">
                             <span class="font-bold text-slate-900">{{ o.get_pay_method_display }}</span>
-                            <span class="text-xs mr-1 font-black {% if o.paid %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                            <span class="text-xs mr-1 font-semibold {% if o.paid %}text-emerald-700{% else %}text-rose-700{% endif %}">
                                 {% if o.paid %}✓ مدفوع{% else %}معلق{% endif %}
                             </span>
                         </td>
 
                         <!-- Total -->
                         <td class="px-2.5 py-1.5 whitespace-nowrap" data-label="الإجمالي">
-                            <span class="font-black text-blue-900 text-xs">{{ o.total|floatformat:2 }}</span>
+                            <span class="font-bold text-violet-700 text-xs">{{ o.total|floatformat:2 }}</span>
                             <span class="text-[10.5px] font-bold text-slate-700">{{ o.branch.get_currency_symbol_ar|default:t.currency }}</span>
                         </td>
 
                         <!-- Status Badge -->
                         <td class="px-2 py-1.5 whitespace-nowrap" data-label="الحالة">
                             <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10.5px] font-bold
-                                {% if o.status == 'delivered' %}bg-emerald-100 text-emerald-900 border border-emerald-300
+                                {% if o.status == 'delivered' %}bg-emerald-50 text-emerald-700 border border-emerald-200/60
                                 {% elif o.status == 'out_for_delivery' %}bg-indigo-100 text-indigo-900 border border-indigo-300
                                 {% elif o.status == 'ready' %}bg-teal-100 text-teal-900 border border-teal-300
-                                {% elif o.status == 'preparing' %}bg-amber-100 text-amber-900 border border-amber-300
-                                {% elif o.status == 'cancelled' %}bg-rose-100 text-rose-900 border border-rose-300
-                                {% else %}bg-blue-100 text-blue-900 border border-blue-300{% endif %}">
+                                {% elif o.status == 'preparing' %}bg-amber-50 text-amber-700 border border-amber-200/60
+                                {% elif o.status == 'cancelled' %}bg-rose-50 text-rose-700 border border-rose-200/60
+                                {% else %}bg-violet-50 text-violet-700 border border-violet-200/60{% endif %}">
                                 {{ o.get_status_display }}
                             </span>
                         </td>
@@ -261,7 +261,7 @@
                                     type="button" 
                                     onclick="openOrderModal('order-{{ o.id }}')"
                                     title="معاينة سريعة للفاتورة"
-                                    class="inline-flex items-center gap-1 rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 text-[11px] font-semibold text-blue-700 transition cursor-pointer"
+                                    class="inline-flex items-center gap-1 rounded-md bg-blue-50 hover:bg-violet-50 border border-violet-200/50 px-2 py-1 text-[11px] font-semibold text-violet-600 transition cursor-pointer"
                                 >
                                     <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     <span>معاينة</span>
@@ -381,7 +381,7 @@
         <!-- Modal Header -->
         <div class="flex items-center justify-between border-b border-slate-200 pb-4">
             <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 border border-blue-200/80 text-blue-600">
+                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 border border-violet-200/50/80 text-blue-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </span>
                 <div>
@@ -390,7 +390,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span id="modal-order-status" class="rounded-lg px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                <span id="modal-order-status" class="rounded-lg px-2.5 py-1 text-xs font-semibold bg-blue-50 text-violet-600 border border-violet-200/50/60">
                     الحالة
                 </span>
                 <button type="button" onclick="closeOrderModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
@@ -429,8 +429,8 @@
         </div>
 
         <!-- Address & Notes if any -->
-        <div id="modal-address-box" class="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs hidden">
-            <p class="font-semibold text-blue-900 flex items-center gap-1">
+        <div id="modal-address-box" class="mt-3 rounded-lg bg-blue-50 border border-violet-200/50 p-3 text-xs hidden">
+            <p class="font-semibold text-violet-800 flex items-center gap-1">
                 <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 <span>عنوان التوصيل:</span>
             </p>
@@ -484,7 +484,7 @@
         <!-- Footer Actions -->
         <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4">
             <div class="flex items-center gap-2 flex-wrap">
-                <a id="modal-view-link" href="#" class="rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-medium text-white hover:bg-blue-700 transition flex items-center gap-1.5 cursor-pointer">
+                <a id="modal-view-link" href="#" class="rounded-lg bg-violet-600 px-3.5 py-2 text-xs font-medium text-white hover:bg-violet-700 transition flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>صفحة التفاصيل</span>
                 </a>

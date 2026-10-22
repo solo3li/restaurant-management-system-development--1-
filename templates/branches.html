@@ -29,24 +29,24 @@
 {% include "_admin_nav_tabs.html" %}
 <div class="space-y-3 font-sans">
     <!-- Header (Flat Command Toolbar) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-300 pb-2.5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-200/60 pb-3">
         <div>
-            <h1 class="text-lg sm:text-xl font-black text-slate-950 tracking-tight">
+            <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                 {{ t.branch_title }}
             </h1>
-            <p class="text-xs text-slate-700 font-bold mt-0.5">{{ t.branch_subtitle }}</p>
+            <p class="text-xs text-xs text-slate-500 font-normal mt-0.5">{{ t.branch_subtitle }}</p>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="openChainCurrencyModal()" class="rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-900 px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs" title="تعديل العملة الافتراضية للمنشأة وتوحيدها">
+            <button onclick="openChainCurrencyModal()" class="rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-900 px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs" title="تعديل العملة الافتراضية للمنشأة وتوحيدها">
                 <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>عملة السلسلة:</span>
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-300 text-xs font-black">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 border border-violet-200/60 text-xs font-semibold">
                     {{ default_currency }} ({{ tenant.get_currency_symbol_ar }})
                 </span>
             </button>
-            <button onclick="openAddBranchModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 text-xs font-bold transition shadow-2xs cursor-pointer">
+            <button onclick="openAddBranchModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer">
                 <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -58,12 +58,12 @@
     <!-- Branches Cards Grid (Compact High-Density) -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
         {% for item in branches_data %}
-        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden flex flex-col justify-between transition-colors hover:border-blue-600 shadow-2xs">
+        <div class="bg-white rounded-xl border border-slate-200/70 overflow-hidden flex flex-col justify-between transition-colors hover:border-violet-600 shadow-xs">
             <div>
                 <!-- Card Header (Compact) -->
-                <div class="p-3 bg-slate-50 border-b border-slate-300 flex items-center justify-between gap-2">
+                <div class="p-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between gap-2">
                     <div class="min-w-0">
-                        <h2 class="text-sm font-black text-slate-950 truncate">{{ item.branch.name }}</h2>
+                        <h2 class="text-sm font-bold text-slate-900 truncate">{{ item.branch.name }}</h2>
                         <p class="text-xs text-slate-700 font-bold">{{ item.branch.city|default:"الرياض" }}</p>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
@@ -71,11 +71,11 @@
                             type="button" 
                             onclick="openBranchCurrencyModal({{ item.branch.id }}, '{{ item.branch.name|escapejs }}', '{{ item.branch.currency }}')"
                             title="تغيير عملة هذا الفرع"
-                            class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold border border-slate-300 bg-white hover:bg-blue-100 hover:border-blue-300 hover:text-blue-900 text-slate-800 transition cursor-pointer shadow-2xs"
+                            class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold border border-slate-200/70 bg-white hover:bg-violet-50 hover:border-violet-200/60 hover:text-violet-700 text-slate-800 transition cursor-pointer shadow-xs"
                         >
                             <span>{{ item.branch.currency }} ({{ item.branch.get_currency_symbol_ar }})</span>
                         </button>
-                        <span class="rounded-full px-2.5 py-0.5 text-xs font-black border {% if item.branch.status == 'active' %}bg-emerald-100 text-emerald-900 border-emerald-300{% else %}bg-slate-200 text-slate-900 border-slate-300{% endif %}">
+                        <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold border {% if item.branch.status == 'active' %}bg-emerald-100 text-emerald-900 border-emerald-300{% else %}bg-slate-200 text-slate-900 border-slate-200/70{% endif %}">
                             {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
                         </span>
                     </div>
@@ -101,57 +101,57 @@
                     {% endif %}
 
                     <!-- Delivery Zone & Covered Areas Badge Box (Single Compact Strip) -->
-                    <div class="flex items-center justify-between gap-2 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 shadow-2xs">
+                    <div class="flex items-center justify-between gap-2 rounded-lg border border-slate-200/70 bg-slate-50 px-2.5 py-1.5 shadow-xs">
                         <div class="flex items-center gap-1.5 min-w-0">
-                            <svg class="w-3.5 h-3.5 text-blue-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span class="text-xs font-black text-slate-950 truncate">نطاق التوصيل:</span>
-                            <span class="rounded bg-white text-slate-900 border border-slate-300 px-1.5 py-0.5 text-xs font-black shrink-0">
+                            <svg class="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span class="text-xs font-bold text-slate-900 truncate">نطاق التوصيل:</span>
+                            <span class="rounded bg-white text-slate-900 border border-slate-200/70 px-1.5 py-0.5 text-xs font-semibold shrink-0">
                                 {{ item.areas_count }} مناطق
                             </span>
                         </div>
                         <button 
                             onclick="openBranchZoneModal({{ item.branch.id }}, '{{ item.branch.name|escapejs }}')"
-                            class="shrink-0 flex items-center gap-1 rounded-md border border-slate-300 bg-white hover:bg-blue-100 hover:border-blue-300 hover:text-blue-900 text-slate-900 text-xs font-bold px-2 py-1 transition cursor-pointer shadow-2xs"
+                            class="shrink-0 flex items-center gap-1 rounded-md border border-slate-200/70 bg-white hover:bg-violet-50 hover:border-violet-200/60 hover:text-violet-700 text-slate-900 text-xs font-bold px-2 py-1 transition cursor-pointer shadow-xs"
                         >
-                            <svg class="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                            <svg class="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
                             <span>إدارة الخريطة</span>
                         </button>
                     </div>
 
                     <!-- Stats Strip (Compact 3-Column) -->
-                    <div class="grid grid-cols-3 divide-x divide-x-reverse divide-slate-200 rounded-lg bg-slate-50 border border-slate-300 text-center py-1.5 shadow-2xs">
+                    <div class="grid grid-cols-3 divide-x divide-x-reverse divide-slate-100 rounded-lg bg-slate-50 border border-slate-200/70 text-center py-1.5 shadow-xs">
                         <div>
-                            <p class="font-black text-slate-950 text-xs font-mono">{{ item.employees_count }}</p>
+                            <p class="font-bold text-slate-900 text-xs font-mono">{{ item.employees_count }}</p>
                             <p class="text-xs text-slate-700 font-bold">موظف</p>
                         </div>
                         <div>
-                            <p class="font-black text-slate-950 text-xs font-mono">{{ item.orders_today }}</p>
+                            <p class="font-bold text-slate-900 text-xs font-mono">{{ item.orders_today }}</p>
                             <p class="text-xs text-slate-700 font-bold">طلبات اليوم</p>
                         </div>
                         <div>
-                            <p class="font-black text-blue-900 text-xs font-mono">{{ item.sales_today|floatformat:0 }}</p>
-                            <p class="text-xs text-blue-800 font-bold">مبيعات {{ item.branch.get_currency_symbol_ar }}</p>
+                            <p class="font-bold text-violet-700 text-xs font-mono">{{ item.sales_today|floatformat:0 }}</p>
+                            <p class="text-xs text-violet-700 font-bold">مبيعات {{ item.branch.get_currency_symbol_ar }}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Card Footer / Actions (Compact) -->
-            <div class="p-2.5 border-t border-slate-300 bg-slate-50 flex items-center justify-between gap-2">
+            <div class="p-2.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
                 <button 
                     onclick="toggleBranchStatus({{ item.branch.id }})" 
-                    class="rounded-lg border border-slate-300 bg-white hover:bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-900 transition cursor-pointer shadow-2xs"
+                    class="rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-900 transition cursor-pointer shadow-xs"
                 >
                     {% if item.branch.status == 'active' %}إغلاق مؤقت{% else %}تفعيل الفرع{% endif %}
                 </button>
-                <a href="{% url 'switch_branch' item.branch.id %}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs font-bold transition cursor-pointer shadow-2xs">
+                <a href="{% url 'switch_branch' item.branch.id %}" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3 py-1 text-xs font-bold transition cursor-pointer shadow-xs">
                     <span>لوحة الفرع</span>
                     <span class="inline-block transition-transform group-hover:-translate-x-1">←</span>
                 </a>
             </div>
         </div>
         {% empty %}
-        <div class="col-span-full rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-xs text-slate-500">
+        <div class="col-span-full rounded-xl border border-dashed border-slate-200/70 bg-white p-8 text-center text-xs text-slate-500">
             لا توجد فروع مسجلة حتى الآن. اضغط على «افتتاح فرع وتحديد النطاق» للبدء.
         </div>
         {% endfor %}
@@ -188,23 +188,23 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="mb-1 block font-medium text-slate-600">اسم الفرع *</label>
-                        <input type="text" id="branch-name-input" placeholder="مثال: فرع مدينة الشروق" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="branch-name-input" placeholder="مثال: فرع مدينة الشروق" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div>
                         <label class="mb-1 block font-medium text-slate-600">المدينة *</label>
-                        <input type="text" id="branch-city-input" placeholder="مثال: الشروق أو الرياض" value="مدينة الشروق" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="branch-city-input" placeholder="مثال: الشروق أو الرياض" value="مدينة الشروق" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div>
                         <label class="mb-1 block font-medium text-slate-600">العنوان التفصيلي</label>
-                        <input type="text" id="branch-address-input" placeholder="مثال: طريق الشباب، بجوار الجامعة البريطانية" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="branch-address-input" placeholder="مثال: طريق الشباب، بجوار الجامعة البريطانية" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div>
                         <label class="mb-1 block font-medium text-slate-600">رقم هاتف الفرع</label>
-                        <input type="text" id="branch-phone-input" placeholder="010xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="branch-phone-input" placeholder="010xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="mb-1 block font-medium text-slate-600">العملة الرسمية للفرع *</label>
-                        <select id="branch-currency-input" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <select id="branch-currency-input" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                             {% for c in currencies_list %}
                             <option value="{{ c.code }}" {% if c.code == default_currency %}selected{% endif %}>{{ c.label }}</option>
                             {% endfor %}
@@ -221,14 +221,14 @@
                         2. موقع الفرع ومضلع زون التوصيل على الخريطة
                     </h4>
                     <div class="flex items-center gap-2 text-[11px]">
-                        <span id="add-map-mode-indicator" class="rounded bg-blue-50 text-blue-700 border border-blue-200 font-medium px-2.5 py-0.5">وضع: تحديد موقع الفرع</span>
+                        <span id="add-map-mode-indicator" class="rounded bg-blue-50 text-violet-600 border border-violet-200/50 font-medium px-2.5 py-0.5">وضع: تحديد موقع الفرع</span>
                         <span id="add-polygon-count" class="text-slate-500 font-medium">0 نقاط زون</span>
                     </div>
                 </div>
 
                 <!-- Map Action Buttons -->
                 <div class="flex flex-wrap items-center gap-2">
-                    <button type="button" onclick="setAddMapMode('pin')" id="btn-mode-pin" class="rounded-lg bg-blue-600 text-white border border-blue-600 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" onclick="setAddMapMode('pin')" id="btn-mode-pin" class="rounded-lg bg-violet-600 text-white border border-violet-600 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         تحديد موقع الفرع
                     </button>
@@ -262,18 +262,18 @@
                         </h4>
                         <p class="text-[11px] text-slate-500 mt-0.5">حدد المناطق (مثلاً: 5 كمبوندات و 8 أحياء) وسعر وتوقيت التوصيل لكل منها</p>
                     </div>
-                    <span id="staged-areas-count" class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[11px] font-medium">0 مناطق مضافة</span>
+                    <span id="staged-areas-count" class="rounded-full bg-blue-50 text-violet-600 border border-violet-200/50 px-2.5 py-0.5 text-[11px] font-medium">0 مناطق مضافة</span>
                 </div>
 
                 <!-- Quick Add Area Form -->
                 <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-white p-3 rounded-lg border border-slate-200">
                     <div class="sm:col-span-2">
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">اسم الحي / الكومبوند *</label>
-                        <input type="text" id="new-area-name" placeholder="مثال: كمبوند مدينتي أو الحي الأول" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
+                        <input type="text" id="new-area-name" placeholder="مثال: كمبوند مدينتي أو الحي الأول" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">النوع</label>
-                        <select id="new-area-type" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-blue-500">
+                        <select id="new-area-type" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-violet-500">
                             <option value="compound">كمبوند سكني</option>
                             <option value="district" selected>حي سكني</option>
                             <option value="zone">منطقة عامة</option>
@@ -282,13 +282,13 @@
                     </div>
                     <div>
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">سعر التوصيل (ر.س)</label>
-                        <input type="number" id="new-area-fee" step="0.5" value="10.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
+                        <input type="number" id="new-area-fee" step="0.5" value="10.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">وقت الوصول (دقيقة)</label>
                         <div class="flex gap-1">
-                            <input type="number" id="new-area-time" value="35" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
-                            <button type="button" onclick="stageAddArea()" class="shrink-0 rounded-lg bg-blue-600 px-3 py-1 font-medium text-white hover:bg-blue-700 text-xs transition cursor-pointer">
+                            <input type="number" id="new-area-time" value="35" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
+                            <button type="button" onclick="stageAddArea()" class="shrink-0 rounded-lg bg-violet-600 px-3 py-1 font-medium text-white hover:bg-violet-700 text-xs transition cursor-pointer">
                                 + إضافة
                             </button>
                         </div>
@@ -311,7 +311,7 @@
                 <button type="button" onclick="closeAddBranchModal()" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer">
                     إلغاء
                 </button>
-                <button type="button" id="save-branch-btn" onclick="saveNewBranch()" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-xs font-medium transition cursor-pointer">
+                <button type="button" id="save-branch-btn" onclick="saveNewBranch()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-5 py-2 text-xs font-medium transition cursor-pointer">
                     افتتاح الفرع وحفظ النطاق
                 </button>
             </div>
@@ -351,7 +351,7 @@
                         <button type="button" onclick="clearEditPolygon()" class="rounded-lg border border-slate-200 bg-white px-3 py-1 text-[11px] font-medium hover:bg-slate-50 text-slate-700 cursor-pointer">
                             إعادة رسم الزون
                         </button>
-                        <button type="button" onclick="saveEditZoneMap()" id="btn-save-zone-poly" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 text-[11px] font-medium transition cursor-pointer">
+                        <button type="button" onclick="saveEditZoneMap()" id="btn-save-zone-poly" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-[11px] font-medium transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             حفظ تعديل نطاق الخريطة
                         </button>
@@ -373,7 +373,7 @@
                         </h4>
                         <p class="text-[10px] text-slate-500 mt-0.5">تُطبق تلقائياً على أي عنوان أو شارع داخل المضلع في حال لم يذكر العميل اسم كمبوند محدد من الجدول أدناه.</p>
                     </div>
-                    <button type="button" onclick="saveBranchPricing()" id="btn-save-branch-pricing" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 text-xs font-medium transition cursor-pointer shrink-0">
+                    <button type="button" onclick="saveBranchPricing()" id="btn-save-branch-pricing" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-xs font-medium transition cursor-pointer shrink-0">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         حفظ قواعد التسعير
                     </button>
@@ -385,7 +385,7 @@
                             رسوم فتحة العداد (الحد الأدنى)
                             <span class="text-[10px] text-blue-600 font-semibold" id="pricing-currency-label-1">(ج.م)</span>
                         </label>
-                        <input type="number" id="edit-branch-base-fee" step="0.5" min="0" value="15.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                        <input type="number" id="edit-branch-base-fee" step="0.5" min="0" value="15.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                         <span class="text-[10px] text-slate-400 block mt-1">الرسوم الأساسية لأول كيلومترات</span>
                     </div>
 
@@ -394,7 +394,7 @@
                             المسافة الأساسية المغطاة
                             <span class="text-[10px] text-blue-600 font-semibold">(كم)</span>
                         </label>
-                        <input type="number" id="edit-branch-base-km" step="0.5" min="0.5" value="3.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                        <input type="number" id="edit-branch-base-km" step="0.5" min="0.5" value="3.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                         <span class="text-[10px] text-slate-400 block mt-1">المسافة المشمولة بفتحة العداد</span>
                     </div>
 
@@ -403,7 +403,7 @@
                             سعر الكيلومتر الإضافي
                             <span class="text-[10px] text-blue-600 font-semibold" id="pricing-currency-label-2">(ج.م / كم)</span>
                         </label>
-                        <input type="number" id="edit-branch-per-km-fee" step="0.5" min="0" value="3.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                        <input type="number" id="edit-branch-per-km-fee" step="0.5" min="0" value="3.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                         <span class="text-[10px] text-slate-400 block mt-1">يُضاف لكل كم زائد عن المسافة الأساسية</span>
                     </div>
                 </div>
@@ -412,7 +412,7 @@
                 <div class="mt-2.5 pt-2.5 border-t border-slate-100">
                     <div class="mb-2">
                         <label class="block font-medium text-slate-900 text-xs flex items-center gap-1.5">
-                            <span class="inline-block w-2 h-2 rounded-full bg-blue-600"></span>
+                            <span class="inline-block w-2 h-2 rounded-full bg-violet-600"></span>
                             شرائح الحد الأدنى لقيمة الطلب حسب بُعد المسافة:
                         </label>
                         <p class="text-[10px] text-slate-500">تحديد أقل قيمة مسموحة للطلب بناءً على بُعد العميل عن الفرع لمنع خسارة المشاوير البعيدة داخل المضلع.</p>
@@ -425,9 +425,9 @@
                                 <span class="text-[10px] text-blue-600 font-semibold">(كم)</span>
                             </label>
                             <div class="flex items-center gap-1.5">
-                                <input type="number" id="edit-branch-tier1-km" step="0.5" min="0.5" value="3.00" class="w-16 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                                <input type="number" id="edit-branch-tier1-km" step="0.5" min="0.5" value="3.00" class="w-16 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                                 <span class="text-[11px] text-slate-500">كم ➔</span>
-                                <input type="number" id="edit-branch-tier1-amount" step="1" min="0" value="50.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                                <input type="number" id="edit-branch-tier1-amount" step="1" min="0" value="50.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                                 <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">ج.م</span>
                             </div>
                         </div>
@@ -438,9 +438,9 @@
                                 <span class="text-[10px] text-blue-600 font-semibold">(كم)</span>
                             </label>
                             <div class="flex items-center gap-1.5">
-                                <input type="number" id="edit-branch-tier2-km" step="0.5" min="0.5" value="6.00" class="w-16 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                                <input type="number" id="edit-branch-tier2-km" step="0.5" min="0.5" value="6.00" class="w-16 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                                 <span class="text-[11px] text-slate-500">كم ➔</span>
-                                <input type="number" id="edit-branch-tier2-amount" step="1" min="0" value="100.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                                <input type="number" id="edit-branch-tier2-amount" step="1" min="0" value="100.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                                 <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">ج.م</span>
                             </div>
                         </div>
@@ -451,7 +451,7 @@
                             </label>
                             <div class="flex items-center gap-1.5">
                                 <span class="text-[11px] text-slate-500">أقصى نطاق ➔</span>
-                                <input type="number" id="edit-branch-tier3-amount" step="1" min="0" value="150.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                                <input type="number" id="edit-branch-tier3-amount" step="1" min="0" value="150.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
                                 <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">ج.م</span>
                             </div>
                         </div>
@@ -465,18 +465,18 @@
                     <h4 class="font-bold text-slate-900 text-xs">
                         الأحياء والكمبوندات التابعة للفرع
                     </h4>
-                    <span id="zone-modal-areas-count" class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[11px] font-medium">0 مناطق</span>
+                    <span id="zone-modal-areas-count" class="rounded-full bg-blue-50 text-violet-600 border border-violet-200/50 px-2.5 py-0.5 text-[11px] font-medium">0 مناطق</span>
                 </div>
 
                 <!-- Add New Area Inline Form -->
                 <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-white p-3 rounded-lg border border-slate-200">
                     <div class="sm:col-span-2">
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">اسم الحي / الكومبوند الجديد *</label>
-                        <input type="text" id="edit-area-name" placeholder="مثال: كمبوند ستيلا أو الحي الثالث" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
+                        <input type="text" id="edit-area-name" placeholder="مثال: كمبوند ستيلا أو الحي الثالث" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">النوع</label>
-                        <select id="edit-area-type" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-blue-500">
+                        <select id="edit-area-type" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-violet-500">
                             <option value="compound">كمبوند سكني</option>
                             <option value="district" selected>حي سكني</option>
                             <option value="zone">منطقة عامة</option>
@@ -485,13 +485,13 @@
                     </div>
                     <div>
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">سعر التوصيل (ر.س)</label>
-                        <input type="number" id="edit-area-fee" step="0.5" value="10.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
+                        <input type="number" id="edit-area-fee" step="0.5" value="10.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-600 mb-1 text-[10px]">وقت الوصول (دقيقة)</label>
                         <div class="flex gap-1">
-                            <input type="number" id="edit-area-time" value="35" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
-                            <button type="button" onclick="submitAddAreaToBranch()" class="shrink-0 rounded-lg bg-blue-600 px-3 py-1 font-medium text-white hover:bg-blue-700 text-xs transition cursor-pointer">
+                            <input type="number" id="edit-area-time" value="35" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
+                            <button type="button" onclick="submitAddAreaToBranch()" class="shrink-0 rounded-lg bg-violet-600 px-3 py-1 font-medium text-white hover:bg-violet-700 text-xs transition cursor-pointer">
                                 + إضافة
                             </button>
                         </div>
@@ -552,7 +552,7 @@
             <div class="p-3 bg-blue-50/50 border border-blue-100 rounded-lg space-y-1">
                 <p class="font-medium text-slate-900 flex items-center gap-1.5">
                     العملة الحالية للمنشأة:
-                    <span class="text-blue-700 font-bold underline">{{ default_currency }} — {{ tenant.get_currency_name_ar }} ({{ tenant.get_currency_symbol_ar }})</span>
+                    <span class="text-violet-600 font-bold underline">{{ default_currency }} — {{ tenant.get_currency_name_ar }} ({{ tenant.get_currency_symbol_ar }})</span>
                 </p>
                 <p class="text-[11px] text-slate-500">
                     هذه العملة هي الأساسية المعتمدة تلقائياً عند افتتاح أي فرع جديد، ومرجع التقارير الإجمالية في الإدارة العامة.
@@ -561,7 +561,7 @@
 
             <div>
                 <label class="block font-medium text-slate-700 mb-1.5">اختر العملة الجديدة للمنشأة والسلسلة *</label>
-                <select id="chain-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <select id="chain-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     {% for c in currencies_list %}
                     <option value="{{ c.code }}" {% if c.code == default_currency %}selected{% endif %}>
                         {{ c.label }}
@@ -572,7 +572,7 @@
 
             <div class="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-lg">
                 <label class="flex items-start gap-2.5 cursor-pointer">
-                    <input type="checkbox" id="chain-currency-apply-all" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                    <input type="checkbox" id="chain-currency-apply-all" class="mt-0.5 w-4 h-4 rounded border-slate-200/70 text-blue-600 focus:ring-violet-500">
                     <div class="text-xs">
                         <span class="font-semibold text-slate-900 block">توحيد وتطبيق على كافة الفروع الحالية</span>
                         <span class="text-[11px] text-slate-500 block mt-0.5">
@@ -588,7 +588,7 @@
             <button type="button" onclick="closeChainCurrencyModal()" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-medium transition cursor-pointer">
                 إلغاء
             </button>
-            <button type="button" id="save-chain-currency-btn" onclick="saveChainCurrency()" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-xs font-medium transition cursor-pointer">
+            <button type="button" id="save-chain-currency-btn" onclick="saveChainCurrency()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-5 py-2 text-xs font-medium transition cursor-pointer">
                 حفظ العملة
             </button>
         </div>
@@ -620,7 +620,7 @@
             <input type="hidden" id="edit-branch-currency-id" value="">
 
             <div class="p-3 bg-blue-50/50 border border-blue-100 rounded-lg space-y-1">
-                <p class="font-medium text-slate-900">الفرع: <span id="branch-currency-target-name" class="font-bold text-blue-700"></span></p>
+                <p class="font-medium text-slate-900">الفرع: <span id="branch-currency-target-name" class="font-bold text-violet-600"></span></p>
                 <p class="text-[11px] text-slate-500">
                     ستظهر هذه العملة على فواتير الفرع، وشاشات نقاط البيع (POS)، وعند اتصال العملاء وطلب أوردر عبر كول سنتر الذكاء الاصطناعي لهذا الفرع.
                 </p>
@@ -628,7 +628,7 @@
 
             <div>
                 <label class="block font-medium text-slate-700 mb-1.5">اختر عملة هذا الفرع *</label>
-                <select id="branch-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <select id="branch-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     {% for c in currencies_list %}
                     <option value="{{ c.code }}">{{ c.label }}</option>
                     {% endfor %}
@@ -641,7 +641,7 @@
             <button type="button" onclick="closeBranchCurrencyModal()" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-medium transition cursor-pointer">
                 إلغاء
             </button>
-            <button type="button" id="save-branch-currency-btn" onclick="saveBranchCurrency()" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-xs font-medium transition cursor-pointer">
+            <button type="button" id="save-branch-currency-btn" onclick="saveBranchCurrency()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-5 py-2 text-xs font-medium transition cursor-pointer">
                 حفظ عملة الفرع
             </button>
         </div>
@@ -715,13 +715,13 @@
 
         if (mode === 'pin') {
             ind.textContent = 'وضع: تحديد موقع الفرع';
-            ind.className = 'rounded bg-blue-50 text-blue-700 border border-blue-200 font-medium px-2.5 py-0.5';
-            btnPin.className = 'rounded-lg bg-blue-600 text-white border border-blue-600 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 cursor-pointer';
+            ind.className = 'rounded bg-blue-50 text-violet-600 border border-violet-200/50 font-medium px-2.5 py-0.5';
+            btnPin.className = 'rounded-lg bg-violet-600 text-white border border-violet-600 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 cursor-pointer';
             btnPoly.className = 'rounded-lg border border-slate-200 bg-white text-slate-700 px-3 py-1.5 text-[11px] font-medium hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer';
         } else {
             ind.textContent = 'وضع: رسم حدود الزون';
-            ind.className = 'rounded bg-blue-50 text-blue-700 border border-blue-200 font-medium px-2.5 py-0.5';
-            btnPoly.className = 'rounded-lg bg-blue-600 text-white border border-blue-600 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 cursor-pointer';
+            ind.className = 'rounded bg-blue-50 text-violet-600 border border-violet-200/50 font-medium px-2.5 py-0.5';
+            btnPoly.className = 'rounded-lg bg-violet-600 text-white border border-violet-600 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 cursor-pointer';
             btnPin.className = 'rounded-lg border border-slate-200 bg-white text-slate-700 px-3 py-1.5 text-[11px] font-medium hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer';
         }
     }

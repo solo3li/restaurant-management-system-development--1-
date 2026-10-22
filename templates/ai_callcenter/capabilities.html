@@ -7,10 +7,10 @@
 <div class="space-y-3 pb-8 font-sans" dir="{{ DIR|default:'rtl' }}">
 
     <!-- Top Status & Actions Card -->
-    <div class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-3 shadow-2xs">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-300 pb-2.5">
+    <div class="bg-white rounded-xl border border-slate-200/70 p-3 sm:p-4 space-y-3 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200/60 pb-3">
             <div>
-                <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-emerald-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     <span>صلاحيات وقدرات المساعد الذكي المباشرة (AI Capabilities & Tools)</span>
                 </h3>
@@ -19,11 +19,11 @@
                 </p>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="openMcpUrlModal()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
+                <button type="button" onclick="openMcpUrlModal()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
                     <svg class="w-3.5 h-3.5 text-slate-400 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     <span>إعدادات الرابط السحابي</span>
                 </button>
-                <button type="button" onclick="syncMcpTools()" id="btn-sync-mcp" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer">
+                <button type="button" onclick="syncMcpTools()" id="btn-sync-mcp" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition cursor-pointer">
                     <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>مزامنة فورية (Sync)</span>
                 </button>
@@ -45,25 +45,25 @@
                 </div>
             </div>
 
-            <div class="p-2.5 rounded-lg bg-slate-50/70 border border-slate-300 flex items-center gap-2.5">
+            <div class="p-2.5 rounded-lg bg-slate-50/70 border border-slate-200/70 flex items-center gap-2.5">
                 <div class="h-8 w-8 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-sm text-brand-700 shrink-0">
                     <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
                 </div>
                 <div>
                     <div class="text-[10px] text-slate-500 font-medium">القدرات المتاحة للمساعد</div>
-                    <div class="text-xs font-black text-slate-950 mt-0.5" id="mcp-tools-count-badge">
+                    <div class="text-xs font-bold text-slate-900 mt-0.5" id="mcp-tools-count-badge">
                         {{ mcp_tools|length|default:7 }} قدرات ذكية جاهزة
                     </div>
                 </div>
             </div>
 
-            <div class="p-2.5 rounded-lg bg-slate-50/70 border border-slate-300 flex items-center gap-2.5">
-                <div class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-sm text-blue-700 shrink-0">
+            <div class="p-2.5 rounded-lg bg-slate-50/70 border border-slate-200/70 flex items-center gap-2.5">
+                <div class="h-8 w-8 rounded-lg bg-blue-50 border border-violet-200/50 flex items-center justify-center text-sm text-violet-600 shrink-0">
                     <svg class="w-4 h-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </div>
                 <div>
                     <div class="text-[10px] text-slate-500 font-medium">حالة المزامنة والربط</div>
-                    <div class="text-xs font-black text-slate-950 mt-0.5 font-mono" id="mcp-last-synced-badge">
+                    <div class="text-xs font-bold text-slate-900 mt-0.5 font-mono" id="mcp-last-synced-badge">
                         {{ primary_mcp.last_synced_at|default:"متزامن ومحدث" }}
                     </div>
                 </div>
@@ -72,12 +72,12 @@
     </div>
 
     <!-- Live Structured Context Card (In-Memory Redis Knowledge) -->
-    <div class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-3 shadow-2xs">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-300 pb-2.5">
+    <div class="bg-white rounded-xl border border-slate-200/70 p-3 sm:p-4 space-y-3 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200/60 pb-3">
             <div class="space-y-0.5">
                 <div class="flex items-center flex-wrap gap-2">
                     <span class="text-base"><svg class="w-4 h-4 inline-block align-middle text-[#D2AB6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
-                    <h3 class="text-sm font-black text-slate-950">
+                    <h3 class="text-sm font-bold text-slate-900">
                         الذاكرة المنظمة الحية للعميل (Client Live Context - Redis Cache)
                     </h3>
                     <span class="text-[9px] px-1.5 py-0.2 rounded font-bold bg-amber-50 text-amber-800 border border-amber-200">
@@ -95,11 +95,11 @@
                 </p>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="syncLiveContext()" id="btn-sync-live-context" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer">
+                <button type="button" onclick="syncLiveContext()" id="btn-sync-live-context" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition cursor-pointer">
                     <svg class="w-3.5 h-3.5 inline-block align-middle text-amber-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     <span>مزامنة الذاكرة</span>
                 </button>
-                <button type="button" onclick="openLiveContextModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
+                <button type="button" onclick="openLiveContextModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
                     <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>JSON</span>
                 </button>
@@ -108,49 +108,49 @@
 
         <!-- Live Context Stats Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div class="p-2 rounded-lg bg-slate-50 border border-slate-300 flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center gap-2">
                 <div class="h-7 w-7 rounded-md bg-amber-100 border border-amber-200 flex items-center justify-center text-xs text-amber-800 shrink-0">
                     <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
                 <div>
                     <div class="text-[10px] text-slate-500 font-medium">فروع مفهرسة</div>
-                    <div class="text-xs font-black text-slate-950" id="live-ctx-branches-badge">
+                    <div class="text-xs font-bold text-slate-900" id="live-ctx-branches-badge">
                         {{ live_context_data.branches|length|default:3 }} فروع
                     </div>
                 </div>
             </div>
 
-            <div class="p-2 rounded-lg bg-slate-50 border border-slate-300 flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center gap-2">
                 <div class="h-7 w-7 rounded-md bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs text-emerald-800 shrink-0">
                     <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4a8 8 0 00-8 8h16a8 8 0 00-8-8zm-8 12h16m-12 3h8"/></svg>
                 </div>
                 <div>
                     <div class="text-[10px] text-slate-500 font-medium">أصناف المنيو</div>
-                    <div class="text-xs font-black text-slate-950" id="live-ctx-items-badge">
+                    <div class="text-xs font-bold text-slate-900" id="live-ctx-items-badge">
                         {{ live_context_data.menu|length|default:6 }} أقسام
                     </div>
                 </div>
             </div>
 
-            <div class="p-2 rounded-lg bg-slate-50 border border-slate-300 flex items-center gap-2">
-                <div class="h-7 w-7 rounded-md bg-blue-100 border border-blue-200 flex items-center justify-center text-xs text-blue-800 shrink-0">
+            <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center gap-2">
+                <div class="h-7 w-7 rounded-md bg-violet-50 border border-violet-200/50 flex items-center justify-center text-xs text-violet-700 shrink-0">
                     <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a2 2 0 104 0m-4 0a2 2 0 114 0m-9 1a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
                 </div>
                 <div>
                     <div class="text-[10px] text-slate-500 font-medium">مناطق التوصيل</div>
-                    <div class="text-xs font-black text-slate-950" id="live-ctx-zones-badge">
+                    <div class="text-xs font-bold text-slate-900" id="live-ctx-zones-badge">
                         {{ live_context_data.delivery_zones|length|default:2 }} مناطق
                     </div>
                 </div>
             </div>
 
-            <div class="p-2 rounded-lg bg-slate-50 border border-slate-300 flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center gap-2">
                 <div class="h-7 w-7 rounded-md bg-purple-100 border border-purple-200 flex items-center justify-center text-xs text-purple-800 shrink-0">
                     <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                 </div>
                 <div>
                     <div class="text-[10px] text-slate-500 font-medium">حجم الذاكرة</div>
-                    <div class="text-xs font-black text-slate-950 font-mono" id="live-ctx-size-badge">
+                    <div class="text-xs font-bold text-slate-900 font-mono" id="live-ctx-size-badge">
                         {{ live_context.size_bytes|default:"2.9" }} B
                     </div>
                 </div>
@@ -170,10 +170,10 @@
     </div>
 
     <!-- AI Voice Tools Directory -->
-    <div class="bg-white rounded-xl border border-slate-300 p-3 sm:p-4 space-y-3 shadow-2xs">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-300 pb-2.5">
+    <div class="bg-white rounded-xl border border-slate-200/70 p-3 sm:p-4 space-y-3 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200/60 pb-3">
             <div>
-                <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
                     <span>دليل الأدوات المدمجة المتاحة للمساعد الصوتي (Active AI Tools)</span>
                 </h3>
@@ -189,13 +189,13 @@
         <!-- Grid of Tools -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
             <!-- Tool 1 -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">get_branches</span>
                         <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">قراءة (Read)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         <span>استعراض فروع المطعم</span>
                     </h4>
@@ -203,9 +203,9 @@
                         جلب قائمة الفروع النشطة، العناوين، أرقام الهواتف، ونطاقات التوصيل.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: تلقائي</span>
-                    <button type="button" onclick="testToolDirect('get_branches', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('get_branches', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -213,13 +213,13 @@
             </div>
 
             <!-- Tool 2 -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">get_menu</span>
                         <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">قراءة (Read)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4a8 8 0 00-8 8h16a8 8 0 00-8-8zm-8 12h16m-12 3h8"/></svg>
                         <span>استعراض أصناف المنيو</span>
                     </h4>
@@ -227,9 +227,9 @@
                         استعراض المنيو والأسعار والتصنيفات والأصناف المتاحة للفرع.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: branch_id, category</span>
-                    <button type="button" onclick="testToolDirect('get_menu', {branch_id: 1})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('get_menu', {branch_id: 1})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -237,13 +237,13 @@
             </div>
 
             <!-- Tool 3 -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">lookup_customer</span>
                         <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">قراءة (Read)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         <span>البحث عن بيانات المتصل</span>
                     </h4>
@@ -251,9 +251,9 @@
                         البحث برقم الهاتف عن اسم العميل وعناوين التوصيل المسجلة سابقاً.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: phone</span>
-                    <button type="button" onclick="testToolDirect('lookup_customer', {phone: '0501234567'})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('lookup_customer', {phone: '0501234567'})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -261,13 +261,13 @@
             </div>
 
             <!-- Tool 4 -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">check_delivery_coverage</span>
                         <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">قراءة (Read)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                         <span>فحص تغطية التوصيل</span>
                     </h4>
@@ -275,9 +275,9 @@
                         فحص اسم الحي أو العنوان لمعرفة التغطية ورسوم التوصيل.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: branch_id, area_name</span>
-                    <button type="button" onclick="testToolDirect('check_delivery_coverage', {branch_id: 1, area_name: 'النرجس'})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('check_delivery_coverage', {branch_id: 1, area_name: 'النرجس'})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -285,13 +285,13 @@
             </div>
 
             <!-- Tool 5: preview_order -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">preview_order</span>
                         <span class="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded-full border border-amber-200">معاينة (Preview)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-amber-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <span>حساب الفاتورة المبدئية</span>
                     </h4>
@@ -299,9 +299,9 @@
                         حساب التكلفة الدقيقة ورسوم التوصيل والضريبة لأخذ موافقة العميل.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: items, address, area</span>
-                    <button type="button" onclick="testToolDirect('preview_order', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('preview_order', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -309,13 +309,13 @@
             </div>
 
             <!-- Tool 6: create_callcenter_order -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">create_callcenter_order</span>
                         <span class="text-[9px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded-full border border-rose-200">كتابة (Write)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-emerald-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         <span>تسجيل وضرب الأوردر</span>
                     </h4>
@@ -323,9 +323,9 @@
                         إنشاء الطلب في الكاشير وحساب المجموع والتعرف على المتصل.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: items, phone, address</span>
-                    <button type="button" onclick="testToolDirect('create_callcenter_order', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('create_callcenter_order', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -333,13 +333,13 @@
             </div>
 
             <!-- Tool 7: track_order -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">track_order</span>
                         <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">قراءة (Read)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <span>تتبع حالة الطلب للعميل</span>
                     </h4>
@@ -347,9 +347,9 @@
                         الاستعلام الفوري برقم الأوردر أو برقم هاتف العميل لمعرفة موقفه.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: order_number, phone</span>
-                    <button type="button" onclick="testToolDirect('track_order', {order_number: 'DIY-1059'})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('track_order', {order_number: 'DIY-1059'})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -357,13 +357,13 @@
             </div>
 
             <!-- Tool 8: cancel_order -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">cancel_order</span>
                         <span class="text-[9px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded-full border border-rose-200">إلغاء (Cancel)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 inline-block align-middle text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         <span>إلغاء الأوردر الجديد</span>
                     </h4>
@@ -371,9 +371,9 @@
                         إلغاء الطلب إذا كان في حالة جديد (New) ولم يبدأ المطبخ في تحضيره.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: order_number, reason</span>
-                    <button type="button" onclick="testToolDirect('cancel_order', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('cancel_order', {})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -381,13 +381,13 @@
             </div>
 
             <!-- Tool 9: list_recent_orders -->
-            <div class="p-3 rounded-xl border border-slate-300 bg-white hover:border-slate-300 transition space-y-2 flex flex-col justify-between">
+            <div class="p-3 rounded-xl border border-slate-200/70 bg-white hover:border-slate-200/70 transition space-y-2 flex flex-col justify-between">
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded border border-brand-200">list_recent_orders</span>
                         <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">قراءة (Read)</span>
                     </div>
-                    <h4 class="font-black text-slate-950 text-xs flex items-center gap-1">
+                    <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
                         <span>حركة أحدث الطلبات</span>
                     </h4>
@@ -395,9 +395,9 @@
                         استعراض أحدث الأوردرات الصادرة لمراقبة حركة المبيعات.
                     </p>
                 </div>
-                <div class="pt-1.5 border-t border-slate-300 flex items-center justify-between">
+                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-[9px] text-slate-400 font-mono">المدخلات: limit, branch_id</span>
-                    <button type="button" onclick="testToolDirect('list_recent_orders', {limit: 3})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="testToolDirect('list_recent_orders', {limit: 3})" class="px-2 py-0.5 rounded bg-white hover:bg-slate-50 text-brand-700 border border-slate-200/70 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
                         <svg class="w-3 h-3 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         <span>تجربة</span>
                     </button>
@@ -412,9 +412,9 @@
 <!-- MODAL: TEST MCP TOOL EXECUTION            -->
 <!-- ========================================== -->
 <div id="mcp-test-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
-            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 border border-slate-200/70 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                 <svg class="w-4 h-4 inline-block align-middle text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                 <span>اختبار استجابة الأداة:</span>
                 <span id="mcp-test-tool-title" class="text-brand-600 font-mono"></span>
@@ -429,7 +429,7 @@
 
             <div class="flex items-center justify-between pt-1">
                 <span class="text-xs font-medium text-slate-500">استجابة الأداة المباشرة:</span>
-                <button type="button" onclick="executeCurrentToolTest()" id="btn-run-tool-test" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer">
+                <button type="button" onclick="executeCurrentToolTest()" id="btn-run-tool-test" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-xs transition cursor-pointer">
                     ▶️ تشغيل الأداة
                 </button>
             </div>
@@ -439,8 +439,8 @@
             </div>
         </div>
 
-        <div class="pt-2 border-t border-slate-300 flex items-center justify-end">
-            <button type="button" onclick="closeMcpTestModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer">
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" onclick="closeMcpTestModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer">
                 إغلاق
             </button>
         </div>
@@ -451,9 +451,9 @@
 <!-- MODAL: UPDATE MCP SERVER URL               -->
 <!-- ========================================== -->
 <div id="mcp-url-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
-            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
+    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-5 border border-slate-200/70 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                 <svg class="w-4 h-4 inline-block align-middle text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 <span>إعدادات ربط المساعد الصوتي</span>
             </h3>
@@ -469,11 +469,11 @@
                 </p>
             </div>
 
-            <div class="pt-2 border-t border-slate-300 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeMcpUrlModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeMcpUrlModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
                     إلغاء
                 </button>
-                <button type="submit" id="btn-save-mcp-url" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer">
+                <button type="submit" id="btn-save-mcp-url" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-xs transition cursor-pointer">
                     حفظ وتحديث
                 </button>
             </div>
@@ -485,9 +485,9 @@
 <!-- MODAL: LIVE CONTEXT JSON INSPECTOR        -->
 <!-- ========================================== -->
 <div id="live-context-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-5 border border-slate-300 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
-        <div class="flex items-center justify-between border-b border-slate-300 pb-2.5">
-            <h3 class="text-sm font-black text-slate-950 flex items-center gap-1.5">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-5 border border-slate-200/70 shadow-2xl space-y-3.5 animate-toast" dir="{{ DIR|default:'rtl' }}">
+        <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                 <svg class="w-4 h-4 inline-block align-middle text-[#D2AB6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 <span>الذاكرة المنظمة الحية للعميل (Redis Live Context)</span>
             </h3>
@@ -505,12 +505,12 @@
             <pre id="live-context-json-box" class="p-3 rounded-lg bg-slate-950 text-emerald-400 font-mono text-[11px] leading-relaxed max-h-[350px] overflow-y-auto whitespace-pre-wrap select-all border border-slate-800">جاري تحميل محتوى الذاكرة الحية...</pre>
         </div>
 
-        <div class="pt-2 border-t border-slate-300 flex items-center justify-between gap-2">
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
             <button type="button" onclick="syncLiveContext()" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1">
                 <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>مزامنة الآن</span>
             </button>
-            <button type="button" onclick="closeLiveContextModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
+            <button type="button" onclick="closeLiveContextModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-200/70 hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer">
                 إغلاق
             </button>
         </div>
@@ -627,14 +627,14 @@ function testToolDirect(toolName, defaultParams) {
         } else if (toolName === 'get_menu') {
             html = `
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1">معرف الفرع (Branch ID)</label>
+                    <label class="block text-xs font-semibold text-ink mb-1">معرف الفرع (Branch ID)</label>
                     <input type="number" id="test_param_branch_id" value="1" class="input font-mono font-bold">
                 </div>
             `;
         } else if (toolName === 'lookup_customer') {
             html = `
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1">رقم هاتف العميل (Phone)</label>
+                    <label class="block text-xs font-semibold text-ink mb-1">رقم هاتف العميل (Phone)</label>
                     <input type="text" id="test_param_phone" value="0501234567" class="input font-mono font-bold">
                 </div>
             `;
@@ -642,11 +642,11 @@ function testToolDirect(toolName, defaultParams) {
             html = `
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-black text-ink mb-1">معرف الفرع (Branch ID)</label>
+                        <label class="block text-xs font-semibold text-ink mb-1">معرف الفرع (Branch ID)</label>
                         <input type="number" id="test_param_branch_id" value="1" class="input font-mono font-bold">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-ink mb-1">اسم الحي / المنطقة</label>
+                        <label class="block text-xs font-semibold text-ink mb-1">اسم الحي / المنطقة</label>
                         <input type="text" id="test_param_area_name" value="النرجس" class="input font-bold">
                     </div>
                 </div>
@@ -655,11 +655,11 @@ function testToolDirect(toolName, defaultParams) {
             html = `
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs font-black text-ink mb-1">رقم الأوردر (أو رقم هاتف العميل)</label>
+                        <label class="block text-xs font-semibold text-ink mb-1">رقم الأوردر (أو رقم هاتف العميل)</label>
                         <input type="text" id="test_param_order_number" value="DIY-1059" placeholder="مثال: DIY-1059 أو 0559998877" class="input font-mono font-bold">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-ink mb-1">أو تتبع برقم الهاتف مباشرة (Customer Phone)</label>
+                        <label class="block text-xs font-semibold text-ink mb-1">أو تتبع برقم الهاتف مباشرة (Customer Phone)</label>
                         <input type="text" id="test_param_customer_phone" placeholder="مثال: 0559998877" class="input font-mono font-bold">
                     </div>
                 </div>
@@ -669,25 +669,25 @@ function testToolDirect(toolName, defaultParams) {
                 <div class="space-y-2.5">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">رقم هاتف العميل *</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">رقم هاتف العميل *</label>
                             <input type="text" id="test_param_order_phone" value="0559998877" class="input font-mono font-bold text-xs">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">اسم العميل</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">اسم العميل</label>
                             <input type="text" id="test_param_order_name" value="أحمد تجربة" class="input font-bold text-xs">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-black text-ink mb-1">عنوان التوصيل * (يجب أن يكون مغطى بالفرع)</label>
+                        <label class="block text-[11px] font-semibold text-ink mb-1">عنوان التوصيل * (يجب أن يكون مغطى بالفرع)</label>
                         <input type="text" id="test_param_order_address" value="مدينة الشروق - كمبوند النرجس" class="input font-bold text-xs">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">اسم الصنف أو رقمه *</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">اسم الصنف أو رقمه *</label>
                             <input type="text" id="test_param_order_item" value="كبسة دجاج" class="input font-bold text-xs">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">الكمية</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">الكمية</label>
                             <input type="number" id="test_param_order_qty" value="1" min="1" max="10" class="input font-mono font-bold text-xs">
                         </div>
                     </div>
@@ -698,21 +698,21 @@ function testToolDirect(toolName, defaultParams) {
                 <div class="space-y-2.5">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">معرف الفرع (Branch ID)</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">معرف الفرع (Branch ID)</label>
                             <input type="number" id="test_param_preview_branch_id" value="1" class="input font-mono font-bold text-xs">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">اسم الحي / المنطقة</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">اسم الحي / المنطقة</label>
                             <input type="text" id="test_param_preview_area" value="النرجس" class="input font-bold text-xs">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">اسم الصنف أو رقمه *</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">اسم الصنف أو رقمه *</label>
                             <input type="text" id="test_param_preview_item" value="كبسة دجاج" class="input font-bold text-xs">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-ink mb-1">الكمية</label>
+                            <label class="block text-[11px] font-semibold text-ink mb-1">الكمية</label>
                             <input type="number" id="test_param_preview_qty" value="1" min="1" max="10" class="input font-mono font-bold text-xs">
                         </div>
                     </div>
@@ -722,15 +722,15 @@ function testToolDirect(toolName, defaultParams) {
             html = `
                 <div class="space-y-2.5">
                     <div>
-                        <label class="block text-xs font-black text-ink mb-1">رقم الطلب (Order Number)</label>
+                        <label class="block text-xs font-semibold text-ink mb-1">رقم الطلب (Order Number)</label>
                         <input type="text" id="test_param_cancel_order_number" placeholder="مثال: DIY-1059" class="input font-mono font-bold text-xs">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-ink mb-1">أو رقم هاتف العميل (Customer Phone)</label>
+                        <label class="block text-xs font-semibold text-ink mb-1">أو رقم هاتف العميل (Customer Phone)</label>
                         <input type="text" id="test_param_cancel_phone" placeholder="مثال: 0559998877" class="input font-mono font-bold text-xs">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-ink mb-1">سبب الإلغاء</label>
+                        <label class="block text-xs font-semibold text-ink mb-1">سبب الإلغاء</label>
                         <input type="text" id="test_param_cancel_reason" value="إلغاء بناء على رغبة العميل قبل بدء التحضير" class="input font-bold text-xs">
                     </div>
                 </div>
@@ -738,7 +738,7 @@ function testToolDirect(toolName, defaultParams) {
         } else if (toolName === 'list_recent_orders') {
             html = `
                 <div>
-                    <label class="block text-xs font-black text-ink mb-1">الحد الأقصى للطلبات (Limit)</label>
+                    <label class="block text-xs font-semibold text-ink mb-1">الحد الأقصى للطلبات (Limit)</label>
                     <input type="number" id="test_param_limit" value="5" min="1" max="20" class="input font-mono font-bold">
                 </div>
             `;

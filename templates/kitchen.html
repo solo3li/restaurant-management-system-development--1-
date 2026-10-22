@@ -9,22 +9,22 @@
     <!-- ======================================================== -->
     <!-- KDS COMPACT FLAT TOP TOOLBAR (NO CARD - 2 SLIM ROWS)     -->
     <!-- ======================================================== -->
-    <div class="space-y-1.5 pb-2 border-b border-slate-300">
+    <div class="space-y-1.5 pb-2 border-b border-slate-100">
         
         <!-- Row 1: Station Info & Quick Action Tools (Slim 30px height) -->
         <div class="flex items-center justify-between gap-2 flex-wrap">
             <!-- Left: Status Badge & Live Beacon -->
             <div class="flex items-center gap-2 shrink-0">
-                <span class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 border border-blue-300 text-blue-700">
+                <span class="flex h-6 w-6 items-center justify-center rounded-md bg-violet-50 border border-violet-200/60 text-violet-600">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 </span>
-                <span class="text-xs font-black text-slate-950 tracking-tight">المطبخ KDS</span>
-                <span id="header-total-badge" class="rounded-full bg-blue-100 border border-blue-300 px-2 py-0.5 text-xs font-black text-blue-900">
+                <span class="text-xs font-bold text-slate-900 tracking-tight">المطبخ KDS</span>
+                <span id="header-total-badge" class="rounded-full bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-xs font-bold text-violet-700">
                     <span id="total-pending-count">{{ total_pending }}</span>
                 </span>
 
                 <!-- SSE Connection Status Beacon -->
-                <div id="sse-status-pill" class="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-black text-emerald-900">
+                <div id="sse-status-pill" class="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-semibold text-emerald-900">
                     <span id="sse-status-dot" class="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
                     <span id="sse-status-text">مباشر 0ms</span>
                 </div>
@@ -34,7 +34,7 @@
                 <select 
                     id="kds-branch-select" 
                     onchange="changeBranchFilter(this.value)" 
-                    class="px-2 py-0.5 rounded-md bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    class="px-2 py-0.5 rounded-md bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 >
                     <option value="" {% if not target_branch_id %}selected{% endif %}>كل الفروع</option>
                     {% for b in branches %}
@@ -53,7 +53,7 @@
                         id="kds-search-input" 
                         oninput="handleSearch(this.value)" 
                         placeholder="بحث برقم الطلب..." 
-                        class="w-full pl-2 pr-6 py-1 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-950 placeholder-slate-500 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                        class="w-full pl-2 pr-6 py-1 rounded-lg bg-white border border-slate-200/70 text-xs font-semibold text-slate-900 placeholder-slate-500 focus:outline-none focus:border-violet-600 focus:bg-white transition"
                     >
                     <svg class="w-3.5 h-3.5 text-slate-500 absolute right-1.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
@@ -63,7 +63,7 @@
                     type="button" 
                     id="toggle-completed-btn"
                     onclick="toggleShowCompleted()" 
-                    class="h-7 px-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    class="h-7 px-2 rounded-md border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                     title="إظهار / إخفاء المكتملة"
                 >
                     <span id="toggle-completed-icon">👁️</span>
@@ -75,7 +75,7 @@
                     id="btn-sound-toggle" 
                     type="button" 
                     onclick="toggleSound()" 
-                    class="h-7 px-2 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800 transition flex items-center gap-1 cursor-pointer"
+                    class="h-7 px-2 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-xs font-bold text-slate-800 transition flex items-center gap-1 cursor-pointer"
                     title="تفعيل أو كتم جرس تنبيه المطبخ"
                 >
                     <span id="sound-icon">🔔</span>
@@ -85,7 +85,7 @@
                 <button 
                     type="button" 
                     onclick="toggleFullscreen()" 
-                    class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 transition flex items-center justify-center cursor-pointer"
+                    class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-700 transition flex items-center justify-center cursor-pointer"
                     title="ملء الشاشة"
                 >
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
@@ -95,7 +95,7 @@
                 <button 
                     type="button" 
                     onclick="manualRefresh()" 
-                    class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 transition flex items-center justify-center cursor-pointer"
+                    class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-700 transition flex items-center justify-center cursor-pointer"
                     title="مزامنة فورية"
                 >
                     <svg id="refresh-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -109,10 +109,10 @@
                 type="button" 
                 onclick="setStationFilter('all')" 
                 id="station-pill-all" 
-                class="station-pill active px-2.5 py-1 text-blue-700 border-b-2 border-blue-700 font-black shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
+                class="station-pill active px-2.5 py-1 text-violet-600 border-b-2 border-blue-700 font-semibold shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
             >
                 <span>🍽️ الكل</span>
-                <span id="badge-station-all" class="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10.5px] font-black">{{ total_pending }}</span>
+                <span id="badge-station-all" class="px-2 py-0.5 rounded-full bg-violet-600 text-white text-[10.5px] font-semibold">{{ total_pending }}</span>
             </button>
             
             {% for cat in menu_categories %}
@@ -120,10 +120,10 @@
                 type="button" 
                 onclick="setStationFilter('{{ cat }}')" 
                 id="station-pill-{{ cat|slugify }}" 
-                class="station-pill px-2 py-1 text-slate-700 hover:text-slate-950 border-b-2 border-transparent font-bold shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
+                class="station-pill px-2 py-1 text-slate-700 hover:text-slate-900 border-b-2 border-transparent font-bold shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
             >
                 <span>{{ cat }}</span>
-                <span id="badge-station-{{ cat|slugify }}" class="station-count-badge px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 text-[10.5px] font-extrabold" style="display: none;">
+                <span id="badge-station-{{ cat|slugify }}" class="station-count-badge px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 text-[10.5px] font-semibold" style="display: none;">
                     0
                 </span>
             </button>
@@ -141,7 +141,7 @@
 
     <!-- Empty State (Shown when no pending orders exist) -->
     <div id="kitchen-empty-state" class="hidden py-16 text-center bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-        <div class="h-14 w-14 mx-auto mb-3 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
+        <div class="h-14 w-14 mx-auto mb-3 rounded-2xl bg-blue-50 border border-violet-200/50 flex items-center justify-center text-blue-600 shadow-sm">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <h3 id="empty-state-title" class="text-base font-bold text-slate-900">المطبخ هادئ الآن — جميع الطلبات منجزة</h3>
@@ -415,11 +415,11 @@
         
         // Update M3 flat tabs active style
         document.querySelectorAll('.station-pill').forEach(btn => {
-            btn.classList.remove('active', 'text-blue-700', 'border-blue-700', 'font-black');
+            btn.classList.remove('active', 'text-violet-600', 'border-blue-700', 'font-semibold');
             btn.classList.add('text-slate-700', 'border-transparent', 'font-bold');
             const badge = btn.querySelector('.station-count-badge') || btn.querySelector('span:last-child');
             if (badge) {
-                badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-slate-200 text-slate-800';
+                badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-slate-200 text-slate-800';
             }
         });
 
@@ -428,11 +428,11 @@
             : document.querySelector(`[onclick="setStationFilter('${stationName}')"]`);
 
         if (activeBtn) {
-            activeBtn.classList.add('active', 'text-blue-700', 'border-blue-700', 'font-black');
+            activeBtn.classList.add('active', 'text-violet-600', 'border-blue-700', 'font-semibold');
             activeBtn.classList.remove('text-slate-700', 'border-transparent', 'font-bold');
             const badge = activeBtn.querySelector('.station-count-badge') || activeBtn.querySelector('span:last-child');
             if (badge) {
-                badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-black bg-blue-600 text-white';
+                badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-violet-600 text-white';
             }
         }
 
@@ -445,14 +445,14 @@
         const txt = document.getElementById('toggle-completed-text');
         if (showCompletedInStation) {
             if (btn) {
-                btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+                btn.classList.add('bg-violet-600', 'text-white', 'border-violet-600');
                 btn.classList.remove('bg-slate-50', 'text-slate-700', 'border-slate-200');
             }
             if (txt) txt.textContent = 'إخفاء المكتملة';
             showKdsToast("تم إظهار الطلبات المكتملة في هذا القسم");
         } else {
             if (btn) {
-                btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+                btn.classList.remove('bg-violet-600', 'text-white', 'border-violet-600');
                 btn.classList.add('bg-slate-50', 'text-slate-700', 'border-slate-200');
             }
             if (txt) txt.textContent = 'المكتملة';
@@ -587,10 +587,10 @@
         let timerColorClass = 'text-emerald-900 bg-emerald-100 border-emerald-300 font-bold';
         let topBorderClass = 'border-t-2 border-t-emerald-600';
         if (order.elapsed_minutes > 10) {
-            timerColorClass = 'text-rose-900 bg-rose-100 border-rose-300 animate-pulse font-black';
+            timerColorClass = 'text-rose-900 bg-rose-100 border-rose-300 animate-pulse font-semibold';
             topBorderClass = 'border-t-2 border-t-rose-600';
         } else if (order.elapsed_minutes > 5) {
-            timerColorClass = 'text-amber-900 bg-amber-100 border-amber-300 font-black';
+            timerColorClass = 'text-amber-900 bg-amber-100 border-amber-300 font-semibold';
             topBorderClass = 'border-t-2 border-t-amber-600';
         }
 
@@ -616,21 +616,21 @@
             itemsHtml += `
                 <div 
                     onclick="toggleItemCheck(${order.id}, ${it.id})" 
-                    class="flex items-center gap-2 p-1.5 rounded-lg border ${isChecked ? 'opacity-60 line-through bg-emerald-50 border-emerald-300' : 'bg-white border-slate-300 hover:border-blue-500'} transition cursor-pointer select-none"
+                    class="flex items-center gap-2 p-1.5 rounded-lg border ${isChecked ? 'opacity-60 line-through bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200/70 hover:border-violet-500'} transition cursor-pointer select-none"
                 >
                     <div class="h-3.5 w-3.5 rounded border ${isChecked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-400 bg-white'} flex items-center justify-center shrink-0">
                         ${isChecked ? '<svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
                     </div>
                     <div class="flex-1 min-w-0 flex items-center justify-between gap-1">
-                        <span class="text-xs font-black text-slate-950 leading-tight truncate">
-                            <span class="text-blue-700 font-black">${it.qty}×</span> ${it.name}
+                        <span class="text-xs font-bold text-slate-900 leading-tight truncate">
+                            <span class="text-violet-600 font-semibold">${it.qty}×</span> ${it.name}
                         </span>
                         ${isStationMode ? `
                             <span class="text-[11px] font-bold text-slate-700 shrink-0">
                                 ${it.qty > 1 ? (it.qty * it.price) + ' ج.م' : it.price + ' ج.م'}
                             </span>
                         ` : `
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 text-slate-800 shrink-0">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200/70 text-slate-800 shrink-0">
                                 ${it.category}
                             </span>
                         `}
@@ -646,14 +646,14 @@
             if (isStationAllDone) {
                 actionBtnHtml = `
                     <div class="flex items-center gap-1.5">
-                        <div class="flex-1 py-1.5 px-2 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-black text-center flex items-center justify-center gap-1">
+                        <div class="flex-1 py-1.5 px-2 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-semibold text-center flex items-center justify-center gap-1">
                             <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>مكتمل بالقسم ✓</span>
                         </div>
                         <button 
                             type="button" 
                             onclick="undoStationCompletion(${order.id}, '${activeStationFilter}')" 
-                            class="px-2 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold transition cursor-pointer"
+                            class="px-2 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-800 text-xs font-bold transition cursor-pointer"
                             title="تراجع"
                         >
                             ↩
@@ -666,7 +666,7 @@
                         id="btn-station-${order.id}" 
                         type="button" 
                         onclick="completeStationForOrder(${order.id}, '${activeStationFilter}')" 
-                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 py-1.5 text-xs font-bold text-white transition shadow-2xs cursor-pointer active:scale-95"
+                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span>جاهز (${activeStationFilter}) ✓</span>
@@ -681,7 +681,7 @@
                         id="btn-action-${order.id}" 
                         type="button" 
                         onclick="updateOrderStatusInPlace(${order.id}, 'preparing')" 
-                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 py-1.5 text-xs font-bold text-white transition shadow-2xs cursor-pointer active:scale-95"
+                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
                         <span>بدء التحضير</span>
@@ -693,7 +693,7 @@
                         id="btn-action-${order.id}" 
                         type="button" 
                         onclick="updateOrderStatusInPlace(${order.id}, 'ready')" 
-                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 py-1.5 text-xs font-bold text-white transition shadow-2xs cursor-pointer active:scale-95"
+                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         <span>جاهز للتسليم 🚀</span>
@@ -703,20 +703,20 @@
         }
 
         return `
-            <div id="order-card-${order.id}" class="rounded-xl bg-white border border-slate-300 overflow-hidden shadow-2xs flex flex-col justify-between ${topBorderClass} ${glowClass}">
+            <div id="order-card-${order.id}" class="rounded-xl bg-white border border-slate-200/70 overflow-hidden shadow-xs flex flex-col justify-between ${topBorderClass} ${glowClass}">
                 
                 <!-- Card Header -->
-                <div class="px-2.5 py-2 bg-slate-100/90 border-b border-slate-300 flex items-center justify-between gap-1.5">
+                <div class="px-2.5 py-2 bg-slate-100/90 border-b border-slate-100 flex items-center justify-between gap-1.5">
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-xs font-black text-slate-950 tracking-tight">#${order.order_number}</span>
+                            <span class="text-xs font-bold text-slate-900 tracking-tight">#${order.order_number}</span>
                             ${isStationMode ? `
-                                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">
+                                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">
                                     ${activeStationFilter}
                                 </span>
-                                ${isStationAllDone ? '<span class="px-1 py-0.2 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300">✓</span>' : ''}
+                                ${isStationAllDone ? '<span class="px-1 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">✓</span>' : ''}
                             ` : `
-                                ${isPreparing ? '<span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">طهي</span>' : '<span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300">جديد</span>'}
+                                ${isPreparing ? '<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">طهي</span>' : '<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">جديد</span>'}
                             `}
                         </div>
                         <span class="block text-[11px] font-bold text-slate-700 truncate mt-0.5">
@@ -725,7 +725,7 @@
                     </div>
                     <div class="text-left shrink-0 space-y-0.5">
                         <span class="rounded px-1.5 py-0.5 text-[10px] font-bold inline-block
-                            ${isTakeaway ? 'bg-slate-200 border border-slate-300 text-slate-900' : (isDelivery ? 'bg-sky-100 text-sky-900 border border-sky-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300')}">
+                            ${isTakeaway ? 'bg-slate-200 border border-slate-200/70 text-slate-900' : (isDelivery ? 'bg-sky-100 text-sky-900 border border-sky-300' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60')}">
                             ${order.order_type_display}
                         </span>
                         <div class="flex items-center justify-end gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-mono border ${timerColorClass}">
@@ -737,14 +737,14 @@
 
                 <!-- Progress Bar -->
                 <div class="w-full bg-slate-200 h-0.5">
-                    <div class="bg-blue-600 h-0.5 transition-all duration-300" style="width: ${progressPct}%"></div>
+                    <div class="bg-violet-600 h-0.5 transition-all duration-300" style="width: ${progressPct}%"></div>
                 </div>
 
                 <!-- Items Checklist -->
                 <div class="p-2.5 flex-1 space-y-1.5">
-                    <div class="flex items-center justify-between text-[11px] font-extrabold text-slate-700 mb-0.5">
+                    <div class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-0.5">
                         <span>${isStationMode ? `أصناف (${totalItemsInView}):` : `الأصناف (${totalItemsInView}):`}</span>
-                        <span class="text-[11px] text-blue-700 font-black">${checkedCountInView}/${totalItemsInView}</span>
+                        <span class="text-[11px] text-violet-600 font-semibold">${checkedCountInView}/${totalItemsInView}</span>
                     </div>
 
                     ${itemsHtml}

@@ -547,7 +547,7 @@
         <div id="sidebar-resizer" 
              class="hidden md:block absolute top-0 bottom-0 {% if IS_RTL %}left-0 -translate-x-1/2{% else %}right-0 translate-x-1/2{% endif %} w-3 z-50 cursor-col-resize group select-none" 
              title="اسحب لتغيير حجم القائمة | نقر مزدوج لإعادة العرض الأصلي (288px)">
-            <div class="w-[3px] h-full mx-auto transition-colors duration-150 bg-transparent group-hover:bg-blue-500/80 group-active:bg-blue-600"></div>
+            <div class="w-[3px] h-full mx-auto transition-colors duration-150 bg-transparent group-hover:bg-violet-500/80 group-active:bg-violet-600"></div>
         </div>
 
         <!-- TOP: Brand Cartouche & Logo (M3 Style) -->
@@ -859,19 +859,19 @@
     <!-- ============================================================ -->
     <!-- CLEAN FLOATING FLYOUT POPOVER (MINI SIDEBAR MODE)            -->
     <!-- ============================================================ -->
-    <div id="sidebar-flyout-card" class="hidden fixed z-50 pointer-events-auto bg-white border border-slate-300 rounded-xl shadow-xl p-3 min-w-[210px] max-w-[280px] text-slate-950 transition-opacity duration-150 opacity-0 font-sans">
+    <div id="sidebar-flyout-card" class="hidden fixed z-50 pointer-events-auto bg-white border border-slate-200/80 rounded-xl shadow-lg p-3 min-w-[210px] max-w-[280px] text-slate-900 transition-opacity duration-150 opacity-0 font-sans">
         <!-- Header: Title + Badge -->
-        <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200">
+        <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100">
             <div class="flex items-center gap-2 min-w-0">
-                <span id="flyout-icon" class="text-blue-700 shrink-0"></span>
-                <span id="flyout-title" class="text-sm font-black text-slate-950 truncate"></span>
+                <span id="flyout-icon" class="text-violet-600 shrink-0"></span>
+                <span id="flyout-title" class="text-sm font-bold text-slate-900 truncate"></span>
             </div>
-            <span id="flyout-badge" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-950 border border-blue-300 font-black shrink-0"></span>
+            <span id="flyout-badge" class="hidden text-[10px] px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 border border-violet-200/60 font-medium shrink-0"></span>
         </div>
         <!-- Sublinks container -->
         <div id="flyout-sublinks" class="space-y-1"></div>
         <!-- Direct action button (for single pages) -->
-        <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition mt-1">
+        <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium bg-violet-600 text-white hover:bg-violet-700 transition mt-1 shadow-xs">
             <span>{% if IS_RTL %}فتح الصفحة{% else %}Open Page{% endif %}</span>
             <span class="text-xs">{% if IS_RTL %}←{% else %}→{% endif %}</span>
         </a>
@@ -1172,18 +1172,18 @@
                             links.forEach(link => {
                                 const a = document.createElement('a');
                                 a.href = link.href;
-                                a.className = 'flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold transition ' + 
-                                    (link.classList.contains('m3-active') || link.classList.contains('text-blue-600') || link.classList.contains('bg-blue-100')
-                                        ? 'bg-blue-100 text-blue-950 font-black border border-blue-300' 
-                                        : 'text-slate-800 hover:text-slate-950 hover:bg-slate-100');
-                                a.innerHTML = `<span class="text-[8px] text-slate-700 font-black">•</span><span>${link.querySelector('span:last-child')?.textContent.trim() || link.textContent.trim()}</span>`;
+                                a.className = 'flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition ' + 
+                                    (link.classList.contains('m3-active') || link.classList.contains('text-violet-600') || link.classList.contains('bg-violet-50')
+                                        ? 'bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs' 
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70');
+                                a.innerHTML = `<span class="text-[8px] text-slate-400 font-normal">•</span><span>${link.querySelector('span:last-child')?.textContent.trim() || link.textContent.trim()}</span>`;
                                 flyoutSublinks.appendChild(a);
                             });
                         }
                     } else if (wrapper.classList.contains('user-card-wrapper')) {
                         // User Profile Flyout
                         flyoutDirectLink.classList.add('hidden');
-                        const userName = wrapper.querySelector('.font-black')?.textContent.trim() || wrapper.querySelector('.font-bold')?.textContent.trim() || '';
+                        const userName = wrapper.querySelector('.font-semibold')?.textContent.trim() || wrapper.querySelector('.font-bold')?.textContent.trim() || '';
                         const userRole = wrapper.querySelector('p:last-child')?.textContent.trim() || '';
                         const logoutLink = wrapper.querySelector('a[href*="logout"]')?.href || '/logout/';
                         
