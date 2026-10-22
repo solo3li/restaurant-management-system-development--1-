@@ -65,10 +65,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 # Application definition
 
 INSTALLED_APPS = [
-    'unfold',
-    'unfold.contrib.filters',
-    'unfold.contrib.forms',
-    'unfold.contrib.inlines',
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -259,44 +256,117 @@ LOGGING = {
 }
 
 # ==============================================================================
-# DJANGO UNFOLD MODERN THEME CONFIGURATION
+# DJANGO JAZZMIN ENTERPRISE THEME CONFIGURATION (CARBON / SLATE COMPACT)
 # ==============================================================================
-from django.templatetags.static import static
+JAZZMIN_SETTINGS = {
+    "site_title": "مطاعم — لوحة السوبر أدمن",
+    "site_header": "مطاعم",
+    "site_brand": "مطاعم",
+    "site_logo": "img/motaem_symbol_trans.png",
+    "site_logo_classes": "img-circle elevation-1",
+    "site_icon": "img/motaem_symbol_trans.png",
+    "welcome_sign": "منظومة مطاعم — لوحة الإدارة المركزية",
+    "copyright": "منظومة مطاعم Cloud Restaurant OS © 2026",
+    "search_model": "core.Tenant",
+    "user_avatar": None,
+    "topmenu_links": [
+        {"name": "الرئيسية", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "عرض المنصة المباشرة", "url": "/", "new_window": True},
+    ],
+    "usermenu_links": [
+        {"model": "auth.user"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": [
+        "core.SubscriptionPlan",
+        "core.UpgradeRequest",
+        "core.TenantSubscription",
+        "core.Tenant",
+        "core.RestaurantOwner",
+        "core.Branch",
+        "core.Order",
+        "core.MenuItem",
+        "core.InventoryItem",
+        "core.Customer",
+        "core.Employee",
+        "core.JobRole",
+        "core.UserProfile",
+        "core.DeliveryArea",
+        "core.BranchMenuAvailability",
+        "core.TenantApiKey",
+        "core.PlatformConfiguration",
+        "auth.User",
+        "auth.Group",
+    ],
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user-shield",
+        "auth.Group": "fas fa-users",
+        "core.SubscriptionPlan": "fas fa-layer-group",
+        "core.UpgradeRequest": "fas fa-arrow-circle-up",
+        "core.TenantSubscription": "fas fa-file-invoice-dollar",
+        "core.Tenant": "fas fa-building",
+        "core.RestaurantOwner": "fas fa-user-tie",
+        "core.Branch": "fas fa-store-alt",
+        "core.Order": "fas fa-receipt",
+        "core.MenuItem": "fas fa-utensils",
+        "core.InventoryItem": "fas fa-boxes",
+        "core.Customer": "fas fa-address-book",
+        "core.Employee": "fas fa-id-badge",
+        "core.JobRole": "fas fa-user-tag",
+        "core.UserProfile": "fas fa-user-circle",
+        "core.DeliveryArea": "fas fa-map-marked-alt",
+        "core.BranchMenuAvailability": "fas fa-toggle-on",
+        "core.TenantApiKey": "fas fa-key",
+        "core.PlatformConfiguration": "fas fa-sliders-h",
+    },
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": True,
+    "custom_css": None,
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs",
+    },
+}
 
-UNFOLD = {
-    "SITE_TITLE": "لوحة السوبر أدمن — مطاعم",
-    "SITE_HEADER": "مطاعم",
-    "SITE_SUBHEADER": "Cloud Restaurant OS",
-    "SITE_ICON": {
-        "light": lambda request: static("img/motaem_symbol_trans.png"),
-        "dark": lambda request: static("img/motaem_symbol_trans.png"),
-    },
-    "SITE_LOGO": {
-        "light": lambda request: static("img/motaem_symbol_trans.png"),
-        "dark": lambda request: static("img/motaem_symbol_trans.png"),
-    },
-    "SITE_SYMBOL": "speed",
-    "SHOW_HISTORY": True,
-    "SHOW_VIEW_ON_SITE": True,
-    "SIDEBAR": {
-        "show_search": True,
-        "show_all_applications": True,
-    },
-    "COLORS": {
-        "primary": {
-            "50": "#F5F3FF",
-            "100": "#EDE9FE",
-            "200": "#DDD6FE",
-            "300": "#C4B5FD",
-            "400": "#A78BFA",
-            "500": "#818CF8",
-            "600": "#6366F1",
-            "700": "#4F46E5",
-            "800": "#4338CA",
-            "900": "#312E81",
-            "950": "#1E1B4B",
-        },
-    },
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-primary",
+    "navbar": "navbar-dark navbar-navy",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": True,  # Compact high density!
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "slate",                   # IBM Carbon / Technical Slate!
+    "default_theme_mode": "auto",
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
 }
 
 

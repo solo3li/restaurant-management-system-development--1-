@@ -1,13 +1,10 @@
 from datetime import timedelta
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin as BaseGroupAdmin
-from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.urls import path, reverse
 from django.shortcuts import redirect, get_object_or_404
-from unfold.admin import ModelAdmin, TabularInline
 from .models import (
     Tenant,
     Branch,
@@ -34,24 +31,9 @@ admin.site.site_header = "لوحة السوبر أدمن"
 admin.site.site_title = "لوحة السوبر أدمن"
 admin.site.index_title = "لوحة السوبر أدمن"
 
-# Style Django built-in auth models with Unfold
-try:
-    admin.site.unregister(User)
-    admin.site.unregister(Group)
-
-    @admin.register(User)
-    class UserAdmin(BaseUserAdmin, ModelAdmin):
-        pass
-
-    @admin.register(Group)
-    class GroupAdmin(BaseGroupAdmin, ModelAdmin):
-        pass
-except Exception:
-    pass
-
 
 @admin.register(SubscriptionPlan)
-class SubscriptionPlanAdmin(ModelAdmin):
+class SubscriptionPlanAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "code",
@@ -103,7 +85,7 @@ class SubscriptionPlanAdmin(ModelAdmin):
 
 
 @admin.register(UpgradeRequest)
-class UpgradeRequestAdmin(ModelAdmin):
+class UpgradeRequestAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "tenant",
@@ -234,7 +216,7 @@ class UpgradeRequestAdmin(ModelAdmin):
 
 
 @admin.register(Tenant)
-class TenantAdmin(ModelAdmin):
+class TenantAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "slug",
@@ -293,7 +275,7 @@ class TenantAdmin(ModelAdmin):
 
 
 @admin.register(PlatformConfiguration)
-class PlatformConfigurationAdmin(ModelAdmin):
+class PlatformConfigurationAdmin(admin.ModelAdmin):
     list_display = (
         "__str__",
         "has_google_key",
@@ -331,14 +313,14 @@ class PlatformConfigurationAdmin(ModelAdmin):
 
 
 @admin.register(DeliveryArea)
-class DeliveryAreaAdmin(ModelAdmin):
+class DeliveryAreaAdmin(admin.ModelAdmin):
     list_display = ("name", "branch", "area_type", "delivery_fee", "estimated_time_minutes", "is_active", "created_at")
     list_filter = ("branch__tenant", "branch", "area_type", "is_active")
     search_fields = ("name", "notes", "branch__name")
 
 
 @admin.register(JobRole)
-class JobRoleAdmin(ModelAdmin):
+class JobRoleAdmin(admin.ModelAdmin):
     list_display = ("name", "tenant", "scope", "is_system", "permissions_count", "employees_count", "created_at")
     list_filter = ("scope", "is_system", "tenant")
     search_fields = ("name", "description")
@@ -353,47 +335,47 @@ class JobRoleAdmin(ModelAdmin):
 
 
 @admin.register(Branch)
-class BranchAdmin(ModelAdmin):
+class BranchAdmin(admin.ModelAdmin):
     list_display = ("name", "tenant", "city", "phone", "status", "created_at")
     list_filter = ("tenant", "status", "city")
     search_fields = ("name", "city", "phone")
 
 
 @admin.register(Employee)
-class EmployeeAdmin(ModelAdmin):
+class EmployeeAdmin(admin.ModelAdmin):
     list_display = ("name", "employee_code", "job_role", "tenant", "branch", "phone", "salary", "status")
     list_filter = ("tenant", "job_role", "role", "status", "branch")
     search_fields = ("name", "employee_code", "phone")
 
 
 @admin.register(MenuItem)
-class MenuItemAdmin(ModelAdmin):
+class MenuItemAdmin(admin.ModelAdmin):
     list_display = ("name", "tenant", "category", "price", "cost", "available")
     list_filter = ("tenant", "category", "available")
     search_fields = ("name", "category")
 
 
 @admin.register(InventoryItem)
-class InventoryItemAdmin(ModelAdmin):
+class InventoryItemAdmin(admin.ModelAdmin):
     list_display = ("name", "tenant", "branch", "quantity", "min_quantity", "unit", "supplier")
     list_filter = ("tenant", "branch", "unit")
     search_fields = ("name", "supplier")
 
 
 @admin.register(Customer)
-class CustomerAdmin(ModelAdmin):
+class CustomerAdmin(admin.ModelAdmin):
     list_display = ("name", "tenant", "phone", "address", "created_at")
     list_filter = ("tenant",)
     search_fields = ("name", "phone", "address")
 
 
-class OrderItemInline(TabularInline):
+class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
 
 
 @admin.register(Order)
-class OrderAdmin(ModelAdmin):
+class OrderAdmin(admin.ModelAdmin):
     list_display = ("order_number", "tenant", "order_type", "channel", "branch", "customer_name", "total", "status", "created_at")
     list_filter = ("tenant", "order_type", "channel", "status", "branch")
     search_fields = ("order_number", "customer_name", "customer_phone")
@@ -401,21 +383,21 @@ class OrderAdmin(ModelAdmin):
 
 
 @admin.register(UserProfile)
-class UserProfileAdmin(ModelAdmin):
+class UserProfileAdmin(admin.ModelAdmin):
     list_display = ("user", "tenant", "job_role", "role", "branch", "is_platform_admin")
     list_filter = ("tenant", "job_role", "role", "is_platform_admin", "branch")
     search_fields = ("user__username", "user__email")
 
 
 @admin.register(BranchMenuAvailability)
-class BranchMenuAvailabilityAdmin(ModelAdmin):
+class BranchMenuAvailabilityAdmin(admin.ModelAdmin):
     list_display = ("branch", "menu_item", "is_available")
     list_filter = ("branch__tenant", "branch", "is_available", "menu_item__category")
     search_fields = ("menu_item__name", "branch__name")
 
 
 @admin.register(RestaurantOwner)
-class RestaurantOwnerAdmin(ModelAdmin):
+class RestaurantOwnerAdmin(admin.ModelAdmin):
     list_display = (
         "owner_name",
         "username",
@@ -507,7 +489,7 @@ class RestaurantOwnerAdmin(ModelAdmin):
 
 
 @admin.register(TenantSubscription)
-class TenantSubscriptionAdmin(ModelAdmin):
+class TenantSubscriptionAdmin(admin.ModelAdmin):
     list_display = (
         "tenant_name",
         "owner_name",
@@ -593,7 +575,7 @@ class TenantSubscriptionAdmin(ModelAdmin):
 
 
 @admin.register(TenantApiKey)
-class TenantApiKeyAdmin(ModelAdmin):
+class TenantApiKeyAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "tenant",
