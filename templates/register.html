@@ -32,17 +32,17 @@
             <!-- Stepper Progress Header -->
             <div class="mb-8">
                 <!-- Stepper Visual Indicators -->
-                <div class="flex items-center justify-between relative max-w-md mx-auto">
+                <div class="flex items-center justify-between relative max-w-xs mx-auto">
                     <!-- Progress Connecting Track -->
                     <div class="absolute top-1/2 -translate-y-1/2 inset-x-8 h-0.5 bg-slate-200 z-0"></div>
                     <div id="stepper-progress-fill" class="absolute top-1/2 -translate-y-1/2 right-8 h-0.5 bg-violet-600 z-0 transition-all duration-500 w-0"></div>
 
                     <!-- Step 1 Indicator -->
                     <div class="relative z-10 flex flex-col items-center">
-                        <button type="button" onclick="goToStep(1)" id="step-node-1" class="w-10 h-10 rounded-full bg-violet-600 text-white font-bold text-sm flex items-center justify-center transition-all shadow-sm ring-4 ring-blue-50">
+                        <button type="button" onclick="goToStep(1)" id="step-node-1" class="w-10 h-10 rounded-full bg-violet-600 text-white font-bold text-sm flex items-center justify-center transition-all shadow-sm ring-4 ring-violet-50">
                             1
                         </button>
-                        <span id="step-label-1" class="text-[11px] font-bold text-blue-600 mt-2">المنشأة</span>
+                        <span id="step-label-1" class="text-[11px] font-bold text-violet-600 mt-2">بيانات المنشأة</span>
                     </div>
 
                     <!-- Step 2 Indicator -->
@@ -50,15 +50,7 @@
                         <button type="button" onclick="goToStep(2)" id="step-node-2" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 font-bold text-sm flex items-center justify-center transition-all border border-slate-200/70">
                             2
                         </button>
-                        <span id="step-label-2" class="text-[11px] font-semibold text-slate-400 mt-2">حساب المالك</span>
-                    </div>
-
-                    <!-- Step 3 Indicator -->
-                    <div class="relative z-10 flex flex-col items-center">
-                        <button type="button" onclick="goToStep(3)" id="step-node-3" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 font-bold text-sm flex items-center justify-center transition-all border border-slate-200/70">
-                            3
-                        </button>
-                        <span id="step-label-3" class="text-[11px] font-semibold text-slate-400 mt-2">الباقة والتأكيد</span>
+                        <span id="step-label-2" class="text-[11px] font-semibold text-slate-400 mt-2">حساب المالك والدخول</span>
                     </div>
                 </div>
             </div>
@@ -80,6 +72,7 @@
             <!-- Single Form Submitting All Steps -->
             <form id="register-stepper-form" method="POST" action="{% url 'register' %}" novalidate>
                 {% csrf_token %}
+                <input type="hidden" name="plan_code" id="plan_code" value="{{ request.GET.plan|default:'trial' }}">
 
                 <!-- ============================================== -->
                 <!-- STEP 1: RESTAURANT & BUSINESS INFO             -->
@@ -224,6 +217,15 @@
                         </div>
                     </div>
 
+                    <!-- Trust Guarantees -->
+                    <div class="flex items-center justify-center gap-3 text-[11px] font-semibold text-slate-500 pt-2">
+                        <span>✓ تجربة مجانية 14 يوماً</span>
+                        <span>•</span>
+                        <span>✓ بدون بطاقة ائتمانية</span>
+                        <span>•</span>
+                        <span>✓ تفعيل فوري للنظام</span>
+                    </div>
+
                     <div class="pt-4 flex items-center justify-between">
                         <button 
                             type="button" 
@@ -234,99 +236,11 @@
                         </button>
 
                         <button 
-                            type="button" 
-                            onclick="validateAndNext(2)" 
-                            class="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
-                        >
-                            <span>التالي: باقة الاشتراك</span>
-                            <span>←</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ============================================== -->
-                <!-- STEP 3: SUBSCRIPTION PLAN & LAUNCH REVIEW      -->
-                <!-- ============================================== -->
-                <div id="step-content-3" class="space-y-5 hidden animate-fade-in">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-900 tracking-tight">الخطوة الثالثة: باقة الاشتراك وتأكيد الإطلاق</h2>
-                        <p class="text-xs text-slate-500 mt-1">اختر الباقة المناسبة لحجم أعمالك، مع تجربة مجانية كاملة الميزات لمدة 14 يوماً</p>
-                    </div>
-
-                    <!-- Plan Selection Radio Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        
-                        <!-- Plan 1: Starter -->
-                        <label class="relative block cursor-pointer">
-                            <input type="radio" name="plan_code" value="starter" class="peer sr-only">
-                            <div class="p-4 rounded-2xl border border-slate-200/70 bg-slate-50 hover:bg-slate-100 peer-checked:border-2 peer-checked:border-violet-600 peer-checked:bg-blue-50/40 text-center transition">
-                                <div class="text-xs font-bold text-slate-900">باقة البداية</div>
-                                <div class="text-lg font-bold text-violet-600 mt-1"><span class="font-sans font-bold">$299</span> <span class="text-xs font-normal text-slate-500">دولار/ش</span></div>
-                                <p class="text-[11px] text-slate-500 mt-1">فرع واحد • كاشير ومطبخ KDS</p>
-                            </div>
-                        </label>
-
-                        <!-- Plan 2: Growth (Popular Default) -->
-                        <label class="relative block cursor-pointer">
-                            <input type="radio" name="plan_code" value="growth" class="peer sr-only" checked>
-                            <div class="p-4 rounded-2xl border-2 border-violet-600 bg-blue-50/40 peer-checked:border-2 peer-checked:border-violet-600 peer-checked:bg-blue-50/60 text-center relative transition shadow-xs">
-                                <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-[9px] font-bold tracking-wider">
-                                    الأكثر طلباً
-                                </span>
-                                <div class="text-xs font-bold text-slate-900">باقة النمو</div>
-                                <div class="text-lg font-bold text-violet-600 mt-1"><span class="font-sans font-bold">$599</span> <span class="text-xs font-normal text-slate-500">دولار/ش</span></div>
-                                <p class="text-[11px] text-slate-500 mt-1">حتى 5 فروع • كول سنتر AI</p>
-                            </div>
-                        </label>
-
-                        <!-- Plan 3: Enterprise -->
-                        <label class="relative block cursor-pointer">
-                            <input type="radio" name="plan_code" value="enterprise" class="peer sr-only">
-                            <div class="p-4 rounded-2xl border border-slate-200/70 bg-slate-50 hover:bg-slate-100 peer-checked:border-2 peer-checked:border-violet-600 peer-checked:bg-blue-50/40 text-center transition">
-                                <div class="text-xs font-bold text-slate-900">باقة السلاسل</div>
-                                <div class="text-lg font-bold text-violet-600 mt-1"><span class="font-sans font-bold">$1,299</span> <span class="text-xs font-normal text-slate-500">دولار/ش</span></div>
-                                <p class="text-[11px] text-slate-500 mt-1">فروع غير محدودة • ربط مخصص</p>
-                            </div>
-                        </label>
-
-                    </div>
-
-                    <!-- Summary & Review Card -->
-                    <div class="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4 text-xs space-y-2">
-                        <span class="font-bold text-slate-800 block">ملخص المنشأة قبل الإطلاق:</span>
-                        <div class="grid grid-cols-2 gap-2 text-slate-600">
-                            <div>المنشأة: <strong id="summary-restaurant" class="text-slate-900">—</strong></div>
-                            <div>اسم المستخدم: <strong id="summary-username" class="text-slate-900 font-mono">—</strong></div>
-                            <div>رقم الجوال: <strong id="summary-phone" class="text-slate-900 font-mono">—</strong></div>
-                            <div>فترة التجربة: <strong class="text-emerald-600 font-bold">14 يوماً مجاناً</strong></div>
-                        </div>
-                    </div>
-
-                    <!-- Trust Guarantees -->
-                    <div class="flex items-center justify-center gap-3 text-[11px] font-semibold text-slate-500">
-                        <span>✓ بدون بطاقة ائتمانية</span>
-                        <span>•</span>
-                        <span>✓ تفعيل فوري للنظام</span>
-                        <span>•</span>
-                        <span>✓ دعم فني 24/7</span>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="pt-4 flex items-center justify-between">
-                        <button 
-                            type="button" 
-                            onclick="goToStep(2)" 
-                            class="px-5 py-2.5 rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer"
-                        >
-                            → السابق
-                        </button>
-
-                        <button 
                             type="submit" 
                             id="submit-launch-btn"
                             class="px-7 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
                         >
-                            <span>إطلاق المنشأة وبدء التجربة المجانية 🚀</span>
+                            <span>إنشاء الحساب وبدء التجربة المجانية 🚀</span>
                         </button>
                     </div>
                 </div>
@@ -349,7 +263,7 @@
 
     function updateStepperUI(step) {
         // Toggle step content
-        for (let s = 1; s <= 3; s++) {
+        for (let s = 1; s <= 2; s++) {
             const content = document.getElementById(`step-content-${s}`);
             const node = document.getElementById(`step-node-${s}`);
             const label = document.getElementById(`step-label-${s}`);
@@ -370,9 +284,9 @@
                     label.className = 'text-[11px] font-bold text-emerald-600 mt-2';
                 } else if (s === step) {
                     // Active step
-                    node.className = 'w-10 h-10 rounded-full bg-violet-600 text-white font-bold text-sm flex items-center justify-center transition-all shadow-sm ring-4 ring-blue-50';
+                    node.className = 'w-10 h-10 rounded-full bg-violet-600 text-white font-bold text-sm flex items-center justify-center transition-all shadow-sm ring-4 ring-violet-50';
                     node.innerHTML = s;
-                    label.className = 'text-[11px] font-bold text-blue-600 mt-2';
+                    label.className = 'text-[11px] font-bold text-violet-600 mt-2';
                 } else {
                     // Upcoming step
                     node.className = 'w-10 h-10 rounded-full bg-slate-100 text-slate-500 font-bold text-sm flex items-center justify-center transition-all border border-slate-200/70';
@@ -385,20 +299,7 @@
         // Connecting track fill width
         const fill = document.getElementById('stepper-progress-fill');
         if (fill) {
-            if (step === 1) fill.style.width = '0%';
-            else if (step === 2) fill.style.width = '50%';
-            else fill.style.width = '100%';
-        }
-
-        // Update step 3 summary if on step 3
-        if (step === 3) {
-            const restName = document.getElementById('restaurant_name')?.value || '—';
-            const uname = document.getElementById('username')?.value || '—';
-            const uphone = document.getElementById('phone')?.value || '—';
-
-            document.getElementById('summary-restaurant').textContent = restName;
-            document.getElementById('summary-username').textContent = uname;
-            document.getElementById('summary-phone').textContent = uphone;
+            fill.style.width = (step === 1) ? '0%' : '100%';
         }
 
         // Hide any previous client errors
@@ -436,22 +337,6 @@
             }
 
             goToStep(2);
-        } else if (step === 2) {
-            const uname = document.getElementById('username')?.value.trim();
-            const pwd = document.getElementById('password')?.value;
-
-            if (!uname) {
-                showClientError('يرجى تحديد اسم المستخدم للدخول');
-                document.getElementById('username')?.focus();
-                return;
-            }
-            if (!pwd || pwd.length < 6) {
-                showClientError('كلمة المرور يجب أن لا تقل عن 6 خانات');
-                document.getElementById('password')?.focus();
-                return;
-            }
-
-            goToStep(3);
         }
     }
 
@@ -465,20 +350,40 @@
                 targetStep = 1;
             }
         }
-        if (targetStep > 2) {
-            const uname = document.getElementById('username')?.value.trim();
-            const pwd = document.getElementById('password')?.value;
-            if (!uname || !pwd || pwd.length < 6) {
-                showClientError('يرجى إكمال بيانات الحساب وكلمة المرور');
-                targetStep = 2;
-            }
-        }
 
         currentStep = targetStep;
         updateStepperUI(currentStep);
     }
 
     document.getElementById('register-stepper-form')?.addEventListener('submit', (e) => {
+        const restName = document.getElementById('restaurant_name')?.value.trim();
+        const phone = document.getElementById('phone')?.value.trim();
+        const uname = document.getElementById('username')?.value.trim();
+        const pwd = document.getElementById('password')?.value;
+
+        if (!restName || !phone) {
+            e.preventDefault();
+            goToStep(1);
+            showClientError('يرجى استكمال بيانات المطعم أولاً');
+            return;
+        }
+
+        if (!uname) {
+            e.preventDefault();
+            goToStep(2);
+            showClientError('يرجى تحديد اسم المستخدم للدخول');
+            document.getElementById('username')?.focus();
+            return;
+        }
+
+        if (!pwd || pwd.length < 6) {
+            e.preventDefault();
+            goToStep(2);
+            showClientError('كلمة المرور يجب أن لا تقل عن 6 خانات');
+            document.getElementById('password')?.focus();
+            return;
+        }
+
         const btn = document.getElementById('submit-launch-btn');
         if (btn) {
             btn.disabled = true;

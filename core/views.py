@@ -493,7 +493,7 @@ def register_view(request):
         email = request.POST.get("email", "").strip()
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "").strip()
-        plan_code = request.POST.get("plan_code", "starter").strip()
+        plan_code = request.POST.get("plan_code", "").strip() or "trial"
 
         if not restaurant_name or not username or not password:
             error_message = "يرجى تعبئة الحقول الإلزامية: اسم المطعم، اسم المستخدم، وكلمة المرور."
@@ -512,8 +512,8 @@ def register_view(request):
                         first_name=owner_name or restaurant_name
                     )
 
-                    # 2. Pick Selected Plan
-                    plan = SubscriptionPlan.objects.filter(code=plan_code).first() or plans.first()
+                    # 2. Pick Selected Plan (defaults to trial 14-day free trial)
+                    plan = SubscriptionPlan.objects.filter(code=plan_code).first() or SubscriptionPlan.objects.filter(code="trial").first() or plans.first()
 
                     # 3. Generate unique slug
                     base_slug = slugify(restaurant_name) or f"restaurant-{user.id}"
