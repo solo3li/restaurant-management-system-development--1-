@@ -139,7 +139,9 @@ def branch_context(request):
     if can_operate_cross_branches:
         can_switch = True
         active_id = request.session.get("active_branch_id") if hasattr(request, "session") else None
-        if active_id and tenant:
+        if active_id in ["all", "0", 0, None]:
+            current_branch = None
+        elif active_id and tenant:
             current_branch = Branch.objects.filter(id=active_id, tenant=tenant).first()
         elif active_id:
             current_branch = Branch.objects.filter(id=active_id).first()
