@@ -1081,17 +1081,61 @@ def branch_orders_view(request):
     branch = get_active_branch(request)
     status_filter = request.GET.get("status", "all")
     type_filter = request.GET.get("type", "all")
+    pay_method_filter = request.GET.get("pay_method", "all")
+    date_filter = request.GET.get("date", "all")
     search = request.GET.get("q", "").strip()
 
-    orders = Order.objects.filter(tenant=tenant).select_related("branch", "driver").order_by("-id")
+    orders_base = Order.objects.filter(tenant=tenant) if tenant else Order.objects.none()
     if branch:
-        orders = orders.filter(branch=branch)
-    if status_filter != "all":
+        orders_base = orders_base.filter(branch=branch)
+
+    orders = orders_base.select_related("branch", "customer", "driver").prefetch_related("items__menu_item").order_by("-created_at", "-id")
+
+    if status_filter != "all" and status_filter:
         orders = orders.filter(status=status_filter)
-    if type_filter != "all":
+
+    if type_filter != "all" and type_filter:
         orders = orders.filter(order_type=type_filter)
+
+    if pay_method_filter != "all" and pay_method_filter:
+        orders = orders.filter(pay_method=pay_method_filter)
+
+    now = timezone.now()
+    start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    if date_filter == "today":
+        orders = orders.filter(created_at__gte=start_of_today)
+    elif date_filter == "yesterday":
+        yesterday_start = start_of_today - timedelta(days=1)
+        orders = orders.filter(created_at__gte=yesterday_start, created_at__lt=start_of_today)
+    elif date_filter == "week":
+        seven_days_ago = start_of_today - timedelta(days=6)
+        orders = orders.filter(created_at__gte=seven_days_ago)
+    elif date_filter == "month":
+        thirty_days_ago = start_of_today - timedelta(days=29)
+        orders = orders.filter(created_at__gte=thirty_days_ago)
+
     if search:
-        orders = orders.filter(Q(order_number__icontains=search) | Q(customer_name__icontains=search) | Q(customer_phone__icontains=search))
+        orders = orders.filter(
+            Q(order_number__icontains=search) |
+            Q(customer_name__icontains=search) |
+            Q(customer_phone__icontains=search) |
+            Q(cashier__icontains=search)
+        )
+
+    # Summary metrics in a single optimized aggregation query
+    metrics = orders.aggregate(
+        total_orders=Count("id"),
+        total_revenue=Sum("total", filter=~Q(status="cancelled")),
+        pending_orders=Count("id", filter=Q(status__in=["new", "preparing", "ready", "out_for_delivery"])),
+        delivered_orders=Count("id", filter=Q(status="delivered")),
+        cancelled_orders=Count("id", filter=Q(status="cancelled")),
+    )
+    total_orders = metrics["total_orders"] or 0
+    total_revenue = metrics["total_revenue"] or Decimal("0")
+    pending_orders = metrics["pending_orders"] or 0
+    delivered_orders = metrics["delivered_orders"] or 0
+    cancelled_orders = metrics["cancelled_orders"] or 0
 
     page_num = request.GET.get("page", 1)
     paginator = Paginator(orders, 50)
@@ -1110,9 +1154,17 @@ def branch_orders_view(request):
         "paginator": paginator,
         "status_filter": status_filter,
         "type_filter": type_filter,
+        "pay_method_filter": pay_method_filter,
+        "date_filter": date_filter,
         "search_query": search,
         "statuses": Order.STATUS_CHOICES,
         "order_types": Order.TYPE_CHOICES,
+        "pay_choices": Order.PAY_CHOICES,
+        "total_orders": total_orders,
+        "total_revenue": total_revenue,
+        "pending_orders": pending_orders,
+        "delivered_orders": delivered_orders,
+        "cancelled_orders": cancelled_orders,
     }
     return render(request, "branch_orders.html", context)
 

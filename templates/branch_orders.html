@@ -1,202 +1,710 @@
 {% extends "base.html" %}
 
-{% block title %}طلبات وفواتير الفرع — منظومة كُـورَا{% endblock %}
+{% block title %}سجل طلبات وفواتير الفرع — {% if branch %}{{ branch.name }}{% else %}{{ tenant.name }}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="space-y-3 font-sans">
-    <!-- 1. Unified Flat Header & Filter Toolbar (No Card Box, Space Saver) -->
+<div class="space-y-2.5 font-sans">
+    <!-- Flat Unified Header, Stats & Filters Toolbar -->
     <div class="space-y-2 pb-2.5 border-b border-slate-100">
-        <!-- Top Row: Page Title + Badges + Action Buttons -->
+        <!-- Row 1: Header + Action Buttons -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div class="flex items-center gap-2 flex-wrap">
-                <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">سجل طلبات وفواتير الفرع</h1>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200/60">
-                    <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>{% if branch %}{{ branch.name }}{% else %}كل الفروع{% endif %}</span>
+            <div class="flex items-center gap-2">
+                <span class="rounded-md bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-xs font-bold text-violet-700">
+                    {% if branch %}فرع: {{ branch.name }}{% else %}كافة الفروع{% endif %}
                 </span>
-                <span class="text-xs text-slate-600 font-bold hidden md:inline">• استعراض الفواتير ومتابعة الحالات والمدفوعات</span>
+                <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">سجل طلبات وفواتير الفرع</h1>
             </div>
-            <div>
-                <a href="{% url 'pos' %}" class="inline-flex items-center gap-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>فاتورة كاشير جديدة</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <a href="{% url 'pos' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium h-7 px-3 text-xs font-bold transition cursor-pointer shadow-xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>+ فاتورة كاشير (POS)</span>
+                </a>
+                <a href="{% url 'kitchen' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200/70 h-7 px-2.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition cursor-pointer shadow-xs">
+                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <span>شاشة المطبخ KDS</span>
                 </a>
             </div>
         </div>
 
-        <!-- Bottom Row: High-Density Search & Filters Form -->
-        <form method="GET" action="{% url 'branch_orders' %}" class="flex flex-wrap items-center gap-2 pt-1">
-            <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-slate-800">الحالة:</span>
-                <select name="status" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900 focus:border-violet-600 focus:outline-none">
-                    <option value="all">كافة الحالات</option>
-                    {% for st_val, st_lbl in statuses %}
-                    <option value="{{ st_val }}" {% if status_filter == st_val %}selected{% endif %}>{{ st_lbl }}</option>
-                    {% endfor %}
-                </select>
+        <!-- Row 2: High-Contrast Stats Strip (Flat & Compact) -->
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs pt-0.5">
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Total Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">الطلبات:</span>
+                    <span class="font-bold text-slate-900 text-sm font-mono">{{ total_orders }}</span>
+                </div>
+                
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Total Revenue -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">الإيرادات:</span>
+                    <span class="font-bold text-violet-700 text-sm font-mono">{{ total_revenue|floatformat:2 }}</span>
+                    <span class="text-xs text-violet-700 font-bold">{{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Pending Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">قيد المعالجة:</span>
+                    <span class="font-bold text-amber-700 text-sm font-mono">{{ pending_orders }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Delivered Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">مكتملة:</span>
+                    <span class="font-semibold text-emerald-800 text-sm font-mono">{{ delivered_orders }}</span>
+                </div>
+
+                <span class="text-slate-300 hidden sm:inline">•</span>
+
+                <!-- Cancelled Orders -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-700 text-xs font-bold">ملغاة:</span>
+                    <span class="font-semibold text-rose-800 text-sm font-mono">{{ cancelled_orders }}</span>
+                </div>
             </div>
 
-            <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-slate-800">نوع الطلب:</span>
-                <select name="type" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900 focus:border-violet-600 focus:outline-none">
-                    <option value="all">كافة الأنواع</option>
-                    {% for t_val, t_lbl in order_types %}
-                    <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
-                    {% endfor %}
-                </select>
+            <div class="text-[11px] text-slate-600 font-bold hidden lg:block">
+                متابعة تشغيلية فورية للطلبات والمدفوعات
             </div>
+        </div>
 
-            <div class="relative w-full sm:w-64">
+        <!-- Row 3: High-Density Search & Filters Bar (Flat) -->
+        <form method="GET" action="{% url 'branch_orders' %}" id="branch-orders-filter-form" class="flex flex-wrap items-center gap-1.5 pt-0.5">
+            <!-- Search Input -->
+            <div class="relative flex-1 min-w-[200px] sm:min-w-[240px]">
+                <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-500">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
                 <input 
                     type="text" 
                     name="q" 
                     value="{{ search_query }}" 
-                    placeholder="رقم الطلب، اسم العميل، الجوال…" 
-                    class="w-full px-2.5 py-1 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900 placeholder:text-slate-500 focus:border-violet-600 focus:outline-none"
+                    placeholder="بحث برقم الطلب، العميل، الهاتف، أو الكاشير..." 
+                    class="w-full h-7 pr-8 pl-2 rounded-lg bg-white border border-slate-200/70 text-xs font-semibold text-slate-900 placeholder-slate-500 focus:outline-none focus:border-violet-600 transition"
                 >
             </div>
 
-            <button type="submit" class="rounded-lg bg-slate-100 border border-slate-200/70 px-3 py-1 text-xs font-bold text-slate-900 hover:bg-slate-200 transition cursor-pointer">
-                بحث وتصفية
+            <!-- Status Dropdown -->
+            <select name="status" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
+                <option value="all">كافة الحالات</option>
+                {% for st_val, st_lbl in statuses %}
+                <option value="{{ st_val }}" {% if status_filter == st_val %}selected{% endif %}>{{ st_lbl }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Type Dropdown -->
+            <select name="type" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
+                <option value="all">كافة الأنواع</option>
+                {% for t_val, t_lbl in order_types %}
+                <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Pay Method Dropdown -->
+            <select name="pay_method" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
+                <option value="all">طرق الدفع</option>
+                {% for p_val, p_lbl in pay_choices %}
+                <option value="{{ p_val }}" {% if pay_method_filter == p_val %}selected{% endif %}>{{ p_lbl }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Date Range Dropdown -->
+            <select name="date" onchange="this.form.submit()" class="h-7 px-2 rounded-lg bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:border-violet-600 cursor-pointer">
+                <option value="all" {% if date_filter == 'all' %}selected{% endif %}>كافة التواريخ</option>
+                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>اليوم</option>
+                <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>أمس</option>
+                <option value="week" {% if date_filter == 'week' %}selected{% endif %}>آخر 7 أيام</option>
+                <option value="month" {% if date_filter == 'month' %}selected{% endif %}>آخر 30 يوماً</option>
+            </select>
+
+            <!-- Submit Button -->
+            <button type="submit" class="h-7 px-3 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition cursor-pointer flex items-center gap-1 shrink-0 shadow-xs">
+                <span>بحث</span>
             </button>
-            {% if status_filter != 'all' or type_filter != 'all' or search_query %}
-            <a href="{% url 'branch_orders' %}" class="text-xs font-bold text-rose-700 hover:underline">إلغاء التصفية</a>
+
+            <!-- Reset Button (if any filter active) -->
+            {% if status_filter != 'all' or type_filter != 'all' or pay_method_filter != 'all' or date_filter != 'all' or search_query %}
+            <a href="{% url 'branch_orders' %}" class="h-7 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer" title="إلغاء الفلاتر">
+                ✕ مسح
+            </a>
             {% endif %}
         </form>
     </div>
 
-    <!-- Orders Table (High Density & High Contrast) -->
+    <!-- Orders Table Card (High-Density High-Contrast) -->
     <div class="bg-white rounded-xl border border-slate-200/70 overflow-hidden shadow-xs">
-        <div class="overflow-x-auto">
+        <div class="flex items-center justify-between border-b border-slate-100 px-3.5 py-2 bg-slate-100/90">
+            <div class="flex items-center gap-2">
+                <h2 class="text-xs font-bold text-slate-900 tracking-tight">سجل الطلبات</h2>
+                <span class="rounded-full bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-[10.5px] font-bold text-violet-700">
+                    {{ orders|length }} من {{ total_orders }} طلب
+                </span>
+            </div>
+            <p class="text-[11px] font-semibold text-slate-600 hidden sm:block">
+                انقر على أي صف للمعاينة السريعة أو استخدم القائمة (⋮) للخيارات المتقدمة
+            </p>
+        </div>
+
+        <div class="overflow-x-auto min-h-[300px]">
             <table class="w-full text-right text-xs table-responsive-cards">
-                <thead class="border-b border-slate-100 bg-slate-100 text-slate-900 font-semibold">
+                <thead class="border-b border-slate-100 bg-slate-100/90 text-slate-900 font-semibold text-[11.5px]">
                     <tr>
-                        <th class="px-3 py-2">رقم الطلب</th>
-                        <th class="px-2.5 py-2">النوع</th>
+                        <th class="px-3 py-2">رقم الطلب / القناة</th>
+                        <th class="px-2 py-2">النوع</th>
                         <th class="px-2.5 py-2">العميل</th>
-                        <th class="px-2.5 py-2">طريقة الدفع</th>
-                        <th class="px-2.5 py-2">السائق</th>
+                        <th class="px-2 py-2">الكاشير / السائق</th>
+                        <th class="px-2 py-2">الدفع</th>
                         <th class="px-2.5 py-2">الإجمالي</th>
-                        <th class="px-2.5 py-2">الحالة</th>
-                        <th class="px-2.5 py-2">التاريخ والوقت</th>
+                        <th class="px-2 py-2">الحالة</th>
+                        <th class="px-2 py-2">التاريخ والوقت</th>
                         <th class="px-2.5 py-2 text-center">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     {% for o in orders %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="px-3 py-2" data-label="رقم الطلب">
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="font-bold text-slate-900 text-sm font-mono">{{ o.order_number }}</span>
-                                {% if o.channel == 'qr_menu' %}
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60" title="طلب ذاتي منيو رقمي (QR)">📱 QR</span>
-                                {% elif o.channel == 'call_center' %}
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-300" title="طلب كول سنتر">📞 هاتف</span>
+                    <tr class="hover:bg-blue-50/40 transition cursor-pointer border-b border-slate-100 last:border-b-0" onclick="openOrderModal('order-{{ o.id }}')">
+                        <!-- Order Number & Channel -->
+                        <td class="px-3 py-1.5 whitespace-nowrap" data-label="رقم الطلب والقناة">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-bold text-slate-900 text-xs font-mono">#{{ o.order_number }}</span>
+                                {% if o.channel == 'call_center' %}
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">هاتف</span>
+                                {% elif o.channel == 'qr_menu' %}
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60">QR</span>
+                                {% else %}
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800">كاشير</span>
                                 {% endif %}
                             </div>
-                            <span class="block text-xs font-semibold text-slate-700">الكاشير: {{ o.cashier|default:"—" }}</span>
                         </td>
-                        <td class="px-2.5 py-2" data-label="النوع">
-                            <span class="rounded-md px-2 py-0.5 text-xs font-bold
+
+                        <!-- Order Type -->
+                        <td class="px-2 py-1.5 whitespace-nowrap" data-label="النوع">
+                            <span class="rounded px-2 py-0.5 text-[10.5px] font-bold
                                 {% if o.order_type == 'dine_in' %}bg-violet-50 text-violet-700 border border-violet-200/60
-                                {% elif o.order_type == 'takeaway' %}bg-slate-100 text-slate-900 border border-slate-200/70
+                                {% elif o.order_type == 'takeaway' %}bg-slate-200 text-slate-900 border border-slate-200/70
                                 {% else %}bg-purple-100 text-purple-900 border border-purple-300{% endif %}">
                                 {{ o.get_order_type_display }}
                             </span>
                         </td>
-                        <td class="px-2.5 py-2" data-label="العميل">
-                            <p class="font-bold text-slate-900">{{ o.customer_name }}</p>
+
+                        <!-- Customer -->
+                        <td class="px-2.5 py-1.5 whitespace-nowrap" data-label="العميل">
+                            <span class="font-bold text-slate-900 text-xs">{{ o.customer_name }}</span>
                             {% if o.customer_phone %}
-                            <p class="text-xs text-slate-700 font-bold font-mono" dir="ltr">{{ o.customer_phone }}</p>
+                            <span class="text-[11px] text-slate-600 font-bold font-mono mr-1" dir="ltr">{{ o.customer_phone }}</span>
                             {% endif %}
                         </td>
-                        <td class="px-2.5 py-2 text-slate-900 font-bold" data-label="طريقة الدفع">{{ o.get_pay_method_display }}</td>
-                        <td class="px-2.5 py-2 text-slate-800 font-bold" data-label="السائق">{{ o.driver.name|default:"—" }}</td>
-                        <td class="px-2.5 py-2 font-bold text-violet-700 font-mono text-sm whitespace-nowrap" data-label="الإجمالي">{{ o.total|floatformat:2 }} {{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
-                        <td class="px-2.5 py-2 whitespace-nowrap" data-label="الحالة">
-                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold
+
+                        <!-- Staff / Driver -->
+                        <td class="px-2 py-1.5 text-xs font-semibold text-slate-700 whitespace-nowrap" data-label="الكاشير / السائق">
+                            <span>{{ o.cashier|default:"—" }}</span>
+                            {% if o.driver %}
+                            <span class="text-[11px] font-bold text-violet-600 mr-1" title="سائق التوصيل">🚴 {{ o.driver.name }}</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Payment -->
+                        <td class="px-2 py-1.5 whitespace-nowrap text-xs" data-label="طريقة الدفع">
+                            <span class="font-bold text-slate-900">{{ o.get_pay_method_display }}</span>
+                            <span class="text-xs mr-1 font-semibold {% if o.paid %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                                {% if o.paid %}✓ مدفوع{% else %}معلق{% endif %}
+                            </span>
+                        </td>
+
+                        <!-- Total -->
+                        <td class="px-2.5 py-1.5 whitespace-nowrap" data-label="الإجمالي">
+                            <span class="font-bold text-violet-700 text-xs font-mono">{{ o.total|floatformat:2 }}</span>
+                            <span class="text-[10.5px] font-bold text-slate-700">{{ o.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
+                        </td>
+
+                        <!-- Status Badge -->
+                        <td class="px-2 py-1.5 whitespace-nowrap" data-label="الحالة">
+                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10.5px] font-bold
                                 {% if o.status == 'delivered' %}bg-emerald-50 text-emerald-700 border border-emerald-200/60
-                                {% elif o.status == 'ready' %}bg-teal-100 text-teal-900 border border-teal-300
                                 {% elif o.status == 'out_for_delivery' %}bg-indigo-100 text-indigo-900 border border-indigo-300
+                                {% elif o.status == 'ready' %}bg-teal-100 text-teal-900 border border-teal-300
                                 {% elif o.status == 'preparing' %}bg-amber-50 text-amber-700 border border-amber-200/60
                                 {% elif o.status == 'cancelled' %}bg-rose-50 text-rose-700 border border-rose-200/60
                                 {% else %}bg-violet-50 text-violet-700 border border-violet-200/60{% endif %}">
                                 {{ o.get_status_display }}
                             </span>
                         </td>
-                        <td class="px-2.5 py-2 text-xs font-bold text-slate-800 whitespace-nowrap" data-label="التاريخ والوقت">
-                            <span class="font-bold text-slate-900">{{ o.created_at|date:"j M Y" }}</span>
-                            <span class="block text-xs font-mono font-bold text-slate-600">{{ o.created_at|time:"H:i" }}</span>
+
+                        <!-- Date/Time -->
+                        <td class="px-2 py-1.5 whitespace-nowrap text-xs text-slate-700 font-bold font-mono" data-label="التاريخ والوقت">
+                            {{ o.created_at|date:"Y-m-d" }} <span class="text-slate-600 font-bold text-[11px]">{{ o.created_at|time:"H:i" }}</span>
                         </td>
-                        <td class="px-2.5 py-2 text-center" data-label="الإجراءات">
-                            <div class="flex items-center justify-center gap-1.5 flex-wrap">
-                                <a 
-                                    href="{% url 'order_detail' o.id %}"
-                                    title="تفاصيل الطلب والفاتورة"
-                                    class="inline-flex items-center gap-1 rounded-lg bg-white border border-slate-200/70 px-2 py-1 text-xs font-bold text-slate-800 hover:bg-slate-100 transition shadow-xs"
-                                >
-                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    <span>تفاصيل</span>
-                                </a>
-                                <a 
-                                    href="{% url 'order_edit' o.id %}"
-                                    title="تعديل الطلب"
-                                    class="inline-flex items-center gap-1 rounded-lg bg-violet-50 border border-violet-200/60 px-2 py-1 text-xs font-bold text-violet-800 hover:bg-blue-200 transition shadow-xs"
-                                >
-                                    <svg class="w-3.5 h-3.5 text-violet-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    <span>تعديل</span>
-                                </a>
+
+                        <!-- Action Buttons (Preview + Dropdown ⋮) -->
+                        <td class="px-2.5 py-1.5 text-center whitespace-nowrap" data-label="الإجراءات" onclick="event.stopPropagation()">
+                            <div class="inline-flex items-center justify-center gap-1 relative">
                                 <button 
                                     type="button" 
-                                    onclick="cancelOrder({{ o.id }}, '{{ o.order_number }}')"
-                                    title="إلغاء الطلب"
-                                    class="rounded-lg bg-amber-100 border border-amber-300 p-1 text-amber-900 hover:bg-amber-200 transition cursor-pointer shadow-xs"
+                                    onclick="openOrderModal('order-{{ o.id }}')"
+                                    title="معاينة سريعة للفاتورة"
+                                    class="inline-flex items-center gap-1 rounded-md bg-blue-50 hover:bg-violet-50 border border-violet-200/50 px-2 py-1 text-[11px] font-semibold text-violet-600 transition cursor-pointer"
                                 >
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <svg class="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>معاينة</span>
                                 </button>
-                                <button 
-                                    type="button" 
-                                    onclick="deleteOrder({{ o.id }}, '{{ o.order_number }}')"
-                                    title="حذف نهائي"
-                                    class="rounded-lg bg-rose-100 border border-rose-300 p-1 text-rose-900 hover:bg-rose-200 transition cursor-pointer shadow-xs"
-                                >
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                </button>
+
+                                <div class="relative inline-block text-right">
+                                    <button 
+                                        type="button" 
+                                        onclick="toggleRowMenu(event, 'row-menu-{{ o.id }}')"
+                                        title="خيارات إضافية"
+                                        class="row-menu-btn h-6 w-6 rounded-md bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold transition cursor-pointer"
+                                    >
+                                        ⋮
+                                    </button>
+                                    <div 
+                                        id="row-menu-{{ o.id }}" 
+                                        class="row-dropdown-menu hidden absolute left-0 mt-1 w-36 rounded-lg bg-white border border-slate-200 shadow-xl py-1 z-30 text-xs text-right font-medium"
+                                    >
+                                        <a href="{% url 'order_detail' o.id %}" class="flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-slate-50 transition">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            <span>تفاصيل كاملة</span>
+                                        </a>
+                                        <a href="{% url 'order_edit' o.id %}" class="flex items-center gap-2 px-3 py-1.5 text-violet-600 hover:bg-blue-50 transition">
+                                            <svg class="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            <span>تعديل الطلب</span>
+                                        </a>
+                                        <div class="border-t border-slate-100 my-1"></div>
+                                        <button type="button" onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full flex items-center gap-2 px-3 py-1.5 text-amber-700 hover:bg-amber-50 transition text-right cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>إلغاء الطلب</span>
+                                        </button>
+                                        <button type="button" onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full flex items-center gap-2 px-3 py-1.5 text-rose-600 hover:bg-rose-50 transition text-right cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>حذف نهائي</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>
+
+                    <!-- Hidden JSON data for this order modal -->
+                    <script id="data-order-{{ o.id }}" type="application/json">
+                        {
+                            "id": {{ o.id }},
+                            "order_number": "{{ o.order_number|escapejs }}",
+                            "branch": "{{ o.branch.name|default:'غير محدد'|escapejs }}",
+                            "order_type": "{{ o.get_order_type_display|escapejs }}",
+                            "channel": "{% if o.channel == 'call_center' %}كول سنتر مركزي{% elif o.channel == 'qr_menu' %}منيو رقمي (QR){% else %}كاشير الفرع{% endif %}",
+                            "status": "{{ o.get_status_display|escapejs }}",
+                            "status_raw": "{{ o.status }}",
+                            "created_at": "{{ o.created_at|date:'Y-m-d H:i' }}",
+                            "customer_name": "{{ o.customer_name|escapejs }}",
+                            "customer_phone": "{{ o.customer_phone|escapejs }}",
+                            "address": "{{ o.address|escapejs }}",
+                            "cashier": "{{ o.cashier|default:'—'|escapejs }}",
+                            "driver": "{{ o.driver.name|default:''|escapejs }}",
+                            "notes": "{{ o.notes|escapejs }}",
+                            "pay_method": "{{ o.get_pay_method_display|escapejs }}",
+                            "paid": {{ o.paid|yesno:"true,false" }},
+                            "subtotal": "{{ o.subtotal|floatformat:2 }}",
+                            "delivery_fee": "{{ o.delivery_fee|floatformat:2 }}",
+                            "discount": "{{ o.discount|floatformat:2 }}",
+                            "total": "{{ o.total|floatformat:2 }}",
+                            "currency_symbol": "{{ o.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}",
+                            "items": [
+                                {% for item in o.items.all %}
+                                {
+                                    "name": "{{ item.name|escapejs }}",
+                                    "qty": {{ item.qty }},
+                                    "price": "{{ item.price|floatformat:2 }}",
+                                    "line_total": "{{ item.line_total|floatformat:2 }}"
+                                }{% if not forloop.last %},{% endif %}
+                                {% endfor %}
+                            ]
+                        }
+                    </script>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="py-12 text-center text-xs text-slate-600 font-bold">لا توجد طلبات مطابقة للبحث</td>
+                        <td colspan="9" class="py-10 text-center text-slate-500">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </span>
+                                <p class="text-sm font-bold text-slate-800">لم يتم العثور على أي طلبات مطابقة</p>
+                                <p class="text-xs text-slate-400">جرّب تغيير خيارات التصفية أو البحث</p>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% if page_obj.paginator.num_pages > 1 %}
-        <div class="flex items-center justify-between border-t border-slate-100 px-4 py-3 bg-slate-50 rounded-b-xl">
-            <div class="text-xs text-slate-700 font-bold">
-                عرض الصفحة <span class="text-slate-900 font-semibold">{{ page_obj.number }}</span> من <span class="text-slate-900 font-semibold">{{ page_obj.paginator.num_pages }}</span>
+        <div class="flex items-center justify-between border-t border-slate-200 px-3.5 py-2 bg-slate-50/80 rounded-b-xl">
+            <div class="text-xs text-slate-500 font-medium">
+                عرض الصفحة <span class="font-bold text-slate-900">{{ page_obj.number }}</span> من <span class="font-bold text-slate-900">{{ page_obj.paginator.num_pages }}</span> (إجمالي {{ total_orders }} طلب)
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1">
                 {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-900 transition shadow-xs">السابق</a>
+                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition">السابق</a>
                 {% endif %}
                 <span class="px-2 py-1 text-xs font-bold text-slate-900">{{ page_obj.number }}</span>
                 {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-900 transition shadow-xs">التالي</a>
+                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition">التالي</a>
                 {% endif %}
             </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<!-- Interactive Order Detail & Receipt Modal -->
+<div id="order-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs font-body">
+    <div class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white rounded-xl border border-slate-200 p-6 shadow-xl" onclick="event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 border border-violet-200/50/80 text-violet-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 tracking-tight" id="modal-order-number">طلب</h2>
+                    <p class="text-xs text-slate-500" id="modal-order-branch">الفرع</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="modal-order-status" class="rounded-lg px-2.5 py-1 text-xs font-semibold bg-blue-50 text-violet-600 border border-violet-200/50/60">
+                    الحالة
+                </span>
+                <button type="button" onclick="closeOrderModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Meta Info Grid -->
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+            <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
+                <span class="text-slate-500 text-[11px] block">نوع الطلب</span>
+                <span id="modal-order-type" class="font-semibold text-slate-900 mt-0.5 block">—</span>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
+                <span class="text-slate-500 text-[11px] block">القناة</span>
+                <span id="modal-order-channel" class="font-semibold text-slate-900 mt-0.5 block">—</span>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
+                <span class="text-slate-500 text-[11px] block">التاريخ والوقت</span>
+                <span id="modal-order-date" class="font-semibold text-slate-900 mt-0.5 block font-mono">—</span>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
+                <span class="text-slate-500 text-[11px] block">العميل</span>
+                <span id="modal-customer-name" class="font-semibold text-slate-900 mt-0.5 block">—</span>
+                <span id="modal-customer-phone" class="text-[10px] text-slate-400 font-mono block" dir="ltr"></span>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
+                <span class="text-slate-500 text-[11px] block">الكاشير</span>
+                <span id="modal-order-cashier" class="font-semibold text-slate-900 mt-0.5 block">—</span>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
+                <span class="text-slate-500 text-[11px] block">طريقة الدفع</span>
+                <span id="modal-order-pay" class="font-semibold text-slate-900 mt-0.5 block">—</span>
+            </div>
+        </div>
+
+        <!-- Address & Notes if any -->
+        <div id="modal-address-box" class="mt-3 rounded-lg bg-blue-50 border border-violet-200/50 p-3 text-xs hidden">
+            <p class="font-semibold text-violet-800 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>عنوان التوصيل:</span>
+            </p>
+            <p id="modal-order-address" class="text-slate-800 mt-0.5"></p>
+        </div>
+        <div id="modal-notes-box" class="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs hidden">
+            <p class="font-semibold text-amber-900">ملاحظات الطلب:</p>
+            <p id="modal-order-notes" class="text-slate-800 mt-0.5"></p>
+        </div>
+
+        <!-- Items Table -->
+        <div class="mt-4 border border-slate-200 rounded-lg overflow-hidden">
+            <div class="bg-slate-50 px-3.5 py-2 border-b border-slate-200 text-xs font-semibold text-slate-800">
+                أصناف الطلب
+            </div>
+            <table class="w-full text-right text-xs">
+                <thead class="bg-slate-50/60 border-b border-slate-200 text-slate-500 text-[11px]">
+                    <tr>
+                        <th class="p-2.5 font-medium">الصنف</th>
+                        <th class="p-2.5 text-center font-medium">الكمية</th>
+                        <th class="p-2.5 text-left font-medium">السعر</th>
+                        <th class="p-2.5 text-left font-medium">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-items-tbody" class="divide-y divide-slate-100">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="mt-4 rounded-lg bg-slate-50 p-3.5 text-xs space-y-1.5 border border-slate-200">
+            <div class="flex justify-between text-slate-500">
+                <span>المجموع الفرعي:</span>
+                <span id="modal-subtotal" class="font-medium text-slate-900">0.00</span>
+            </div>
+            <div class="flex justify-between text-slate-500" id="modal-delivery-row">
+                <span>رسوم التوصيل:</span>
+                <span id="modal-delivery-fee" class="font-medium text-slate-900">0.00</span>
+            </div>
+            <div class="flex justify-between text-slate-500" id="modal-discount-row">
+                <span>الخصم:</span>
+                <span id="modal-discount" class="font-medium text-rose-600">0.00</span>
+            </div>
+            <div class="border-t border-slate-200 pt-2 flex justify-between items-center text-sm font-bold">
+                <span class="text-slate-900">المبلغ الإجمالي النهائي:</span>
+                <span id="modal-total" class="text-violet-600 text-base font-bold font-mono">0.00</span>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4">
+            <div class="flex items-center gap-2 flex-wrap">
+                <a id="modal-view-link" href="#" class="rounded-lg bg-violet-600 px-3.5 py-2 text-xs font-medium text-white hover:bg-violet-700 transition flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    <span>صفحة التفاصيل</span>
+                </a>
+                <a id="modal-edit-link" href="#" class="rounded-lg bg-white border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center gap-1 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>تعديل</span>
+                </a>
+                <button type="button" onclick="cancelFromModal()" class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100 transition cursor-pointer">
+                    إلغاء
+                </button>
+                <button type="button" onclick="deleteFromModal()" class="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer">
+                    حذف
+                </button>
+            </div>
+            <div class="flex items-center gap-2">
+                <button 
+                    type="button" 
+                    onclick="printModalReceipt()" 
+                    class="rounded-lg bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
+                >
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>طباعة</span>
+                </button>
+                <button 
+                    type="button" 
+                    onclick="closeOrderModal()" 
+                    class="rounded-lg bg-white border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                >
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    async function cancelOrder(orderId, orderNumber) {
-        if (!confirm(`هل أنت متأكد من إلغاء الطلب ${orderNumber}؟`)) return;
+    let activeModalOrder = null;
+
+    function toggleRowMenu(event, menuId) {
+        event.stopPropagation();
+        const menu = document.getElementById(menuId);
+        if (!menu) return;
+        const wasOpen = !menu.classList.contains('hidden');
+        
+        // Close any other open row menus
+        document.querySelectorAll('.row-dropdown-menu').forEach(m => m.classList.add('hidden'));
+        
+        if (!wasOpen) {
+            menu.classList.remove('hidden');
+        }
+    }
+
+    // Close row dropdowns on document click
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.row-dropdown-menu') && !e.target.closest('.row-menu-btn')) {
+            document.querySelectorAll('.row-dropdown-menu').forEach(m => m.classList.add('hidden'));
+        }
+    });
+
+    function openOrderModal(dataKey) {
+        const scriptEl = document.getElementById('data-' + dataKey);
+        if (!scriptEl) return;
+        
+        try {
+            const data = JSON.parse(scriptEl.textContent);
+            activeModalOrder = data;
+
+            document.getElementById('modal-view-link').href = '/orders/' + data.id + '/';
+            document.getElementById('modal-edit-link').href = '/orders/' + data.id + '/edit/';
+
+            document.getElementById('modal-order-number').textContent = '#' + data.order_number;
+            document.getElementById('modal-order-branch').textContent = 'فرع: ' + data.branch;
+            document.getElementById('modal-order-status').textContent = data.status;
+            
+            document.getElementById('modal-order-type').textContent = data.order_type;
+            document.getElementById('modal-order-channel').textContent = data.channel;
+            document.getElementById('modal-order-date').textContent = data.created_at;
+            document.getElementById('modal-customer-name').textContent = data.customer_name;
+            document.getElementById('modal-customer-phone').textContent = data.customer_phone || '—';
+            document.getElementById('modal-order-cashier').textContent = data.cashier;
+            document.getElementById('modal-order-pay').textContent = data.pay_method + (data.paid ? ' (مدفوع)' : ' (معلق)');
+
+            // Address
+            const addrBox = document.getElementById('modal-address-box');
+            if (data.address && data.address.trim() !== '') {
+                document.getElementById('modal-order-address').textContent = data.address;
+                addrBox.classList.remove('hidden');
+            } else {
+                addrBox.classList.add('hidden');
+            }
+
+            // Notes
+            const notesBox = document.getElementById('modal-notes-box');
+            if (data.notes && data.notes.trim() !== '') {
+                document.getElementById('modal-order-notes').textContent = data.notes;
+                notesBox.classList.remove('hidden');
+            } else {
+                notesBox.classList.add('hidden');
+            }
+
+            // Items tbody
+            const cur = data.currency_symbol || 'ر.س';
+            const tbody = document.getElementById('modal-items-tbody');
+            tbody.innerHTML = '';
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(it => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50/80 transition';
+                    tr.innerHTML = `
+                        <td class="p-2 font-bold text-slate-800">${it.name}</td>
+                        <td class="p-2 text-center font-bold text-slate-800">${it.qty}</td>
+                        <td class="p-2 text-left text-slate-500 font-mono">${it.price} ${cur}</td>
+                        <td class="p-2 text-left font-bold text-violet-600 font-mono">${it.line_total} ${cur}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">لا توجد تفاصيل أصناف مسجلة</td></tr>';
+            }
+
+            // Financials
+            document.getElementById('modal-subtotal').textContent = data.subtotal + ' ' + cur;
+            document.getElementById('modal-delivery-fee').textContent = data.delivery_fee + ' ' + cur;
+            document.getElementById('modal-discount').textContent = '-' + data.discount + ' ' + cur;
+            document.getElementById('modal-total').textContent = data.total + ' ' + cur;
+
+            const modal = document.getElementById('order-detail-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } catch (e) {
+            console.error('Error opening order modal:', e);
+        }
+    }
+
+    function closeOrderModal() {
+        const modal = document.getElementById('order-detail-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        activeModalOrder = null;
+    }
+
+    // Close modal when pressing ESC or clicking outside
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeOrderModal();
+        }
+    });
+
+    const modalOverlay = document.getElementById('order-detail-modal');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                closeOrderModal();
+            }
+        });
+    }
+
+    function printModalReceipt() {
+        if (!activeModalOrder) return;
+        const o = activeModalOrder;
+        const cur = o.currency_symbol || 'ر.س';
+        
+        let itemsHtml = '';
+        o.items.forEach(it => {
+            itemsHtml += `
+                <tr>
+                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${it.name}</td>
+                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: center;">${it.qty}</td>
+                    <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: left;">${it.line_total} ${cur}</td>
+                </tr>
+            `;
+        });
+
+        const printWin = window.open('', '', 'width=450,height=600');
+        printWin.document.write(`
+            <html dir="${document.documentElement.getAttribute('dir') || 'rtl'}">
+            <head>
+                <title>فاتورة ${o.order_number}</title>
+                <style>
+                    body { font-family: 'Cairo', 'Courier New', Courier, monospace, sans-serif; font-size: 12px; margin: 15px; color: #000; }
+                    .header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
+                    .title { font-size: 16px; font-weight: bold; }
+                    .row { display: flex; justify-content: space-between; margin: 3px 0; }
+                    table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+                    .total-row { font-size: 14px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="title">{{ tenant.name|default:"مطاعم" }}</div>
+                    <div>فرع: ${o.branch}</div>
+                    <div>رقم الطلب: ${o.order_number}</div>
+                    <div>التاريخ: ${o.created_at}</div>
+                </div>
+                <div class="row"><span>العميل:</span><span>${o.customer_name}</span></div>
+                ${o.customer_phone ? `<div class="row"><span>الهاتف:</span><span>${o.customer_phone}</span></div>` : ''}
+                <div class="row"><span>النوع:</span><span>${o.order_type}</span></div>
+                <div class="row"><span>الكاشير:</span><span>${o.cashier}</span></div>
+                <table>
+                    <thead>
+                        <tr style="border-bottom: 1px solid #000;">
+                            <th style="text-align: right;">الصنف</th>
+                            <th style="text-align: center;">الكمية</th>
+                            <th style="text-align: left;">المجموع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="row"><span>المجموع الفرعي:</span><span>${o.subtotal} ${cur}</span></div>
+                ${parseFloat(o.delivery_fee) > 0 ? `<div class="row"><span>رسوم التوصيل:</span><span>${o.delivery_fee} ${cur}</span></div>` : ''}
+                ${parseFloat(o.discount) > 0 ? `<div class="row"><span>الخصم:</span><span>-${o.discount} ${cur}</span></div>` : ''}
+                <div class="row total-row"><span>المبلغ الإجمالي:</span><span>${o.total} ${cur}</span></div>
+                <div class="row"><span>طريقة الدفع:</span><span>${o.pay_method}</span></div>
+                <div style="text-align: center; margin-top: 15px; font-size: 11px;">
+                    شكراً لزيارتكم!
+                </div>
+            </body>
+            </html>
+        `);
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(() => {
+            printWin.print();
+            printWin.close();
+        }, 300);
+    }
+
+    async function quickCancelOrder(orderId, orderNumber) {
+        if (!confirm(`هل أنت متأكد من رغبتك في إلغاء الطلب ${orderNumber}؟\nسيتم الاحتفاظ بالسجل وتغيير الحالة إلى "ملغي".`)) return;
         try {
             const res = await fetch(`/api/orders/${orderId}/cancel/`, {
                 method: 'POST',
@@ -218,8 +726,8 @@
         }
     }
 
-    async function deleteOrder(orderId, orderNumber) {
-        if (!confirm(`تحذير أمني:\nهل أنت متأكد من الحذف النهائي للطلب ${orderNumber}؟\nلا يمكن التراجع عن هذه الخطوة!`)) return;
+    async function quickDeleteOrder(orderId, orderNumber) {
+        if (!confirm(`تحذير أمني هام:\nهل أنت متأكد من الحذف النهائي للطلب ${orderNumber} من قاعدة البيانات؟\nلا يمكن التراجع عن هذا الإجراء!`)) return;
         try {
             const res = await fetch(`/api/orders/${orderId}/delete/`, {
                 method: 'POST',
@@ -239,6 +747,16 @@
             console.error(e);
             alert('تعذر الاتصال بالخادم');
         }
+    }
+
+    function cancelFromModal() {
+        if (!activeModalOrder) return;
+        quickCancelOrder(activeModalOrder.id, activeModalOrder.order_number);
+    }
+
+    function deleteFromModal() {
+        if (!activeModalOrder) return;
+        quickDeleteOrder(activeModalOrder.id, activeModalOrder.order_number);
     }
 </script>
 {% endblock %}
