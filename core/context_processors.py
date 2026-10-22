@@ -269,11 +269,11 @@ def i18n_context(request):
 
     base_t = {
         # App & Brand
-        "app_title": "منظومة كُـورَا لإدارة المطاعم" if is_rtl else "KURA Restaurant Management OS",
-        "brand_name": "كُـورَا" if is_rtl else "KURA",
+        "app_title": "منظومة مطاعم السحابية" if is_rtl else "Motaem Restaurant OS",
+        "brand_name": "مطاعم" if is_rtl else "Motaem",
         "brand_hq": "HQ",
         "brand_subtitle": "نظام إدارة المطاعم" if is_rtl else "Restaurant Management System",
-        "brand_tagline": "النظام السحابي لإدارة سلاسل المطاعم والضيافة العريقة" if is_rtl else "Cloud Operating System for Hospitality & Dining",
+        "brand_tagline": "النظام السحابي لإدارة سلاسل المطاعم والضيافة الحديثة" if is_rtl else "Cloud Operating System for Hospitality & Dining",
         "online_system": "متصل بالنظام السحابي" if is_rtl else "Connected to Cloud OS",
         "all_branches_label": "الإدارة العامة (كافة الفروع)" if is_rtl else "Central HQ (All Branches)",
         "branch_prefix": "فرع" if is_rtl else "Branch",
