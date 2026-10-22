@@ -384,18 +384,19 @@
                 align-items: center !important;
                 border-radius: 0.5rem !important;
                 background-color: transparent !important;
+                color: #94A3B8 !important;
             }
             html:not(.sidebar-expanded) #app-sidebar nav .m3-nav-item.m3-active,
             body:not(.sidebar-expanded) #app-sidebar nav .m3-nav-item.m3-active {
-                background-color: #F5F3FF !important; /* Tailwind violet-50 */
-                color: #4F46E5 !important; /* violet-700 */
-                border: 1px solid #DDD6FE !important; /* violet-200 */
+                background-color: rgba(99, 102, 241, 0.2) !important;
+                color: #C4B5FD !important;
+                border: 1px solid rgba(167, 139, 250, 0.4) !important;
                 border-radius: 0.5rem !important;
             }
             html:not(.sidebar-expanded) #app-sidebar nav .m3-nav-item:not(.m3-active):hover,
             body:not(.sidebar-expanded) #app-sidebar nav .m3-nav-item:not(.m3-active):hover {
-                background-color: #F1F5F9 !important;
-                color: #0F172A !important;
+                background-color: rgba(30, 41, 59, 0.8) !important;
+                color: #FFFFFF !important;
             }
             html:not(.sidebar-expanded) #app-sidebar [id$="-content"],
             body:not(.sidebar-expanded) #app-sidebar [id$="-content"] {
@@ -464,18 +465,19 @@
                 align-items: center !important;
                 border-radius: 0.5rem !important;
                 background-color: transparent !important;
+                color: #94A3B8 !important;
             }
             html.sidebar-mini #app-sidebar nav .m3-nav-item.m3-active,
             body.sidebar-mini #app-sidebar nav .m3-nav-item.m3-active {
-                background-color: #F5F3FF !important; /* Tailwind violet-50 */
-                color: #4F46E5 !important; /* violet-700 */
-                border: 1px solid #DDD6FE !important; /* violet-200 */
+                background-color: rgba(99, 102, 241, 0.2) !important;
+                color: #C4B5FD !important;
+                border: 1px solid rgba(167, 139, 250, 0.4) !important;
                 border-radius: 0.5rem !important;
             }
             html.sidebar-mini #app-sidebar nav .m3-nav-item:not(.m3-active):hover,
             body.sidebar-mini #app-sidebar nav .m3-nav-item:not(.m3-active):hover {
-                background-color: #F1F5F9 !important;
-                color: #0F172A !important;
+                background-color: rgba(30, 41, 59, 0.8) !important;
+                color: #FFFFFF !important;
             }
             html.sidebar-mini #app-sidebar [id$="-content"],
             body.sidebar-mini #app-sidebar [id$="-content"] {
@@ -539,9 +541,9 @@
     <div id="sidebar-backdrop" onclick="toggleSidebar(false)" class="hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-xs md:hidden transition-opacity"></div>
 
     <!-- ============================================================ -->
-    <!-- MATERIAL DESIGN 3 (M3) NAVIGATION DRAWER                    -->
+    <!-- ENTERPRISE DARK SLATE NAVIGATION DRAWER                      -->
     <!-- ============================================================ -->
-    <aside id="app-sidebar" class="fixed inset-y-0 {% if IS_RTL %}right-0 border-l border-slate-200/80 translate-x-full{% else %}left-0 border-r border-slate-200/80 -translate-x-full{% endif %} z-50 w-72 bg-white text-slate-900 flex flex-col justify-between transform md:translate-x-0 transition-all duration-300 ease-in-out font-sans shadow-xs">
+    <aside id="app-sidebar" class="fixed inset-y-0 {% if IS_RTL %}right-0 border-l border-slate-800/80 translate-x-full{% else %}left-0 border-r border-slate-800/80 -translate-x-full{% endif %} z-50 w-72 bg-[#0F172A] text-slate-200 flex flex-col justify-between transform md:translate-x-0 transition-all duration-300 ease-in-out font-sans shadow-xl">
         
         <!-- Resizer Handle for Draggable Sidebar Width (220px - 480px) -->
         <div id="sidebar-resizer" 
@@ -550,19 +552,19 @@
             <div class="w-[3px] h-full mx-auto transition-colors duration-150 bg-transparent group-hover:bg-violet-500/80 group-active:bg-violet-600"></div>
         </div>
 
-        <!-- TOP: Brand Cartouche & Logo (M3 Style) -->
-        <div class="p-3.5 border-b border-slate-100 shrink-0">
+        <!-- TOP: Brand Cartouche & Logo (Dark Accent) -->
+        <div class="p-3.5 border-b border-slate-800/80 shrink-0">
             <div class="brand-header flex items-center justify-between">
                 <a href="{% if is_hq_mode %}{% url 'dashboard' %}{% else %}{% url 'branch_dashboard' %}{% endif %}" class="brand-link flex items-center gap-3 group">
-                    <div class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 border border-violet-100 group-hover:border-violet-300 transition-all duration-200">
+                    <div class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/90 border border-slate-700/60 group-hover:border-violet-500/50 transition-all duration-200">
                         <img src="{% static 'img/motaem_symbol_trans.png' %}" alt="{{ t.brand_name }}" class="h-6 w-6 object-contain">
                     </div>
                     <div class="min-w-0 sidebar-text">
                         <div class="flex items-center gap-1.5">
-                            <span class="text-sm font-bold text-slate-900 tracking-tight">{{ t.brand_name }}</span>
-                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 border border-violet-200/60">HQ</span>
+                            <span class="text-sm font-bold text-white tracking-tight">{{ t.brand_name }}</span>
+                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-500/20 text-violet-300 border border-violet-500/30">HQ</span>
                         </div>
-                        <p class="text-xs font-normal text-slate-500 truncate max-w-[145px] mt-0.5">
+                        <p class="text-xs font-normal text-slate-400 truncate max-w-[145px] mt-0.5">
                             {{ tenant_name|default:t.brand_subtitle }}
                         </p>
                     </div>
@@ -573,7 +575,7 @@
                     type="button" 
                     id="sidebar-collapse-btn" 
                     onclick="toggleSidebarCollapse()" 
-                    class="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 border border-slate-200/80 transition-all cursor-pointer active:scale-95 shrink-0" 
+                    class="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800/70 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60 transition-all cursor-pointer active:scale-95 shrink-0" 
                     title="{{ t.collapse_sidebar }}"
                 >
                     <!-- Close X Icon (shown when expanded) -->
@@ -590,30 +592,30 @@
                 </button>
 
                 <!-- Mobile Close Button -->
-                <button type="button" onclick="toggleSidebar(false)" class="md:hidden flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 border border-slate-200/80 transition">
+                <button type="button" onclick="toggleSidebar(false)" class="md:hidden flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800/70 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60 transition">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
         </div>
 
-        <!-- MIDDLE: Scrollable Navigation Menu (Clean Slate Items) -->
+        <!-- MIDDLE: Scrollable Navigation Menu (Dark Slate Items) -->
         <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-xs font-sans">
             <!-- 1. General Dashboard (HQ / Branch) -->
             {% if is_hq_mode and 'view_hq_dashboard' in user_perms or not is_hq_mode and 'view_branch_dashboard' in user_perms %}
             <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
-                <a href="{% url 'dashboard' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'dashboard' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'dashboard' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'dashboard' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'dashboard' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'dashboard' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_dashboard }}</span>
                     </div>
                 </a>
                 {% else %}
-                <a href="{% url 'branch_dashboard' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'branch_dashboard' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'branch_dashboard' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'branch_dashboard' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'branch_dashboard' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'branch_dashboard' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3L2 7h20L12 3z"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_branch_dashboard }}</span>
@@ -626,9 +628,9 @@
             <!-- 2. POS (Cashier - Direct Single Link) -->
             {% if 'pos_access' in user_perms or 'pos_create_order' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'pos' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'pos' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'pos' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'pos' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'pos' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'pos' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="7" cy="15" r="1.5"/><circle cx="12" cy="15" r="1.5"/><line x1="16" y1="15" x2="18" y2="15"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_pos|default:"نقطة البيع (POS)" }}</span>
@@ -640,9 +642,9 @@
             <!-- 3. Kitchen Display System (KDS) -->
             {% if 'kds_access' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'kitchen' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'kitchen' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'kitchen' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'kitchen' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'kitchen' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'kitchen' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.8a4.5 4.5 0 1 1 2.6-8.2 5 5 0 0 1 6.8 0 4.5 4.5 0 1 1 2.6 8.2v4.2H6v-4.2zM6 18h12v3H6z"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_kitchen }}</span>
@@ -654,9 +656,9 @@
             <!-- 4. Live Call Center (Direct Independent Screen) -->
             {% if 'call_center_access' in user_perms or 'call_center_create_order' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'call_center' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'call_center' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'call_center' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'call_center' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'call_center' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'call_center' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">مركز الاتصالات المباشر</span>
@@ -668,9 +670,9 @@
             <!-- 5. Delivery & Dispatch -->
             {% if 'delivery_access' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'delivery' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'delivery' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'delivery' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'delivery' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'delivery' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'delivery' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><path d="M15 6h-3l-3 6h7.5l2-3.5L15 6zM5.5 17.5l3.5-5.5h6l3.5 5.5"/><path d="M9 12H4l2-4h4"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_delivery }}</span>
@@ -683,18 +685,18 @@
             {% if 'view_orders' in user_perms %}
             <div class="nav-item-wrapper relative">
                 {% if is_hq_mode %}
-                <a href="{% url 'hq_orders' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'hq_orders' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'hq_orders' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'hq_orders' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'hq_orders' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'hq_orders' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_orders }}</span>
                     </div>
                 </a>
                 {% else %}
-                <a href="{% url 'branch_orders' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'branch_orders' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'branch_orders' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name == 'branch_orders' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'branch_orders' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name == 'branch_orders' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_branch_orders }}</span>
@@ -707,9 +709,9 @@
             <!-- 7. AI Call Center Management & Hub -->
             {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'ai_callcenter_overview' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'ai_callcenter_overview' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'ai_callcenter_management,ai_callcenter_overview,ai_callcenter_persona,ai_callcenter_hours,ai_callcenter_knowledge,ai_callcenter_queues,ai_callcenter_calls,ai_callcenter_capabilities,ai_callcenter_omnichannel' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/><circle cx="12" cy="11" r="1"/></svg>
                         </span>
                         <span class="sidebar-text tracking-tight">{{ t.nav_ai_callcenter|default:"كول سنتر الذكاء الاصطناعي" }}</span>
@@ -721,9 +723,9 @@
             <!-- 8. General Administration (Single Clean Link) -->
             {% if is_owner or 'manage_branches' in user_perms or 'manage_menu' in user_perms or 'manage_inventory' in user_perms or 'inventory_view' in user_perms or 'manage_employees' in user_perms or 'hr_view_employees' in user_perms or 'system_manage_billing' in user_perms %}
             <div class="nav-item-wrapper relative">
-                <a href="{% url 'branches' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}m3-active bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs{% else %}text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium border border-transparent{% endif %}">
+                <a href="{% url 'branches' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}m3-active bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
                     <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}text-violet-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'branches,branch_menu,inventory,employees,owner_subscription' %}text-violet-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                         </span>
                         <span class="sidebar-text font-medium tracking-tight">{% if CURRENT_LANG == 'en' %}{{ t.nav_general_admin|default:"General Admin" }}{% else %}{{ t.nav_general_admin|default:"الإدارة العامة" }}{% endif %}</span>
@@ -733,9 +735,9 @@
             {% endif %}
         </nav>
 
-        <!-- BOTTOM: User Quick Profile & Utilities (M3 Account Surface) -->
-        <div class="user-card-wrapper nav-item-wrapper relative p-3 border-t border-slate-100 shrink-0 bg-white">
-            <div class="user-card flex flex-col gap-2 p-2.5 rounded-xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100/60 transition-all duration-200">
+        <!-- BOTTOM: User Quick Profile & Utilities (Dark Account Surface) -->
+        <div class="user-card-wrapper nav-item-wrapper relative p-3 border-t border-slate-800/80 shrink-0 bg-[#0F172A]">
+            <div class="user-card flex flex-col gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:bg-slate-800/50 transition-all duration-200">
                 <!-- Top row: Avatar + Name + Role -->
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2.5 min-w-0">
@@ -743,30 +745,30 @@
                             {{ user.username|slice:":1"|upper }}
                         </span>
                         <div class="min-w-0 text-right sidebar-text">
-                            <p class="text-xs font-semibold text-slate-900 truncate leading-tight">{{ user.first_name|default:user.username }}</p>
-                            <p class="text-[11px] font-normal text-slate-500 truncate mt-0.5">
+                            <p class="text-xs font-semibold text-white truncate leading-tight">{{ user.first_name|default:user.username }}</p>
+                            <p class="text-[11px] font-normal text-slate-400 truncate mt-0.5">
                                 {% if is_owner %}{% if IS_RTL %}مالك المنشأة (HQ){% else %}Owner (HQ){% endif %}{% elif user_profile and user_profile.job_role %}{{ user_profile.job_role.name }}{% elif user_profile %}{{ user_profile.get_role_display }}{% else %}{% if IS_RTL %}مسؤول النظام{% else %}Administrator{% endif %}{% endif %}
                             </p>
                         </div>
                     </div>
                     {% if is_owner %}
-                    <a href="{% url 'owner_subscription' %}" class="sidebar-text text-[10px] text-violet-600 hover:text-violet-800 font-medium transition" title="{{ t.nav_subscription }}">
-                        <svg class="w-3.5 h-3.5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 9 3-6h14l3 6-10 13L2 9z"/></svg>
+                    <a href="{% url 'owner_subscription' %}" class="sidebar-text text-[10px] text-violet-400 hover:text-violet-300 font-medium transition" title="{{ t.nav_subscription }}">
+                        <svg class="w-3.5 h-3.5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 9 3-6h14l3 6-10 13L2 9z"/></svg>
                     </a>
                     {% endif %}
                 </div>
 
                 <!-- Bottom row inside the card: Language Switcher + Notifications + Logout -->
-                <div class="sidebar-text flex items-center justify-between pt-2 border-t border-slate-200/50">
+                <div class="sidebar-text flex items-center justify-between pt-2 border-t border-slate-800/80">
                     <!-- Language Switcher Chip [ عربي | EN ] -->
-                    <div class="inline-flex items-center p-0.5 rounded-lg bg-white border border-slate-200/80 text-[10px]">
+                    <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/60 text-[10px]">
                         <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
-                           class="px-2 py-0.5 rounded-md transition-all {% if CURRENT_LANG == 'ar' %}bg-violet-600 text-white font-medium shadow-xs{% else %}text-slate-600 hover:text-slate-900 font-medium{% endif %}"
+                           class="px-2 py-0.5 rounded-md transition-all {% if CURRENT_LANG == 'ar' %}bg-violet-600 text-white font-medium shadow-xs{% else %}text-slate-400 hover:text-white font-medium{% endif %}"
                            title="التبديل إلى العربية">
                             عربي
                         </a>
                         <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
-                           class="px-2 py-0.5 rounded-md transition-all {% if CURRENT_LANG == 'en' %}bg-violet-600 text-white font-medium shadow-xs{% else %}text-slate-600 hover:text-slate-900 font-medium{% endif %}"
+                           class="px-2 py-0.5 rounded-md transition-all {% if CURRENT_LANG == 'en' %}bg-violet-600 text-white font-medium shadow-xs{% else %}text-slate-400 hover:text-white font-medium{% endif %}"
                            title="Switch to English">
                             EN
                         </a>
@@ -776,18 +778,18 @@
                     <div class="flex items-center gap-1">
                         <!-- Notifications Bell -->
                         <a href="{% if is_hq_mode %}{% url 'hq_orders' %}{% else %}{% url 'branch_orders' %}{% endif %}" 
-                           class="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80 transition text-xs shadow-xs" 
+                           class="relative flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-700/60 transition text-xs shadow-xs" 
                            title="التنبيهات والإشعارات">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
-                            <span class="absolute -top-0.5 -right-0.5 flex h-2 w-2 rounded-full bg-violet-600"></span>
+                            <span class="absolute -top-0.5 -right-0.5 flex h-2 w-2 rounded-full bg-violet-500"></span>
                         </a>
 
                         <!-- Logout Button -->
                         <a href="{% url 'logout' %}" 
-                           class="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:text-rose-800 hover:bg-rose-100 transition text-xs border border-rose-200/60 shadow-xs" 
+                           class="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/15 text-rose-300 hover:text-rose-200 hover:bg-rose-500/25 transition text-xs border border-rose-500/30 shadow-xs" 
                            title="{{ t.logout }}">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -805,7 +807,7 @@
     <button 
         type="button" 
         onclick="toggleSidebar(true)" 
-        class="md:hidden fixed top-3.5 {% if IS_RTL %}right-3.5{% else %}left-3.5{% endif %} z-40 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-600 shadow-sm border border-slate-200/80 hover:text-slate-900 hover:bg-slate-50 transition active:scale-95 cursor-pointer" 
+        class="md:hidden fixed top-3.5 {% if IS_RTL %}right-3.5{% else %}left-3.5{% endif %} z-40 flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-slate-300 shadow-md border border-slate-800 hover:text-white hover:bg-slate-800 transition active:scale-95 cursor-pointer" 
         aria-label="{{ t.open_menu }}"
         title="{{ t.open_menu }}"
     >
@@ -859,19 +861,19 @@
     <!-- ============================================================ -->
     <!-- CLEAN FLOATING FLYOUT POPOVER (MINI SIDEBAR MODE)            -->
     <!-- ============================================================ -->
-    <div id="sidebar-flyout-card" class="hidden fixed z-50 pointer-events-auto bg-white border border-slate-200/80 rounded-xl shadow-lg p-3 min-w-[210px] max-w-[280px] text-slate-900 transition-opacity duration-150 opacity-0 font-sans">
+    <div id="sidebar-flyout-card" class="hidden fixed z-50 pointer-events-auto bg-[#0F172A] border border-slate-800 rounded-xl shadow-2xl p-3 min-w-[210px] max-w-[280px] text-slate-200 transition-opacity duration-150 opacity-0 font-sans">
         <!-- Header: Title + Badge -->
-        <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100">
+        <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800">
             <div class="flex items-center gap-2 min-w-0">
-                <span id="flyout-icon" class="text-violet-600 shrink-0"></span>
-                <span id="flyout-title" class="text-sm font-bold text-slate-900 truncate"></span>
+                <span id="flyout-icon" class="text-violet-400 shrink-0"></span>
+                <span id="flyout-title" class="text-sm font-bold text-white truncate"></span>
             </div>
-            <span id="flyout-badge" class="hidden text-[10px] px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 border border-violet-200/60 font-medium shrink-0"></span>
+            <span id="flyout-badge" class="hidden text-[10px] px-2 py-0.5 rounded-md bg-violet-600/20 text-violet-300 border border-violet-500/30 font-medium shrink-0"></span>
         </div>
         <!-- Sublinks container -->
         <div id="flyout-sublinks" class="space-y-1"></div>
         <!-- Direct action button (for single pages) -->
-        <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium bg-violet-600 text-white hover:bg-violet-700 transition mt-1 shadow-xs">
+        <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium bg-violet-600 text-white hover:bg-violet-500 transition mt-1 shadow-xs">
             <span>{% if IS_RTL %}فتح الصفحة{% else %}Open Page{% endif %}</span>
             <span class="text-xs">{% if IS_RTL %}←{% else %}→{% endif %}</span>
         </a>
@@ -1173,10 +1175,10 @@
                                 const a = document.createElement('a');
                                 a.href = link.href;
                                 a.className = 'flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium transition ' + 
-                                    (link.classList.contains('m3-active') || link.classList.contains('text-violet-600') || link.classList.contains('bg-violet-50')
-                                        ? 'bg-violet-50 text-violet-700 font-semibold border border-violet-200/60 shadow-xs' 
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70');
-                                a.innerHTML = `<span class="text-[8px] text-slate-400 font-normal">•</span><span>${link.querySelector('span:last-child')?.textContent.trim() || link.textContent.trim()}</span>`;
+                                    (link.classList.contains('m3-active') || link.classList.contains('text-violet-300') || link.classList.contains('bg-violet-600/20')
+                                        ? 'bg-violet-600/20 text-violet-300 font-semibold border border-violet-500/30 shadow-xs' 
+                                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60');
+                                a.innerHTML = `<span class="text-[8px] text-slate-500 font-normal">•</span><span>${link.querySelector('span:last-child')?.textContent.trim() || link.textContent.trim()}</span>`;
                                 flyoutSublinks.appendChild(a);
                             });
                         }
@@ -1193,7 +1195,7 @@
 
                         flyoutSublinks.innerHTML = `
                             <div class="pt-1">
-                                <a href="${logoutLink}" class="flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-900 border border-rose-300 transition">
+                                <a href="${logoutLink}" class="flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 hover:text-rose-200 border border-rose-500/30 transition">
                                     <span>تسجيل الخروج</span>
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                                 </a>
