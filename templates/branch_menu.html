@@ -626,8 +626,8 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <div>
                         <label class="block text-xs font-bold text-slate-900 mb-1">لون هوية البراند الأساسي</label>
                         <div class="flex items-center gap-2">
-                            <input type="color" id="brandColorPicker" name="brand_color" value="{{ tenant.brand_color|default:'#2563EB' }}" class="w-10 h-9 p-0.5 rounded-lg border border-slate-200 cursor-pointer bg-transparent">
-                            <input type="text" id="brandColorHex" value="{{ tenant.brand_color|default:'#2563EB' }}" oninput="document.getElementById('brandColorPicker').value=this.value" class="input text-xs font-mono font-bold w-full" dir="ltr">
+                            <input type="color" id="brandColorPicker" name="brand_color" value="{{ tenant.brand_color|default:'#6366F1' }}" class="w-10 h-9 p-0.5 rounded-lg border border-slate-200 cursor-pointer bg-transparent">
+                            <input type="text" id="brandColorHex" value="{{ tenant.brand_color|default:'#6366F1' }}" oninput="document.getElementById('brandColorPicker').value=this.value" class="input text-xs font-mono font-bold w-full" dir="ltr">
                         </div>
                     </div>
                 </div>

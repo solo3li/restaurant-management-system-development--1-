@@ -28,14 +28,14 @@
                         brand: {
                             50: '#FAF5EC',
                             100: '#F5EBD9',
-                            500: '{{ brand_color|default:"#2563EB" }}',
-                            600: '{{ brand_color|default:"#2563EB" }}',
+                            500: '{{ brand_color|default:"#6366F1" }}',
+                            600: '{{ brand_color|default:"#6366F1" }}',
                             700: '#09241B',
                         },
                         gold: {
                             400: '#E6C898',
-                            500: '#2563EB',
-                            600: '#1D4ED8',
+                            500: '#6366F1',
+                            600: '#4F46E5',
                         }
                     },
                     fontFamily: {
@@ -69,7 +69,7 @@
         {% if tenant.cover_image %}
             <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ tenant.cover_image.url }}');"></div>
         {% else %}
-            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#2563EB_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#6366F1_1px,transparent_1px)] [background-size:16px_16px]"></div>
         {% endif %}
         <div class="absolute inset-0 bg-gradient-to-t from-brand-700 via-brand-600/80 to-transparent"></div>
 
