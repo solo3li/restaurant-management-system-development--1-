@@ -4,38 +4,47 @@
 {% block title %}{{ t.brand_name|default:"مطاعم" }} — منظومة إدارة سلاسل المطاعم والضيافة السحابية{% endblock %}
 
 {% block unauth_content %}
-<div id="landing-page" class="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-violet-600 selection:text-white" dir="{{ DIR|default:'rtl' }}">
+<div id="landing-page" class="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 selection:bg-violet-600 selection:text-white" dir="{{ DIR|default:'rtl' }}">
 
     <!-- ======================================================== -->
-    <!-- 1. FULL-WIDTH MODERN NAVBAR                              -->
+    <!-- 1. FULL-WIDTH MODERN MINIMALIST NAVBAR                   -->
     <!-- ======================================================== -->
-    <header class="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all">
+    <header class="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
             
             <!-- Brand Logo -->
             <a href="{% url 'landing' %}" class="flex items-center gap-3 group shrink-0">
-                <div class="relative flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50/60 border border-violet-200/50/60 group-hover:border-blue-400 transition">
+                <div class="relative flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 border border-violet-200/60 group-hover:border-violet-400 transition">
                     <img src="{% static 'img/motaem_symbol_trans.png' %}" alt="Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain group-hover:scale-105 transition-transform" />
                 </div>
                 <div class="flex flex-col">
                     <span class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 leading-tight">{{ t.brand_name|default:"مطاعم" }}</span>
-                    <span class="text-[9px] sm:text-[10px] font-bold text-blue-600 tracking-wider uppercase">Cloud Restaurant OS</span>
+                    <span class="text-[9px] sm:text-[10px] font-semibold text-violet-600 tracking-wider uppercase">Cloud Restaurant OS</span>
                 </div>
             </a>
 
+            <!-- Navigation Links (Desktop) -->
+            <nav class="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
+                <a href="#features" class="hover:text-violet-600 transition">{{ t.features|default:"المميزات التشغيلية" }}</a>
+                <a href="#pos-kds" class="hover:text-violet-600 transition">الكاشير والمطبخ</a>
+                <a href="#ai-phone" class="hover:text-violet-600 transition">كول سنتر AI</a>
+                <a href="#pricing" class="hover:text-violet-600 transition">{{ t.pricing|default:"باقات الاشتراك" }}</a>
+                <a href="#faq" class="hover:text-violet-600 transition">الأسئلة الشائعة</a>
+            </nav>
+
             <!-- Actions (Language Switcher, Login, Register CTA) -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Language Switcher with Globe Icon -->
+                <!-- Language Switcher -->
                 {% if CURRENT_LANG == 'en' %}
                 <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
-                   class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition shadow-xs"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition shadow-xs"
                    title="التبديل إلى اللغة العربية">
                     <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <span>عربي</span>
                 </a>
                 {% else %}
                 <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
-                   class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition shadow-xs"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition shadow-xs"
                    title="Switch to English">
                     <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <span>EN</span>
@@ -43,12 +52,12 @@
                 {% endif %}
 
                 <!-- Login Button -->
-                <a href="{% url 'login' %}" class="inline-flex items-center text-xs sm:text-sm font-bold text-slate-700 hover:text-blue-600 px-3 sm:px-4 py-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition">
+                <a href="{% url 'login' %}" class="inline-flex items-center text-xs sm:text-sm font-semibold text-slate-700 hover:text-violet-600 px-3 sm:px-4 py-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/80 transition">
                     {% if CURRENT_LANG == 'en' %}Sign In{% else %}تسجيل الدخول{% endif %}
                 </a>
 
                 <!-- Start Free CTA -->
-                <a href="{% url 'register' %}" class="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs sm:text-sm font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                <a href="{% url 'register' %}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs sm:text-sm transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer">
                     <span>{% if CURRENT_LANG == 'en' %}Start Free 14 Days{% else %}ابدأ مجاناً 14 يوماً{% endif %}</span>
                     <svg class="w-4 h-4 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
@@ -58,175 +67,282 @@
     </header>
 
     <!-- ======================================================== -->
-    <!-- 2. HERO SECTION                                          -->
+    <!-- 2. SPLIT HERO SECTION (Concept 3: Real POS & KDS Core)   -->
     <!-- ======================================================== -->
-    <section class="pt-12 sm:pt-20 pb-16 px-4 sm:px-6 max-w-6xl mx-auto text-center relative overflow-hidden">
+    <section id="pos-kds" class="pt-8 sm:pt-14 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
         
-        <!-- Subtle Glow Elements -->
-        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none -z-10"></div>
-
-        <!-- Announcement Badge -->
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-violet-200/50 text-xs font-bold text-violet-600 mb-6 shadow-xs animate-fade-in">
-            <span class="flex h-2 w-2 rounded-full bg-violet-600 animate-ping"></span>
-            <span>الجيل الجديد من إدارة المطاعم السحابية والذكاء الاصطناعي</span>
-        </div>
-
-        <!-- Main Headline -->
-        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.2] max-w-4xl mx-auto">
-            منظومة التشغيل الموحدة لإدارة سلاسل المطاعم والضيافة الحديثة
-        </h1>
-
-        <!-- Subheadline -->
-        <p class="mt-5 text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            منصة سحابية متكاملة تجمع الكاشير السريع (POS)، شاشات المطبخ اللحظية (KDS Live)، كول سنتر الذكاء الاصطناعي لاستقبال طلبات الهاتف، وتتبع أسطول التوصيل في واجهة مينيماليست واحدة فائقة السرعة.
-        </p>
-
-        <!-- CTA Action Buttons -->
-        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a href="{% url 'register' %}" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-sm font-bold transition shadow-sm flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
-                <span>ابدأ تجربتك المجانية 14 يوماً</span>
-                <span>←</span>
-            </a>
-            <a href="{% url 'login' %}" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold transition shadow-xs flex items-center justify-center gap-2">
-                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>معاينة المنظومة التجريبية (Live Demo)</span>
-            </a>
-        </div>
-
-        <!-- Trust Badges -->
-        <div class="mt-5 flex items-center justify-center gap-4 text-xs font-semibold text-slate-500">
-            <span>✓ بدون بطاقة ائتمانية</span>
-            <span>•</span>
-            <span>✓ تفعيل فوري خلال دقيقتين</span>
-            <span>•</span>
-            <span>✓ دعم فني استشاري 24/7</span>
-        </div>
-
-        <!-- ======================================================== -->
-        <!-- HERO PRODUCT MOCKUP INTERFACE PREVIEW                    -->
-        <!-- ======================================================== -->
-        <div class="mt-12 sm:mt-16 rounded-3xl border border-slate-200/90 bg-white p-3 sm:p-5 shadow-2xl relative text-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
             
-            <!-- Mockup Window Bar -->
-            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-rose-400"></span>
-                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-                    <span class="text-xs font-bold text-slate-600 mr-2 font-mono">kura.app/dashboard</span>
+            <!-- Left Side (Text & Value Proposition) - 5 Cols on LG -->
+            <div class="lg:col-span-5 text-start space-y-6">
+                
+                <!-- Announcement Badge -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-violet-50 border border-violet-200/70 text-xs font-semibold text-violet-700 shadow-xs">
+                    <span class="flex h-2 w-2 rounded-full bg-violet-600 animate-pulse"></span>
+                    <span>الجيل الجديد من إدارة المطاعم السحابية والضيافة</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                        بث حي مباشر (0ms)
+
+                <!-- Main Headline -->
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-[1.25]">
+                    منظومة التشغيل الموحدة لإدارة سلاسل المطاعم الحديثة
+                </h1>
+
+                <!-- Subheadline -->
+                <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl">
+                    منصة سحابية متكاملة تجمع كاشير الصالة السريع (POS)، شاشات المطبخ اللحظية (KDS Live 0ms)، كول سنتر الذكاء الاصطناعي لاستقبال المكالمات الهاتفية، وتتبع الفروع والأسطول في واجهة مينيماليست واحدة فائقة السرعة.
+                </p>
+
+                <!-- Dual CTA Action Buttons -->
+                <div class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <a href="{% url 'register' %}" class="px-6 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-sm transition shadow-xs flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
+                        <span>ابدأ تجربتك المجانية 14 يوماً</span>
+                        <span class="rtl:rotate-180">→</span>
+                    </a>
+                    <a href="{% url 'login' %}" class="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-800 text-sm font-semibold transition shadow-xs flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>معاينة المنظومة الحية (Live Demo)</span>
+                    </a>
+                </div>
+
+                <!-- Trust Badges List -->
+                <div class="pt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-500">
+                    <span class="flex items-center gap-1.5 text-emerald-700">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        بدون بطاقة ائتمانية
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-bold">
-                        الفرع الرئيسي • الرياض
+                    <span class="flex items-center gap-1.5 text-emerald-700">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        تفعيل فوري خلال دقيقتين
+                    </span>
+                    <span class="flex items-center gap-1.5 text-emerald-700">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        معتمد لهيئة الزكاة والضريبة (ZATCA)
                     </span>
                 </div>
+
+                <!-- Quick Operational Metrics Strip -->
+                <div class="pt-4 grid grid-cols-3 gap-3 border-t border-slate-200/60">
+                    <div class="p-2.5 rounded-lg bg-white border border-slate-200/70 shadow-xs">
+                        <div class="text-lg font-bold text-slate-900 font-mono">0ms</div>
+                        <div class="text-[11px] font-medium text-slate-500">بث المطبخ اللحظي</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-white border border-slate-200/70 shadow-xs">
+                        <div class="text-lg font-bold text-violet-700 font-mono">24/7</div>
+                        <div class="text-[11px] font-medium text-slate-500">كول سنتر AI صوتي</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-white border border-slate-200/70 shadow-xs">
+                        <div class="text-lg font-bold text-emerald-700 font-mono">99.9%</div>
+                        <div class="text-[11px] font-medium text-slate-500">استقرار سحابي تام</div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Mockup Work Area -->
-            <div class="space-y-4">
-                <!-- Top 4 Live Metric Cards -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
-                        <span class="text-[11px] font-semibold text-slate-500">مبيعات اليوم الإجمالية</span>
-                        <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1">18,450.00 <span class="text-xs font-normal text-slate-500">ر.س</span></div>
-                        <span class="inline-block text-[10px] font-bold text-emerald-600 mt-0.5">+18.4% مقارنة بالأمس</span>
-                    </div>
+            <!-- Right Side (Real Operational UI Showcase: POS + KDS) - 7 Cols on LG -->
+            <div class="lg:col-span-7 relative">
+                
+                <!-- Ambient Subtle Violet Glow Behind Interfaces -->
+                <div class="absolute -top-10 -right-10 w-96 h-96 bg-violet-600/10 blur-[90px] rounded-full pointer-events-none -z-10"></div>
 
-                    <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
-                        <span class="text-[11px] font-semibold text-slate-500">طلبات الكاشير النشطة</span>
-                        <div class="text-lg sm:text-xl font-bold text-blue-600 mt-1">142 <span class="text-xs font-normal text-slate-500">طلب</span></div>
-                        <span class="inline-block text-[10px] font-bold text-blue-600 mt-0.5">8 فروع متزامنة</span>
-                    </div>
-
-                    <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
-                        <span class="text-[11px] font-semibold text-slate-500">كول سنتر AI المباشر</span>
-                        <div class="text-lg sm:text-xl font-bold text-emerald-600 mt-1">4 <span class="text-xs font-normal text-slate-500">مكالمات جارية</span></div>
-                        <span class="inline-block text-[10px] font-bold text-emerald-600 mt-0.5">مساعد صوتي ذكي 24/7</span>
-                    </div>
-
-                    <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
-                        <span class="text-[11px] font-semibold text-slate-500">متوسط وقت المطبخ</span>
-                        <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1">12.4 <span class="text-xs font-normal text-slate-500">دقيقة</span></div>
-                        <span class="inline-block text-[10px] font-bold text-emerald-600 mt-0.5">كفاءة محطات الطهي KDS</span>
-                    </div>
-                </div>
-
-                <!-- Live Stream Bento Split -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                <!-- STACKED IN-ACTION SCREENS CONTAINER -->
+                <div class="space-y-4">
                     
-                    <!-- Left: Kitchen Live Tickets -->
-                    <div class="lg:col-span-7 bg-slate-50 rounded-2xl p-4 border border-slate-200">
-                        <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-200 text-xs font-bold text-slate-800">
-                            <span class="flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-violet-600"></span>
-                                شاشة المطبخ وإدارة المحطات (KDS Live)
-                            </span>
-                            <span class="text-[11px] font-normal text-slate-500">تحديث فوري بالملي ثانية</span>
+                    <!-- 1. Real POS Touch Cashier Interface Card -->
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <!-- POS Top Bar -->
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="h-6 w-6 rounded-md bg-violet-50 text-violet-600 flex items-center justify-center font-bold">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                </span>
+                                <span class="font-bold text-slate-900">نقطة البيع السحابية (Cloud POS)</span>
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[10px] font-semibold">كاشير الصالة 01</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
+                                <span>الفرع الرئيسي • الرياض</span>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-xs space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-slate-900">#4082 • كاشير الصالة</span>
-                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">قيد الطهي</span>
+
+                        <!-- POS Interactive Grid & Invoice Split -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-stretch">
+                            <!-- Left: Touch Menu Items (8 Cols) -->
+                            <div class="sm:col-span-8 space-y-2.5">
+                                <!-- Category Pills -->
+                                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] font-semibold">
+                                    <span class="px-2.5 py-1 rounded-md bg-violet-600 text-white shadow-xs">برجر ولحوم</span>
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200">مشويات</span>
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200">مقبلات</span>
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200">مشروبات</span>
                                 </div>
-                                <div class="text-[11px] text-slate-600 space-y-1">
-                                    <div>✓ 2x برجر كلاسيك لحم بلدي</div>
-                                    <div>✓ 1x بطاطس مقلية بالجبن</div>
-                                </div>
-                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
-                                    <div class="bg-violet-600 h-full w-2/3"></div>
+                                <!-- 4 Sample Dish Buttons -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="p-2.5 rounded-xl border border-violet-200/80 bg-violet-50/30 flex flex-col justify-between">
+                                        <div class="flex items-start justify-between">
+                                            <span class="text-xs font-bold text-slate-900">برجر كلاسيك بلدي</span>
+                                            <span class="text-[9px] px-1 py-0.2 rounded bg-violet-100 text-violet-800">أكثر طلباً</span>
+                                        </div>
+                                        <div class="mt-2 flex items-center justify-between pt-1 border-t border-violet-100">
+                                            <span class="text-xs font-bold text-violet-700 font-mono">42.00 ر.س</span>
+                                            <span class="h-5 w-5 rounded bg-violet-600 text-white flex items-center justify-center text-xs font-bold">+</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex flex-col justify-between">
+                                        <span class="text-xs font-bold text-slate-900">وجبة شاورما ميكس</span>
+                                        <div class="mt-2 flex items-center justify-between pt-1 border-t border-slate-100">
+                                            <span class="text-xs font-bold text-slate-800 font-mono">35.00 ر.س</span>
+                                            <span class="h-5 w-5 rounded bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">+</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex flex-col justify-between">
+                                        <span class="text-xs font-bold text-slate-900">بطاطس مقلية بالجبن</span>
+                                        <div class="mt-2 flex items-center justify-between pt-1 border-t border-slate-100">
+                                            <span class="text-xs font-bold text-slate-800 font-mono">18.00 ر.س</span>
+                                            <span class="h-5 w-5 rounded bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">+</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex flex-col justify-between">
+                                        <span class="text-xs font-bold text-slate-900">عصير برتقال طازج</span>
+                                        <div class="mt-2 flex items-center justify-between pt-1 border-t border-slate-100">
+                                            <span class="text-xs font-bold text-slate-800 font-mono">15.00 ر.س</span>
+                                            <span class="h-5 w-5 rounded bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">+</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-xs space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-slate-900">#4081 • طلب سفري</span>
-                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">جاهز للتسليم</span>
+                            <!-- Right: Current Invoice Summary (4 Cols) -->
+                            <div class="sm:col-span-4 rounded-xl bg-slate-50 border border-slate-200/70 p-3 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200 text-[11px] font-bold text-slate-700">
+                                        <span>الفاتورة الحالية #108</span>
+                                        <span class="text-violet-700">طاولة 4</span>
+                                    </div>
+                                    <div class="space-y-1.5 text-[11px] text-slate-600">
+                                        <div class="flex items-center justify-between">
+                                            <span>2x برجر كلاسيك</span>
+                                            <span class="font-mono">84.00</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>1x بطاطس بالجبن</span>
+                                            <span class="font-mono">18.00</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>1x عصير طازج</span>
+                                            <span class="font-mono">15.00</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-[11px] text-slate-600 space-y-1">
-                                    <div>✓ 1x وجبة شاورما دجاج ميكس</div>
-                                    <div>✓ 1x صوص ثومية إكسترا</div>
-                                </div>
-                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
-                                    <div class="bg-emerald-600 h-full w-full"></div>
+
+                                <div class="mt-3 pt-2 border-t border-slate-200">
+                                    <div class="flex items-center justify-between text-xs font-bold text-slate-900 mb-2">
+                                        <span>الإجمالي:</span>
+                                        <span class="text-sm font-mono text-violet-700">117.00 ر.س</span>
+                                    </div>
+                                    <div class="w-full py-1.5 rounded-lg bg-violet-600 text-white text-[11px] font-medium text-center shadow-xs">
+                                        إرسال للمطبخ وطباعة ZATCA
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right: AI Voice Call Waveform Preview -->
-                    <div class="lg:col-span-5 bg-slate-900 text-white rounded-2xl p-4 border border-slate-800 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800 text-xs font-bold">
-                                <span class="flex items-center gap-1.5 text-emerald-400">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                                    مكالمة هاتفية AI جارية
+                    <!-- 2. Real Kitchen KDS Live Stream Interface Card -->
+                    <div class="rounded-2xl border border-slate-800 bg-[#0F172A] p-4 text-white shadow-xl">
+                        <!-- KDS Header Bar -->
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="h-6 w-6 rounded-md bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center justify-center font-bold">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                                 </span>
-                                <span class="text-[10px] text-slate-400 font-mono">01:14</span>
+                                <span class="font-bold text-white">شاشة المطبخ وإدارة المحطات (KDS Live)</span>
+                                <span class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    بث حي 0ms
+                                </span>
                             </div>
-                            <div class="text-xs text-slate-300 space-y-1.5 font-sans">
-                                <p class="text-[11px] text-slate-400">العميل: سلطان القحطاني (050****882)</p>
-                                <p class="text-[11px] text-blue-400">المساعد: "أهلاً بك في كورا! تم تسجيل 2 برجر لحم والتوصيل لحي الياسمين."</p>
-                            </div>
+                            <span class="text-[11px] font-mono text-slate-400">محطة الطهي الساخن • جرس نشط 🔔</span>
                         </div>
 
-                        <!-- Audio Waveform Mockup -->
-                        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-center gap-1 h-8">
-                            <span class="w-1 bg-blue-500 h-3 rounded-full animate-pulse"></span>
-                            <span class="w-1 bg-blue-400 h-6 rounded-full animate-pulse"></span>
-                            <span class="w-1 bg-emerald-400 h-7 rounded-full animate-pulse"></span>
-                            <span class="w-1 bg-blue-500 h-4 rounded-full animate-pulse"></span>
-                            <span class="w-1 bg-blue-400 h-7 rounded-full animate-pulse"></span>
-                            <span class="w-1 bg-emerald-400 h-5 rounded-full animate-pulse"></span>
-                            <span class="w-1 bg-blue-500 h-3 rounded-full animate-pulse"></span>
+                        <!-- 3 Live Kitchen Tickets in Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-start">
+                            
+                            <!-- Ticket 1: Cooking / In Progress -->
+                            <div class="rounded-xl border border-amber-500/40 bg-slate-900/90 p-3 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-white">#4082 • طاولة 4</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                        قيد الطهي 03:45
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-slate-300 space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <span>✓ 2x برجر كلاسيك بلدي</span>
+                                        <span class="text-[10px] text-slate-400">ويل دن</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>✓ 1x بطاطس مقلية بالجبن</span>
+                                        <span class="text-[10px] text-slate-400">إكسترا</span>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                    <div class="bg-amber-500 h-full w-2/3"></div>
+                                </div>
+                                <div class="pt-1 flex items-center justify-between">
+                                    <span class="text-[10px] text-slate-400">كاشير الصالة</span>
+                                    <button class="px-2 py-0.5 rounded bg-violet-600/30 hover:bg-violet-600/50 text-violet-300 text-[10px] font-semibold border border-violet-500/40">جاهز ✓</button>
+                                </div>
+                            </div>
+
+                            <!-- Ticket 2: Ready for Pickup -->
+                            <div class="rounded-xl border border-emerald-500/40 bg-slate-900/90 p-3 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-white">#4081 • طلب سفري</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                        جاهز للتسليم
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-slate-300 space-y-1">
+                                    <div>✓ 1x وجبة شاورما ميكس دجاج</div>
+                                    <div>✓ 1x صوص ثومية إضافي</div>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full w-full"></div>
+                                </div>
+                                <div class="pt-1 flex items-center justify-between">
+                                    <span class="text-[10px] text-slate-400">تغليف مكتمل</span>
+                                    <button class="px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-[10px] font-semibold border border-emerald-500/40">تسليم للعميل</button>
+                                </div>
+                            </div>
+
+                            <!-- Ticket 3: AI Call Center Order -->
+                            <div class="rounded-xl border border-violet-500/40 bg-slate-900/90 p-3 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-white">#4080 • كول سنتر AI</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                                        طلب هاتفي ذكي
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-slate-300 space-y-1">
+                                    <div>✓ 1x مشويات مشكل فاخر</div>
+                                    <div>✓ 1x أرز بسمتي بالزعفران</div>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                    <div class="bg-violet-500 h-full w-1/3"></div>
+                                </div>
+                                <div class="pt-1 flex items-center justify-between">
+                                    <span class="text-[10px] text-violet-300">توصيل حي الياسمين</span>
+                                    <button class="px-2 py-0.5 rounded bg-violet-600/30 hover:bg-violet-600/50 text-violet-300 text-[10px] font-semibold border border-violet-500/40">إسناد لسائق</button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
                 </div>
+
             </div>
 
         </div>
@@ -234,18 +350,18 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 3. PLATFORM PILLARS (BENTO GRID)                         -->
+    <!-- 3. PLATFORM PILLARS (BENTO GRID WITH CLEAN SLATE POLISH) -->
     <!-- ======================================================== -->
-    <section id="features" class="py-20 bg-white border-y border-slate-200 px-4 sm:px-6">
+    <section id="features" class="py-20 bg-white border-y border-slate-200/80 px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto">
             
             <div class="text-center max-w-2xl mx-auto mb-14">
-                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">قدرات تشغيلية متطورة</span>
+                <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider">قدرات تشغيلية موحدة</span>
                 <h2 class="text-2xl sm:text-4xl font-bold text-slate-900 mt-2 tracking-tight">
-                    كل ما تحتاجه لإدارة وتوسيع مطعمك من مكان واحد
+                    كل ما تحتاجه لإدارة وتوسيع مطاعمك من مكان واحد
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-500 mt-2">
-                    صممت منظومة كورا لتغطي رحلة الطلب بالكامل من لحظة اتصال العميل وحتى تسليم الوجبة بدقة ولحظية تامة.
+                    صممت منظومة «مطاعم» لتغطي رحلة الطلب بالكامل من لحظة اتصال العميل وحتى تسليم الوجبة بدقة ولحظية تامة.
                 </p>
             </div>
 
@@ -253,55 +369,55 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 
                 <!-- Pillar 1: POS -->
-                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-blue-400 transition shadow-xs group">
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 border border-violet-200/50 flex items-center justify-center text-blue-600 mb-4 group-hover:scale-105 transition-transform">
+                <div class="bg-[#F8FAFC] rounded-2xl p-6 border border-slate-200/80 hover:border-violet-300 hover:shadow-sm transition group">
+                    <div class="w-12 h-12 rounded-xl bg-violet-50 border border-violet-200/60 flex items-center justify-center text-violet-600 mb-4 group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900">نقطة البيع السحابية (Cloud POS)</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">نقطة البيع السحابية (Cloud POS)</h3>
                     <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                         واجهة كاشير لمسية خفيفة وسريعة تدعم الفواتير الإلكترونية المعتمدة (QR Code وZATCA)، إدارة الطاولات، والطلبات المحلية والسفري بدون أي تعليق.
                     </p>
                 </div>
 
                 <!-- Pillar 2: KDS -->
-                <div id="kitchen" class="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-blue-400 transition shadow-xs group">
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 border border-violet-200/50 flex items-center justify-center text-blue-600 mb-4 group-hover:scale-105 transition-transform">
+                <div class="bg-[#F8FAFC] rounded-2xl p-6 border border-slate-200/80 hover:border-violet-300 hover:shadow-sm transition group">
+                    <div class="w-12 h-12 rounded-xl bg-violet-50 border border-violet-200/60 flex items-center justify-center text-violet-600 mb-4 group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900">شاشات المطبخ الحية (KDS Live)</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">شاشات المطبخ الحية (KDS Live)</h3>
                     <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                         بث حي عبر تقنية SSE بالملي ثانية بدون تحديث الصفحة، عزل صارم لمحطات الطهي، جرس تنبيه صوتي فندقي، وقوائم إنجاز الوجبات خطوة بخطوة.
                     </p>
                 </div>
 
                 <!-- Pillar 3: AI Call Center -->
-                <div id="ai-phone" class="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-blue-400 transition shadow-xs group">
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 border border-violet-200/50 flex items-center justify-center text-blue-600 mb-4 group-hover:scale-105 transition-transform">
+                <div id="ai-phone" class="bg-[#F8FAFC] rounded-2xl p-6 border border-slate-200/80 hover:border-violet-300 hover:shadow-sm transition group">
+                    <div class="w-12 h-12 rounded-xl bg-violet-50 border border-violet-200/60 flex items-center justify-center text-violet-600 mb-4 group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900">كول سنتر الذكاء الاصطناعي (AI Phone)</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">كول سنتر الذكاء الاصطناعي (AI Phone)</h3>
                     <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                         رد آلي فوري على المكالمات الهاتفية الهاتفية، فهم اللهجات العربية والمحلية بدقة، تسجيل الطلبات وإسنادها تلقائياً للمطبخ والفرع المناسب.
                     </p>
                 </div>
 
                 <!-- Pillar 4: Multi-Branch & Pricing -->
-                <div id="platform" class="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-blue-400 transition shadow-xs group">
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 border border-violet-200/50 flex items-center justify-center text-blue-600 mb-4 group-hover:scale-105 transition-transform">
+                <div id="platform" class="bg-[#F8FAFC] rounded-2xl p-6 border border-slate-200/80 hover:border-violet-300 hover:shadow-sm transition group">
+                    <div class="w-12 h-12 rounded-xl bg-violet-50 border border-violet-200/60 flex items-center justify-center text-violet-600 mb-4 group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900">إدارة السلاسل والتسعير الفرعي</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">إدارة السلاسل والتسعير الفرعي</h3>
                     <p class="text-xs text-slate-500 mt-2 leading-relaxed">
                         إدارة مركزية لكافة الفروع مع حرية تخصيص أسعار الأطباق والأحجام لكل فرع على حدة، مراقبة المخزون، وصلاحيات الموظفين الدقيقة.
                     </p>
                 </div>
 
                 <!-- Pillar 5: Delivery & Fleet -->
-                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-blue-400 transition shadow-xs group md:col-span-2 lg:col-span-2">
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 border border-violet-200/50 flex items-center justify-center text-blue-600 mb-4 group-hover:scale-105 transition-transform">
+                <div class="bg-[#F8FAFC] rounded-2xl p-6 border border-slate-200/80 hover:border-violet-300 hover:shadow-sm transition group md:col-span-2 lg:col-span-2">
+                    <div class="w-12 h-12 rounded-xl bg-violet-50 border border-violet-200/60 flex items-center justify-center text-violet-600 mb-4 group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900">إدارة التوصيل وأسطول السائقين (Delivery Dispatch)</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">إدارة التوصيل وأسطول السائقين (Delivery Dispatch)</h3>
                     <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-xl">
                         لوحة كانبان تفاعلية لنقل الطلبات بين مراحل التجهيز، إسناد فوري للسائقين المتاحين، وتتبع دقيق لوقت التوصيل لضمان وصول الوجبات ساخنة وطازجة.
                     </p>
@@ -313,37 +429,37 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 4. LIVE STATS COUNTER STRIP                              -->
+    <!-- 4. LIVE STATS COUNTER STRIP (Enterprise Dark Slate)      -->
     <!-- ======================================================== -->
-    <section class="py-12 bg-slate-900 text-white px-4 sm:px-6">
-        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+    <section class="py-14 bg-[#0F172A] text-white px-4 sm:px-6 lg:px-8 border-y border-slate-800">
+        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight">{{ stats.restaurants|default:"18" }}+</div>
+                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight font-mono">{{ stats.restaurants|default:"18" }}+</div>
                 <div class="text-xs text-slate-400 mt-1 font-semibold">سلسلة مطاعم رائدة</div>
             </div>
             <div>
-                <div class="text-2xl sm:text-4xl font-bold text-blue-400 tracking-tight">{{ stats.branches|default:"45" }}+</div>
+                <div class="text-2xl sm:text-4xl font-bold text-violet-400 tracking-tight font-mono">{{ stats.branches|default:"45" }}+</div>
                 <div class="text-xs text-slate-400 mt-1 font-semibold">فرع تشغيلي نشط</div>
             </div>
             <div>
-                <div class="text-2xl sm:text-4xl font-bold text-emerald-400 tracking-tight">{{ stats.orders|default:"15,000" }}+</div>
+                <div class="text-2xl sm:text-4xl font-bold text-emerald-400 tracking-tight font-mono">{{ stats.orders|default:"15,000" }}+</div>
                 <div class="text-xs text-slate-400 mt-1 font-semibold">طلب منفذ يومياً</div>
             </div>
             <div>
-                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight">{{ stats.uptime|default:"99.9%" }}</div>
+                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight font-mono">{{ stats.uptime|default:"99.9%" }}</div>
                 <div class="text-xs text-slate-400 mt-1 font-semibold">استقرار الخوادم السحابية</div>
             </div>
         </div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- 5. SAAS PRICING PLANS                                    -->
+    <!-- 5. SAAS PRICING PLANS (Clean Slate Polish Cards)         -->
     <!-- ======================================================== -->
-    <section id="pricing" class="py-20 px-4 sm:px-6 max-w-6xl mx-auto">
+    <section id="pricing" class="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         <div class="text-center max-w-2xl mx-auto mb-14">
-            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">باقات شفافة وبسيطة</span>
+            <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider">باقات واضحة وبسيطة</span>
             <h2 class="text-2xl sm:text-4xl font-bold text-slate-900 mt-2 tracking-tight">
-                اختر الخطة المناسبة لحجم مطاعمك
+                اختر الخطة المناسبة لحجم ونشاط مطاعمك
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-2">
                 جميع الباقات تتضمن فترة تجريبية مجانية لمدة 14 يوماً بدون الحاجة لبطاقة ائتمان.
@@ -354,10 +470,10 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             
             {% for plan in plans %}
-            <div class="bg-white rounded-3xl p-7 border {% if plan.is_popular %}border-2 border-violet-600 shadow-md relative{% else %}border-slate-200 shadow-xs{% endif %} flex flex-col justify-between">
+            <div class="bg-white rounded-2xl p-7 border {% if plan.is_popular %}border-2 border-violet-600 shadow-sm relative{% else %}border-slate-200/80 shadow-xs{% endif %} flex flex-col justify-between">
                 
                 {% if plan.is_popular %}
-                <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-semibold uppercase tracking-wider">
                     الأكثر طلباً
                 </span>
                 {% endif %}
@@ -367,25 +483,25 @@
                     <p class="text-xs text-slate-500 mt-1 min-h-[32px]">{{ plan.description }}</p>
 
                     <div class="my-5 pb-5 border-b border-slate-100">
-                        <div class="text-3xl font-bold text-slate-900">
+                        <div class="text-3xl font-bold text-slate-900 font-mono">
                             {{ plan.price_monthly|floatformat:0 }}
-                            <span class="text-xs font-bold text-slate-500">ر.س / شهرياً</span>
+                            <span class="text-xs font-semibold text-slate-500 font-sans">ر.س / شهرياً</span>
                         </div>
-                        <span class="text-[11px] text-blue-600 font-semibold block mt-1">أو {{ plan.price_yearly|floatformat:0 }} ر.س / سنوياً (خصم 20%)</span>
+                        <span class="text-[11px] text-violet-600 font-semibold block mt-1">أو {{ plan.price_yearly|floatformat:0 }} ر.س / سنوياً (خصم 20%)</span>
                     </div>
 
                     <!-- Quotas -->
                     <div class="space-y-2 text-xs font-semibold text-slate-700 mb-6">
                         <div class="flex items-center gap-2">
-                            <span class="text-blue-600 font-bold">✓</span>
+                            <span class="text-violet-600 font-bold">✓</span>
                             <span>الفروع المتاحة: <strong>{% if plan.max_branches >= 999 %}غير محدودة{% else %}{{ plan.max_branches }} فروع{% endif %}</strong></span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-blue-600 font-bold">✓</span>
+                            <span class="text-violet-600 font-bold">✓</span>
                             <span>كادر الموظفين: <strong>{% if plan.max_employees >= 999 %}غير محدود{% else %}{{ plan.max_employees }} موظف{% endif %}</strong></span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-blue-600 font-bold">✓</span>
+                            <span class="text-violet-600 font-bold">✓</span>
                             <span>شاشات المطبخ KDS الحية</span>
                         </div>
                         {% if plan.features.ai_phone_agent or plan.features.ai_call_center %}
@@ -395,72 +511,72 @@
                         </div>
                         {% endif %}
                         <div class="flex items-center gap-2">
-                            <span class="text-blue-600 font-bold">✓</span>
+                            <span class="text-violet-600 font-bold">✓</span>
                             <span>الفواتير الإلكترونية المعتمدة ZATCA</span>
                         </div>
                     </div>
                 </div>
 
-                <a href="{% url 'register' %}?plan={{ plan.code }}" class="w-full py-3 rounded-xl {% if plan.is_popular %}bg-violet-600 hover:bg-violet-700 text-white font-medium{% else %}bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200{% endif %} text-xs font-bold transition text-center block shadow-xs active:scale-95">
+                <a href="{% url 'register' %}?plan={{ plan.code }}" class="w-full py-3 rounded-xl {% if plan.is_popular %}bg-violet-600 hover:bg-violet-700 text-white font-medium{% else %}bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200/80{% endif %} text-xs font-semibold transition text-center block shadow-xs active:scale-95">
                     ابدأ تجربة {{ plan.name }} مجاناً
                 </a>
 
             </div>
             {% empty %}
             <!-- Fallback Static Cards if plans not populated in DB -->
-            <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-xs flex flex-col justify-between">
+            <div class="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between">
                 <div>
                     <h3 class="text-xl font-bold text-slate-900">باقة البداية</h3>
                     <p class="text-xs text-slate-500 mt-1">مثالية للمطاعم الفردية والكافيهات</p>
                     <div class="my-5 pb-5 border-b border-slate-100">
-                        <div class="text-3xl font-bold text-slate-900">299 <span class="text-xs font-bold text-slate-500">ر.س / شهرياً</span></div>
+                        <div class="text-3xl font-bold text-slate-900 font-mono">299 <span class="text-xs font-semibold text-slate-500 font-sans">ر.س / شهرياً</span></div>
                     </div>
                     <div class="space-y-2 text-xs font-semibold text-slate-700 mb-6">
-                        <div>✓ فرع واحد</div>
-                        <div>✓ كاشير POS وشاشة مطبخ</div>
-                        <div>✓ فواتير إلكترونية QR</div>
+                        <div>✓ فرع واحد نشط</div>
+                        <div>✓ كاشير POS وشاشة مطبخ KDS</div>
+                        <div>✓ فواتير إلكترونية QR معتمدة</div>
                     </div>
                 </div>
-                <a href="{% url 'register' %}?plan=starter" class="w-full py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold transition text-center block">
+                <a href="{% url 'register' %}?plan=starter" class="w-full py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200/80 text-xs font-semibold transition text-center block shadow-xs">
                     ابدأ التجربة المجانية
                 </a>
             </div>
 
-            <div class="bg-white rounded-3xl p-7 border-2 border-violet-600 shadow-md relative flex flex-col justify-between">
-                <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-bold uppercase tracking-wider">
+            <div class="bg-white rounded-2xl p-7 border-2 border-violet-600 shadow-sm relative flex flex-col justify-between">
+                <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-semibold uppercase tracking-wider">
                     الأكثر طلباً
                 </span>
                 <div>
                     <h3 class="text-xl font-bold text-slate-900">باقة النمو</h3>
                     <p class="text-xs text-slate-500 mt-1">للمطاعم المتنامية وسلاسل الفروع</p>
                     <div class="my-5 pb-5 border-b border-slate-100">
-                        <div class="text-3xl font-bold text-slate-900">599 <span class="text-xs font-bold text-slate-500">ر.س / شهرياً</span></div>
+                        <div class="text-3xl font-bold text-slate-900 font-mono">599 <span class="text-xs font-semibold text-slate-500 font-sans">ر.س / شهرياً</span></div>
                     </div>
                     <div class="space-y-2 text-xs font-semibold text-slate-700 mb-6">
                         <div>✓ حتى 5 فروع متزامنة</div>
-                        <div>✓ كول سنتر الذكاء الاصطناعي (LiveKit AI)</div>
+                        <div>✓ كول سنتر الذكاء الاصطناعي (AI Phone)</div>
                         <div>✓ جرد المستودعات وتنبيهات النواقص</div>
                     </div>
                 </div>
-                <a href="{% url 'register' %}?plan=growth" class="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition text-center block shadow-xs">
+                <a href="{% url 'register' %}?plan=growth" class="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs transition text-center block shadow-xs">
                     ابدأ التجربة المجانية
                 </a>
             </div>
 
-            <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-xs flex flex-col justify-between">
+            <div class="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between">
                 <div>
                     <h3 class="text-xl font-bold text-slate-900">باقة السلاسل (Enterprise)</h3>
                     <p class="text-xs text-slate-500 mt-1">لسلاسل الضيافة الكبرى وحسابات الامتياز</p>
                     <div class="my-5 pb-5 border-b border-slate-100">
-                        <div class="text-3xl font-bold text-slate-900">1,299 <span class="text-xs font-bold text-slate-500">ر.س / شهرياً</span></div>
+                        <div class="text-3xl font-bold text-slate-900 font-mono">1,299 <span class="text-xs font-semibold text-slate-500 font-sans">ر.س / شهرياً</span></div>
                     </div>
                     <div class="space-y-2 text-xs font-semibold text-slate-700 mb-6">
-                        <div>✓ فروع غير محدودة</div>
+                        <div>✓ فروع ومحطات غير محدودة</div>
                         <div>✓ خوادم مستقلة وربط مخصص FastMCP</div>
                         <div>✓ مدير حساب واستشارات تشغيلية 24/7</div>
                     </div>
                 </div>
-                <a href="{% url 'register' %}?plan=enterprise" class="w-full py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold transition text-center block">
+                <a href="{% url 'register' %}?plan=enterprise" class="w-full py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200/80 text-xs font-semibold transition text-center block shadow-xs">
                     ابدأ التجربة المجانية
                 </a>
             </div>
@@ -472,41 +588,41 @@
     <!-- ======================================================== -->
     <!-- 6. FREQUENTLY ASKED QUESTIONS (FAQ)                      -->
     <!-- ======================================================== -->
-    <section id="faq" class="py-16 bg-white border-t border-slate-200 px-4 sm:px-6">
+    <section id="faq" class="py-16 bg-white border-t border-slate-200/80 px-4 sm:px-6 lg:px-8">
         <div class="max-w-3xl mx-auto">
             <div class="text-center mb-10">
-                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">كل ما تحتاج معرفته</span>
+                <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider">إجابات واضحة</span>
                 <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 tracking-tight">الأسئلة الشائعة</h2>
             </div>
 
             <div class="space-y-3">
-                <details class="group rounded-2xl bg-slate-50 border border-slate-200 p-4 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
+                <details class="group rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-4 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
                     <summary class="flex items-center justify-between font-bold text-sm text-slate-900">
                         <span>هل أحتاج لشراء أجهزة كاشير مخصصة ومكلفة للبدء؟</span>
-                        <span class="text-blue-600 transition group-open:rotate-180">↓</span>
+                        <span class="text-violet-600 transition group-open:rotate-180">↓</span>
                     </summary>
                     <p class="mt-2 text-xs text-slate-600 leading-relaxed">
-                        لا، تعمل منصة كورا بالكامل سحابياً من خلال أي متصفح ويب على أجهزة الآيباد، التابلت، أجهزة الكمبيوتر المحمولة، أو شاشات نقاط البيع اللمسية الحالية لديك دون الحاجة لأجهزة مخصصة.
+                        لا، تعمل منصة «مطاعم» بالكامل سحابياً من خلال أي متصفح ويب على أجهزة الآيباد، التابلت، أجهزة الكمبيوتر المحمولة، أو شاشات نقاط البيع اللمسية الحالية لديك دون الحاجة لأجهزة مخصصة.
                     </p>
                 </details>
 
-                <details class="group rounded-2xl bg-slate-50 border border-slate-200 p-4 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
+                <details class="group rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-4 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
                     <summary class="flex items-center justify-between font-bold text-sm text-slate-900">
                         <span>كيف يعمل كول سنتر الذكاء الاصطناعي في استقبال الطلبات؟</span>
-                        <span class="text-blue-600 transition group-open:rotate-180">↓</span>
+                        <span class="text-violet-600 transition group-open:rotate-180">↓</span>
                     </summary>
                     <p class="mt-2 text-xs text-slate-600 leading-relaxed">
                         يتصل النظام برقم هاتف مطعمك ويستقبل المكالمات الصوتية بصوت طبيعي للغاية يفهم اللهجات العربية بدقة، يسأل العميل عن طلبه وعنوانه، ثم يقوم آلياً بتسجيل الطلب في شاشة المطبخ (KDS) وإرسال إشعار للكاشير فوراً.
                     </p>
                 </details>
 
-                <details class="group rounded-2xl bg-slate-50 border border-slate-200 p-4 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
+                <details class="group rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-4 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
                     <summary class="flex items-center justify-between font-bold text-sm text-slate-900">
                         <span>هل يمكنني تحديد أسعار مختلفة لنفس الطبق بين الفروع؟</span>
-                        <span class="text-blue-600 transition group-open:rotate-180">↓</span>
+                        <span class="text-violet-600 transition group-open:rotate-180">↓</span>
                     </summary>
                     <p class="mt-2 text-xs text-slate-600 leading-relaxed">
-                        نعم بكل تأكيد، تتيح كورا ميزة "تسعير الفرع المستقل" حيث يمكنك ضبط سعر خاص لكل صنف وحجم حسب تكلفة وتشغيل كل فرع، مع بقاء إدارة المنيو والصور مركزية وموحدة.
+                        نعم بكل تأكيد، تتيح منصة «مطاعم» ميزة "تسعير الفرع المستقل" حيث يمكنك ضبط سعر خاص لكل صنف وحجم حسب تكلفة وتشغيل كل فرع، مع بقاء إدارة المنيو والصور مركزية وموحدة.
                     </p>
                 </details>
             </div>
@@ -514,21 +630,21 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- 7. FINAL CONVERSION BANNER                               -->
+    <!-- 7. FINAL CONVERSION BANNER (Enterprise Dark Slate)       -->
     <!-- ======================================================== -->
-    <section class="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
-        <div class="bg-slate-900 rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden shadow-xl">
+    <section class="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+        <div class="bg-[#0F172A] rounded-2xl p-8 sm:p-12 text-center text-white relative overflow-hidden shadow-xl border border-slate-800">
             <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-violet-600/20 blur-3xl pointer-events-none"></div>
 
             <div class="relative z-10 max-w-2xl mx-auto space-y-4">
                 <h2 class="text-2xl sm:text-4xl font-bold tracking-tight">
-                    جاهز لنقل تشغيل مطعمك وسلسلة فروعك للمستقبل؟
+                    جاهز لنقل تشغيل مطاعمك وسلسلة فروعك إلى المستقبل؟
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-400">
-                    انضم الآن للمطاعم التي تعتمد على كورا يومياً لتحسين سرعة المطبخ ورفع كفاءة المبيعات.
+                    انضم الآن للمطاعم التي تعتمد على «مطاعم» يومياً لرفع سرعة المطبخ وزيادة أرباح الفروع بدون تعقيد.
                 </p>
                 <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <a href="{% url 'register' %}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer">
+                    <a href="{% url 'register' %}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs sm:text-sm transition shadow-xs active:scale-95 cursor-pointer">
                         سجل مطعمك وابدأ التجربة المجانية 14 يوماً ←
                     </a>
                 </div>
@@ -539,17 +655,17 @@
     <!-- ======================================================== -->
     <!-- 8. MINIMALIST FOOTER                                     -->
     <!-- ======================================================== -->
-    <footer class="border-t border-slate-200 py-8 px-4 sm:px-6 bg-white text-xs text-slate-500">
+    <footer class="border-t border-slate-200/80 py-8 px-4 sm:px-6 lg:px-8 bg-white text-xs text-slate-500">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
                 <img src="{% static 'img/motaem_symbol_trans.png' %}" alt="Logo" class="h-6 w-auto" />
                 <span class="font-bold text-slate-900">{{ t.brand_name|default:"مطاعم" }}</span>
-                <span>— سحابة تشغيل سلاسل المطاعم</span>
+                <span>— سحابة تشغيل سلاسل المطاعم الحديثة</span>
             </div>
             <div class="flex items-center gap-4">
                 <span class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                    جميع الأنظمة التشغيلية تعمل بكفاءة 100%
+                    كافة الخدمات السحابية تعمل بكفاءة 100%
                 </span>
                 <span>© 2026 جميع الحقوق محفوظة</span>
             </div>
