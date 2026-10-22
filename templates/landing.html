@@ -32,8 +32,8 @@
                 <a href="#faq" class="hover:text-violet-600 transition">الأسئلة الشائعة</a>
             </nav>
 
-            <!-- Actions (Language Switcher, Login, Register CTA) -->
-            <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Actions (Desktop: Full Actions) -->
+            <div class="hidden md:flex items-center gap-2 sm:gap-3">
                 <!-- Language Switcher -->
                 {% if CURRENT_LANG == 'en' %}
                 <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
@@ -57,11 +57,57 @@
                 </a>
 
                 <!-- Start Free CTA -->
-                <a href="{% url 'register' %}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs sm:text-sm transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                <a href="{% url 'register' %}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs sm:text-sm transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer whitespace-nowrap">
                     <span>{% if CURRENT_LANG == 'en' %}Start Free 14 Days{% else %}ابدأ مجاناً 14 يوماً{% endif %}</span>
                     <svg class="w-4 h-4 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
             </div>
+
+            <!-- Mobile Quick Actions (< md) -->
+            <div class="flex md:hidden items-center gap-2">
+                <a href="{% url 'register' %}" class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition shadow-xs whitespace-nowrap active:scale-95 cursor-pointer">
+                    ابدأ مجاناً
+                </a>
+                <button 
+                    type="button" 
+                    id="mobile-nav-toggle" 
+                    onclick="toggleMobileNav()" 
+                    class="p-1.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer" 
+                    aria-label="القائمة"
+                >
+                    <svg id="mobile-menu-icon" class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                    <svg id="mobile-close-icon" class="w-5 h-5 text-slate-800 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Mobile Dropdown Drawer -->
+        <div id="mobile-nav-drawer" class="hidden md:hidden border-t border-slate-200/80 bg-white/98 backdrop-blur-md px-4 py-4 space-y-3 transition-all">
+            <nav class="flex flex-col space-y-1 text-xs font-bold text-slate-700">
+                <a href="#features" onclick="toggleMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-violet-600 transition">{{ t.features|default:"المميزات التشغيلية" }}</a>
+                <a href="#pos-kds" onclick="toggleMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-violet-600 transition">الكاشير والمطبخ</a>
+                <a href="#ai-phone" onclick="toggleMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-violet-600 transition">كول سنتر AI</a>
+                <a href="#pricing" onclick="toggleMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-violet-600 transition">{{ t.pricing|default:"باقات الاشتراك" }}</a>
+                <a href="#faq" onclick="toggleMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-violet-600 transition">الأسئلة الشائعة</a>
+            </nav>
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'login' %}" class="flex-1 text-center py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-900 transition">
+                    {% if CURRENT_LANG == 'en' %}Sign In{% else %}تسجيل الدخول{% endif %}
+                </a>
+                {% if CURRENT_LANG == 'en' %}
+                <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
+                   class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-1.5 shrink-0">
+                    <span>🌐 عربي</span>
+                </a>
+                {% else %}
+                <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
+                   class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-1.5 shrink-0">
+                    <span>🌐 EN</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
 
         </div>
     </header>
@@ -457,4 +503,23 @@
     </footer>
 
 </div>
+
+<script>
+    function toggleMobileNav() {
+        const drawer = document.getElementById('mobile-nav-drawer');
+        const menuIcon = document.getElementById('mobile-menu-icon');
+        const closeIcon = document.getElementById('mobile-close-icon');
+        if (!drawer) return;
+        const isHidden = drawer.classList.contains('hidden');
+        if (isHidden) {
+            drawer.classList.remove('hidden');
+            if (menuIcon) menuIcon.classList.add('hidden');
+            if (closeIcon) closeIcon.classList.remove('hidden');
+        } else {
+            drawer.classList.add('hidden');
+            if (menuIcon) menuIcon.classList.remove('hidden');
+            if (closeIcon) closeIcon.classList.add('hidden');
+        }
+    }
+</script>
 {% endblock %}

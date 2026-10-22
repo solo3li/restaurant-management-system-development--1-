@@ -1092,7 +1092,10 @@ def branch_orders_view(request):
     orders = orders_base.select_related("branch", "customer", "driver").prefetch_related("items__menu_item").order_by("-created_at", "-id")
 
     if status_filter != "all" and status_filter:
-        orders = orders.filter(status=status_filter)
+        if status_filter == "pending":
+            orders = orders.filter(status__in=["new", "preparing", "ready", "out_for_delivery"])
+        else:
+            orders = orders.filter(status=status_filter)
 
     if type_filter != "all" and type_filter:
         orders = orders.filter(order_type=type_filter)
@@ -1210,7 +1213,10 @@ def hq_orders_view(request):
         orders = orders.filter(branch_id=branch_filter)
 
     if status_filter != "all" and status_filter:
-        orders = orders.filter(status=status_filter)
+        if status_filter == "pending":
+            orders = orders.filter(status__in=["new", "preparing", "ready", "out_for_delivery"])
+        else:
+            orders = orders.filter(status=status_filter)
 
     if type_filter != "all" and type_filter:
         orders = orders.filter(order_type=type_filter)
