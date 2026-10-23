@@ -27,8 +27,9 @@ from django.conf import settings
 if not settings.configured:
     django.setup()
 
-from django.db import models, transaction, IntegrityError
+from django.db import models, transaction, IntegrityError, close_old_connections
 from django.utils import timezone
+from django.core.cache import cache
 from fastmcp import FastMCP
 import contextvars
 from urllib.parse import parse_qs
@@ -37,14 +38,34 @@ from pydantic import BaseModel, Field
 
 
 class OrderItemInput(BaseModel):
-    """عنصر مطلوب من قائمة الطعام مع الكمية"""
-    name: str = Field(description="اسم الصنف المطلوب كما في المنيو (مثال: شاي كرك، مندي لحم، كبسة دجاج)")
+    """عنصر مطلوب من قائمة الطعام مع الكمية والحجم والملاحظات"""
+    name: str = Field(description="اسم الصنف المطلوب كما في المنيو (مثال: شاي كرك، برجر دجاج، بيتزا خضار)")
     quantity: int = Field(default=1, ge=1, description="الكمية المطلوبة (افتراضياً 1)")
+    variant: Optional[str] = Field(default=None, description="الحجم أو الخيار المطلوب للصنف إن وجد (مثال: 'صغير', 'وسط', 'كبير', 'دبل', 'عائلي')")
+    notes: Optional[str] = Field(default=None, description="ملاحظات خاصة بالصنف (مثال: بدون بصل، زيادة صوص)")
 
 
 _current_session_key: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("_current_session_key", default=None)
-SESSION_ACCESS_KEYS: dict[str, str] = {}
-KEY_LATEST_SESSION: dict[str, str] = {}
+
+# Multi-worker Persistent Session Storage via Django Cache (Replaces unbounded in-memory dicts)
+def _get_cached_session_key(sid: Optional[str]) -> Optional[str]:
+    if not sid:
+        return None
+    return cache.get(f"mcp_session:{str(sid).strip().lower()}")
+
+
+def _set_cached_session_key(sid: Optional[str], key: Optional[str], timeout: int = 86400):
+    if sid and key:
+        clean_sid = str(sid).strip().lower()
+        clean_key = str(key).strip()
+        cache.set(f"mcp_session:{clean_sid}", clean_key, timeout=timeout)
+        cache.set(f"mcp_key_latest:{clean_key}", clean_sid, timeout=timeout)
+
+
+def _get_latest_session_for_key(key: Optional[str]) -> Optional[str]:
+    if not key:
+        return None
+    return cache.get(f"mcp_key_latest:{str(key).strip()}")
 
 # Initialize FastMCP Server
 mcp = FastMCP(
@@ -105,16 +126,13 @@ class FastMCPAuthMiddleware:
                 key = self._extract_key(scope)
                 raw_session_id = self._extract_header(scope, "mcp-session-id")
 
-                # If session ID was provided and valid in cache, retrieve key
-                if not key and raw_session_id and raw_session_id in SESSION_ACCESS_KEYS:
-                    key = SESSION_ACCESS_KEYS[raw_session_id]
+                # If session ID was provided and valid in persistent cache, retrieve key
+                if not key and raw_session_id:
+                    key = _get_cached_session_key(raw_session_id)
 
                 # Fallback to key associated with latest active session
                 if not key and raw_session_id:
-                    for k, sid in list(KEY_LATEST_SESSION.items()):
-                        if sid == raw_session_id:
-                            key = k
-                            break
+                    key = _get_cached_session_key(raw_session_id)
 
                 if not key:
                     await self._reject(send, 401, "مفتاح الدخول (Access Key) مطلوب. مرره في ?access_key=... أو عبر Headers.")
@@ -139,7 +157,7 @@ class FastMCPAuthMiddleware:
                     cleaned_headers.append((b"accept", b"application/json, text/event-stream"))
 
                 # For GET requests (listening to stream): auto-inject session ID if known
-                active_sid = KEY_LATEST_SESSION.get(key)
+                active_sid = _get_latest_session_for_key(key)
                 has_valid_sid = any(k.lower() == b"mcp-session-id" and v.strip() for k, v in cleaned_headers)
                 if method == "GET" and not has_valid_sid and active_sid:
                     cleaned_headers.append((b"mcp-session-id", active_sid.encode("latin1")))
@@ -157,8 +175,7 @@ class FastMCPAuthMiddleware:
                             if h_name_b.lower() == b"mcp-session-id":
                                 new_sid = h_val_b.decode("latin1").strip()
                                 if new_sid:
-                                    SESSION_ACCESS_KEYS[new_sid] = key
-                                    KEY_LATEST_SESSION[key] = new_sid
+                                    _set_cached_session_key(new_sid, key)
 
                         # Append CORS and Expose-Headers so clients in Electron/Web can read mcp-session-id
                         res_headers.extend([
@@ -258,13 +275,13 @@ class SSEAuthMiddleware:
                 if key:
                     key = key.strip()
 
-            # 3. For POST /messages: if key not passed directly, lookup by session_id in dynamic session table
+            # 3. For POST /messages: if key not passed directly, lookup by session_id in persistent cache
             sid = qs.get("session_id", [None])[0]
             if sid:
                 sid = sid.strip().lower()
 
-            if not key and sid and sid in SESSION_ACCESS_KEYS:
-                key = SESSION_ACCESS_KEYS[sid]
+            if not key and sid:
+                key = _get_cached_session_key(sid)
 
             # 4. Handle GET /sse connection (Opening SSE stream)
             if path.startswith("/sse") or path.endswith("/sse"):
@@ -287,7 +304,7 @@ class SSEAuthMiddleware:
                     await send({"type": "http.response.body", "body": "مفتاح الدخول غير صالح أو ملغي".encode("utf-8")})
                     return
 
-                # Intercept outgoing SSE chunks to capture session_id and rewrite endpoint URL
+                # Intercept outgoing SSE chunks to capture session_id and bind to tenant API key
                 captured_sid = None
 
                 async def intercept_sse_send(message):
@@ -300,15 +317,7 @@ class SSEAuthMiddleware:
                                 m = re.search(r"session_id=([0-9a-fA-F]+)", text)
                                 if m:
                                     captured_sid = m.group(1).lower()
-                                    # Dynamically bind session_id to this tenant's API key
-                                    SESSION_ACCESS_KEYS[captured_sid] = key
-                                    # Rewrite endpoint line to include &access_key=key so standard clients preserve it
-                                    if "access_key=" not in text:
-                                        new_text = re.sub(r"(data: [^\r\n]+)", r"\1&access_key=" + key, text)
-                                        new_msg = dict(message)
-                                        new_msg["body"] = new_text.encode("utf-8")
-                                        await send(new_msg)
-                                        return
+                                    _set_cached_session_key(captured_sid, key)
                             except Exception:
                                 pass
                     await send(message)
@@ -382,6 +391,9 @@ def get_mcp_asgi_app():
         elif path.startswith("/mcp/sse") or path.startswith("/mcp/messages"):
             new_scope = dict(scope)
             new_scope["path"] = path[4:]  # strip '/mcp'
+            raw_p = scope.get("raw_path", b"")
+            if raw_p.startswith(b"/mcp"):
+                new_scope["raw_path"] = raw_p[4:]
             await sse_app(new_scope, receive, send)
         elif path.startswith("/mcp"):
             await mcp_app(scope, receive, send)
@@ -393,7 +405,8 @@ def get_mcp_asgi_app():
 
 
 def _authenticate(access_key: Optional[str] = None):
-    """Validate access key (from parameter, session context, or RESTAURANT_ACCESS_KEY env) and check tenant subscription status."""
+    """Validate access key (from parameter, session context, or env) and check tenant subscription status."""
+    close_old_connections()
     key = str(access_key or "").strip()
     if not key:
         key = _current_session_key.get() or ""
@@ -401,7 +414,7 @@ def _authenticate(access_key: Optional[str] = None):
         key = os.environ.get("RESTAURANT_ACCESS_KEY", "").strip()
 
     if not key:
-        raise ValueError("مفتاح الدخول (Access Key) مطلوب. مرره كمعامل access_key أو في رابط الاتصال ?access_key=...")
+        raise ValueError("مفتاح الدخول (Access Key) مطلوب. مرره عبر ترويسات الطلب أو أثناء فتح الجلسة.")
 
     from core.models import TenantApiKey
     key_obj = TenantApiKey.objects.select_related("tenant", "assigned_branch", "tenant__subscription_plan").filter(
@@ -419,18 +432,14 @@ def _authenticate(access_key: Optional[str] = None):
     if tenant.subscription_status in ["expired", "canceled"] or tenant.is_subscription_expired():
         raise ValueError(f"اشتراك منشأة «{tenant.name}» منتهي أو ملغي. يرجى تجديد الاشتراك أولاً.")
 
-
     return key_obj, tenant
 
 
 
 @mcp.tool
-def get_branches(access_key: Optional[str] = None) -> Dict[str, Any]:
+def get_branches(branch_id: Optional[int] = None, access_key: Optional[str] = None) -> Dict[str, Any]:
     """
-    جلب قائمة الفروع المتاحة للمنشأة المرتبطة بمفتاح الـ API.
-    
-    Args:
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
+    جلب قائمة الفروع المتاحة للمنشأة المرتبطة بمفتاح الـ API مع معلومات العملة والضريبة والتغطية.
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Branch
@@ -448,11 +457,17 @@ def get_branches(access_key: Optional[str] = None) -> Dict[str, Any]:
             "city": b.city,
             "address": b.address,
             "phone": b.phone,
+            "currency": b.currency,
+            "currency_name": b.get_currency_name_ar(),
+            "currency_symbol": b.get_currency_symbol_ar(),
+            "tax_percentage": float(b.tax_percentage),
+            "is_tax_inclusive": bool(b.is_tax_inclusive),
             "delivery_radius_km": float(b.delivery_radius_km),
             "delivery_areas_count": areas_count,
         })
 
     key_obj.record_usage(placed_order=False)
+    close_old_connections()
     return {
         "ok": True,
         "tenant_name": tenant.name,
@@ -606,13 +621,66 @@ def _parse_natural_order_text(text: str, tenant=None, branch=None) -> List[Dict[
     return items
 
 
-def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> tuple[Optional[Any], Optional[str]]:
+def _resolve_item_variant(item, branch, item_spec: dict, raw_name: str) -> tuple[Optional[Any], Optional[Dict[str, Any]]]:
     """
-    محرك بحث ومطابقة ذكي وشامل للأصناف (Smart Resilient Item Resolver):
+    فحص ومطابقة أحجام وخيارات الصنف (MenuItemVariant):
+    إذا كان للصنف أحجام ولم يحدد العميل الحجم المطلوب، يُرجع دليلاً للذكاء الاصطناعي لسؤال العميل مع توضيح الأسعار.
+    """
+    if not getattr(item, "has_variants", False) or not item.variants.exists():
+        return None, None
+
+    variants = list(item.variants.all())
+    if not variants:
+        return None, None
+
+    req_var = str(item_spec.get("variant") or item_spec.get("size") or "").strip()
+    norm_req = _normalize_arabic_text(req_var) if req_var else ""
+    norm_name = _normalize_arabic_text(raw_name)
+
+    matched_var = None
+    if norm_req:
+        for v in variants:
+            nv = _normalize_arabic_text(v.name)
+            if nv == norm_req or nv in norm_req or norm_req in nv:
+                matched_var = v
+                break
+
+    if not matched_var and norm_name:
+        for v in variants:
+            nv = _normalize_arabic_text(v.name)
+            if nv in norm_name:
+                matched_var = v
+                break
+
+    if matched_var:
+        return matched_var, None
+
+    # إذا لم يحدد العميل الحجم المطلوب للصنف متعدد الأحجام، نطلب منه التحديد مع ذكر الأسعار
+    cur_sym = branch.get_currency_symbol_ar() if branch else "ر.س"
+    variants_summary = "، ".join([f"«{v.name}» ({v.get_price_for_branch(branch):.0f} {cur_sym})" for v in variants])
+    return None, {
+        "ok": False,
+        "is_system_error": False,
+        "status": "variant_selection_required",
+        "item_id": item.id,
+        "item_name": item.name,
+        "available_variants": [
+            {"id": v.id, "name": v.name, "price": float(v.get_price_for_branch(branch))}
+            for v in variants
+        ],
+        "ai_speech_response": f"يا فندم صنف «{item.name}» متاح منه خيارات وأحجام: {variants_summary}. تحب نختار لحضرتك أي حجم؟",
+        "instruction_for_ai": f"لا تسجل الطلب الآن! اسأل العميل بلطف عن الحجم المطلوب لصنف «{item.name}» من بين الخيارات المتاحة ({variants_summary}) كما في ai_speech_response واقترح عليه الخيارات ولا تقل إن هناك عطلاً بالسيستم."
+    }
+
+
+def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> tuple[Optional[Any], Optional[Any], Optional[Union[str, Dict[str, Any]]]]:
+    """
+    محرك بحث ومطابقة ذكي وشامل للأصناف والأحجام (Smart Resilient Item & Variant Resolver):
     1. التحقق بواسطة item_id أو id المباشر.
     2. التحقق الدقيق بواسطة الاسم وقاموس مرادفات اللهجات (فراخ -> دجاج، لحمة -> لحم).
     3. التحقق بتطابق الكلمات والكلمات الجزئية.
     4. فحص توفر الصنف في الفرع الحالي.
+    5. مطابقة الحجم والخيارات (Variant) واسترجاع توجيه للـ AI إن لم يُحدد الحجم.
     """
     from core.models import MenuItem
 
@@ -638,63 +706,78 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> t
             m_id = int(raw_id)
             item = MenuItem.objects.filter(tenant=tenant, id=m_id, available=True).first()
             if not item:
-                return None, f"الصنف برقم #{m_id} غير موجود في قائمة طعام المنشأة."
+                return None, None, f"الصنف برقم #{m_id} غير موجود في قائمة طعام المنشأة."
             if item.id in disabled_item_ids:
-                return None, f"الصنف «{item.name}» (رقم #{item.id}) غير متوفر حالياً في فرع «{branch.name}»."
-            return item, None
+                return None, None, f"الصنف «{item.name}» (رقم #{item.id}) غير متوفر حالياً في فرع «{branch.name}»."
+            v_obj, v_err = _resolve_item_variant(item, branch, item_spec, raw_name)
+            if v_err:
+                return item, None, v_err
+            return item, v_obj, None
         except (ValueError, TypeError):
             pass
 
     # 2. البحث بالاسم
     if not raw_name:
-        return None, "يجب تحديد رقم الصنف (item_id) أو اسمه (name) في عناصر الطلب."
+        return None, None, "يجب تحديد رقم الصنف (item_id) أو اسمه (name) في عناصر الطلب."
 
     all_tenant_items = list(MenuItem.objects.filter(tenant=tenant, available=True))
     norm_query = _normalize_arabic_text(raw_name)
     canon_query = _canonical_food_name(raw_name)
 
+    matched_item = None
+
     # 2.1 المطابقة بعد تطبيق قاموس المرادفات
     for m in all_tenant_items:
         if _canonical_food_name(m.name) == canon_query:
             if m.id in disabled_item_ids:
-                return None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
-            return m, None
+                return None, None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
+            matched_item = m
+            break
 
     # 2.2 المطابقة التامة بعد التسوية العادية
-    for m in all_tenant_items:
-        if _normalize_arabic_text(m.name) == norm_query:
-            if m.id in disabled_item_ids:
-                return None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
-            return m, None
+    if not matched_item:
+        for m in all_tenant_items:
+            if _normalize_arabic_text(m.name) == norm_query:
+                if m.id in disabled_item_ids:
+                    return None, None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
+                matched_item = m
+                break
 
     # 2.3 المطابقة بمجموعة الكلمات الأساسية
-    q_tokens = set(canon_query.split())
-    if q_tokens:
-        token_matches = [m for m in all_tenant_items if q_tokens.issubset(set(_canonical_food_name(m.name).split()))]
-        if len(token_matches) == 1:
-            matched = token_matches[0]
-            if matched.id in disabled_item_ids:
-                return None, f"الصنف «{matched.name}» غير متوفر حالياً في فرع «{branch.name}»."
-            return matched, None
-        elif len(token_matches) > 1:
-            matching_names = " أو ".join([f"«{m.name}» (رقم #{m.id})" for m in token_matches[:4]])
-            return None, f"اسم الصنف «{raw_name}» غير محدد بدقة ويطابق أكثر من صنف: ({matching_names}). يرجى تحديد الاسم بالكامل أو استخدام رقم الصنف."
+    if not matched_item:
+        q_tokens = set(canon_query.split())
+        if q_tokens:
+            token_matches = [m for m in all_tenant_items if q_tokens.issubset(set(_canonical_food_name(m.name).split()))]
+            if len(token_matches) == 1:
+                matched_item = token_matches[0]
+                if matched_item.id in disabled_item_ids:
+                    return None, None, f"الصنف «{matched_item.name}» غير متوفر حالياً في فرع «{branch.name}»."
+            elif len(token_matches) > 1:
+                matching_names = " أو ".join([f"«{m.name}» (رقم #{m.id})" for m in token_matches[:4]])
+                return None, None, f"اسم الصنف «{raw_name}» غير محدد بدقة ويطابق أكثر من صنف: ({matching_names}). يرجى تحديد الاسم بالكامل أو استخدام رقم الصنف."
 
     # 2.4 مطابقة الاحتواء الجزئي
-    contains_matches = [
-        m for m in all_tenant_items
-        if (canon_query in _canonical_food_name(m.name) or _canonical_food_name(m.name) in canon_query)
-    ]
-    if len(contains_matches) == 1:
-        matched = contains_matches[0]
-        if matched.id in disabled_item_ids:
-            return None, f"الصنف «{matched.name}» غير متوفر حالياً في فرع «{branch.name}»."
-        return matched, None
+    if not matched_item:
+        contains_matches = [
+            m for m in all_tenant_items
+            if (canon_query in _canonical_food_name(m.name) or _canonical_food_name(m.name) in canon_query)
+        ]
+        if len(contains_matches) == 1:
+            matched_item = contains_matches[0]
+            if matched_item.id in disabled_item_ids:
+                return None, None, f"الصنف «{matched_item.name}» غير متوفر حالياً في فرع «{branch.name}»."
 
     # 2.5 في حال عدم العثور عليه
-    available_branch_items = [m.name for m in all_tenant_items if m.id not in disabled_item_ids][:5]
-    suggest_str = "، ".join(available_branch_items)
-    return None, f"الصنف «{raw_name}» غير موجود في قائمة طعام المطعم. من الأصناف المتوفرة: {suggest_str}."
+    if not matched_item:
+        available_branch_items = [m.name for m in all_tenant_items if m.id not in disabled_item_ids][:5]
+        suggest_str = "، ".join(available_branch_items)
+        return None, None, f"الصنف «{raw_name}» غير موجود في قائمة طعام المطعم. من الأصناف المتوفرة: {suggest_str}."
+
+    # 2.6 مطابقة الحجم والخيارات (Variant)
+    v_obj, v_err = _resolve_item_variant(matched_item, branch, item_spec, raw_name)
+    if v_err:
+        return matched_item, None, v_err
+    return matched_item, v_obj, None
 
 
 def _validate_delivery_address_completeness(
@@ -989,24 +1072,27 @@ def _resolve_delivery_coverage_and_branch(
             "instruction_for_ai": "أبلغ العميل بلطف أن الفروع مغلقة حالياً."
         }
 
-    # 1. Mandatory polygon rule: only branches with a drawn polygon (>=3 points) are delivery-enabled
+    # 1. Polygon rule: branches with drawn polygon (>=3 points) or configured DeliveryArea objects
     poly_branches = [
         b for b in candidate_branches
         if b.delivery_polygon and isinstance(b.delivery_polygon, list) and len(b.delivery_polygon) >= 3
     ]
 
-    if not poly_branches:
-        return None, None, {
-            "ok": False,
-            "is_system_error": False,
-            "status": "no_polygons_configured",
-            "error": "خدمة التوصيل غير مفعلة لعدم اكتمال رسم زون التوصيل الجغرافي (المضلع) على الخريطة.",
-            "ai_speech_response": "يا فندم خدمة التوصيل غير مفعلة حالياً لفروعنا لعدم اكتمال تحديد النطاق، لكن يشرفنا نجهز لحضرتك الطلب تستلمه بنفسك من الفرع (سفري). تحب نعمل كده؟",
-            "suggested_action": "takeaway",
-            "instruction_for_ai": "أبلغ العميل بلطف أن خدمة التوصيل غير متاحة واقترح عليه الاستلام من الفرع سفري ولا تقل إن هناك عطلاً بالسيستم."
-        }
-
-    candidate_branches = poly_branches
+    if poly_branches:
+        candidate_branches = poly_branches
+    else:
+        # Check if candidate branches have active named DeliveryArea records
+        has_named_areas = DeliveryArea.objects.filter(branch__in=candidate_branches, is_active=True).exists()
+        if not has_named_areas:
+            return None, None, {
+                "ok": False,
+                "is_system_error": False,
+                "status": "no_polygons_configured",
+                "error": "خدمة التوصيل غير مفعلة لعدم اكتمال رسم زون التوصيل الجغرافي (المضلع) أو تحديد مناطق التوصيل.",
+                "ai_speech_response": "يا فندم خدمة التوصيل غير مفعلة حالياً لفروعنا لعدم اكتمال تحديد النطاق، لكن يشرفنا نجهز لحضرتك الطلب تستلمه بنفسك من الفرع (سفري). تحب نعمل كده؟",
+                "suggested_action": "takeaway",
+                "instruction_for_ai": "أبلغ العميل بلطف أن خدمة التوصيل غير متاحة واقترح عليه الاستلام من الفرع سفري ولا تقل إن هناك عطلاً بالسيستم."
+            }
 
     # Fetch all active named areas for candidate branches
     all_areas = list(DeliveryArea.objects.filter(branch__in=candidate_branches, is_active=True).select_related("branch"))
@@ -1103,7 +1189,6 @@ def get_digital_menu_link(branch_id: Optional[int] = None, access_key: Optional[
     
     Args:
         branch_id: (اختياري) معرف الفرع المحدد لفتح منيو هذا الفرع مباشرة إن طلبه العميل.
-        access_key: (اختياري) مفتاح الدخول للمنشأة (يُقرأ تلقائياً من الجلسة).
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Branch
@@ -1143,6 +1228,7 @@ def get_digital_menu_link(branch_id: Optional[int] = None, access_key: Optional[
         f"يسعدنا دائماً خدمتك! ✨"
     )
 
+    close_old_connections()
     return {
         "ok": True,
         "status": "success",
@@ -1156,16 +1242,23 @@ def get_digital_menu_link(branch_id: Optional[int] = None, access_key: Optional[
 
 
 @mcp.tool
-def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, query: Optional[str] = None, access_key: Optional[str] = None) -> Dict[str, Any]:
+def get_menu(
+    branch_id: Optional[int] = None,
+    category: Optional[str] = None,
+    query: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    access_key: Optional[str] = None
+) -> Dict[str, Any]:
     """
-    استعراض أصناف قائمة الطعام (Menu) المتوفرة في فرع محدد وأسعارها وتصنيفاتها.
-    الأسعار بعملة الفرع الرسمية وشاملة للضريبة.
+    استعراض أصناف قائمة الطعام (Menu) المتوفرة في فرع محدد وأسعارها وتصنيفاتها وأحجامها المتاحة (Variants) ونسبة الضريبة.
     
     Args:
         branch_id: (اختياري) معرف الفرع المراد جلب المنيو الخاص به. إن لم يحدد يتم جلب الفرع الأنسب تلقائياً.
         category: (اختياري) تصفية حسب القسم مثل 'برجر', 'دجاج', 'مقبلات', 'مشروبات'.
         query: (اختياري) بحث بالاسم أو المكونات (مثال: 'تشيز برجر', 'بطاطس', 'كولا').
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
+        limit: (اختياري) الحد الأقصى لعدد الأصناف المعادة (افتراضياً 50 لمنع تضخم التوكنز).
+        offset: (اختياري) بدء الجلب من صنف محدد للتصفح التدريجي.
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Branch, MenuItem, BranchMenuAvailability
@@ -1187,7 +1280,7 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, qu
     cur_name = branch.get_currency_name_ar()
     cur_sym = branch.get_currency_symbol_ar()
 
-    items_qs = MenuItem.objects.filter(tenant=tenant, available=True)
+    items_qs = MenuItem.objects.filter(tenant=tenant, available=True).prefetch_related("variants")
     if category and category.strip():
         items_qs = items_qs.filter(category__icontains=category.strip())
 
@@ -1205,16 +1298,30 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, qu
         BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
     )
 
+    all_filtered = [m for m in items_qs.order_by("category", "name") if m.id not in disabled_items]
+    total_count = len(all_filtered)
+    paged_items = all_filtered[offset : offset + max(1, min(limit, 100))]
+
     categories_map = {}
     items_list = []
-    for m in items_qs.order_by("category", "name"):
-        if m.id in disabled_items:
-            continue
+    for m in paged_items:
+        variants_data = []
+        if getattr(m, "has_variants", False):
+            for v in m.variants.all():
+                variants_data.append({
+                    "id": v.id,
+                    "name": v.name,
+                    "price": float(v.get_price_for_branch(branch)),
+                    "is_default": v.is_default
+                })
+
         item_dict = {
             "id": m.id,
             "name": m.name,
             "category": m.category,
             "price": float(m.get_price_for_branch(branch)),
+            "has_variants": bool(m.has_variants and len(variants_data) > 0),
+            "variants": variants_data,
             "currency": branch.currency,
             "currency_name": cur_name,
             "currency_symbol": cur_sym,
@@ -1224,6 +1331,7 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, qu
         categories_map.setdefault(m.category, []).append(item_dict)
 
     key_obj.record_usage(placed_order=False)
+    close_old_connections()
     return {
         "ok": True,
         "tenant_name": tenant.name,
@@ -1232,8 +1340,16 @@ def get_menu(branch_id: Optional[int] = None, category: Optional[str] = None, qu
         "currency": branch.currency,
         "currency_name": cur_name,
         "currency_symbol": cur_sym,
-        "total_items": len(items_list),
-        "categories": list(categories_map.keys()),
+        "tax_info": {
+            "tax_percentage": float(branch.tax_percentage),
+            "is_tax_inclusive": bool(branch.is_tax_inclusive),
+            "tax_status_label": f"الضريبة {branch.tax_percentage:.1f}% ({'شاملة في الأسعار' if branch.is_tax_inclusive else 'تضاف فوق المجموع'})"
+        },
+        "total_items": total_count,
+        "returned_items": len(items_list),
+        "limit": limit,
+        "offset": offset,
+        "categories": list(dict.fromkeys(m.category for m in all_filtered)),
         "items": items_list,
     }
 
@@ -1249,16 +1365,16 @@ def lookup_customer(
     البحث عن العميل برقم هاتفه لجلب اسمه وعناوينه والكومبوند وتاريخ طلباته السابقة.
     
     Args:
-        phone: رقم هاتف العميل (مثال: '01012345678').
+        phone: رقم هاتف العميل (مثال: '01012345678' أو '0551234567').
         customer_phone: (بديل) رقم هاتف العميل.
         phone_number: (بديل) رقم هاتف العميل.
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
     key_obj, tenant = _authenticate(access_key)
     from core.models import Customer, Order
 
     raw_val = str(phone or customer_phone or phone_number or "").strip()
     if not raw_val:
+        close_old_connections()
         return {
             "ok": True,
             "status": "ready",
@@ -1266,8 +1382,11 @@ def lookup_customer(
             "diagnostic": True
         }
 
-    clean_phone = raw_val.replace(" ", "").replace("-", "")
-    customer = Customer.objects.filter(tenant=tenant, phone=clean_phone).first()
+    clean_phone = _clean_phone(raw_val)
+    phone_suffix = clean_phone[-9:] if len(clean_phone) >= 9 else clean_phone
+    customer = Customer.objects.filter(tenant=tenant).filter(
+        models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
+    ).first()
 
     from django.utils import timezone
     now = timezone.now()
@@ -1275,6 +1394,7 @@ def lookup_customer(
 
     if not customer:
         key_obj.record_usage(placed_order=False)
+        close_old_connections()
         welcome_speech = f"أهلاً بحضرتك في مطعم «{tenant.name}»! تشرفنا بخدمتك يا فندم.. تحب تطلب إيه اليوم سفري ولا دليفري؟"
         return {
             "ok": True,
@@ -1312,6 +1432,7 @@ def lookup_customer(
         )
 
         key_obj.record_usage(placed_order=False)
+        close_old_connections()
         return {
             "ok": True,
             "found": True,
@@ -1378,6 +1499,7 @@ def lookup_customer(
         instruction = "رحب بالعميل باسمه بنص ai_speech_response وتلقى طلبه."
 
     key_obj.record_usage(placed_order=False)
+    close_old_connections()
     return {
         "ok": True,
         "found": True,
@@ -1413,6 +1535,76 @@ def check_delivery_coverage(
     address: Optional[str] = None,
     access_key: Optional[str] = None
 ) -> Dict[str, Any]:
+    """
+    فحص هل منطقة العميل أو الكومبوند يقع ضمن مناطق توصيل المطعم، وحساب رسوم ووقت التوصيل وتحديد الفرع الأنسب تلقائياً.
+    إلزامي الاستدعاء عند رغبة العميل في خدمة التوصيل (Delivery) وقبل إنشاء الطلب.
+    
+    Args:
+        branch_id: (اختياري) معرف الفرع (يتم فحص وتحديد الفرع الأنسب تلقائياً لجميع الفروع إن لم يُحدد).
+        area_name: اسم المنطقة أو الحي أو الكومبوند (مثال: 'مدينة الشروق', 'كمبوند النرجس', 'الياسمين').
+        delivery_area_name: (بديل) اسم المنطقة أو الحي.
+        customer_address: (بديل) عنوان أو منطقة العميل.
+        address: (بديل) عنوان العميل.
+    """
+    key_obj, tenant = _authenticate(access_key)
+    from core.models import Branch, DeliveryArea
+
+    query = str(area_name or delivery_area_name or customer_address or address or "").strip()
+
+    # Diagnostic / Health check call from platform admin
+    if not query:
+        branch = Branch.objects.filter(tenant=tenant, status="active").first()
+        all_areas = list(DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).values_list("name", flat=True))
+        close_old_connections()
+        return {
+            "ok": True,
+            "status": "ready",
+            "message": "أداة فحص التغطية (check_delivery_coverage) جاهزة ونشطة بنجاح.",
+            "branch_name": branch.name if branch else "الفرع الرئيسي",
+            "available_areas": list(set(all_areas)),
+            "diagnostic": True,
+        }
+
+    effective_branch_id = branch_id if branch_id is not None else (key_obj.assigned_branch_id if key_obj.assigned_branch else None)
+    matched_branch, matched_area, err = _resolve_delivery_coverage_and_branch(
+        tenant,
+        customer_address=query,
+        branch_id=effective_branch_id,
+        delivery_area_name=query,
+    )
+
+    key_obj.record_usage(placed_order=False)
+    close_old_connections()
+    if err:
+        err["covered"] = False
+        return err
+
+    cur_name = matched_branch.get_currency_name_ar()
+    cur_sym = matched_branch.get_currency_symbol_ar()
+    dist_val = getattr(matched_area, "distance_km", 0.0)
+    min_order_req = matched_branch.get_min_order_for_distance(dist_val)
+    return {
+        "ok": True,
+        "covered": True,
+        "branch_id": matched_branch.id,
+        "branch_name": matched_branch.name,
+        "currency": matched_branch.currency,
+        "currency_name": cur_name,
+        "currency_symbol": cur_sym,
+        "minimum_order_amount": float(min_order_req),
+        "matched_area": {
+            "id": matched_area.id,
+            "name": matched_area.name,
+            "area_type": matched_area.get_area_type_display(),
+            "delivery_fee": float(matched_area.delivery_fee),
+            "estimated_time_minutes": matched_area.estimated_time_minutes,
+            "distance_km": float(dist_val) if dist_val else None,
+            "minimum_order_amount": float(min_order_req),
+            "notes": matched_area.notes or "",
+        },
+        "ai_speech_response": f"تمام يا فندم، منطقة «{matched_area.name}» مغطاة من خلال {matched_branch.name}، ورسوم التوصيل {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري حوالي {matched_area.estimated_time_minutes} دقيقة (والحد الأدنى للطلب {min_order_req:.0f} {cur_name}).",
+        "instruction_for_ai": f"أبلغ العميل بأن المنطقة «{matched_area.name}» مغطاة ورسوم التوصيل هي {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري {matched_area.estimated_time_minutes} دقيقة كما في ai_speech_response."
+    }
     """
     فحص هل منطقة العميل أو الكومبوند يقع ضمن مناطق توصيل المطعم، وحساب رسوم ووقت التوصيل وتحديد الفرع الأنسب تلقائياً.
     إلزامي الاستدعاء عند رغبة العميل في خدمة التوصيل (Delivery) وقبل إنشاء الطلب.
@@ -1504,11 +1696,11 @@ def preview_order(
     access_key: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    معاينة وحساب الفاتورة المبدئية للطلب بدقة (الأسعار، الضريبة 15%، ورسوم التوصيل) دون إنشاء أوردر في النظام.
+    معاينة وحساب الفاتورة المبدئية للطلب بدقة (الأسعار، الضريبة المحددة للفرع، ورسوم التوصيل) دون إنشاء أوردر في النظام.
     تُستخدم لحساب التكلفة الإجمالية وإبلاغ العميل بها والحصول على موافقته الصريحة قبل ضرب الطلب نهائياً.
 
     Args:
-        items: قائمة الأصناف المطلوبة مع الكميات (مثال: [{'name': 'شاي كرك', 'quantity': 2}]).
+        items: قائمة الأصناف المطلوبة مع الكميات والخيارات (مثال: [{'name': 'شاي كرك', 'quantity': 2}]).
         customer_address: (مطلوب لطلبات التوصيل) عنوان العميل لحساب رسوم التوصيل الصحيحة وتحديد الفرع الأنسب.
         delivery_area_name: (اختياري) اسم المنطقة أو الحي لتطبيق رسوم التوصيل بدقة.
         delivery_area_id: (اختياري) معرف منطقة التوصيل.
@@ -1521,255 +1713,293 @@ def preview_order(
         name: (بديل) اسم العميل.
         address: (بديل) عنوان العميل.
         notes: (اختياري) ملاحظات إضافية.
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
-    key_obj, tenant = _authenticate(access_key)
-    from core.models import Branch, MenuItem, BranchMenuAvailability
+    close_old_connections()
+    try:
+        key_obj, tenant = _authenticate(access_key)
+        from core.models import Branch, MenuItem, BranchMenuAvailability
 
-    if not customer_address and address:
-        customer_address = address
+        if not customer_address and address:
+            customer_address = address
 
-    # Diagnostic / Health check call from platform admin
-    if not items and not customer_address and not delivery_area_name:
-        return {
-            "ok": True,
-            "status": "ready",
-            "message": "أداة معاينة الفاتورة وحساب الإجمالي (preview_order) جاهزة ونشطة بنجاح.",
-            "diagnostic": True
-        }
-
-    # 1. Parse & normalize items if stringified JSON, natural string, or Pydantic models
-    if isinstance(items, str):
-        try:
-            items = json.loads(items)
-        except Exception:
-            natural = _parse_natural_order_text(items, tenant)
-            if natural:
-                items = natural
-            else:
-                return {
-                    "ok": False,
-                    "error": "صيغة قائمة الأصناف غير صالحة، يرجى تزويدنا بقائمة أصناف صحيحة.",
-                    "ai_speech_response": "يا فندم ما قدرتش أحدد الأصناف المطلوبة، ممكن توضح لي طلبت إيه بالظبط؟",
-                    "instruction_for_ai": "اطلب من العميل توضيح الأصناف والكميات المطلوبة."
-                }
-    elif isinstance(items, dict):
-        items = [items]
-
-    cleaned_items = []
-    for it in (items or []):
-        if hasattr(it, "model_dump"):
-            cleaned_items.append(it.model_dump())
-        elif hasattr(it, "dict"):
-            cleaned_items.append(it.dict())
-        elif isinstance(it, dict):
-            cleaned_items.append(it)
-        elif isinstance(it, str):
-            try:
-                cleaned_items.append(json.loads(it))
-            except Exception:
-                nat = _parse_natural_order_text(it, tenant)
-                if nat:
-                    cleaned_items.extend(nat)
-                else:
-                    cleaned_items.append({"name": it, "quantity": 1})
-        else:
-            cleaned_items.append({"name": str(it), "quantity": 1})
-    items = cleaned_items
-
-    if not items:
-        return {
-            "ok": False,
-            "error": "يجب تزويدنا بقائمة أصناف صالحة في المعامل items لحساب الفاتورة.",
-            "ai_speech_response": "يا فندم محتاجة أعرف الأصناف اللي تحب تطلبها عشان أحسب لحضرتك الفاتورة.",
-            "instruction_for_ai": "اسأل العميل عن الأصناف التي يود طلبها."
-        }
-
-    # 2. Order Type & Delivery Coverage Calculation
-    order_type = str(order_type or "delivery").strip().lower()
-    if order_type not in ["delivery", "takeaway", "dine_in"]:
-        order_type = "delivery"
-
-    delivery_fee = Decimal("0.00")
-    matched_area = None
-    branch = None
-
-    effective_branch_id = branch_id if branch_id is not None else (key_obj.assigned_branch_id if key_obj.assigned_branch else None)
-
-    if order_type == "delivery":
-        branch, matched_area, err = _resolve_delivery_coverage_and_branch(
-            tenant,
-            customer_address=customer_address or "",
-            branch_id=effective_branch_id,
-            delivery_area_id=delivery_area_id,
-            delivery_area_name=delivery_area_name,
-        )
-        if err:
-            return err
-        delivery_fee = matched_area.delivery_fee
-        addr_valid, addr_err = _validate_delivery_address_completeness(
-            customer_address or "",
-            matched_area_name=matched_area.name if matched_area else (delivery_area_name or "")
-        )
-    else:
-        # Takeaway or Dine-in
-        active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
-        if not active_branches:
+        # Diagnostic / Health check call from platform admin
+        if not items and not customer_address and not delivery_area_name:
             return {
-                "ok": False,
-                "is_system_error": False,
-                "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
-                "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
-                "instruction_for_ai": "أبلغ العميل بأن فروعنا مغلقة حالياً."
+                "ok": True,
+                "status": "ready",
+                "message": "أداة معاينة الفاتورة وحساب الإجمالي (preview_order) جاهزة ونشطة بنجاح.",
+                "diagnostic": True
             }
 
-        candidate_bname = str(branch_name or branch or "").strip()
+        # 1. Parse & normalize items if stringified JSON, natural string, or Pydantic models
+        if isinstance(items, str):
+            try:
+                items = json.loads(items)
+            except Exception:
+                natural = _parse_natural_order_text(items, tenant)
+                if natural:
+                    items = natural
+                else:
+                    return {
+                        "ok": False,
+                        "error": "صيغة قائمة الأصناف غير صالحة، يرجى تزويدنا بقائمة أصناف صحيحة.",
+                        "ai_speech_response": "يا فندم ما قدرتش أحدد الأصناف المطلوبة، ممكن توضح لي طلبت إيه بالظبط؟",
+                        "instruction_for_ai": "اطلب من العميل توضيح الأصناف والكميات المطلوبة."
+                    }
+        elif isinstance(items, dict):
+            items = [items]
 
-        if effective_branch_id is not None:
-            branch = next((b for b in active_branches if b.id == effective_branch_id), None)
-            if not branch and 1 <= effective_branch_id <= len(active_branches):
-                branch = active_branches[effective_branch_id - 1]
+        cleaned_items = []
+        for it in (items or []):
+            if hasattr(it, "model_dump"):
+                cleaned_items.append(it.model_dump())
+            elif hasattr(it, "dict"):
+                cleaned_items.append(it.dict())
+            elif isinstance(it, dict):
+                cleaned_items.append(it)
+            elif isinstance(it, str):
+                try:
+                    cleaned_items.append(json.loads(it))
+                except Exception:
+                    nat = _parse_natural_order_text(it, tenant)
+                    if nat:
+                        cleaned_items.extend(nat)
+                    else:
+                        cleaned_items.append({"name": it, "quantity": 1})
+            else:
+                cleaned_items.append({"name": str(it), "quantity": 1})
+        items = cleaned_items
 
-        if not branch and candidate_bname:
-            norm_b = _normalize_arabic_text(candidate_bname)
-            for b in active_branches:
-                norm_curr = _normalize_arabic_text(b.name)
-                norm_city = _normalize_arabic_text(b.city)
-                if norm_b in norm_curr or norm_curr in norm_b or (norm_city and (norm_b in norm_city or norm_city in norm_b)):
-                    branch = b
-                    break
+        if not items:
+            return {
+                "ok": False,
+                "error": "يجب تزويدنا بقائمة أصناف صالحة في المعامل items لحساب الفاتورة.",
+                "ai_speech_response": "يا فندم محتاجة أعرف الأصناف اللي تحب تطلبها عشان أحسب لحضرتك الفاتورة.",
+                "instruction_for_ai": "اسأل العميل عن الأصناف التي يود طلبها."
+            }
 
-        if not branch:
-            if len(active_branches) > 1:
-                branch_names = [b.name for b in active_branches]
-                b_names_str = " أو ".join([f"«{b.name}»" for b in active_branches[:4]])
+        # 2. Order Type & Delivery Coverage Calculation
+        order_type = str(order_type or "delivery").strip().lower()
+        if order_type not in ["delivery", "takeaway", "dine_in"]:
+            order_type = "delivery"
+
+        delivery_fee = Decimal("0.00")
+        matched_area = None
+        branch = None
+
+        effective_branch_id = branch_id if branch_id is not None else (key_obj.assigned_branch_id if key_obj.assigned_branch else None)
+
+        if order_type == "delivery":
+            branch, matched_area, err = _resolve_delivery_coverage_and_branch(
+                tenant,
+                customer_address=customer_address or "",
+                branch_id=effective_branch_id,
+                delivery_area_id=delivery_area_id,
+                delivery_area_name=delivery_area_name,
+            )
+            if err:
+                return err
+            delivery_fee = matched_area.delivery_fee
+            addr_valid, addr_err = _validate_delivery_address_completeness(
+                customer_address or "",
+                matched_area_name=matched_area.name if matched_area else (delivery_area_name or "")
+            )
+        else:
+            # Takeaway or Dine-in
+            active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
+            if not active_branches:
                 return {
                     "ok": False,
                     "is_system_error": False,
-                    "status": "branch_selection_required",
-                    "error": f"يرجى تحديد فرع الاستلام لحساب الأسعار بدقة: ({b_names_str}).",
-                    "available_branches": branch_names,
-                    "ai_speech_response": f"تحب حضرتك تستلم من أي فرع لحساب الإجمالي بدقة؟ متاح عندنا: {b_names_str}.",
-                    "instruction_for_ai": "اسأل العميل بلطف عن الفرع الذي يود الاستلام منه كما في ai_speech_response."
+                    "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
+                    "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
+                    "instruction_for_ai": "أبلغ العميل بأن فروعنا مغلقة حالياً."
                 }
+
+            candidate_bname = str(branch_name or branch or "").strip()
+
+            if effective_branch_id is not None:
+                branch = next((b for b in active_branches if b.id == effective_branch_id), None)
+                if not branch and 1 <= effective_branch_id <= len(active_branches):
+                    branch = active_branches[effective_branch_id - 1]
+
+            if not branch and candidate_bname:
+                norm_b = _normalize_arabic_text(candidate_bname)
+                for b in active_branches:
+                    norm_curr = _normalize_arabic_text(b.name)
+                    norm_city = _normalize_arabic_text(b.city)
+                    if norm_b in norm_curr or norm_curr in norm_b or (norm_city and (norm_b in norm_city or norm_city in norm_b)):
+                        branch = b
+                        break
+
+            if not branch:
+                if len(active_branches) > 1:
+                    branch_names = [b.name for b in active_branches]
+                    b_names_str = " أو ".join([f"«{b.name}»" for b in active_branches[:4]])
+                    return {
+                        "ok": False,
+                        "is_system_error": False,
+                        "status": "branch_selection_required",
+                        "error": f"يرجى تحديد فرع الاستلام لحساب الأسعار بدقة: ({b_names_str}).",
+                        "available_branches": branch_names,
+                        "ai_speech_response": f"تحب حضرتك تستلم من أي فرع لحساب الإجمالي بدقة؟ متاح عندنا: {b_names_str}.",
+                        "instruction_for_ai": "اسأل العميل بلطف عن الفرع الذي يود الاستلام منه كما في ai_speech_response."
+                    }
+                else:
+                    branch = active_branches[0]
+
+        cur_name = branch.get_currency_name_ar()
+        cur_sym = branch.get_currency_symbol_ar()
+
+        # 3. Item validation & Server-side calculation
+        disabled_item_ids = set(
+            BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
+        )
+
+        subtotal = Decimal("0.00")
+        prepared_items = []
+
+        for idx, item_spec in enumerate(items, start=1):
+            menu_item, variant, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids)
+            if match_err:
+                if isinstance(match_err, dict):
+                    return match_err
+                return {
+                    "ok": False,
+                    "error": match_err,
+                    "ai_speech_response": f"يا فندم بخصوص طلبك، {match_err}",
+                    "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بما ورد في ai_speech_response واقترح عليه بديلاً متوفراً."
+                }
+
+            if isinstance(item_spec, dict):
+                try:
+                    qty = int(item_spec.get("quantity") or item_spec.get("qty") or 1)
+                except (ValueError, TypeError):
+                    qty = 1
             else:
-                branch = active_branches[0]
+                qty = 1
 
-    cur_name = branch.get_currency_name_ar()
-    cur_sym = branch.get_currency_symbol_ar()
+            if qty <= 0:
+                continue
 
-    # 3. Item validation & Server-side calculation
-    disabled_item_ids = set(
-        BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
-    )
+            if variant:
+                item_price = variant.get_price_for_branch(branch)
+                display_name = f"{menu_item.name} ({variant.name})"
+                var_name = variant.name
+                var_id = variant.id
+            else:
+                item_price = menu_item.get_price_for_branch(branch)
+                display_name = menu_item.name
+                var_name = None
+                var_id = None
 
-    subtotal = Decimal("0.00")
-    prepared_items = []
+            line_total = item_price * qty
+            subtotal += line_total
+            prepared_items.append({
+                "name": display_name,
+                "item_id": menu_item.id,
+                "variant_id": var_id,
+                "variant_name": var_name,
+                "quantity": qty,
+                "unit_price": float(item_price),
+                "line_total": float(line_total),
+            })
 
-    for idx, item_spec in enumerate(items, start=1):
-        menu_item, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids)
-        if match_err:
+        if not prepared_items:
             return {
                 "ok": False,
-                "error": match_err,
-                "ai_speech_response": f"يا فندم بخصوص طلبك، {match_err}",
-                "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بما ورد في ai_speech_response واقترح عليه بديلاً متوفراً."
+                "error": "لم يتم العثور على أي أصناف صالحة لحساب الفاتورة.",
+                "ai_speech_response": "يا فندم محتاجة تحديد الأصناف والكميات بوضوح لحساب الإجمالي.",
+                "instruction_for_ai": "اطلب من العميل توضيح طلبه."
             }
 
-        if isinstance(item_spec, dict):
-            try:
-                qty = int(item_spec.get("quantity") or item_spec.get("qty") or 1)
-            except (ValueError, TypeError):
-                qty = 1
+        # 4. Dynamic Tax Calculation per branch
+        tax_rate = Decimal(str(getattr(branch, "tax_percentage", None) or "0.00"))
+        is_tax_inclusive = bool(getattr(branch, "is_tax_inclusive", True))
+
+        if is_tax_inclusive:
+            if tax_rate > 0:
+                tax_amount = (subtotal - (subtotal / (Decimal("1.00") + (tax_rate / Decimal("100.00"))))).quantize(Decimal("0.01"))
+            else:
+                tax_amount = Decimal("0.00")
+            grand_total = subtotal + delivery_fee
         else:
-            qty = 1
+            tax_amount = (subtotal * (tax_rate / Decimal("100.00"))).quantize(Decimal("0.01"))
+            grand_total = subtotal + tax_amount + delivery_fee
 
-        if qty <= 0:
-            continue
+        items_speech = " و ".join([f"{it['quantity']} {it['name']}" for it in prepared_items])
 
-        item_price = menu_item.get_price_for_branch(branch)
-        line_total = item_price * qty
-        subtotal += line_total
-        prepared_items.append({
-            "name": menu_item.name,
-            "quantity": qty,
-            "unit_price": float(item_price),
-            "line_total": float(line_total),
-        })
-
-    if not prepared_items:
-        return {
-            "ok": False,
-            "error": "لم يتم العثور على أي أصناف صالحة لحساب الفاتورة.",
-            "ai_speech_response": "يا فندم محتاجة تحديد الأصناف والكميات بوضوح لحساب الإجمالي.",
-            "instruction_for_ai": "اطلب من العميل توضيح طلبه."
-        }
-
-    grand_total = subtotal + delivery_fee
-    items_speech = " و ".join([f"{it['quantity']} {it['name']}" for it in prepared_items])
-
-    # Minimum order check for delivery orders
-    if order_type == "delivery":
-        dist_val = getattr(matched_area, "distance_km", 0.0)
-        min_order_req = branch.get_min_order_for_distance(dist_val)
-        if subtotal < min_order_req:
-            diff = min_order_req - subtotal
-            min_speech = (
-                f"طلبك ({items_speech}) بمجموع أصناف {subtotal:.0f} {cur_name}، "
-                f"ولكن الحد الأدنى لطلب التوصيل لمنطقة «{matched_area.name if matched_area else 'حضرتك'}» هو {min_order_req:.0f} {cur_name} "
-                f"(باقي {diff:.0f} {cur_name} لتكملة الحد الأدنى).. تحب نضيف لحضرتك مشروب أو صنف إضافي لتكملة الطلب؟"
-            )
-            key_obj.record_usage(placed_order=False)
-            return {
-                "ok": True,
-                "below_minimum_order": True,
-                "branch_name": branch.name,
-                "currency": branch.currency,
-                "currency_name": cur_name,
-                "currency_symbol": cur_sym,
-                "order_type": "توصيل",
-                "items": prepared_items,
-                "subtotal": float(subtotal),
-                "minimum_order_required": float(min_order_req),
-                "amount_needed": float(diff),
-                "delivery_fee": float(delivery_fee),
-                "delivery_area": matched_area.name if matched_area else "غير محدد",
-                "estimated_delivery_time": f"{matched_area.estimated_time_minutes} دقيقة" if matched_area else "30-45 دقيقة",
-                "total": float(grand_total),
-                "ai_speech_response": min_speech,
-                "ai_speech_summary": min_speech,
-                "instruction_for_ai": (
-                    f"أبلغ العميل بلطف أن حساب الأصناف ({subtotal:.0f} {cur_name}) أقل من الحد الأدنى المطلوب للتوصيل لهذه المنطقة "
-                    f"({min_order_req:.0f} {cur_name})، واقترح عليه إضافة أصناف إضافية بقيمة {diff:.0f} {cur_name} كما في ai_speech_response."
+        # Minimum order check for delivery orders
+        if order_type == "delivery":
+            dist_val = getattr(matched_area, "distance_km", 0.0)
+            min_order_req = branch.get_min_order_for_distance(dist_val)
+            if subtotal < min_order_req:
+                diff = min_order_req - subtotal
+                min_speech = (
+                    f"طلبك ({items_speech}) بمجموع أصناف {subtotal:.0f} {cur_name}، "
+                    f"ولكن الحد الأدنى لطلب التوصيل لمنطقة «{matched_area.name if matched_area else 'حضرتك'}» هو {min_order_req:.0f} {cur_name} "
+                    f"(باقي {diff:.0f} {cur_name} لتكملة الحد الأدنى).. تحب نضيف لحضرتك مشروب أو صنف إضافي لتكملة الطلب؟"
                 )
-            }
+                key_obj.record_usage(placed_order=False)
+                return {
+                    "ok": True,
+                    "below_minimum_order": True,
+                    "branch_name": branch.name,
+                    "currency": branch.currency,
+                    "currency_name": cur_name,
+                    "currency_symbol": cur_sym,
+                    "order_type": "توصيل",
+                    "items": prepared_items,
+                    "subtotal": float(subtotal),
+                    "tax_percentage": float(tax_rate),
+                    "is_tax_inclusive": is_tax_inclusive,
+                    "tax": float(tax_amount),
+                    "minimum_order_required": float(min_order_req),
+                    "amount_needed": float(diff),
+                    "delivery_fee": float(delivery_fee),
+                    "delivery_area": matched_area.name if matched_area else "غير محدد",
+                    "estimated_delivery_time": f"{matched_area.estimated_time_minutes} دقيقة" if matched_area else "30-45 دقيقة",
+                    "total": float(grand_total),
+                    "ai_speech_response": min_speech,
+                    "ai_speech_summary": min_speech,
+                    "instruction_for_ai": (
+                        f"أبلغ العميل بلطف أن حساب الأصناف ({subtotal:.0f} {cur_name}) أقل من الحد الأدنى المطلوب للتوصيل لهذه المنطقة "
+                        f"({min_order_req:.0f} {cur_name})، واقترح عليه إضافة أصناف إضافية بقيمة {diff:.0f} {cur_name} كما في ai_speech_response."
+                    )
+                }
 
-    if order_type == "delivery":
-        speech = f"إجمالي طلبك ({items_speech}) بقيمة {subtotal:.0f} {cur_name}، ورسوم التوصيل {delivery_fee:.0f} {cur_name}، الإجمالي النهائي {grand_total:.0f} {cur_name}. تحب أسجل لحضرتك الطلب دلوقتي؟"
-    else:
-        speech = f"إجمالي طلبك سفري ({items_speech}) بقيمة {subtotal:.0f} {cur_name}، وتقدر تستلمه من فرع {branch.name}. تحب أسجل لحضرتك الطلب دلوقتي؟"
+        tax_speech = f" (شامل الضريبة {tax_rate:.0f}%)" if (is_tax_inclusive and tax_rate > 0) else (f" والضريبة {tax_amount:.0f} {cur_name}" if tax_rate > 0 else "")
+        if order_type == "delivery":
+            speech = f"إجمالي طلبك ({items_speech}) بقيمة {subtotal:.0f} {cur_name}{tax_speech}، ورسوم التوصيل {delivery_fee:.0f} {cur_name}، الإجمالي النهائي {grand_total:.0f} {cur_name}. تحب أسجل لحضرتك الطلب دلوقتي؟"
+        else:
+            speech = f"إجمالي طلبك سفري ({items_speech}) بقيمة {subtotal:.0f} {cur_name}{tax_speech}، وتقدر تستلمه من فرع {branch.name}. تحب أسجل لحضرتك الطلب دلوقتي؟"
 
-    key_obj.record_usage(placed_order=False)
-    return {
-        "ok": True,
-        "below_minimum_order": False,
-        "branch_name": branch.name,
-        "currency": branch.currency,
-        "currency_name": cur_name,
-        "currency_symbol": cur_sym,
-        "order_type": "توصيل" if order_type == "delivery" else "استلام من الفرع",
-        "items": prepared_items,
-        "subtotal": float(subtotal),
-        "delivery_fee": float(delivery_fee),
-        "delivery_area": matched_area.name if matched_area else ("سفري" if order_type == "takeaway" else "غير محدد"),
-        "estimated_delivery_time": f"{matched_area.estimated_time_minutes} دقيقة" if matched_area else "30-45 دقيقة",
-        "address_status": "complete" if (order_type != "delivery" or addr_valid) else (addr_err.get("status", "details_required") if addr_err else "details_required"),
-        "address_notice": (addr_err.get("ai_speech_response") if (order_type == "delivery" and not addr_valid and addr_err) else None),
-        "total": float(grand_total),
-        "ai_speech_response": speech,
-        "ai_speech_summary": speech,
-        "instruction_for_ai": "أخبر العميل بالإجمالي كما هو موضح في ai_speech_response واطلب موافقته الصريحة قبل تسجيل الأوردر نهائياً."
-    }
+        key_obj.record_usage(placed_order=False)
+        return {
+            "ok": True,
+            "below_minimum_order": False,
+            "branch_name": branch.name,
+            "currency": branch.currency,
+            "currency_name": cur_name,
+            "currency_symbol": cur_sym,
+            "order_type": "توصيل" if order_type == "delivery" else "استلام من الفرع",
+            "items": prepared_items,
+            "subtotal": float(subtotal),
+            "tax_percentage": float(tax_rate),
+            "is_tax_inclusive": is_tax_inclusive,
+            "tax": float(tax_amount),
+            "delivery_fee": float(delivery_fee),
+            "delivery_area": matched_area.name if matched_area else ("سفري" if order_type == "takeaway" else "غير محدد"),
+            "estimated_delivery_time": f"{matched_area.estimated_time_minutes} دقيقة" if matched_area else "30-45 دقيقة",
+            "address_status": "complete" if (order_type != "delivery" or addr_valid) else (addr_err.get("status", "details_required") if addr_err else "details_required"),
+            "address_notice": (addr_err.get("ai_speech_response") if (order_type == "delivery" and not addr_valid and addr_err) else None),
+            "total": float(grand_total),
+            "ai_speech_response": speech,
+            "ai_speech_summary": speech,
+            "instruction_for_ai": "أخبر العميل بالإجمالي كما هو موضح في ai_speech_response واطلب موافقته الصريحة قبل تسجيل الأوردر نهائياً."
+        }
+    finally:
+        close_old_connections()
 
 
 @mcp.tool
@@ -1793,7 +2023,7 @@ def create_callcenter_order(
 ) -> Dict[str, Any]:
     """
     إنشاء (ضرب) أوردر جديد من الكول سنتر مع التعرف التلقائي على العميل برقم هاتفه،
-    ومطابقة الأصناف الذكية بالمرادفات واللهجات، والتوجيه التلقائي للفرع الذي يغطي عنوان العميل.
+    ومطابقة الأصناف الذكية بالمرادفات واللهجات والأحجام، وحساب الضريبة الخاصة بالفرع، والتوجيه التلقائي للفرع الذي يغطي عنوان العميل.
     
     Args:
         branch_id: (اختياري) معرف الفرع المنفذ للطلب. إن لم يحدد يتم التوجيه التلقائي للفرع الأنسب.
@@ -1804,443 +2034,499 @@ def create_callcenter_order(
         name: (بديل) اسم العميل.
         customer_address: عنوان التوصيل بالتفصيل (الحي، الشارع، العمارة، الشقة).
         address: (بديل) عنوان التوصيل.
-        items: قائمة الأصناف المطلوبة مع الكميات (مثال: [{'name': 'شاي كرك', 'quantity': 1}]).
+        items: قائمة الأصناف المطلوبة مع الكميات والخيارات (مثال: [{'name': 'شاي كرك', 'quantity': 1}]).
         order_type: نوع الطلب ('delivery' أو 'takeaway' أو 'dine_in'). الافتراضي هو 'delivery'.
         delivery_area_id: (اختياري) معرف منطقة التوصيل لتطبيق رسومها المحددة بدقة.
         delivery_area_name: (اختياري) اسم منطقة أو حي التوصيل (مثل: 'مدينة الشروق', 'العليا').
         notes: أي ملاحظات خاصة بالطلب (مثل: بدون شطة، زيادة صوص).
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
-    key_obj, tenant = _authenticate(access_key)
-    from core.models import Branch, Customer, MenuItem, Order, OrderItem, DeliveryArea, BranchMenuAvailability
+    close_old_connections()
+    try:
+        key_obj, tenant = _authenticate(access_key)
+        from core.models import Branch, Customer, MenuItem, Order, OrderItem, DeliveryArea, BranchMenuAvailability
 
-    customer_phone = str(customer_phone or phone or phone_number or "").strip()
-    if not customer_address and address:
-        customer_address = address
-    if not customer_name and name:
-        customer_name = name
+        customer_phone = str(customer_phone or phone or phone_number or "").strip()
+        if not customer_address and address:
+            customer_address = address
+        if not customer_name and name:
+            customer_name = name
 
-    # Diagnostic / Health check call from platform admin
-    if not customer_phone and not items and not customer_address:
-        return {
-            "ok": True,
-            "status": "ready",
-            "message": "أداة إنشاء أوردرات الكول سنتر (create_callcenter_order) جاهزة ونشطة بنجاح.",
-            "diagnostic": True
-        }
+        # Diagnostic / Health check call from platform admin
+        if not customer_phone and not items and not customer_address:
+            return {
+                "ok": True,
+                "status": "ready",
+                "message": "أداة إنشاء أوردرات الكول سنتر (create_callcenter_order) جاهزة ونشطة بنجاح.",
+                "diagnostic": True
+            }
 
-    # 1. Parse & normalize items if stringified JSON, natural string, or Pydantic models
-    if isinstance(items, str):
-        try:
-            items = json.loads(items)
-        except Exception:
-            natural = _parse_natural_order_text(items, tenant)
-            if natural:
-                items = natural
-            else:
-                return {
-                    "ok": False,
-                    "error": "صيغة قائمة الأصناف غير صالحة.",
-                    "ai_speech_response": "يا فندم ما قدرتش أسجل الأصناف المطلوبة، ممكن تعيدها لي تاني؟",
-                    "instruction_for_ai": "اطلب من العميل إعادة ذكر الأصناف والكميات المطلوبة."
-                }
-    elif isinstance(items, dict):
-        items = [items]
-
-    cleaned_items = []
-    for it in (items or []):
-        if hasattr(it, "model_dump"):
-            cleaned_items.append(it.model_dump())
-        elif hasattr(it, "dict"):
-            cleaned_items.append(it.dict())
-        elif isinstance(it, dict):
-            cleaned_items.append(it)
-        elif isinstance(it, str):
+        # 1. Parse & normalize items if stringified JSON, natural string, or Pydantic models
+        if isinstance(items, str):
             try:
-                cleaned_items.append(json.loads(it))
+                items = json.loads(items)
             except Exception:
-                nat = _parse_natural_order_text(it, tenant)
-                if nat:
-                    cleaned_items.extend(nat)
+                natural = _parse_natural_order_text(items, tenant)
+                if natural:
+                    items = natural
                 else:
-                    cleaned_items.append({"name": it, "quantity": 1})
-        else:
-            cleaned_items.append({"name": str(it), "quantity": 1})
-    items = cleaned_items
+                    return {
+                        "ok": False,
+                        "error": "صيغة قائمة الأصناف غير صالحة.",
+                        "ai_speech_response": "يا فندم ما قدرتش أسجل الأصناف المطلوبة، ممكن تعيدها لي تاني؟",
+                        "instruction_for_ai": "اطلب من العميل إعادة ذكر الأصناف والكميات المطلوبة."
+                    }
+        elif isinstance(items, dict):
+            items = [items]
 
-    if not items:
-        return {
-            "ok": False,
-            "is_system_error": False,
-            "error": "قائمة الأصناف (items) مطلوبة لتنفيذ الطلب.",
-            "ai_speech_response": "يا فندم محتاجة أعرف الأصناف والكميات المطلوبة عشان أسجل الأوردر.",
-            "instruction_for_ai": "اطلب من العميل تحديد الأصناف التي يود طلبها ولا تقل إن هناك عطلاً بالسيستم."
-        }
+        cleaned_items = []
+        for it in (items or []):
+            if hasattr(it, "model_dump"):
+                cleaned_items.append(it.model_dump())
+            elif hasattr(it, "dict"):
+                cleaned_items.append(it.dict())
+            elif isinstance(it, dict):
+                cleaned_items.append(it)
+            elif isinstance(it, str):
+                try:
+                    cleaned_items.append(json.loads(it))
+                except Exception:
+                    nat = _parse_natural_order_text(it, tenant)
+                    if nat:
+                        cleaned_items.extend(nat)
+                    else:
+                        cleaned_items.append({"name": it, "quantity": 1})
+            else:
+                cleaned_items.append({"name": str(it), "quantity": 1})
+        items = cleaned_items
 
-    # 2. Resilient Phone Validation & Customer Recognition
-    clean_phone = _clean_phone(customer_phone)
-    if not clean_phone or len(clean_phone) < 7 or customer_phone == "web_dashboard" or "dashboard" in str(customer_phone).lower():
-        clean_phone = "0559998877"
-
-    phone_suffix = clean_phone[-9:] if len(clean_phone) >= 9 else clean_phone
-    customer = Customer.objects.filter(tenant=tenant).filter(
-        models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
-    ).first()
-
-    clean_name = str(customer_name or "").strip()
-    clean_addr = str(customer_address or "").strip()
-    customer_recognized = False
-
-    if customer:
-        customer_recognized = True
-        if not clean_name:
-            clean_name = customer.name
-        elif clean_name != customer.name and not clean_name.startswith("عميل هاتف"):
-            customer.name = clean_name
-
-        if not clean_addr:
-            clean_addr = customer.address
-        elif clean_addr != customer.address:
-            customer.address = clean_addr
-
-        customer.save()
-    else:
-        clean_name = clean_name or f"عميل ({clean_phone[-4:]})"
-        try:
-            customer = Customer.objects.create(
-                tenant=tenant,
-                phone=clean_phone,
-                name=clean_name,
-                address=clean_addr,
-            )
-        except IntegrityError:
-            customer = Customer.objects.filter(tenant=tenant).filter(
-                models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
-            ).first()
-
-    # 3. Order Type & Intelligent Delivery / Branch Resolution
-    order_type = str(order_type or "delivery").strip().lower()
-    if order_type not in ["delivery", "takeaway", "dine_in"]:
-        order_type = "delivery"
-
-    delivery_fee = Decimal("0.00")
-    matched_area = None
-    branch = None
-
-    effective_branch_id = branch_id if branch_id is not None else (key_obj.assigned_branch_id if key_obj.assigned_branch else None)
-
-    if order_type == "delivery":
-        branch, matched_area, err = _resolve_delivery_coverage_and_branch(
-            tenant,
-            customer_address=clean_addr,
-            branch_id=effective_branch_id,
-            delivery_area_id=delivery_area_id,
-            delivery_area_name=delivery_area_name,
-        )
-        if err:
-            return err
-        delivery_fee = matched_area.delivery_fee
-
-        # 3.1 Strict Adaptive Delivery Address Completeness Validation
-        addr_valid, addr_err = _validate_delivery_address_completeness(
-            clean_addr,
-            matched_area_name=matched_area.name if matched_area else (delivery_area_name or "")
-        )
-        if not addr_valid:
-            return addr_err
-    else:
-        # Takeaway or Dine-in
-        active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
-        if not active_branches:
+        if not items:
             return {
                 "ok": False,
                 "is_system_error": False,
-                "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
-                "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
-                "instruction_for_ai": "أبلغ العميل بأن الفروع مغلقة حالياً."
+                "error": "قائمة الأصناف (items) مطلوبة لتنفيذ الطلب.",
+                "ai_speech_response": "يا فندم محتاجة أعرف الأصناف والكميات المطلوبة عشان أسجل الأوردر.",
+                "instruction_for_ai": "اطلب من العميل تحديد الأصناف التي يود طلبها ولا تقل إن هناك عطلاً بالسيستم."
             }
 
-        candidate_bname = str(branch_name or branch or "").strip()
-
-        if effective_branch_id is not None:
-            branch = next((b for b in active_branches if b.id == effective_branch_id), None)
-            if not branch and 1 <= effective_branch_id <= len(active_branches):
-                branch = active_branches[effective_branch_id - 1]
-
-        if not branch and candidate_bname:
-            norm_b = _normalize_arabic_text(candidate_bname)
-            for b in active_branches:
-                norm_curr = _normalize_arabic_text(b.name)
-                norm_city = _normalize_arabic_text(b.city)
-                if norm_b in norm_curr or norm_curr in norm_b or (norm_city and (norm_b in norm_city or norm_city in norm_b)):
-                    branch = b
-                    break
-
-        if not branch:
-            if len(active_branches) > 1:
-                branch_names = [b.name for b in active_branches]
-                b_names_str = " أو ".join([f"«{b.name}»" for b in active_branches[:4]])
+        # 2. Resilient Phone Validation & Customer Recognition
+        clean_phone = _clean_phone(customer_phone)
+        if not clean_phone or len(clean_phone) < 7:
+            if customer_phone and ("dashboard" in str(customer_phone).lower() or "test" in str(customer_phone).lower()):
+                clean_phone = "0559998877"
+            else:
                 return {
                     "ok": False,
                     "is_system_error": False,
-                    "status": "branch_selection_required",
-                    "error": f"يرجى تحديد فرع الاستلام من بين فروع المنشأة المتاحة: ({b_names_str}).",
-                    "available_branches": branch_names,
-                    "ai_speech_response": f"تحب حضرتك تستلم الطلب من أي فرع من فروعنا؟ متاح عندنا: {b_names_str}.",
-                    "instruction_for_ai": "اسأل العميل بلطف عن الفرع الذي يود الاستلام منه من بين الفروع المتاحة كما في ai_speech_response ولا تسجل الطلب إلا بعد تحديد الفرع وتأكيده مع العميل."
+                    "status": "phone_required",
+                    "error": "رقم هاتف العميل مطلوب لتسجيل الطلب وتتبعه.",
+                    "ai_speech_response": "يا فندم محتاجة رقم تليفون حضرتك عشان نقدر نسجل الأوردر ونبعتلك رابط التتبع.",
+                    "instruction_for_ai": "اطلب من العميل تزويدك برقم هاتفه لتسجيل الطلب."
                 }
+
+        phone_suffix = clean_phone[-9:] if len(clean_phone) >= 9 else clean_phone
+        customer = Customer.objects.filter(tenant=tenant).filter(
+            models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
+        ).first()
+
+        clean_name = str(customer_name or "").strip()
+        clean_addr = str(customer_address or "").strip()
+        customer_recognized = False
+
+        if customer:
+            customer_recognized = True
+            if not clean_name:
+                clean_name = customer.name
+            elif clean_name != customer.name and not clean_name.startswith("عميل هاتف"):
+                customer.name = clean_name
+
+            if not clean_addr:
+                clean_addr = customer.address
+            elif clean_addr != customer.address:
+                customer.address = clean_addr
+
+            customer.save()
+        else:
+            clean_name = clean_name or f"عميل ({clean_phone[-4:]})"
+            try:
+                customer = Customer.objects.create(
+                    tenant=tenant,
+                    phone=clean_phone,
+                    name=clean_name,
+                    address=clean_addr,
+                )
+            except IntegrityError:
+                customer = Customer.objects.filter(tenant=tenant).filter(
+                    models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
+                ).first()
+
+        # 3. Order Type & Intelligent Delivery / Branch Resolution
+        order_type = str(order_type or "delivery").strip().lower()
+        if order_type not in ["delivery", "takeaway", "dine_in"]:
+            order_type = "delivery"
+
+        delivery_fee = Decimal("0.00")
+        matched_area = None
+        branch = None
+
+        effective_branch_id = branch_id if branch_id is not None else (key_obj.assigned_branch_id if key_obj.assigned_branch else None)
+
+        if order_type == "delivery":
+            branch, matched_area, err = _resolve_delivery_coverage_and_branch(
+                tenant,
+                customer_address=clean_addr,
+                branch_id=effective_branch_id,
+                delivery_area_id=delivery_area_id,
+                delivery_area_name=delivery_area_name,
+            )
+            if err:
+                return err
+            delivery_fee = matched_area.delivery_fee
+
+            # 3.1 Strict Adaptive Delivery Address Completeness Validation
+            addr_valid, addr_err = _validate_delivery_address_completeness(
+                clean_addr,
+                matched_area_name=matched_area.name if matched_area else (delivery_area_name or "")
+            )
+            if not addr_valid:
+                return addr_err
+        else:
+            # Takeaway or Dine-in
+            active_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
+            if not active_branches:
+                return {
+                    "ok": False,
+                    "is_system_error": False,
+                    "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
+                    "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات.",
+                    "instruction_for_ai": "أبلغ العميل بأن الفروع مغلقة حالياً."
+                }
+
+            candidate_bname = str(branch_name or branch or "").strip()
+
+            if effective_branch_id is not None:
+                branch = next((b for b in active_branches if b.id == effective_branch_id), None)
+                if not branch and 1 <= effective_branch_id <= len(active_branches):
+                    branch = active_branches[effective_branch_id - 1]
+
+            if not branch and candidate_bname:
+                norm_b = _normalize_arabic_text(candidate_bname)
+                for b in active_branches:
+                    norm_curr = _normalize_arabic_text(b.name)
+                    norm_city = _normalize_arabic_text(b.city)
+                    if norm_b in norm_curr or norm_curr in norm_b or (norm_city and (norm_b in norm_city or norm_city in norm_b)):
+                        branch = b
+                        break
+
+            if not branch:
+                if len(active_branches) > 1:
+                    branch_names = [b.name for b in active_branches]
+                    b_names_str = " أو ".join([f"«{b.name}»" for b in active_branches[:4]])
+                    return {
+                        "ok": False,
+                        "is_system_error": False,
+                        "status": "branch_selection_required",
+                        "error": f"يرجى تحديد فرع الاستلام من بين فروع المنشأة المتاحة: ({b_names_str}).",
+                        "available_branches": branch_names,
+                        "ai_speech_response": f"تحب حضرتك تستلم الطلب من أي فرع من فروعنا؟ متاح عندنا: {b_names_str}.",
+                        "instruction_for_ai": "اسأل العميل بلطف عن الفرع الذي يود الاستلام منه من بين الفروع المتاحة كما في ai_speech_response ولا تسجل الطلب إلا بعد تحديد الفرع وتأكيده مع العميل."
+                    }
+                else:
+                    branch = active_branches[0]
+
+        # 4. Strict Menu Items Resolver & Total Calculation
+        disabled_item_ids = set(
+            BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
+        )
+
+        subtotal = Decimal("0.00")
+        order_items_prepared = []
+
+        for idx, item_spec in enumerate(items, start=1):
+            menu_item, variant, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids)
+            if match_err:
+                if isinstance(match_err, dict):
+                    return match_err
+                return {
+                    "ok": False,
+                    "is_system_error": False,
+                    "error": match_err,
+                    "ai_speech_response": f"يا فندم بخصوص طلبك، {match_err}",
+                    "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بما جاء في ai_speech_response واقترح عليه بديلاً متوفراً."
+                }
+
+            if isinstance(item_spec, dict):
+                try:
+                    qty = int(item_spec.get("quantity") or item_spec.get("qty") or 1)
+                except (ValueError, TypeError):
+                    qty = 1
+                item_notes = str(item_spec.get("notes") or item_spec.get("special_instructions") or "").strip()
             else:
-                branch = active_branches[0]
+                qty = 1
+                item_notes = ""
 
-    # 4. Strict Menu Items Resolver & Total Calculation
-    disabled_item_ids = set(
-        BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
-    )
+            if qty <= 0:
+                continue
 
-    subtotal = Decimal("0.00")
-    order_items_prepared = []
+            if variant:
+                item_price = variant.get_price_for_branch(branch)
+                display_name = f"{menu_item.name} ({variant.name})"
+                var_name = variant.name
+            else:
+                item_price = menu_item.get_price_for_branch(branch)
+                display_name = menu_item.name
+                var_name = ""
 
-    for idx, item_spec in enumerate(items, start=1):
-        menu_item, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids)
-        if match_err:
+            line_total = item_price * qty
+            subtotal += line_total
+
+            order_items_prepared.append({
+                "menu_item": menu_item,
+                "variant": variant,
+                "variant_name": var_name,
+                "display_name": display_name,
+                "quantity": qty,
+                "price": item_price,
+                "total": line_total,
+                "notes": item_notes,
+            })
+
+        if not order_items_prepared:
             return {
                 "ok": False,
-                "is_system_error": False,
-                "error": match_err,
-                "ai_speech_response": f"يا فندم بخصوص طلبك، {match_err}",
-                "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بما جاء في ai_speech_response واقترح عليه بديلاً متوفراً."
+                "error": "لم يتم العثور على أي أصناف صالحة أو كميات مقبولة في الطلب.",
+                "ai_speech_response": "يا فندم محتاجة تحديد الأصناف بوضوح لتسجيل الأوردر.",
+                "instruction_for_ai": "اطلب من العميل توضيح طلبه."
             }
 
-        if isinstance(item_spec, dict):
-            try:
-                qty = int(item_spec.get("quantity") or item_spec.get("qty") or 1)
-            except (ValueError, TypeError):
-                qty = 1
-            item_notes = str(item_spec.get("notes") or item_spec.get("special_instructions") or "").strip()
+        # 5. Dynamic Tax Calculation per branch
+        tax_rate = Decimal(str(getattr(branch, "tax_percentage", None) or "0.00"))
+        is_tax_inclusive = bool(getattr(branch, "is_tax_inclusive", True))
+
+        if is_tax_inclusive:
+            if tax_rate > 0:
+                tax_amount = (subtotal - (subtotal / (Decimal("1.00") + (tax_rate / Decimal("100.00"))))).quantize(Decimal("0.01"))
+            else:
+                tax_amount = Decimal("0.00")
+            total = subtotal + delivery_fee
         else:
-            qty = 1
-            item_notes = ""
+            tax_amount = (subtotal * (tax_rate / Decimal("100.00"))).quantize(Decimal("0.01"))
+            total = subtotal + tax_amount + delivery_fee
 
-        if qty <= 0:
-            continue
+        cur_name = branch.get_currency_name_ar()
+        cur_sym = branch.get_currency_symbol_ar()
 
-        item_price = menu_item.get_price_for_branch(branch)
-        line_total = item_price * qty
-        subtotal += line_total
+        # Minimum order check for delivery orders
+        if order_type == "delivery":
+            dist_val = getattr(matched_area, "distance_km", 0.0)
+            min_order_req = branch.get_min_order_for_distance(dist_val)
+            if subtotal < min_order_req:
+                diff = min_order_req - subtotal
+                items_speech = " و ".join([f"{oi['quantity']} {oi['display_name']}" for oi in order_items_prepared])
+                return {
+                    "ok": False,
+                    "is_system_error": False,
+                    "below_minimum_order": True,
+                    "subtotal": float(subtotal),
+                    "tax_percentage": float(tax_rate),
+                    "is_tax_inclusive": is_tax_inclusive,
+                    "tax": float(tax_amount),
+                    "minimum_order_required": float(min_order_req),
+                    "amount_needed": float(diff),
+                    "delivery_fee": float(delivery_fee),
+                    "branch_name": branch.name,
+                    "currency": branch.currency,
+                    "currency_name": cur_name,
+                    "currency_symbol": cur_sym,
+                    "error": f"حساب أصناف الطلب {subtotal:.0f} {cur_name} وهو أقل من الحد الأدنى لطلب التوصيل ({min_order_req:.0f} {cur_name}).",
+                    "ai_speech_response": f"يا فندم الحد الأدنى لطلب التوصيل لمنطقتك هو {min_order_req:.0f} {cur_name}، وحساب أصنافك حالياً {subtotal:.0f} {cur_name} (باقي {diff:.0f} {cur_name}). تحب نضيف لحضرتك مشروب أو صنف إضافي لنصل للحد الأدنى؟",
+                    "instruction_for_ai": f"لا تسجل الأوردر الآن! أبلغ العميل بلطف أن طلبه أقل من الحد الأدنى للتوصيل ({min_order_req:.0f} {cur_name}) واطلب منه إضافة أصناف بقيمة {diff:.0f} {cur_name} لتكملة الطلب كما في ai_speech_response."
+                }
 
-        order_items_prepared.append({
-            "menu_item": menu_item,
-            "quantity": qty,
-            "price": item_price,
-            "total": line_total,
-            "notes": item_notes,
-        })
+        # Unique Order Number with Tenant Scoped Prefix
+        prefix = (tenant.slug[:3] if tenant and tenant.slug else "CC").upper()
+        full_notes = f"[AI Call Center: {key_obj.name}] {notes}".strip()
 
-    if not order_items_prepared:
+        # 6. Atomic Order Creation with Concurrency Retry Loop
+        with transaction.atomic():
+            order = None
+            for attempt in range(5):
+                last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
+                next_seq = (last_order.id + 1 + attempt) if last_order else (1 + attempt)
+                candidate_num = f"{prefix}-{1000 + next_seq}"
+                while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
+                    next_seq += 1
+                    candidate_num = f"{prefix}-{1000 + next_seq}"
+                order_number = candidate_num
+
+                try:
+                    sid = transaction.savepoint()
+                    db_delivery_area = matched_area if (matched_area and hasattr(matched_area, "pk") and matched_area.pk) else None
+                    order_notes = full_notes
+                    if matched_area and getattr(matched_area, "notes", None) and str(matched_area.notes) not in order_notes:
+                        order_notes = f"{order_notes} | {matched_area.notes}".strip(" |")
+
+                    order = Order.objects.create(
+                        tenant=tenant,
+                        branch=branch,
+                        order_number=order_number,
+                        order_type=order_type,
+                        channel="call_center",
+                        customer=customer,
+                        customer_name=customer.name if customer else "عميل هاتف",
+                        customer_phone=customer.phone if customer else clean_phone,
+                        address=clean_addr,
+                        delivery_area=db_delivery_area,
+                        subtotal=subtotal,
+                        tax_percentage=tax_rate,
+                        tax=tax_amount,
+                        delivery_fee=delivery_fee,
+                        discount=Decimal("0.00"),
+                        total=total,
+                        paid=False,
+                        cashier=f"AI: {key_obj.name}",
+                        notes=order_notes,
+                        status="new",
+                    )
+                    transaction.savepoint_commit(sid)
+                    break
+                except IntegrityError:
+                    transaction.savepoint_rollback(sid)
+                    continue
+
+            if not order:
+                return {"error": "فشل إنشاء الطلب بسبب تضارب أرقام الطلبات المتزامنة."}
+
+            for oi in order_items_prepared:
+                OrderItem.objects.create(
+                    order=order,
+                    menu_item=oi["menu_item"],
+                    variant=oi["variant"],
+                    variant_name=oi["variant_name"],
+                    name=oi["display_name"],
+                    price=oi["price"],
+                    qty=oi["quantity"],
+                )
+
+            from core.models import log_audit_event
+            cust_label = customer.name if customer else "عميل"
+            log_audit_event(
+                tenant=tenant,
+                user=None,
+                action="order_created",
+                target_model="Order",
+                target_id=order.id,
+                description=f"إنشاء الطلب #{order.order_number} تلقائياً عبر كول سنتر الذكاء الاصطناعي ({key_obj.name}) للعميل {cust_label} بقيمة {order.total} {branch.get_currency_symbol_ar()}",
+                ip_address=None,
+            )
+
+        # Real-time SSE push to kitchen display
+        try:
+            from core.kitchen_events import notify_kitchen_order_event
+            notify_kitchen_order_event(order, "new_order")
+        except Exception as e:
+            logger.warning(f"Failed to notify kitchen of AI order: {e}")
+
+        key_obj.record_usage(placed_order=True)
+
+        cur_name = branch.get_currency_name_ar()
+        cur_sym = branch.get_currency_symbol_ar()
+
+        est_time = f"{matched_area.estimated_time_minutes} دقيقة" if (matched_area and matched_area.estimated_time_minutes) else "30 إلى 45 دقيقة"
+        items_speech = " و ".join([f"{oi['quantity']} {oi['display_name']}" for oi in order_items_prepared])
+        tax_speech = f" (شامل الضريبة {tax_rate:.0f}%)" if (is_tax_inclusive and tax_rate > 0) else (f" والضريبة {tax_amount:.0f} {cur_name}" if tax_rate > 0 else "")
+        if order_type == "delivery":
+            speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}{tax_speech}، ويوصل لحضرتك خلال {est_time} تقريباً، وبعت لحضرتك تفاصيل الفاتورة ورابط المتابعة على الواتساب دلوقتي."
+        else:
+            speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}{tax_speech}، وتقدر تستلمه من فرع {branch.name} خلال {est_time}، وبعت لحضرتك تفاصيل الفاتورة على الواتساب دلوقتي."
+
+        # 7. Automatic Instant WhatsApp Confirmation (إذا كان هاتف العميل حقيقياً)
+        try:
+            from core import partner_service as ps
+            wa_cid = getattr(tenant, "voice_client_id", None) or ps.get_client_id_for_tenant(tenant)
+            if wa_cid and clean_phone and clean_phone != "web_dashboard" and "dashboard" not in str(clean_phone).lower() and clean_phone != "0559998877":
+                import threading
+                items_lines = "\n".join([f"• {oi['quantity']} × {oi['display_name']} ({oi['total']:.0f} {cur_sym})" for oi in order_items_prepared])
+
+                domain = os.environ.get("DOMAIN_NAME", "uggu.space").strip().rstrip("/")
+                if not domain.startswith("http"):
+                    domain = f"https://{domain}"
+                menu_track_url = f"{domain}/m/{tenant.slug}/?order={order.order_number}"
+
+                tax_line = f"🏷️ *الضريبة:* مشمولة بالأسعار ({tax_rate:.0f}%)\n" if (is_tax_inclusive and tax_rate > 0) else (f"🏷️ *الضريبة ({tax_rate:.0f}%):* {tax_amount:.0f} {cur_sym}\n" if tax_rate > 0 else "")
+
+                wa_text = (
+                    f"🧾 *تأكيد طلبك من مطعم {tenant.name}*\n"
+                    f"📍 *الفرع:* {branch.name}\n"
+                    f"🔢 *رقم الطلب:* #{order.order_number}\n\n"
+                    f"🍔 *الأصناف المطلوبة:*\n{items_lines}\n\n"
+                    f"💰 *المجموع:* {subtotal:.0f} {cur_sym}\n"
+                    f"{tax_line}"
+                    f"🛵 *رسوم التوصيل:* {delivery_fee:.0f} {cur_sym}\n"
+                    f"💵 *الإجمالي المطلوب:* {total:.0f} {cur_sym}\n\n"
+                    f"🏠 *عنوان التوصيل:* {clean_addr or 'استلام من الفرع'}\n"
+                    f"⏱️ *وقت التوصيل المتوقع:* {est_time}\n\n"
+                    f"🔗 *متابعة وتتبع حالة الطلب:*\n{menu_track_url}\n\n"
+                    f"⭐ *رأيك يهمنا جداً!*\n"
+                    f"كيف كانت تجربتك في المكالمة مع مساعدنا الصوتي الذكي؟ شاركنا تقييمك من 1 إلى 5 نجوم (أو أي ملاحظة) بالرد على هذه الرسالة.\n\n"
+                    f"شكراً لطلبك! نسعد دائماً بخدمتكم."
+                )
+                def _send_wa_async():
+                    try:
+                        ps.send_whatsapp_message(wa_cid, clean_phone, wa_text)
+                    except Exception as ex:
+                        import logging
+                        logging.getLogger(__name__).warning(f"Error sending WhatsApp message: {ex}")
+                wa_thread = threading.Thread(target=_send_wa_async)
+                wa_thread.start()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Error initiating auto WhatsApp confirmation: {e}")
+
         return {
-            "ok": False,
-            "error": "لم يتم العثور على أي أصناف صالحة أو كميات مقبولة في الطلب.",
-            "ai_speech_response": "يا فندم محتاجة تحديد الأصناف بوضوح لتسجيل الأوردر.",
-            "instruction_for_ai": "اطلب من العميل توضيح طلبه."
-        }
-
-    # Tax (15% VAT included standard) & Grand Total
-    tax = (subtotal * Decimal("0.15")).quantize(Decimal("0.01"))
-    total = subtotal + delivery_fee
-
-    cur_name = branch.get_currency_name_ar()
-    cur_sym = branch.get_currency_symbol_ar()
-
-    # Minimum order check for delivery orders
-    if order_type == "delivery":
-        dist_val = getattr(matched_area, "distance_km", 0.0)
-        min_order_req = branch.get_min_order_for_distance(dist_val)
-        if subtotal < min_order_req:
-            diff = min_order_req - subtotal
-            items_speech = " و ".join([f"{oi['quantity']} {oi['menu_item'].name}" for oi in order_items_prepared])
-            return {
-                "ok": False,
-                "is_system_error": False,
-                "below_minimum_order": True,
-                "subtotal": float(subtotal),
-                "minimum_order_required": float(min_order_req),
-                "amount_needed": float(diff),
-                "delivery_fee": float(delivery_fee),
+            "ok": True,
+            "message": f"تم إنشاء الأوردر بنجاح برقم {order.order_number}",
+            "order_number": order.order_number,
+            "currency": branch.currency,
+            "currency_name": cur_name,
+            "currency_symbol": cur_sym,
+            "customer_recognized": customer_recognized,
+            "ai_speech_response": speech,
+            "instruction_for_ai": "اقرأ للعميل نص ai_speech_response لتأكيد رقم الأوردر والإجمالي ووقت التوصيل.",
+            "order": {
+                "id": order.id,
+                "order_number": order.order_number,
                 "branch_name": branch.name,
                 "currency": branch.currency,
                 "currency_name": cur_name,
                 "currency_symbol": cur_sym,
-                "error": f"حساب أصناف الطلب {subtotal:.0f} {cur_name} وهو أقل من الحد الأدنى لطلب التوصيل ({min_order_req:.0f} {cur_name}).",
-                "ai_speech_response": f"يا فندم الحد الأدنى لطلب التوصيل لمنطقتك هو {min_order_req:.0f} {cur_name}، وحساب أصنافك حالياً {subtotal:.0f} {cur_name} (باقي {diff:.0f} {cur_name}). تحب نضيف لحضرتك مشروب أو صنف إضافي لنصل للحد الأدنى؟",
-                "instruction_for_ai": f"لا تسجل الأوردر الآن! أبلغ العميل بلطف أن طلبه أقل من الحد الأدنى للتوصيل ({min_order_req:.0f} {cur_name}) واطلب منه إضافة أصناف بقيمة {diff:.0f} {cur_name} لتكملة الطلب كما في ai_speech_response."
+                "customer_name": customer.name,
+                "customer_phone": customer.phone,
+                "delivery_address": clean_addr,
+                "delivery_area": matched_area.name if matched_area else "غير محدد",
+                "order_type": order.get_order_type_display(),
+                "status": order.get_status_display(),
+                "subtotal": float(subtotal),
+                "tax_percentage": float(tax_rate),
+                "is_tax_inclusive": is_tax_inclusive,
+                "tax": float(tax_amount),
+                "delivery_fee": float(delivery_fee),
+                "total": float(total),
+                "items_count": len(order_items_prepared),
+                "items": [
+                    {
+                        "name": oi["display_name"],
+                        "variant": oi["variant_name"] if oi.get("variant_name") else None,
+                        "qty": oi["quantity"],
+                        "price": float(oi["price"]),
+                        "total": float(oi["total"])
+                    }
+                    for oi in order_items_prepared
+                ],
+                "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             }
-
-    # Unique Order Number with Tenant Scoped Prefix
-    prefix = (tenant.slug[:3] if tenant and tenant.slug else "CC").upper()
-    full_notes = f"[AI Call Center: {key_obj.name}] {notes}".strip()
-
-    # 5. Atomic Order Creation with Concurrency Retry Loop
-    with transaction.atomic():
-        order = None
-        for attempt in range(5):
-            last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
-            next_seq = (last_order.id + 1 + attempt) if last_order else (1 + attempt)
-            candidate_num = f"{prefix}-{1000 + next_seq}"
-            while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
-                next_seq += 1
-                candidate_num = f"{prefix}-{1000 + next_seq}"
-            order_number = candidate_num
-
-            try:
-                sid = transaction.savepoint()
-                db_delivery_area = matched_area if (matched_area and hasattr(matched_area, "pk") and matched_area.pk) else None
-                order_notes = full_notes
-                if matched_area and getattr(matched_area, "notes", None) and str(matched_area.notes) not in order_notes:
-                    order_notes = f"{order_notes} | {matched_area.notes}".strip(" |")
-
-                order = Order.objects.create(
-                    tenant=tenant,
-                    branch=branch,
-                    order_number=order_number,
-                    order_type=order_type,
-                    channel="call_center",
-                    customer=customer,
-                    customer_name=customer.name if customer else "عميل هاتف",
-                    customer_phone=customer.phone if customer else clean_phone,
-                    address=clean_addr,
-                    delivery_area=db_delivery_area,
-                    subtotal=subtotal,
-                    delivery_fee=delivery_fee,
-                    discount=Decimal("0.00"),
-                    total=total,
-                    paid=False,
-                    cashier=f"AI: {key_obj.name}",
-                    notes=order_notes,
-                    status="new",
-                )
-                transaction.savepoint_commit(sid)
-                break
-            except IntegrityError:
-                transaction.savepoint_rollback(sid)
-                continue
-
-        if not order:
-            return {"error": "فشل إنشاء الطلب بسبب تضارب أرقام الطلبات المتزامنة."}
-
-        for oi in order_items_prepared:
-            OrderItem.objects.create(
-                order=order,
-                menu_item=oi["menu_item"],
-                name=oi["menu_item"].name,
-                price=oi["price"],
-                qty=oi["quantity"],
-            )
-
-        from core.models import log_audit_event
-        cust_label = customer.name if customer else "عميل"
-        log_audit_event(
-            tenant=tenant,
-            user=None,
-            action="order_created",
-            target_model="Order",
-            target_id=order.id,
-            description=f"إنشاء الطلب #{order.order_number} تلقائياً عبر كول سنتر الذكاء الاصطناعي ({key_obj.name}) للعميل {cust_label} بقيمة {order.total} {branch.get_currency_symbol_ar()}",
-            ip_address=None,
-        )
-
-    # Real-time SSE push to kitchen display
-    try:
-        from core.kitchen_events import notify_kitchen_order_event
-        notify_kitchen_order_event(order, "new_order")
-    except Exception as e:
-        logger.warning(f"Failed to notify kitchen of AI order: {e}")
-
-    key_obj.record_usage(placed_order=True)
-
-    cur_name = branch.get_currency_name_ar()
-    cur_sym = branch.get_currency_symbol_ar()
-
-    est_time = f"{matched_area.estimated_time_minutes} دقيقة" if (matched_area and matched_area.estimated_time_minutes) else "30 إلى 45 دقيقة"
-    items_speech = " و ".join([f"{oi['quantity']} {oi['menu_item'].name}" for oi in order_items_prepared])
-    if order_type == "delivery":
-        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، ويوصل لحضرتك خلال {est_time} تقريباً، وبعت لحضرتك تفاصيل الفاتورة ورابط المتابعة على الواتساب دلوقتي."
-    else:
-        speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}، وتقدر تستلمه من فرع {branch.name} خلال {est_time}، وبعت لحضرتك تفاصيل الفاتورة على الواتساب دلوقتي."
-
-    # 6. Automatic Instant WhatsApp Confirmation (إذا كان هاتف العميل حقيقياً)
-    try:
-        from core import partner_service as ps
-        wa_cid = getattr(tenant, "voice_client_id", None) or ps.get_client_id_for_tenant(tenant)
-        if wa_cid and clean_phone and clean_phone != "web_dashboard" and "dashboard" not in str(clean_phone).lower():
-            import threading
-            items_lines = "\n".join([f"• {oi['quantity']} × {oi['menu_item'].name} ({oi['total']:.0f} {cur_sym})" for oi in order_items_prepared])
-
-            domain = os.environ.get("DOMAIN_NAME", "uggu.space").strip().rstrip("/")
-            if not domain.startswith("http"):
-                domain = f"https://{domain}"
-            menu_track_url = f"{domain}/m/{tenant.slug}/?order={order.order_number}"
-
-            wa_text = (
-                f"🧾 *تأكيد طلبك من مطعم {tenant.name}*\n"
-                f"📍 *الفرع:* {branch.name}\n"
-                f"🔢 *رقم الطلب:* #{order.order_number}\n\n"
-                f"🍔 *الأصناف المطلوبة:*\n{items_lines}\n\n"
-                f"💰 *المجموع:* {subtotal:.0f} {cur_sym}\n"
-                f"🛵 *رسوم التوصيل:* {delivery_fee:.0f} {cur_sym}\n"
-                f"💵 *الإجمالي المطلوب:* {total:.0f} {cur_sym}\n\n"
-                f"🏠 *عنوان التوصيل:* {clean_addr or 'استلام من الفرع'}\n"
-                f"⏱️ *وقت التوصيل المتوقع:* {est_time}\n\n"
-                f"🔗 *متابعة وتتبع حالة الطلب:*\n{menu_track_url}\n\n"
-                f"⭐ *رأيك يهمنا جداً!*\n"
-                f"كيف كانت تجربتك في المكالمة مع مساعدنا الصوتي الذكي؟ شاركنا تقييمك من 1 إلى 5 نجوم (أو أي ملاحظة) بالرد على هذه الرسالة.\n\n"
-                f"شكراً لطلبك! نسعد دائماً بخدمتكم."
-            )
-            def _send_wa_async():
-                try:
-                    ps.send_whatsapp_message(wa_cid, clean_phone, wa_text)
-                except Exception as ex:
-                    import logging
-                    logging.getLogger(__name__).warning(f"Error sending WhatsApp message: {ex}")
-            wa_thread = threading.Thread(target=_send_wa_async)
-            wa_thread.start()
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(f"Error initiating auto WhatsApp confirmation: {e}")
-
-    return {
-        "ok": True,
-        "message": f"تم إنشاء الأوردر بنجاح برقم {order.order_number}",
-        "order_number": order.order_number,
-        "currency": branch.currency,
-        "currency_name": cur_name,
-        "currency_symbol": cur_sym,
-        "customer_recognized": customer_recognized,
-        "ai_speech_response": speech,
-        "instruction_for_ai": "اقرأ للعميل نص ai_speech_response لتأكيد رقم الأوردر والإجمالي ووقت التوصيل.",
-        "order": {
-            "id": order.id,
-            "order_number": order.order_number,
-            "branch_name": branch.name,
-            "currency": branch.currency,
-            "currency_name": cur_name,
-            "currency_symbol": cur_sym,
-            "customer_name": customer.name,
-            "customer_phone": customer.phone,
-            "delivery_address": clean_addr,
-            "delivery_area": matched_area.name if matched_area else "غير محدد",
-            "order_type": order.get_order_type_display(),
-            "status": order.get_status_display(),
-            "subtotal": float(subtotal),
-            "delivery_fee": float(delivery_fee),
-            "total": float(total),
-            "items_count": len(order_items_prepared),
-            "items": [
-                {"name": oi["menu_item"].name, "qty": oi["quantity"], "price": float(oi["price"]), "total": float(oi["total"])}
-                for oi in order_items_prepared
-            ],
-            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
-    }
+    finally:
+        close_old_connections()
 
 
 @mcp.tool
@@ -2262,149 +2548,155 @@ def track_order(
         customer_phone: (اختياري) رقم هاتف العميل للبحث عن أحدث أوردراته مباشرة.
         phone: (بديل) رقم هاتف العميل.
         phone_number: (بديل) رقم هاتف العميل.
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
-    key_obj, tenant = _authenticate(access_key)
-    from core.models import Order
+    close_old_connections()
+    try:
+        key_obj, tenant = _authenticate(access_key)
+        from core.models import Order
 
-    raw_query = str(order_number or "").strip()
-    raw_phone = str(customer_phone or phone or phone_number or "").strip()
+        raw_query = str(order_number or "").strip()
+        raw_phone = str(customer_phone or phone or phone_number or "").strip()
 
-    # Diagnostic / Health check call from platform admin
-    if not raw_query and not raw_phone:
-        return {
-            "ok": True,
-            "status": "ready",
-            "message": "أداة تتبع حالة الأوردرات (track_order) جاهزة ونشطة بنجاح.",
-            "diagnostic": True
-        }
+        # Diagnostic / Health check call from platform admin
+        if not raw_query and not raw_phone:
+            return {
+                "ok": True,
+                "status": "ready",
+                "message": "أداة تتبع حالة الأوردرات (track_order) جاهزة ونشطة بنجاح.",
+                "diagnostic": True
+            }
 
-    norm_query = _normalize_digits(raw_query)
-    norm_phone = _clean_phone(raw_phone)
+        norm_query = _normalize_digits(raw_query)
+        norm_phone = _clean_phone(raw_phone)
 
-    # If phone omitted but query looks like phone (>= 8 digits)
-    if not norm_phone and re.match(r'^\+?[0-9]{8,15}$', norm_query):
-        norm_phone = _clean_phone(norm_query)
+        # If phone omitted but query looks like phone (>= 8 digits)
+        if not norm_phone and re.match(r'^\+?[0-9]{8,15}$', norm_query):
+            norm_phone = _clean_phone(norm_query)
 
-    order = None
-    customer_orders = []
+        order = None
+        customer_orders = []
 
-    # 1. Search by exact order_number or digits inside order_number
-    if norm_query:
-        # 1.1 Direct exact match
-        order = Order.objects.filter(tenant=tenant, order_number__iexact=norm_query).select_related("branch", "customer", "driver").first()
+        # 1. Search by exact order_number or digits inside order_number
+        if norm_query:
+            # 1.1 Direct exact match
+            order = Order.objects.filter(tenant=tenant, order_number__iexact=norm_query).select_related("branch", "customer", "driver").first()
 
-        # 1.2 Match with tenant prefix or standard prefixes if missing
-        if not order:
-            prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
-            for pfx in [prefix, "DIY", "ORD", "CC"]:
-                if not norm_query.upper().startswith(f"{pfx}-"):
-                    candidate = Order.objects.filter(tenant=tenant, order_number__iexact=f"{pfx}-{norm_query}").select_related("branch", "customer", "driver").first()
-                    if candidate:
-                        order = candidate
+            # 1.2 Match with tenant prefix or standard prefixes if missing
+            if not order:
+                prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
+                for pfx in [prefix, "DIY", "ORD", "CC"]:
+                    if not norm_query.upper().startswith(f"{pfx}-"):
+                        candidate = Order.objects.filter(tenant=tenant, order_number__iexact=f"{pfx}-{norm_query}").select_related("branch", "customer", "driver").first()
+                        if candidate:
+                            order = candidate
+                            break
+
+            # 1.3 Extract 3-5 digits sequence (e.g. "3114" from "طلب 3114")
+            if not order:
+                num_matches = re.findall(r'\d{3,5}', norm_query)
+                for num in num_matches:
+                    found = Order.objects.filter(tenant=tenant, order_number__icontains=num).select_related("branch", "customer", "driver").order_by("-created_at").first()
+                    if found:
+                        order = found
                         break
 
-        # 1.3 Extract 3-5 digits sequence (e.g. "3114" from "طلب 3114")
+            # 1.4 Primary key ID
+            if not order and norm_query.isdigit():
+                order = Order.objects.filter(tenant=tenant, id=int(norm_query)).select_related("branch", "customer", "driver").first()
+
+        # 2. Search by customer phone if not found yet
+        if not order and norm_phone:
+            suffix = norm_phone[-9:] if len(norm_phone) >= 9 else norm_phone
+            phone_orders_qs = Order.objects.filter(tenant=tenant).filter(
+                models.Q(customer_phone__icontains=suffix) | models.Q(customer__phone__icontains=suffix)
+            ).select_related("branch", "customer", "driver").order_by("-created_at")
+
+            customer_orders = list(phone_orders_qs[:5])
+            if customer_orders:
+                active_orders = [o for o in customer_orders if o.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]]
+                order = active_orders[0] if active_orders else customer_orders[0]
+
         if not order:
-            num_matches = re.findall(r'\d{3,5}', norm_query)
-            for num in num_matches:
-                found = Order.objects.filter(tenant=tenant, order_number__icontains=num).select_related("branch", "customer", "driver").order_by("-created_at").first()
-                if found:
-                    order = found
-                    break
-
-        # 1.4 Primary key ID
-        if not order and norm_query.isdigit():
-            order = Order.objects.filter(tenant=tenant, id=int(norm_query)).select_related("branch", "customer", "driver").first()
-
-    # 2. Search by customer phone if not found yet
-    if not order and norm_phone:
-        suffix = norm_phone[-9:] if len(norm_phone) >= 9 else norm_phone
-        phone_orders_qs = Order.objects.filter(tenant=tenant).filter(
-            models.Q(customer_phone__icontains=suffix) | models.Q(customer__phone__icontains=suffix)
-        ).select_related("branch", "customer", "driver").order_by("-created_at")
-
-        customer_orders = list(phone_orders_qs[:5])
-        if customer_orders:
-            active_orders = [o for o in customer_orders if o.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]]
-            order = active_orders[0] if active_orders else customer_orders[0]
-
-    if not order:
-        key_obj.record_usage(placed_order=False)
-        identifier = raw_query or raw_phone or "المحدد"
-        return {
-            "ok": False,
-            "error": f"لم يتم العثور على أي أوردر بالمعرف أو رقم الهاتف «{identifier}» في سجلات المطعم.",
-            "searched_value": identifier,
-            "ai_speech_response": "بعتذر لحضرتك، مش لاقية أي أوردر مسجل بالبيانات دي. ممكن تتأكد من رقم الأوردر أو تديني رقم التليفون اللي سجلت بيه الطلب؟",
-            "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بلطف بعدم العثور على الأوردر واطلب منه رقم الجوال للبحث به كما في ai_speech_response."
-        }
-
-    status_speech_map = {
-        "new": "طلبك مسجل وجاري إرساله للمطبخ.",
-        "preparing": "طلبك حالياً بيتجهز في المطبخ بكل اهتمام.",
-        "ready": "طلبك جاهز تماماً وبانتظار مندوب التوصيل للاستلام.",
-        "out_for_delivery": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
-        "on_way": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
-        "delivered": "الطلب مسجل عندنا إنه تم تسليمه بنجاح.",
-        "cancelled": "الطلب مسجل إنه ملغي.",
-        "canceled": "الطلب مسجل إنه ملغي.",
-    }
-    speech_state = status_speech_map.get(order.status, f"حالة طلبك الحالية هي {order.get_status_display()}.")
-    driver_speech = f" مع الكابتن {order.driver.name} ورقم هاتفه {order.driver.phone}" if (order.driver and order.status in ["out_for_delivery", "on_way"]) else ""
-    ai_speech = f"يا فندم بخصوص طلبك رقم {order.order_number}، {speech_state}{driver_speech}."
-
-    driver_info = None
-    if order.driver:
-        driver_info = {
-            "name": order.driver.name,
-            "phone": order.driver.phone or "غير مسجل",
-        }
-
-    items_data = [
-        {"name": it.name, "quantity": it.qty, "price": float(it.price), "total": float(it.line_total)}
-        for it in order.items.all()
-    ]
-
-    other_orders_summary = []
-    if customer_orders and len(customer_orders) > 1:
-        other_orders_summary = [
-            {
-                "order_number": o.order_number,
-                "status": o.get_status_display(),
-                "total": float(o.total),
-                "created_at": o.created_at.strftime("%Y-%m-%d %H:%M"),
+            key_obj.record_usage(placed_order=False)
+            identifier = raw_query or raw_phone or "المحدد"
+            return {
+                "ok": False,
+                "error": f"لم يتم العثور على أي أوردر بالمعرف أو رقم الهاتف «{identifier}» في سجلات المطعم.",
+                "searched_value": identifier,
+                "ai_speech_response": "بعتذر لحضرتك، مش لاقية أي أوردر مسجل بالبيانات دي. ممكن تتأكد من رقم الأوردر أو تديني رقم التليفون اللي سجلت بيه الطلب؟",
+                "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بلطف بعدم العثور على الأوردر واطلب منه رقم الجوال للبحث به كما في ai_speech_response."
             }
-            for o in customer_orders if o.id != order.id
+
+        status_speech_map = {
+            "new": "طلبك مسجل وجاري إرساله للمطبخ.",
+            "preparing": "طلبك حالياً بيتجهز في المطبخ بكل اهتمام.",
+            "ready": "طلبك جاهز تماماً وبانتظار مندوب التوصيل للاستلام.",
+            "out_for_delivery": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
+            "on_way": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
+            "delivered": "الطلب مسجل عندنا إنه تم تسليمه بنجاح.",
+            "cancelled": "الطلب مسجل إنه ملغي.",
+            "canceled": "الطلب مسجل إنه ملغي.",
+        }
+        speech_state = status_speech_map.get(order.status, f"حالة طلبك الحالية هي {order.get_status_display()}.")
+        driver_speech = f" مع الكابتن {order.driver.name} ورقم هاتفه {order.driver.phone}" if (order.driver and order.status in ["out_for_delivery", "on_way"]) else ""
+        ai_speech = f"يا فندم بخصوص طلبك رقم {order.order_number}، {speech_state}{driver_speech}."
+
+        driver_info = None
+        if order.driver:
+            driver_info = {
+                "name": order.driver.name,
+                "phone": order.driver.phone or "غير مسجل",
+            }
+
+        items_data = [
+            {"name": it.name, "quantity": it.qty, "price": float(it.price), "total": float(it.line_total)}
+            for it in order.items.all()
         ]
 
-    key_obj.record_usage(placed_order=False)
-    return {
-        "ok": True,
-        "matched_by": "customer_phone" if (norm_phone and (raw_phone or not raw_query.startswith("DIY-"))) else "order_number",
-        "ai_speech_response": ai_speech,
-        "instruction_for_ai": "أبلغ العميل بحالة طلبه كما هو موضح في ai_speech_response.",
-        "order": {
-            "id": order.id,
-            "order_number": order.order_number,
-            "branch_name": order.branch.name if order.branch else "غير محدد",
-            "status_code": order.status,
-            "status_label": order.get_status_display(),
-            "order_type": order.get_order_type_display(),
-            "customer_name": order.customer_name,
-            "customer_phone": order.customer_phone,
-            "delivery_address": order.address,
-            "delivery_fee": float(order.delivery_fee),
-            "total": float(order.total),
-            "currency": order.branch.currency if order.branch else "SAR",
-            "currency_name": order.branch.get_currency_name_ar() if order.branch else "ريال",
-            "currency_symbol": order.branch.get_currency_symbol_ar() if order.branch else "ر.س",
-            "driver": driver_info,
-            "items": items_data,
-            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M"),
-        },
-        "other_recent_orders": other_orders_summary,
-    }
+        other_orders_summary = []
+        if customer_orders and len(customer_orders) > 1:
+            other_orders_summary = [
+                {
+                    "order_number": o.order_number,
+                    "status": o.get_status_display(),
+                    "total": float(o.total),
+                    "created_at": o.created_at.strftime("%Y-%m-%d %H:%M"),
+                }
+                for o in customer_orders if o.id != order.id
+            ]
+
+        key_obj.record_usage(placed_order=False)
+        return {
+            "ok": True,
+            "matched_by": "customer_phone" if (norm_phone and (raw_phone or not raw_query.startswith("DIY-"))) else "order_number",
+            "ai_speech_response": ai_speech,
+            "instruction_for_ai": "أبلغ العميل بحالة طلبه كما هو موضح في ai_speech_response.",
+            "order": {
+                "id": order.id,
+                "order_number": order.order_number,
+                "branch_name": order.branch.name if order.branch else "غير محدد",
+                "status_code": order.status,
+                "status_label": order.get_status_display(),
+                "order_type": order.get_order_type_display(),
+                "customer_name": order.customer_name,
+                "customer_phone": order.customer_phone,
+                "delivery_address": order.address,
+                "subtotal": float(order.subtotal or 0.0),
+                "tax_percentage": float(order.tax_percentage or 0.0),
+                "tax": float(order.tax or 0.0),
+                "delivery_fee": float(order.delivery_fee or 0.0),
+                "total": float(order.total or 0.0),
+                "currency": order.branch.currency if order.branch else "SAR",
+                "currency_name": order.branch.get_currency_name_ar() if order.branch else "ريال",
+                "currency_symbol": order.branch.get_currency_symbol_ar() if order.branch else "ر.س",
+                "driver": driver_info,
+                "items": items_data,
+                "created_at": order.created_at.strftime("%Y-%m-%d %H:%M"),
+            },
+            "other_recent_orders": other_orders_summary,
+        }
+    finally:
+        close_old_connections()
 
 
 @mcp.tool
@@ -2426,166 +2718,185 @@ def cancel_order(
         phone: (بديل) رقم هاتف العميل.
         phone_number: (بديل) رقم هاتف العميل.
         reason: سبب الإلغاء (يُسجل في ملاحظات وتاريخ الأوردر).
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
-    key_obj, tenant = _authenticate(access_key)
-    from core.models import Order
+    close_old_connections()
+    try:
+        key_obj, tenant = _authenticate(access_key)
+        from core.models import Order
 
-    raw_query = str(order_number or "").strip()
-    raw_phone = str(customer_phone or phone or phone_number or "").strip()
+        raw_query = str(order_number or "").strip()
+        raw_phone = str(customer_phone or phone or phone_number or "").strip()
 
-    # Diagnostic / Health check call from platform admin
-    if not raw_query and not raw_phone:
-        return {
-            "ok": True,
-            "status": "ready",
-            "message": "أداة إلغاء الأوردرات الجديدة (cancel_order) جاهزة ونشطة بنجاح.",
-            "diagnostic": True
-        }
+        # Diagnostic / Health check call from platform admin
+        if not raw_query and not raw_phone:
+            return {
+                "ok": True,
+                "status": "ready",
+                "message": "أداة إلغاء الأوردرات الجديدة (cancel_order) جاهزة ونشطة بنجاح.",
+                "diagnostic": True
+            }
 
-    norm_query = _normalize_digits(raw_query)
-    norm_phone = _clean_phone(raw_phone)
+        norm_query = _normalize_digits(raw_query)
+        norm_phone = _clean_phone(raw_phone)
 
-    if not norm_phone and re.match(r'^\+?[0-9]{8,15}$', norm_query):
-        norm_phone = _clean_phone(norm_query)
+        if not norm_phone and re.match(r'^\+?[0-9]{8,15}$', norm_query):
+            norm_phone = _clean_phone(norm_query)
 
-    order = None
+        order = None
 
-    # 1. Search by exact order_number or digits
-    if norm_query:
-        order = Order.objects.filter(tenant=tenant, order_number__iexact=norm_query).select_related("branch", "customer").first()
-        if not order:
-            prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
-            for pfx in [prefix, "DIY", "ORD", "CC"]:
-                if not norm_query.upper().startswith(f"{pfx}-"):
-                    candidate = Order.objects.filter(tenant=tenant, order_number__iexact=f"{pfx}-{norm_query}").select_related("branch", "customer").first()
-                    if candidate:
-                        order = candidate
+        # 1. Search by exact order_number or digits
+        if norm_query:
+            order = Order.objects.filter(tenant=tenant, order_number__iexact=norm_query).select_related("branch", "customer").first()
+            if not order:
+                prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
+                for pfx in [prefix, "DIY", "ORD", "CC"]:
+                    if not norm_query.upper().startswith(f"{pfx}-"):
+                        candidate = Order.objects.filter(tenant=tenant, order_number__iexact=f"{pfx}-{norm_query}").select_related("branch", "customer").first()
+                        if candidate:
+                            order = candidate
+                            break
+
+            if not order:
+                num_matches = re.findall(r'\d{3,5}', norm_query)
+                for num in num_matches:
+                    found = Order.objects.filter(tenant=tenant, order_number__icontains=num).select_related("branch", "customer").order_by("-created_at").first()
+                    if found:
+                        order = found
                         break
 
+            if not order and norm_query.isdigit():
+                order = Order.objects.filter(tenant=tenant, id=int(norm_query)).select_related("branch", "customer").first()
+
+        # 2. Search by customer phone if not found
+        if not order and norm_phone:
+            suffix = norm_phone[-9:] if len(norm_phone) >= 9 else norm_phone
+            phone_orders_qs = Order.objects.filter(tenant=tenant).filter(
+                models.Q(customer_phone__icontains=suffix) | models.Q(customer__phone__icontains=suffix)
+            ).select_related("branch", "customer").order_by("-created_at")
+
+            active_orders = [o for o in phone_orders_qs[:5] if o.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]]
+            order = active_orders[0] if active_orders else phone_orders_qs.first()
+
         if not order:
-            num_matches = re.findall(r'\d{3,5}', norm_query)
-            for num in num_matches:
-                found = Order.objects.filter(tenant=tenant, order_number__icontains=num).select_related("branch", "customer").order_by("-created_at").first()
-                if found:
-                    order = found
-                    break
+            key_obj.record_usage(placed_order=False)
+            identifier = raw_query or raw_phone or "غير محدد"
+            return {
+                "ok": False,
+                "error": f"لم يتم العثور على أي أوردر بالمعرف أو رقم الهاتف «{identifier}» لإلغائه.",
+                "ai_speech_response": "مش لاقية أي أوردر مسجل بالبيانات دي عشان أقدر ألغيه لحضرتك. تحب تديني رقم تليفونك أبحث بيه؟",
+                "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بعدم العثور على الأوردر واطلب منه رقم الجوال للبحث به كما في ai_speech_response."
+            }
 
-        if not order and norm_query.isdigit():
-            order = Order.objects.filter(tenant=tenant, id=int(norm_query)).select_related("branch", "customer").first()
+        # Strict cancellation policy: only allow cancellation if order is 'new'
+        if order.status in ["cancelled", "canceled"]:
+            key_obj.record_usage(placed_order=False)
+            return {
+                "ok": False,
+                "error": f"هذا الأوردر برقم «{order.order_number}» ملغي بالفعل مسبقاً.",
+                "order_number": order.order_number,
+                "current_status": "ملغي",
+                "ai_speech_response": f"يا فندم الأوردر رقم {order.order_number} ملغي بالفعل من قبل كده.",
+                "instruction_for_ai": "أخبر العميل أن هذا الطلب ملغي بالفعل مسبقاً كما في ai_speech_response."
+            }
+        elif order.status != "new":
+            status_label = order.get_status_display()
+            key_obj.record_usage(placed_order=False)
+            return {
+                "ok": False,
+                "error": f"عذراً، الأوردر برقم «{order.order_number}» في مرحلة «{status_label}» ولا يمكن إلغاؤه آلياً لأن المطبخ بدأ في تحضيره بالفعل.",
+                "order_number": order.order_number,
+                "current_status": status_label,
+                "ai_speech_response": f"بعتذر جداً لحضرتك، الأوردر رقم {order.order_number} دخل مرحلة التحضير في المطبخ ومبنقدرش نلغيه بعد ما بدأوا فيه. تحب أحول حضرتك لخدمة العملاء أو مدير الفرع؟",
+                "instruction_for_ai": "أبلغ العميل بلطف أن الطلب دخل مرحلة التحضير في المطبخ ولا يمكن إلغاؤه كما في ai_speech_response."
+            }
 
-    # 2. Search by customer phone if not found
-    if not order and norm_phone:
-        suffix = norm_phone[-9:] if len(norm_phone) >= 9 else norm_phone
-        phone_orders_qs = Order.objects.filter(tenant=tenant).filter(
-            models.Q(customer_phone__icontains=suffix) | models.Q(customer__phone__icontains=suffix)
-        ).select_related("branch", "customer").order_by("-created_at")
+        # Cancel the order cleanly
+        order.status = "cancelled"
+        cancel_note = f"[تم الإلغاء آلياً بواسطة بوت الكول سنتر: {key_obj.name} - السبب: {reason}]"
+        if order.notes:
+            order.notes = f"{order.notes}\n{cancel_note}"
+        else:
+            order.notes = cancel_note
+        order.save()
 
-        active_orders = [o for o in phone_orders_qs[:5] if o.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]]
-        order = active_orders[0] if active_orders else phone_orders_qs.first()
+        # Real-time SSE push to kitchen display
+        try:
+            from core.kitchen_events import notify_kitchen_order_event
+            notify_kitchen_order_event(order, "order_cancelled")
+        except Exception as e:
+            logger.warning(f"Failed to notify kitchen of AI cancelled order: {e}")
 
-    if not order:
         key_obj.record_usage(placed_order=False)
-        identifier = raw_query or raw_phone or "غير محدد"
         return {
-            "ok": False,
-            "error": f"لم يتم العثور على أي أوردر بالمعرف أو رقم الهاتف «{identifier}» لإلغائه.",
-            "ai_speech_response": "مش لاقية أي أوردر مسجل بالبيانات دي عشان أقدر ألغيه لحضرتك. تحب تديني رقم تليفونك أبحث بيه؟",
-            "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بعدم العثور على الأوردر واطلب منه رقم الجوال للبحث به كما في ai_speech_response."
-        }
-
-    # Strict cancellation policy: only allow cancellation if order is 'new'
-    if order.status in ["cancelled", "canceled"]:
-        key_obj.record_usage(placed_order=False)
-        return {
-            "ok": False,
-            "error": f"هذا الأوردر برقم «{order.order_number}» ملغي بالفعل مسبقاً.",
+            "ok": True,
+            "message": f"تم إلغاء الأوردر برقم {order.order_number} بنجاح.",
             "order_number": order.order_number,
-            "current_status": "ملغي",
-            "ai_speech_response": f"يا فندم الأوردر رقم {order.order_number} ملغي بالفعل من قبل كده.",
-            "instruction_for_ai": "أخبر العميل أن هذا الطلب ملغي بالفعل مسبقاً كما في ai_speech_response."
+            "status": "ملغي",
+            "cancelled_at": timezone.now().strftime("%Y-%m-%d %H:%M"),
+            "ai_speech_response": f"تمام يا فندم، تم إلغاء الأوردر رقم {order.order_number} بنجاح. أقدر أساعد حضرتك في أي طلب تاني؟",
+            "instruction_for_ai": f"أبلغ العميل بأنه تم إلغاء الأوردر رقم {order.order_number} بنجاح كما في ai_speech_response، واسأله إذا كان يرغب في أي خدمة أخرى."
         }
-    elif order.status != "new":
-        status_label = order.get_status_display()
-        key_obj.record_usage(placed_order=False)
-        return {
-            "ok": False,
-            "error": f"عذراً، الأوردر برقم «{order.order_number}» في مرحلة «{status_label}» ولا يمكن إلغاؤه آلياً لأن المطبخ بدأ في تحضيره بالفعل.",
-            "order_number": order.order_number,
-            "current_status": status_label,
-            "ai_speech_response": f"بعتذر جداً لحضرتك، الأوردر رقم {order.order_number} دخل مرحلة التحضير في المطبخ ومبنقدرش نلغيه بعد ما بدأوا فيه. تحب أحول حضرتك لخدمة العملاء أو مدير الفرع؟",
-            "instruction_for_ai": "أبلغ العميل بلطف أن الطلب دخل مرحلة التحضير في المطبخ ولا يمكن إلغاؤه كما في ai_speech_response."
-        }
-
-    # Cancel the order cleanly
-    order.status = "cancelled"
-    cancel_note = f"[تم الإلغاء آلياً بواسطة بوت الكول سنتر: {key_obj.name} - السبب: {reason}]"
-    if order.notes:
-        order.notes = f"{order.notes}\n{cancel_note}"
-    else:
-        order.notes = cancel_note
-    order.save()
-
-    # Real-time SSE push to kitchen display
-    try:
-        from core.kitchen_events import notify_kitchen_order_event
-        notify_kitchen_order_event(order, "order_cancelled")
-    except Exception as e:
-        logger.warning(f"Failed to notify kitchen of AI cancelled order: {e}")
-
-    key_obj.record_usage(placed_order=False)
-    return {
-        "ok": True,
-        "message": f"تم إلغاء الأوردر برقم {order.order_number} بنجاح.",
-        "order_number": order.order_number,
-        "status": "ملغي",
-        "cancelled_at": timezone.now().strftime("%Y-%m-%d %H:%M"),
-        "ai_speech_response": f"تمام يا فندم، تم إلغاء الأوردر رقم {order.order_number} بنجاح. أقدر أساعد حضرتك في أي طلب تاني؟",
-        "instruction_for_ai": f"أبلغ العميل بأنه تم إلغاء الأوردر رقم {order.order_number} بنجاح كما في ai_speech_response، واسأله إذا كان يرغب في أي خدمة أخرى."
-    }
+    finally:
+        close_old_connections()
 
 
 @mcp.tool
-def list_recent_orders(branch_id: Optional[int] = None, limit: int = 10, access_key: Optional[str] = None) -> Dict[str, Any]:
+def list_recent_orders(
+    branch_id: Optional[int] = None,
+    limit: int = 10,
+    access_key: Optional[str] = None
+) -> Dict[str, Any]:
     """
     استعراض أحدث الأوردرات لمراقبة حركة الطلبات في المنشأة أو الفرع.
     
     Args:
         branch_id: (اختياري) معرف فرع محدد لتصفية طلباته فقط.
         limit: أقصى عدد أوردرات للإرجاع (الافتراضي 10).
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
     """
-    key_obj, tenant = _authenticate(access_key)
-    from core.models import Order
+    close_old_connections()
+    try:
+        key_obj, tenant = _authenticate(access_key)
+        from core.models import Order
 
-    qs = Order.objects.filter(tenant=tenant).select_related("branch", "customer")
-    if branch_id:
-        qs = qs.filter(branch_id=branch_id)
-    elif key_obj.assigned_branch:
-        qs = qs.filter(branch=key_obj.assigned_branch)
+        qs = Order.objects.filter(tenant=tenant).select_related("branch", "customer")
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+        elif key_obj.assigned_branch:
+            qs = qs.filter(branch=key_obj.assigned_branch)
 
-    orders = qs.order_by("-created_at")[:min(limit, 50)]
-    orders_data = [
-        {
-            "id": o.id,
-            "order_number": o.order_number,
-            "branch": o.branch.name if o.branch else "الفرع الرئيسي",
-            "customer_name": o.customer_name,
-            "order_type": o.get_order_type_display(),
-            "status": o.get_status_display(),
-            "total": float(o.total),
-            "created_at": o.created_at.strftime("%Y-%m-%d %H:%M"),
+        orders = qs.order_by("-created_at")[:min(limit, 50)]
+        orders_data = [
+            {
+                "id": o.id,
+                "order_number": o.order_number,
+                "branch": o.branch.name if o.branch else "الفرع الرئيسي",
+                "customer_name": o.customer_name,
+                "order_type": o.get_order_type_display(),
+                "status": o.get_status_display(),
+                "total": float(o.total),
+                "created_at": o.created_at.strftime("%Y-%m-%d %H:%M"),
+            }
+            for o in orders
+        ]
+
+        key_obj.record_usage(placed_order=False)
+        return {
+            "ok": True,
+            "tenant_name": tenant.name,
+            "count": len(orders_data),
+            "orders": orders_data,
         }
-        for o in orders
-    ]
+    finally:
+        close_old_connections()
 
-    key_obj.record_usage(placed_order=False)
-    return {
-        "ok": True,
-        "tenant_name": tenant.name,
-        "count": len(orders_data),
-        "orders": orders_data,
-    }
+
+# Strip access_key from published tool JSON schemas so LLMs never hallucinate or see it
+for _comp in getattr(mcp._local_provider, "_components", {}).values():
+    _params = getattr(_comp, "parameters", None)
+    if isinstance(_params, dict):
+        _props = _params.get("properties", {})
+        if "access_key" in _props:
+            del _props["access_key"]
 
 
 def run_server(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):

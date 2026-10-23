@@ -8,17 +8,29 @@ try:
 except Exception:
     pass
 
+sys.path.insert(0, os.path.abspath("."))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "restaurant_system.settings")
+import django
+django.setup()
+
+from core.models import TenantApiKey, Tenant
+key_obj = TenantApiKey.objects.filter(is_active=True).first()
+if not key_obj:
+    t = Tenant.objects.filter(is_active=True).first()
+    key_obj = TenantApiKey.objects.create(tenant=t, name="Test Key", key="ak_live_testkey12345678901234567890")
+
+access_key = key_obj.key
 
 cmd = [
-    r"C:\Users\solo\AppData\Local\Python\pythoncore-3.14-64\python.exe",
-    r"C:\Users\solo\Downloads\restaurant-management-system-development (1)\manage.py",
+    sys.executable,
+    os.path.abspath("manage.py"),
     "run_callcenter_mcp",
     "--transport",
     "stdio",
 ]
 
 env = {
-    "RESTAURANT_ACCESS_KEY": "ak_live_GnALOkyiQvHnDUxDHMND5jC5rOmTtSDjok2c73JZHJU",
+    "RESTAURANT_ACCESS_KEY": access_key,
     "PYTHONIOENCODING": "utf-8",
     "PYTHONUTF8": "1",
 }
@@ -27,9 +39,6 @@ print("Spawning subprocess...")
 full_env = os.environ.copy()
 full_env.update(env)
 
-ide_dir = r"C:\Users\solo\AppData\Local\Programs\Antigravity IDE"
-test_cwd = ide_dir if os.path.exists(ide_dir) else None
-
 proc = subprocess.Popen(
     cmd,
     stdin=subprocess.PIPE,
@@ -37,7 +46,7 @@ proc = subprocess.Popen(
     stderr=subprocess.PIPE,
     text=True,
     encoding="utf-8",
-    cwd=test_cwd,
+    cwd=os.path.abspath("."),
     env=full_env,
 )
 

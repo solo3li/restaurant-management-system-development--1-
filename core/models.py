@@ -258,6 +258,18 @@ class Branch(models.Model):
         verbose_name="عملة الفرع",
         help_text="العملة الرسمية للفرع والأسعار وطلبات الذكاء الاصطناعي والكول سنتر."
     )
+    tax_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=15.00,
+        verbose_name="نسبة ضريبة القيمة المضافة (%)",
+        help_text="نسبة الضريبة الخاصة بالفرع (مثلاً 15.00 بالسعودية، 14.00 بمصر، 0 للمطاعم المعفاة)."
+    )
+    is_tax_inclusive = models.BooleanField(
+        default=True,
+        verbose_name="الأسعار شاملة الضريبة",
+        help_text="إذا كان مفعلاً، تكون أسعار قائمة الطعام شاملة للضريبة ويتم احتساب الضريبة داخلياً، وإلا تضاف فوق المجموع."
+    )
     is_accepting_orders = models.BooleanField(default=True, verbose_name="استقبال الطلبات الذاتية حالياً")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
 
@@ -1229,6 +1241,8 @@ class Order(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="المجموع الفرعي")
     delivery_fee = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="رسوم التوصيل")
     discount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="الخصم")
+    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, verbose_name="نسبة الضريبة المطبقة (%)")
+    tax = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="مبلغ الضريبة")
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="الإجمالي")
     cashier = models.CharField(max_length=255, default="", blank=True, verbose_name="الكاشير")
     driver = models.ForeignKey(

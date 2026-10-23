@@ -13,9 +13,9 @@ mcp_application = get_mcp_asgi_app()
 
 class ASGICORSMiddleware:
     """
-    Universal CORS Middleware for all ASGI traffic (Django + FastMCP SSE/Messages/MCP).
-    - Automatically handles OPTIONS Preflight requests with 200 OK.
-    - Appends Access-Control-Allow-Origin, Allow-Methods, Allow-Headers, Allow-Credentials to all responses.
+    CORS Middleware for ASGI traffic (Django + FastMCP SSE/Messages/MCP).
+    - Automatically handles OPTIONS Preflight requests.
+    - Emits compliant CORS headers (never pairs allow-origin: * with allow-credentials: true).
     - Exposes mcp-session-id and custom headers for third-party servers and web tools.
     """
     def __init__(self, app):
@@ -25,27 +25,32 @@ class ASGICORSMiddleware:
         if scope["type"] == "http":
             method = scope.get("method", "GET").upper()
 
-            # Determine request origin (echo requesting origin or default to wildcard)
-            origin = b"*"
+            origin = None
             for h_name, h_val in scope.get("headers", []):
                 if h_name.lower() == b"origin" and h_val:
                     origin = h_val
                     break
 
+            effective_origin = origin if origin else b"*"
+            allow_creds = bool(origin and origin != b"*")
+
             # Handle CORS preflight (OPTIONS)
             if method == "OPTIONS":
+                resp_headers = [
+                    (b"access-control-allow-origin", effective_origin),
+                    (b"access-control-allow-methods", b"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"),
+                    (b"access-control-allow-headers", b"Authorization, Content-Type, X-Access-Key, X-CSRFToken, mcp-session-id, Accept, Origin, User-Agent, Cache-Control, *"),
+                    (b"access-control-expose-headers", b"mcp-session-id, Content-Disposition, *"),
+                    (b"access-control-max-age", b"86400"),
+                    (b"content-length", b"0"),
+                ]
+                if allow_creds:
+                    resp_headers.append((b"access-control-allow-credentials", b"true"))
+
                 await send({
                     "type": "http.response.start",
                     "status": 200,
-                    "headers": [
-                        (b"access-control-allow-origin", origin),
-                        (b"access-control-allow-methods", b"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"),
-                        (b"access-control-allow-headers", b"Authorization, Content-Type, X-Access-Key, X-CSRFToken, mcp-session-id, Accept, Origin, User-Agent, Cache-Control, *"),
-                        (b"access-control-expose-headers", b"mcp-session-id, Content-Disposition, *"),
-                        (b"access-control-allow-credentials", b"true"),
-                        (b"access-control-max-age", b"86400"),
-                        (b"content-length", b"0"),
-                    ],
+                    "headers": resp_headers,
                 })
                 await send({"type": "http.response.body", "body": b""})
                 return
@@ -55,8 +60,8 @@ class ASGICORSMiddleware:
                 if message.get("type") == "http.response.start":
                     headers = list(message.get("headers", []))
                     if not any(h[0].lower() == b"access-control-allow-origin" for h in headers):
-                        headers.append((b"access-control-allow-origin", origin))
-                    if not any(h[0].lower() == b"access-control-allow-credentials" for h in headers):
+                        headers.append((b"access-control-allow-origin", effective_origin))
+                    if allow_creds and not any(h[0].lower() == b"access-control-allow-credentials" for h in headers):
                         headers.append((b"access-control-allow-credentials", b"true"))
                     if not any(h[0].lower() == b"access-control-expose-headers" for h in headers):
                         headers.append((b"access-control-expose-headers", b"mcp-session-id, Content-Disposition, *"))
@@ -85,7 +90,13 @@ async def _raw_application(scope, receive, send):
     if scope_type in ("http", "websocket"):
         path = scope.get("path", "")
         # Route FastMCP Streamable-HTTP & SSE traffic + OAuth discovery
-        if path.startswith("/mcp") or path.startswith("/sse") or path.startswith("/messages") or path.startswith("/.well-known"):
+        is_mcp_path = (
+            path == "/mcp" or path.startswith("/mcp/") or
+            path == "/sse" or path.startswith("/sse/") or
+            path == "/messages" or path.startswith("/messages/") or
+            path.startswith("/.well-known")
+        )
+        if is_mcp_path:
             await mcp_application(scope, receive, send)
             return
 
