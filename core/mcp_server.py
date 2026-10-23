@@ -35,37 +35,75 @@ import contextvars
 from urllib.parse import parse_qs
 from asgiref.sync import sync_to_async
 from pydantic import BaseModel, Field
+from core.redis_mcp_cache import (
+    cache_active_order,
+    get_active_order_by_phone,
+    get_active_order_by_number,
+    remove_active_order,
+    get_branch_menu_matrix,
+    get_redis_client,
+)
 
 
 class OrderItemInput(BaseModel):
     """عنصر مطلوب من قائمة الطعام مع الكمية والحجم والملاحظات"""
-    name: str = Field(description="اسم الصنف المطلوب كما في المنيو (مثال: شاي كرك، برجر دجاج، بيتزا خضار)")
+    name: Optional[str] = Field(default="", description="اسم الصنف المطلوب كما في المنيو (مثال: شاي كرك، برجر دجاج، بيتزا خضار)")
     quantity: int = Field(default=1, ge=1, description="الكمية المطلوبة (افتراضياً 1)")
+    item_id: Optional[int] = Field(default=None, description="رقم معرف الصنف إذا كان معروفا")
     variant: Optional[str] = Field(default=None, description="الحجم أو الخيار المطلوب للصنف إن وجد (مثال: 'صغير', 'وسط', 'كبير', 'دبل', 'عائلي')")
     notes: Optional[str] = Field(default=None, description="ملاحظات خاصة بالصنف (مثال: بدون بصل، زيادة صوص)")
+
+    class Config:
+        extra = "allow"
 
 
 _current_session_key: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("_current_session_key", default=None)
 
-# Multi-worker Persistent Session Storage via Django Cache (Replaces unbounded in-memory dicts)
+# High-Performance In-Memory & Redis Session Storage (Zero DB queries, safe for Async ASGI)
+_in_memory_sessions = {}
+
 def _get_cached_session_key(sid: Optional[str]) -> Optional[str]:
     if not sid:
         return None
-    return cache.get(f"mcp_session:{str(sid).strip().lower()}")
+    clean_sid = str(sid).strip().lower()
+    r = get_redis_client()
+    if r:
+        try:
+            return r.get(f"mcp_session:{clean_sid}")
+        except Exception:
+            pass
+    return _in_memory_sessions.get(f"mcp_session:{clean_sid}")
 
 
 def _set_cached_session_key(sid: Optional[str], key: Optional[str], timeout: int = 86400):
     if sid and key:
         clean_sid = str(sid).strip().lower()
         clean_key = str(key).strip()
-        cache.set(f"mcp_session:{clean_sid}", clean_key, timeout=timeout)
-        cache.set(f"mcp_key_latest:{clean_key}", clean_sid, timeout=timeout)
+        r = get_redis_client()
+        if r:
+            try:
+                pipe = r.pipeline()
+                pipe.set(f"mcp_session:{clean_sid}", clean_key, ex=timeout)
+                pipe.set(f"mcp_key_latest:{clean_key}", clean_sid, ex=timeout)
+                pipe.execute()
+                return
+            except Exception:
+                pass
+        _in_memory_sessions[f"mcp_session:{clean_sid}"] = clean_key
+        _in_memory_sessions[f"mcp_key_latest:{clean_key}"] = clean_sid
 
 
 def _get_latest_session_for_key(key: Optional[str]) -> Optional[str]:
     if not key:
         return None
-    return cache.get(f"mcp_key_latest:{str(key).strip()}")
+    clean_key = str(key).strip()
+    r = get_redis_client()
+    if r:
+        try:
+            return r.get(f"mcp_key_latest:{clean_key}")
+        except Exception:
+            pass
+    return _in_memory_sessions.get(f"mcp_key_latest:{clean_key}")
 
 # Initialize FastMCP Server
 mcp = FastMCP(
@@ -314,7 +352,7 @@ class SSEAuthMiddleware:
                         if b"session_id=" in body:
                             try:
                                 text = body.decode("utf-8")
-                                m = re.search(r"session_id=([0-9a-fA-F]+)", text)
+                                m = re.search(r"session_id=([a-zA-Z0-9_\-]+)", text)
                                 if m:
                                     captured_sid = m.group(1).lower()
                                     _set_cached_session_key(captured_sid, key)
@@ -690,7 +728,7 @@ def _resolve_item_variant(item, branch, item_spec: dict, raw_name: str) -> tuple
     }
 
 
-def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> tuple[Optional[Any], Optional[Any], Optional[Union[str, Dict[str, Any]]]]:
+def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set, all_tenant_items: Optional[List[Any]] = None) -> tuple[Optional[Any], Optional[Any], Optional[Union[str, Dict[str, Any]]]]:
     """
     محرك بحث ومطابقة ذكي وشامل للأصناف والأحجام (Smart Resilient Item & Variant Resolver):
     1. التحقق بواسطة item_id أو id المباشر.
@@ -717,16 +755,21 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> t
     raw_id = item_spec.get("item_id") if item_spec.get("item_id") is not None else item_spec.get("id")
     raw_name = str(item_spec.get("name") or item_spec.get("item_name") or "").strip()
 
+    if all_tenant_items is None:
+        all_tenant_items = list(MenuItem.objects.filter(tenant=tenant, available=True).prefetch_related("variants"))
+
     # 1. البحث برقم الصنف (ID)
     if raw_id is not None:
         try:
             m_id = int(raw_id)
-            item = MenuItem.objects.filter(tenant=tenant, id=m_id, available=True).first()
+            item = next((m for m in all_tenant_items if m.id == m_id), None)
+            if not item:
+                item = MenuItem.objects.filter(tenant=tenant, id=m_id, available=True).first()
             if not item:
                 return None, None, f"الصنف برقم #{m_id} غير موجود في قائمة طعام المنشأة."
             if item.id in disabled_item_ids:
                 return None, None, f"الصنف «{item.name}» (رقم #{item.id}) غير متوفر حالياً في فرع «{branch.name}»."
-            v_obj, v_err = _resolve_item_variant(item, branch, item_spec, raw_name)
+            v_obj, v_err = _resolve_item_variant(item, branch, item_spec, raw_name or item.name)
             if v_err:
                 return item, None, v_err
             return item, v_obj, None
@@ -737,7 +780,6 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> t
     if not raw_name:
         return None, None, "يجب تحديد رقم الصنف (item_id) أو اسمه (name) في عناصر الطلب."
 
-    all_tenant_items = list(MenuItem.objects.filter(tenant=tenant, available=True))
     norm_query = _normalize_arabic_text(raw_name)
     canon_query = _canonical_food_name(raw_name)
 
@@ -1391,6 +1433,56 @@ def lookup_customer(
 
     clean_phone = _clean_phone(raw_val)
     phone_suffix = clean_phone[-9:] if len(clean_phone) >= 9 else clean_phone
+
+    # 0. Fast Redis Active Order Check (<0.2ms)
+    redis_active = get_active_order_by_phone(tenant.id, clean_phone)
+    if redis_active:
+        status_code = redis_active.get("status", "new")
+        if status_code in ["new", "preparing"]:
+            status_desc = "في المطبخ بنجهزه طازج لحضرتك"
+        elif status_code in ["ready", "out_for_delivery"]:
+            status_desc = "خرج مع الطيار وفي الطريق إليك"
+        else:
+            status_desc = redis_active.get("status_display", status_code)
+
+        rem_min = max(5, redis_active.get("estimated_delivery_minutes", 35))
+        ord_num = redis_active.get("order_number", "")
+        cust_name = str(redis_active.get("customer_name") or "").strip()
+        first_name = cust_name.split()[0] if cust_name else ""
+        title = f"يا أستاذ {first_name}" if (first_name and not cust_name.startswith("عميل")) else "يا فندم"
+        active_speech = (
+            f"أهلاً بحضرتك {title}! بخصوص طلبك الأخير رقم #{ord_num}، "
+            f"هو حالياً {status_desc} ومتوقع يوصلك خلال {rem_min} دقيقة تقريباً.. "
+            f"تحب أساعد حضرتك في أي استفسار بخصوصه؟"
+        )
+        key_obj.record_usage(placed_order=False)
+        close_old_connections()
+        return {
+            "ok": True,
+            "found": True,
+            "has_active_recent_order": True,
+            "customer": {
+                "id": None,
+                "name": redis_active.get("customer_name") or "عميل",
+                "phone": clean_phone,
+                "address": redis_active.get("address") or "",
+            },
+            "active_order": {
+                "order_number": ord_num,
+                "status": status_code,
+                "status_display": status_desc,
+                "estimated_remaining_minutes": rem_min,
+                "total": float(redis_active.get("total", 0)),
+                "branch_name": redis_active.get("branch_name", ""),
+                "items_summary": redis_active.get("items_summary", ""),
+            },
+            "ai_speech_response": active_speech,
+            "instruction_for_ai": (
+                "العميل لديه أوردر جارٍ قيد التنفيذ؛ اقرأ عليه نص ai_speech_response فوراً لتطمينه على طلبه. "
+                "إذا كان يتصل للاستفسار عنه، أجب على تساؤلاته. أما إذا ذكر أنه يرغب في عمل طلب جديد إضافي، فابدأ معه في تلقي الأصناف الجديدة."
+            )
+        }
+
     customer = Customer.objects.filter(tenant=tenant).filter(
         models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
     ).first()
@@ -1422,6 +1514,10 @@ def lookup_customer(
     ).order_by("-created_at").first()
 
     if active_order:
+        try:
+            cache_active_order(active_order)
+        except Exception:
+            pass
         elapsed_min = max(1, int((now - active_order.created_at).total_seconds() / 60))
         if active_order.status in ["new", "preparing"]:
             status_desc = "في المطبخ بنجهزه طازج لحضرتك"
@@ -1432,8 +1528,11 @@ def lookup_customer(
 
         area_est = active_order.delivery_area.estimated_time_minutes if active_order.delivery_area else 35
         rem_min = max(5, area_est - elapsed_min)
+        cust_name = str(customer.name if customer else "").strip()
+        first_name = cust_name.split()[0] if cust_name else ""
+        title = f"يا أستاذ {first_name}" if (first_name and not cust_name.startswith("عميل")) else "يا فندم"
         active_speech = (
-            f"أهلاً بحضرتك يا فندم! بخصوص طلبك الأخير رقم #{active_order.order_number}، "
+            f"أهلاً بحضرتك {title}! بخصوص طلبك الأخير رقم #{active_order.order_number}، "
             f"هو حالياً {status_desc} ومتوقع يوصلك خلال {rem_min} دقيقة تقريباً.. "
             f"تحب أساعد حضرتك في أي استفسار بخصوصه؟"
         )
@@ -1819,12 +1918,13 @@ def preview_order(
         disabled_item_ids = set(
             BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
         )
+        all_tenant_items = list(MenuItem.objects.filter(tenant=tenant, available=True).prefetch_related("variants"))
 
         subtotal = Decimal("0.00")
         prepared_items = []
 
         for idx, item_spec in enumerate(items, start=1):
-            menu_item, variant, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids)
+            menu_item, variant, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids, all_tenant_items)
             if match_err:
                 if isinstance(match_err, dict):
                     return match_err
@@ -1968,18 +2068,18 @@ def preview_order(
 
 @mcp.tool
 def create_callcenter_order(
+    phone: Optional[str] = None,
+    items: Optional[List[OrderItemInput]] = None,
+    customer_name: Optional[str] = "",
+    address: Optional[str] = "",
+    order_type: str = "delivery",
     branch_id: Optional[int] = None,
+    customer_phone: Optional[str] = None,
+    phone_number: Optional[str] = None,
+    customer_address: Optional[str] = None,
+    name: Optional[str] = None,
     branch_name: Optional[str] = None,
     branch: Optional[Any] = None,
-    customer_phone: Optional[str] = None,
-    phone: Optional[str] = None,
-    phone_number: Optional[str] = None,
-    customer_name: Optional[str] = "",
-    name: Optional[str] = None,
-    customer_address: Optional[str] = "",
-    address: Optional[str] = None,
-    items: Optional[List[OrderItemInput]] = None,
-    order_type: str = "delivery",
     delivery_area_id: Optional[int] = None,
     delivery_area_name: Optional[str] = None,
     notes: str = "",
@@ -1990,18 +2090,14 @@ def create_callcenter_order(
     ومطابقة الأصناف الذكية بالمرادفات واللهجات والأحجام، وحساب الضريبة الخاصة بالفرع، والتوجيه التلقائي للفرع الذي يغطي عنوان العميل.
     
     Args:
-        branch_id: (اختياري) معرف الفرع المنفذ للطلب. إن لم يحدد يتم التوجيه التلقائي للفرع الأنسب.
-        customer_phone: رقم هاتف العميل (إلزامي للتعرف على العميل وتتبع الطلب).
-        phone: (بديل) رقم هاتف العميل.
-        phone_number: (بديل) رقم هاتف العميل.
-        customer_name: (اختياري) اسم العميل (يُحدث تلقائياً ويُسترجع من سجله السابق إن وجد).
-        name: (بديل) اسم العميل.
-        customer_address: عنوان التوصيل بالتفصيل (الحي، الشارع، العمارة، الشقة).
-        address: (بديل) عنوان التوصيل.
+        phone: رقم هاتف العميل (إلزامي للتعرف على العميل وتتبع الطلب).
         items: قائمة الأصناف المطلوبة مع الكميات والخيارات (مثال: [{'name': 'شاي كرك', 'quantity': 1}]).
+        customer_name: (اختياري) اسم العميل (يُحدث تلقائياً ويُسترجع من سجله السابق إن وجد).
+        address: عنوان التوصيل بالتفصيل (الحي، الشارع، العمارة، الشقة).
         order_type: نوع الطلب ('delivery' أو 'takeaway' أو 'dine_in'). الافتراضي هو 'delivery'.
-        delivery_area_id: (اختياري) معرف منطقة التوصيل لتطبيق رسومها المحددة بدقة.
-        delivery_area_name: (اختياري) اسم منطقة أو حي التوصيل (مثل: 'مدينة الشروق', 'العليا').
+        branch_id: (اختياري) معرف الفرع المنفذ للطلب. إن لم يحدد يتم التوجيه التلقائي للفرع الأنسب.
+        customer_phone: (بديل) رقم هاتف العميل.
+        customer_address: (بديل) عنوان التوصيل.
         notes: أي ملاحظات خاصة بالطلب (مثل: بدون شطة، زيادة صوص).
     """
     close_old_connections()
@@ -2009,11 +2105,10 @@ def create_callcenter_order(
         key_obj, tenant = _authenticate(access_key)
         from core.models import Branch, Customer, MenuItem, Order, OrderItem, DeliveryArea, BranchMenuAvailability
 
-        customer_phone = str(customer_phone or phone or phone_number or "").strip()
-        if not customer_address and address:
-            customer_address = address
-        if not customer_name and name:
-            customer_name = name
+        customer_phone = str(phone or customer_phone or phone_number or "").strip()
+        customer_address = str(address or customer_address or "").strip()
+        customer_name = str(customer_name or name or "").strip()
+        branch_name = branch_name or branch
 
         # Diagnostic / Health check call from platform admin
         if not customer_phone and not items and not customer_address:
@@ -2201,12 +2296,13 @@ def create_callcenter_order(
         disabled_item_ids = set(
             BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
         )
+        all_tenant_items = list(MenuItem.objects.filter(tenant=tenant, available=True).prefetch_related("variants"))
 
         subtotal = Decimal("0.00")
         order_items_prepared = []
 
         for idx, item_spec in enumerate(items, start=1):
-            menu_item, variant, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids)
+            menu_item, variant, match_err = _find_menu_item(tenant, branch, item_spec, disabled_item_ids, all_tenant_items)
             if match_err:
                 if isinstance(match_err, dict):
                     return match_err
@@ -2407,12 +2503,17 @@ def create_callcenter_order(
                 ip_address=None,
             )
 
-        # Real-time SSE push to kitchen display
+        # Real-time SSE push to kitchen display & Redis active order cache
         try:
             from core.kitchen_events import notify_kitchen_order_event
             notify_kitchen_order_event(order, "new_order")
         except Exception as e:
             logger.warning(f"Failed to notify kitchen of AI order: {e}")
+
+        try:
+            cache_active_order(order)
+        except Exception as e:
+            logger.warning(f"Failed to cache active order in Redis: {e}")
 
         key_obj.record_usage(placed_order=True)
 
@@ -2568,6 +2669,45 @@ def track_order(
         order = None
         customer_orders = []
 
+        # 0. Redis In-Memory Ultra-Fast Active Order Track (<0.2ms)
+        redis_order = None
+        if norm_query:
+            redis_order = get_active_order_by_number(tenant.id, norm_query)
+        if not redis_order and norm_phone:
+            redis_order = get_active_order_by_phone(tenant.id, norm_phone)
+
+        if redis_order:
+            status_code = redis_order.get("status", "new")
+            status_speech_map = {
+                "new": "طلبك مسجل وجاري إرساله للمطبخ.",
+                "preparing": "طلبك حالياً بيتجهز في المطبخ بكل اهتمام.",
+                "ready": "طلبك جاهز تماماً وبانتظار مندوب التوصيل للاستلام.",
+                "out_for_delivery": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
+                "on_way": "طلبك خرج مع المندوب وفي الطريق لحضرتك حالياً.",
+                "delivered": "الطلب مسجل عندنا إنه تم تسليمه بنجاح.",
+                "cancelled": "الطلب مسجل إنه ملغي.",
+                "canceled": "الطلب مسجل إنه ملغي.",
+            }
+            speech_state = status_speech_map.get(status_code, f"حالة طلبك الحالية هي {redis_order.get('status_display', status_code)}.")
+            ai_speech = f"يا فندم بخصوص طلبك رقم {redis_order.get('order_number')}، {speech_state}"
+            key_obj.record_usage(placed_order=False)
+            return {
+                "ok": True,
+                "matched_by": "redis_cache",
+                "ai_speech_response": ai_speech,
+                "instruction_for_ai": "أبلغ العميل بحالة طلبه كما هو موضح في ai_speech_response.",
+                "order": {
+                    "id": redis_order.get("order_id"),
+                    "order_number": redis_order.get("order_number"),
+                    "branch_name": redis_order.get("branch_name", "الفرع الرئيسي"),
+                    "status_code": status_code,
+                    "status_display": redis_order.get("status_display", status_code),
+                    "total": redis_order.get("total", 0),
+                    "items_summary": redis_order.get("items_summary", ""),
+                    "currency_symbol": redis_order.get("currency_symbol", "ر.س"),
+                }
+            }
+
         # 1. Search by exact order_number or digits inside order_number
         if norm_query:
             # 1.1 Direct exact match
@@ -2607,6 +2747,12 @@ def track_order(
             if customer_orders:
                 active_orders = [o for o in customer_orders if o.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]]
                 order = active_orders[0] if active_orders else customer_orders[0]
+
+        if order and order.status in ["new", "preparing", "ready", "out_for_delivery", "on_way"]:
+            try:
+                cache_active_order(order)
+            except Exception:
+                pass
 
         if not order:
             key_obj.record_usage(placed_order=False)
@@ -2828,12 +2974,17 @@ def cancel_order(
             order.notes = cancel_note
         order.save()
 
-        # Real-time SSE push to kitchen display
+        # Real-time SSE push to kitchen display & purge active order from Redis
         try:
             from core.kitchen_events import notify_kitchen_order_event
             notify_kitchen_order_event(order, "order_cancelled")
         except Exception as e:
             logger.warning(f"Failed to notify kitchen of AI cancelled order: {e}")
+
+        try:
+            remove_active_order(tenant.id, order.order_number)
+        except Exception as e:
+            logger.warning(f"Failed to remove active order from Redis: {e}")
 
         key_obj.record_usage(placed_order=False)
         return {
@@ -2899,34 +3050,19 @@ def list_recent_orders(
         close_old_connections()
 
 
-# Strip access_key from published tool JSON schemas so LLMs never hallucinate or see it
-for _comp in getattr(mcp._local_provider, "_components", {}).values():
-    _params = getattr(_comp, "parameters", None)
-    if isinstance(_params, dict):
-        _props = _params.get("properties", {})
-        if "access_key" in _props:
-            del _props["access_key"]
-
-
-def run_server(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
-    """Run FastMCP server via STDIO or SSE."""
-    if transport == "sse":
-        import uvicorn
-        print(f"Starting Restaurant FastMCP Server on SSE {host}:{port}...", file=sys.stderr)
-        raw_app = mcp.http_app(transport="sse")
-        app = SSEAuthMiddleware(raw_app)
-        uvicorn.run(app, host=host, port=port, log_level="info")
-    else:
-        # In stdio mode, stdout is reserved strictly for JSON-RPC messages
-        mcp.run(transport="stdio")
-
+def run_server(host: str = "0.0.0.0", port: int = 8002):
+    """Run FastMCP server on SSE (Server-Sent Events) exclusively."""
+    import uvicorn
+    print(f"Starting Restaurant FastMCP Server on SSE http://{host}:{port}/sse ...", file=sys.stderr)
+    raw_app = mcp.http_app(transport="sse")
+    app = SSEAuthMiddleware(raw_app)
+    uvicorn.run(app, host=host, port=port, log_level="info")
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Restaurant Call Center FastMCP Server")
-    parser.add_argument("--transport", choices=["stdio", "sse"], default="stdio", help="Transport mode")
+    parser = argparse.ArgumentParser(description="Restaurant Call Center FastMCP Server (SSE Exclusive)")
     parser.add_argument("--host", default="0.0.0.0", help="Host for SSE server")
     parser.add_argument("--port", type=int, default=8002, help="Port for SSE server")
     args = parser.parse_args()
-    run_server(transport=args.transport, host=args.host, port=args.port)
+    run_server(host=args.host, port=args.port)

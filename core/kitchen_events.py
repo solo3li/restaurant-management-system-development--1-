@@ -178,3 +178,14 @@ def notify_kitchen_order_event(order, event_type: str):
         )
     except Exception as e:
         logger.error("Failed to broadcast kitchen order event: %s", e)
+
+    # Synchronize Active Orders in Redis in-memory cache
+    try:
+        from core.redis_mcp_cache import cache_active_order, remove_active_order
+        if event_type == "order_cancelled" or order.status in ("delivered", "cancelled", "canceled"):
+            remove_active_order(order.tenant_id, order.order_number)
+        else:
+            cache_active_order(order)
+    except Exception as ex:
+        logger.warning("Failed to sync Redis active order cache: %s", ex)
+
