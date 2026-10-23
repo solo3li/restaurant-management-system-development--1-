@@ -63,6 +63,38 @@
       "dependencies": ["feat-restaurant-profile-view", "feat-restaurant-profile-backend", "feat-restaurant-profile-rbac"],
       "status": "completed",
       "evidence": "venv/bin/python test_restaurant_profile.py executed with 59/59 passing test cases (100% PASS)"
+    },
+    {
+      "id": "feat-landing-navbar-auth",
+      "name": "Landing Page Navbar Simplification & Auth States",
+      "description": "Remove content anchor tabs while keeping page sections visible. Guest: Language Switcher, Sign In, Start Free. Authenticated: Dashboard (/dashboard/), Profile (/profile/), Language Switcher.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "templates/landing.html, templates/base.html, core/views.py landing_view updated. Verified in test_landing_and_profile.py Suites 1 & 2."
+    },
+    {
+      "id": "feat-landing-bilingual",
+      "name": "100% Bilingual Landing Page (Full Arabic & Full English)",
+      "description": "Translate all text, badges, headers, stats, feature cards, and FAQ items in templates/landing.html. Clean dynamic RTL/LTR switching.",
+      "dependencies": ["feat-landing-navbar-auth"],
+      "status": "completed",
+      "evidence": "templates/landing.html and core/i18n_catalog.py updated. Verified in test_landing_and_profile.py Suite 3."
+    },
+    {
+      "id": "feat-user-subscription-profile",
+      "name": "Comprehensive User & Subscription Profile Page",
+      "description": "Dedicated Profile Page at /profile/ and /user/profile/ with Account & Restaurant overview, active plan card, quota progress bars, upgrade modal, and 'Enter Dashboard' primary CTA.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "apps/billing/views.py: owner_subscription_view with @login_required, core/urls.py (/profile/, /user/profile/), templates/owner_subscription.html. Verified in test_landing_and_profile.py Suite 4."
+    },
+    {
+      "id": "feat-post-registration-routing",
+      "name": "Post-Registration Routing to Profile Page",
+      "description": "Redirect newly registered restaurant owner upon successful registration on /register/ directly to /profile/.",
+      "dependencies": ["feat-user-subscription-profile"],
+      "status": "completed",
+      "evidence": "apps/accounts/views.py: register_view redirects to profile, fixed missing slugify and timedelta imports. Verified in test_landing_and_profile.py Suite 5."
     }
   ]
 }

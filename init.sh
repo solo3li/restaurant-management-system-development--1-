@@ -12,6 +12,9 @@ venv/bin/python test_system.py
 echo "=== venv/bin/python test_e2e_rbac.py ==="
 venv/bin/python test_e2e_rbac.py
 
+echo "=== venv/bin/python test_landing_and_profile.py ==="
+venv/bin/python test_landing_and_profile.py
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

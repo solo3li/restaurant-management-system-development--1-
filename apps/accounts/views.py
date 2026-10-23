@@ -2,6 +2,7 @@ import os
 import json
 import csv
 import logging
+from datetime import timedelta
 from decimal import Decimal
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -12,6 +13,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
+from django.utils.text import slugify
 from django.db import transaction, IntegrityError
 from django.db.models import Sum, Count, F, Q
 
@@ -310,10 +312,10 @@ def register_view(request):
                         status="active"
                     )
 
-                # 7. Authenticate and redirect
+                # 7. Authenticate and redirect directly to Profile page
                 login(request, user)
                 request.session["active_tenant_id"] = tenant.id
-                return redirect("dashboard")
+                return redirect("profile")
 
             except Exception as e:
                 error_message = f"حدث خطأ أثناء إنشاء الحساب: {str(e)}"

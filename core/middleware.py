@@ -68,6 +68,10 @@ class TenantMiddleware:
                     is_subscription_allowed = (
                         path.startswith("/subscription/") or
                         path.startswith("/subscription") or
+                        path.startswith("/profile/") or
+                        path.startswith("/profile") or
+                        path.startswith("/user/profile/") or
+                        path.startswith("/user/profile") or
                         path.startswith("/api/subscription/")
                     )
 

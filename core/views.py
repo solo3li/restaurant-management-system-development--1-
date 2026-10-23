@@ -194,10 +194,7 @@ from apps.audit.views import (
 
 
 def landing_view(request):
-    """Public Landing Page. If authenticated, redirect to appropriate workspace."""
-    if request.user.is_authenticated:
-        return redirect(get_post_login_redirect(request.user))
-
+    """Public Landing Page with guest and authenticated navigation states."""
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("ordering", "price_monthly")
     total_tenants = Tenant.objects.filter(is_active=True).count()
     total_branches = Branch.objects.filter(status="active").count()
@@ -216,6 +213,7 @@ def landing_view(request):
         })
 
     context = {
+        "is_landing": True,
         "plans": plans,
         "catalog": catalog_data,
         "stats": {

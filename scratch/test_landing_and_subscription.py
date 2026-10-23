@@ -11,7 +11,7 @@ if sys.platform == "win32":
         pass
 
 # Setup Django environment
-sys.path.append(r"c:\Users\solo\Downloads\restaurant-management-system-development (1)")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "restaurant_system.settings")
 django.setup()
 
@@ -31,18 +31,21 @@ def run_tests():
     resp = client.get("/")
     assert resp.status_code == 200, f"Expected 200 for landing page, got {resp.status_code}"
     content = resp.content.decode("utf-8")
-    assert "ضِيَافَة" in content, "Brand name not found in landing page"
-    assert "الجيل الجديد" in content, "Hero badge text not found in landing page"
-    assert "دفع شهري" in content, "Pricing toggle not found in landing page"
+    assert "مطاعم" in content, "Brand name not found in landing page"
+    assert "منظومة التشغيل الموحدة" in content, "Hero headline text not found in landing page"
+    assert "باقات واضحة وبسيطة" in content, "Pricing section not found in landing page"
     print("✓ Unauthenticated visitor receives public landing page (200 OK)")
 
-    # 2. TEST AUTHENTICATED REDIRECTION FROM LANDING PAGE
+    # 2. TEST AUTHENTICATED NAVBAR ON LANDING PAGE
     admin_user = User.objects.filter(is_superuser=True).first()
     assert admin_user is not None, "Superuser not found in database"
     client.force_login(admin_user)
     resp = client.get("/")
-    assert resp.status_code in [302, 301], f"Expected 302 redirect for logged in user, got {resp.status_code}"
-    print(f"✓ Authenticated user redirected from '/' to {resp.url} (302 Redirect)")
+    assert resp.status_code == 200, f"Expected 200 for authenticated landing page, got {resp.status_code}"
+    content = resp.content.decode("utf-8")
+    assert "/dashboard/" in content, "Dashboard link not found for authenticated user"
+    assert "/profile/" in content, "Profile link not found for authenticated user"
+    print("✓ Authenticated user receives landing page with Dashboard and Profile links (200 OK)")
     client.logout()
 
     # 3. SETUP OWNER AND TENANT FOR SUBSCRIPTION TESTS

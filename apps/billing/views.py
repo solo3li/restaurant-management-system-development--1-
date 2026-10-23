@@ -14,6 +14,7 @@ from apps.orders.models import Order
 from apps.callcenter.models import TenantApiKey
 
 
+@login_required
 def owner_subscription_view(request):
     """Owner dashboard for viewing current subscription, limits usage, and requesting upgrades."""
     profile = getattr(request.user, "profile", None)
