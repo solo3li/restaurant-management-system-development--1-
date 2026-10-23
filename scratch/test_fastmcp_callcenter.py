@@ -134,6 +134,10 @@ def run_tests():
     print("\n--- 5. Testing FastMCP Tool: lookup_customer ---")
     test_phone = "01099887766"
     Customer.objects.filter(tenant=tenant, phone=test_phone).delete()
+    from core.redis_mcp_cache import get_redis_client
+    r_c = get_redis_client()
+    if r_c:
+        r_c.delete(f"active_order:phone:{tenant.id}:{test_phone[-9:]}")
     cust_res = lookup_customer(phone=test_phone, access_key=access_key)
     assert cust_res["ok"] is True
     assert cust_res["found"] is False, "Expected new customer to not be found yet"
