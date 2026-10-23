@@ -37,6 +37,7 @@ from core.redis_mcp_cache import (
     remove_active_order,
     get_next_order_sequence,
     cart_get,
+    cart_is_abandoned,
     cart_clear as redis_cart_clear,
 )
 
@@ -362,6 +363,44 @@ def lookup_customer(
         models.Q(phone=clean_phone) | models.Q(phone__endswith=phone_suffix)
     ).first()
 
+    # 0.5 Check for Abandoned Draft Cart from Interrupted Call (within 30 mins)
+    has_cart, abandoned_cart = cart_is_abandoned(tenant.id, clean_phone, max_age_seconds=1800)
+    if has_cart and abandoned_cart and abandoned_cart.get("items"):
+        cart_items = abandoned_cart["items"]
+        items_summary = " و ".join([f"{it['quantity']} {it['name']}" for it in cart_items[:4]])
+        total_est = sum(float(it.get("price", 0)) * int(it.get("quantity", 1)) for it in cart_items)
+        speech = (
+            f"أهلاً بحضرتك يا فندم! نورتنا تاني.. "
+            f"كان مسجل عندنا في طلبك السابق ({items_summary}).. "
+            f"تحب نكمل عليها ولا حابب تعدل عليها أو تبدأ طلب جديد؟"
+        )
+        instruction = (
+            "العميل لديه سلة طلبات سابقة غير مكتملة (مكالمة منقطعة)؛ اعرض عليه استئنافها كما في ai_speech_response. "
+            "إذا وافق العميل (قال كمل، تمام، أو نعم)، استكمل معه تأكيد العنوان عبر checkout_cart أو create_callcenter_order. "
+            "أما إذا قال (لا، أو ابدأ طلب جديد)، فاستدعِ أداة cart_clear فوراً لتفريغ السلة وابدأ معه طلباً جديداً."
+        )
+        key_obj.record_usage(placed_order=False)
+        close_old_connections()
+        return {
+            "ok": True,
+            "found": True,
+            "has_abandoned_cart": True,
+            "customer": {
+                "id": customer.id if customer else None,
+                "name": customer.name if customer else "عميل",
+                "phone": clean_phone,
+                "address": customer.address if customer else "",
+            },
+            "abandoned_cart": {
+                "items": cart_items,
+                "items_count": abandoned_cart.get("items_count", len(cart_items)),
+                "estimated_total": round(total_est, 2),
+                "items_summary": items_summary,
+            },
+            "ai_speech_response": speech,
+            "instruction_for_ai": instruction,
+        }
+
     now = timezone.now()
     one_hour_ago = now - timezone.timedelta(minutes=60)
 
@@ -668,6 +707,8 @@ def preview_order(
                 else:
                     return {
                         "ok": False,
+                        "is_system_error": False,
+                        "error_code": "ERR_INVALID_ITEMS_FORMAT",
                         "error": "صيغة قائمة الأصناف غير صالحة، يرجى تزويدنا بقائمة أصناف صحيحة.",
                         "ai_speech_response": "يا فندم ما قدرتش أحدد الأصناف المطلوبة، ممكن توضح لي طلبت إيه بالظبط؟",
                         "instruction_for_ai": "اطلب من العميل توضيح الأصناف والكميات المطلوبة."
@@ -699,6 +740,8 @@ def preview_order(
         if not items:
             return {
                 "ok": False,
+                "is_system_error": False,
+                "error_code": "ERR_ITEMS_REQUIRED",
                 "error": "يجب تزويدنا بقائمة أصناف صالحة في المعامل items لحساب الفاتورة.",
                 "ai_speech_response": "يا فندم محتاجة أعرف الأصناف اللي تحب تطلبها عشان أحسب لحضرتك الفاتورة.",
                 "instruction_for_ai": "اسأل العميل عن الأصناف التي يود طلبها."
@@ -870,6 +913,7 @@ def preview_order(
                 key_obj.record_usage(placed_order=False)
                 return {
                     "ok": True,
+                    "error_code": "ERR_MIN_ORDER_NOT_MET",
                     "below_minimum_order": True,
                     "branch_name": branch_obj.name,
                     "currency": branch_obj.currency,
@@ -989,6 +1033,7 @@ def create_callcenter_order(
                 return {
                     "ok": False,
                     "is_system_error": False,
+                    "error_code": "ERR_PHONE_REQUIRED",
                     "status": "phone_required",
                     "error": "رقم هاتف العميل مطلوب لتسجيل الطلب وتتبعه.",
                     "ai_speech_response": "يا فندم محتاجة رقم تليفون حضرتك عشان نقدر نسجل الأوردر ونبعتلك رابط التتبع.",
@@ -1014,6 +1059,8 @@ def create_callcenter_order(
                 else:
                     return {
                         "ok": False,
+                        "is_system_error": False,
+                        "error_code": "ERR_INVALID_ITEMS_FORMAT",
                         "error": "صيغة قائمة الأصناف غير صالحة.",
                         "ai_speech_response": "يا فندم ما قدرتش أسجل الأصناف المطلوبة، ممكن تعيدها لي تاني؟",
                         "instruction_for_ai": "اطلب من العميل إعادة ذكر الأصناف والكميات المطلوبة."
@@ -1046,8 +1093,9 @@ def create_callcenter_order(
             return {
                 "ok": False,
                 "is_system_error": False,
-                "error": "قائمة الأصناف (items) مطلوبة لتنفيذ الطلب.",
-                "ai_speech_response": "يا فندم محتاجة أعرف الأصناف والكميات المطلوبة عشان أسجل الأوردر.",
+                "error_code": "ERR_CART_EMPTY" if used_cart_checkout else "ERR_ITEMS_REQUIRED",
+                "error": "سلة الطلبات فارغة أو لم يتم تحديد الأصناف المطلوبة لتنفيذ الطلب.",
+                "ai_speech_response": "يا فندم السلة حالياً فارغة، تحب تطلب إيه من المنيو؟" if used_cart_checkout else "يا فندم محتاجة أعرف الأصناف والكميات المطلوبة عشان أسجل الأوردر.",
                 "instruction_for_ai": "اطلب من العميل تحديد الأصناف التي يود طلبها ولا تقل إن هناك عطلاً بالسيستم."
             }
 
@@ -1251,6 +1299,7 @@ def create_callcenter_order(
                 return {
                     "ok": False,
                     "is_system_error": False,
+                    "error_code": "ERR_MIN_ORDER_NOT_MET",
                     "below_minimum_order": True,
                     "subtotal": float(subtotal),
                     "tax_percentage": float(tax_rate),
@@ -1481,6 +1530,55 @@ def create_callcenter_order(
         }
     finally:
         close_old_connections()
+
+
+# =====================================================================
+# 7.5. Dedicated Cart Checkout Tool
+# =====================================================================
+
+@mcp.tool
+def checkout_cart(
+    customer_phone: str,
+    customer_name: Optional[str] = "",
+    customer_address: Optional[str] = "",
+    order_type: str = "delivery",
+    branch_id: Optional[int] = None,
+    delivery_area_name: Optional[str] = None,
+    delivery_area_id: Optional[int] = None,
+    notes: str = "",
+    phone: Optional[str] = None,
+    address: Optional[str] = None,
+    access_key: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    تأكيد وتنفيذ الطلب مباشرة من سلة المشتريات المؤقتة للعميل (Draft Cart Checkout) دون الحاجة لإعادة تمرير قائمة الأصناف.
+    يُستخدم عند رغبة العميل في إتمام الطلب أو بعد موافقته على استئناف سلة مكالمة سابقة منقطعة.
+    """
+    target_phone = str(customer_phone or phone or "").strip()
+    clean_p = _clean_phone(target_phone)
+    if not clean_p:
+        return {
+            "ok": False,
+            "is_system_error": False,
+            "error_code": "ERR_PHONE_REQUIRED",
+            "status": "phone_required",
+            "error": "رقم هاتف العميل مطلوب لتنفيذ الطلب من السلة.",
+            "ai_speech_response": "يا فندم محتاجة رقم تليفون حضرتك عشان نقدر نأكد الطلب من السلة.",
+            "instruction_for_ai": "اطلب من العميل تزويدك برقم هاتفه."
+        }
+
+    return create_callcenter_order(
+        phone=clean_p,
+        items=None,
+        customer_name=customer_name,
+        address=customer_address or address or "",
+        order_type=order_type,
+        branch_id=branch_id,
+        delivery_area_name=delivery_area_name,
+        delivery_area_id=delivery_area_id,
+        notes=notes,
+        access_key=access_key,
+    )
 
 
 # =====================================================================
@@ -1772,6 +1870,8 @@ def cancel_order(
             identifier = raw_query or raw_phone or "غير محدد"
             return {
                 "ok": False,
+                "is_system_error": False,
+                "error_code": "ERR_ORDER_NOT_FOUND",
                 "error": f"لم يتم العثور على أي أوردر بالمعرف أو رقم الهاتف «{identifier}» لإلغائه.",
                 "ai_speech_response": "مش لاقية أي أوردر مسجل بالبيانات دي عشان أقدر ألغيه لحضرتك. تحب تديني رقم تليفونك أبحث بيه؟",
                 "instruction_for_ai": "لا تقل إن هناك عطلاً بالسيستم! أبلغ العميل بعدم العثور على الأوردر واطلب منه رقم الجوال للبحث به كما في ai_speech_response."
@@ -1781,6 +1881,8 @@ def cancel_order(
             key_obj.record_usage(placed_order=False)
             return {
                 "ok": False,
+                "is_system_error": False,
+                "error_code": "ERR_ORDER_ALREADY_CANCELLED",
                 "error": f"هذا الأوردر برقم «{order.order_number}» ملغي بالفعل مسبقاً.",
                 "order_number": order.order_number,
                 "current_status": "ملغي",
@@ -1792,6 +1894,8 @@ def cancel_order(
             key_obj.record_usage(placed_order=False)
             return {
                 "ok": False,
+                "is_system_error": False,
+                "error_code": "ERR_ORDER_IN_PREPARATION",
                 "error": f"عذراً، الأوردر برقم «{order.order_number}» في مرحلة «{status_label}» ولا يمكن إلغاؤه آلياً لأن المطبخ بدأ في تحضيره بالفعل.",
                 "order_number": order.order_number,
                 "current_status": status_label,
@@ -1807,6 +1911,8 @@ def cancel_order(
             key_obj.record_usage(placed_order=False)
             return {
                 "ok": False,
+                "is_system_error": False,
+                "error_code": "ERR_ORDER_CANCEL_WINDOW_EXPIRED",
                 "error": f"عذراً، لقد مضت {elapsed_minutes} دقيقة على إنشاء الأوردر رقم «{order.order_number}»، وتجاوز مهلة الإلغاء المحددة للفرع ({window_minutes} دقيقة). الطلب قيد التجهيز ولا يمكن إلغاؤه آلياً.",
                 "order_number": order.order_number,
                 "created_at": order.created_at.strftime("%Y-%m-%d %H:%M"),

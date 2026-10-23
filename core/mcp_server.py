@@ -16,6 +16,7 @@ from core.mcp import (
     preview_order,
     calculate_order_total,
     create_callcenter_order,
+    checkout_cart,
     track_order,
     cancel_order,
     list_recent_orders,
@@ -43,6 +44,9 @@ from core.mcp import (
     _get_cached_session_key,
     _set_cached_session_key,
     _get_latest_session_for_key,
+    _current_session_key,
+    _current_key_obj,
+    _current_tenant,
     _is_rate_limited,
     FastMCPAuthMiddleware,
     SSEAuthMiddleware,
@@ -50,7 +54,6 @@ from core.mcp import (
     get_mcp_asgi_app,
     run_server,
 )
-from core.mcp.middleware import _current_session_key
 
 __all__ = [
     "mcp",
@@ -63,6 +66,7 @@ __all__ = [
     "preview_order",
     "calculate_order_total",
     "create_callcenter_order",
+    "checkout_cart",
     "track_order",
     "cancel_order",
     "list_recent_orders",
@@ -91,6 +95,8 @@ __all__ = [
     "_set_cached_session_key",
     "_get_latest_session_for_key",
     "_current_session_key",
+    "_current_key_obj",
+    "_current_tenant",
     "_is_rate_limited",
     "FastMCPAuthMiddleware",
     "SSEAuthMiddleware",

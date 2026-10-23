@@ -2,7 +2,7 @@ import logging
 import threading
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from core.models import MenuItem, MenuItemVariant, BranchMenuAvailability, Branch, DeliveryArea, Order
+from core.models import MenuItem, MenuItemVariant, BranchMenuAvailability, Branch, DeliveryArea, Order, TenantApiKey
 
 logger = logging.getLogger(__name__)
 
@@ -65,4 +65,16 @@ def sync_order_redis_cache(sender, instance, **kwargs):
             cache_active_order(instance)
     except Exception as e:
         logger.warning(f"Error syncing order status in Redis cache: {e}")
+
+
+@receiver([post_save, post_delete], sender=TenantApiKey)
+def invalidate_tenant_api_key_redis_cache(sender, instance, **kwargs):
+    """Purge cached API key from Redis immediately when modified, disabled, or deleted."""
+    try:
+        from core.redis_mcp_cache import invalidate_api_key
+        if instance.key:
+            invalidate_api_key(instance.key)
+    except Exception as e:
+        logger.warning(f"Error invalidating API key cache: {e}")
+
 

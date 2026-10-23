@@ -268,6 +268,25 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set, all_
     if not raw_name:
         return None, None, "يجب تحديد رقم الصنف (item_id) أو اسمه (name) في عناصر الطلب."
 
+    def _make_disabled_response(item_obj):
+        cat_items = [
+            it.name for it in (all_tenant_items or [])
+            if it.category == item_obj.category and it.id not in disabled_item_ids and it.id != item_obj.id
+        ][:4]
+        alt_text = f" لكن متاح عندنا في نفس القسم: {' و '.join(cat_items)}." if cat_items else ""
+        return None, None, {
+            "ok": False,
+            "is_system_error": False,
+            "error_code": "ERR_ITEM_UNAVAILABLE",
+            "error": f"الصنف «{item_obj.name}» غير متوفر حالياً في فرع «{branch.name}».",
+            "item_id": item_obj.id,
+            "item_name": item_obj.name,
+            "is_available": False,
+            "suggested_alternatives": cat_items,
+            "ai_speech_response": f"بعتذر لحضرتك يا فندم، صنف «{item_obj.name}» غير متوفر حالياً في فرع {branch.name}.{alt_text} تحب تختار صنف تاني؟",
+            "instruction_for_ai": "أبلغ العميل بلطف بعدم توفر الصنف واقترح عليه البدائل المتاحة بنفس القسم."
+        }
+
     norm_query = _normalize_arabic_text(raw_name)
     canon_query = _canonical_food_name(raw_name)
 
@@ -277,7 +296,7 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set, all_
     for m in all_tenant_items:
         if _normalize_arabic_text(m.name) == norm_query:
             if m.id in disabled_item_ids:
-                return None, None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
+                return _make_disabled_response(m)
             matched_item = m
             break
 
@@ -286,7 +305,7 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set, all_
         for m in all_tenant_items:
             if _canonical_food_name(m.name) == canon_query:
                 if m.id in disabled_item_ids:
-                    return None, None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
+                    return _make_disabled_response(m)
                 matched_item = m
                 break
 
@@ -298,10 +317,17 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set, all_
             if len(token_matches) == 1:
                 matched_item = token_matches[0]
                 if matched_item.id in disabled_item_ids:
-                    return None, None, f"الصنف «{matched_item.name}» غير متوفر حالياً في فرع «{branch.name}»."
+                    return _make_disabled_response(matched_item)
             elif len(token_matches) > 1:
                 matching_names = " أو ".join([f"«{m.name}» (رقم #{m.id})" for m in token_matches[:4]])
-                return None, None, f"اسم الصنف «{raw_name}» غير محدد بدقة ويطابق أكثر من صنف: ({matching_names}). يرجى تحديد الاسم بالكامل أو استخدام رقم الصنف."
+                return None, None, {
+                    "ok": False,
+                    "is_system_error": False,
+                    "error_code": "ERR_ITEM_AMBIGUOUS",
+                    "error": f"اسم الصنف «{raw_name}» غير محدد بدقة ويطابق أكثر من صنف: ({matching_names}). يرجى تحديد الاسم بالكامل أو استخدام رقم الصنف.",
+                    "ai_speech_response": f"يا فندم اسم الصنف «{raw_name}» متاح منه خيارات: ({matching_names}). ممكن توضح لي أي واحد تقصد بالظبط؟",
+                    "instruction_for_ai": "اسأل العميل عن الصنف المطلوب تحديداً."
+                }
 
     # 2.4 مطابقة الاحتواء الجزئي
     if not matched_item:
@@ -312,13 +338,21 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set, all_
         if len(contains_matches) == 1:
             matched_item = contains_matches[0]
             if matched_item.id in disabled_item_ids:
-                return None, None, f"الصنف «{matched_item.name}» غير متوفر حالياً في فرع «{branch.name}»."
+                return _make_disabled_response(matched_item)
 
     # 2.5 في حال عدم العثور عليه
     if not matched_item:
         available_branch_items = [m.name for m in all_tenant_items if m.id not in disabled_item_ids][:5]
         suggest_str = "، ".join(available_branch_items)
-        return None, None, f"الصنف «{raw_name}» غير موجود في قائمة طعام المطعم. من الأصناف المتوفرة: {suggest_str}."
+        return None, None, {
+            "ok": False,
+            "is_system_error": False,
+            "error_code": "ERR_ITEM_NOT_FOUND",
+            "error": f"الصنف «{raw_name}» غير موجود في قائمة طعام المطعم.",
+            "suggested_items": available_branch_items,
+            "ai_speech_response": f"بعتذر لحضرتك، الصنف «{raw_name}» مش موجود في المنيو. متاح عندنا مثلاً: {suggest_str}. تحب تطلب إيه منهم؟",
+            "instruction_for_ai": "أبلغ العميل بعدم وجود الصنف واقترح عليه الأصناف المتاحة."
+        }
 
     # 2.6 مطابقة الحجم والخيارات (Variant)
     v_obj, v_err = _resolve_item_variant(matched_item, branch, item_spec, raw_name)
@@ -463,6 +497,7 @@ def _validate_delivery_address_completeness(
             return False, {
                 "ok": False,
                 "is_system_error": False,
+                "error_code": "ERR_ADDRESS_DETAILS_REQUIRED",
                 "status": "address_details_required",
                 "typology": "gated_compound",
                 "area_name": area_label,
@@ -486,6 +521,7 @@ def _validate_delivery_address_completeness(
         return False, {
             "ok": False,
             "is_system_error": False,
+            "error_code": "ERR_ADDRESS_DETAILS_REQUIRED",
             "status": "address_details_required",
             "typology": "standard_street",
             "area_name": area_label,
@@ -512,6 +548,7 @@ def _format_branch_closed_err(branch):
     return {
         "ok": False,
         "is_system_error": False,
+        "error_code": "ERR_BRANCH_CLOSED",
         "status": "branch_closed",
         "branch_id": branch.id,
         "branch_name": branch.name,
@@ -536,6 +573,7 @@ def _resolve_delivery_coverage_and_branch(
         return None, None, {
             "ok": False,
             "is_system_error": False,
+            "error_code": "ERR_ADDRESS_REQUIRED",
             "error": "عنوان التوصيل مطلوب لتنفيذ طلبات التوصيل (Delivery).",
             "ai_speech_response": "يا فندم محتاجة أعرف عنوان التوصيل بالتفصيل عشان أقدر أأكد لحضرتك الطلب وأشوف أقرب فرع.",
             "instruction_for_ai": "اطلب من العميل تزويدك بعنوان التوصيل بالحي والشارع كما في ai_speech_response ولا تقل إن هناك عطلاً بالسيستم."
@@ -554,6 +592,7 @@ def _resolve_delivery_coverage_and_branch(
         return None, None, {
             "ok": False,
             "is_system_error": False,
+            "error_code": "ERR_BRANCH_CLOSED",
             "error": "لا توجد فروع نشطة متاحة للمنشأة حالياً.",
             "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات، نسعد بخدمتك في أوقات العمل الرسمية.",
             "instruction_for_ai": "أبلغ العميل بلطف أن الفروع مغلقة حالياً."
@@ -564,26 +603,7 @@ def _resolve_delivery_coverage_and_branch(
 
     candidate_branches.sort(key=lambda b: (not b.is_currently_open()))
 
-    poly_branches = [
-        b for b in candidate_branches
-        if b.delivery_polygon and isinstance(b.delivery_polygon, list) and len(b.delivery_polygon) >= 3
-    ]
-
-    if poly_branches:
-        candidate_branches = poly_branches
-    else:
-        has_named_areas = DeliveryArea.objects.filter(branch__in=candidate_branches, is_active=True).exists()
-        if not has_named_areas:
-            return None, None, {
-                "ok": False,
-                "is_system_error": False,
-                "status": "no_polygons_configured",
-                "error": "خدمة التوصيل غير مفعلة لعدم اكتمال رسم زون التوصيل الجغرافي (المضلع) أو تحديد مناطق التوصيل.",
-                "ai_speech_response": "يا فندم خدمة التوصيل غير مفعلة حالياً لفروعنا لعدم اكتمال تحديد النطاق، لكن يشرفنا نجهز لحضرتك الطلب سفري تستلمه من أقرب فرع.",
-                "suggested_action": "takeaway",
-                "instruction_for_ai": "أبلغ العميل بلطف أن خدمة التوصيل غير متاحة واقترح عليه الاستلام من الفرع سفري."
-            }
-
+    # 1. Search existing configured named DeliveryArea records across all candidate branches
     all_areas = list(DeliveryArea.objects.filter(branch__in=candidate_branches, is_active=True).select_related("branch"))
     matched_area = None
 
@@ -628,6 +648,7 @@ def _resolve_delivery_coverage_and_branch(
             return None, None, _format_branch_closed_err(matched_area.branch)
         return matched_area.branch, matched_area, None
 
+    # 2. Smart Google Maps & Polygon Geofence Resolution
     try:
         from core.google_maps_service import resolve_smart_delivery_with_google
         g_branch, g_area_info, g_res = resolve_smart_delivery_with_google(tenant, clean_addr, branch_id=branch_id)
@@ -635,35 +656,74 @@ def _resolve_delivery_coverage_and_branch(
             if not g_branch.is_currently_open():
                 return None, None, _format_branch_closed_err(g_branch)
 
-            class DynamicDeliveryArea:
-                def __init__(self, data, branch_obj):
-                    self.id = None
-                    self.pk = None
-                    self.name = data["name"]
-                    self.branch = branch_obj
-                    self.area_type = data.get("area_type", "zone")
-                    self.delivery_fee = Decimal(str(data["delivery_fee"]))
-                    self.estimated_time_minutes = int(data.get("estimated_time_minutes", 35))
-                    self.notes = data.get("notes", "")
+            # Auto-register newly calculated area into DeliveryArea for instant future matching
+            try:
+                area_name = g_area_info.get("name") or clean_addr[:250]
+                fee = Decimal(str(g_area_info.get("delivery_fee", 10.00)))
+                est_time = int(g_area_info.get("estimated_time_minutes", 35))
+                saved_area, _ = DeliveryArea.objects.get_or_create(
+                    branch=g_branch,
+                    name=area_name,
+                    defaults={
+                        "area_type": g_area_info.get("area_type", "zone"),
+                        "delivery_fee": fee,
+                        "estimated_time_minutes": est_time,
+                        "is_active": True,
+                        "notes": g_area_info.get("notes", "Auto-created by delivery resolver"),
+                    }
+                )
+                return g_branch, saved_area, None
+            except Exception as save_err:
+                logger.warning(f"Failed to persist DeliveryArea in resolver: {save_err}")
+                class DynamicDeliveryArea:
+                    def __init__(self, data, branch_obj):
+                        self.id = None
+                        self.pk = None
+                        self.name = data["name"]
+                        self.branch = branch_obj
+                        self.area_type = data.get("area_type", "zone")
+                        self.delivery_fee = Decimal(str(data["delivery_fee"]))
+                        self.estimated_time_minutes = int(data.get("estimated_time_minutes", 35))
+                        self.notes = data.get("notes", "")
 
-                def get_area_type_display(self):
-                    return self.area_type
+                    def get_area_type_display(self):
+                        return self.area_type
 
-                def __str__(self):
-                    return f"{self.name} - {self.branch.name}"
+                    def __str__(self):
+                        return f"{self.name} - {self.branch.name}"
 
-            dyn_area = DynamicDeliveryArea(g_area_info, g_branch)
-            return g_branch, dyn_area, None
+                dyn_area = DynamicDeliveryArea(g_area_info, g_branch)
+                return g_branch, dyn_area, None
         elif g_res and not g_res.get("ok"):
+            if "error_code" not in g_res:
+                g_res["error_code"] = "ERR_DELIVERY_OUT_OF_RANGE"
             return None, None, g_res
     except Exception as e:
         logger.warning(f"Error in smart Google Maps delivery resolution: {e}")
+
+    # 3. Neither named area nor polygon/smart delivery matched
+    has_polys = any(
+        b.delivery_polygon and isinstance(b.delivery_polygon, list) and len(b.delivery_polygon) >= 3
+        for b in candidate_branches
+    )
+    if not has_polys and not all_areas:
+        return None, None, {
+            "ok": False,
+            "is_system_error": False,
+            "error_code": "ERR_DELIVERY_OUT_OF_RANGE",
+            "status": "no_polygons_configured",
+            "error": "خدمة التوصيل غير مفعلة لعدم اكتمال رسم زون التوصيل الجغرافي (المضلع) أو تحديد مناطق التوصيل.",
+            "ai_speech_response": "يا فندم خدمة التوصيل غير مفعلة حالياً لفروعنا لعدم اكتمال تحديد النطاق، لكن يشرفنا نجهز لحضرتك الطلب سفري تستلمه من أقرب فرع.",
+            "suggested_action": "takeaway",
+            "instruction_for_ai": "أبلغ العميل بلطف أن خدمة التوصيل غير متاحة واقترح عليه الاستلام من الفرع سفري."
+        }
 
     covered_names = list(dict.fromkeys(a.name for a in all_areas))
     covered_str = "، ".join(covered_names[:5])
     return None, None, {
         "ok": False,
         "is_system_error": False,
+        "error_code": "ERR_DELIVERY_OUT_OF_RANGE",
         "error": f"العنوان المحدد «{clean_addr}» خارج نطاق تغطية التوصيل لفروعنا حالياً. المناطق المغطاة: {covered_str}.",
         "available_areas": covered_names,
         "suggested_action": "takeaway",

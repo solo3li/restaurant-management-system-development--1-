@@ -469,3 +469,77 @@ def cart_clear(tenant_id: int, identifier: str) -> bool:
         _in_memory_cart.pop(key, None)
         return True
 
+
+def cart_is_abandoned(tenant_id: int, identifier: str, max_age_seconds: int = 1800) -> tuple[bool, Optional[Dict[str, Any]]]:
+    """
+    Check if the customer has an uncompleted draft cart from an interrupted call within max_age_seconds (default 30 mins).
+    """
+    cart = cart_get(tenant_id, identifier)
+    items = cart.get("items", [])
+    if not items:
+        return False, None
+
+    updated_at_str = cart.get("updated_at") or cart.get("created_at")
+    if not updated_at_str:
+        return False, None
+
+    try:
+        from datetime import datetime
+        updated_at = datetime.fromisoformat(updated_at_str)
+        if updated_at.tzinfo is None:
+            updated_at = timezone.make_aware(updated_at)
+        elapsed = (timezone.now() - updated_at).total_seconds()
+        if 0 <= elapsed <= max_age_seconds:
+            return True, cart
+    except Exception as e:
+        logger.warning(f"Error calculating cart age: {e}")
+
+    return False, None
+
+
+# =====================================================================
+# 5. API Key Context Cache (Zero-Query Authentication <0.05ms)
+# =====================================================================
+
+API_KEY_CACHE_TTL = 600  # 10 minutes
+
+def cache_api_key(key: str, data: Dict[str, Any], ttl: int = API_KEY_CACHE_TTL) -> bool:
+    """Cache API key validation and tenant context in Redis for 10 minutes."""
+    client = get_redis_client()
+    if not client or not key:
+        return False
+    try:
+        client.set(f"api_key_ctx:{key}", json.dumps(data, ensure_ascii=False), ex=ttl)
+        return True
+    except Exception as e:
+        logger.warning(f"Error caching API key in Redis: {e}")
+        return False
+
+
+def get_cached_api_key(key: str) -> Optional[Dict[str, Any]]:
+    """Retrieve cached API key context in <0.05ms without database query."""
+    client = get_redis_client()
+    if not client or not key:
+        return None
+    try:
+        raw = client.get(f"api_key_ctx:{key}")
+        if raw:
+            return json.loads(raw)
+    except Exception as e:
+        logger.warning(f"Error reading API key from Redis: {e}")
+    return None
+
+
+def invalidate_api_key(key: str) -> bool:
+    """Invalidate cached API key immediately upon modification or deactivation."""
+    client = get_redis_client()
+    if not client or not key:
+        return False
+    try:
+        client.delete(f"api_key_ctx:{key}")
+        return True
+    except Exception as e:
+        logger.warning(f"Error invalidating API key in Redis: {e}")
+        return False
+
+

@@ -32,6 +32,7 @@ def handle_cart_add_item(
         return {
             "ok": False,
             "status": "error",
+            "error_code": "ERR_PHONE_REQUIRED",
             "error": "رقم هاتف العميل مطلوب لتسجيل الأصناف في السلة المؤقتة.",
             "ai_speech_response": "من فضلك يا فندم رقم التليفون لتسجيل الأصناف في طلبك."
         }
@@ -132,6 +133,7 @@ def handle_cart_view(
         return {
             "ok": False,
             "status": "error",
+            "error_code": "ERR_PHONE_REQUIRED",
             "error": "رقم هاتف العميل مطلوب لعرض السلة المؤقتة.",
             "ai_speech_response": "من فضلك يا فندم محتاج رقم تليفون حضرتك لعرض السلة."
         }
@@ -186,6 +188,7 @@ def handle_cart_remove_item(
         return {
             "ok": False,
             "status": "error",
+            "error_code": "ERR_PHONE_REQUIRED",
             "error": "رقم هاتف العميل مطلوب لتعديل السلة.",
             "ai_speech_response": "من فضلك يا فندم رقم التليفون لتعديل السلة."
         }
@@ -223,6 +226,7 @@ def handle_cart_clear(
         return {
             "ok": False,
             "status": "error",
+            "error_code": "ERR_PHONE_REQUIRED",
             "error": "رقم هاتف العميل مطلوب لتفريغ السلة."
         }
 
