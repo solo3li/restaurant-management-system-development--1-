@@ -1286,6 +1286,9 @@ def api_digital_menu_place_order(request, slug):
     # Broadcast real-time SSE event to kitchen display screens (0ms dispatch)
     try:
         notify_kitchen_order_event(order, "new_order")
+        if order.order_type == "delivery":
+            from apps.orders.events import notify_delivery_order_event
+            notify_delivery_order_event(order, "delivery_new_order")
     except Exception as e:
         logger.warning(f"Failed to dispatch kitchen SSE for QR order {order.order_number}: {e}")
 

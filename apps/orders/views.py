@@ -4,7 +4,9 @@ from decimal import Decimal
 from datetime import timedelta
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
+import asyncio
+from asgiref.sync import sync_to_async
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse, StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
@@ -21,6 +23,11 @@ from apps.menu.models import MenuItem, MenuItemVariant, BranchMenuAvailability, 
 from apps.accounts.models import Employee
 from apps.audit.models import log_audit_event
 from apps.kitchen.events import notify_kitchen_order_event
+from apps.orders.events import (
+    delivery_broadcaster,
+    notify_delivery_order_event,
+    serialize_delivery_order,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -346,6 +353,7 @@ def order_edit_view(request, order_id):
 
     if request.method == "POST":
         old_status = order.status
+        old_driver_id = order.driver_id
         with transaction.atomic():
             if not can_cross and user_branch:
                 order.branch = user_branch
@@ -471,6 +479,14 @@ def order_edit_view(request, order_id):
         event_type = "order_cancelled" if order.status == "cancelled" else ("order_status_changed" if old_status != order.status else "order_updated")
         notify_kitchen_order_event(order, event_type)
 
+        if order.order_type == "delivery":
+            deliv_event = "delivery_order_cancelled" if order.status == "cancelled" else (
+                "delivery_status_changed" if old_status != order.status else (
+                    "delivery_driver_assigned" if old_driver_id != order.driver_id else "delivery_order_updated"
+                )
+            )
+            notify_delivery_order_event(order, deliv_event)
+
         return redirect("order_detail", order_id=order.id)
 
     context = {
@@ -526,6 +542,8 @@ def api_cancel_order(request, order_id):
         ip_address=_get_client_ip(request),
     )
     notify_kitchen_order_event(order, "order_cancelled")
+    if order.order_type == "delivery":
+        notify_delivery_order_event(order, "delivery_order_cancelled")
     return JsonResponse({"ok": True, "status": "cancelled", "message": f"تم إلغاء الطلب {order.order_number} بنجاح"})
 
 
@@ -568,6 +586,8 @@ def api_delete_order(request, order_id):
         ip_address=_get_client_ip(request),
     )
     notify_kitchen_order_event(order, "order_cancelled")
+    if order.order_type == "delivery":
+        notify_delivery_order_event(order, "delivery_order_cancelled")
     order.delete()
     return JsonResponse({"ok": True, "message": f"تم حذف الطلب {order_number} نهائياً من قاعدة البيانات"})
 
@@ -636,11 +656,34 @@ def delivery_view(request):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى قسم التوصيل")
 
     branch = get_active_branch(request)
+    profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+
+    q_branch = request.GET.get("branch_id")
+    target_branch = branch
+    target_branch_id = branch.id if branch else None
+    if can_cross and q_branch:
+        if q_branch in ["all", "0", 0]:
+            target_branch = None
+            target_branch_id = None
+        elif q_branch.isdigit():
+            target_branch = Branch.objects.filter(tenant=tenant, id=int(q_branch)).first()
+            target_branch_id = target_branch.id if target_branch else None
+
     start_of_today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
     drivers_qs = Employee.objects.filter(tenant=tenant, role="driver", status="active").order_by("name")
-    if branch:
-        drivers_qs = drivers_qs.filter(Q(branch=branch) | Q(branch__isnull=True))
+    if target_branch:
+        drivers_qs = drivers_qs.filter(Q(branch=target_branch) | Q(branch__isnull=True))
 
     drivers = list(drivers_qs)
 
@@ -648,10 +691,10 @@ def delivery_view(request):
         tenant=tenant,
         order_type="delivery",
         created_at__gte=start_of_today - timedelta(days=1),
-    ).exclude(status="cancelled").select_related("branch", "driver").order_by("-id")
+    ).exclude(status="cancelled").select_related("branch", "driver", "delivery_area").order_by("-id")
 
-    if branch:
-        delivery_orders = delivery_orders.filter(branch=branch)
+    if target_branch:
+        delivery_orders = delivery_orders.filter(branch=target_branch)
 
     orders_by_status = {
         "new": [],
@@ -685,16 +728,186 @@ def delivery_view(request):
         })
 
     active_count = sum(len(orders_by_status[st]) for st in ["new", "preparing", "ready", "out_for_delivery"])
+    branches = list(Branch.objects.filter(tenant=tenant, status="active")) if can_cross else []
+    serialized_orders = [serialize_delivery_order(o) for o in delivery_orders]
+
+    drivers_data = [{"id": d.id, "name": d.name, "phone": d.phone or ""} for d in drivers]
 
     context = {
         "tenant": tenant,
         "current_branch": branch,
+        "target_branch_id": target_branch_id,
+        "branches": branches,
         "orders_by_status": orders_by_status,
+        "orders_json": json.dumps(serialized_orders),
         "drivers": drivers,
+        "drivers_json": json.dumps(drivers_data),
         "driver_stats": driver_stats,
+        "driver_stats_json": json.dumps(driver_stats),
         "active_count": active_count,
     }
     return render(request, "delivery.html", context)
+
+
+async def delivery_stream_view(request):
+    """
+    Real-Time Server-Sent Events (SSE) push stream for Delivery Management Screen.
+    Pushes events: 'connected', 'delivery_new_order', 'delivery_status_changed', 'delivery_driver_assigned', 'delivery_order_cancelled'.
+    Maintains persistent ASGI connection with automatic keepalive (zero polling, 0ms latency).
+    """
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden("يرجى تسجيل الدخول للوصول إلى بث التوصيل المباشر")
+
+    tenant = await sync_to_async(get_active_tenant)(request)
+    if not tenant:
+        return HttpResponseForbidden("المنشأة غير موجودة")
+
+    has_deliv_feat = (await sync_to_async(tenant.has_feature)("delivery_management") or
+                      await sync_to_async(tenant.has_feature)("delivery"))
+    if not has_deliv_feat:
+        return HttpResponseForbidden("ميزة إدارة التوصيل غير مفعلة في باقة اشتراك هذا المطعم")
+
+    has_perm = await sync_to_async(user_has_perm)(request.user, "delivery_access")
+    if not has_perm:
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى قسم التوصيل")
+
+    branch = await sync_to_async(get_active_branch)(request)
+    profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    has_switch = await sync_to_async(user_has_perm)(request.user, "branch_switch_branches")
+    has_manage_b = await sync_to_async(user_has_perm)(request.user, "manage_branches")
+    has_hq_scope = (profile and profile.job_role and profile.job_role.scope in ["hq", "both"]) or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    can_cross = is_owner or has_switch or has_manage_b or has_hq_scope
+
+    branch_id = branch.id if branch else None
+    q_branch = request.GET.get("branch_id")
+    if can_cross and q_branch and q_branch.isdigit():
+        branch_id = int(q_branch)
+
+    queue = await delivery_broadcaster.register(tenant.id, branch_id)
+
+    async def event_generator():
+        try:
+            init_payload = {
+                "status": "connected",
+                "tenant_id": tenant.id,
+                "branch_id": branch_id,
+                "server_time": timezone.now().isoformat(),
+            }
+            yield f"event: connected\ndata: {json.dumps(init_payload)}\n\n"
+
+            while True:
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    yield f"event: {event['type']}\ndata: {json.dumps(event['data'])}\n\n"
+                except asyncio.TimeoutError:
+                    yield ": ping\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            await delivery_broadcaster.unregister(queue)
+
+    response = StreamingHttpResponse(event_generator(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache, no-transform"
+    response["X-Accel-Buffering"] = "no"
+    response["Connection"] = "keep-alive"
+    return response
+
+
+@login_required
+def api_delivery_live(request):
+    """
+    Returns JSON snapshot of all active delivery orders grouped by status,
+    along with driver statistics and active count.
+    """
+    tenant = get_active_tenant(request)
+    if tenant and not (tenant.has_feature("delivery_management") or tenant.has_feature("delivery")):
+        return JsonResponse({"error": "ميزة إدارة التوصيل غير مفعلة في باقة اشتراك هذا المطعم"}, status=403)
+
+    if not user_has_perm(request.user, "delivery_access"):
+        return JsonResponse({"error": "غير مصرح لك بالوصول إلى قسم التوصيل"}, status=403)
+
+    branch = get_active_branch(request)
+    profile = getattr(request.user, "profile", None)
+    emp = getattr(request.user, "employee_profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    can_cross = (
+        is_owner
+        or user_has_perm(request.user, "branch_switch_branches")
+        or user_has_perm(request.user, "manage_branches")
+        or user_has_perm(request.user, "view_hq_dashboard")
+        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+    )
+
+    q_branch = request.GET.get("branch_id")
+    target_branch = branch
+    if can_cross and q_branch:
+        if q_branch in ["all", "0", 0]:
+            target_branch = None
+        elif q_branch.isdigit():
+            target_branch = Branch.objects.filter(tenant=tenant, id=int(q_branch)).first()
+
+    start_of_today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    drivers_qs = Employee.objects.filter(tenant=tenant, role="driver", status="active").order_by("name")
+    if target_branch:
+        drivers_qs = drivers_qs.filter(Q(branch=target_branch) | Q(branch__isnull=True))
+    drivers = list(drivers_qs)
+
+    delivery_orders = Order.objects.filter(
+        tenant=tenant,
+        order_type="delivery",
+        created_at__gte=start_of_today - timedelta(days=1),
+    ).exclude(status="cancelled").select_related("branch", "driver", "delivery_area").order_by("-id")
+
+    if target_branch:
+        delivery_orders = delivery_orders.filter(branch=target_branch)
+
+    orders_by_status = {
+        "new": [],
+        "preparing": [],
+        "ready": [],
+        "out_for_delivery": [],
+        "delivered": [],
+    }
+    serialized_orders = []
+    for order in delivery_orders:
+        s_order = serialize_delivery_order(order)
+        serialized_orders.append(s_order)
+        if order.status in orders_by_status:
+            orders_by_status[order.status].append(s_order)
+
+    driver_ids = [d.id for d in drivers]
+    stats_map = {}
+    if driver_ids:
+        agg_qs = Order.objects.filter(tenant=tenant, driver_id__in=driver_ids).values("driver_id").annotate(
+            active=Count("id", filter=Q(status="out_for_delivery")),
+            done=Count("id", filter=Q(status="delivered", created_at__gte=start_of_today))
+        )
+        stats_map = {row["driver_id"]: row for row in agg_qs}
+
+    driver_stats = []
+    for d in drivers:
+        st = stats_map.get(d.id, {})
+        driver_stats.append({
+            "id": d.id,
+            "name": d.name,
+            "phone": d.phone or "",
+            "active": st.get("active", 0),
+            "done": st.get("done", 0),
+        })
+
+    active_count = sum(len(orders_by_status[st]) for st in ["new", "preparing", "ready", "out_for_delivery"])
+
+    return JsonResponse({
+        "ok": True,
+        "orders_by_status": orders_by_status,
+        "orders": serialized_orders,
+        "driver_stats": driver_stats,
+        "active_count": active_count,
+    })
 
 
 @login_required
@@ -927,6 +1140,8 @@ def api_create_order(request):
 
     # Broadcast real-time SSE event to all active kitchen screens (0ms)
     notify_kitchen_order_event(order, "new_order")
+    if order.order_type == "delivery":
+        notify_delivery_order_event(order, "delivery_new_order")
 
     return JsonResponse({"order": {"id": order.id, "orderNumber": order.order_number}}, status=201)
 
@@ -970,6 +1185,7 @@ def api_update_order(request, order_id):
 
     action = data.get("action")
     old_status = order.status
+    old_driver_id = order.driver_id
     if action == "refund" or data.get("status") == "refunded" or data.get("refund"):
         if not is_owner_or_super and not user_has_perm(request.user, "pos_refund_order"):
             return JsonResponse({"error": "غير مصرح لك باسترجاع الفواتير ورد المبالغ للعميل"}, status=403)
@@ -1043,10 +1259,10 @@ def api_update_order(request, order_id):
                     return JsonResponse({"error": "غير مصرح لك بتحديث مسار وحالة توصيل الطلب"}, status=403)
         order.status = new_status
 
-    if "driverId" in data:
+    if "driverId" in data or "driver_id" in data:
         if not is_owner_or_super and not (user_has_perm(request.user, "delivery_assign_driver") or user_has_perm(request.user, "delivery_access") or user_has_perm(request.user, "edit_orders")):
             return JsonResponse({"error": "غير مصرح لك بإسناد السائقين للطلبات"}, status=403)
-        drv_id = data["driverId"]
+        drv_id = data.get("driverId") if "driverId" in data else data.get("driver_id")
         if drv_id:
             driver_obj = Employee.objects.filter(tenant=tenant, id=drv_id, role="driver").filter(Q(status="active") | Q(id=order.driver_id)).first()
             if not driver_obj:
@@ -1109,7 +1325,20 @@ def api_update_order(request, order_id):
     event_type = "order_status_changed" if old_status != order.status else "order_updated"
     notify_kitchen_order_event(order, event_type)
 
-    return JsonResponse({"ok": True, "status": order.status})
+    if order.order_type == "delivery":
+        deliv_event = "delivery_order_cancelled" if order.status == "cancelled" else (
+            "delivery_status_changed" if old_status != order.status else (
+                "delivery_driver_assigned" if old_driver_id != order.driver_id else "delivery_order_updated"
+            )
+        )
+        notify_delivery_order_event(order, deliv_event)
+
+    return JsonResponse({
+        "ok": True,
+        "status": order.status,
+        "driver_id": order.driver_id,
+        "driver_name": order.driver.name if order.driver else None,
+    })
 
 
 @login_required

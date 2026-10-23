@@ -95,6 +95,8 @@ from apps.orders.views import (
     api_delete_order,
     pos_view,
     delivery_view,
+    delivery_stream_view,
+    api_delivery_live,
     api_create_order,
     api_update_order,
     api_search_customers,

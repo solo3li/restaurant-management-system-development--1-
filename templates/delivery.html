@@ -6,30 +6,64 @@
 <div class="space-y-2.5 font-sans">
     <!-- NO CARD: 2 Slim Rows separated by a crisp bottom border line -->
     <div class="space-y-1.5 pb-2 border-b border-slate-100">
-        <!-- Row 1: Ultra-Slim Header (Title + Drivers toggle + Active badge) -->
+        <!-- Row 1: Ultra-Slim Header (Title + Drivers toggle + Active badge + SSE Live Beacon) -->
         <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
                 <span class="flex h-6 w-6 items-center justify-center rounded-md bg-violet-50 border border-violet-200/60 text-violet-600">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </span>
                 <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">إدارة وتوزيع التوصيل</h1>
                 <span class="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-xs font-bold text-violet-700">
                     <span class="flex h-1.5 w-1.5 rounded-full bg-violet-600 animate-pulse"></span>
-                    <span>{{ active_count }} نشط</span>
+                    <span id="header-active-count">{{ active_count }} نشط</span>
                 </span>
+
+                <!-- SSE Live Connection Status Beacon -->
+                <div id="sse-status-pill" class="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-semibold text-emerald-900 transition">
+                    <span id="sse-status-dot" class="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span id="sse-status-text">مباشر 0ms</span>
+                </div>
+
+                <!-- Branch Filter Dropdown (if multi-branch) -->
+                {% if branches and branches|length > 1 %}
+                <select 
+                    id="delivery-branch-select" 
+                    onchange="changeDeliveryBranchFilter(this.value)" 
+                    class="px-2 py-0.5 rounded-md bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-violet-600 cursor-pointer"
+                >
+                    <option value="" {% if not target_branch_id %}selected{% endif %}>كل الفروع</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}" {% if target_branch_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
             </div>
 
-            <!-- Toggle Drivers Sidebar Button -->
-            <button 
-                type="button" 
-                id="btn-toggle-drivers" 
-                onclick="toggleDriversPanel()" 
-                class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200/70 px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-slate-100 transition shadow-xs cursor-pointer"
-                title="إظهار / طي لوحة أسطول السائقين لتوفير المساحة"
-            >
-                <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                <span id="drivers-toggle-label">أسطول السائقين ({{ driver_stats|length }})</span>
-            </button>
+            <!-- Right: Sound Toggle + Drivers Sidebar Toggle -->
+            <div class="flex items-center gap-1.5 shrink-0">
+                <!-- Sound Toggle Button -->
+                <button 
+                    id="btn-sound-toggle" 
+                    type="button" 
+                    onclick="toggleDeliverySound()" 
+                    class="h-7 px-2 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-xs font-bold text-slate-800 transition flex items-center gap-1 cursor-pointer shadow-xs"
+                    title="تفعيل أو كتم جرس تنبيه طلبات التوصيل الجديدة"
+                >
+                    <span id="sound-icon">🔔</span>
+                </button>
+
+                <!-- Toggle Drivers Sidebar Button -->
+                <button 
+                    type="button" 
+                    id="btn-toggle-drivers" 
+                    onclick="toggleDriversPanel()" 
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200/70 px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-slate-100 transition shadow-xs cursor-pointer"
+                    title="إظهار / طي لوحة أسطول السائقين لتوفير المساحة"
+                >
+                    <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span id="drivers-toggle-label">أسطول السائقين ({{ driver_stats|length }})</span>
+                </button>
+            </div>
         </div>
 
         <!-- Row 2: Status Tabs (Flat Underline) & Instant Filter -->
@@ -45,7 +79,7 @@
                     data-tab="new"
                 >
                     <span>1. جديد</span>
-                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-violet-600 text-white">
+                    <span id="badge-count-new" class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-violet-600 text-white">
                         {{ orders_by_status.new|length }}
                     </span>
                 </button>
@@ -59,7 +93,7 @@
                     data-tab="preparing"
                 >
                     <span>2. قيد التحضير</span>
-                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
+                    <span id="badge-count-preparing" class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
                         {{ orders_by_status.preparing|length }}
                     </span>
                 </button>
@@ -73,7 +107,7 @@
                     data-tab="ready"
                 >
                     <span>3. جاهز للتسليم</span>
-                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
+                    <span id="badge-count-ready" class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
                         {{ orders_by_status.ready|length }}
                     </span>
                 </button>
@@ -87,7 +121,7 @@
                     data-tab="out_for_delivery"
                 >
                     <span>4. في الطريق</span>
-                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
+                    <span id="badge-count-out_for_delivery" class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
                         {{ orders_by_status.out_for_delivery|length }}
                     </span>
                 </button>
@@ -101,7 +135,7 @@
                     data-tab="delivered"
                 >
                     <span>5. تم التسليم</span>
-                    <span class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
+                    <span id="badge-count-delivered" class="tab-badge rounded-full px-2 py-0.5 text-[10.5px] font-semibold bg-slate-200 text-slate-800">
                         {{ orders_by_status.delivered|length }}
                     </span>
                 </button>
@@ -195,7 +229,7 @@
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                             </div>
                             <p class="text-sm font-bold text-slate-700">لا توجد طلبات توصيل جديدة حالياً</p>
-                            <p class="text-xs text-slate-400 mt-1">الطلبات المسجلة من الكاشير أو مركز الاتصال بالذكاء الاصطناعي ستصل هنا تلقائياً</p>
+                            <p class="text-xs text-slate-400 mt-1">الطلبات المسجلة من الكاشير أو مركز الاتصال بالذكاء الاصطناعي ستصل هنا تلقائياً دون ريفريش</p>
                         </div>
                     {% endfor %}
                 </div>
@@ -276,7 +310,7 @@
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <h2 class="text-xs font-bold text-slate-900">أسطول السائقين</h2>
-                    <span class="rounded-full bg-violet-50 px-2 py-0.5 text-[10.5px] font-bold text-violet-700 border border-violet-200/60">{{ driver_stats|length }}</span>
+                    <span id="drivers-count-badge" class="rounded-full bg-violet-50 px-2 py-0.5 text-[10.5px] font-bold text-violet-700 border border-violet-200/60">{{ driver_stats|length }}</span>
                 </div>
                 <button 
                     type="button" 
@@ -289,9 +323,9 @@
             </div>
 
             <!-- Driver Compact Rows -->
-            <div class="space-y-1.5 overflow-y-auto max-h-[calc(100vh-220px)] pe-1 [scrollbar-width:thin]">
+            <div id="driver-rows-container" class="space-y-1.5 overflow-y-auto max-h-[calc(100vh-220px)] pe-1 [scrollbar-width:thin]">
                 {% for d in driver_stats %}
-                <div class="flex items-center justify-between rounded-xl border border-slate-200 p-2 bg-white hover:border-blue-400 transition shadow-xs">
+                <div id="driver-row-{{ d.id }}" class="flex items-center justify-between rounded-xl border border-slate-200 p-2 bg-white hover:border-blue-400 transition shadow-xs">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="flex h-7 w-7 rounded-lg bg-violet-50 border border-violet-200/50 items-center justify-center text-violet-700 font-semibold text-xs shrink-0">
                             {{ d.name|slice:":1" }}
@@ -302,29 +336,731 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-violet-50 border border-violet-200/50 text-[10px] font-bold text-violet-700" title="طلبات في المسار حالياً">
+                        <span id="driver-active-{{ d.id }}" class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-violet-50 border border-violet-200/50 text-[10px] font-bold text-violet-700" title="طلبات في المسار حالياً">
                             {{ d.active }} نشط
                         </span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-100 border border-emerald-200 text-[10px] font-semibold text-emerald-900" title="تم تسليمها اليوم">
+                        <span id="driver-done-{{ d.id }}" class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-100 border border-emerald-200 text-[10px] font-semibold text-emerald-900" title="تم تسليمها اليوم">
                             {{ d.done }} تم
                         </span>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-xs font-semibold text-slate-500 py-4 text-center">لا يوجد سائقون مسجلون</p>
+                <p id="no-drivers-placeholder" class="text-xs font-semibold text-slate-500 py-4 text-center">لا يوجد سائقون مسجلون</p>
                 {% endfor %}
             </div>
         </aside>
     </div>
 </div>
+
+<!-- Floating Toast Container -->
+<div id="delivery-toast-container" class="fixed bottom-4 start-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+    // Global State Bootstrapped from Server Context
     let currentDeliveryTab = 'new';
     let isDriversPanelCollapsed = false;
+    const TARGET_BRANCH_ID = "{{ target_branch_id|default:'' }}";
+    const AVAILABLE_DRIVERS = {{ drivers_json|safe|default:'[]' }};
+    let activeDeliveryOrders = {{ orders_json|safe|default:'[]' }};
+    let driverStatsState = {{ driver_stats_json|safe|default:'[]' }};
+    let sseEventSource = null;
+    let deliveryAudioCtx = null;
+    let isSoundEnabled = (localStorage.getItem('motaem_delivery_sound') !== '0');
 
-    // --- Tab Switching ---
+    // ----------------------------------------------------------------
+    // 1. Audio Notification Engine (Synthesized Web Audio Chime)
+    // ----------------------------------------------------------------
+    function initDeliveryAudio() {
+        if (!deliveryAudioCtx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                deliveryAudioCtx = new AudioCtx();
+            }
+        }
+        if (deliveryAudioCtx && deliveryAudioCtx.state === 'suspended') {
+            deliveryAudioCtx.resume();
+        }
+    }
+
+    function playDeliveryChime() {
+        if (!isSoundEnabled) return;
+        try {
+            initDeliveryAudio();
+            if (!deliveryAudioCtx) return;
+            const now = deliveryAudioCtx.currentTime;
+
+            // Tone 1: E5 (659.25 Hz)
+            const osc1 = deliveryAudioCtx.createOscillator();
+            const gain1 = deliveryAudioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(659.25, now);
+            gain1.gain.setValueAtTime(0, now);
+            gain1.gain.linearRampToValueAtTime(0.25, now + 0.04);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            osc1.connect(gain1);
+            gain1.connect(deliveryAudioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.35);
+
+            // Tone 2: B5 (987.77 Hz)
+            const osc2 = deliveryAudioCtx.createOscillator();
+            const gain2 = deliveryAudioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(987.77, now + 0.12);
+            gain2.gain.setValueAtTime(0, now + 0.12);
+            gain2.gain.linearRampToValueAtTime(0.3, now + 0.16);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+            osc2.connect(gain2);
+            gain2.connect(deliveryAudioCtx.destination);
+            osc2.start(now + 0.12);
+            osc2.stop(now + 0.65);
+        } catch (e) {
+            console.warn("Audio chime prevented by browser:", e);
+        }
+    }
+
+    function toggleDeliverySound() {
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('motaem_delivery_sound', isSoundEnabled ? '1' : '0');
+        updateSoundUI();
+        if (isSoundEnabled) {
+            playDeliveryChime();
+            showDeliveryToast('تم تفعيل جرس تنبيهات التوصيل 🔔', 'success');
+        } else {
+            showDeliveryToast('تم كتم جرس التنبيهات 🔕', 'info');
+        }
+    }
+
+    function updateSoundUI() {
+        const icon = document.getElementById('sound-icon');
+        const btn = document.getElementById('btn-sound-toggle');
+        if (icon) icon.textContent = isSoundEnabled ? '🔔' : '🔕';
+        if (btn) {
+            btn.title = isSoundEnabled ? 'كتم جرس التنبيهات' : 'تفعيل جرس التنبيهات';
+            if (isSoundEnabled) {
+                btn.classList.remove('opacity-50');
+            } else {
+                btn.classList.add('opacity-50');
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // 2. Real-Time Server-Sent Events (SSE) Engine
+    // ----------------------------------------------------------------
+    function initDeliverySSE() {
+        if (sseEventSource) {
+            sseEventSource.close();
+        }
+
+        let streamUrl = '/api/delivery/stream/';
+        if (TARGET_BRANCH_ID) {
+            streamUrl += '?branch_id=' + encodeURIComponent(TARGET_BRANCH_ID);
+        }
+
+        updateSSEStatus('connecting');
+        sseEventSource = new EventSource(streamUrl);
+
+        sseEventSource.addEventListener('connected', (e) => {
+            updateSSEStatus('connected');
+        });
+
+        sseEventSource.addEventListener('delivery_new_order', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleIncomingDeliveryOrder(orderData);
+            } catch (err) {
+                console.error("Failed to parse delivery_new_order:", err);
+            }
+        });
+
+        sseEventSource.addEventListener('delivery_status_changed', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleDeliveryStatusChanged(orderData);
+            } catch (err) {
+                console.error("Failed to parse delivery_status_changed:", err);
+            }
+        });
+
+        sseEventSource.addEventListener('delivery_driver_assigned', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleDeliveryDriverAssigned(orderData);
+            } catch (err) {
+                console.error("Failed to parse delivery_driver_assigned:", err);
+            }
+        });
+
+        sseEventSource.addEventListener('delivery_order_cancelled', (e) => {
+            try {
+                const orderData = JSON.parse(e.data);
+                handleDeliveryOrderCancelled(orderData);
+            } catch (err) {
+                console.error("Failed to parse delivery_order_cancelled:", err);
+            }
+        });
+
+        sseEventSource.onerror = (err) => {
+            updateSSEStatus('disconnected');
+        };
+    }
+
+    function updateSSEStatus(status) {
+        const dot = document.getElementById('sse-status-dot');
+        const text = document.getElementById('sse-status-text');
+        const pill = document.getElementById('sse-status-pill');
+
+        if (status === 'connected') {
+            if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse';
+            if (text) text.textContent = 'مباشر 0ms';
+            if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-semibold text-emerald-900 transition';
+        } else if (status === 'connecting') {
+            if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse';
+            if (text) text.textContent = 'جاري الاتصال...';
+            if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[11px] font-semibold text-amber-800 transition';
+        } else {
+            if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-rose-500';
+            if (text) text.textContent = 'منقطع (إعادة محاولة)';
+            if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-[11px] font-semibold text-rose-800 transition';
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // 3. Dynamic Card HTML Generation
+    // ----------------------------------------------------------------
+    function renderDeliveryCardHtml(order) {
+        const nextMap = {
+            'new': { nextStatus: 'preparing', nextLabel: 'بدء التحضير', needDriver: false },
+            'preparing': { nextStatus: 'ready', nextLabel: 'جاهز للتسليم', needDriver: false },
+            'ready': { nextStatus: 'out_for_delivery', nextLabel: 'تسليم للمسار', needDriver: true },
+            'out_for_delivery': { nextStatus: 'delivered', nextLabel: 'تم التوصيل', needDriver: false }
+        };
+
+        const config = nextMap[order.status] || null;
+        let driverOptions = '<option value="">— السائق —</option>';
+        AVAILABLE_DRIVERS.forEach(d => {
+            const isSel = (order.driver_id == d.id) ? 'selected' : '';
+            driverOptions += `<option value="${d.id}" ${isSel}>${d.name}</option>`;
+        });
+
+        const searchBlob = `${order.order_number} ${order.customer_name || ''} ${order.customer_phone || ''} ${order.address || ''} ${order.notes || ''} ${order.driver_name || ''} ${order.branch_name || ''}`.toLowerCase();
+
+        let actionControls = '';
+        if (order.status !== 'delivered' && order.status !== 'cancelled') {
+            actionControls = `
+                <select 
+                    id="driver-select-${order.id}" 
+                    class="flex-1 min-w-0 bg-white border border-slate-200/70 text-slate-900 rounded-lg text-[11px] font-bold py-1 px-1.5 focus:border-violet-600 focus:bg-white focus:outline-none transition cursor-pointer" 
+                    onchange="updateOrderDriver(${order.id}, this)"
+                    title="تعيين السائق لهذا الطلب"
+                >
+                    ${driverOptions}
+                </select>
+
+                ${config ? `
+                <button 
+                    type="button" 
+                    onclick="advanceOrderStatus(${order.id}, '${config.nextStatus}', ${config.needDriver})" 
+                    class="rounded-lg bg-violet-600 hover:bg-violet-700 px-2.5 py-1 text-center text-[11px] font-bold text-white transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+                >
+                    ${config.nextLabel}
+                </button>
+                ` : ''}
+
+                ${(order.status === 'new' || order.status === 'preparing') ? `
+                <button 
+                    type="button" 
+                    onclick="cancelOrder(${order.id})" 
+                    title="إلغاء الطلب"
+                    class="rounded-lg bg-rose-50 border border-rose-300 p-1 text-rose-700 hover:bg-rose-100 transition shrink-0 cursor-pointer"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                ` : ''}
+            `;
+        } else {
+            actionControls = `
+                ${order.driver_name ? `
+                <span class="text-[11px] text-slate-800 font-bold flex items-center gap-1 truncate" title="السائق: ${order.driver_name}">
+                    <svg class="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span class="truncate">${order.driver_name}</span>
+                </span>
+                ` : '<span class="text-[11px] text-slate-600 font-semibold">بدون سائق</span>'}
+
+                <span class="ms-auto text-[10.5px] font-semibold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 shrink-0">
+                    ${order.status === 'delivered' ? 'تم التسليم' : 'ملغي'}
+                </span>
+            `;
+        }
+
+        return `
+            <div 
+                id="order-card-${order.id}" 
+                class="delivery-order-card bg-white rounded-xl p-2.5 text-xs font-sans border border-slate-200/70 shadow-xs hover:border-violet-500 hover:shadow-xs transition duration-150 flex flex-col justify-between gap-1.5 relative"
+                data-order-id="${order.id}" 
+                data-search="${searchBlob}"
+            >
+                <div>
+                    <!-- Row 1: Header -->
+                    <div class="flex items-center justify-between gap-1.5">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <input 
+                                type="checkbox" 
+                                class="order-select-cb rounded border-slate-400 text-blue-600 focus:ring-blue-600 h-3.5 w-3.5 cursor-pointer shrink-0" 
+                                value="${order.id}" 
+                                onchange="handleCardSelect(this)"
+                                title="تحديد الطلب للإجراء الجماعي"
+                            >
+                            <span class="font-bold text-slate-900 tracking-tight text-xs truncate">#${order.order_number}</span>
+                            <span class="text-[10.5px] text-slate-600 font-bold font-mono shrink-0">
+                                ${order.created_at_time || ''}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <span class="text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200/60 px-2 py-0.5 rounded-md">
+                                ${Number(order.total || 0).toFixed(2)} ر.س
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Customer info & Phone -->
+                    <div class="mt-1 flex items-center justify-between text-[11px] gap-1">
+                        <span class="font-semibold text-slate-900 truncate" title="${order.customer_name || 'عميل'}">${order.customer_name || 'عميل'}</span>
+                        ${order.customer_phone ? `
+                        <a href="tel:${order.customer_phone}" class="text-[11px] text-slate-700 hover:text-violet-700 font-bold font-mono shrink-0 flex items-center gap-0.5 transition" dir="ltr" title="اتصال">
+                            <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            <span>${order.customer_phone}</span>
+                        </a>
+                        ` : ''}
+                    </div>
+
+                    <!-- Row 3: Address -->
+                    ${order.address ? `
+                    <div class="mt-1 flex items-center gap-1 text-[10.5px] text-slate-700 font-medium truncate" title="${order.address}">
+                        <svg class="w-3 h-3 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                        <span class="truncate">${order.address}</span>
+                    </div>
+                    ` : ''}
+
+                    <!-- Row 3.5: Notes pill -->
+                    ${order.notes ? `
+                    <div class="mt-1 rounded bg-amber-100 border border-amber-300 px-1.5 py-0.5 text-[10px] font-bold text-amber-950 truncate" title="${order.notes}">
+                        ملاحظة: ${order.notes}
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- Row 4: Controls -->
+                <div class="pt-1.5 border-t border-slate-200 flex items-center gap-1.5 mt-auto">
+                    ${actionControls}
+                </div>
+            </div>
+        `;
+    }
+
+    // ----------------------------------------------------------------
+    // 4. Live Event Handlers & DOM Mutations
+    // ----------------------------------------------------------------
+    function handleIncomingDeliveryOrder(order) {
+        // Play notification chime
+        playDeliveryChime();
+
+        // Check if order already in state
+        const idx = activeDeliveryOrders.findIndex(o => o.id === order.id);
+        if (idx >= 0) {
+            activeDeliveryOrders[idx] = order;
+        } else {
+            activeDeliveryOrders.unshift(order);
+        }
+
+        // Put card into the correct pane grid
+        moveOrderCardToPane(order, true);
+        updateTabAndHeaderCounters();
+        recalculateAndRenderDriverStats();
+        showDeliveryToast(`وصول طلب توصيل جديد #${order.order_number} بقيمة ${Number(order.total || 0).toFixed(2)} ر.س 🚀`, 'success');
+    }
+
+    function handleDeliveryStatusChanged(order) {
+        const idx = activeDeliveryOrders.findIndex(o => o.id === order.id);
+        if (idx >= 0) {
+            activeDeliveryOrders[idx] = order;
+        } else {
+            activeDeliveryOrders.unshift(order);
+        }
+
+        moveOrderCardToPane(order, false);
+        updateTabAndHeaderCounters();
+        recalculateAndRenderDriverStats();
+        showDeliveryToast(`تحديث حالة الطلب #${order.order_number} إلى: ${order.status_display}`);
+    }
+
+    function handleDeliveryDriverAssigned(order) {
+        const idx = activeDeliveryOrders.findIndex(o => o.id === order.id);
+        if (idx >= 0) {
+            activeDeliveryOrders[idx] = order;
+        }
+
+        // Update driver select on the card in place
+        const selectEl = document.getElementById(`driver-select-${order.id}`);
+        if (selectEl) {
+            selectEl.value = order.driver_id || '';
+        }
+
+        recalculateAndRenderDriverStats();
+        showDeliveryToast(`تم إسناد السائق «${order.driver_name || '—'}» للطلب #${order.order_number}`);
+    }
+
+    function handleDeliveryOrderCancelled(order) {
+        const cardEl = document.getElementById(`order-card-${order.id}`);
+        if (cardEl) {
+            cardEl.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            cardEl.style.opacity = '0';
+            cardEl.style.transform = 'scale(0.9) translateY(6px)';
+            setTimeout(() => {
+                const parentGrid = cardEl.parentElement;
+                cardEl.remove();
+                if (parentGrid && parentGrid.querySelectorAll('.delivery-order-card').length === 0) {
+                    showPaneEmptyState(parentGrid);
+                }
+                updateTabAndHeaderCounters();
+            }, 300);
+        }
+
+        activeDeliveryOrders = activeDeliveryOrders.filter(o => o.id !== order.id);
+        updateTabAndHeaderCounters();
+        recalculateAndRenderDriverStats();
+        showDeliveryToast(`تم إلغاء الطلب #${order.order_number}`, 'info');
+    }
+
+    function moveOrderCardToPane(order, isNew = false) {
+        // 1. Remove existing card if present in any pane
+        const existingCard = document.getElementById(`order-card-${order.id}`);
+        if (existingCard) {
+            const oldGrid = existingCard.parentElement;
+            existingCard.remove();
+            if (oldGrid && oldGrid.querySelectorAll('.delivery-order-card').length === 0) {
+                showPaneEmptyState(oldGrid);
+            }
+        }
+
+        // 2. Find target pane
+        const targetPane = document.getElementById(`pane-${order.status}`);
+        if (!targetPane) return;
+
+        const targetGrid = targetPane.querySelector('.orders-grid');
+        if (!targetGrid) return;
+
+        // Hide empty state if present
+        hidePaneEmptyState(targetGrid);
+
+        // 3. Render and insert card HTML at top
+        const cardHtml = renderDeliveryCardHtml(order);
+        targetGrid.insertAdjacentHTML('afterbegin', cardHtml);
+
+        const newCardEl = document.getElementById(`order-card-${order.id}`);
+        if (newCardEl) {
+            newCardEl.classList.add('ring-2', 'ring-violet-500', 'bg-violet-50/40');
+            setTimeout(() => {
+                newCardEl.classList.remove('ring-2', 'ring-violet-500', 'bg-violet-50/40');
+            }, 1800);
+        }
+    }
+
+    function showPaneEmptyState(gridEl) {
+        if (!gridEl || gridEl.querySelector('.empty-state-card')) return;
+        const paneId = gridEl.closest('.tab-pane')?.id || '';
+        const emptyHtml = `
+            <div class="empty-state-card col-span-full py-16 text-center rounded-2xl bg-white border border-slate-200 shadow-xs">
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200 mx-auto mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <p class="text-sm font-bold text-slate-700">لا توجد طلبات في هذا القسم حالياً</p>
+            </div>
+        `;
+        gridEl.innerHTML = emptyHtml;
+    }
+
+    function hidePaneEmptyState(gridEl) {
+        if (!gridEl) return;
+        const empty = gridEl.querySelector('.empty-state-card');
+        if (empty) empty.remove();
+    }
+
+    function updateTabAndHeaderCounters() {
+        const statuses = ['new', 'preparing', 'ready', 'out_for_delivery', 'delivered'];
+        let activeCount = 0;
+
+        statuses.forEach(st => {
+            const pane = document.getElementById(`pane-${st}`);
+            const count = pane ? pane.querySelectorAll('.delivery-order-card').length : 0;
+            const badge = document.getElementById(`badge-count-${st}`);
+            if (badge) badge.textContent = count;
+            if (st !== 'delivered' && st !== 'cancelled') {
+                activeCount += count;
+            }
+        });
+
+        const headerCount = document.getElementById('header-active-count');
+        if (headerCount) headerCount.textContent = `${activeCount} نشط`;
+    }
+
+    function recalculateAndRenderDriverStats() {
+        // Group orders by driver
+        const statsMap = {};
+        AVAILABLE_DRIVERS.forEach(d => {
+            statsMap[d.id] = { active: 0, done: 0 };
+        });
+
+        activeDeliveryOrders.forEach(o => {
+            if (o.driver_id && statsMap[o.driver_id]) {
+                if (o.status === 'out_for_delivery') {
+                    statsMap[o.driver_id].active++;
+                } else if (o.status === 'delivered') {
+                    statsMap[o.driver_id].done++;
+                }
+            }
+        });
+
+        AVAILABLE_DRIVERS.forEach(d => {
+            const st = statsMap[d.id] || { active: 0, done: 0 };
+            const activeEl = document.getElementById(`driver-active-${d.id}`);
+            const doneEl = document.getElementById(`driver-done-${d.id}`);
+            if (activeEl) activeEl.textContent = `${st.active} نشط`;
+            if (doneEl) doneEl.textContent = `${st.done} تم`;
+        });
+    }
+
+    // ----------------------------------------------------------------
+    // 5. In-Place Actions (ZERO location.reload())
+    // ----------------------------------------------------------------
+    async function updateOrderDriver(orderId, selectEl) {
+        const driverId = selectEl.value;
+        const prevValue = selectEl.dataset.prevValue || '';
+        selectEl.disabled = true;
+
+        try {
+            const res = await fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ driverId: driverId || null })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                selectEl.dataset.prevValue = driverId;
+                const ord = activeDeliveryOrders.find(o => o.id === orderId);
+                if (ord) {
+                    ord.driver_id = driverId ? parseInt(driverId) : null;
+                    const dObj = AVAILABLE_DRIVERS.find(d => d.id == driverId);
+                    ord.driver_name = dObj ? dObj.name : '';
+                }
+                recalculateAndRenderDriverStats();
+                showDeliveryToast('تم تعيين السائق للطلب بنجاح ✓', 'success');
+            } else {
+                selectEl.value = prevValue;
+                showDeliveryToast(data.error || 'تعذر تعيين السائق', 'error');
+            }
+        } catch (e) {
+            selectEl.value = prevValue;
+            showDeliveryToast('خطأ في الاتصال بالخادم', 'error');
+        } finally {
+            selectEl.disabled = false;
+        }
+    }
+
+    async function advanceOrderStatus(orderId, nextStatus, needDriver = false) {
+        if (needDriver) {
+            const selectEl = document.getElementById(`driver-select-${orderId}`);
+            if (selectEl && !selectEl.value) {
+                showDeliveryToast('يجب اختيار سائق للطلب قبل التسليم للمسار!', 'error');
+                return;
+            }
+        }
+
+        const card = document.getElementById(`order-card-${orderId}`);
+        if (card) {
+            card.style.opacity = '0.5';
+            card.style.pointerEvents = 'none';
+        }
+
+        try {
+            const res = await fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: nextStatus })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                const ord = activeDeliveryOrders.find(o => o.id === orderId);
+                if (ord) {
+                    ord.status = nextStatus;
+                    const statusLabels = {
+                        'new': 'جديد',
+                        'preparing': 'قيد التحضير',
+                        'ready': 'جاهز للتسليم',
+                        'out_for_delivery': 'في الطريق',
+                        'delivered': 'تم التسليم'
+                    };
+                    ord.status_display = statusLabels[nextStatus] || nextStatus;
+                    moveOrderCardToPane(ord, false);
+                    updateTabAndHeaderCounters();
+                    recalculateAndRenderDriverStats();
+                }
+                showDeliveryToast(`تم تحديث حالة الطلب إلى: ${nextStatus} بنجاح ✓`, 'success');
+            } else {
+                if (card) {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
+                showDeliveryToast(data.error || 'تعذر تحديث الحالة', 'error');
+            }
+        } catch (e) {
+            if (card) {
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+            }
+            showDeliveryToast('خطأ في الاتصال بالخادم', 'error');
+        }
+    }
+
+    async function cancelOrder(orderId) {
+        if (!confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) return;
+
+        try {
+            const res = await fetch(`/api/orders/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: 'cancelled' })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                handleDeliveryOrderCancelled({ id: orderId, order_number: '' });
+                showDeliveryToast('تم إلغاء الطلب بنجاح');
+            } else {
+                showDeliveryToast(data.error || 'تعذر إلغاء الطلب', 'error');
+            }
+        } catch (e) {
+            showDeliveryToast('خطأ في الاتصال بالخادم', 'error');
+        }
+    }
+
+    async function bulkAssignDriver() {
+        const driverId = document.getElementById('bulk-driver-select').value;
+        if (!driverId) {
+            showDeliveryToast('الرجاء اختيار سائق للإسناد أولاً', 'error');
+            return;
+        }
+
+        const ids = getSelectedOrderIds();
+        if (ids.length === 0) {
+            showDeliveryToast('لم يتم تحديد أي طلبات', 'error');
+            return;
+        }
+
+        showDeliveryToast(`جارٍ تعيين السائق لـ ${ids.length} طلب...`);
+        try {
+            const promises = ids.map(id => fetch(`/api/orders/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ driverId: driverId })
+            }));
+            await Promise.all(promises);
+
+            ids.forEach(id => {
+                const numId = parseInt(id);
+                const ord = activeDeliveryOrders.find(o => o.id === numId);
+                if (ord) {
+                    ord.driver_id = parseInt(driverId);
+                    const dObj = AVAILABLE_DRIVERS.find(d => d.id == driverId);
+                    ord.driver_name = dObj ? dObj.name : '';
+                }
+                const selectEl = document.getElementById(`driver-select-${id}`);
+                if (selectEl) selectEl.value = driverId;
+            });
+
+            deselectAllOrders();
+            recalculateAndRenderDriverStats();
+            showDeliveryToast('تم تعيين السائق لكافة الطلبات المحددة بنجاح! ✓', 'success');
+        } catch (e) {
+            showDeliveryToast('حدث خطأ أثناء التعيين الجماعي', 'error');
+        }
+    }
+
+    async function bulkAdvanceOrders() {
+        const ids = getSelectedOrderIds();
+        if (ids.length === 0) {
+            showDeliveryToast('لم يتم تحديد أي طلبات', 'error');
+            return;
+        }
+
+        const nextMap = {
+            'new': 'preparing',
+            'preparing': 'ready',
+            'ready': 'out_for_delivery',
+            'out_for_delivery': 'delivered'
+        };
+        const nextStatus = nextMap[currentDeliveryTab];
+        if (!nextStatus) return;
+
+        // In 'ready' -> check driver
+        if (currentDeliveryTab === 'ready') {
+            for (const id of ids) {
+                const selectEl = document.getElementById(`driver-select-${id}`);
+                if (selectEl && !selectEl.value) {
+                    showDeliveryToast(`الطلب #${id} ليس لديه سائق محدد! يجب إسناد سائق أولاً`, 'error');
+                    return;
+                }
+            }
+        }
+
+        showDeliveryToast(`جارٍ تحديث ${ids.length} طلب إلى المرحلة التالية...`);
+        try {
+            const promises = ids.map(id => fetch(`/api/orders/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: nextStatus })
+            }));
+            await Promise.all(promises);
+
+            ids.forEach(id => {
+                const numId = parseInt(id);
+                const ord = activeDeliveryOrders.find(o => o.id === numId);
+                if (ord) {
+                    ord.status = nextStatus;
+                    moveOrderCardToPane(ord, false);
+                }
+            });
+
+            deselectAllOrders();
+            updateTabAndHeaderCounters();
+            recalculateAndRenderDriverStats();
+            showDeliveryToast('تم تحديث الطلبات المحددة بنجاح! ✓', 'success');
+        } catch (e) {
+            showDeliveryToast('حدث خطأ أثناء التحديث الجماعي', 'error');
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // 6. UI Helpers, Tabs, Collapsible Fleet & Search
+    // ----------------------------------------------------------------
     function switchDeliveryTab(status) {
         currentDeliveryTab = status;
         document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
@@ -381,7 +1117,6 @@
             if (noRes) noRes.classList.add('hidden');
         }
 
-        // Reset select all checkbox for this tab
         const selectAllCb = document.getElementById('select-all-cb');
         if (selectAllCb) selectAllCb.checked = false;
         updateSelectedCounter();
@@ -389,7 +1124,6 @@
         try { localStorage.setItem('motaem_active_delivery_tab', status); } catch(e) {}
     }
 
-    // --- Collapsible Drivers Panel ---
     function toggleDriversPanel(forcedState) {
         if (forcedState !== undefined) {
             isDriversPanelCollapsed = forcedState;
@@ -425,7 +1159,7 @@
                 toggleBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
             }
             if (toggleLabel) {
-                toggleLabel.textContent = `أسطول السائقين (${ {{ driver_stats|length }} })`;
+                toggleLabel.textContent = `أسطول السائقين (${AVAILABLE_DRIVERS.length})`;
             }
             applyGridDensity(false);
         }
@@ -443,14 +1177,12 @@
         });
     }
 
-    // --- Instant Real-time Search & Filter ---
     function filterDeliveryOrders(rawQuery) {
         const query = (rawQuery || '').trim().toLowerCase();
         const activePane = document.getElementById(`pane-${currentDeliveryTab}`);
         if (!activePane) return;
 
         const cards = activePane.querySelectorAll('.delivery-order-card');
-        const emptyState = activePane.querySelector('.empty-state-card');
         const noRes = document.getElementById('search-no-results');
 
         if (!query) {
@@ -479,7 +1211,16 @@
         }
     }
 
-    // --- Selection & Bulk Actions ---
+    function changeDeliveryBranchFilter(branchId) {
+        const url = new URL(window.location.href);
+        if (branchId) {
+            url.searchParams.set('branch_id', branchId);
+        } else {
+            url.searchParams.delete('branch_id');
+        }
+        window.location.href = url.toString();
+    }
+
     function handleCardSelect(cb) {
         const card = cb.closest('.delivery-order-card');
         if (card) {
@@ -545,162 +1286,41 @@
         }
     }
 
-    // Bulk Driver Assignment
-    async function bulkAssignDriver() {
-        const driverId = document.getElementById('bulk-driver-select').value;
-        if (!driverId) {
-            showToast('الرجاء اختيار سائق للإسناد أولاً', 'error');
-            return;
-        }
+    function showDeliveryToast(msg, type = 'info') {
+        const container = document.getElementById('delivery-toast-container');
+        if (!container) return;
 
-        const ids = getSelectedOrderIds();
-        if (ids.length === 0) {
-            showToast('لم يتم تحديد أي طلبات', 'error');
-            return;
-        }
+        const toast = document.createElement('div');
+        toast.className = `p-3 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 text-white ${type === 'error' ? 'bg-rose-600 border-rose-500' : (type === 'success' ? 'bg-emerald-700 border-emerald-600' : 'bg-slate-900 border-slate-800')}`;
+        toast.innerHTML = `<span>${msg}</span>`;
+        container.appendChild(toast);
 
-        showToast(`جارٍ تعيين السائق لـ ${ids.length} طلب...`);
-        try {
-            const promises = ids.map(id => fetch(`/api/orders/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ driverId: driverId })
-            }));
-            await Promise.all(promises);
-            showToast('تم تعيين السائق لكافة الطلبات المحددة بنجاح!');
-            setTimeout(() => location.reload(), 600);
-        } catch (e) {
-            showToast('حدث خطأ أثناء التعيين الجماعي', 'error');
-        }
+        setTimeout(() => {
+            toast.classList.remove('translate-y-2', 'opacity-0');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3200);
     }
 
-    // Bulk Advance Status
-    async function bulkAdvanceOrders() {
-        const ids = getSelectedOrderIds();
-        if (ids.length === 0) {
-            showToast('لم يتم تحديد أي طلبات', 'error');
-            return;
-        }
-
-        const nextMap = {
-            'new': 'preparing',
-            'preparing': 'ready',
-            'ready': 'out_for_delivery',
-            'out_for_delivery': 'delivered'
-        };
-        const nextStatus = nextMap[currentDeliveryTab];
-        if (!nextStatus) return;
-
-        // In 'ready' -> check driver
-        if (currentDeliveryTab === 'ready') {
-            for (const id of ids) {
-                const selectEl = document.getElementById(`driver-select-${id}`);
-                if (selectEl && !selectEl.value) {
-                    showToast(`الطلب #${id} ليس لديه سائق محدد! يجب إسناد سائق أولاً`, 'error');
-                    return;
-                }
-            }
-        }
-
-        showToast(`جارٍ تحديث ${ids.length} طلب إلى المرحلة التالية...`);
-        try {
-            const promises = ids.map(id => fetch(`/api/orders/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ status: nextStatus })
-            }));
-            await Promise.all(promises);
-            showToast('تم تحديث الطلبات المحددة بنجاح!');
-            setTimeout(() => location.reload(), 600);
-        } catch (e) {
-            showToast('حدث خطأ أثناء التحديث الجماعي', 'error');
-        }
-    }
-
-    // --- Single Order Handlers ---
-    async function updateOrderDriver(orderId, selectEl) {
-        const driverId = selectEl.value;
-        try {
-            const res = await fetch(`/api/orders/${orderId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ driverId: driverId || null })
-            });
-            const data = await res.json();
-            if (data.ok) {
-                showToast('تم تعيين السائق بنجاح');
-            } else {
-                showToast(data.error || 'تعذر تعيين السائق', 'error');
-            }
-        } catch (e) {
-            showToast('خطأ في الاتصال', 'error');
-        }
-    }
-
-    async function advanceOrderStatus(orderId, nextStatus, needDriver = false) {
-        if (needDriver) {
-            const selectEl = document.getElementById(`driver-select-${orderId}`);
-            if (selectEl && !selectEl.value) {
-                showToast('يجب اختيار سائق للطلب قبل التسليم للمسار!', 'error');
-                return;
-            }
-        }
-
-        try {
-            const res = await fetch(`/api/orders/${orderId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ status: nextStatus })
-            });
-            const data = await res.json();
-            if (data.ok) {
-                showToast(`تم تحديث حالة الطلب إلى: ${nextStatus}`);
-                setTimeout(() => location.reload(), 500);
-            } else {
-                showToast(data.error || 'تعذر تحديث الحالة', 'error');
-            }
-        } catch (e) {
-            showToast('خطأ في الاتصال', 'error');
-        }
-    }
-
-    async function cancelOrder(orderId) {
-        if (!confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) return;
-        try {
-            const res = await fetch(`/api/orders/${orderId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ status: 'cancelled' })
-            });
-            const data = await res.json();
-            if (data.ok) {
-                showToast('تم إلغاء الطلب');
-                setTimeout(() => location.reload(), 500);
-            } else {
-                showToast(data.error || 'تعذر إلغاء الطلب', 'error');
-            }
-        } catch (e) {
-            showToast('خطأ في الاتصال', 'error');
-        }
-    }
-
-    // --- Initialization ---
+    // ----------------------------------------------------------------
+    // 7. Initialization & Event Bindings
+    // ----------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
+        updateSoundUI();
+        initDeliverySSE();
+
+        // Unlock Web Audio context on user first interaction
+        const unlockAudio = () => {
+            initDeliveryAudio();
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+
         // Restore active tab
         const savedTab = localStorage.getItem('motaem_active_delivery_tab');
         if (savedTab && document.getElementById(`pane-${savedTab}`)) {

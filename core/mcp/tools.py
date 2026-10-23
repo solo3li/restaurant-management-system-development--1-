@@ -1420,12 +1420,15 @@ def create_callcenter_order(
         except Exception as e:
             logger.warning(f"Failed to clear cart after order creation: {e}")
 
-        # Real-time SSE push to kitchen display & Redis active order cache
+        # Real-time SSE push to kitchen display, delivery screen & Redis active order cache
         try:
             from core.kitchen_events import notify_kitchen_order_event
             notify_kitchen_order_event(order, "new_order")
+            if order.order_type == "delivery":
+                from apps.orders.events import notify_delivery_order_event
+                notify_delivery_order_event(order, "delivery_new_order")
         except Exception as e:
-            logger.warning(f"Failed to notify kitchen of AI order: {e}")
+            logger.warning(f"Failed to notify kitchen/delivery of AI order: {e}")
 
         try:
             cache_active_order(order)
@@ -1932,8 +1935,11 @@ def cancel_order(
         try:
             from core.kitchen_events import notify_kitchen_order_event
             notify_kitchen_order_event(order, "order_cancelled")
+            if order.order_type == "delivery":
+                from apps.orders.events import notify_delivery_order_event
+                notify_delivery_order_event(order, "delivery_order_cancelled")
         except Exception as e:
-            logger.warning(f"Failed to notify kitchen of AI cancelled order: {e}")
+            logger.warning(f"Failed to notify kitchen/delivery of AI cancelled order: {e}")
 
         try:
             remove_active_order(tenant.id, order.order_number)
