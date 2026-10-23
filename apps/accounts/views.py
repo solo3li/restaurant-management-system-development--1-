@@ -31,6 +31,8 @@ from apps.accounts.models import (
     RestaurantOwner,
     RESTAURANT_PERMISSIONS,
     PERMISSIONS_CATALOG,
+    BRANCH_PERMISSIONS,
+    HQ_PERMISSIONS,
     ensure_tenant_preset_roles,
 )
 from apps.tenants.models import Tenant, Branch
@@ -1112,13 +1114,23 @@ def api_job_roles(request):
             return JsonResponse({"error": f"المسمى الوظيفي «{name}» مسجل مسبقاً"}, status=400)
 
         scope = body.get("scope", "branch")
-        if scope not in ["hq", "branch", "both"]:
+        if scope not in ["hq", "branch"]:
             scope = "branch"
 
         description = str(body.get("description", "")).strip()
         permissions = body.get("permissions", [])
         if not isinstance(permissions, list):
             permissions = []
+
+        # Strict Scope Validation: Cannot mix branch and hq permissions
+        if scope == "branch":
+            invalid_perms = [p for p in permissions if p in HQ_PERMISSIONS and p not in BRANCH_PERMISSIONS]
+            if invalid_perms:
+                return JsonResponse({"error": "لا يمكن إسناد صلاحيات الإدارة العامة (HQ) لمسمى وظيفي خاص بتشغيل الفرع (Branch)."}, status=400)
+        elif scope == "hq":
+            invalid_perms = [p for p in permissions if p in BRANCH_PERMISSIONS and p not in HQ_PERMISSIONS]
+            if invalid_perms:
+                return JsonResponse({"error": "لا يمكن إسناد صلاحيات تشغيل الفرع (Branch) لمسمى وظيفي خاص بالإدارة العامة (HQ)."}, status=400)
 
         role = JobRole.objects.create(
             tenant=tenant,
@@ -1205,9 +1217,22 @@ def api_job_role_detail(request, role_id):
                 return JsonResponse({"error": f"اسم المسمى «{name}» مستخدم مسبقاً"}, status=400)
             role.name = name
 
-        if "scope" in body and body["scope"] in ["hq", "branch", "both"]:
-            role.scope = body["scope"]
+        target_scope = body.get("scope", role.scope)
+        if target_scope not in ["hq", "branch"]:
+            target_scope = role.scope
 
+        if "permissions" in body and isinstance(body["permissions"], list):
+            target_perms = body["permissions"]
+            if target_scope == "branch":
+                invalid_perms = [p for p in target_perms if p in HQ_PERMISSIONS and p not in BRANCH_PERMISSIONS]
+                if invalid_perms:
+                    return JsonResponse({"error": "لا يمكن إسناد صلاحيات الإدارة العامة (HQ) لمسمى وظيفي خاص بتشغيل الفرع (Branch)."}, status=400)
+            elif target_scope == "hq":
+                invalid_perms = [p for p in target_perms if p in BRANCH_PERMISSIONS and p not in HQ_PERMISSIONS]
+                if invalid_perms:
+                    return JsonResponse({"error": "لا يمكن إسناد صلاحيات تشغيل الفرع (Branch) لمسمى وظيفي خاص بالإدارة العامة (HQ)."}, status=400)
+
+        role.scope = target_scope
         if "description" in body:
             role.description = str(body["description"]).strip()
 

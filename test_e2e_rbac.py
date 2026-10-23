@@ -291,11 +291,22 @@ def run_e2e_tests():
     res = client.get("/kitchen/")
     assert_equal(res.status_code, 403, "Call Center Agent blocked from /kitchen/ (403 Forbidden)")
 
-    # (F) Branch Manager Employee Creation & Role Sync
-    print(f"\n{YELLOW}Testing Branch Manager (Employees Management & Role Assignment):{RESET}")
+    # (F) Employees Management Access & Role Sync
+    print(f"\n{YELLOW}Testing Employees Management (Branch Manager blocked 403, Owner allowed 200):{RESET}")
     client.force_login(bm_user)
     res = client.get("/employees/")
-    assert_equal(res.status_code, 200, "Branch Manager accesses /employees/ (200 OK)")
+    assert_equal(res.status_code, 403, "Branch Manager blocked from /employees/ (403 Forbidden)")
+
+    owner_user = User.objects.filter(is_superuser=True).first()
+    if not owner_user:
+        owner_user = User.objects.create_superuser("e2e_admin", "admin@e2e.test", "admin123")
+    client.force_login(owner_user)
+    session = client.session
+    session["active_tenant_id"] = tenant.id
+    session.save()
+
+    res = client.get("/employees/")
+    assert_equal(res.status_code, 200, "Owner accesses /employees/ (200 OK)")
 
     # Create new employee via API
     new_emp_payload = {

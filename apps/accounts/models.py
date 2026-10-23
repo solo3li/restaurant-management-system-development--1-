@@ -5,283 +5,214 @@ from django.utils import timezone
 
 
 RESTAURANT_PERMISSIONS = [
-    # 1. POS & Cashier
+    # 1. POS & Cashier (Branch Scope)
     ("pos_access", "فتح واستخدام شاشة الكاشير ونقاط البيع (POS)"),
-    ("pos_create_order", "تسجيل وإنشاء طلب جديد بالصالة أو السفري أو التوصيل"),
     ("pos_apply_discount", "تطبيق الخصومات والعروض والكوبونات على الطلب"),
-    ("pos_override_price", "تعديل أسعار الأصناف يدوياً في الفاتورة"),
-    ("pos_void_item", "إلغاء وحذف أصناف أثناء إدخال الطلب"),
-    ("pos_cancel_order", "إلغاء طلب مسجل ومؤكد"),
+    ("pos_cancel_order", "إلغاء فواتير وطلبات الكاشير"),
     ("pos_refund_order", "استرجاع الفواتير ورد المبالغ للعميل"),
+    ("pos_manage_shift", "فتح وإغلاق وردية الكاشير وتقرير Z ودرج النقدية"),
     ("pos_reprint_receipt", "إعادة طباعة الفواتير والإيصالات القديمة"),
-    ("pos_manage_shift", "فتح وإغلاق وردية الكاشير واستخراج تقرير Z-Report"),
-    ("pos_cash_drawer", "فتح درج النقدية يدوياً وسحب وإيداع نقدية"),
-    ("view_orders", "استعراض سجل الطلبات والفواتير"),
-    ("edit_orders", "تعديل تفاصيل الطلبات القائمة"),
-    ("cancel_orders", "إلغاء الطلبات المسجلة"),
-    ("delete_orders", "حذف الطلبات نهائياً من قاعدة البيانات (حساس)"),
 
-    # 2. Kitchen KDS
-    ("kds_access", "الوصول لشاشة المطبخ وإعداد الطلبات (KDS)"),
-    ("kds_update_status", "تحديث حالة الوجبات (قيد الطهي / جاهز للتسليم)"),
+    # 2. Kitchen KDS (Branch Scope)
+    ("kds_access", "الوصول لشاشة المطبخ وتحديث إعداد الطلبات (KDS)"),
     ("kds_recall_order", "استرجاع طلب تم إتمامه بالخطأ لشاشة الطهي"),
     ("kds_pause_item", "تعليق إعداد صنف معين مؤقتاً في المطبخ"),
 
-    # 3. Menu & Pricing
-    ("menu_view", "استعراض قائمة الطعام والأطباق والأسعار"),
-    ("menu_create_item", "إضافة وجبة أو طبق جديد للقائمة"),
-    ("menu_edit_item", "تعديل بيانات وتفاصيل ومكونات الوجبة"),
-    ("menu_change_price", "تعديل أسعار الوجبات في المنيو"),
-    ("menu_delete_item", "حذف وجبة من قائمة الطعام نهائياً"),
-    ("menu_toggle_availability", "تفعيل أو إيقاف توفر الطبق بالفرع (نفدت الكمية)"),
-    ("menu_manage_categories", "إدارة وتعديل أقسام وتصنيفات المنيو"),
-    ("menu_manage_modifiers", "إدارة الإضافات والخيارات والمكونات الإضافية"),
-    ("manage_menu", "إدارة المنيو وتوفر الأصناف بالكامل"),
-
-    # 4. Delivery & Fleet
+    # 3. Delivery & Fleet (Branch Scope)
     ("delivery_access", "الوصول للوحة متابعة التوصيل وإدارة السائقين"),
     ("delivery_assign_driver", "إسناد وتعيين الطلبات للسائقين"),
+    ("delivery_override_status", "تحديث حالة التوصيل يدوياً وتأكيد التسليم"),
     ("delivery_track_drivers", "تتبع حركة ومسارات السائقين الحية على الخريطة"),
-    ("delivery_manage_zones", "إدارة نطاقات ومناطق ورسوم التوصيل بالفروع"),
-    ("delivery_override_status", "تحديث حالة التوصيل يدوياً (تم التسليم / تعذر)"),
 
-    # 5. AI Call Center
+    # 4. Branch Orders (Branch Scope)
+    ("branch_view_orders", "استعراض وبحث سجل طلبات وفواتير الفرع الحالي"),
+    ("branch_edit_orders", "تعديل تفاصيل وملاحظات طلبات الفرع القائمة"),
+    ("branch_cancel_orders", "إلغاء فواتير وطلبات الفرع المعتمدة"),
+    ("branch_delete_orders", "حذف فواتير الفرع نهائياً من قاعدة البيانات (حساس)"),
+
+    # 5. Branch Menu & Pricing (Branch Scope)
+    ("menu_view", "استعراض قائمة الطعام والأطباق والأسعار"),
+    ("menu_toggle_availability", "تفعيل أو إيقاف توفر الطبق بالفرع (نفدت الكمية)"),
+    ("menu_manage_items", "تعديل بيانات ومكونات وخيارات أطباق الفرع"),
+    ("menu_change_price", "تعديل أسعار الوجبات والأطباق في الفرع"),
+
+    # 6. Branch Inventory (Branch Scope)
+    ("inventory_view", "استعراض كميات المخزون والمواد الأولية بالفرع"),
+    ("inventory_adjust_stock", "جرد وتسوية كميات المخزون يدوياً بالفرع"),
+    ("inventory_add_stock", "تسجيل فواتير الشراء وتوريد مواد جديدة لمستودع الفرع"),
+    ("inventory_record_waste", "تسجيل هدر وتالف المواد الغذائية بمطبخ الفرع"),
+
+    # 7. HQ Orders (HQ Scope)
+    ("hq_view_orders", "استعراض سجل طلبات وفواتير كافة فروع السلسلة (HQ)"),
+    ("hq_edit_orders", "تعديل الطلبات المركزية وتوجيهها"),
+    ("hq_cancel_orders", "إلغاء الطلبات المركزية عبر كافة الفروع"),
+    ("hq_delete_orders", "حذف الفواتير نهائياً من قاعدة البيانات للإدارة العامة"),
+
+    # 8. Central Call Center (HQ Scope)
     ("call_center_access", "الوصول لشاشة الكول سنتر واستقبال المكالمات الحية"),
     ("call_center_create_order", "تسجيل طلبات هاتفية للعملاء وتوجيهها للفروع"),
-    ("call_center_manage_ai", "تعديل إعدادات وبرومبت وصوت وكيل الذكاء الاصطناعي"),
-    ("call_center_view_logs", "الاستماع للمكالمات المسجلة ومراجعة سجلات المحادثة"),
-    ("call_center_view_customers", "استعراض وإدارة قاعدة بيانات العملاء وعناوينهم"),
+    ("call_center_view_customers", "استعراض وإدارة قاعدة بيانات وسجل العملاء"),
 
-    # 6. Inventory & Purchasing
-    ("inventory_view", "استعراض كميات المخزون والمواد الأولية والتنبيهات"),
-    ("inventory_add_stock", "تسجيل فواتير الشراء وتوريد مواد جديدة للمستودع"),
-    ("inventory_adjust_stock", "تسوية وتعديل كميات المخزون يدوياً (الجرد الفعلي)"),
-    ("inventory_record_waste", "تسجيل هدر وتالف المواد الغذائية والمكونات"),
-    ("inventory_transfer_stock", "تحويل ونقل المواد بين الفروع والمستودعات"),
-    ("inventory_manage_suppliers", "إدارة الموردين وبياناتهم والأسعار المتفق عليها"),
+    # Legacy Compatibility (Synonyms kept so existing data & tests remain valid)
+    ("pos_create_order", "تسجيل وإنشاء طلب جديد (توافقي)"),
+    ("view_orders", "استعراض سجل الطلبات والفواتير (شامل)"),
+    ("edit_orders", "تعديل تفاصيل الطلبات القائمة (شامل)"),
+    ("cancel_orders", "إلغاء الطلبات المسجلة (شامل)"),
+    ("delete_orders", "حذف الطلبات نهائياً من قاعدة البيانات (شامل)"),
+    ("manage_menu", "إدارة المنيو وتوفر الأصناف بالكامل"),
     ("manage_inventory", "إدارة المستودعات والمخزون بالكامل"),
-
-    # 7. Financials & Accounting
-    ("finance_view_sales", "رؤية أرقام المبيعات والإيرادات اليومية واللحظية"),
-    ("finance_view_reports", "الاطلاع على التقارير المالية والتحليلات الدورية"),
-    ("finance_view_profit_loss", "الاطلاع على هوامش الربح وتقارير الأرباح والخسائر"),
-    ("finance_export_tax_reports", "تصدير الفواتير والتقارير الضريبية المعتمدة لـ ZATCA"),
-    ("finance_view_staff_performance", "الاطلاع على تقارير إنتاجية ومبيعات الموظفين والسائقين"),
-    ("view_financials", "الاطلاع على الأرقام المالية ومبيعات الفروع"),
-
-    # 8. Staff & HR
-    ("hr_view_employees", "استعراض قائمة الموظفين وطاقم العمل"),
-    ("hr_create_employee", "إضافة وتعيين موظف جديد في النظام"),
-    ("hr_edit_employee", "تعديل بيانات الموظف والفرع والبيانات الوظيفية"),
-    ("hr_manage_salaries", "تحديد وتعديل الرواتب والبدلات والمكافآت والخصومات"),
-    ("hr_manage_credentials", "تعيين وتوليد رمز PIN وكود تسجيل الدخول للموظف"),
-    ("hr_deactivate_employee", "تجميد أو إنهاء حساب موظف وسحب حق الدخول"),
-    ("hr_manage_shifts", "جدولة الورديات وتسجيل الحضور والانصراف وساعات العمل"),
-    ("manage_employees", "إدارة الموظفين والرواتب بالكامل"),
-
-    # 9. HQ & Multi-Branch
-    ("hq_view_master_dashboard", "الوصول للوحة القيادة العامة المجمعة لكل الفروع HQ"),
-    ("branch_view_dashboard", "الوصول للوحة مؤشرات وعمليات الفرع الخاص"),
-    ("branch_switch_branches", "التبديل بين الفروع واستعراض فروع متعددة للمطعم"),
-    ("branch_manage_branches", "إنشاء فروع جديدة وتعديل بياناتها وساعات العمل"),
-    ("view_hq_dashboard", "لوحة الإدارة العامة (HQ)"),
-    ("view_branch_dashboard", "لوحة تحكم الفرع"),
-    ("manage_branches", "إدارة الفروع ونطاقات التوصيل"),
-
-    # 10. System & RBAC Settings
-    ("system_manage_roles", "إنشاء وتعديل مسميات الوظائف وتوزيع الصلاحيات"),
-    ("system_assign_permissions", "منح أو سحب صلاحيات مباشرة استثنائية لموظف بعينه"),
-    ("system_manage_settings", "تعديل بيانات المنشأة والهوية والرقم الضريبي واللوجو"),
-    ("system_manage_billing", "إدارة باقة الاشتراك والفوترة وتجديد اشتراك المنصة"),
-    ("system_view_audit_logs", "استعراض سجل التدقيق الأمني ومراقبة العمليات الحساسة"),
-    ("manage_roles", "إدارة المسميات والصلاحيات"),
+    ("kds_update_status", "تحديث حالة الوجبات في المطبخ"),
 ]
 
 
 PERMISSIONS_CATALOG = [
+    # === BRANCH SCOPE CATEGORIES ===
     {
         "category": "نقاط البيع والكاشير (POS)",
+        "scope": "branch",
         "icon": "💳",
         "permissions": [
-            {"key": "pos_access", "label": "شاشة الكاشير (POS)", "desc": "فتح واستخدام شاشة نقاط البيع وإصدار الفواتير"},
-            {"key": "pos_create_order", "label": "تسجيل وإنشاء طلب", "desc": "تسجيل طلبات الصالة والسفري والتوصيل"},
-            {"key": "pos_apply_discount", "label": "تطبيق الخصومات والعروض", "desc": "تخفيض الفاتورة وتطبيق الكوبونات"},
-            {"key": "pos_override_price", "label": "تعديل السعر يدوياً", "desc": "تغيير سعر الصنف داخل الفاتورة يدوياً"},
-            {"key": "pos_void_item", "label": "حذف صنف أثناء الطلب", "desc": "إلغاء صنف قبل إتمام الدفع والطباعة"},
-            {"key": "pos_cancel_order", "label": "إلغاء طلب مؤكد", "desc": "إلغاء الفواتير المسجلة بعد الطباعة"},
+            {"key": "pos_access", "label": "شاشة الكاشير (POS)", "desc": "فتح واستخدام شاشة نقاط البيع وإصدار الفواتير وتسجيل الطلبات"},
+            {"key": "pos_apply_discount", "label": "تطبيق الخصومات والعروض", "desc": "تخفيض الفاتورة وتطبيق الكوبونات والعروض"},
+            {"key": "pos_cancel_order", "label": "إلغاء الفواتير بالكاشير", "desc": "إلغاء الفواتير المسجلة مباشرة من شاشة نقاط البيع"},
             {"key": "pos_refund_order", "label": "استرجاع الفاتورة ورد المبلغ", "desc": "استرداد الأموال للعميل نقدية أو شبكة"},
-            {"key": "pos_reprint_receipt", "label": "إعادة طباعة الفاتورة", "desc": "طباعة نسخ مكررة من الفواتير القديمة"},
-            {"key": "pos_manage_shift", "label": "تقفيل الوردية (Z-Report)", "desc": "إغلاق الدرج وإصدار التقرير النهائي للوردية"},
-            {"key": "pos_cash_drawer", "label": "درج النقدية وسحب/إيداع", "desc": "فتح الدرج يدوياً وتسجيل السحب والإيداع النقدي"},
-            {"key": "view_orders", "label": "استعراض سجل الفواتير", "desc": "رؤية قائمة الطلبات السابقة وحالاتها"},
-            {"key": "edit_orders", "label": "تعديل الطلبات القائمة", "desc": "إمكانية تغيير أصناف وحالة الطلب الجاري"},
-            {"key": "cancel_orders", "label": "إلغاء الطلبات المسجلة - توافقي", "desc": "إلغاء الطلبات المسجلة والفواتير المعتمدة"},
-            {"key": "delete_orders", "label": "حذف الطلب نهائياً (حساس)", "desc": "مسح سجل الفاتورة بالكامل من قاعدة البيانات"},
+            {"key": "pos_manage_shift", "label": "تقفيل الوردية ودرج النقدية", "desc": "إغلاق الوردية وإصدار تقرير Z-Report وفتح درج النقدية"},
+            {"key": "pos_reprint_receipt", "label": "إعادة طباعة الفواتير", "desc": "طباعة نسخ مكررة من الإيصالات والفواتير السابقة"},
         ]
     },
     {
         "category": "المطبخ وإعداد الوجبات (KDS)",
+        "scope": "branch",
         "icon": "🍳",
         "permissions": [
-            {"key": "kds_access", "label": "شاشة المطبخ (KDS)", "desc": "متابعة أوامر الطبخ والوجبات الجارية فورياً"},
-            {"key": "kds_update_status", "label": "تحديث حالة التحضير", "desc": "تحويل الطلب إلى قيد الطهي أو جاهز للتسليم"},
-            {"key": "kds_recall_order", "label": "استرجاع طلب تم إتمامه", "desc": "إعادة الطلب لشاشة الطهي في حال الخطأ"},
+            {"key": "kds_access", "label": "شاشة المطبخ (KDS)", "desc": "متابعة أوامر الطبخ وتحديث حالة الوجبات (قيد الطهي / جاهز)"},
+            {"key": "kds_recall_order", "label": "استرجاع طلب تم إتمامه", "desc": "إعادة الطلب لشاشة الطهي في حال إنجازه بالخطأ"},
             {"key": "kds_pause_item", "label": "تعليق إعداد صنف مؤقتاً", "desc": "إشعار الصالة بتأخير أو تعليق صنف محدد بالمطبخ"},
         ]
     },
     {
-        "category": "قائمة الطعام والأسعار (Menu)",
-        "icon": "📋",
-        "permissions": [
-            {"key": "menu_view", "label": "استعراض قائمة الطعام", "desc": "الاطلاع على الأطباق والأسعار والتصنيفات"},
-            {"key": "menu_create_item", "label": "إضافة وجبة جديدة", "desc": "إنشاء أصناف ووجبات جديدة بالمنيو"},
-            {"key": "menu_edit_item", "label": "تعديل تفاصيل الوجبة", "desc": "تعديل صور ومكونات ووصف الأطباق"},
-            {"key": "menu_change_price", "label": "تعديل أسعار الأصناف", "desc": "تغيير الأسعار الرسمية للأطباق بالمنيو"},
-            {"key": "menu_delete_item", "label": "حذف وجبة من القائمة", "desc": "حذف الصنف نهائياً من قاعدة بيانات المنيو"},
-            {"key": "menu_toggle_availability", "label": "توفر الأصناف بالفرع", "desc": "إيقاف أو تفعيل توفر الصنف في مطبخ الفرع (نفدت الكمية)"},
-            {"key": "menu_manage_categories", "label": "إدارة تصنيفات المنيو", "desc": "إضافة وتعديل أقسام المنيو (مشويات، مقبلات...)"},
-            {"key": "menu_manage_modifiers", "label": "إدارة الإضافات والخيارات", "desc": "التحكم في خيارات الأطباق (إضافات، أحجام، صوصات)"},
-            {"key": "manage_menu", "label": "إدارة المنيو وتوفر الأصناف - شامل", "desc": "التحكم الكامل في المنيو وتوفر الأصناف سحابياً وبالفروع"},
-        ]
-    },
-    {
-        "category": "التوصيل والأسطول والسائقين",
+        "category": "التوصيل وأسطول المناديب",
+        "scope": "branch",
         "icon": "🛵",
         "permissions": [
-            {"key": "delivery_access", "label": "لوحة متابعة التوصيل", "desc": "متابعة كباتن التوصيل والطلبات الجاهزة للنقل"},
-            {"key": "delivery_assign_driver", "label": "إسناد الطلبات للسائقين", "desc": "تعيين وتوزيع الطلبات على السائقين المتاحين"},
+            {"key": "delivery_access", "label": "شاشة متابعة وتوزيع التوصيل", "desc": "متابعة كباتن التوصيل والطلبات الجاهزة للنقل لحظياً"},
+            {"key": "delivery_assign_driver", "label": "إسناد الطلبات للسائقين", "desc": "تعيين وتوزيع الطلبات على السائقين المتاحين بالفرع"},
+            {"key": "delivery_override_status", "label": "تأكيد التسليم اليدوي", "desc": "تحديث حالة التوصيل يدوياً ومعالجة تعذر التسليم"},
             {"key": "delivery_track_drivers", "label": "تتبع مسارات السائقين", "desc": "متابعة مسارات الكباتن الحية على الخريطة"},
-            {"key": "delivery_manage_zones", "label": "إدارة نطاقات ورسوم التوصيل", "desc": "تحديد مناطق وأحياء ورسوم التوصيل بالفروع"},
-            {"key": "delivery_override_status", "label": "تعديل حالة التوصيل يدوياً", "desc": "تأكيد التسليم اليدوي أو معالجة تعذر التوصيل"},
         ]
     },
     {
-        "category": "الكول سنتر والذكاء الاصطناعي",
-        "icon": "🎧",
+        "category": "سجل طلبات الفرع (Branch Orders)",
+        "scope": "branch",
+        "icon": "📑",
         "permissions": [
-            {"key": "call_center_access", "label": "شاشة الكول سنتر الحية", "desc": "استقبال وإجراء المكالمات الهاتفية للعملاء"},
-            {"key": "call_center_create_order", "label": "تسجيل طلبات الهاتف", "desc": "إنشاء طلب هاتف وتوجيهه للفرع الأنسب آلياً"},
-            {"key": "call_center_manage_ai", "label": "إعدادات صوت الذكاء الاصطناعي", "desc": "تعديل شخصية وبرومبت وصوت وكيل AI"},
-            {"key": "call_center_view_logs", "label": "مراجعة المكالمات المسجلة", "desc": "الاستماع لتسجيلات العملاء ومراجعة المحادثات"},
-            {"key": "call_center_view_customers", "label": "بيانات وسجل العملاء", "desc": "استعراض سجل طلبات العملاء وعناوينهم الهاتفية"},
+            {"key": "branch_view_orders", "label": "استعراض سجل طلبات الفرع", "desc": "رؤية وبحث وتصفية كافة فواتير وطلبات الفرع الحالي"},
+            {"key": "branch_edit_orders", "label": "تعديل تفاصيل الطلبات القائمة", "desc": "تعديل أصناف وملاحظات وحالة الطلبات بالفرع"},
+            {"key": "branch_cancel_orders", "label": "إلغاء طلبات الفرع", "desc": "إلغاء فواتير وطلبات الفرع المعتمدة"},
+            {"key": "branch_delete_orders", "label": "حذف فواتير الفرع نهائياً (حساس)", "desc": "حذف سجل الفاتورة بالكامل من قاعدة البيانات"},
         ]
     },
     {
-        "category": "المستودعات والمخزون والتوريد",
+        "category": "قائمة طعام الفرع والأسعار (Branch Menu)",
+        "scope": "branch",
+        "icon": "📋",
+        "permissions": [
+            {"key": "menu_view", "label": "استعراض قائمة الطعام", "desc": "الاطلاع على الأصناف والتصنيفات والأسعار المعتمدة"},
+            {"key": "menu_toggle_availability", "label": "توفر الأصناف بالفرع", "desc": "إيقاف أو تفعيل توفر الصنف بمطبخ الفرع (نفدت الكمية)"},
+            {"key": "menu_manage_items", "label": "تعديل بيانات ومكونات الأطباق", "desc": "تعديل صور ومكونات وإضافات وخيارات الأطباق بالفرع"},
+            {"key": "menu_change_price", "label": "تعديل أسعار الأطباق بالفرع", "desc": "تغيير وتخصيص أسعار الوجبات الخاصة بالفرع"},
+        ]
+    },
+    {
+        "category": "جرد ومخزون الفرع (Branch Inventory)",
+        "scope": "branch",
         "icon": "📦",
         "permissions": [
-            {"key": "inventory_view", "label": "استعراض أرصدة المخزون", "desc": "رؤية كميات المواد الخام ونواقص المستودع"},
-            {"key": "inventory_add_stock", "label": "تسجيل فواتير الشراء والتوريد", "desc": "إدخال بضاعة وتوريدات جديدة للمستودع"},
-            {"key": "inventory_adjust_stock", "label": "جرد وتسوية المخزون", "desc": "تعديل الكميات الفعلية ومطابقة الجرد"},
-            {"key": "inventory_record_waste", "label": "تسجيل الهدر والتالف", "desc": "حصر المواد الغذائية التالفة أو منتهية الصلاحية"},
-            {"key": "inventory_transfer_stock", "label": "تحويل المواد بين الفروع", "desc": "نقل وتوريد بضائع من فرع أو مستودع لآخر"},
-            {"key": "inventory_manage_suppliers", "label": "إدارة شركات التوريد", "desc": "بيانات الموردين والأسعار وسجل المشتريات"},
-            {"key": "manage_inventory", "label": "إدارة المستودعات والمخزون - شامل", "desc": "إدارة المستودعات والمخزون بالكامل وحذف المواد الأولية"},
+            {"key": "inventory_view", "label": "استعراض كميات المخزون", "desc": "رؤية أرصدة المواد الأولية ونواقص مستودع الفرع"},
+            {"key": "inventory_adjust_stock", "label": "جرد وتسوية المخزون", "desc": "تسجيل الجرد الفعلي ومطابقة وتعديل الكميات"},
+            {"key": "inventory_add_stock", "label": "تسجيل توريد وشراء بضاعة", "desc": "إدخال فواتير الشراء وتوريد مواد جديدة للمستودع"},
+            {"key": "inventory_record_waste", "label": "تسجيل الهدر والتالف", "desc": "حصر وتسجيل المواد الغذائية التالفة بمطبخ الفرع"},
         ]
     },
+
+    # === HQ SCOPE CATEGORIES ===
     {
-        "category": "التقارير المالية والمحاسبة",
-        "icon": "📊",
-        "permissions": [
-            {"key": "finance_view_sales", "label": "رؤية المبيعات اليومية الحية", "desc": "الاطلاع على أرقام المبيعات النقدية والشبكة لحظياً"},
-            {"key": "finance_view_reports", "label": "التقارير التحليلية والدورية", "desc": "مؤشرات نمو المبيعات الشهرية والسنوية"},
-            {"key": "finance_view_profit_loss", "label": "تقارير الأرباح والتكاليف", "desc": "الاطلاع على هوامش الربح وصافي الأرباح التشغيلية"},
-            {"key": "finance_export_tax_reports", "label": "تصدير فواتير وتقارير ZATCA", "desc": "استخراج الإقرارات الضريبية وتقارير هيئة الزكاة"},
-            {"key": "finance_view_staff_performance", "label": "تقارير أداء الكاشير والموظفين", "desc": "مقارنة مبيعات الموظفين وإنتاجية السائقين"},
-            {"key": "view_financials", "label": "كشف الأرقام المالية العامة", "desc": "إظهار أو حجب بطاقات المبيعات النقدية في لوحة الفرع"},
-        ]
-    },
-    {
-        "category": "الموظفين والرواتب والورديات (HR)",
-        "icon": "👥",
-        "permissions": [
-            {"key": "hr_view_employees", "label": "استعراض قائمة الموظفين", "desc": "رؤية طاقم العمل والورديات الحالية"},
-            {"key": "hr_create_employee", "label": "إضافة وتعيين موظف جديد", "desc": "تسجيل موظف جديد بالمنشأة"},
-            {"key": "hr_edit_employee", "label": "تعديل بيانات الموظف والفرع", "desc": "تحديث هاتف وبيانات ونقل الموظف بين الفروع"},
-            {"key": "hr_manage_salaries", "label": "إدارة الرواتب والبدلات", "desc": "تعديل الراتب الأساسي، المكافآت والخصومات"},
-            {"key": "hr_manage_credentials", "label": "إدارة رمز PIN وكود الموظف", "desc": "توليد أو تغيير رمز PIN للدخول السريع"},
-            {"key": "hr_deactivate_employee", "label": "تجميد أو إنهاء حساب موظف", "desc": "إيقاف الموظف وسحب حق الدخول نهائياً"},
-            {"key": "hr_manage_shifts", "label": "جدولة الورديات وساعات العمل", "desc": "توزيع الشيفتات وتسجيل الحضور والانصراف"},
-            {"key": "manage_employees", "label": "إدارة الموظفين والرواتب - شامل", "desc": "إدارة طاقم العمل والرواتب والورديات بالكامل"},
-        ]
-    },
-    {
-        "category": "الفروع والإدارة العامة (HQ)",
+        "category": "سجل كافة طلبات السلسلة (HQ Orders)",
+        "scope": "hq",
         "icon": "🏢",
         "permissions": [
-            {"key": "hq_view_master_dashboard", "label": "لوحة القيادة العامة المجمعة (HQ)", "desc": "الاطلاع على أداء السلسلة ومؤشراتها العامة المجمعة"},
-            {"key": "branch_view_dashboard", "label": "لوحة مؤشرات الفرع المحلي", "desc": "الاطلاع على مؤشرات وإحصائيات الفرع المحدد"},
-            {"key": "branch_switch_branches", "label": "التنقل واستعراض الفروع الأخرى", "desc": "حرية استعراض فروع متعددة للمطعم"},
-            {"key": "branch_manage_branches", "label": "إدارة وافتتاح الفروع الجديدة", "desc": "إنشاء فروع جديدة وتعديل بياناتها وساعات العمل"},
-            {"key": "view_hq_dashboard", "label": "لوحة الإدارة العامة (HQ) - توافقي", "desc": "رؤية لوحة HQ"},
-            {"key": "view_branch_dashboard", "label": "لوحة تحكم الفرع - توافقي", "desc": "رؤية لوحة الفرع"},
-            {"key": "manage_branches", "label": "إدارة الفروع - توافقي", "desc": "إدارة الفروع ونطاقات التوصيل"},
+            {"key": "hq_view_orders", "label": "استعراض طلبات كافة الفروع (HQ)", "desc": "استعراض وبحث وتصفية طلبات كل فروع السلسلة مجمعة"},
+            {"key": "hq_edit_orders", "label": "تعديل الطلبات المركزية", "desc": "تعديل وتوجيه الطلبات عبر فروع السلسلة"},
+            {"key": "hq_cancel_orders", "label": "إلغاء الطلبات المركزية", "desc": "إلغاء أي فاتورة عبر أي فرع من الإدارة العامة"},
+            {"key": "hq_delete_orders", "label": "حذف الفواتير نهائياً (حساس جداً)", "desc": "حذف الفواتير نهائياً من قاعدة البيانات للإدارة العامة"},
         ]
     },
     {
-        "category": "إدارة المنشأة والأدوار (System & Settings)",
-        "icon": "⚙️",
+        "category": "مركز الاتصالات المباشرة (Central Call Center)",
+        "scope": "hq",
+        "icon": "🎧",
         "permissions": [
-            {"key": "system_manage_roles", "label": "إدارة المسميات والصلاحيات (RBAC)", "desc": "إنشاء وتعديل وحذف المسميات ومصفوفة الصلاحيات"},
-            {"key": "system_assign_permissions", "label": "تخصيص صلاحيات استثنائية لموظف", "desc": "منح أو سحب صلاحيات فردية لموظف دون تغيير مسمى عمله"},
-            {"key": "system_manage_settings", "label": "إعدادات المنشأة والهوية والضريبة", "desc": "تعديل اسم المطعم والشعار والرقم الضريبي"},
-            {"key": "system_manage_billing", "label": "إدارة الفوترة والاشتراك السحابي", "desc": "الاطلاع على باقة SaaS وتجديد الاشتراك"},
-            {"key": "system_view_audit_logs", "label": "سجل التدقيق الأمني والعمليات الحساسة", "desc": "الاطلاع على سجل تغيير الصلاحيات وإلغاء الفواتير وتعديل الموظفين"},
-            {"key": "manage_roles", "label": "إدارة المسميات - توافقي", "desc": "إدارة الصلاحيات والمسميات"},
+            {"key": "call_center_access", "label": "شاشة الكول سنتر المباشرة", "desc": "استقبال وإجراء المكالمات الهاتفية الحية للعملاء"},
+            {"key": "call_center_create_order", "label": "تسجيل وتوجيه طلبات الهاتف", "desc": "إنشاء طلب هاتفي وتوجيهه آلياً للفرع الأنسب للعميل"},
+            {"key": "call_center_view_customers", "label": "بيانات وسجل العملاء", "desc": "استعراض سجل طلبات العملاء وعناوينهم السابقة"},
         ]
     },
 ]
+
+BRANCH_PERMISSIONS = {
+    "pos_access", "pos_apply_discount", "pos_cancel_order", "pos_refund_order", "pos_manage_shift", "pos_reprint_receipt",
+    "kds_access", "kds_recall_order", "kds_pause_item",
+    "delivery_access", "delivery_assign_driver", "delivery_override_status", "delivery_track_drivers",
+    "branch_view_orders", "branch_edit_orders", "branch_cancel_orders", "branch_delete_orders",
+    "menu_view", "menu_toggle_availability", "menu_manage_items", "menu_change_price",
+    "inventory_view", "inventory_adjust_stock", "inventory_add_stock", "inventory_record_waste",
+    "pos_create_order", "view_orders", "edit_orders", "cancel_orders", "delete_orders", "manage_menu", "manage_inventory", "kds_update_status",
+}
+
+HQ_PERMISSIONS = {
+    "hq_view_orders", "hq_edit_orders", "hq_cancel_orders", "hq_delete_orders",
+    "call_center_access", "call_center_create_order", "call_center_view_customers",
+    "view_orders", "edit_orders", "cancel_orders", "delete_orders",
+}
 
 
 PRESET_ROLES_CONFIG = [
     {
         "name": "مدير عام / إدارة عليا",
         "scope": "hq",
-        "description": "إشراف وتحكم كامل في جميع موديولات وفروع وسجلات المطعم",
+        "description": "متابعة وإشراف على فروع السلسلة وسجل الطلبات المركزية والكول سنتر",
         "is_system": True,
-        "permissions": [p[0] for p in RESTAURANT_PERMISSIONS],
+        "permissions": [
+            "hq_view_orders", "hq_edit_orders", "hq_cancel_orders", "hq_delete_orders",
+            "call_center_access", "call_center_create_order", "call_center_view_customers",
+            "view_orders", "edit_orders", "cancel_orders", "delete_orders",
+        ],
     },
     {
         "name": "مدير فرع",
         "scope": "branch",
-        "description": "إدارة العمليات اليومية للفرع، الكاشير، المطبخ، الموظفين، والمخزون",
+        "description": "إدارة كامل العمليات التشغيلية للفرع (كاشير، مطبخ، توصيل، فواتير، منيو، ومخزون)",
         "is_system": True,
         "permissions": [
-            "branch_view_dashboard", "view_branch_dashboard",
-            "pos_access", "pos_create_order", "pos_apply_discount", "pos_void_item", "pos_cancel_order",
-            "pos_reprint_receipt", "pos_manage_shift", "pos_cash_drawer", "view_orders", "edit_orders", "cancel_orders",
-            "kds_access", "kds_update_status", "kds_recall_order", "kds_pause_item",
-            "menu_view", "menu_toggle_availability", "manage_menu",
-            "delivery_access", "delivery_assign_driver", "delivery_track_drivers", "delivery_override_status",
-            "inventory_view", "inventory_add_stock", "inventory_adjust_stock", "inventory_record_waste", "manage_inventory",
-            "finance_view_sales", "finance_view_reports", "view_financials",
-            "hr_view_employees", "hr_manage_shifts", "hr_manage_credentials", "manage_employees",
-        ],
-    },
-    {
-        "name": "محاسب / مالي",
-        "scope": "both",
-        "description": "الاطلاع على التقارير المالية، إقرارات الضريبة ZATCA، الأرباح، وفواتير المشتريات",
-        "is_system": True,
-        "permissions": [
-            "branch_view_dashboard", "view_branch_dashboard", "hq_view_master_dashboard", "view_hq_dashboard",
-            "finance_view_sales", "finance_view_reports", "finance_view_profit_loss", "finance_export_tax_reports",
-            "finance_view_staff_performance", "view_financials",
-            "view_orders", "pos_reprint_receipt",
-            "inventory_view",
-            "hr_manage_salaries",
+            "pos_access", "pos_apply_discount", "pos_cancel_order", "pos_refund_order", "pos_manage_shift", "pos_reprint_receipt",
+            "kds_access", "kds_recall_order", "kds_pause_item",
+            "delivery_access", "delivery_assign_driver", "delivery_override_status", "delivery_track_drivers",
+            "branch_view_orders", "branch_edit_orders", "branch_cancel_orders", "branch_delete_orders",
+            "menu_view", "menu_toggle_availability", "menu_manage_items", "menu_change_price",
+            "inventory_view", "inventory_adjust_stock", "inventory_add_stock", "inventory_record_waste",
+            "view_orders", "edit_orders", "cancel_orders", "pos_create_order",
         ],
     },
     {
         "name": "كاشير رئيسي",
         "scope": "branch",
-        "description": "مسؤول الوردية، تسجيل ومتابعة الطلبات، تطبيق الخصومات المصرحة، وإغلاق الوردية",
+        "description": "مسؤول الوردية، تسجيل ومتابعة الطلبات، تطبيق الخصومات المصرحة، وإلغاء الفواتير الخاطئة",
         "is_system": True,
         "permissions": [
-            "pos_access", "pos_create_order", "pos_apply_discount", "pos_void_item", "pos_cancel_order",
-            "pos_reprint_receipt", "pos_manage_shift", "pos_cash_drawer",
-            "view_orders", "edit_orders", "cancel_orders",
-            "finance_view_sales", "menu_view",
+            "pos_access", "pos_apply_discount", "pos_cancel_order", "pos_refund_order", "pos_manage_shift", "pos_reprint_receipt",
+            "branch_view_orders", "branch_cancel_orders",
+            "menu_view",
+            "view_orders", "cancel_orders", "pos_create_order",
         ],
     },
     {
@@ -290,16 +221,17 @@ PRESET_ROLES_CONFIG = [
         "description": "تسجيل طلبات الصالة والسفري وإصدار الإيصالات فقط بدون صلاحيات خصم أو إلغاء",
         "is_system": True,
         "permissions": [
-            "pos_access", "pos_create_order", "pos_reprint_receipt", "view_orders", "menu_view",
+            "pos_access", "pos_reprint_receipt", "branch_view_orders", "menu_view",
+            "view_orders", "pos_create_order",
         ],
     },
     {
         "name": "طاهٍ رئيسي / مطبخ",
         "scope": "branch",
-        "description": "شاشة المطبخ KDS، إعداد الوجبات، وتحديد توفر الأصناف في الفرع",
+        "description": "شاشة المطبخ KDS، إعداد الوجبات، وتحديد توفر الأصناف في مطبخ الفرع",
         "is_system": True,
         "permissions": [
-            "kds_access", "kds_update_status", "kds_recall_order", "kds_pause_item",
+            "kds_access", "kds_recall_order", "kds_pause_item", "kds_update_status",
             "menu_view", "menu_toggle_availability",
             "inventory_view", "inventory_adjust_stock", "inventory_record_waste",
         ],
@@ -316,11 +248,22 @@ PRESET_ROLES_CONFIG = [
     {
         "name": "موظف كول سنتر",
         "scope": "hq",
-        "description": "استقبال اتصالات العملاء وتسجيل طلبات الهاتف وتوجيهها للفروع المناسبة",
+        "description": "استقبال اتصالات العملاء المركزية وتسجيل طلبات الهاتف وتوجيهها للفروع المناسبة",
         "is_system": True,
         "permissions": [
             "call_center_access", "call_center_create_order", "call_center_view_customers",
-            "menu_view", "view_orders", "branch_switch_branches",
+            "hq_view_orders", "view_orders",
+        ],
+    },
+    {
+        "name": "مشرف عمليات عامة / HQ",
+        "scope": "hq",
+        "description": "متابعة ومراقبة سجل كافة طلبات السلسلة عبر كل الفروع وتنسيق عمليات الكول سنتر",
+        "is_system": True,
+        "permissions": [
+            "hq_view_orders", "hq_edit_orders", "hq_cancel_orders",
+            "call_center_access", "call_center_create_order", "call_center_view_customers",
+            "view_orders", "edit_orders", "cancel_orders",
         ],
     },
 ]
@@ -328,9 +271,8 @@ PRESET_ROLES_CONFIG = [
 
 class JobRole(models.Model):
     SCOPE_CHOICES = [
-        ("hq", "إدارة عامة (HQ)"),
         ("branch", "تشغيل فرع"),
-        ("both", "شامل (إدارة وفروع)"),
+        ("hq", "إدارة عامة (HQ)"),
     ]
 
     tenant = models.ForeignKey(

@@ -29,6 +29,8 @@ from apps.billing.models import (
 from apps.accounts.models import (
     RESTAURANT_PERMISSIONS,
     PERMISSIONS_CATALOG,
+    BRANCH_PERMISSIONS,
+    HQ_PERMISSIONS,
     PRESET_ROLES_CONFIG,
     JobRole,
     Employee,

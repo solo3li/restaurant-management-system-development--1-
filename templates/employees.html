@@ -137,11 +137,9 @@
                         <td class="py-2 px-3" data-label="نطاق العمل">
                             {% if emp.job_role %}
                                 {% if emp.job_role.scope == 'hq' %}
-                                    <span class="rounded bg-violet-50 text-violet-700 border border-violet-200/60 px-2 py-0.5 text-[10px] font-semibold">إدارة عامة (HQ)</span>
-                                {% elif emp.job_role.scope == 'both' %}
-                                    <span class="rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-semibold">شامل (إدارة وفروع)</span>
+                                    <span class="rounded bg-purple-50 text-purple-700 border border-purple-200/60 px-2 py-0.5 text-[10px] font-bold">إدارة عامة (HQ)</span>
                                 {% else %}
-                                    <span class="rounded bg-slate-100 text-slate-900 border border-slate-200/70 px-2 py-0.5 text-[10px] font-bold">تشغيل فرع</span>
+                                    <span class="rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold">تشغيل فرع</span>
                                 {% endif %}
                             {% else %}
                                 <span class="text-slate-700 text-[10px] font-bold">تشغيلي</span>
@@ -674,11 +672,10 @@
                     <input type="text" id="role-name-input" placeholder="مثال: مشرف صالة أو محاسب" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-500 mb-1">نطاق العمل</label>
-                    <select id="role-scope-input" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold">
-                        <option value="branch">تشغيل فرع محدد</option>
+                    <label class="block font-bold text-slate-500 mb-1">نطاق العمل المحدد *</label>
+                    <select id="role-scope-input" onchange="filterPermissionsMatrixByScope()" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold">
+                        <option value="branch">تشغيل فرع محدد (Branch)</option>
                         <option value="hq">الإدارة العامة (HQ)</option>
-                        <option value="both">شامل (إدارة وفروع)</option>
                     </select>
                 </div>
                 <div>
@@ -690,14 +687,14 @@
             <!-- Permissions Selection Toolbar -->
             <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
                 <span class="font-semibold text-slate-900 text-xs flex items-center gap-2">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     مصفوفة الصلاحيات الممنوحة:
                 </span>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="toggleAllRolePermissions(true)" class="rounded-lg bg-violet-600/10 hover:bg-violet-600/20 text-slate-900 border border-slate-200 px-3 py-1 text-[11px] font-bold">
-                        تحديد الكل
+                    <button type="button" onclick="toggleAllRolePermissions(true)" class="rounded-lg bg-violet-600/10 hover:bg-violet-600/20 text-violet-700 border border-violet-200 px-3 py-1 text-[11px] font-bold cursor-pointer">
+                        تحديد الكل في هذا النطاق
                     </button>
-                    <button type="button" onclick="toggleAllRolePermissions(false)" class="rounded-lg bg-white hover:bg-slate-50 text-slate-500 border border-slate-200 px-3 py-1 text-[11px] font-bold">
+                    <button type="button" onclick="toggleAllRolePermissions(false)" class="rounded-lg bg-white hover:bg-slate-50 text-slate-500 border border-slate-200 px-3 py-1 text-[11px] font-bold cursor-pointer">
                         إلغاء التحديد
                     </button>
                 </div>
@@ -706,24 +703,29 @@
             <!-- Permissions Catalog Groups -->
             <div id="permissions-matrix-container" class="space-y-3">
                 {% for group in permissions_catalog %}
-                <div class="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5">
+                <div class="perm-group-card rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5 transition" data-scope="{{ group.scope }}">
                     <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                         <h4 class="font-semibold text-slate-900 text-xs flex items-center gap-2">
-                            <span class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600 w-5 h-5 inline-flex">
-                                <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            <span class="flex h-6 w-6 items-center justify-center rounded-md bg-violet-50 text-base">
+                                {{ group.icon|default:"🛡️" }}
                             </span>
                             {{ group.category }}
+                            {% if group.scope == 'branch' %}
+                            <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">نطاق فرع</span>
+                            {% else %}
+                            <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-bold border border-purple-200">نطاق HQ</span>
+                            {% endif %}
                         </h4>
                         <span class="text-[10px] text-slate-500 font-bold">{{ group.permissions|length }} صلاحيات</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                         {% for p in group.permissions %}
                         <label class="flex items-start gap-2.5 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-50/60 cursor-pointer transition select-none">
-                            <input type="checkbox" value="{{ p.key }}" class="perm-checkbox mt-0.5 rounded border-slate-200 text-blue-600 focus:ring-violet-500 w-4 h-4">
+                            <input type="checkbox" value="{{ p.key }}" class="perm-checkbox mt-0.5 rounded border-slate-200 text-violet-600 focus:ring-violet-500 w-4 h-4">
                             <div>
                                 <p class="font-semibold text-slate-900 text-xs flex items-center gap-1.5">
                                     {{ p.label }}
-                                    {% if p.key == 'delete_orders' %}
+                                    {% if p.key == 'branch_delete_orders' or p.key == 'hq_delete_orders' or p.key == 'delete_orders' %}
                                     <span class="rounded bg-rose-100 text-rose-800 text-[9px] px-1.5 py-0.2 font-bold border border-rose-300">حساس</span>
                                     {% endif %}
                                 </p>
@@ -1147,9 +1149,8 @@
         }
 
         const scopeBadges = {
-            'hq': '<span class="rounded-full bg-blue-50 text-violet-600 border border-violet-200/50 px-2.5 py-0.5 text-[10px] font-medium">إدارة عامة (HQ)</span>',
-            'branch': '<span class="rounded-full bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium">تشغيل فرع</span>',
-            'both': '<span class="rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-bold">شامل (إدارة وفروع)</span>'
+            'hq': '<span class="rounded-full bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 text-[10px] font-bold">إدارة عامة (HQ)</span>',
+            'branch': '<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold">تشغيل فرع</span>'
         };
 
         let html = '';
@@ -1158,7 +1159,7 @@
                 <tr class="hover:bg-slate-50/70 transition">
                     <td class="p-3">
                         <p class="font-semibold text-slate-900 text-xs flex items-center gap-1.5">
-                            <span class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600 w-5 h-5 inline-flex"><svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></span>
+                            <span class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600 w-5 h-5 inline-flex"><svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></span>
                             ${r.name}
                             ${r.is_system ? '<span class="rounded bg-violet-600/10 border border-slate-200 text-slate-900 text-[9px] px-1.5 py-0.2 font-bold">أساسي</span>' : ''}
                         </p>
@@ -1177,7 +1178,7 @@
                     <td class="p-3 text-center">
                         <div class="flex items-center justify-center gap-1.5">
                             <button onclick="openEditRoleModal(${r.id})" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 px-2.5 py-1 text-[11px] font-bold transition flex items-center gap-1">
-                                <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 تعديل الصلاحيات
                             </button>
                             ${!r.is_system ? `
@@ -1193,6 +1194,22 @@
         tbody.innerHTML = html;
     }
 
+    function filterPermissionsMatrixByScope() {
+        const scope = document.getElementById('role-scope-input').value;
+        document.querySelectorAll('.perm-group-card').forEach(card => {
+            const cardScope = card.getAttribute('data-scope');
+            if (cardScope === scope) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+                card.querySelectorAll('.perm-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+            }
+        });
+        updateSelectedPermCount();
+    }
+
     function openCreateRoleModal() {
         document.getElementById('role-modal-id').value = '';
         document.getElementById('role-modal-title').innerHTML = `
@@ -1202,6 +1219,7 @@
         document.getElementById('role-name-input').value = '';
         document.getElementById('role-scope-input').value = 'branch';
         document.getElementById('role-desc-input').value = '';
+        filterPermissionsMatrixByScope();
         toggleAllRolePermissions(false);
         updateSelectedPermCount();
 
@@ -1223,8 +1241,9 @@
             تعديل مسمى وصلاحيات: <span class="text-blue-600">${role.name}</span>
         `;
         document.getElementById('role-name-input').value = role.name;
-        document.getElementById('role-scope-input').value = role.scope;
+        document.getElementById('role-scope-input').value = role.scope || 'branch';
         document.getElementById('role-desc-input').value = role.description || '';
+        filterPermissionsMatrixByScope();
 
         const permsSet = new Set(role.permissions || []);
         document.querySelectorAll('.perm-checkbox').forEach(cb => {
@@ -1242,7 +1261,7 @@
     }
 
     function toggleAllRolePermissions(checked) {
-        document.querySelectorAll('.perm-checkbox').forEach(cb => {
+        document.querySelectorAll('.perm-group-card:not(.hidden) .perm-checkbox').forEach(cb => {
             cb.checked = checked;
         });
         updateSelectedPermCount();

@@ -32,7 +32,7 @@ from apps.orders.events import (
 logger = logging.getLogger(__name__)
 
 def branch_orders_view(request):
-    if not user_has_perm(request.user, "view_orders"):
+    if not (user_has_perm(request.user, "branch_view_orders") or user_has_perm(request.user, "view_orders")):
         return HttpResponseForbidden("غير مصرح لك باستعراض سجل طلبات الفرع")
 
     tenant = get_active_tenant(request)
@@ -107,6 +107,12 @@ def branch_orders_view(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    can_cancel = is_owner or user_has_perm(request.user, "branch_cancel_orders") or user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")
+    can_delete = is_owner or user_has_perm(request.user, "branch_delete_orders") or user_has_perm(request.user, "delete_orders")
+    can_edit = is_owner or user_has_perm(request.user, "branch_edit_orders") or user_has_perm(request.user, "edit_orders")
+
     context = {
         "tenant": tenant,
         "branch": branch,
@@ -126,6 +132,9 @@ def branch_orders_view(request):
         "pending_orders": pending_orders,
         "delivered_orders": delivered_orders,
         "cancelled_orders": cancelled_orders,
+        "can_cancel": can_cancel,
+        "can_delete": can_delete,
+        "can_edit": can_edit,
     }
     return render(request, "branch_orders.html", context)
 
@@ -141,16 +150,13 @@ def hq_orders_view(request):
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner and not user_has_perm(request.user, "view_orders"):
-        return HttpResponseForbidden("غير مصرح لك باستعراض سجل الطلبات")
+    if not is_owner and not (user_has_perm(request.user, "hq_view_orders") or user_has_perm(request.user, "view_orders")):
+        return HttpResponseForbidden("غير مصرح لك باستعراض سجل كافة طلبات الإدارة العامة")
 
     # If user is strictly branch-locked, redirect to branch orders
     can_operate_cross = (
         is_owner
-        or user_has_perm(request.user, "branch_switch_branches")
-        or user_has_perm(request.user, "manage_branches")
-        or user_has_perm(request.user, "view_hq_dashboard")
-        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
+        or (profile and profile.job_role and profile.job_role.scope == "hq")
     )
     if not can_operate_cross and profile and profile.branch:
         return redirect("branch_orders")
@@ -513,8 +519,9 @@ def api_cancel_order(request, order_id):
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner and not (user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "cancel_orders")):
-        return JsonResponse({"error": "غير مصرح لك بإلغاء الفواتير. يرجى مراجعة مدير الفرع لتسجيل الدخول من حسابه."}, status=403)
+    can_cancel = is_owner or user_has_perm(request.user, "branch_cancel_orders") or user_has_perm(request.user, "pos_cancel_order") or user_has_perm(request.user, "hq_cancel_orders") or user_has_perm(request.user, "cancel_orders")
+    if not can_cancel:
+        return JsonResponse({"error": "غير مصرح لك بإلغاء الفواتير أو الطلبات."}, status=403)
 
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
     emp = getattr(request.user, "employee_profile", None)
@@ -524,8 +531,8 @@ def api_cancel_order(request, order_id):
         or user_has_perm(request.user, "branch_switch_branches")
         or user_has_perm(request.user, "manage_branches")
         or user_has_perm(request.user, "view_hq_dashboard")
-        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
-        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+        or (profile and profile.job_role and profile.job_role.scope == "hq")
+        or (emp and emp.job_role and emp.job_role.scope == "hq")
     )
     if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بالتعامل مع طلبات الفروع الأخرى"}, status=403)
@@ -556,8 +563,9 @@ def api_delete_order(request, order_id):
     profile = getattr(request.user, "profile", None)
     is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
-    if not is_owner and not user_has_perm(request.user, "delete_orders"):
-        return JsonResponse({"error": "غير مصرح لك بحذف الفواتير نهائياً. هذه العملية مقتصرة على الإدارة العامة."}, status=403)
+    can_delete = is_owner or user_has_perm(request.user, "branch_delete_orders") or user_has_perm(request.user, "hq_delete_orders") or user_has_perm(request.user, "delete_orders")
+    if not can_delete:
+        return JsonResponse({"error": "غير مصرح لك بحذف الفواتير نهائياً من قاعدة البيانات (يتطلب صلاحية حذف الفواتير)."}, status=403)
 
     order = get_object_or_404(Order, tenant=tenant, id=order_id)
     emp = getattr(request.user, "employee_profile", None)
@@ -567,8 +575,8 @@ def api_delete_order(request, order_id):
         or user_has_perm(request.user, "branch_switch_branches")
         or user_has_perm(request.user, "manage_branches")
         or user_has_perm(request.user, "view_hq_dashboard")
-        or (profile and profile.job_role and profile.job_role.scope in ["hq", "both"])
-        or (emp and emp.job_role and emp.job_role.scope in ["hq", "both"])
+        or (profile and profile.job_role and profile.job_role.scope == "hq")
+        or (emp and emp.job_role and emp.job_role.scope == "hq")
     )
     if not can_cross and user_branch and order.branch and order.branch != user_branch:
         return JsonResponse({"error": "غير مصرح لك بحذف فواتير الفروع الأخرى"}, status=403)

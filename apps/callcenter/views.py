@@ -18,7 +18,7 @@ from apps.accounts.helpers import user_has_perm, _get_client_ip
 from apps.callcenter.models import TenantApiKey
 from apps.tenants.models import Tenant, Branch, DeliveryArea
 from apps.menu.models import MenuItem
-from apps.orders.models import Order
+from apps.orders.models import Order, Customer
 from apps.audit.models import log_audit_event, KnowledgeDocument
 from apps.accounts.models import Employee
 
@@ -193,9 +193,9 @@ def _validate_callcenter_page_access(request):
     Returns (tenant, None) on success or (None, HttpResponse) on error.
     """
     profile = getattr(request.user, "profile", None)
-    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin)) or user_has_perm(request.user, "call_center_manage_ai")
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
     if not is_owner:
-        return None, HttpResponseForbidden("صفحة إدارة المساعد الصوتي مخصصة لمالك المنشأة أو المسؤول المخول بالذكاء الاصطناعي")
+        return None, HttpResponseForbidden("صفحة إدارة المساعد الصوتي والذكاء الاصطناعي مقتصرة حصرياً على مالك المنشأة")
 
     tenant = get_active_tenant(request)
     if not tenant:

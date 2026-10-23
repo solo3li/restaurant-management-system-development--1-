@@ -243,9 +243,9 @@
                             </button>
                             <div id="row-menu-card-{{ o.id }}" class="row-dropdown-menu hidden absolute left-0 mt-1 w-32 rounded-lg bg-white border border-slate-200 shadow-xl py-1 z-30 text-xs text-right font-medium">
                                 <a href="{% url 'order_detail' o.id %}" class="flex items-center gap-1.5 px-2.5 py-1 text-slate-700 hover:bg-slate-50">تفاصيل</a>
-                                <a href="{% url 'order_edit' o.id %}" class="flex items-center gap-1.5 px-2.5 py-1 text-violet-600 hover:bg-violet-50">تعديل</a>
-                                <button type="button" onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-amber-700 hover:bg-amber-50">إلغاء</button>
-                                <button type="button" onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-rose-600 hover:bg-rose-50">حذف</button>
+                                {% if can_edit %}<a href="{% url 'order_edit' o.id %}" class="flex items-center gap-1.5 px-2.5 py-1 text-violet-600 hover:bg-violet-50">تعديل</a>{% endif %}
+                                {% if can_cancel and o.status != 'cancelled' %}<button type="button" onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-amber-700 hover:bg-amber-50">إلغاء</button>{% endif %}
+                                {% if can_delete %}<button type="button" onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-rose-600 hover:bg-rose-50">حذف</button>{% endif %}
                             </div>
                         </div>
                     </div>
@@ -380,19 +380,27 @@
                                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                             <span>تفاصيل كاملة</span>
                                         </a>
+                                        {% if can_edit %}
                                         <a href="{% url 'order_edit' o.id %}" class="flex items-center gap-2 px-3 py-1.5 text-violet-600 hover:bg-blue-50 transition">
                                             <svg class="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             <span>تعديل الطلب</span>
                                         </a>
+                                        {% endif %}
+                                        {% if can_cancel or can_delete %}
                                         <div class="border-t border-slate-100 my-1"></div>
+                                        {% endif %}
+                                        {% if can_cancel and o.status != 'cancelled' %}
                                         <button type="button" onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full flex items-center gap-2 px-3 py-1.5 text-amber-700 hover:bg-amber-50 transition text-right cursor-pointer">
                                             <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                             <span>إلغاء الطلب</span>
                                         </button>
+                                        {% endif %}
+                                        {% if can_delete %}
                                         <button type="button" onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full flex items-center gap-2 px-3 py-1.5 text-rose-600 hover:bg-rose-50 transition text-right cursor-pointer">
                                             <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             <span>حذف نهائي</span>
                                         </button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -642,16 +650,22 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>صفحة التفاصيل</span>
                 </a>
+                {% if can_edit %}
                 <a id="modal-edit-link" href="#" class="rounded-lg bg-white border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center gap-1 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     <span>تعديل</span>
                 </a>
-                <button type="button" onclick="cancelFromModal()" class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100 transition cursor-pointer">
+                {% endif %}
+                {% if can_cancel %}
+                <button id="modal-cancel-btn" type="button" onclick="cancelFromModal()" class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100 transition cursor-pointer">
                     إلغاء
                 </button>
-                <button type="button" onclick="deleteFromModal()" class="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer">
+                {% endif %}
+                {% if can_delete %}
+                <button id="modal-delete-btn" type="button" onclick="deleteFromModal()" class="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer">
                     حذف
                 </button>
+                {% endif %}
             </div>
             <div class="flex items-center gap-2">
                 <button 
@@ -833,6 +847,15 @@
             document.getElementById('modal-delivery-fee').textContent = data.delivery_fee + ' ' + cur;
             document.getElementById('modal-discount').textContent = '-' + data.discount + ' ' + cur;
             document.getElementById('modal-total').textContent = data.total + ' ' + cur;
+
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            if (modalCancelBtn) {
+                if (data.status_raw === 'cancelled') {
+                    modalCancelBtn.classList.add('hidden');
+                } else {
+                    modalCancelBtn.classList.remove('hidden');
+                }
+            }
 
             const modal = document.getElementById('order-detail-modal');
             modal.classList.remove('hidden');

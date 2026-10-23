@@ -57,28 +57,46 @@ def user_has_perm(user, perm_key):
 
     clean_key = perm_key.split(".")[-1]
 
-    # Symmetric permission synonyms (legacy compatibility with new granular taxonomy)
+    # Symmetric and multi-key permission synonyms
     SYNONYM_MAP = {
-        "manage_branches": "branch_manage_branches",
-        "branch_manage_branches": "manage_branches",
-        "manage_roles": "system_manage_roles",
-        "system_manage_roles": "manage_roles",
-        "view_hq_dashboard": "hq_view_master_dashboard",
-        "hq_view_master_dashboard": "view_hq_dashboard",
-        "view_branch_dashboard": "branch_view_dashboard",
-        "branch_view_dashboard": "view_branch_dashboard",
-        "cancel_orders": "pos_cancel_order",
-        "pos_cancel_order": "cancel_orders",
+        "view_orders": ["branch_view_orders", "hq_view_orders"],
+        "branch_view_orders": ["view_orders"],
+        "hq_view_orders": ["view_orders"],
+        "edit_orders": ["branch_edit_orders", "hq_edit_orders"],
+        "branch_edit_orders": ["edit_orders"],
+        "hq_edit_orders": ["edit_orders"],
+        "cancel_orders": ["branch_cancel_orders", "pos_cancel_order", "hq_cancel_orders"],
+        "branch_cancel_orders": ["cancel_orders", "pos_cancel_order"],
+        "pos_cancel_order": ["branch_cancel_orders", "cancel_orders"],
+        "hq_cancel_orders": ["cancel_orders"],
+        "delete_orders": ["branch_delete_orders", "hq_delete_orders"],
+        "branch_delete_orders": ["delete_orders"],
+        "hq_delete_orders": ["delete_orders"],
+        "kds_update_status": ["kds_access"],
+        "pos_create_order": ["pos_access"],
+        "manage_branches": ["branch_manage_branches"],
+        "branch_manage_branches": ["manage_branches"],
+        "manage_roles": ["system_manage_roles"],
+        "system_manage_roles": ["manage_roles"],
+        "view_hq_dashboard": ["hq_view_master_dashboard"],
+        "hq_view_master_dashboard": ["view_hq_dashboard"],
+        "view_branch_dashboard": ["branch_view_dashboard"],
+        "branch_view_dashboard": ["view_branch_dashboard"],
     }
     keys_to_check = [clean_key]
-    if clean_key in SYNONYM_MAP:
-        keys_to_check.append(SYNONYM_MAP[clean_key])
+    syns = SYNONYM_MAP.get(clean_key, [])
+    if isinstance(syns, list):
+        for s in syns:
+            if s not in keys_to_check:
+                keys_to_check.append(s)
+    elif isinstance(syns, str) and syns not in keys_to_check:
+        keys_to_check.append(syns)
 
     # Implied permissions mapping
     IMPLIED_PERMS = {
         "view_financials": ["finance_view_sales", "finance_view_reports", "finance_view_profit_loss"],
-        "menu_view": ["manage_menu"],
-        "inventory_view": ["manage_inventory"],
+        "menu_view": ["manage_menu", "menu_manage_items"],
+        "inventory_view": ["manage_inventory", "inventory_adjust_stock"],
         "hr_view_employees": ["manage_employees"],
     }
     if clean_key in IMPLIED_PERMS:
@@ -125,10 +143,10 @@ def get_post_login_redirect(user):
     if profile and profile.tenant and not profile.tenant.is_active:
         return "owner_subscription" if is_owner else "login"
 
-    if is_owner or user_has_perm(user, "view_hq_dashboard"):
+    if is_owner or user_has_perm(user, "view_hq_dashboard") or (profile and profile.job_role and profile.job_role.name in ["مدير عام / إدارة عليا", "مشرف عمليات عامة / HQ"]):
         return "dashboard"
 
-    if user_has_perm(user, "view_branch_dashboard"):
+    if user_has_perm(user, "view_branch_dashboard") or (profile and profile.job_role and profile.job_role.name == "مدير فرع"):
         return "branch_dashboard"
 
     # Route by operational permission priority
