@@ -386,6 +386,14 @@ def employees_view(request):
     profile = getattr(request.user, "profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
     can_manage_salaries = is_owner_or_super or user_has_perm(request.user, "hr_manage_salaries") or user_has_perm(request.user, "manage_employees")
+    roles_stats = {
+        "total": job_roles.count(),
+        "branch": sum(1 for r in job_roles if r.scope == "branch"),
+        "hq": sum(1 for r in job_roles if r.scope == "hq"),
+        "assigned_employees": sum(r.emp_count for r in job_roles),
+    }
+
+    active_tab = request.GET.get("tab", "employees")
 
     context = {
         "tenant": tenant,
@@ -393,6 +401,8 @@ def employees_view(request):
         "employees": employees,
         "branches": branches,
         "job_roles": job_roles,
+        "roles_stats": roles_stats,
+        "active_tab": active_tab,
         "permissions_catalog": PERMISSIONS_CATALOG,
         "role_filter": role_filter,
         "job_role_filter": job_role_filter,
@@ -1092,7 +1102,13 @@ def api_job_roles(request):
                 "permissions_count": len(perms_list),
                 "employees_count": r.employees_count,
             })
-        return JsonResponse({"ok": True, "roles": data, "catalog": PERMISSIONS_CATALOG})
+        stats = {
+            "total": len(data),
+            "branch": sum(1 for r in data if r["scope"] == "branch"),
+            "hq": sum(1 for r in data if r["scope"] == "hq"),
+            "assigned_employees": sum(r["employees_count"] for r in data),
+        }
+        return JsonResponse({"ok": True, "roles": data, "catalog": PERMISSIONS_CATALOG, "stats": stats})
 
     elif request.method == "POST":
         if tenant and not tenant.has_feature("custom_roles") and not (request.user.is_superuser or (profile and profile.is_platform_admin)):
@@ -1178,33 +1194,86 @@ def api_job_role_detail(request, role_id):
     profile = getattr(request.user, "profile", None)
     is_owner_or_super = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
 
+    if not is_owner_or_super and not user_has_perm(request.user, "manage_roles") and not user_has_perm(request.user, "hr_view_employees") and not user_has_perm(request.user, "manage_employees"):
+        return JsonResponse({"error": "غير مصرح لك بالوصول لبيانات المسميات الوظيفية"}, status=403)
+
+    if request.method == "GET":
+        perms_list = role.get_permissions_list()
+        employees_data = [
+            {
+                "id": emp.id,
+                "name": emp.name,
+                "employee_code": emp.employee_code or "—",
+                "phone": emp.phone or "—",
+                "branch_name": emp.branch.name if emp.branch else "الإدارة العامة",
+            }
+            for emp in role.employees.select_related("branch").order_by("name")
+        ]
+        return JsonResponse({
+            "ok": True,
+            "role": {
+                "id": role.id,
+                "name": role.name,
+                "scope": role.scope,
+                "scope_display": role.get_scope_display(),
+                "description": role.description,
+                "is_system": role.is_system,
+                "permissions": perms_list,
+                "permissions_count": len(perms_list),
+                "employees_count": len(employees_data),
+                "employees": employees_data,
+            }
+        })
+
     if not is_owner_or_super and not user_has_perm(request.user, "manage_roles"):
         return JsonResponse({"error": "غير مصرح لك بتعديل أو حذف المسميات الوظيفية"}, status=403)
 
     if role.is_system and not is_owner_or_super:
         return JsonResponse({"error": "فقط مالك المنشأة أو مدير النظام يمكنه تعديل الأدوار الأساسية للنظام أو صلاحياتها"}, status=403)
 
-    if request.method in ["POST", "PATCH", "PUT"]:
-        try:
-            body = json.loads(request.body.decode("utf-8"))
-        except Exception:
-            return JsonResponse({"error": "بيانات غير صالحة"}, status=400)
+    if request.method in ["POST", "PATCH", "PUT", "DELETE"]:
+        body = {}
+        if request.body:
+            try:
+                body = json.loads(request.body.decode("utf-8"))
+            except Exception:
+                pass
 
         action = body.get("action")
         if action == "delete" or request.method == "DELETE":
             if role.is_system:
                 return JsonResponse({"error": "لا يمكن حذف هذا المسمى الأساسي للنظام"}, status=400)
+
+            reassign_to_role_id = body.get("reassign_to_role_id")
             if role.employees.exists():
-                return JsonResponse({
-                    "error": f"لا يمكن حذف المسمى «{role.name}» لوجود {role.employees.count()} موظف مرتبطين به. يرجى نقلهم لمسمى آخر أولاً."
-                }, status=400)
+                if not reassign_to_role_id:
+                    return JsonResponse({
+                        "error": f"لا يمكن حذف المسمى «{role.name}» لوجود {role.employees.count()} موظف مرتبطين به. يرجى اختيار مسمى بديل لنقلهم إليه أولاً.",
+                        "requires_reassign": True,
+                        "employees_count": role.employees.count(),
+                    }, status=400)
+
+                target_role = get_object_or_404(JobRole, tenant=tenant, id=reassign_to_role_id)
+                target_grp = target_role.sync_with_django_group()
+                for emp in role.employees.select_related("user"):
+                    emp.job_role = target_role
+                    emp.save(update_fields=["job_role"])
+                    if emp.user and hasattr(emp.user, "profile"):
+                        emp.user.profile.job_role = target_role
+                        emp.user.profile.save()
+                    if emp.user and target_grp:
+                        emp.user.groups.set([target_grp])
+                        for cache_field in ["_perm_cache", "_group_perm_cache", "_user_perm_cache"]:
+                            if hasattr(emp.user, cache_field):
+                                delattr(emp.user, cache_field)
+
             log_audit_event(
                 tenant=tenant,
                 user=request.user,
                 action="role_deleted",
                 target_model="JobRole",
                 target_id=role.id,
-                description=f"حذف المسمى الوظيفي «{role.name}»",
+                description=f"حذف المسمى الوظيفي «{role.name}»" + (f" ونقل الموظفين إلى «{target_role.name}»" if reassign_to_role_id else ""),
                 ip_address=_get_client_ip(request),
             )
             role.delete()
@@ -1277,16 +1346,6 @@ def api_job_role_detail(request, role_id):
                 "employees_count": role.employees.count(),
             }
         })
-
-    elif request.method == "DELETE":
-        if role.is_system:
-            return JsonResponse({"error": "لا يمكن حذف هذا المسمى الأساسي للنظام"}, status=400)
-        if role.employees.exists():
-            return JsonResponse({
-                "error": f"لا يمكن حذف المسمى «{role.name}» لوجود {role.employees.count()} موظف مرتبطين به. يرجى نقلهم لمسمى آخر أولاً."
-            }, status=400)
-        role.delete()
-        return JsonResponse({"ok": True, "message": "تم حذف المسمى الوظيفي بنجاح"})
 
     return HttpResponseBadRequest("Invalid method")
 
