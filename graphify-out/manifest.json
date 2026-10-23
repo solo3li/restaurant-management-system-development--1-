@@ -2418,8 +2418,8 @@
     "semantic_hash": ""
   },
   "templates/employees.html": {
-    "mtime": 1792752938.5762734,
-    "seen": 1792755068.7966268,
+    "mtime": 1792755681.190277,
+    "seen": 1792784321.1549227,
     "ast_hash": "c575a8cfc5d014b4cc58043ae78b61c0",
     "semantic_hash": ""
   },
@@ -3171,6 +3171,66 @@
     "mtime": 1792657522.6187613,
     "seen": 1792755068.7968917,
     "ast_hash": "b88fb2c09479316f5458d9c7ee58c731",
+    "semantic_hash": ""
+  },
+  ".clinerules/caveman.md": {
+    "mtime": 1792784708.831284,
+    "seen": 1792784738.766775,
+    "ast_hash": "0ec78c8863800d99594040cdcbcd700a",
+    "semantic_hash": ""
+  },
+  ".github/copilot-instructions.md": {
+    "mtime": 1792784708.832284,
+    "seen": 1792784738.7667797,
+    "ast_hash": "60b1139bdee5c88dccdd72e53f6a409a",
+    "semantic_hash": ""
+  },
+  ".opencode/AGENTS.md": {
+    "mtime": 1792784708.833284,
+    "seen": 1792784738.7675295,
+    "ast_hash": "60b1139bdee5c88dccdd72e53f6a409a",
+    "semantic_hash": ""
+  },
+  ".windsurf/rules/caveman.md": {
+    "mtime": 1792784708.8222837,
+    "seen": 1792784738.7675335,
+    "ast_hash": "3e15a0343cfb66c7c4e8017e1693ef26",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1792785112.4831011,
+    "seen": 1792785140.7861903,
+    "ast_hash": "bf9128df4f95d352e0f06c64341b3c82",
+    "semantic_hash": ""
+  },
+  "feature_list.json": {
+    "mtime": 1792785054.594267,
+    "seen": 1792785140.7696018,
+    "ast_hash": "5d5f662252124250a6085bad911015e2",
+    "semantic_hash": ""
+  },
+  "init.sh": {
+    "mtime": 1792785054.6032672,
+    "seen": 1792785140.7696064,
+    "ast_hash": "54a270dd1705ff91c66b5587463d9d83",
+    "semantic_hash": ""
+  },
+  "harness-assessment.html": {
+    "mtime": 1792785119.3513188,
+    "seen": 1792785140.786404,
+    "ast_hash": "09a63a48cbbded288c44ccf44db1318b",
+    "semantic_hash": ""
+  },
+  "progress.md": {
+    "mtime": 1792785054.596267,
+    "seen": 1792785140.7864068,
+    "ast_hash": "9e689f68c6201395e5d9a8f45f3f2aff",
+    "semantic_hash": ""
+  },
+  "session-handoff.md": {
+    "mtime": 1792785054.601267,
+    "seen": 1792785140.786445,
+    "ast_hash": "a288ddd3a3218a237778ac492200b78b",
     "semantic_hash": ""
   }
 }
