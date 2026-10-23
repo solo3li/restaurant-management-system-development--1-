@@ -125,6 +125,8 @@ CURRENCIES_DATA: Dict[str, Dict[str, str]] = {
     "XAF": {"name_ar": "فرنك وسط أفريقي", "name_en": "Central African CFA", "symbol_ar": "FCFA", "symbol_en": "FCFA"},
 }
 
+CURRENCIES = CURRENCIES_DATA
+
 def get_currency_choices() -> List[Tuple[str, str]]:
     """قائمة خيارات العملة لحقول نماذج Django."""
     choices = []

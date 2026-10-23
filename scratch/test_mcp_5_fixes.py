@@ -104,6 +104,10 @@ def run_tests():
     print("\n--- 2. Testing Abandoned Call Cart Recovery in lookup_customer ---")
     test_phone = "01088877665"
     redis_cart_clear(tenant.id, test_phone)
+    from core.redis_mcp_cache import get_redis_client, remove_active_order
+    r_client = get_redis_client()
+    if r_client:
+        r_client.delete(f"active_order:phone:{tenant.id}:{test_phone[-9:]}")
 
     # Verify no abandoned cart initially
     has_ab, ab_cart = cart_is_abandoned(tenant.id, test_phone, max_age_seconds=1800)
@@ -152,6 +156,12 @@ def run_tests():
     has_ab_after, _ = cart_is_abandoned(tenant.id, test_phone, max_age_seconds=1800)
     assert not has_ab_after, "Draft cart should be cleared after checkout."
     print("✓ Draft cart was automatically cleaned after checkout_cart.")
+
+    # Cleanup created test order and its Redis cache
+    remove_active_order(tenant.id, order_num)
+    if r_client:
+        r_client.delete(f"active_order:phone:{tenant.id}:{test_phone[-9:]}")
+    Order.objects.filter(tenant=tenant, order_number=order_num).delete()
 
     # ------------------------------------------------------------------
     # 4. TEST OUT-OF-STOCK ITEM SAME-CATEGORY ALTERNATIVES
