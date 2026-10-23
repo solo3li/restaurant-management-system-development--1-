@@ -944,6 +944,14 @@ def digital_menu_view(request, slug=None, branch_id=None):
         b.display_name = b.get_display_name(active_lang)
 
     if not branches:
+        # Fallback to any branches configured for this restaurant so menu items remain browsable
+        all_branches = list(Branch.objects.filter(tenant=tenant).order_by("id"))
+        if all_branches:
+            branches = all_branches
+            for b in branches:
+                b.display_name = b.get_display_name(active_lang)
+
+    if not branches:
         return render(request, "qr_menu.html", {
             "tenant": tenant,
             "branches": [],

@@ -24,6 +24,7 @@ urlpatterns = [
     path("api/delivery/live/", views.api_delivery_live, name="api_delivery_live"),
     path("inventory/", views.inventory_view, name="inventory"),
     path("branches/", views.branches_view, name="branches"),
+    path("restaurant/profile/", views.restaurant_profile_view, name="restaurant_profile"),
     path("employees/", views.employees_view, name="employees"),
     path("login/", views.login_view, name="login"),
     path("register/", views.register_view, name="register"),
@@ -128,6 +129,7 @@ urlpatterns = [
     path("api/m/<slug:slug>/areas/<int:branch_id>/", views.api_digital_menu_branch_areas, name="api_digital_menu_branch_areas"),
     path("api/m/<slug:slug>/order/", views.api_digital_menu_place_order, name="api_digital_menu_place_order"),
     path("api/settings/branding/", views.api_update_tenant_branding, name="api_update_tenant_branding"),
+    path("api/restaurant/profile/", views.api_restaurant_profile_update, name="api_restaurant_profile_update"),
     path("api/settings/custom-domain/", views.api_update_custom_domain, name="api_update_custom_domain"),
 ]
 

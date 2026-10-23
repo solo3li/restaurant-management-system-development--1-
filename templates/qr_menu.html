@@ -111,7 +111,7 @@
                         {% if selected_branch %}
                             <span class="flex items-center gap-1 text-gold-400 font-bold">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span>{{ selected_branch.display_name|default:selected_branch.name }}</span>
+                                <span>{{ selected_branch.display_name|default:'' }}</span>
                             </span>
                         {% endif %}
                     </div>
@@ -141,8 +141,8 @@
                 <div class="flex-shrink-0">
                     <select id="branch-select" onchange="switchBranch(this.value)" class="bg-black/40 backdrop-blur-md text-white border border-white/20 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-gold-500">
                         {% for b in branches %}
-                            <option value="{{ b.id }}" {% if b.id == selected_branch.id %}selected{% endif %} class="text-stone-900 font-bold">
-                                {% if CURRENT_LANG == 'en' %}Branch: {{ b.display_name|default:b.name }}{% else %}فرع: {{ b.display_name|default:b.name }}{% endif %}
+                            <option value="{{ b.id }}" {% if selected_branch and b.id == selected_branch.id %}selected{% endif %} class="text-stone-900 font-bold">
+                                {% if CURRENT_LANG == 'en' %}Branch: {{ b.display_name|default:'' }}{% else %}فرع: {{ b.display_name|default:'' }}{% endif %}
                             </option>
                         {% endfor %}
                     </select>
@@ -153,16 +153,16 @@
     </div>
 
     <!-- Branch Closed Notice (If branch is closed) -->
-    {% if not is_open %}
+    {% if selected_branch and not is_open %}
     <div class="max-w-4xl mx-auto w-full px-4 pt-4 -mb-2 relative z-10">
         <div class="bg-amber-50 border border-amber-300 rounded-2xl p-3 flex items-center gap-3 text-amber-950 shadow-sm">
             <span class="text-2xl flex-shrink-0">⛔</span>
             <div class="text-xs">
                 <p class="font-semibold text-amber-900">
                     {% if CURRENT_LANG == 'en' %}
-                        Sorry, "{{ selected_branch.display_name|default:selected_branch.name }}" branch is currently closed for orders
+                        Sorry, "{{ selected_branch.display_name|default:'' }}" branch is currently closed for orders
                     {% else %}
-                        عذراً، فرع «{{ selected_branch.display_name|default:selected_branch.name }}» مغلق حالياً لاستقبال الطلبات
+                        عذراً، فرع «{{ selected_branch.display_name|default:'' }}» مغلق حالياً لاستقبال الطلبات
                     {% endif %}
                 </p>
                 <p class="text-stone-600 mt-0.5">
@@ -184,6 +184,23 @@
                     {% else %}
                         يمكنك تصفح قائمة الوجبات والأسعار.
                     {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- No Active Branches Notice -->
+    {% if no_branches %}
+    <div class="max-w-4xl mx-auto w-full px-4 pt-4 -mb-2 relative z-10">
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-center gap-3 text-blue-950 shadow-sm">
+            <span class="text-2xl flex-shrink-0">ℹ️</span>
+            <div class="text-xs">
+                <p class="font-bold text-blue-900">
+                    {% if CURRENT_LANG == 'en' %}No active branches currently available.{% else %}لا توجد فروع نشطة حالياً لهذا المطعم.{% endif %}
+                </p>
+                <p class="text-blue-700 mt-0.5">
+                    {% if CURRENT_LANG == 'en' %}Please contact restaurant management or visit later.{% else %}يرجى التواصل مع إدارة المطعم أو معاودة الزيارة لاحقاً.{% endif %}
                 </p>
             </div>
         </div>
@@ -910,7 +927,7 @@
         function showSuccessModal(data) {
             document.getElementById('success-order-number').textContent = data.order_number;
             const orderTypeLabel = (currentOrderType === 'delivery' ? (CURRENT_LANG === 'en' ? 'Home Delivery' : 'توصيل منزلي') : (CURRENT_LANG === 'en' ? 'Takeaway Pickup' : 'استلام سفري'));
-            const branchName = data.branch_name || "{{ selected_branch.display_name|default:selected_branch.name|escapejs }}";
+            const branchName = data.branch_name || "{{ selected_branch.display_name|default:''|escapejs }}";
             document.getElementById('success-order-type').textContent = `${orderTypeLabel} • ${i18n.branchPrefix} ${branchName}`;
             document.getElementById('success-order-total').textContent = (data.total || 0).toFixed(2);
 

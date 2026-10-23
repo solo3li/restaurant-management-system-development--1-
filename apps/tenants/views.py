@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import re
 from decimal import Decimal
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -11,6 +12,8 @@ from django.utils import timezone
 from django.db import transaction, IntegrityError
 from django.db.models import Sum, Count, F, Q
 from django.core.cache import cache
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 from apps.tenants.helpers import get_active_tenant, get_active_branch
 from apps.accounts.helpers import user_has_perm, _get_client_ip
@@ -682,9 +685,277 @@ def api_update_tenant_currency(request):
 
 
 
+def _can_manage_restaurant_profile(user):
+    """
+    Check if the user has permission to view/manage HQ restaurant profile.
+    Owner (is_owner) and HQ Manager (view_hq_dashboard or system_manage_settings) are permitted.
+    Branch staff (Cashier, Kitchen, Driver, Branch Manager without HQ perms) are strictly forbidden.
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    profile = getattr(user, "profile", None)
+    if profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin):
+        return True
+    return (
+        user_has_perm(user, "view_hq_dashboard")
+        or user_has_perm(user, "system_manage_settings")
+    )
+
+
+def _update_tenant_profile_data(tenant, data, files=None, require_name=True):
+    """
+    Validate and persist restaurant profile fields for active tenant.
+    Returns (tenant, None) on success, or (None, error_str) on validation error.
+    """
+    ALLOWED_IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".svg"}
+    MAX_LOGO_SIZE = 2 * 1024 * 1024  # 2MB
+    MAX_COVER_SIZE = 5 * 1024 * 1024  # 5MB
+
+    # 1. Name
+    if "name" in data:
+        name = str(data.get("name", "")).strip()
+        if require_name and not name:
+            return None, "اسم المطعم مطلوب ولا يمكن تركه فارغاً"
+        if name:
+            if len(name) > 255:
+                return None, "اسم المطعم يجب ألا يتجاوز 255 حرفاً"
+            tenant.name = name
+    elif require_name and not tenant.name:
+        return None, "اسم المطعم مطلوب ولا يمكن تركه فارغاً"
+
+    # 2. Bio / Description
+    if "bio" in data:
+        bio = str(data.get("bio", "")).strip()
+        if len(bio) > 255:
+            return None, "النبذة التعريفية يجب ألا تتجاوز 255 حرفاً"
+        tenant.bio = bio
+
+    # 3. Phone
+    if "phone" in data:
+        phone = str(data.get("phone", "")).strip()
+        if len(phone) > 50:
+            return None, "رقم الهاتف يجب ألا يتجاوز 50 حرفاً"
+        tenant.phone = phone
+
+    # 4. Email
+    if "email" in data:
+        email = str(data.get("email", "")).strip()
+        if email:
+            if len(email) > 254:
+                return None, "البريد الإلكتروني يجب ألا يتجاوز 254 حرفاً"
+            try:
+                validate_email(email)
+            except ValidationError:
+                return None, "صيغة البريد الإلكتروني غير صالحة"
+        tenant.email = email
+
+    # 5. HQ Address
+    if "address" in data:
+        address = str(data.get("address", "")).strip()
+        if len(address) > 255:
+            return None, "العنوان يجب ألا يتجاوز 255 حرفاً"
+        tenant.address = address
+
+    # 6. Primary Brand Color (hex #RRGGBB)
+    if "brand_color" in data:
+        brand_color = str(data.get("brand_color", "")).strip()
+        if brand_color:
+            if not re.match(r"^#[0-9a-fA-F]{6}$", brand_color):
+                return None, "صيغة كود اللون غير صحيحة، يجب أن تكون بتنسيق #RRGGBB (مثل #6366F1)"
+            tenant.brand_color = brand_color
+
+    # 7. Logo emoji (if provided)
+    if "logo_emoji" in data:
+        logo_emoji = str(data.get("logo_emoji", "")).strip()
+        if logo_emoji:
+            tenant.logo_emoji = logo_emoji[:20]
+
+    # 8. Logo image file upload
+    if files and "logo_image" in files:
+        logo_file = files["logo_image"]
+        if logo_file:
+            if logo_file.size > MAX_LOGO_SIZE:
+                return None, "حجم ملف الشعار يجب ألا يتجاوز 2 ميجابايت"
+            ext = os.path.splitext(logo_file.name)[1].lower()
+            if ext not in ALLOWED_IMAGE_EXTS:
+                return None, "صيغة الشعار غير مدعومة. الصيغ المسموحة هي: PNG, JPG, JPEG, WEBP, SVG"
+            tenant.logo_image = logo_file
+
+    # 9. Cover banner file upload
+    if files and "cover_image" in files:
+        cover_file = files["cover_image"]
+        if cover_file:
+            if cover_file.size > MAX_COVER_SIZE:
+                return None, "حجم ملف صورة الغلاف يجب ألا يتجاوز 5 ميجابايت"
+            ext = os.path.splitext(cover_file.name)[1].lower()
+            if ext not in ALLOWED_IMAGE_EXTS:
+                return None, "صيغة صورة الغلاف غير مدعومة. الصيغ المسموحة هي: PNG, JPG, JPEG, WEBP, SVG"
+            tenant.cover_image = cover_file
+
+    tenant.save()
+    return tenant, None
+
+
+@login_required
+def restaurant_profile_view(request):
+    """
+    Dedicated Central HQ Restaurant Profile View.
+    Renders current restaurant identity, visual branding, and contact details.
+    Handles profile updates via standard form POST and JSON/AJAX.
+    Strictly verifies HQ RBAC and active tenant isolation.
+    """
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return HttpResponseBadRequest("المنشأة غير موجودة")
+
+    if not _can_manage_restaurant_profile(request.user):
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.content_type == "application/json":
+            return JsonResponse({"error": "غير مصرح لك بإدارة الملف التعريفي للمطعم"}, status=403)
+        return HttpResponseForbidden("غير مصرح لك بإدارة الملف التعريفي للمطعم")
+
+    is_ajax = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in request.headers.get("Accept", "")
+        or request.content_type == "application/json"
+    )
+
+    if request.method == "POST":
+        if request.content_type == "application/json" and request.body:
+            try:
+                data = json.loads(request.body.decode("utf-8"))
+            except Exception:
+                return JsonResponse({"error": "تنسيق JSON غير صالح"}, status=400)
+        else:
+            data = request.POST
+
+        updated_tenant, err = _update_tenant_profile_data(tenant, data, request.FILES, require_name=True)
+        if err:
+            if is_ajax:
+                return JsonResponse({"error": err, "success": False, "status": "error"}, status=400)
+            context = {
+                "tenant": tenant,
+                "error_message": err,
+                "active_tab": "restaurant_profile",
+            }
+            return render(request, "restaurant_profile.html", context, status=400)
+
+        # Audit Event
+        try:
+            log_audit_event(
+                tenant=updated_tenant,
+                user=request.user,
+                action="update",
+                target_model="Tenant",
+                target_id=str(updated_tenant.id),
+                description=f"تحديث بيانات وهوية المطعم: {updated_tenant.name}",
+                ip_address=_get_client_ip(request)
+            )
+        except Exception as e:
+            logger.warning("Audit event log failed: %s", e)
+
+        tenant_payload = {
+            "id": updated_tenant.id,
+            "name": updated_tenant.name,
+            "slug": updated_tenant.slug,
+            "bio": updated_tenant.bio,
+            "phone": updated_tenant.phone,
+            "email": updated_tenant.email,
+            "address": updated_tenant.address,
+            "brand_color": updated_tenant.brand_color,
+            "logo_emoji": updated_tenant.logo_emoji,
+            "logo_url": updated_tenant.logo_image.url if updated_tenant.logo_image else "",
+            "cover_url": updated_tenant.cover_image.url if updated_tenant.cover_image else "",
+        }
+
+        if is_ajax:
+            return JsonResponse({
+                "status": "success",
+                "success": True,
+                "message": "تم حفظ بيانات وهوية المطعم بنجاح",
+                "tenant": tenant_payload,
+            })
+
+        from django.contrib import messages
+        messages.success(request, "تم حفظ بيانات وهوية المطعم بنجاح")
+        return redirect("restaurant_profile")
+
+    context = {
+        "tenant": tenant,
+        "active_tab": "restaurant_profile",
+    }
+    return render(request, "restaurant_profile.html", context)
+
+
+@login_required
+def api_restaurant_profile_update(request):
+    """
+    Dedicated JSON API endpoint to update restaurant profile details.
+    Supports name, bio, phone, email, address, brand_color, logo_image, cover_image.
+    Strictly verifies HQ RBAC and active tenant isolation.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"error": "المنشأة غير موجودة"}, status=400)
+
+    if not _can_manage_restaurant_profile(request.user):
+        return JsonResponse({"error": "غير مصرح لك بإدارة الملف التعريفي للمطعم"}, status=403)
+
+    if request.content_type == "application/json" and request.body:
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "تنسيق JSON غير صالح"}, status=400)
+    else:
+        data = request.POST
+
+    updated_tenant, err = _update_tenant_profile_data(tenant, data, request.FILES, require_name=True)
+    if err:
+        return JsonResponse({"error": err, "success": False, "status": "error"}, status=400)
+
+    try:
+        log_audit_event(
+            tenant=updated_tenant,
+            user=request.user,
+            action="update",
+            target_model="Tenant",
+            target_id=str(updated_tenant.id),
+            description=f"تحديث بيانات وهوية المطعم (API): {updated_tenant.name}",
+            ip_address=_get_client_ip(request)
+        )
+    except Exception as e:
+        logger.warning("Audit event log failed: %s", e)
+
+    return JsonResponse({
+        "status": "success",
+        "success": True,
+        "message": "تم تحديث هوية وبيانات المطعم بنجاح",
+        "tenant": {
+            "id": updated_tenant.id,
+            "name": updated_tenant.name,
+            "slug": updated_tenant.slug,
+            "bio": updated_tenant.bio,
+            "phone": updated_tenant.phone,
+            "email": updated_tenant.email,
+            "address": updated_tenant.address,
+            "brand_color": updated_tenant.brand_color,
+            "logo_emoji": updated_tenant.logo_emoji,
+            "logo_url": updated_tenant.logo_image.url if updated_tenant.logo_image else "",
+            "cover_url": updated_tenant.cover_image.url if updated_tenant.cover_image else "",
+        }
+    })
+
+
 @login_required
 def api_update_tenant_branding(request):
-    """Update restaurant logo, cover, bio, brand color, and name."""
+    """
+    Update restaurant logo, cover, bio, brand color, phone, email, address, and name.
+    Enforces HQ RBAC (Owner or HQ Manager).
+    """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
@@ -692,44 +963,47 @@ def api_update_tenant_branding(request):
     if not tenant:
         return JsonResponse({"error": "منشأة غير موجودة"}, status=400)
 
-    profile = getattr(request.user, "profile", None)
-    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
-    if not is_owner and not user_has_perm(request.user, "manage_menu"):
+    if not _can_manage_restaurant_profile(request.user):
         return JsonResponse({"error": "غير مصرح لك بتعديل هوية المطعم"}, status=403)
 
-    name = request.POST.get("name", "").strip()
-    if name:
-        tenant.name = name
+    if request.content_type == "application/json" and request.body:
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "تنسيق JSON غير صالح"}, status=400)
+    else:
+        data = request.POST
 
-    bio = request.POST.get("bio", "").strip()
-    if bio is not None:
-        tenant.bio = bio
+    updated_tenant, err = _update_tenant_profile_data(tenant, data, request.FILES, require_name=False)
+    if err:
+        return JsonResponse({"error": err, "status": "error"}, status=400)
 
-    brand_color = request.POST.get("brand_color", "").strip()
-    if brand_color:
-        tenant.brand_color = brand_color
+    try:
+        log_audit_event(
+            tenant=updated_tenant,
+            user=request.user,
+            action="update",
+            target_model="Tenant",
+            target_id=str(updated_tenant.id),
+            description=f"تحديث هوية وشعار المطعم: {updated_tenant.name}",
+            ip_address=_get_client_ip(request)
+        )
+    except Exception as e:
+        logger.warning("Audit event log failed: %s", e)
 
-    logo_emoji = request.POST.get("logo_emoji", "").strip()
-    if logo_emoji:
-        tenant.logo_emoji = logo_emoji
-
-    if "logo_image" in request.FILES:
-        tenant.logo_image = request.FILES["logo_image"]
-
-    if "cover_image" in request.FILES:
-        tenant.cover_image = request.FILES["cover_image"]
-
-    tenant.save()
     return JsonResponse({
         "status": "success",
         "message": "تم تحديث هوية وشعار المطعم بنجاح",
         "tenant": {
-            "name": tenant.name,
-            "bio": tenant.bio,
-            "brand_color": tenant.brand_color,
-            "logo_emoji": tenant.logo_emoji,
-            "logo_url": tenant.logo_image.url if tenant.logo_image else "",
-            "cover_url": tenant.cover_image.url if tenant.cover_image else "",
+            "name": updated_tenant.name,
+            "bio": updated_tenant.bio,
+            "phone": updated_tenant.phone,
+            "email": updated_tenant.email,
+            "address": updated_tenant.address,
+            "brand_color": updated_tenant.brand_color,
+            "logo_emoji": updated_tenant.logo_emoji,
+            "logo_url": updated_tenant.logo_image.url if updated_tenant.logo_image else "",
+            "cover_url": updated_tenant.cover_image.url if updated_tenant.cover_image else "",
         }
     })
 

@@ -66,6 +66,8 @@ from apps.tenants.views import (
     switch_tenant_view,
     branch_dashboard_view,
     branches_view,
+    restaurant_profile_view,
+    api_restaurant_profile_update,
     api_create_branch,
     api_branch_delivery_areas,
     api_toggle_branch,

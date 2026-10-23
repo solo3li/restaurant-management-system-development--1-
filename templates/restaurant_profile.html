@@ -1,0 +1,640 @@
+{% extends "base.html" %}
+
+{% block title %}هوية وبيانات المطعم — {{ tenant.name|default:"الإدارة العامة" }}{% endblock %}
+
+{% block content %}
+{% include "_admin_nav_tabs.html" %}
+
+<div class="space-y-6 font-sans">
+
+    <!-- Top Header & Breadcrumb -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/60 pb-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">
+                    <span class="h-1.5 w-1.5 rounded-full bg-violet-600"></span>
+                    <span>الإدارة العامة (HQ)</span>
+                </span>
+                <span class="text-xs text-slate-300">•</span>
+                <span class="text-xs text-slate-500 font-medium">الهوية البصرية والبيانات الرسمية</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                هوية وبيانات المطعم
+            </h1>
+            <p class="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                إدارة اسم المنشأة، الشعار، صورة الغلاف، الألوان الأساسية، وبيانات التواصل الرسمية المعتمدة للمطعم.
+            </p>
+        </div>
+
+        <!-- Slug & Quick Public Menu Link -->
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs shadow-xs">
+                <span class="text-slate-500 font-medium">المعرّف (Slug):</span>
+                <span class="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200" id="slugBadge">{{ tenant.slug }}</span>
+            </div>
+            {% if tenant.slug %}
+            <a href="{% url 'digital_menu' slug=tenant.slug %}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700 hover:text-violet-600 transition shadow-xs cursor-pointer" title="استعراض صفحة المنيو للعملاء">
+                <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span>معاينة المنيو</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Error Banner if rendered server-side with error -->
+    {% if error_message %}
+    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2.5">
+        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span>{{ error_message }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Main Profile Form (Handles both AJAX and standard POST) -->
+    <form id="restaurantProfileForm" method="POST" action="{% url 'restaurant_profile' %}" enctype="multipart/form-data" onsubmit="handleProfileSubmit(event)" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- LEFT COLUMN: Live Identity Preview & Visual Assets Upload (1 Column) -->
+            <div class="space-y-6 lg:col-span-1">
+
+                <!-- 1. Live Identity Preview Card -->
+                <div class="card p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <span>معاينة الهوية الحية</span>
+                        </h2>
+                        <span class="text-[11px] font-medium text-slate-400">مباشر</span>
+                    </div>
+
+                    <!-- Live Mobile Header Preview Container -->
+                    <div class="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-xs relative">
+                        <!-- Cover Banner Preview -->
+                        <div id="liveCoverContainer" class="h-28 w-full bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                            <img id="coverPreviewImg" src="{% if tenant.cover_image %}{{ tenant.cover_image.url }}{% endif %}" alt="Cover" class="w-full h-full object-cover {% if not tenant.cover_image %}hidden{% endif %}">
+                            <div id="coverPlaceholder" class="flex flex-col items-center justify-center text-slate-400 gap-1 text-[11px] {% if tenant.cover_image %}hidden{% endif %}">
+                                <svg class="w-6 h-6 text-slate-500 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>صورة الغلاف (Banner)</span>
+                            </div>
+                            <!-- Color Accent Bar -->
+                            <div id="liveColorBar" class="absolute bottom-0 left-0 right-0 h-1.5 transition-colors duration-200" style="background-color: {{ tenant.brand_color|default:'#6366F1' }};"></div>
+                        </div>
+
+                        <!-- Logo Overlay & Restaurant Header Details -->
+                        <div class="p-4 pt-0 relative">
+                            <div class="flex items-end justify-between -mt-9 mb-3">
+                                <div class="w-18 h-18 rounded-2xl bg-white border-2 border-white shadow-md overflow-hidden flex items-center justify-center p-0.5 relative z-10">
+                                    <img id="logoPreviewImg" src="{% if tenant.logo_image %}{{ tenant.logo_image.url }}{% endif %}" alt="Logo" class="w-full h-full object-cover rounded-xl {% if not tenant.logo_image %}hidden{% endif %}">
+                                    <span id="logoPlaceholder" class="text-3xl {% if tenant.logo_image %}hidden{% endif %}">{{ tenant.logo_emoji|default:"🍽️" }}</span>
+                                </div>
+                                <span id="liveColorBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border text-white transition-colors duration-200 shadow-xs" style="background-color: {{ tenant.brand_color|default:'#6366F1' }}; border-color: {{ tenant.brand_color|default:'#6366F1' }};">
+                                    {{ tenant.brand_color|default:'#6366F1' }}
+                                </span>
+                            </div>
+
+                            <div class="space-y-1">
+                                <h3 id="liveNamePreview" class="text-base font-bold text-slate-900 tracking-tight">
+                                    {{ tenant.name|default:"اسم المطعم" }}
+                                </h3>
+                                <p id="liveBioPreview" class="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                                    {{ tenant.bio|default:"نبذة عن المطعم وشعاره الترويجي تظهر هنا لرواد المنيو والزبائن." }}
+                                </p>
+                            </div>
+
+                            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    <span id="livePhonePreview" dir="ltr">{{ tenant.phone|default:"—" }}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    <span id="liveEmailPreview" dir="ltr" class="max-w-[120px] truncate">{{ tenant.email|default:"—" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Visual Media Uploads -->
+                <div class="card p-5 space-y-4">
+                    <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <span>الوسائط والشعارات</span>
+                    </h2>
+
+                    <!-- Logo Upload -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-800">
+                            شعار المطعم (Logo)
+                        </label>
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                                <img id="logoThumbPreview" src="{% if tenant.logo_image %}{{ tenant.logo_image.url }}{% endif %}" alt="Thumb" class="w-full h-full object-cover {% if not tenant.logo_image %}hidden{% endif %}">
+                                <span id="logoThumbPlaceholder" class="text-xl {% if tenant.logo_image %}hidden{% endif %}">{{ tenant.logo_emoji|default:"🍽️" }}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input type="file" id="logoInput" name="logo_image" accept=".png,.jpg,.jpeg,.webp,.svg" onchange="previewLogoFile(this)" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer w-full">
+                                <p class="text-[10px] text-slate-500 mt-1">PNG, JPG, WEBP, SVG (حد أقصى 2 ميجابايت)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cover Banner Upload -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-800">
+                            صورة الغلاف والبانر (Cover Banner)
+                        </label>
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="w-16 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                                <img id="coverThumbPreview" src="{% if tenant.cover_image %}{{ tenant.cover_image.url }}{% endif %}" alt="Thumb" class="w-full h-full object-cover {% if not tenant.cover_image %}hidden{% endif %}">
+                                <span id="coverThumbPlaceholder" class="text-[10px] font-bold text-slate-400 {% if tenant.cover_image %}hidden{% endif %}">لا يوجد</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input type="file" id="coverInput" name="cover_image" accept=".png,.jpg,.jpeg,.webp,.svg" onchange="previewCoverFile(this)" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer w-full">
+                                <p class="text-[10px] text-slate-500 mt-1">PNG, JPG, WEBP, SVG (حد أقصى 5 ميجابايت)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Primary Brand Color Picker -->
+                <div class="card p-5 space-y-4">
+                    <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                        <span>اللون الأساسي للهوية (Brand Color)</span>
+                    </h2>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <input type="color" id="brandColorPicker" value="{{ tenant.brand_color|default:'#6366F1' }}" oninput="syncColorFromPicker(this.value)" class="w-12 h-10 p-0.5 rounded-xl border border-slate-300 cursor-pointer bg-white shadow-xs shrink-0">
+                            <div class="relative flex-1">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-mono text-xs">HEX</span>
+                                <input type="text" id="brandColorInput" name="brand_color" value="{{ tenant.brand_color|default:'#6366F1' }}" maxlength="7" dir="ltr" oninput="syncColorFromInput(this.value)" class="input text-xs font-mono font-bold w-full uppercase pl-10" placeholder="#6366F1">
+                            </div>
+                        </div>
+
+                        <!-- Quick Color Swatches -->
+                        <div class="pt-2">
+                            <label class="block text-[11px] font-medium text-slate-500 mb-2">نماذج ألوان مقترحة:</label>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button type="button" onclick="applyPresetColor('#6366F1')" class="w-6 h-6 rounded-lg bg-[#6366F1] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Indigo / Violet (#6366F1)"></button>
+                                <button type="button" onclick="applyPresetColor('#0E382A')" class="w-6 h-6 rounded-lg bg-[#0E382A] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Forest (#0E382A)"></button>
+                                <button type="button" onclick="applyPresetColor('#16A34A')" class="w-6 h-6 rounded-lg bg-[#16A34A] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Emerald (#16A34A)"></button>
+                                <button type="button" onclick="applyPresetColor('#EA580C')" class="w-6 h-6 rounded-lg bg-[#EA580C] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Orange (#EA580C)"></button>
+                                <button type="button" onclick="applyPresetColor('#DC2626')" class="w-6 h-6 rounded-lg bg-[#DC2626] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Red (#DC2626)"></button>
+                                <button type="button" onclick="applyPresetColor('#2563EB')" class="w-6 h-6 rounded-lg bg-[#2563EB] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Blue (#2563EB)"></button>
+                                <button type="button" onclick="applyPresetColor('#0F172A')" class="w-6 h-6 rounded-lg bg-[#0F172A] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Slate (#0F172A)"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: Identity Details & Official Contact Information (2 Columns) -->
+            <div class="space-y-6 lg:col-span-2">
+
+                <!-- 1. Basic Identity Information Card -->
+                <div class="card p-6 space-y-5">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                            <span>البيانات الأساسية للمنشأة</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">الاسم الرسمي والنبذة التعريفية المعتمدة للمطعم.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Restaurant Name (Required) -->
+                        <div class="sm:col-span-2 space-y-1.5">
+                            <label for="id_name" class="block text-xs font-bold text-slate-900">
+                                اسم المطعم / المنشأة <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" id="id_name" name="name" value="{{ tenant.name }}" required maxlength="255" oninput="updateLiveName(this.value)" class="input text-xs w-full py-2.5 px-3.5 font-medium" placeholder="مثال: مطعم شاورما وسحاب">
+                            <p class="text-[11px] text-slate-400">يظهر هذا الاسم في أعلى المنظومة، الفواتير، والمنيو الإلكتروني المعتمد.</p>
+                        </div>
+
+                        <!-- Bio / Description / Slogan -->
+                        <div class="sm:col-span-2 space-y-1.5">
+                            <label for="id_bio" class="block text-xs font-bold text-slate-900">
+                                النبذة التعريفية والشعار اللفظي (Bio / Slogan)
+                            </label>
+                            <textarea id="id_bio" name="bio" rows="3" maxlength="255" oninput="updateLiveBio(this.value)" class="input text-xs w-full py-2.5 px-3.5 font-normal leading-relaxed" placeholder="مثال: أشهى المأكولات والمشويات الطازجة بإتقان يومي وخدمة راقية تليق بضيوفنا.">{{ tenant.bio|default:"" }}</textarea>
+                            <p class="text-[11px] text-slate-400">شعار ترويجي موجز يظهر أسفل اسم المطعم في المنيو الرقمي (أقصى حد: 255 حرفاً).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Official Contact Information Card -->
+                <div class="card p-6 space-y-5">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <span>معلومات الاتصال والمقر الرئيسي</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">القنوات المعتمدة للتواصل الرسمي مع إدارة المطعم وخدمة العملاء.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Official Phone -->
+                        <div class="space-y-1.5">
+                            <label for="id_phone" class="block text-xs font-bold text-slate-900">
+                                رقم الهاتف الموحد / خدمة العملاء
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                </span>
+                                <input type="text" id="id_phone" name="phone" value="{{ tenant.phone|default:'' }}" maxlength="50" dir="ltr" oninput="updateLivePhone(this.value)" class="input text-xs w-full py-2.5 pl-10 pr-3.5 font-mono" placeholder="+966 50 000 0000">
+                            </div>
+                            <p class="text-[11px] text-slate-400">يظهر في تذييل المنيو والفواتير.</p>
+                        </div>
+
+                        <!-- Official Email -->
+                        <div class="space-y-1.5">
+                            <label for="id_email" class="block text-xs font-bold text-slate-900">
+                                البريد الإلكتروني الرسمي
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>
+                                </span>
+                                <input type="email" id="id_email" name="email" value="{{ tenant.email|default:'' }}" maxlength="254" dir="ltr" oninput="updateLiveEmail(this.value)" class="input text-xs w-full py-2.5 pl-10 pr-3.5 font-mono" placeholder="contact@restaurant.com">
+                            </div>
+                            <p class="text-[11px] text-slate-400">للمراسلات الرسمية وإشعارات الفوترة والتقارير.</p>
+                        </div>
+
+                        <!-- Physical HQ Address -->
+                        <div class="sm:col-span-2 space-y-1.5">
+                            <label for="id_address" class="block text-xs font-bold text-slate-900">
+                                عنوان المقر الرئيسي للمنشأة (HQ Address)
+                            </label>
+                            <input type="text" id="id_address" name="address" value="{{ tenant.address|default:'' }}" maxlength="255" class="input text-xs w-full py-2.5 px-3.5 font-medium" placeholder="مثال: الرياض - طريق الملك فهد - حي العليا">
+                            <p class="text-[11px] text-slate-400">يستخدم في البيانات القانونية، التراخيص، والترويسة الرسمية.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. System & Digital Menu Identity Card (Read-Only) -->
+                <div class="card p-6 space-y-4 bg-slate-50/50">
+                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                                <span>معرف الرابط والمنيو الإلكتروني</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">معرف فريد ومحمي للنظام والروابط العامة.</p>
+                        </div>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+                            <span>نشط ومحمي</span>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div class="p-3 bg-white rounded-xl border border-slate-200">
+                            <span class="block text-slate-500 font-medium mb-1">المعرف اللاتيني الثابت (Slug):</span>
+                            <span class="font-mono font-bold text-slate-800 text-sm">{{ tenant.slug }}</span>
+                            <span class="block text-[10px] text-slate-400 mt-1">لا يمكن تعديله برمجياً لتجنب كسر باركود الطاولات والمنيو المطبوع.</span>
+                        </div>
+                        <div class="p-3 bg-white rounded-xl border border-slate-200">
+                            <span class="block text-slate-500 font-medium mb-1">الرابط المباشر للعملاء:</span>
+                            <div class="flex items-center justify-between gap-2 mt-1">
+                                <span class="font-mono text-violet-700 font-medium truncate" dir="ltr">/m/{{ tenant.slug }}/</span>
+                                <button type="button" onclick="copyMenuUrl()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-[10px] transition cursor-pointer">نسخ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Form Action Buttons -->
+                <div class="card p-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-slate-200 shadow-sm sticky bottom-4 z-20">
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        <span>تنعكس التغييرات فور حفظها على لوحة الإدارة والمنيو الرقمي.</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <button type="reset" onclick="resetLivePreview()" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition cursor-pointer">
+                            إلغاء التعديلات
+                        </button>
+                        <button type="submit" id="btnSaveProfile" class="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold px-6 py-2.5 text-xs font-semibold shadow-xs transition duration-150 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            <span id="btnSaveText">حفظ التغييرات</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+
+</div>
+
+<script>
+// Initial state cache for reset
+const initialBrandColor = "{{ tenant.brand_color|default:'#6366F1' }}";
+const initialName = "{{ tenant.name|escapejs }}";
+const initialBio = "{{ tenant.bio|default:''|escapejs }}";
+const initialPhone = "{{ tenant.phone|default:''|escapejs }}";
+const initialEmail = "{{ tenant.email|default:''|escapejs }}";
+
+function getCsrfToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+// Live text previews
+function updateLiveName(val) {
+    const preview = document.getElementById('liveNamePreview');
+    if (preview) {
+        preview.textContent = val.trim() || 'اسم المطعم';
+    }
+}
+
+function updateLiveBio(val) {
+    const preview = document.getElementById('liveBioPreview');
+    if (preview) {
+        preview.textContent = val.trim() || 'نبذة عن المطعم وشعاره الترويجي تظهر هنا لرواد المنيو والزبائن.';
+    }
+}
+
+function updateLivePhone(val) {
+    const preview = document.getElementById('livePhonePreview');
+    if (preview) {
+        preview.textContent = val.trim() || '—';
+    }
+}
+
+function updateLiveEmail(val) {
+    const preview = document.getElementById('liveEmailPreview');
+    if (preview) {
+        preview.textContent = val.trim() || '—';
+    }
+}
+
+// Color synchronization and live preview
+function applyBrandColor(hex) {
+    if (!hex) return;
+    const bar = document.getElementById('liveColorBar');
+    const badge = document.getElementById('liveColorBadge');
+    if (bar) bar.style.backgroundColor = hex;
+    if (badge) {
+        badge.style.backgroundColor = hex;
+        badge.style.borderColor = hex;
+        badge.textContent = hex;
+    }
+}
+
+function syncColorFromPicker(hex) {
+    const input = document.getElementById('brandColorInput');
+    if (input) input.value = hex.toUpperCase();
+    applyBrandColor(hex);
+}
+
+function syncColorFromInput(hex) {
+    const picker = document.getElementById('brandColorPicker');
+    if (hex && hex.length === 7 && hex.startsWith('#')) {
+        if (picker) picker.value = hex;
+        applyBrandColor(hex);
+    }
+}
+
+function applyPresetColor(hex) {
+    const input = document.getElementById('brandColorInput');
+    const picker = document.getElementById('brandColorPicker');
+    if (input) input.value = hex;
+    if (picker) picker.value = hex;
+    applyBrandColor(hex);
+}
+
+// Live Logo Preview
+function previewLogoFile(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+            if (typeof showToast === 'function') {
+                showToast('حجم ملف الشعار يتجاوز 2 ميجابايت', 'error');
+            } else {
+                alert('حجم ملف الشعار يتجاوز 2 ميجابايت');
+            }
+            input.value = '';
+            return;
+        }
+        const url = URL.createObjectURL(file);
+        
+        const previewImg = document.getElementById('logoPreviewImg');
+        const placeholder = document.getElementById('logoPlaceholder');
+        if (previewImg) {
+            previewImg.src = url;
+            previewImg.classList.remove('hidden');
+        }
+        if (placeholder) placeholder.classList.add('hidden');
+
+        const thumbImg = document.getElementById('logoThumbPreview');
+        const thumbPlaceholder = document.getElementById('logoThumbPlaceholder');
+        if (thumbImg) {
+            thumbImg.src = url;
+            thumbImg.classList.remove('hidden');
+        }
+        if (thumbPlaceholder) thumbPlaceholder.classList.add('hidden');
+    }
+}
+
+// Live Cover Preview
+function previewCoverFile(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            if (typeof showToast === 'function') {
+                showToast('حجم صورة الغلاف يتجاوز 5 ميجابايت', 'error');
+            } else {
+                alert('حجم صورة الغلاف يتجاوز 5 ميجابايت');
+            }
+            input.value = '';
+            return;
+        }
+        const url = URL.createObjectURL(file);
+
+        const previewImg = document.getElementById('coverPreviewImg');
+        const placeholder = document.getElementById('coverPlaceholder');
+        if (previewImg) {
+            previewImg.src = url;
+            previewImg.classList.remove('hidden');
+        }
+        if (placeholder) placeholder.classList.add('hidden');
+
+        const thumbImg = document.getElementById('coverThumbPreview');
+        const thumbPlaceholder = document.getElementById('coverThumbPlaceholder');
+        if (thumbImg) {
+            thumbImg.src = url;
+            thumbImg.classList.remove('hidden');
+        }
+        if (thumbPlaceholder) thumbPlaceholder.classList.add('hidden');
+    }
+}
+
+function resetLivePreview() {
+    setTimeout(() => {
+        updateLiveName(initialName);
+        updateLiveBio(initialBio);
+        updateLivePhone(initialPhone);
+        updateLiveEmail(initialEmail);
+        applyBrandColor(initialBrandColor);
+    }, 50);
+}
+
+function copyMenuUrl() {
+    const path = window.location.origin + '/m/{{ tenant.slug }}/';
+    navigator.clipboard.writeText(path).then(() => {
+        if (typeof showToast === 'function') {
+            showToast('تم نسخ رابط المنيو إلى الحافظة بنجاح');
+        } else {
+            alert('تم نسخ الرابط بنجاح');
+        }
+    }).catch(() => {
+        prompt('رابط المنيو للنسخ:', path);
+    });
+}
+
+// Handle Form Submission with AJAX & Feedback
+async function handleProfileSubmit(event) {
+    event.preventDefault();
+    const form = document.getElementById('restaurantProfileForm');
+    const btn = document.getElementById('btnSaveProfile');
+    const btnText = document.getElementById('btnSaveText');
+
+    const nameInput = document.getElementById('id_name');
+    if (!nameInput || !nameInput.value.trim()) {
+        if (typeof showToast === 'function') {
+            showToast('اسم المطعم مطلوب ولا يمكن تركه فارغاً', 'error');
+        } else {
+            alert('اسم المطعم مطلوب');
+        }
+        if (nameInput) nameInput.focus();
+        return;
+    }
+
+    const emailInput = document.getElementById('id_email');
+    if (emailInput && emailInput.value.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailInput.value.trim())) {
+            if (typeof showToast === 'function') {
+                showToast('صيغة البريد الإلكتروني غير صالحة', 'error');
+            } else {
+                alert('صيغة البريد الإلكتروني غير صالحة');
+            }
+            emailInput.focus();
+            return;
+        }
+    }
+
+    const colorInput = document.getElementById('brandColorInput');
+    if (colorInput && colorInput.value.trim()) {
+        const hexRegex = /^#[0-9a-fA-F]{6}$/;
+        if (!hexRegex.test(colorInput.value.trim())) {
+            if (typeof showToast === 'function') {
+                showToast('صيغة كود اللون غير صحيحة، يجب أن تكون بتنسيق #RRGGBB', 'error');
+            } else {
+                alert('صيغة كود اللون غير صحيحة');
+            }
+            colorInput.focus();
+            return;
+        }
+    }
+
+    const formData = new FormData(form);
+
+    btn.disabled = true;
+    const oldText = btnText.textContent;
+    btnText.textContent = 'جاري الحفظ…';
+
+    try {
+        const response = await fetch("{% url 'api_restaurant_profile_update' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && (data.success || data.status === 'success')) {
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'تم تحديث هوية وبيانات المطعم بنجاح', 'success');
+            }
+
+            if (data.tenant) {
+                if (data.tenant.name) {
+                    updateLiveName(data.tenant.name);
+                    const nameField = document.getElementById('id_name');
+                    if (nameField) nameField.value = data.tenant.name;
+                }
+                if (data.tenant.bio !== undefined) {
+                    updateLiveBio(data.tenant.bio);
+                }
+                if (data.tenant.phone !== undefined) {
+                    updateLivePhone(data.tenant.phone);
+                }
+                if (data.tenant.email !== undefined) {
+                    updateLiveEmail(data.tenant.email);
+                }
+                if (data.tenant.brand_color) {
+                    applyBrandColor(data.tenant.brand_color);
+                }
+                if (data.tenant.logo_url) {
+                    const logoImg = document.getElementById('logoPreviewImg');
+                    const logoHolder = document.getElementById('logoPlaceholder');
+                    if (logoImg) {
+                        logoImg.src = data.tenant.logo_url;
+                        logoImg.classList.remove('hidden');
+                    }
+                    if (logoHolder) logoHolder.classList.add('hidden');
+                }
+                if (data.tenant.cover_url) {
+                    const coverImg = document.getElementById('coverPreviewImg');
+                    const coverHolder = document.getElementById('coverPlaceholder');
+                    if (coverImg) {
+                        coverImg.src = data.tenant.cover_url;
+                        coverImg.classList.remove('hidden');
+                    }
+                    if (coverHolder) coverHolder.classList.add('hidden');
+                }
+            }
+        } else {
+            const err = data.error || 'تعذر حفظ التغييرات';
+            if (typeof showToast === 'function') {
+                showToast(err, 'error');
+            } else {
+                alert(err);
+            }
+        }
+    } catch(err) {
+        console.error('Save failed:', err);
+        if (typeof showToast === 'function') {
+            showToast('حدث خطأ أثناء الاتصال بالخادم، جاري إعادة المحاولة بالطريقة المباشرة...', 'error');
+        }
+        // Fallback to standard form submission
+        form.submit();
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = oldText;
+    }
+}
+</script>
+{% endblock %}
