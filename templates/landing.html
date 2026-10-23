@@ -19,7 +19,7 @@
                 </div>
                 <div class="flex flex-col">
                     <span class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 leading-tight">{% if CURRENT_LANG == 'en' %}Motaem{% else %}مطاعم{% endif %}</span>
-                    <span class="text-[9px] sm:text-[10px] font-semibold text-violet-600 tracking-wider uppercase">Cloud Restaurant OS</span>
+                    <span class="text-[9px] sm:text-[10px] font-semibold text-violet-600 tracking-wider uppercase">{% if CURRENT_LANG == 'en' %}Cloud Restaurant OS{% else %}نظام إدارة المطاعم السحابي{% endif %}</span>
                 </div>
             </a>
 
@@ -29,14 +29,14 @@
                 {% if CURRENT_LANG == 'en' %}
                 <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition shadow-xs"
-                   title="التبديل إلى اللغة العربية">
+                   title="{% if CURRENT_LANG == 'en' %}Switch to Arabic{% else %}التبديل إلى العربية{% endif %}">
                     <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <span>عربي</span>
                 </a>
                 {% else %}
                 <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition shadow-xs"
-                   title="Switch to English">
+                   title="{% if CURRENT_LANG == 'en' %}Switch to English{% else %}التبديل إلى الإنجليزية{% endif %}">
                     <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <span>EN</span>
                 </a>
@@ -72,6 +72,21 @@
 
             <!-- Mobile Quick Actions (< md) -->
             <div class="flex md:hidden items-center gap-2">
+                <!-- Mobile Quick Language Toggle -->
+                {% if CURRENT_LANG == 'en' %}
+                <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
+                   class="px-2.5 py-1.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-xs"
+                   title="Switch to Arabic">
+                    عربي
+                </a>
+                {% else %}
+                <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
+                   class="px-2.5 py-1.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-xs"
+                   title="Switch to English">
+                    EN
+                </a>
+                {% endif %}
+
                 {% if request.user.is_authenticated %}
                 <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition shadow-xs whitespace-nowrap active:scale-95 cursor-pointer">
                     {% if CURRENT_LANG == 'en' %}Dashboard{% else %}لوحة الإدارة{% endif %}
@@ -319,8 +334,32 @@
                 {% endif %}
 
                 <div>
-                    <h3 class="text-xl font-bold text-slate-900">{{ plan.name }}</h3>
-                    <p class="text-xs text-slate-500 mt-1 min-h-[32px]">{{ plan.description }}</p>
+                    <h3 class="text-xl font-bold text-slate-900">
+                        {% if CURRENT_LANG == 'en' %}
+                            {% if plan.code == 'starter' %}Starter Plan
+                            {% elif plan.code == 'growth' %}Growth Plan
+                            {% elif plan.code == 'enterprise' %}Enterprise Plan
+                            {% elif plan.code == 'trial' %}Free Trial Plan
+                            {% elif plan.code == 'basic' %}Basic Plan
+                            {% elif plan.code == 'pro' %}Pro Plan
+                            {% else %}{{ plan.name }}{% endif %}
+                        {% else %}
+                            {{ plan.name }}
+                        {% endif %}
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1 min-h-[32px]">
+                        {% if CURRENT_LANG == 'en' %}
+                            {% if plan.code == 'starter' %}Ideal for individual restaurants, food trucks, and single-branch cafes
+                            {% elif plan.code == 'growth' %}For scaling restaurant chains with AI call center and smart inventory
+                            {% elif plan.code == 'enterprise' %}Unlimited branches and staff with dedicated cloud servers and VIP support
+                            {% elif plan.code == 'trial' %}Free 14-day trial for essential restaurant and cashier operations
+                            {% elif plan.code == 'basic' %}Designed for small restaurants and emerging brands with limited branches
+                            {% elif plan.code == 'pro' %}Comprehensive suite with AI phone call center, delivery dispatch, and custom RBAC
+                            {% else %}{{ plan.description }}{% endif %}
+                        {% else %}
+                            {{ plan.description }}
+                        {% endif %}
+                    </p>
 
                     <div class="my-5 pb-5 border-b border-slate-100">
                         <div class="text-3xl font-bold text-slate-900 font-mono flex items-baseline gap-1">
@@ -368,7 +407,7 @@
                 </div>
 
                 <a href="{% url 'register' %}?plan={{ plan.code }}" class="w-full py-3 rounded-xl {% if plan.is_popular %}bg-violet-600 hover:bg-violet-700 text-white font-medium{% else %}bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200/80{% endif %} text-xs font-semibold transition text-center block shadow-xs active:scale-95">
-                    {% if CURRENT_LANG == 'en' %}Start Free Trial for {{ plan.name }}{% else %}ابدأ تجربة {{ plan.name }} مجاناً{% endif %}
+                    {% if CURRENT_LANG == 'en' %}Start Free Trial{% else %}ابدأ تجربة {{ plan.name }} مجاناً{% endif %}
                 </a>
 
             </div>
@@ -541,5 +580,14 @@
             if (closeIcon) closeIcon.classList.add('hidden');
         }
     }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const drawer = document.getElementById('mobile-nav-drawer');
+            if (drawer && !drawer.classList.contains('hidden')) {
+                toggleMobileNav();
+            }
+        }
+    });
 </script>
 {% endblock %}

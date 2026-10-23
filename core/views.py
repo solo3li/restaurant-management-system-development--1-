@@ -382,9 +382,29 @@ def set_language_view(request, lang_code):
 
     translation.activate(lang_code)
     
+    from django.utils.http import url_has_allowed_host_and_scheme
     next_url = request.GET.get("next") or request.META.get("HTTP_REFERER") or "/"
-    if not next_url.startswith("/"):
+
+    # Disallow open redirect vulnerabilities (external hosts, scheme-relative //, and backslash paths)
+    if (
+        not url_has_allowed_host_and_scheme(
+            url=next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure()
+        )
+        or next_url.startswith("//")
+        or next_url.startswith("/\\")
+    ):
         next_url = "/"
+
+    # Update or strip 'lang' query param in next_url to ensure the redirected page loads in lang_code
+    from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+    parsed = urlparse(next_url)
+    query_params = parse_qs(parsed.query)
+    if "lang" in query_params:
+        query_params["lang"] = [lang_code]
+        new_query = urlencode(query_params, doseq=True)
+        next_url = urlunparse(parsed._replace(query=new_query))
 
     response = HttpResponseRedirect(next_url)
     request.session["django_language"] = lang_code

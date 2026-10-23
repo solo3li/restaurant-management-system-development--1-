@@ -1,5 +1,6 @@
 from django.utils import translation
 from .models import Tenant, Branch, UserProfile, RESTAURANT_PERMISSIONS
+from .i18n_catalog import I18N_CATALOG
 
 
 def normalize_plan_features(features):
@@ -178,9 +179,23 @@ def branch_context(request):
             if "delivery_management" not in plan_features and "delivery_zones" not in plan_features:
                 user_perms.discard("delivery_access")
 
+        plan_code = tenant.subscription_plan.code if tenant.subscription_plan else ""
+        plan_name = tenant.subscription_plan.name if tenant.subscription_plan else ""
+        plan_name_en_map = {
+            "starter": "Starter Plan",
+            "growth": "Growth Plan",
+            "enterprise": "Enterprise Plan",
+            "trial": "Free Trial Plan",
+            "basic": "Basic Plan",
+            "pro": "Pro Plan",
+        }
+        plan_name_en = plan_name_en_map.get(plan_code, I18N_CATALOG.get(plan_name, plan_name))
+
         tenant_subscription = {
             "plan": tenant.subscription_plan,
-            "plan_name": tenant.subscription_plan.name,
+            "subscription_plan": tenant.subscription_plan,
+            "plan_name": plan_name,
+            "plan_name_en": plan_name_en,
             "status": tenant.subscription_status,
             "status_display": tenant.get_subscription_status_display(),
             "billing_cycle": tenant.get_billing_cycle_display(),
@@ -188,9 +203,9 @@ def branch_context(request):
             "days_left": tenant.days_until_expiry(),
             "is_active": tenant.is_subscription_active(),
             "is_expiring_soon": (tenant.days_until_expiry() <= 7) if tenant.subscription_end else False,
-            "max_branches": tenant.subscription_plan.max_branches,
+            "max_branches": tenant.subscription_plan.max_branches if tenant.subscription_plan else 1,
             "branches_count": tenant.branches.filter(status="active").count(),
-            "max_employees": tenant.subscription_plan.max_employees,
+            "max_employees": tenant.subscription_plan.max_employees if tenant.subscription_plan else 5,
             "employees_count": tenant.employees.filter(status__in=["active", "vacation"]).count(),
             "features": plan_features,
         }
@@ -219,7 +234,14 @@ def i18n_context(request):
     and a rich bilingual translation dictionary (Arabic & English 100%).
     """
     lang = None
-    if hasattr(request, "LANGUAGE_CODE") and request.LANGUAGE_CODE:
+    query_lang = request.GET.get("lang") if hasattr(request, "GET") else None
+    if query_lang in ["ar", "en"]:
+        lang = query_lang
+        if hasattr(request, "session"):
+            request.session["django_language"] = lang
+            request.session["_language"] = lang
+        translation.activate(lang)
+    elif hasattr(request, "LANGUAGE_CODE") and request.LANGUAGE_CODE:
         lang = request.LANGUAGE_CODE
     elif hasattr(request, "session") and request.session.get("django_language"):
         lang = request.session.get("django_language")
