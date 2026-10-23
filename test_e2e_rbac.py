@@ -81,32 +81,42 @@ def run_e2e_tests():
     if not branch:
         branch = Branch.objects.create(tenant=tenant, name="الفرع الرئيسي E2E", status="active")
 
-    preset_roles = ensure_tenant_preset_roles(tenant)
-    assert_equal(len(preset_roles), 8, "Tenant has exactly 8 preset roles")
+    # Check that preset roles are deprecated
+    assert_equal(len(ensure_tenant_preset_roles(tenant)), 0, "Preset roles successfully deprecated (0 preset roles)")
 
-    # Check ordering and Group sync
-    for idx, role in enumerate(preset_roles):
-        expected_ordering = (idx + 1) * 10
-        assert_equal(role.ordering, expected_ordering, f"Role '{role.name}' ordering is {expected_ordering}")
-        assert_true(role.group is not None, f"Role '{role.name}' has linked Django Group")
-        assert_equal(role.group.name, f"t{tenant.id}_role_{role.id}", f"Group name follows t{tenant.id}_role_{role.id} pattern")
-        
-        # Check permissions attached to Django Group
-        group_perms = set(role.group.permissions.values_list("codename", flat=True))
-        role_perms = set(role.get_permissions_list())
-        assert_equal(group_perms, role_perms, f"Group permissions match JobRole permissions for '{role.name}'")
+    # Create custom roles for testing
+    floor_cashier_role, _ = JobRole.objects.get_or_create(tenant=tenant, name="كاشير صالة", defaults={"scope": "branch"})
+    floor_cashier_role.sync_with_django_group()
+    floor_cashier_role.set_permissions(["pos_access", "pos_reprint_receipt", "branch_view_orders", "menu_view", "view_orders", "pos_create_order"])
+
+    senior_cashier_role, _ = JobRole.objects.get_or_create(tenant=tenant, name="كاشير رئيسي", defaults={"scope": "branch"})
+    senior_cashier_role.sync_with_django_group()
+    senior_cashier_role.set_permissions(["pos_access", "pos_apply_discount", "pos_cancel_order", "pos_refund_order", "pos_manage_shift", "pos_reprint_receipt", "branch_view_orders", "branch_cancel_orders", "menu_view", "view_orders", "cancel_orders", "pos_create_order"])
+
+    kitchen_chef_role, _ = JobRole.objects.get_or_create(tenant=tenant, name="طاهٍ رئيسي / مطبخ", defaults={"scope": "branch"})
+    kitchen_chef_role.sync_with_django_group()
+    kitchen_chef_role.set_permissions(["kds_access", "kds_recall_order", "kds_pause_item", "kds_update_status", "menu_view", "menu_toggle_availability", "inventory_view", "inventory_adjust_stock", "inventory_record_waste"])
+
+    delivery_driver_role, _ = JobRole.objects.get_or_create(tenant=tenant, name="سائق توصيل", defaults={"scope": "branch"})
+    delivery_driver_role.sync_with_django_group()
+    delivery_driver_role.set_permissions(["delivery_access", "delivery_track_drivers", "delivery_override_status"])
+
+    call_center_role, _ = JobRole.objects.get_or_create(tenant=tenant, name="موظف كول سنتر", defaults={"scope": "hq"})
+    call_center_role.sync_with_django_group()
+    call_center_role.set_permissions(["call_center_access", "call_center_create_order", "call_center_view_customers", "hq_view_orders", "view_orders"])
+
+    branch_manager_role, _ = JobRole.objects.get_or_create(tenant=tenant, name="مدير فرع", defaults={"scope": "branch"})
+    branch_manager_role.sync_with_django_group()
+    branch_manager_role.set_permissions(["pos_access", "pos_apply_discount", "pos_cancel_order", "pos_refund_order", "pos_manage_shift", "pos_reprint_receipt", "kds_access", "kds_recall_order", "kds_pause_item", "delivery_access", "delivery_assign_driver", "delivery_override_status", "delivery_track_drivers", "branch_view_orders", "branch_edit_orders", "branch_cancel_orders", "branch_delete_orders", "menu_view", "menu_toggle_availability", "menu_manage_items", "menu_change_price", "inventory_view", "inventory_adjust_stock", "inventory_add_stock", "inventory_record_waste", "view_orders", "edit_orders", "cancel_orders", "pos_create_order"])
+
+    hq_manager_role, _ = JobRole.objects.get_or_create(tenant=tenant, name="مدير عام / إدارة عليا", defaults={"scope": "hq"})
+    hq_manager_role.sync_with_django_group()
+    hq_manager_role.set_permissions(["hq_view_orders", "hq_edit_orders", "hq_cancel_orders", "hq_delete_orders", "call_center_access", "call_center_create_order", "call_center_view_customers", "view_orders", "edit_orders", "cancel_orders", "delete_orders"])
 
     # -------------------------------------------------------------
     # 3. User & Group Integration via Django Native Auth
     # -------------------------------------------------------------
     print_header("3. User-Group Integration & User.has_perm / user_has_perm")
-    floor_cashier_role = JobRole.objects.get(tenant=tenant, name="كاشير صالة")
-    senior_cashier_role = JobRole.objects.get(tenant=tenant, name="كاشير رئيسي")
-    kitchen_chef_role = JobRole.objects.get(tenant=tenant, name="طاهٍ رئيسي / مطبخ")
-    delivery_driver_role = JobRole.objects.get(tenant=tenant, name="سائق توصيل")
-    call_center_role = JobRole.objects.get(tenant=tenant, name="موظف كول سنتر")
-    branch_manager_role = JobRole.objects.get(tenant=tenant, name="مدير فرع")
-    hq_manager_role = JobRole.objects.get(tenant=tenant, name="مدير عام / إدارة عليا")
 
     # Create Test Floor Cashier User
     cashier_user, _ = User.objects.get_or_create(username="test_e2e_floor_cashier", defaults={"first_name": "كاشير تجريبي"})

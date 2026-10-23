@@ -310,10 +310,7 @@ def register_view(request):
                         status="active"
                     )
 
-                    # 7. Seed standard preset roles
-                    ensure_tenant_preset_roles(tenant)
-
-                # 8. Authenticate and redirect
+                # 7. Authenticate and redirect
                 login(request, user)
                 request.session["active_tenant_id"] = tenant.id
                 return redirect("dashboard")
@@ -360,8 +357,6 @@ def employees_view(request):
         employees = employees.filter(Q(name__icontains=search) | Q(phone__icontains=search) | Q(employee_code__icontains=search))
 
     branches = Branch.objects.filter(tenant=tenant).order_by("name")
-    if tenant and not JobRole.objects.filter(tenant=tenant).exists():
-        ensure_tenant_preset_roles(tenant)
     job_roles = JobRole.objects.filter(tenant=tenant).annotate(emp_count=Count("employees")).order_by("ordering", "id")
 
     base_qs = Employee.objects.filter(tenant=tenant, branch=active_branch) if active_branch else Employee.objects.filter(tenant=tenant)
@@ -1085,8 +1080,6 @@ def api_job_roles(request):
         ):
             return JsonResponse({"error": "غير مصرح لك باستعراض المسميات الوظيفية وهيكل الصلاحيات"}, status=403)
 
-        if tenant and not JobRole.objects.filter(tenant=tenant).exists():
-            ensure_tenant_preset_roles(tenant)
         roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("ordering", "id")
         data = []
         for r in roles:
@@ -1111,9 +1104,6 @@ def api_job_roles(request):
         return JsonResponse({"ok": True, "roles": data, "catalog": PERMISSIONS_CATALOG, "stats": stats})
 
     elif request.method == "POST":
-        if tenant and not tenant.has_feature("custom_roles") and not (request.user.is_superuser or (profile and profile.is_platform_admin)):
-            return JsonResponse({"error": "إنشاء مسميات وظيفية مخصصة يتطلب باقة اشتراك تدعم ميزة الأدوار المخصصة (custom_roles)"}, status=403)
-
         if not is_owner_or_super and not user_has_perm(request.user, "manage_roles"):
             return JsonResponse({"error": "غير مصرح لك بإضافة مسميات وظيفية"}, status=403)
 
@@ -1228,9 +1218,6 @@ def api_job_role_detail(request, role_id):
     if not is_owner_or_super and not user_has_perm(request.user, "manage_roles"):
         return JsonResponse({"error": "غير مصرح لك بتعديل أو حذف المسميات الوظيفية"}, status=403)
 
-    if role.is_system and not is_owner_or_super:
-        return JsonResponse({"error": "فقط مالك المنشأة أو مدير النظام يمكنه تعديل الأدوار الأساسية للنظام أو صلاحياتها"}, status=403)
-
     if request.method in ["POST", "PATCH", "PUT", "DELETE"]:
         body = {}
         if request.body:
@@ -1241,9 +1228,6 @@ def api_job_role_detail(request, role_id):
 
         action = body.get("action")
         if action == "delete" or request.method == "DELETE":
-            if role.is_system:
-                return JsonResponse({"error": "لا يمكن حذف هذا المسمى الأساسي للنظام"}, status=400)
-
             reassign_to_role_id = body.get("reassign_to_role_id")
             if role.employees.exists():
                 if not reassign_to_role_id:

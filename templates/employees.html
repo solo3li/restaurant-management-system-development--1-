@@ -335,7 +335,6 @@
                     <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
                         <tr>
                             <th class="py-3 px-4">المسمى الوظيفي والوصف</th>
-                            <th class="py-3 px-4">نوع الدور</th>
                             <th class="py-3 px-4">نطاق العمل</th>
                             <th class="py-3 px-4 text-center">الموظفون المسندون</th>
                             <th class="py-3 px-4">الصلاحيات المصرحة</th>
@@ -348,13 +347,6 @@
                             <td class="py-3 px-4">
                                 <p class="font-bold text-slate-900 text-xs">{{ r.name }}</p>
                                 <p class="text-xs text-slate-500 mt-0.5">{{ r.description|default:"—" }}</p>
-                            </td>
-                            <td class="py-3 px-4">
-                                {% if r.is_system %}
-                                <span class="text-xs font-medium text-slate-700 border border-slate-200 bg-slate-50 px-2 py-0.5 rounded">[دور أساسي للنظام]</span>
-                                {% else %}
-                                <span class="text-xs font-medium text-slate-600">مخصص</span>
-                                {% endif %}
                             </td>
                             <td class="py-3 px-4">
                                 {% if r.scope == 'hq' %}
@@ -378,17 +370,15 @@
                                     <button type="button" onclick="openEditRoleModal({{ r.id }})" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
                                         تعديل الصلاحيات
                                     </button>
-                                    {% if not r.is_system %}
                                     <button type="button" onclick="deleteJobRole({{ r.id }}, '{{ r.name|escapejs }}', {{ r.emp_count }})" class="rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
                                         حذف
                                     </button>
-                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-xs text-slate-500">لا توجد مسميات وظيفية مسجلة</td>
+                            <td colspan="5" class="py-8 text-center text-xs text-slate-500">لا توجد مسميات وظيفية مسجلة</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -1534,7 +1524,7 @@
         if (!tbody) return;
 
         if (!roles || roles.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-xs text-slate-500">لا توجد مسميات وظيفية مسجلة</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-xs text-slate-500">لا توجد مسميات وظيفية مسجلة</td></tr>';
             return;
         }
 
@@ -1544,17 +1534,12 @@
                 ? '<span class="text-xs font-semibold text-purple-800 border-l-2 border-purple-600 pl-2">الإدارة العامة (HQ)</span>'
                 : '<span class="text-xs font-semibold text-emerald-800 border-l-2 border-emerald-600 pl-2">تشغيل فرع محدد</span>';
 
-            const typeTag = r.is_system
-                ? '<span class="text-xs font-medium text-slate-700 border border-slate-200 bg-slate-50 px-2 py-0.5 rounded">[دور أساسي للنظام]</span>'
-                : '<span class="text-xs font-medium text-slate-600">مخصص</span>';
-
             html += `
                 <tr class="hover:bg-slate-50/70 transition" data-role-id="${r.id}">
                     <td class="py-3 px-4">
                         <p class="font-bold text-slate-900 text-xs">${escapeHtml(r.name)}</p>
                         <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(r.description || '—')}</p>
                     </td>
-                    <td class="py-3 px-4">${typeTag}</td>
                     <td class="py-3 px-4">${scopeTag}</td>
                     <td class="py-3 px-4 text-center">
                         <button type="button" onclick="openRoleEmployeesModal(${r.id}, '${escapeHtml(r.name)}')" class="font-bold text-xs text-violet-700 hover:text-violet-900 underline underline-offset-2 cursor-pointer transition">
@@ -1571,11 +1556,9 @@
                             <button type="button" onclick="openEditRoleModal(${r.id})" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
                                 تعديل الصلاحيات
                             </button>
-                            ${!r.is_system ? `
                             <button type="button" onclick="deleteJobRole(${r.id}, '${escapeHtml(r.name)}', ${r.employees_count})" class="rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
                                 حذف
                             </button>
-                            ` : ''}
                         </div>
                     </td>
                 </tr>

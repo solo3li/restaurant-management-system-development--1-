@@ -176,97 +176,7 @@ HQ_PERMISSIONS = {
 }
 
 
-PRESET_ROLES_CONFIG = [
-    {
-        "name": "مدير عام / إدارة عليا",
-        "scope": "hq",
-        "description": "متابعة وإشراف على فروع السلسلة وسجل الطلبات المركزية والكول سنتر",
-        "is_system": True,
-        "permissions": [
-            "hq_view_orders", "hq_edit_orders", "hq_cancel_orders", "hq_delete_orders",
-            "call_center_access", "call_center_create_order", "call_center_view_customers",
-            "view_orders", "edit_orders", "cancel_orders", "delete_orders",
-        ],
-    },
-    {
-        "name": "مدير فرع",
-        "scope": "branch",
-        "description": "إدارة كامل العمليات التشغيلية للفرع (كاشير، مطبخ، توصيل، فواتير، منيو، ومخزون)",
-        "is_system": True,
-        "permissions": [
-            "pos_access", "pos_apply_discount", "pos_cancel_order", "pos_refund_order", "pos_manage_shift", "pos_reprint_receipt",
-            "kds_access", "kds_recall_order", "kds_pause_item",
-            "delivery_access", "delivery_assign_driver", "delivery_override_status", "delivery_track_drivers",
-            "branch_view_orders", "branch_edit_orders", "branch_cancel_orders", "branch_delete_orders",
-            "menu_view", "menu_toggle_availability", "menu_manage_items", "menu_change_price",
-            "inventory_view", "inventory_adjust_stock", "inventory_add_stock", "inventory_record_waste",
-            "view_orders", "edit_orders", "cancel_orders", "pos_create_order",
-        ],
-    },
-    {
-        "name": "كاشير رئيسي",
-        "scope": "branch",
-        "description": "مسؤول الوردية، تسجيل ومتابعة الطلبات، تطبيق الخصومات المصرحة، وإلغاء الفواتير الخاطئة",
-        "is_system": True,
-        "permissions": [
-            "pos_access", "pos_apply_discount", "pos_cancel_order", "pos_refund_order", "pos_manage_shift", "pos_reprint_receipt",
-            "branch_view_orders", "branch_cancel_orders",
-            "menu_view",
-            "view_orders", "cancel_orders", "pos_create_order",
-        ],
-    },
-    {
-        "name": "كاشير صالة",
-        "scope": "branch",
-        "description": "تسجيل طلبات الصالة والسفري وإصدار الإيصالات فقط بدون صلاحيات خصم أو إلغاء",
-        "is_system": True,
-        "permissions": [
-            "pos_access", "pos_reprint_receipt", "branch_view_orders", "menu_view",
-            "view_orders", "pos_create_order",
-        ],
-    },
-    {
-        "name": "طاهٍ رئيسي / مطبخ",
-        "scope": "branch",
-        "description": "شاشة المطبخ KDS، إعداد الوجبات، وتحديد توفر الأصناف في مطبخ الفرع",
-        "is_system": True,
-        "permissions": [
-            "kds_access", "kds_recall_order", "kds_pause_item", "kds_update_status",
-            "menu_view", "menu_toggle_availability",
-            "inventory_view", "inventory_adjust_stock", "inventory_record_waste",
-        ],
-    },
-    {
-        "name": "سائق توصيل",
-        "scope": "branch",
-        "description": "استلام الطلبات ومتابعة مسارات التوصيل وتأكيد التسليم للعملاء",
-        "is_system": True,
-        "permissions": [
-            "delivery_access", "delivery_track_drivers", "delivery_override_status",
-        ],
-    },
-    {
-        "name": "موظف كول سنتر",
-        "scope": "hq",
-        "description": "استقبال اتصالات العملاء المركزية وتسجيل طلبات الهاتف وتوجيهها للفروع المناسبة",
-        "is_system": True,
-        "permissions": [
-            "call_center_access", "call_center_create_order", "call_center_view_customers",
-            "hq_view_orders", "view_orders",
-        ],
-    },
-    {
-        "name": "مشرف عمليات عامة / HQ",
-        "scope": "hq",
-        "description": "متابعة ومراقبة سجل كافة طلبات السلسلة عبر كل الفروع وتنسيق عمليات الكول سنتر",
-        "is_system": True,
-        "permissions": [
-            "hq_view_orders", "hq_edit_orders", "hq_cancel_orders",
-            "call_center_access", "call_center_create_order", "call_center_view_customers",
-            "view_orders", "edit_orders", "cancel_orders",
-        ],
-    },
-]
+PRESET_ROLES_CONFIG = []
 
 
 class JobRole(models.Model):
@@ -370,29 +280,8 @@ class JobRole(models.Model):
 
 
 def ensure_tenant_preset_roles(tenant):
-    """Seed or update the 8 professional preset roles for a tenant and sync with Django groups."""
-    created_or_updated = []
-    for idx, cfg in enumerate(PRESET_ROLES_CONFIG):
-        role, created = JobRole.objects.get_or_create(
-            tenant=tenant,
-            name=cfg["name"],
-            defaults={
-                "scope": cfg["scope"],
-                "description": cfg["description"],
-                "is_system": cfg["is_system"],
-                "ordering": (idx + 1) * 10,
-            }
-        )
-        if not created and role.is_system:
-            # Refresh system preset permissions
-            role.scope = cfg["scope"]
-            role.description = cfg["description"]
-            role.ordering = (idx + 1) * 10
-            role.save()
-        role.sync_with_django_group()
-        role.set_permissions(cfg["permissions"])
-        created_or_updated.append(role)
-    return created_or_updated
+    """Preset roles are deprecated in favor of 100% custom user-defined roles."""
+    return []
 
 
 class Employee(models.Model):
