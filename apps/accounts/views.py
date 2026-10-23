@@ -517,6 +517,13 @@ def api_create_employee(request):
             return JsonResponse({"error": "غير مصرح لك بتعيين المسمى الوظيفي والصلاحيات للموظف"}, status=403)
         job_role = JobRole.objects.filter(tenant=tenant, id=int(job_role_id)).first()
 
+    if job_role:
+        if job_role.scope == "hq":
+            branch = None
+        elif job_role.scope == "branch" and not branch:
+            if Branch.objects.filter(tenant=tenant).exists():
+                return JsonResponse({"error": "المسمى الوظيفي محدد بنطاق الفرع، يجب اختيار فرع العمل للموظف"}, status=400)
+
     salary_val = Decimal("4000")
     if "salary" in data and str(data["salary"]).strip():
         try:
@@ -719,6 +726,16 @@ def api_update_employee(request, emp_id):
         if emp.user and hasattr(emp.user, "profile"):
             emp.user.profile.branch = emp.branch
             emp.user.profile.save()
+
+    if emp.job_role:
+        if emp.job_role.scope == "hq":
+            emp.branch = None
+            if emp.user and hasattr(emp.user, "profile"):
+                emp.user.profile.branch = None
+                emp.user.profile.save()
+        elif emp.job_role.scope == "branch" and not emp.branch:
+            if Branch.objects.filter(tenant=tenant).exists():
+                return JsonResponse({"error": "المسمى الوظيفي محدد بنطاق الفرع، يجب اختيار فرع العمل للموظف"}, status=400)
 
     # Employee Code (ID) update - restricted to Superadmin and Owner
     new_code = str(data.get("employeeCode") or data.get("employee_code") or "").translate(trans_table).strip()
