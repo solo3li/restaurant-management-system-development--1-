@@ -270,6 +270,11 @@ class Branch(models.Model):
         verbose_name="الأسعار شاملة الضريبة",
         help_text="إذا كان مفعلاً، تكون أسعار قائمة الطعام شاملة للضريبة ويتم احتساب الضريبة داخلياً، وإلا تضاف فوق المجموع."
     )
+    cancellation_window_minutes = models.PositiveIntegerField(
+        default=10,
+        verbose_name="مهلة إلغاء الطلب (بالدقائق)",
+        help_text="المدة الزمنية المسموح بها للعميل لإلغاء طلبه طالما لم يبدأ المطبخ في تحضيره."
+    )
     is_accepting_orders = models.BooleanField(default=True, verbose_name="استقبال الطلبات الذاتية حالياً")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
 

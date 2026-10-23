@@ -3547,6 +3547,7 @@ def api_create_branch(request):
         delivery_radius_km=Decimal(str(radius or 5.0)),
         tax_percentage=max(Decimal("0.00"), Decimal(str(data.get("tax_percentage") or 15.0))),
         is_tax_inclusive=bool(data.get("is_tax_inclusive", True)),
+        cancellation_window_minutes=max(1, int(data.get("cancellation_window_minutes") or 10)),
         status="active",
     )
 
@@ -3616,6 +3617,7 @@ def api_branch_delivery_areas(request, branch_id):
                 "currency_symbol": branch.get_currency_symbol_ar(),
                 "tax_percentage": float(branch.tax_percentage),
                 "is_tax_inclusive": bool(branch.is_tax_inclusive),
+                "cancellation_window_minutes": int(branch.cancellation_window_minutes),
             },
             "areas": areas
         })
@@ -3732,6 +3734,8 @@ def api_branch_delivery_areas(request, branch_id):
                 branch.tax_percentage = max(Decimal("0.00"), Decimal(str(data["tax_percentage"] or 0)))
             if "is_tax_inclusive" in data:
                 branch.is_tax_inclusive = bool(data["is_tax_inclusive"])
+            if "cancellation_window_minutes" in data:
+                branch.cancellation_window_minutes = max(1, int(data["cancellation_window_minutes"] or 10))
             branch.save()
             log_audit_event(
                 tenant=tenant,
@@ -3765,6 +3769,8 @@ def api_branch_delivery_areas(request, branch_id):
                 branch.tax_percentage = max(Decimal("0.00"), Decimal(str(data.get("tax_percentage") or 0)))
             if "is_tax_inclusive" in data:
                 branch.is_tax_inclusive = bool(data.get("is_tax_inclusive"))
+            if "cancellation_window_minutes" in data:
+                branch.cancellation_window_minutes = max(1, int(data.get("cancellation_window_minutes") or 10))
             branch.save()
             log_audit_event(
                 tenant=tenant,
@@ -3788,6 +3794,7 @@ def api_branch_delivery_areas(request, branch_id):
                 "min_order_tier3_amount": float(branch.min_order_tier3_amount),
                 "tax_percentage": float(branch.tax_percentage),
                 "is_tax_inclusive": bool(branch.is_tax_inclusive),
+                "cancellation_window_minutes": int(branch.cancellation_window_minutes),
             })
 
         return JsonResponse({"error": "إجراء غير معروف"}, status=400)

@@ -462,6 +462,7 @@ def get_branches(branch_id: Optional[int] = None, access_key: Optional[str] = No
             "currency_symbol": b.get_currency_symbol_ar(),
             "tax_percentage": float(b.tax_percentage),
             "is_tax_inclusive": bool(b.is_tax_inclusive),
+            "cancellation_window_minutes": int(getattr(b, "cancellation_window_minutes", 10)),
             "delivery_radius_km": float(b.delivery_radius_km),
             "delivery_areas_count": areas_count,
         })
@@ -485,8 +486,16 @@ def _normalize_digits(text: Any) -> str:
 
 
 def _strip_al(w: str) -> str:
-    """إزالة أداة التعريف (ال) للمقارنة الدقيقة للأطعمة والمناطق."""
-    if w.startswith("ال") and len(w) > 3:
+    """إزالة أداة التعريف (ال) للمقارنة الدقيقة للأطعمة والمناطق دون كسر الكلمات الأصلية."""
+    if not w:
+        return ""
+    preserved_roots = {
+        "البان", "الوان", "الماس", "الم", "الياس", "الف", "الوف", "الكترونيات",
+        "الام", "الولايات", "اله", "اليف"
+    }
+    if w in preserved_roots:
+        return w
+    if w.startswith("ال") and len(w) > 4:
         return w[2:]
     return w
 
@@ -507,21 +516,18 @@ def _normalize_arabic_text(text: str) -> str:
 def _canonical_food_name(text: str) -> str:
     """
     محرك المرادفات اللغوية والشعبية للأطعمة والمشروبات:
-    يوحد لهجات العملاء الشائعة (فراخ -> دجاج، لحمة -> لحم، كولا -> مشروب غازي)
-    ويحذف الكلمات التمهيدية والزوائد الشائعة في المحادثة الصوتية.
+    يوحد لهجات العملاء الشائعة (فراخ -> دجاج، لحمه -> لحم) مع الحفاظ التام على هوية البراندات والمشروبات.
     """
     norm = _normalize_arabic_text(text)
     words = norm.split()
-    
+
     synonyms = {
         "فراخ": "دجاج",
         "فرخه": "دجاج",
-        "دجاجة": "دجاج",
         "دجاجه": "دجاج",
         "تشيكن": "دجاج",
         "تشكن": "دجاج",
         "لحمه": "لحم",
-        "لحمة": "لحم",
         "برجر": "برجر",
         "بورجر": "برجر",
         "سنجل": "سينجل",
@@ -533,36 +539,46 @@ def _canonical_food_name(text: str) -> str:
         "حار": "حار",
         "سبايسي": "حار",
         "حاره": "حار",
-        "حارة": "حار",
         "موتزاريلا": "موزاريلا",
         "موتزريلا": "موزاريلا",
         "موزريلا": "موزاريلا",
         "ضاني": "غنم",
         "ضان": "غنم",
         "خروف": "غنم",
-        "بيبسي": "مشروب غازي",
-        "كولا": "مشروب غازي",
-        "كوكاكولا": "مشروب غازي",
-        "كوكا": "مشروب غازي",
-        "سفن": "مشروب غازي",
-        "سبرايت": "مشروب غازي",
+        # الحفاظ على هوية البراندات المنفصلة للمشروبات
+        "بيبسي": "بيبسي",
+        "كولا": "كولا",
+        "كوكاكولا": "كولا",
+        "كوكا": "كولا",
+        "سفن": "سفن",
+        "سفن اب": "سفن",
+        "سبرايت": "سبرايت",
+        "فانتا": "فانتا",
+        "ميرندا": "ميرندا",
+        "ميراندا": "ميرندا",
+        "شويبس": "شويبس",
+        "ديو": "ديو",
+        "ماونتن ديو": "ديو",
         "كانز": "مشروب غازي",
-        "ميه": "ماء صحي",
-        "مياه": "ماء صحي",
-        "مويه": "ماء صحي",
+        "صودا": "مشروب غازي",
+        "مشروب غازي": "مشروب غازي",
+        "ميه": "ماء",
+        "مياه": "ماء",
+        "مويه": "ماء",
+        "ماء صحي": "ماء",
         "صياد": "صياديه",
         "سمكه": "سمك",
         "شيش": "شيش طاووق",
     }
-    
-    fillers = {"وجبه", "وجبة", "ساندوتش", "سندوتش", "سندوتشات", "ساندويتش", "ساندويتشات", "طبق", "علبه", "علبة", "طلب", "واحد", "اثنين", "عدد"}
+
+    fillers = {"وجبه", "ساندوتش", "سندوتش", "سندوتشات", "ساندويتش", "ساندويتشات", "طبق", "علبه", "طلب", "واحد", "اثنين", "عدد"}
     cleaned = []
     for w in words:
         base_w = _strip_al(w)
         if base_w in fillers and len(words) > 1:
             continue
         cleaned.append(synonyms.get(base_w, synonyms.get(w, base_w)))
-        
+
     res = " ".join(cleaned)
     res = res.replace("صياد سمك", "صياديه سمك")
     return re.sub(r'\s+', ' ', res).strip()
@@ -579,7 +595,7 @@ def _clean_phone(phone: Any) -> str:
 
 
 def _parse_natural_order_text(text: str, tenant=None, branch=None) -> List[Dict[str, Any]]:
-    """تحليل النص العامي إلى قائمة أصناف وكميات مرنة للمكالمات الصوتية."""
+    """تحليل النص العامي إلى قائمة أصناف وكميات مرنة للمكالمات الصوتية دون قص الحروف الأصلية."""
     if not text or not isinstance(text, str):
         return []
 
@@ -593,8 +609,9 @@ def _parse_natural_order_text(text: str, tenant=None, branch=None) -> List[Dict[
         "ستة": 6, "٦": 6, "6": 6,
     }
 
-    # تقطيع الجملة بناءً على الفواصل وحرف العطف و (مع استثناء كلمات مثل وجبة)
-    segments = re.split(r'[,،\n\+]|\s+و(?!\w*جبة)', clean_text)
+    # التقطيع الذكي بناءً على الفواصل وحروف العطف دون قص الأصناف التي تبدأ بحرف و (مثل ورق عنب، وافل، وينجز، وجبة، ووك)
+    split_pattern = r'[,،\n\+]|\s+(?:مع|\+)\s*|\s+و\s+|\s+و(?=\d|واحد|اتنين|اثنين|تلاتة|ثلاثة|اربعة|خمسة|ستة)|\s+و(?=ورق|وافل|وينجز|وجب|ووك)|\s+و(?!(?:ورق|وافل|وينجز|وجب|ووك|ويفر|ورد))\b'
+    segments = re.split(split_pattern, clean_text)
     items = []
 
     for seg in segments:
@@ -726,18 +743,18 @@ def _find_menu_item(tenant, branch, item_spec: Any, disabled_item_ids: set) -> t
 
     matched_item = None
 
-    # 2.1 المطابقة بعد تطبيق قاموس المرادفات
+    # 2.1 المطابقة التامة المباشرة بالاسم
     for m in all_tenant_items:
-        if _canonical_food_name(m.name) == canon_query:
+        if _normalize_arabic_text(m.name) == norm_query:
             if m.id in disabled_item_ids:
                 return None, None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
             matched_item = m
             break
 
-    # 2.2 المطابقة التامة بعد التسوية العادية
+    # 2.2 المطابقة بعد تطبيق قاموس المرادفات واللهجات
     if not matched_item:
         for m in all_tenant_items:
-            if _normalize_arabic_text(m.name) == norm_query:
+            if _canonical_food_name(m.name) == canon_query:
                 if m.id in disabled_item_ids:
                     return None, None, f"الصنف «{m.name}» غير متوفر حالياً في فرع «{branch.name}»."
                 matched_item = m
@@ -785,12 +802,9 @@ def _validate_delivery_address_completeness(
     matched_area_name: str = ""
 ) -> tuple[bool, Optional[Dict[str, Any]]]:
     """
-    التحقق الذكي المتكيف من اكتمال عنوان التوصيل وفقاً للنمط الجغرافي والعمراني للمنطقة (5 أنماط):
-    1. المدن الجديدة بنظام الأحياء والمجاورات (زايد، أكتوبر، الشروق، العبور، 15 مايو، بدر، العاشر)
-    2. الكمبوندات السكنية المغلقة (مدينتي، الرحاب، هايد بارك، ميفيدا، بادية، سوديك، بالم هيلز...)
-    3. المولات والمقرات الإدارية والتجارية (مول مصر، مول العرب، كايرو فيستيفال، القرية الذكية...)
-    4. المناطق المقسمة بالنمر والفيلات (التجمع الخامس، النرجس، الياسمين، البنفسج، بيت الوطن...)
-    5. الشوارع التقليدية والمناطق الحضرية العامة (المعادي، مصر الجديدة، مدينة نصر، المهندسين، الدقي، فيصل...)
+    التحقق المرن المتكيف من اكتمال عنوان التوصيل وفقاً للمعايير القياسية:
+    (الشارع/الحي، المبنى/العمارة/الفيلا، الطابق/الشقة أو المعلم المميز)
+    يدعم جغرافية ومعالم السعودية ومصر والخليج والدول العربية بأسلوب احترافي مهذب للصوت الذكي.
     """
     raw_addr = str(clean_addr or "").strip()
     if not raw_addr:
@@ -799,7 +813,7 @@ def _validate_delivery_address_completeness(
             "is_system_error": False,
             "status": "address_details_required",
             "error": "عنوان التوصيل فارغ أو غير محدد.",
-            "ai_speech_response": "يا فندم محتاجة أعرف عنوان التوصيل بالتفصيل عشان أقدر أسجل لحضرتك الأوردر.",
+            "ai_speech_response": "فضلاً تزويدنا بعنوان التوصيل بالتفصيل لنتمكن من تسجيل الطلب وتوصيله لحضرتك.",
             "instruction_for_ai": "اطلب من العميل تزويدك بعنوان التوصيل بالتفصيل كما في ai_speech_response ولا تقل إن هناك عطلاً بالسيستم."
         }
 
@@ -810,16 +824,26 @@ def _validate_delivery_address_completeness(
 
     area_label = matched_area_name.strip() if matched_area_name.strip() else raw_addr.split("،")[0].split("-")[0].strip()
 
-    # Generic building / property tokens
-    bldg_tokens = ["عماره", "فيلا", "بلوك", "قطعه", "منزل", "بيت", "برج", "مبني"]
+    # Generic building / property tokens (KSA + Egypt + GCC)
+    bldg_tokens = [
+        "عماره", "عمارة", "فيلا", "بلوك", "قطعه", "قطعة", "منزل", "بيت", "برج", "مبني", "مبنى",
+        "مجمع", "كمبوند", "كومبوند", "قصر", "استراحه", "استراحة"
+    ]
     has_bldg = any(t in norm_addr for t in bldg_tokens)
 
     # Unit / Floor tokens
-    unit_tokens = ["شقه", "دور", "طابق", "ارضي", "وحده", "سويت", "مكتب", "استوديو"]
+    unit_tokens = [
+        "شقه", "شقة", "دور", "طابق", "ارضي", "أرضي", "وحده", "وحدة", "سويت", "مكتب", "استوديو",
+        "جناح", "بوابه", "بوابة", "ملحق", "سطح"
+    ]
     has_unit = any(t in norm_addr for t in unit_tokens)
 
+    # Street / Road / Neighborhood tokens
+    loc_tokens = ["شارع", "طريق", "حي", "حاره", "حارة", "زقاق", "ميدان", "تقاطع", "مجاوره", "مجاورة"]
+    has_loc = any(t in norm_addr for t in loc_tokens)
+
     # Commercial tokens
-    comm_tokens = ["محل", "معرض", "شركه", "مكتب", "عياده", "كافيه", "مطعم", "فرع", "بنك", "معمل", "ستور", "store"]
+    comm_tokens = ["محل", "معرض", "شركه", "شركة", "مكتب", "عياده", "عيادة", "كافيه", "مطعم", "فرع", "بنك", "معمل", "ستور", "store", "فندق", "hotel"]
     has_comm = any(t in norm_addr for t in comm_tokens)
 
     # Numbers (digits or written ordinals)
@@ -828,29 +852,26 @@ def _validate_delivery_address_completeness(
         re.search(r'\b(اول|الاول|تاني|التاني|ثاني|الثاني|تالت|التالت|ثالث|الثالث|رابع|الرابع|خامس|الخامس|سادس|السادس|سابع|السابع|تامن|التامن|ثامن|الثامن|تاسع|التاسع|عاشر|العاشر|ارضي|الارضي|اخير|الاخير)\b', norm_addr)
     )
 
-    # Check if this is a full residential address specifying building, unit and number
-    # (e.g. "عمارة 15 شقة 4 بجوار كارفور") so we don't misclassify it as an outdoor pickup
-    is_explicit_residential = (has_bldg and (has_unit or "فيلا" in norm_addr) and has_num)
+    # Explicit residential complete
+    is_explicit_residential = (has_bldg and (has_unit or "فيلا" in norm_addr or "منزل" in norm_addr) and has_num)
 
-    # 1. Typology: Prominent Landmarks, Malls & Outdoor Meeting Points (سؤال الحسم السريع ونقاط الالتقاء)
+    # Prominent Landmarks (Saudi Arabia, Egypt, Gulf)
     landmark_keywords = [
+        # Saudi Landmarks
+        "الرياض بارك", "النخيل مول", "بانوراما", "العرب مول", "رد سي", "الظهران مول", "الأندلس مول",
+        "برج المملكه", "برج المملكة", "برج الفيصليه", "برج الفيصلية", "بوليفارد", "العثيم", "التميمي",
+        "بنده", "الدانوب", "السدحان", "لولو", "غرناطة مول", "الحمراء مول", "تالا مول",
+        # Egypt Landmarks
         "كارفور", "carrefour", "هايبر", "سوبر ماركت", "ماركت", "خير زمان", "اولاد رجب", "أولاد رجب",
-        "فتح الله", "كازيون", "بيم", "سعودي", "سبينس", "لولو", "مول", "mall", "كايرو فيستيفال",
+        "فتح الله", "كازيون", "بيم", "سعودي", "سبينس", "مول", "mall", "كايرو فيستيفال",
         "سيتي ستارز", "اركان", "القريه الذكيه", "داون تاون", "سنتر", "بيزنس بارك", "مبني اداري",
-        "مجمع البنوك", "بوينت 90", "امريكانا بلازا", "ميدتاون", "مجره", "سيتي سنتر", "سيتي ووك",
-        "تريفيوم", "كونكورد", "واتر واي", "نادي", "نادى", "استاد", "مركز شباب", "وادي دجله",
-        "وادى دجله", "الاهلي", "الأهلي", "الزمالك", "الصيد", "الجزيره", "الجزيرة", "سبورتنج",
-        "هليوبوليس", "بتروسبورت", "رواد", "مستشفي", "مستشفى", "عيادات", "مركز طبي", "معهد الاورام",
-        "القصر العيني", "الدمرداش", "دار الفؤاد", "كليوباترا", "السلام الدولي", "جامعه", "جامعة",
-        "كليه", "كلية", "مدرسه", "مدرسة", "اكاديميه", "اكاديمية", "محطه", "محطة", "مترو",
-        "محطة قطر", "موقف", "بنزينه", "بنزينة", "توتال", "شيل", "موبيل", "امارات مصر", "وطنيه",
-        "وطنية", "تشيل اوت", "chillout", "مسجد", "جامع", "كنيسه", "كنيسة", "ميدان", "حديقه",
-        "حديقة", "بارك", "ماكدونالدز", "ماك", "كنتاكي", "ستاربكس", "كافيه", "سينما"
+        "مجمع البنوك", "بوينت 90", "امريكانا بلازا", "ميدتاون", "سيتي سنتر", "سيتي ووك",
+        "نادي", "نادى", "استاد", "مستشفي", "مستشفى", "عيادات", "مركز طبي", "جامعه", "جامعة",
+        "كليه", "كلية", "مدرسه", "مدرسة", "محطه", "محطة", "مترو", "قطار", "مسجد", "جامع"
     ]
     is_landmark = any(k in combined for k in landmark_keywords)
 
     if is_landmark and not is_explicit_residential:
-        # Determine natural landmark name for speech prompt
         clean_landmark = re.sub(
             r'^(هستلمه\s+من|هستلم\s+من|استلام\s+من|من|عند|في|بجوار|جنب|قصاد|امام|أمام|قدام)\s+',
             '',
@@ -859,32 +880,29 @@ def _validate_delivery_address_completeness(
         ).strip()
         landmark_label = clean_landmark if (clean_landmark and len(clean_landmark) <= 45) else (area_label or raw_addr.strip())
 
-        # Outdoor pickup tokens (waiting on the street / outside landmark)
         outdoor_tokens = [
             "بره", "برة", "خارجي", "خارج", "في الشارع", "عالشارع", "على الشارع", "بالشارع", "في شارع",
-            "قدام", "امام", "أمام", "قصاد", "على الرصيف", "عالرصيف",
+            "قدام", "امام", "أمام", "قصاد", "على الرصيف", "عالرصيف", "عند البوابه", "عند البوابة",
             "في العربيه", "في العربية", "عالعربيه", "عالعربية", "عالسياره", "عالسيارة", "على السياره", "على السيارة",
-            "ناصيه", "ناصية", "على البوابه", "على البوابة", "قدام البوابه", "قدام البوابة", "بره البوابه", "برة البوابة",
-            "على الباب", "قدام الباب", "بره الباب", "برة الباب", "مستني بره", "مستني برة", "مستني في الشارع"
+            "على البوابه", "على البوابة", "قدام البوابه", "قدام البوابة", "على الباب", "قدام الباب", "عند المدخل"
         ]
         has_outdoor = any(t in norm_addr for t in outdoor_tokens)
 
-        # Indoor commercial tokens (shop, office, clinic inside mall or complex)
         indoor_tokens = [
             "محل", "معرض", "شركه", "شركة", "مكتب", "عياده", "عيادة", "فرع", "ستور", "store",
-            "جوه", "جوا", "داخل", "طابق", "دور", "سويت"
+            "جوه", "جوا", "داخل", "طابق", "دور", "سويت", "كشك"
         ]
         has_indoor = any(t in norm_addr for t in indoor_tokens)
 
-        # 1A. Explicit Outdoor Meeting Point -> Complete & Accepted Immediately!
+        # Outdoor pickup confirmed
         if has_outdoor and len(words) >= 2:
             return True, None
 
-        # 1B. Explicit Indoor Venue -> Must specify shop/office and floor/gate
+        # Indoor venue
         if has_indoor:
-            indoor_complete = has_comm and (has_unit or "بوابه" in norm_addr or has_num or "دور" in norm_addr or "طابق" in norm_addr) and len(words) >= 4
+            indoor_complete = has_comm and (has_unit or "بوابه" in norm_addr or has_num or "دور" in norm_addr or "طابق" in norm_addr) and len(words) >= 3
             if not indoor_complete:
-                speech = f"يا فندم محتاجة أعرف اسم المحل أو المكتب في {landmark_label}، والدور أو أقرب بوابة عشان كابتن التوصيل يوصل لحضرتك على طول."
+                speech = f"فضلاً تزويدنا باسم المحل أو المكتب داخل {landmark_label}، ورقم الدور أو أقرب بوابة ليصل مندوب التوصيل لحضرتك مباشرة."
                 return False, {
                     "ok": False,
                     "is_system_error": False,
@@ -897,134 +915,75 @@ def _validate_delivery_address_completeness(
                 }
             return True, None
 
-        # 1C. Ambiguous Landmark -> The Single Disambiguation Question (سؤال الحسم السريع)
-        speech = f"يا فندم حضرتك هتستلم من الكابتن برة في الشارع قدام {landmark_label}، ولا التوصيل لمحل أو مكتب جوه؟"
+        # Landmark disambiguation
+        speech = f"فضلاً هل الاستلام بالخارج أمام {landmark_label}، أم التوصيل لمحل أو مكتب بالداخل؟"
         return False, {
             "ok": False,
             "is_system_error": False,
             "status": "disambiguation_required",
             "typology": "landmark_disambiguation",
             "area_name": area_label,
-            "error": f"العنوان عند المعلم «{landmark_label}» يتطلب حسم ما إذا كان الاستلام بالشارع خارج المعلم أم في محل/مكتب بالداخل.",
+            "error": f"العنوان عند المعلم «{landmark_label}» يتطلب حسم ما إذا كان الاستلام بالخارج أم في محل/مكتب بالداخل.",
             "ai_speech_response": speech,
             "instruction_for_ai": (
-                f"لا تسجل الطلب الآن! انطق للعميل نصاً سؤال الحسم السريع: «{speech}». "
-                f"فإذا أجاب بالاستلام برة في الشارع، سجل العنوان فوراً كـ «استلام خارجي بالشارع قدام {landmark_label}» واعتمد الطلب دون طلب عمارة أو شقة أو مجاورة. "
-                f"أما إذا أجاب بالاستلام جوه، فاسأله فقط عن اسم المحل/المكتب ورقم الدور ولا تقل إن هناك عطلاً بالسيستم."
+                f"لا تسجل الطلب الآن! اسأل العميل بأدب: «{speech}». "
+                f"فإذا أجاب بالاستلام بالخارج أو بالسيارة، اعتمد العنوان فوراً. "
+                f"أما إذا كان بالداخل، فاطلب اسم المحل أو المكتب ورقم الدور ولا تقل إن هناك عطلاً بالسيستم."
             )
         }
 
-    # 2. Typology: Gated Communities / Compounds
+    # Gated compounds or residential towers
     compound_keywords = [
         "كمبوند", "كومبوند", "مدينتي", "مدينتى", "الرحاب", "رحاب", "هايد بارك",
-        "ميفيدا", "باديه", "بادية", "سوديك", "بالم هيلز", "ماونتن فيو", "الربوه",
-        "الربوة", "بيفرلي", "سوان ليك", "اب تاون", "تاج سيتي", "ليان", "ديره",
-        "زاد", "zed", "الياسمين ريزيدنس"
+        "ميفيدا", "باديه", "بادية", "سوديك", "بالم هيلز", "ماونتن فيو", "بيفرلي",
+        "سوان ليك", "اب تاون", "تاج سيتي", "زاد", "zed", "المجمع السكني"
     ]
     is_compound = any(k in combined for k in compound_keywords)
     if is_compound:
-        cmpnd_group_tokens = ["مجموعه", "مرحله", "زون", "zone", "قطاع", "جروب", "group", "فيلات", "عمارات", "حرف",
+        cmpnd_group_tokens = ["مجموعه", "مجموعة", "مرحله", "مرحلة", "زون", "zone", "قطاع", "جروب", "group", "فيلات", "عمارات", "حرف",
                               "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10", "b11", "b12"]
         has_group = any(t in norm_addr for t in cmpnd_group_tokens)
         compound_complete = (
             (has_group or has_bldg) and
             (has_unit or "فيلا" in norm_addr or "بوابه" in norm_addr) and
             has_num and
-            len(words) >= 4
+            len(words) >= 3
         )
         if not compound_complete:
-            speech = f"يا فندم محتاجة أعرف في {area_label} رقم المجموعة أو المرحلة، ورقم العمارة أو الفيلا ورقم الشقة أو البوابة عشان كابتن التوصيل يدخل لحضرتك علطول."
+            speech = f"فضلاً في {area_label} تحديد رقم المرحلة أو المجموعة، ورقم العمارة أو الفيلا ورقم الشقة أو البوابة لوصول المندوب مباشرة."
             return False, {
                 "ok": False,
                 "is_system_error": False,
                 "status": "address_details_required",
                 "typology": "gated_compound",
                 "area_name": area_label,
-                "error": f"العنوان في الكمبوند «{area_label}» يتطلب رقم المجموعة/المرحلة والعمارة/الفيلا ورقم الشقة/البوابة.",
+                "error": f"العنوان في المجمع/الكمبوند «{area_label}» يتطلب رقم المجموعة/المرحلة والعمارة/الفيلا ورقم الشقة/البوابة.",
                 "ai_speech_response": speech,
-                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل تفاصيل الكمبوند بدقة ولا تقل إن هناك عطلاً بالسيستم."
+                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل تفاصيل العنوان بدقة ولا تقل إن هناك عطلاً بالسيستم."
             }
         return True, None
 
-    # 3. Typology: New Cities with Neighborhoods & Districts (الأحياء والمجاورات)
-    new_city_keywords = [
-        "زايد", "الشيخ زايد", "اكتوبر", "السادس من اكتوبر", "العاشر", "رمضان",
-        "الشروق", "شروق", "العبور", "عبور", "15 مايو", "مايو", "بدر", "السادات",
-        "برج العرب", "حدائق الاهرام", "هضبه الاهرام", "حدائق اكتوبر"
-    ]
-    is_new_city = any(k in combined for k in new_city_keywords)
-    if is_new_city:
-        has_district_or_mogaweera = any(t in norm_addr for t in ["حي", "الحي", "مجاوره", "منطقه"])
-        new_city_complete = (
-            (has_district_or_mogaweera or len(words) >= 5) and
-            (has_bldg or "مجاوره" in norm_addr) and
-            (has_unit or "فيلا" in norm_addr) and
-            has_num and
-            len(words) >= 4
-        )
-        if not new_city_complete:
-            speech = f"يا فندم محتاجة أعرف في {area_label} الحي والمجاورة كام ورقم العمارة والدور والشقة عشان نوصل الطلب لحضرتك بالظبط."
-            return False, {
-                "ok": False,
-                "is_system_error": False,
-                "status": "address_details_required",
-                "typology": "new_city_districts",
-                "area_name": area_label,
-                "error": f"العنوان في «{area_label}» يتطلب تحديد الحي ورقم المجاورة والعمارة ورقم الدور والشقة.",
-                "ai_speech_response": speech,
-                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل الحي والمجاورة والعمارة والشقة بدقة ولا تقل إن هناك عطلاً بالسيستم."
-            }
-        return True, None
-
-    # 4. Typology: Subdivided Zones & Villas (التجمع والتقسيمات)
-    subdivided_keywords = [
-        "تجمع", "التجمع", "النرجس", "الياسمين", "البنفسج", "اللوتس", "بيت الوطن",
-        "الاندلس", "المستثمرين", "جنوب الاكاديميه", "غرب الجولف", "شمال الرحاب",
-        "الشويفات", "الدبلوماسيين", "القاهره الجديده"
-    ]
-    is_subdivided = any(k in combined for k in subdivided_keywords)
-    if is_subdivided:
-        subdivided_complete = (
-            (has_bldg or "فيلا" in norm_addr) and
-            (has_unit or "فيلا" in norm_addr) and
-            has_num and
-            len(words) >= 4
-        )
-        if not subdivided_complete:
-            speech = f"يا فندم محتاجة أعرف في {area_label} المنطقة أو النمرة كام بالتحديد (زي نرجس كام أو الحي الكام)، ورقم الفيلا أو العمارة والدور والشقة."
-            return False, {
-                "ok": False,
-                "is_system_error": False,
-                "status": "address_details_required",
-                "typology": "subdivided_villas",
-                "area_name": area_label,
-                "error": f"العنوان في «{area_label}» يتطلب تحديد المنطقة/النمرة ورقم الفيلا أو العمارة والدور والشقة.",
-                "ai_speech_response": speech,
-                "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل رقم المنطقة والفيلا/العمارة والشقة بدقة ولا تقل إن هناك عطلاً بالسيستم."
-            }
-        return True, None
-
-    # 5. Typology: Traditional Urban Streets & General Areas
-    street_complete = (
-        (has_bldg or "فيلا" in norm_addr or "منزل" in norm_addr) and
-        (has_unit or "فيلا" in norm_addr) and
+    # General / Street / Urban Address Validation
+    is_street_complete = (
+        (has_bldg or "فيلا" in norm_addr or "منزل" in norm_addr or "برج" in norm_addr) and
+        (has_unit or "فيلا" in norm_addr or "منزل" in norm_addr or has_loc) and
         has_num and
-        len(words) >= 4
+        len(words) >= 3
     )
-    if not street_complete:
+
+    if not is_street_complete:
+        speech = "فضلاً تزويدنا باسم الشارع، رقم المبنى أو العمارة، ورقم الطابق أو الشقة أو علامة مميزة لتوصيل الطلب بسهولة وسرعة."
         if area_label and not area_label.startswith("شارع"):
-            speech = f"يا فندم محتاجة أعرف في {area_label} اسم الشارع بالظبط، ورقم العمارة والدور ورقم الشقة أو أقرب علامة مميزة عشان كابتن التوصيل يوصل لحضرتك بسهولة."
-        else:
-            speech = "يا فندم محتاجة أعرف اسم الشارع بالظبط، ورقم العمارة والدور ورقم الشقة أو أقرب علامة مميزة عشان كابتن التوصيل يوصل لحضرتك بسهولة."
+            speech = f"فضلاً في {area_label} تحديد اسم الشارع، رقم المبنى أو العمارة، ورقم الطابق أو الشقة أو علامة مميزة لتوصيل الطلب بسهولة وسرعة."
         return False, {
             "ok": False,
             "is_system_error": False,
             "status": "address_details_required",
-            "typology": "traditional_street",
+            "typology": "standard_street",
             "area_name": area_label,
-            "error": f"العنوان يتطلب اسم الشارع ورقم العمارة والدور ورقم الشقة.",
+            "error": "العنوان يتطلب تحديد اسم الشارع ورقم المبنى/العمارة والدور والشقة.",
             "ai_speech_response": speech,
-            "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل الشارع والعمارة والدور والشقة بدقة ولا تقل إن هناك عطلاً بالسيستم."
+            "instruction_for_ai": f"لا تسجل الطلب الآن! انطق للعميل نصاً: «{speech}» لتسجيل الشارع والمبنى والدور والشقة بدقة ولا تقل إن هناك عطلاً بالسيستم."
         }
 
     return True, None
@@ -1345,6 +1304,7 @@ def get_menu(
             "is_tax_inclusive": bool(branch.is_tax_inclusive),
             "tax_status_label": f"الضريبة {branch.tax_percentage:.1f}% ({'شاملة في الأسعار' if branch.is_tax_inclusive else 'تضاف فوق المجموع'})"
         },
+        "cancellation_window_minutes": int(getattr(branch, "cancellation_window_minutes", 10)),
         "total_items": total_count,
         "returned_items": len(items_list),
         "limit": limit,
@@ -2134,24 +2094,21 @@ def create_callcenter_order(
 
         if customer:
             customer_recognized = True
-            if not clean_name:
-                clean_name = customer.name
-            elif clean_name != customer.name and not clean_name.startswith("عميل هاتف"):
+            # الحفاظ على اسم العميل الأساسي وتحديثه فقط لو كان فارغاً أو اسماً عاماً غير مسمى
+            is_generic = not customer.name or customer.name.startswith("عميل") or customer.name.isdigit()
+            if is_generic and clean_name and not clean_name.startswith("عميل"):
                 customer.name = clean_name
-
-            if not clean_addr:
-                clean_addr = customer.address
-            elif clean_addr != customer.address:
+                customer.save(update_fields=["name"])
+            if not customer.address and clean_addr:
                 customer.address = clean_addr
-
-            customer.save()
+                customer.save(update_fields=["address"])
         else:
-            clean_name = clean_name or f"عميل ({clean_phone[-4:]})"
+            cust_name_to_save = clean_name or f"عميل ({clean_phone[-4:]})"
             try:
                 customer = Customer.objects.create(
                     tenant=tenant,
                     phone=clean_phone,
-                    name=clean_name,
+                    name=cust_name_to_save,
                     address=clean_addr,
                 )
             except IntegrityError:
@@ -2342,28 +2299,45 @@ def create_callcenter_order(
                     "instruction_for_ai": f"لا تسجل الأوردر الآن! أبلغ العميل بلطف أن طلبه أقل من الحد الأدنى للتوصيل ({min_order_req:.0f} {cur_name}) واطلب منه إضافة أصناف بقيمة {diff:.0f} {cur_name} لتكملة الطلب كما في ai_speech_response."
                 }
 
-        # Unique Order Number with Tenant Scoped Prefix
-        prefix = (tenant.slug[:3] if tenant and tenant.slug else "CC").upper()
+        # Unique Order Number with Date, Branch Code, and Daily Sequence
+        date_str = timezone.now().strftime("%Y%m%d")
+        b_code = f"B{branch.id}" if branch else "BR"
+        base_prefix = f"ORD-{date_str}-{b_code}"
         full_notes = f"[AI Call Center: {key_obj.name}] {notes}".strip()
 
-        # 6. Atomic Order Creation with Concurrency Retry Loop
+        # Recipient details for this order
+        order_recipient_name = clean_name or (customer.name if customer else "عميل هاتف")
+        order_recipient_addr = clean_addr or (customer.address if customer else "")
+        if customer and customer.name and clean_name and clean_name != customer.name and not clean_name.startswith("عميل"):
+            recipient_note = f"[المستلم: {clean_name}]"
+            if recipient_note not in full_notes:
+                full_notes = f"{full_notes} | {recipient_note}".strip(" |")
+
+        # 6. Atomic Order Creation with Concurrency Safe Loop
         with transaction.atomic():
             order = None
-            for attempt in range(5):
-                last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
-                next_seq = (last_order.id + 1 + attempt) if last_order else (1 + attempt)
-                candidate_num = f"{prefix}-{1000 + next_seq}"
+            today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            daily_count = Order.objects.filter(tenant=tenant, branch=branch, created_at__gte=today_start).count()
+
+            for attempt in range(10):
+                next_seq = daily_count + 1 + attempt
+                candidate_num = f"{base_prefix}-{next_seq:04d}"
                 while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
                     next_seq += 1
-                    candidate_num = f"{prefix}-{1000 + next_seq}"
+                    candidate_num = f"{base_prefix}-{next_seq:04d}"
                 order_number = candidate_num
 
                 try:
                     sid = transaction.savepoint()
                     db_delivery_area = matched_area if (matched_area and hasattr(matched_area, "pk") and matched_area.pk) else None
                     order_notes = full_notes
-                    if matched_area and getattr(matched_area, "notes", None) and str(matched_area.notes) not in order_notes:
-                        order_notes = f"{order_notes} | {matched_area.notes}".strip(" |")
+                    if matched_area:
+                        if not getattr(matched_area, "pk", None):
+                            area_tag = f"[منطقة التوصيل المحددة بالخريطة: {getattr(matched_area, 'name', '')}]"
+                            if area_tag not in order_notes:
+                                order_notes = f"{order_notes} | {area_tag}".strip(" |")
+                        if getattr(matched_area, "notes", None) and str(matched_area.notes) not in order_notes:
+                            order_notes = f"{order_notes} | {matched_area.notes}".strip(" |")
 
                     order = Order.objects.create(
                         tenant=tenant,
@@ -2372,9 +2346,9 @@ def create_callcenter_order(
                         order_type=order_type,
                         channel="call_center",
                         customer=customer,
-                        customer_name=customer.name if customer else "عميل هاتف",
-                        customer_phone=customer.phone if customer else clean_phone,
-                        address=clean_addr,
+                        customer_name=order_recipient_name,
+                        customer_phone=clean_phone if clean_phone else (customer.phone if customer else ""),
+                        address=order_recipient_addr,
                         delivery_area=db_delivery_area,
                         subtotal=subtotal,
                         tax_percentage=tax_rate,
@@ -2463,7 +2437,7 @@ def create_callcenter_order(
                     f"{tax_line}"
                     f"🛵 *رسوم التوصيل:* {delivery_fee:.0f} {cur_sym}\n"
                     f"💵 *الإجمالي المطلوب:* {total:.0f} {cur_sym}\n\n"
-                    f"🏠 *عنوان التوصيل:* {clean_addr or 'استلام من الفرع'}\n"
+                    f"🏠 *عنوان التوصيل:* {order_recipient_addr or 'استلام من الفرع'}\n"
                     f"⏱️ *وقت التوصيل المتوقع:* {est_time}\n\n"
                     f"🔗 *متابعة وتتبع حالة الطلب:*\n{menu_track_url}\n\n"
                     f"⭐ *رأيك يهمنا جداً!*\n"
@@ -2471,16 +2445,17 @@ def create_callcenter_order(
                     f"شكراً لطلبك! نسعد دائماً بخدمتكم."
                 )
                 def _send_wa_async():
+                    close_old_connections()
                     try:
                         ps.send_whatsapp_message(wa_cid, clean_phone, wa_text)
                     except Exception as ex:
-                        import logging
-                        logging.getLogger(__name__).warning(f"Error sending WhatsApp message: {ex}")
-                wa_thread = threading.Thread(target=_send_wa_async)
+                        logger.warning(f"Error sending WhatsApp message: {ex}")
+                    finally:
+                        close_old_connections()
+                wa_thread = threading.Thread(target=_send_wa_async, daemon=True)
                 wa_thread.start()
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"Error initiating auto WhatsApp confirmation: {e}")
+            logger.warning(f"Error initiating auto WhatsApp confirmation: {e}")
 
         return {
             "ok": True,
@@ -2499,9 +2474,9 @@ def create_callcenter_order(
                 "currency": branch.currency,
                 "currency_name": cur_name,
                 "currency_symbol": cur_sym,
-                "customer_name": customer.name,
-                "customer_phone": customer.phone,
-                "delivery_address": clean_addr,
+                "customer_name": order_recipient_name,
+                "customer_phone": order.customer_phone,
+                "delivery_address": order_recipient_addr,
                 "delivery_area": matched_area.name if matched_area else "غير محدد",
                 "order_type": order.get_order_type_display(),
                 "status": order.get_status_display(),
@@ -2808,6 +2783,23 @@ def cancel_order(
                 "current_status": status_label,
                 "ai_speech_response": f"بعتذر جداً لحضرتك، الأوردر رقم {order.order_number} دخل مرحلة التحضير في المطبخ ومبنقدرش نلغيه بعد ما بدأوا فيه. تحب أحول حضرتك لخدمة العملاء أو مدير الفرع؟",
                 "instruction_for_ai": "أبلغ العميل بلطف أن الطلب دخل مرحلة التحضير في المطبخ ولا يمكن إلغاؤه كما في ai_speech_response."
+            }
+
+        # Check branch cancellation window limit (configured per branch by the restaurant owner)
+        branch = order.branch
+        window_minutes = int(getattr(branch, "cancellation_window_minutes", 10)) if branch else 10
+        elapsed_seconds = (timezone.now() - order.created_at).total_seconds()
+        if elapsed_seconds > (window_minutes * 60):
+            elapsed_minutes = int(elapsed_seconds // 60)
+            key_obj.record_usage(placed_order=False)
+            return {
+                "ok": False,
+                "error": f"عذراً، لقد مضت {elapsed_minutes} دقيقة على إنشاء الأوردر رقم «{order.order_number}»، وتجاوز مهلة الإلغاء المحددة للفرع ({window_minutes} دقيقة). الطلب قيد التجهيز ولا يمكن إلغاؤه آلياً.",
+                "order_number": order.order_number,
+                "created_at": order.created_at.strftime("%Y-%m-%d %H:%M"),
+                "cancellation_window_minutes": window_minutes,
+                "ai_speech_response": f"بعتذر لحضرتك، الأوردر رقم {order.order_number} مر عليه أكثر من {window_minutes} دقائق وهو قيد التجهيز حالياً بالمطبخ ولا يمكن إلغاؤه آلياً. تحب أحولك لخدمة العملاء أو مدير الفرع للمساعدة؟",
+                "instruction_for_ai": "أبلغ العميل بلطف أن مهلة الإلغاء المسموح بها قد انتهت والطلب قيد التجهيز بالمطبخ كما في ai_speech_response."
             }
 
         # Cancel the order cleanly
