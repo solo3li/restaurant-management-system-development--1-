@@ -505,11 +505,23 @@ def ai_callcenter_queues_view(request):
         except Exception as q_seed_err:
             logger.warning(f"Failed to auto-seed default queue for client {client_id}: {q_seed_err}")
 
+    ready_count = sum(1 for e in employees_data if e.get("status") == "ready")
+    busy_count = sum(1 for e in employees_data if e.get("status") == "busy")
+    offline_count = sum(1 for e in employees_data if e.get("status") not in ["ready", "busy"])
+
+    queues_stats = {
+        "total_queues": len(queues_data),
+        "total_employees": len(employees_data),
+        "ready_count": ready_count,
+        "busy_offline_count": busy_count + offline_count,
+    }
+
     context = {
         "tenant": tenant,
         "employees": employees_data,
         "queues": queues_data,
         "primary_queue": queues_data[0] if queues_data else None,
+        "queues_stats": queues_stats,
     }
     return render(request, "ai_callcenter/queues.html", context)
 
