@@ -1304,6 +1304,7 @@ class OrderItem(models.Model):
     name = models.CharField(max_length=255, verbose_name="اسم الصنف")
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="سعر الوحدة")
     qty = models.PositiveIntegerField(default=1, verbose_name="الكمية")
+    notes = models.CharField(max_length=255, blank=True, default="", verbose_name="ملاحظات الصنف")
 
     class Meta:
         verbose_name = "عنصر طلب"
@@ -1571,10 +1572,25 @@ class TenantApiKey(models.Model):
         return f"{self.tenant.name} - {self.name}{branch_info}"
 
     def record_usage(self, placed_order=False):
-        self.last_used_at = timezone.now()
+        now = timezone.now()
         if placed_order:
+            TenantApiKey.objects.filter(pk=self.pk).update(
+                last_used_at=now,
+                total_orders_placed=models.F("total_orders_placed") + 1
+            )
+            self.last_used_at = now
             self.total_orders_placed += 1
-        self.save(update_fields=["last_used_at", "total_orders_placed"])
+        else:
+            try:
+                from django.core.cache import cache
+                cache_key = f"apikey_usage_debounce_{self.pk}"
+                if not cache.get(cache_key):
+                    TenantApiKey.objects.filter(pk=self.pk).update(last_used_at=now)
+                    self.last_used_at = now
+                    cache.set(cache_key, True, timeout=60)
+            except Exception:
+                TenantApiKey.objects.filter(pk=self.pk).update(last_used_at=now)
+                self.last_used_at = now
 
 
 class AuditLog(models.Model):

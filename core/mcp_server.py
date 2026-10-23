@@ -989,6 +989,30 @@ def _validate_delivery_address_completeness(
     return True, None
 
 
+def _format_branch_closed_err(branch):
+    """صياغة رد صوتي ونظامي مهذب وواضح للذكاء الاصطناعي عند إغلاق الفرع أو تعليق استقبال الطلبات."""
+    if not getattr(branch, "is_accepting_orders", True):
+        reason = f"فرع «{branch.name}» موقف استقبال الطلبات مؤقتاً في الوقت الحالي."
+        speech = f"بعتذر لحضرتك يا فندم، فرع «{branch.name}» موقف استقبال الطلبات مؤقتاً حالياً، نعتذر عن عدم إمكانية استلام طلبات جديدة الآن."
+    elif branch.opening_time and branch.closing_time:
+        op_str = f"من {branch.opening_time.strftime('%I:%M %p')} إلى {branch.closing_time.strftime('%I:%M %p')}"
+        reason = f"فرع «{branch.name}» مغلق حالياً، أوقات العمل الرسمية {op_str}."
+        speech = f"بعتذر جداً لحضرتك يا فندم، فرع «{branch.name}» مغلق حالياً، ومواعيد العمل الرسمية {op_str}. نسعد بخدمتك خلال أوقات العمل."
+    else:
+        reason = f"فرع «{branch.name}» مغلق حالياً."
+        speech = f"بعتذر لحضرتك يا فندم، فرع «{branch.name}» مغلق حالياً لاستقبال الطلبات، نسعد بخدمتك في أوقات العمل الرسمية."
+    return {
+        "ok": False,
+        "is_system_error": False,
+        "status": "branch_closed",
+        "branch_id": branch.id,
+        "branch_name": branch.name,
+        "error": reason,
+        "ai_speech_response": speech,
+        "instruction_for_ai": "أبلغ العميل بلطف بأن الفرع مغلق حالياً ولا يستقبل طلبات واعتذر له عن عدم إمكانية تنفيذ الطلب في الوقت الحالي كما في ai_speech_response."
+    }
+
+
 def _resolve_delivery_coverage_and_branch(
     tenant,
     customer_address: str,
@@ -1019,6 +1043,8 @@ def _resolve_delivery_coverage_and_branch(
     # Candidate branches
     if branch_id is not None:
         candidate_branches = list(Branch.objects.filter(tenant=tenant, id=branch_id, status="active"))
+        if candidate_branches and not candidate_branches[0].is_currently_open():
+            return None, None, _format_branch_closed_err(candidate_branches[0])
     else:
         candidate_branches = list(Branch.objects.filter(tenant=tenant, status="active"))
 
@@ -1030,6 +1056,13 @@ def _resolve_delivery_coverage_and_branch(
             "ai_speech_response": "بعتذر لحضرتك، فروعنا مغلقة حالياً لاستقبال الطلبات، نسعد بخدمتك في أوقات العمل الرسمية.",
             "instruction_for_ai": "أبلغ العميل بلطف أن الفروع مغلقة حالياً."
         }
+
+    # If all branches are closed/paused, immediately inform caller
+    if not any(b.is_currently_open() for b in candidate_branches):
+        return None, None, _format_branch_closed_err(candidate_branches[0])
+
+    # Prioritize open branches first during coverage matching
+    candidate_branches.sort(key=lambda b: (not b.is_currently_open()))
 
     # 1. Polygon rule: branches with drawn polygon (>=3 points) or configured DeliveryArea objects
     poly_branches = [
@@ -1078,14 +1111,18 @@ def _resolve_delivery_coverage_and_branch(
                 matched_area = a
                 break
 
-    # 4. Keyword / Significant Token Overlap
+    # 4. Keyword / Significant Token Overlap with strict stop words
     if not matched_area:
-        stop_words = {"مدينه", "مدينة", "حي", "الحي", "منطقه", "منطقة", "كمبوند", "شارع", "طريق", "عمارة", "عماره", "شقه", "شقة", "رقم", "مجاورة", "مجاوره"}
+        stop_words = {
+            "مدينه", "مدينة", "حي", "الحي", "منطقه", "منطقة", "كمبوند", "شارع", "طريق",
+            "عمارة", "عماره", "شقه", "شقة", "رقم", "مجاورة", "مجاوره", "بجوار", "امام", "أمام",
+            "خلف", "قريب", "عند", "في", "من", "على", "الى", "إلى", "حدائق", "شمال", "جنوب", "شرق", "غرب", "ميدان", "برج", "دور"
+        }
         best_score = 0
         best_candidate = None
-        addr_tokens = set(w for w in norm_addr.split() if w not in stop_words)
+        addr_tokens = set(w for w in norm_addr.split() if w not in stop_words and len(w) >= 3)
         for a in all_areas:
-            area_tokens = set(w for w in _normalize_arabic_text(a.name).split() if w not in stop_words)
+            area_tokens = set(w for w in _normalize_arabic_text(a.name).split() if w not in stop_words and len(w) >= 3)
             overlap = len(area_tokens & addr_tokens)
             if overlap > best_score:
                 best_score = overlap
@@ -1094,6 +1131,8 @@ def _resolve_delivery_coverage_and_branch(
             matched_area = best_candidate
 
     if matched_area:
+        if not matched_area.branch.is_currently_open():
+            return None, None, _format_branch_closed_err(matched_area.branch)
         return matched_area.branch, matched_area, None
 
     # 5. Smart Google Maps & Geofencing Fallback (إذا لم يتطابق مع أي منطقة نصية مسجلة)
@@ -1101,6 +1140,9 @@ def _resolve_delivery_coverage_and_branch(
         from core.google_maps_service import resolve_smart_delivery_with_google
         g_branch, g_area_info, g_res = resolve_smart_delivery_with_google(tenant, clean_addr, branch_id=branch_id)
         if g_branch and g_res and g_res.get("ok"):
+            if not g_branch.is_currently_open():
+                return None, None, _format_branch_closed_err(g_branch)
+
             class DynamicDeliveryArea:
                 def __init__(self, data, branch_obj):
                     self.id = None
@@ -1256,10 +1298,12 @@ def get_menu(
     disabled_items = set(
         BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
     )
+    if disabled_items:
+        items_qs = items_qs.exclude(id__in=disabled_items)
 
-    all_filtered = [m for m in items_qs.order_by("category", "name") if m.id not in disabled_items]
-    total_count = len(all_filtered)
-    paged_items = all_filtered[offset : offset + max(1, min(limit, 100))]
+    total_count = items_qs.count()
+    limit_val = max(1, min(limit, 100))
+    paged_items = list(items_qs.order_by("category", "name")[offset : offset + limit_val])
 
     categories_map = {}
     items_list = []
@@ -1289,6 +1333,8 @@ def get_menu(
         items_list.append(item_dict)
         categories_map.setdefault(m.category, []).append(item_dict)
 
+    all_categories = list(dict.fromkeys(MenuItem.objects.filter(tenant=tenant, available=True).values_list("category", flat=True)))
+
     key_obj.record_usage(placed_order=False)
     close_old_connections()
     return {
@@ -1296,6 +1342,7 @@ def get_menu(
         "tenant_name": tenant.name,
         "branch_name": branch.name,
         "branch_id": branch.id,
+        "is_branch_open": branch.is_currently_open(),
         "currency": branch.currency,
         "currency_name": cur_name,
         "currency_symbol": cur_sym,
@@ -1307,9 +1354,9 @@ def get_menu(
         "cancellation_window_minutes": int(getattr(branch, "cancellation_window_minutes", 10)),
         "total_items": total_count,
         "returned_items": len(items_list),
-        "limit": limit,
+        "limit": limit_val,
         "offset": offset,
-        "categories": list(dict.fromkeys(m.category for m in all_filtered)),
+        "categories": all_categories,
         "items": items_list,
     }
 
@@ -1445,18 +1492,41 @@ def lookup_customer(
     order_count = customer.orders.count()
     total_spent = float(customer.orders.aggregate(models.Sum("total"))["total__sum"] or 0)
 
+    cust_name_clean = str(customer.name or "").strip()
+    is_placeholder_name = (
+        not cust_name_clean
+        or cust_name_clean.lower() in ["عميل", "عميل نقدي", "عميل هاتف", "عميل جديد", "عميل مجهول"]
+        or cust_name_clean.startswith("عميل (")
+        or bool(re.match(r"^عميل\s*(\(\d+\))?$", cust_name_clean))
+    )
+    first_name = cust_name_clean.split()[0] if not is_placeholder_name else ""
+
     if saved_addr:
-        greeting_speech = (
-            f"أهلاً بيك يا {customer.name}! نورتنا يا فندم.. "
-            f"تحب نوصل لحضرتك على نفس عنوانك السابق ({saved_addr}) ولا حابب تطلب على عنوان جديد؟"
-        )
-        instruction = (
-            f"العميل مسجل مسبقاً ولديه عنوان محفوظ؛ رحب به باسمه واقرأ عليه نص ai_speech_response واعرض عليه التوصيل لنفس العنوان ({saved_addr}). "
-            f"إذا وافق العميل (قال نعم، أو تمام، أو نفس العنوان)، اعتمد هذا العنوان والفرع فوراً دون الحاجة لسؤاله عن الحي أو المنطقة أو رسم الخريطة مجدداً."
-        )
+        if is_placeholder_name:
+            greeting_speech = (
+                f"أهلاً بحضرتك يا فندم! نورتنا في مطعم «{tenant.name}».. "
+                f"تحب نوصل لحضرتك على نفس عنوانك السابق ({saved_addr}) ولا حابب تطلب على عنوان جديد؟"
+            )
+            instruction = (
+                f"العميل مسجل مسبقاً ولديه عنوان محفوظ؛ رحب به بلطف واقرأ عليه نص ai_speech_response واعرض عليه التوصيل لنفس العنوان ({saved_addr}). "
+                f"إذا وافق العميل (قال نعم، أو تمام، أو نفس العنوان)، اعتمد هذا العنوان والفرع فوراً دون الحاجة لسؤاله عن الحي أو المنطقة مجدداً."
+            )
+        else:
+            greeting_speech = (
+                f"أهلاً بحضرتك يا أستاذ {first_name}! نورتنا يا فندم.. "
+                f"تحب نوصل لحضرتك على نفس عنوانك السابق ({saved_addr}) ولا حابب تطلب على عنوان جديد؟"
+            )
+            instruction = (
+                f"العميل مسجل مسبقاً ولديه عنوان محفوظ؛ رحب به باسمه واقرأ عليه نص ai_speech_response واعرض عليه التوصيل لنفس العنوان ({saved_addr}). "
+                f"إذا وافق العميل (قال نعم، أو تمام، أو نفس العنوان)، اعتمد هذا العنوان والفرع فوراً دون الحاجة لسؤاله عن الحي أو المنطقة أو رسم الخريطة مجدداً."
+            )
     else:
-        greeting_speech = f"أهلاً بيك يا {customer.name}! نورتنا في مطعم «{tenant.name}»، تشرفنا بخدمتك يا فندم.. تحب تطلب إيه اليوم؟"
-        instruction = "رحب بالعميل باسمه بنص ai_speech_response وتلقى طلبه."
+        if is_placeholder_name:
+            greeting_speech = f"أهلاً بحضرتك يا فندم! نورتنا في مطعم «{tenant.name}»، تشرفنا بخدمتك.. تحب تطلب إيه اليوم سفري ولا دليفري؟"
+            instruction = "رحب بالعميل بلطف بنص ai_speech_response وتلقى طلبه."
+        else:
+            greeting_speech = f"أهلاً بحضرتك يا أستاذ {first_name}! نورتنا في مطعم «{tenant.name}»، تشرفنا بخدمتك يا فندم.. تحب تطلب إيه اليوم؟"
+            instruction = "رحب بالعميل باسمه بنص ai_speech_response وتلقى طلبه."
 
     key_obj.record_usage(placed_order=False)
     close_old_connections()
@@ -1535,75 +1605,6 @@ def check_delivery_coverage(
 
     key_obj.record_usage(placed_order=False)
     close_old_connections()
-    if err:
-        err["covered"] = False
-        return err
-
-    cur_name = matched_branch.get_currency_name_ar()
-    cur_sym = matched_branch.get_currency_symbol_ar()
-    dist_val = getattr(matched_area, "distance_km", 0.0)
-    min_order_req = matched_branch.get_min_order_for_distance(dist_val)
-    return {
-        "ok": True,
-        "covered": True,
-        "branch_id": matched_branch.id,
-        "branch_name": matched_branch.name,
-        "currency": matched_branch.currency,
-        "currency_name": cur_name,
-        "currency_symbol": cur_sym,
-        "minimum_order_amount": float(min_order_req),
-        "matched_area": {
-            "id": matched_area.id,
-            "name": matched_area.name,
-            "area_type": matched_area.get_area_type_display(),
-            "delivery_fee": float(matched_area.delivery_fee),
-            "estimated_time_minutes": matched_area.estimated_time_minutes,
-            "distance_km": float(dist_val) if dist_val else None,
-            "minimum_order_amount": float(min_order_req),
-            "notes": matched_area.notes or "",
-        },
-        "ai_speech_response": f"تمام يا فندم، منطقة «{matched_area.name}» مغطاة من خلال {matched_branch.name}، ورسوم التوصيل {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري حوالي {matched_area.estimated_time_minutes} دقيقة (والحد الأدنى للطلب {min_order_req:.0f} {cur_name}).",
-        "instruction_for_ai": f"أبلغ العميل بأن المنطقة «{matched_area.name}» مغطاة ورسوم التوصيل هي {matched_area.delivery_fee:.0f} {cur_name}، ووقت التوصيل التقديري {matched_area.estimated_time_minutes} دقيقة كما في ai_speech_response."
-    }
-    """
-    فحص هل منطقة العميل أو الكومبوند يقع ضمن مناطق توصيل المطعم، وحساب رسوم ووقت التوصيل وتحديد الفرع الأنسب تلقائياً.
-    إلزامي الاستدعاء عند رغبة العميل في خدمة التوصيل (Delivery) وقبل إنشاء الطلب.
-    
-    Args:
-        branch_id: (اختياري) معرف الفرع (يتم فحص وتحديد الفرع الأنسب تلقائياً لجميع الفروع إن لم يُحدد).
-        area_name: اسم المنطقة أو الحي أو الكومبوند (مثال: 'مدينة الشروق', 'كمبوند النرجس', 'الياسمين').
-        delivery_area_name: (بديل) اسم المنطقة أو الحي.
-        customer_address: (بديل) عنوان أو منطقة العميل.
-        address: (بديل) عنوان العميل.
-        access_key: (اختياري) مفتاح الدخول (يُقرأ تلقائياً من البيئة RESTAURANT_ACCESS_KEY إن لم يُمرر).
-    """
-    key_obj, tenant = _authenticate(access_key)
-    from core.models import Branch, DeliveryArea
-
-    query = str(area_name or delivery_area_name or customer_address or address or "").strip()
-
-    # Diagnostic / Health check call from platform admin
-    if not query:
-        branch = Branch.objects.filter(tenant=tenant, status="active").first()
-        all_areas = list(DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).values_list("name", flat=True))
-        return {
-            "ok": True,
-            "status": "ready",
-            "message": "أداة فحص التغطية (check_delivery_coverage) جاهزة ونشطة بنجاح.",
-            "branch_name": branch.name if branch else "الفرع الرئيسي",
-            "available_areas": list(set(all_areas)),
-            "diagnostic": True,
-        }
-
-    effective_branch_id = branch_id if branch_id is not None else (key_obj.assigned_branch_id if key_obj.assigned_branch else None)
-    matched_branch, matched_area, err = _resolve_delivery_coverage_and_branch(
-        tenant,
-        customer_address=query,
-        branch_id=effective_branch_id,
-        delivery_area_name=query,
-    )
-
-    key_obj.record_usage(placed_order=False)
     if err:
         err["covered"] = False
         return err
@@ -1807,6 +1808,9 @@ def preview_order(
                     }
                 else:
                     branch = active_branches[0]
+
+        if not branch.is_currently_open():
+            return _format_branch_closed_err(branch)
 
         cur_name = branch.get_currency_name_ar()
         cur_sym = branch.get_currency_symbol_ar()
@@ -2190,6 +2194,9 @@ def create_callcenter_order(
                 else:
                     branch = active_branches[0]
 
+        if not branch.is_currently_open():
+            return _format_branch_closed_err(branch)
+
         # 4. Strict Menu Items Resolver & Total Calculation
         disabled_item_ids = set(
             BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True)
@@ -2356,6 +2363,7 @@ def create_callcenter_order(
                         delivery_fee=delivery_fee,
                         discount=Decimal("0.00"),
                         total=total,
+                        pay_method="cash",
                         paid=False,
                         cashier=f"AI: {key_obj.name}",
                         notes=order_notes,
@@ -2371,14 +2379,20 @@ def create_callcenter_order(
                 return {"error": "فشل إنشاء الطلب بسبب تضارب أرقام الطلبات المتزامنة."}
 
             for oi in order_items_prepared:
+                raw_item_notes = str(oi.get("notes") or "").strip()
+                item_display_name = oi["display_name"]
+                if raw_item_notes and f"({raw_item_notes})" not in item_display_name:
+                    item_display_name = f"{item_display_name} ({raw_item_notes})"
+
                 OrderItem.objects.create(
                     order=order,
                     menu_item=oi["menu_item"],
                     variant=oi["variant"],
                     variant_name=oi["variant_name"],
-                    name=oi["display_name"],
+                    name=item_display_name,
                     price=oi["price"],
                     qty=oi["quantity"],
+                    notes=raw_item_notes,
                 )
 
             from core.models import log_audit_event
@@ -2409,9 +2423,9 @@ def create_callcenter_order(
         items_speech = " و ".join([f"{oi['quantity']} {oi['display_name']}" for oi in order_items_prepared])
         tax_speech = f" (شامل الضريبة {tax_rate:.0f}%)" if (is_tax_inclusive and tax_rate > 0) else (f" والضريبة {tax_amount:.0f} {cur_name}" if tax_rate > 0 else "")
         if order_type == "delivery":
-            speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}{tax_speech}، ويوصل لحضرتك خلال {est_time} تقريباً، وبعت لحضرتك تفاصيل الفاتورة ورابط المتابعة على الواتساب دلوقتي."
+            speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}{tax_speech} والدفع نقداً عند الاستلام، ويوصل لحضرتك خلال {est_time} تقريباً، وبعت لحضرتك تفاصيل الفاتورة ورابط المتابعة على الواتساب دلوقتي."
         else:
-            speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}{tax_speech}، وتقدر تستلمه من فرع {branch.name} خلال {est_time}، وبعت لحضرتك تفاصيل الفاتورة على الواتساب دلوقتي."
+            speech = f"تم تسجيل طلبك بنجاح برقم {order.order_number}! الطلب: ({items_speech}) بإجمالي {total:.0f} {cur_name}{tax_speech} والدفع نقداً، وتقدر تستلمه من فرع {branch.name} خلال {est_time}، وبعت لحضرتك تفاصيل الفاتورة على الواتساب دلوقتي."
 
         # 7. Automatic Instant WhatsApp Confirmation (إذا كان هاتف العميل حقيقياً)
         try:
@@ -2480,6 +2494,8 @@ def create_callcenter_order(
                 "delivery_area": matched_area.name if matched_area else "غير محدد",
                 "order_type": order.get_order_type_display(),
                 "status": order.get_status_display(),
+                "payment_method": "نقداً عند الاستلام (Cash on Delivery)",
+                "paid": False,
                 "subtotal": float(subtotal),
                 "tax_percentage": float(tax_rate),
                 "is_tax_inclusive": is_tax_inclusive,
@@ -2493,7 +2509,8 @@ def create_callcenter_order(
                         "variant": oi["variant_name"] if oi.get("variant_name") else None,
                         "qty": oi["quantity"],
                         "price": float(oi["price"]),
-                        "total": float(oi["total"])
+                        "total": float(oi["total"]),
+                        "notes": oi.get("notes") or "",
                     }
                     for oi in order_items_prepared
                 ],
