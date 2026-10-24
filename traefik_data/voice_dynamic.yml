@@ -54,7 +54,6 @@ http:
       tls:
         certResolver: "myresolver"
 
-
     voice-flowise-router:
       rule: "Host(`flowise.169.58.32.179.nip.io`)"
       entryPoints:
@@ -63,6 +62,44 @@ http:
       service: "voice-flowise-service"
       tls:
         certResolver: "myresolver"
+
+    hexmedia-http:
+      rule: "Host(`hexmedia.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+      middlewares:
+        - "hexmedia-redirect-https"
+      service: "hexmedia-service"
+
+    hexmedia-https:
+      rule: "Host(`hexmedia.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "websecure"
+      service: "hexmedia-service"
+      tls:
+        certResolver: "myresolver"
+
+    hexmedia-minio-http:
+      rule: "Host(`hexmedia-assets.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+      middlewares:
+        - "hexmedia-redirect-https"
+      service: "hexmedia-minio-service"
+
+    hexmedia-minio-https:
+      rule: "Host(`hexmedia-assets.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "websecure"
+      service: "hexmedia-minio-service"
+      tls:
+        certResolver: "myresolver"
+
+  middlewares:
+    hexmedia-redirect-https:
+      redirectScheme:
+        scheme: "https"
+        permanent: true
 
   services:
     voice-django-service:
@@ -99,3 +136,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://voice_flowise:3000"
+
+    hexmedia-service:
+      loadBalancer:
+        servers:
+          - url: "http://169.58.32.179:8100"
+
+    hexmedia-minio-service:
+      loadBalancer:
+        servers:
+          - url: "http://169.58.32.179:9100"
