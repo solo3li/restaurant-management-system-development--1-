@@ -20,9 +20,11 @@ from apps.accounts.helpers import user_has_perm, _get_client_ip
 from apps.tenants.models import Tenant, Branch, DeliveryArea, PlatformConfiguration
 from apps.orders.models import Order, Customer
 from apps.menu.models import MenuItem
+from apps.inventory.models import InventoryItem
 from apps.accounts.models import Employee
 from apps.audit.models import log_audit_event
-from core.currencies import CURRENCIES, get_currency_info
+from core.currencies import CURRENCIES, CURRENCIES_DATA, get_currency_info
+from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 

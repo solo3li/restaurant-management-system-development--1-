@@ -1,17 +1,17 @@
 # Graph Report - motaem  (2026-10-26)
 
 ## Corpus Check
-- 472 files · ~1,025,803 words
+- 472 files · ~1,026,700 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 102 file(s) not represented in the graph (top: .css 48, .map 31, (none) 5)
 
 ## Summary
-- 8195 nodes · 17395 edges · 436 communities (243 shown, 193 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 1231 edges (avg confidence: 0.88)
+- 8195 nodes · 17399 edges · 436 communities (243 shown, 193 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 1232 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d4bba3f7`
+- Built from commit: `e2c228c5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
