@@ -48,11 +48,19 @@ def run_tests():
     assert "ربط خط هاتفي / SIP Trunk" in content, "Missing SIP Trunk button"
     assert "connect-trunk-modal" in content, "Missing connect-trunk-modal"
     assert "issabel-config-modal" in content, "Missing issabel-config-modal"
+    assert "issabel-trunk-name-code" in content, "Missing Trunk Name box in Issabel modal"
+    assert "issabel-register-container" in content, "Missing Register String container in Issabel modal"
     assert "assign-did-modal" in content, "Missing assign-did-modal"
     # Verify WhatsApp SVG is present (brand color #25D366 or official path)
     assert "#25D366" in content, "Missing WhatsApp brand color #25D366"
     assert "M17.472 14.382" in content, "Missing WhatsApp SVG path"
-    print("  ✔ PASS: Omnichannel page renders 200 with WhatsApp SVG & SIP Trunk modals")
+
+    # Verify zero unwanted raw emojis in omnichannel template
+    import re
+    emoji_pattern = re.compile(r"[\U00010000-\U0010ffff]|[\u2600-\u27bf]|[\u2300-\u23ff]|[\u2b50-\u2b55]|[✕✓✅❌🤖👤📢🔒⚠️🎤📘🔍👁️💳📄⬇️🔄▶⏸💬📱📞]")
+    raw_emoji_matches = emoji_pattern.findall(content)
+    assert len(raw_emoji_matches) == 0, f"Found unwanted raw emojis in rendered page: {raw_emoji_matches[:10]}"
+    print("  ✔ PASS: Omnichannel page renders 200 with WhatsApp SVG & SIP Trunk modals (0 raw emojis)")
 
     # 4. Test Telephony Info API
     with patch("core.partner_service.get_telephony_trunks") as mock_get_trunks, \

@@ -1981,11 +1981,11 @@ def api_ai_callcenter_create_sip_trunk(request):
     if resp.get("status") == "success":
         trunk_obj = resp.get("trunk") or {}
         trunk_id = trunk_obj.get("id") or resp.get("trunk_id")
-        if did_number and trunk_id:
+        if did_number:
             try:
-                ps.assign_did_number(client_id, did_number, pbx_trunk_id=trunk_id, description=f"DID for {name}")
+                ps.assign_did_number(client_id, did_number, pbx_trunk_id=None, description=f"DID for {name}")
             except Exception as e:
-                logger.warning(f"Could not auto-assign DID {did_number} to SIP trunk {trunk_id}: {e}")
+                logger.warning(f"Could not auto-assign DID {did_number} for SIP trunk: {e}")
 
         return JsonResponse({
             "status": "success",
