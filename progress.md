@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-26 14:20
-**Session ID:** Kitchen Display System (KDS) Standby State Redesign & Live Digital Clock
+**Last Updated:** 2026-10-26 15:30
+**Session ID:** POS Screen Dynamic Categories & Multi-language Filter
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -13,16 +13,21 @@
 - `feat-post-registration-routing` (Completed)
 - `feat-subscription-plan-features-grid` (Completed)
 - `feat-kds-standby-redesign` (Completed)
+- `feat-pos-dynamic-categories` (Completed)
 
 ## Status
 
 ### What's Done
 
-- [x] **KDS Empty Standby State Redesign & Live Clock (`templates/kitchen.html` & `apps/kitchen/views.py`)**
-  - **Full Standby Hero (Centered, Zero Scroll)**: Centered the standby hero state in the heart of the viewport (`flex-1 flex flex-col items-center justify-center my-auto min-h-[calc(100vh-7.5rem)]`).
-  - **Eliminated Phantom Reserved Height**: Completely removed `min-h-[350px]` from `#kitchen-orders-grid` and toggled `hidden` class + `display: none` when no active orders exist, eliminating all bottom overflow and vertical scrolling.
-  - **Live Digital Kitchen Clock**: Implemented high-contrast, large commercial digital clock (`font-mono text-5xl sm:text-6xl md:text-7xl font-black`) displaying real-time hours, minutes, seconds, and AM/PM tag, with live localized date formatting (`ar-u-nu-latn` in Arabic, `en-US` in English) plus SSR default rendering to eliminate placeholder flashing.
-  - **Live Standby Beacon with Real-Time SSE Sync**: Added pulsating readiness indicator dynamically bound to SSE state (emerald when live, amber when connecting, rose when reconnecting).
+- [x] **POS Screen Dynamic Categories & Multi-Language Filter (`templates/pos.html` & `apps/orders/views.py`)**
+  - **Dynamic `MenuCategory` Integration**: Replaced hardcoded category list with tenant-scoped dynamic query (`MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id")`).
+  - **Fixed Category Resurrection Bug**: Protected soft-deleted categories from being re-activated on page load when a tenant deletes/deactivates categories.
+  - **Optimized Database Writes**: Replaced per-item database updates during GET requests with single `bulk_update` backfilling `category_rel`.
+  - **Category-aligned Item Ordering**: Ordered menu items by `category_rel__ordering, category_rel__id, category, name` to match category pill order.
+  - **Swipeable Horizontal Ribbon**: Implemented non-wrapping horizontally scrollable category ribbon (`overflow-x-auto max-w-full flex-nowrap scrollbar-none`) preventing UI height jumps on touchscreens.
+  - **Normalized Search & Bilingual Filter**: Added Arabic normalization (unifying alef, taa marbuta, and stripping diacritics) for search queries, matching name, English name, and category name simultaneously.
+  - **Full Bilingual RTL/LTR Support**: Added dynamic RTL (`border-r-4 text-right`) and LTR (`border-l-4 text-left`) styling on dish cards, localized modal labels, and bilingual toast notifications.
+  - **Verified & Live Container Restart**: Successfully verified with `./init.sh`, `manage.py check`, `test_system.py`, `test_e2e_rbac.py`, and verified on live container `motaem_web` for tenant 77.
   - **Pure Non-Interactive UI**: Kept the standby screen clean and distraction-free without extra buttons, as explicitly requested.
   - **100% Bilingual Support (Arabic & English)**: Translated all kitchen interface elements, top toolbar buttons, search placeholder, category station pills, empty state headlines, ticket card actions, timers (`m`/`د`), order types, and SSE toasts according to `CURRENT_LANG`. Added missing entries to `core/i18n_catalog.py`.
   - **Bugfixes & Robustness**:

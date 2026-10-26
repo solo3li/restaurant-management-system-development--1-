@@ -9,7 +9,7 @@ from asgiref.sync import sync_to_async
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse, StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.db import transaction
 from django.db.models import Sum, Count, F, Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -19,7 +19,7 @@ from apps.tenants.helpers import get_active_tenant, get_active_branch
 from apps.accounts.helpers import user_has_perm, _get_client_ip
 from apps.orders.models import Order, OrderItem, Customer
 from apps.tenants.models import Tenant, Branch, DeliveryArea
-from apps.menu.models import MenuItem, MenuItemVariant, BranchMenuAvailability, BranchVariantPrice
+from apps.menu.models import MenuItem, MenuCategory, MenuItemVariant, BranchMenuAvailability, BranchVariantPrice
 from apps.accounts.models import Employee
 from apps.audit.models import log_audit_event
 from apps.kitchen.events import notify_kitchen_order_event
@@ -618,21 +618,146 @@ def pos_view(request):
 
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
-    categories = ["الكل", "أطباق رئيسية", "مشويات", "ساندويتشات", "برجر", "دجاج", "مقبلات", "مشروبات", "حلويات"]
 
-    base_menu = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name")
+    lang = getattr(request, "LANGUAGE_CODE", None) or translation.get_language() or "ar"
+    if "-" in lang:
+        lang = lang.split("-")[0]
+    if lang not in ["ar", "en"]:
+        lang = "ar"
+
+    # Dynamic Menu Categories from apps.menu.models.MenuCategory
+    active_categories_qs = (
+        MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id")
+        if tenant
+        else MenuCategory.objects.none()
+    )
+
+    # Legacy migration fallback: ONLY if tenant has NEVER had any MenuCategories in DB before.
+    # If the tenant already has MenuCategories (active or inactive/deleted), NEVER auto-provision or reactivate them.
+    if tenant and not MenuCategory.objects.filter(tenant=tenant).exists():
+        legacy_cats = list(
+            MenuItem.objects.filter(tenant=tenant)
+            .exclude(category="")
+            .exclude(category__isnull=True)
+            .values_list("category", flat=True)
+            .distinct()
+        )
+        if legacy_cats:
+            order_idx = 10
+            for cat_name in legacy_cats:
+                cat_name_clean = str(cat_name).strip()
+                if cat_name_clean:
+                    MenuCategory.objects.get_or_create(
+                        tenant=tenant,
+                        name=cat_name_clean,
+                        defaults={"ordering": order_idx, "is_active": True},
+                    )
+                    order_idx += 10
+            active_categories_qs = MenuCategory.objects.filter(
+                tenant=tenant, is_active=True
+            ).order_by("ordering", "id")
+
+    active_cats_list = list(active_categories_qs)
+    cat_by_id = {c.id: c for c in active_cats_list}
+    cat_by_name = {}
+    for c in active_cats_list:
+        if c.name:
+            cat_by_name[c.name.strip().lower()] = c
+        if c.name_en and c.name_en.strip():
+            cat_by_name[c.name_en.strip().lower()] = c
+
+    base_menu = (
+        MenuItem.objects.filter(tenant=tenant, available=True, is_active=True)
+        .select_related("category_rel")
+        .order_by("category_rel__ordering", "category_rel__id", "category", "name")
+        if tenant
+        else MenuItem.objects.none()
+    )
     if branch:
-        disabled_ids = set(BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list("menu_item_id", flat=True))
+        disabled_ids = set(
+            BranchMenuAvailability.objects.filter(branch=branch, is_available=False).values_list(
+                "menu_item_id", flat=True
+            )
+        )
         raw_items = list(base_menu.exclude(id__in=disabled_ids))
     else:
         raw_items = list(base_menu)
 
+    BORDER_PALETTE = [
+        "border-violet-500",
+        "border-blue-500",
+        "border-emerald-500",
+        "border-amber-500",
+        "border-orange-500",
+        "border-teal-500",
+        "border-cyan-500",
+        "border-rose-500",
+        "border-pink-500",
+        "border-indigo-500",
+    ]
+
     menu_items = []
+    items_to_backfill = []
+    has_uncategorized = False
     for m in raw_items:
         m.price = m.get_price_for_branch(branch)
+        m.display_name = m.get_display_name(lang)
+
+        resolved_cat = None
+        if m.category_rel_id and m.category_rel_id in cat_by_id:
+            resolved_cat = cat_by_id[m.category_rel_id]
+        elif m.category and m.category.strip().lower() in cat_by_name:
+            resolved_cat = cat_by_name[m.category.strip().lower()]
+            if not m.category_rel_id:
+                m.category_rel = resolved_cat
+                items_to_backfill.append(m)
+
+        if resolved_cat:
+            m.pos_category_id = str(resolved_cat.id)
+            m.pos_category_name = resolved_cat.get_display_name(lang)
+            m.pos_category_raw_name = resolved_cat.name
+            color_idx = resolved_cat.id % len(BORDER_PALETTE)
+            m.border_color_class = BORDER_PALETTE[color_idx]
+        else:
+            m.pos_category_id = "uncategorized"
+            m.pos_category_name = "أطباق عامة" if lang == "ar" else "General"
+            m.pos_category_raw_name = "أطباق عامة"
+            m.border_color_class = "border-slate-400"
+            has_uncategorized = True
+
         menu_items.append(m)
 
-    recent_orders = Order.objects.filter(tenant=tenant).order_by("-id")
+    if items_to_backfill:
+        try:
+            MenuItem.objects.bulk_update(items_to_backfill, ["category_rel"])
+        except Exception:
+            pass
+
+    # Build category list for POS tab pills
+    categories = [
+        {
+            "id": "all",
+            "name": "الكل" if lang == "ar" else "All",
+            "raw_name": "all",
+            "is_all": True,
+        }
+    ]
+    for c in active_cats_list:
+        categories.append({
+            "id": str(c.id),
+            "name": c.get_display_name(lang),
+            "raw_name": c.name,
+            "is_all": False,
+        })
+    if has_uncategorized:
+        categories.append({
+            "id": "uncategorized",
+            "name": "أطباق عامة" if lang == "ar" else "General",
+            "raw_name": "uncategorized",
+            "is_all": False,
+        })
+
+    recent_orders = Order.objects.filter(tenant=tenant).order_by("-id") if tenant else Order.objects.none()
     if branch:
         recent_orders = recent_orders.filter(branch=branch)
 
@@ -644,6 +769,7 @@ def pos_view(request):
         "current_branch": branch,
         "branches": branches,
         "categories": categories,
+        "active_categories": active_cats_list,
         "menu_items": menu_items,
         "recent_orders": recent_orders[:10],
         "branch_currency_symbol": currency_sym,

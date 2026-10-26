@@ -24,15 +24,17 @@
         <div>
             <!-- Categories & Search -->
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2.5">
-                <div class="flex flex-wrap items-center gap-1.5">
+                <div class="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 scrollbar-none flex-nowrap" id="pos-category-pills">
                     {% for c in categories %}
                     <button 
-                        onclick="setCategory('{{ c }}')" 
+                        type="button"
+                        onclick="setCategory('{{ c.id|default:c|escapejs }}')" 
                         id="cat-btn-{{ forloop.counter }}"
-                        class="cat-btn rounded-full px-3.5 py-1 text-xs font-bold transition cursor-pointer {% if forloop.first %}bg-violet-600 text-white shadow-xs{% else %}border border-slate-200/70 bg-white text-slate-800 hover:text-slate-900 hover:bg-slate-100{% endif %}"
-                        data-cat="{{ c }}"
+                        class="cat-btn shrink-0 whitespace-nowrap rounded-full px-3.5 py-1 text-xs font-bold transition cursor-pointer {% if forloop.first %}bg-violet-600 text-white shadow-xs{% else %}border border-slate-200/70 bg-white text-slate-800 hover:text-slate-900 hover:bg-slate-100{% endif %}"
+                        data-cat-id="{{ c.id|default:c }}"
+                        data-cat="{{ c.name|default:c }}"
                     >
-                        {{ c }}
+                        {{ c.name|default:c }}
                     </button>
                     {% endfor %}
                 </div>
@@ -55,17 +57,20 @@
                 {% for m in menu_items %}
                 <button 
                     type="button"
-                    class="menu-item group relative flex flex-col justify-between p-2.5 rounded-xl border border-slate-200/70 bg-white hover:border-violet-600 hover:bg-blue-50/30 active:scale-[0.98] transition-all text-right shadow-xs cursor-pointer select-none min-h-[64px] {% if not m.available %}opacity-40 pointer-events-none{% endif %} {% if m.category == 'أطباق رئيسية' %}border-r-4 border-r-blue-500{% elif m.category == 'مشويات' %}border-r-4 border-r-amber-500{% elif m.category == 'ساندويتشات' %}border-r-4 border-r-emerald-500{% elif m.category == 'برجر' %}border-r-4 border-r-orange-500{% elif m.category == 'دجاج' %}border-r-4 border-r-yellow-500{% elif m.category == 'مقبلات' %}border-r-4 border-r-teal-500{% elif m.category == 'مشروبات' %}border-r-4 border-r-cyan-500{% elif m.category == 'حلويات' %}border-r-4 border-r-pink-500{% else %}border-r-4 border-r-blue-400{% endif %}"
+                    class="menu-item group relative flex flex-col justify-between p-2.5 rounded-xl border border-slate-200/70 bg-white hover:border-violet-600 hover:bg-blue-50/30 active:scale-[0.98] transition-all {% if IS_RTL %}text-right border-r-4{% else %}text-left border-l-4{% endif %} shadow-xs cursor-pointer select-none min-h-[64px] {% if not m.available %}opacity-40 pointer-events-none{% endif %} {{ m.border_color_class|default:'border-blue-400' }}"
                     data-id="{{ m.id }}"
                     data-name="{{ m.name }}"
+                    data-name-en="{{ m.name_en|default:'' }}"
                     data-price="{{ m.price }}"
-                    data-category="{{ m.category }}"
-                    onclick="addToCart({{ m.id }}, '{{ m.name|escapejs }}', {{ m.price }})"
+                    data-category="{{ m.pos_category_name|default:m.category }}"
+                    data-category-id="{{ m.pos_category_id|default:'' }}"
+                    data-category-name="{{ m.pos_category_name|default:m.category }}"
+                    onclick="addToCart({{ m.id }}, '{% if not IS_RTL and m.name_en %}{{ m.name_en|escapejs }}{% else %}{{ m.name|escapejs }}{% endif %}', {{ m.price }})"
                 >
                     <!-- Top: Dish Name -->
                     <div class="flex items-start justify-between gap-1 w-full">
                         <span class="text-xs font-bold text-slate-900 group-hover:text-violet-700 transition leading-snug line-clamp-2">
-                            {{ m.name }}
+                            {% if not IS_RTL and m.name_en %}{{ m.name_en }}{% else %}{{ m.name }}{% endif %}
                         </span>
                     </div>
 
@@ -74,18 +79,22 @@
                         <span class="text-xs font-bold text-violet-700 font-mono">
                             {{ m.price|floatformat:0 }} <span class="text-[10.5px] font-bold text-slate-700 font-sans">{{ branch_currency_symbol }}</span>
                         </span>
-                        <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 max-w-[65px] truncate">
-                            {{ m.category }}
+                        <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 max-w-[85px] truncate" title="{{ m.pos_category_name|default:m.category }}">
+                            {{ m.pos_category_name|default:m.category }}
                         </span>
                     </div>
 
                     {% if not m.available %}
-                    <span class="absolute top-1.5 left-1.5 rounded-md bg-rose-100 border border-rose-300 px-1 py-0.5 text-[9px] font-semibold text-rose-900">نفد</span>
+                    <span class="absolute top-1.5 left-1.5 rounded-md bg-rose-100 border border-rose-300 px-1 py-0.5 text-[9px] font-semibold text-rose-900">{% if not IS_RTL %}Out of Stock{% else %}نفد{% endif %}</span>
                     {% endif %}
                 </button>
+                {% empty %}
+                <div class="col-span-full py-12 text-center text-xs text-slate-500 font-bold">
+                    {% if not IS_RTL %}No items available in this menu yet. Click 'Manage Menu' to add items.{% else %}لا توجد أصناف في قائمة هذا المطعم حالياً. يمكنك إضافة أصناف جديدة عبر زر «إدارة أصناف القائمة» أعلاه.{% endif %}
+                </div>
                 {% endfor %}
             </div>
-            <div id="no-items-msg" class="hidden py-12 text-center text-xs text-slate-700 font-bold">لا توجد أصناف مطابقة للبحث</div>
+            <div id="no-items-msg" class="hidden py-12 text-center text-xs text-slate-700 font-bold">{% if not IS_RTL %}No items match the selected category or search{% else %}لا توجد أصناف مطابقة للبحث أو القسم المحدد{% endif %}</div>
         </div>
 
         <!-- Invoice / Cart Section -->
@@ -288,10 +297,10 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
             <div>
                 <h3 class="text-sm font-bold text-slate-900 tracking-tight">إدارة أصناف القائمة</h3>
-                <p class="text-xs text-slate-500">تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة</p>
+                <p class="text-xs text-slate-500">{% if not IS_RTL %}Toggle dish availability or create new items{% else %}تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة{% endif %}</p>
             </div>
             <button onclick="openAddMenuModal()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-xs font-medium transition cursor-pointer">
-                + صنف جديد
+                + {% if not IS_RTL %}New Item{% else %}صنف جديد{% endif %}
             </button>
         </div>
 
@@ -303,23 +312,27 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </span>
                     <div>
-                        <p class="text-xs font-semibold text-slate-900">{{ m.name }}</p>
-                        <p class="text-[10px] text-slate-400">{{ m.category }} • {{ m.price }} {{ branch_currency_symbol }}</p>
+                        <p class="text-xs font-semibold text-slate-900">{% if not IS_RTL and m.name_en %}{{ m.name_en }}{% else %}{{ m.name }}{% endif %}</p>
+                        <p class="text-[10px] text-slate-400">{{ m.pos_category_name|default:m.category }} • {{ m.price }} {{ branch_currency_symbol }}</p>
                     </div>
                 </div>
                 <button 
                     onclick="toggleMenuItem({{ m.id }}, this)" 
                     class="rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer {% if m.available %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %}"
                 >
-                    {% if m.available %}متوفر{% else %}غير متوفر{% endif %}
+                    {% if m.available %}{% if not IS_RTL %}Available{% else %}متوفر{% endif %}{% else %}{% if not IS_RTL %}Unavailable{% else %}غير متوفر{% endif %}{% endif %}
                 </button>
+            </div>
+            {% empty %}
+            <div class="p-6 text-center text-xs text-slate-500">
+                {% if not IS_RTL %}No dishes found. Click "+ New Item" to create one.{% else %}لا توجد أصناف حالياً. اضغط على «+ صنف جديد» لإضافة طبق.{% endif %}
             </div>
             {% endfor %}
         </div>
 
-        <div class="mt-4 pt-3 border-t border-slate-100 text-left">
+        <div class="mt-4 pt-3 border-t border-slate-100 {% if IS_RTL %}text-left{% else %}text-right{% endif %}">
             <button onclick="closeMenuManager()" class="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">
-                إغلاق
+                {% if not IS_RTL %}Close{% else %}إغلاق{% endif %}
             </button>
         </div>
     </div>
@@ -328,44 +341,45 @@
 <!-- Add Menu Item Modal -->
 <div id="add-menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 font-body backdrop-blur-xs">
     <div class="bg-white rounded-xl border border-slate-200 max-w-md w-full p-6 shadow-xl">
-        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-4">إضافة صنف جديد للمنيو</h3>
+        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-4">{% if not IS_RTL %}Add New Menu Item{% else %}إضافة صنف جديد للمنيو{% endif %}</h3>
         <div class="space-y-3 text-xs">
             <div>
-                <label class="mb-1 block font-medium text-slate-600">اسم الصنف</label>
-                <input type="text" id="new-item-name" placeholder="مثال: مقلوبة دجاج فاخرة" class="input text-xs">
+                <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Item Name{% else %}اسم الصنف{% endif %}</label>
+                <input type="text" id="new-item-name" placeholder="{% if not IS_RTL %}e.g. Crispy Chicken Burger{% else %}مثال: مقلوبة دجاج فاخرة{% endif %}" class="input text-xs font-bold">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">الفئة</label>
-                    <select id="new-item-cat" class="input text-xs">
-                        <option value="أطباق رئيسية">أطباق رئيسية</option>
-                        <option value="مشويات">مشويات</option>
-                        <option value="ساندويتشات">ساندويتشات</option>
-                        <option value="مقبلات">مقبلات</option>
-                        <option value="مشروبات">مشروبات</option>
-                        <option value="حلويات">حلويات</option>
+                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Category{% else %}الفئة / القسم{% endif %}</label>
+                    <select id="new-item-cat" class="input text-xs font-bold" onchange="toggleCustomCatInput()">
+                        {% for c in active_categories %}
+                        <option value="{{ c.id }}" data-name="{{ c.name }}">{% if not IS_RTL and c.name_en %}{{ c.name_en }}{% else %}{{ c.name }}{% endif %}</option>
+                        {% empty %}
+                        <option value="" data-name="عام">{% if not IS_RTL %}General Dishes{% else %}أطباق عامة{% endif %}</option>
+                        {% endfor %}
+                        <option value="__new__">+ {% if not IS_RTL %}Add New Category…{% else %}إضافة قسم جديد…{% endif %}</option>
                     </select>
+                    <input type="text" id="new-item-custom-cat" placeholder="{% if not IS_RTL %}Type category name…{% else %}اكتب اسم القسم الجديد…{% endif %}" class="input text-xs font-bold mt-1.5 hidden border-violet-300">
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">التصنيف</label>
-                    <input type="text" id="new-item-emoji" placeholder="طبق رئيسي" class="input text-xs">
+                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Emoji / Icon{% else %}أيقونة أو رمز{% endif %}</label>
+                    <input type="text" id="new-item-emoji" placeholder="🍽️" class="input text-xs font-bold">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">سعر البيع ({{ branch_currency_symbol }})</label>
-                    <input type="number" id="new-item-price" placeholder="45" class="input text-xs">
+                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Selling Price ({{ branch_currency_symbol }}){% else %}سعر البيع ({{ branch_currency_symbol }}){% endif %}</label>
+                    <input type="number" id="new-item-price" placeholder="45" class="input text-xs font-bold">
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">التكلفة ({{ branch_currency_symbol }})</label>
-                    <input type="number" id="new-item-cost" placeholder="18" class="input text-xs">
+                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Cost Price ({{ branch_currency_symbol }}){% else %}التكلفة ({{ branch_currency_symbol }}){% endif %}</label>
+                    <input type="number" id="new-item-cost" placeholder="18" class="input text-xs font-bold">
                 </div>
             </div>
         </div>
 
         <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeAddMenuModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">إلغاء</button>
-            <button onclick="saveNewMenuItem()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-1.5 text-xs font-medium transition cursor-pointer">حفظ الصنف</button>
+            <button onclick="closeAddMenuModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">{% if not IS_RTL %}Cancel{% else %}إلغاء{% endif %}</button>
+            <button onclick="saveNewMenuItem()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-1.5 text-xs font-medium transition cursor-pointer">{% if not IS_RTL %}Save Item{% else %}حفظ الصنف{% endif %}</button>
         </div>
     </div>
 </div>
@@ -374,32 +388,59 @@
 {% block extra_scripts %}
 <script>
     const CURRENCY_SYMBOL = "{{ branch_currency_symbol|default:'ر.س'|escapejs }}";
+    const IS_RTL_UI = {{ IS_RTL|yesno:"true,false" }};
     let cart = {};
     let selectedOrderType = 'dine_in';
-    let currentCategory = 'الكل';
+    let currentCategory = 'all';
 
-    function setCategory(cat) {
-        currentCategory = cat;
+    function normStr(str) {
+        if (!str) return '';
+        return String(str).toLowerCase().trim()
+            .replace(/[أإآءئؤ]/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/[\u064B-\u065F]/g, '');
+    }
+
+    function setCategory(catId) {
+        currentCategory = String(catId);
         document.querySelectorAll('.cat-btn').forEach(btn => {
-            if (btn.dataset.cat === cat) {
-                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-medium transition cursor-pointer bg-violet-600 text-white shadow-none';
+            const bId = btn.dataset.catId || '';
+            const bName = btn.dataset.cat || '';
+            const isAllMatch = (currentCategory === 'all' || currentCategory === 'الكل' || currentCategory === 'All') &&
+                               (bId === 'all' || bName === 'الكل' || bName === 'All');
+            const isDirectMatch = (bId && bId === currentCategory) || 
+                                  (bName && bName.toLowerCase() === currentCategory.toLowerCase());
+
+            const baseClass = 'cat-btn shrink-0 whitespace-nowrap rounded-full px-3.5 py-1 text-xs font-bold transition cursor-pointer ';
+            if (isAllMatch || isDirectMatch) {
+                btn.className = baseClass + 'bg-violet-600 text-white shadow-xs';
             } else {
-                btn.className = 'cat-btn rounded-full px-3.5 py-1 text-xs font-medium transition cursor-pointer border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50';
+                btn.className = baseClass + 'border border-slate-200/70 bg-white text-slate-800 hover:text-slate-900 hover:bg-slate-100';
             }
         });
         filterMenu();
     }
 
     function filterMenu() {
-        const query = document.getElementById('menu-search').value.trim().toLowerCase();
+        const rawQuery = (document.getElementById('menu-search').value || '').trim();
+        const query = normStr(rawQuery);
         const items = document.querySelectorAll('.menu-item');
         let visibleCount = 0;
 
+        const isAll = (currentCategory === 'all' || currentCategory === 'الكل' || currentCategory === 'All');
+
         items.forEach(el => {
-            const name = el.dataset.name.toLowerCase();
-            const cat = el.dataset.category;
-            const matchesCat = currentCategory === 'الكل' || cat === currentCategory;
-            const matchesQuery = !query || name.includes(query);
+            const name = normStr(el.dataset.name || '');
+            const nameEn = normStr(el.dataset.nameEn || '');
+            const catId = el.dataset.categoryId || '';
+            const catName = normStr(el.dataset.categoryName || el.dataset.category || '');
+
+            const matchesCat = isAll || 
+                               (catId && catId === currentCategory) || 
+                               (catName && catName === normStr(currentCategory));
+
+            const matchesQuery = !query || name.includes(query) || nameEn.includes(query) || catName.includes(query);
 
             if (matchesCat && matchesQuery) {
                 el.classList.remove('hidden');
@@ -410,10 +451,12 @@
         });
 
         const noItems = document.getElementById('no-items-msg');
-        if (visibleCount === 0) {
-            noItems.classList.remove('hidden');
-        } else {
-            noItems.classList.add('hidden');
+        if (noItems) {
+            if (visibleCount === 0) {
+                noItems.classList.remove('hidden');
+            } else {
+                noItems.classList.add('hidden');
+            }
         }
     }
 
@@ -685,6 +728,24 @@
     }
 
     function openAddMenuModal() {
+        const nameInput = document.getElementById('new-item-name');
+        if (nameInput) nameInput.value = '';
+        const priceInput = document.getElementById('new-item-price');
+        if (priceInput) priceInput.value = '';
+        const costInput = document.getElementById('new-item-cost');
+        if (costInput) costInput.value = '';
+        const emojiInput = document.getElementById('new-item-emoji');
+        if (emojiInput) emojiInput.value = '';
+        const customInput = document.getElementById('new-item-custom-cat');
+        if (customInput) {
+            customInput.value = '';
+            customInput.classList.add('hidden');
+        }
+        const catSelect = document.getElementById('new-item-cat');
+        if (catSelect && catSelect.options.length > 0) {
+            catSelect.selectedIndex = 0;
+        }
+
         document.getElementById('add-menu-modal').classList.remove('hidden');
         document.getElementById('add-menu-modal').classList.add('flex');
     }
@@ -693,31 +754,70 @@
         document.getElementById('add-menu-modal').classList.remove('flex');
     }
 
+    function toggleCustomCatInput() {
+        const select = document.getElementById('new-item-cat');
+        const customInput = document.getElementById('new-item-custom-cat');
+        if (select && customInput) {
+            if (select.value === '__new__') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+            }
+        }
+    }
+
     async function saveNewMenuItem() {
-        const name = document.getElementById('new-item-name').value.trim();
-        const cat = document.getElementById('new-item-cat').value;
-        const emoji = document.getElementById('new-item-emoji').value.trim() || 'طبق';
+        const name = (document.getElementById('new-item-name').value || '').trim();
+        const catSelect = document.getElementById('new-item-cat');
+        const customInput = document.getElementById('new-item-custom-cat');
+        
+        let catId = null;
+        let catName = '';
+        if (catSelect.value === '__new__') {
+            catName = (customInput.value || '').trim();
+            if (!catName) {
+                showToast(IS_RTL_UI ? 'يرجى كتابة اسم القسم الجديد' : 'Please enter a name for the new category', 'error');
+                return;
+            }
+        } else if (catSelect.value) {
+            catId = catSelect.value;
+            const opt = catSelect.options[catSelect.selectedIndex];
+            catName = opt ? (opt.dataset.name || opt.text) : '';
+        } else {
+            catName = IS_RTL_UI ? 'أطباق عامة' : 'General Dishes';
+        }
+
+        const emoji = (document.getElementById('new-item-emoji').value || '').trim() || '🍽️';
         const price = parseFloat(document.getElementById('new-item-price').value);
         const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
 
         if (!name || isNaN(price) || price <= 0) {
-            showToast('اسم الصنف وسعر البيع مطلوبان', 'error');
+            showToast(IS_RTL_UI ? 'اسم الصنف وسعر البيع مطلوبان' : 'Item name and valid selling price are required', 'error');
             return;
         }
 
         try {
+            const payload = { name, emoji, price, cost };
+            if (catId) {
+                payload.category_id = catId;
+            }
+            if (catName) {
+                payload.category = catName;
+            }
+
             const res = await fetch("{% url 'api_create_menu_item' %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ name, category: cat, emoji, price, cost })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            if (!res.ok) throw new Error(data.error || (IS_RTL_UI ? 'تعذر إضافة الصنف' : 'Failed to add item'));
 
-            showToast(`تمت إضافة «${data.name}» للقائمة!`);
+            showToast(IS_RTL_UI ? `تمت إضافة «${data.name}» للقائمة!` : `Added "${data.name}" to menu!`);
             closeAddMenuModal();
             setTimeout(() => location.reload(), 1000);
         } catch (e) {

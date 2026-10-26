@@ -111,6 +111,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "templates/kitchen.html, apps/kitchen/views.py, core/i18n_catalog.py, scratch/test_kitchen_standby.py (5 suites 100% pass), ./init.sh verified."
+    },
+    {
+      "id": "feat-pos-dynamic-categories",
+      "name": "Dynamic POS Menu Categories & Multi-language Filtering",
+      "description": "Make POS category pills 100% dynamic bound to apps.menu.models.MenuCategory scoped to tenant, support instant addition/deletion of categories and items, prevent soft-deleted category resurrection, support uncategorized fallback, provide bilingual UI and normalized search, and swipeable non-wrapping pills ribbon.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "apps/orders/views.py, templates/pos.html, verified with ./init.sh (100% pass), manage.py check, test_system.py, test_e2e_rbac.py, and live container motaem_web test for tenant 77."
     }
   ]
 }
