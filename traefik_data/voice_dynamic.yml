@@ -95,6 +95,22 @@ http:
       tls:
         certResolver: "myresolver"
 
+    android-http:
+      rule: "Host(`android.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "web"
+      middlewares:
+        - "hexmedia-redirect-https"
+      service: "android-service"
+
+    android-https:
+      rule: "Host(`android.169.58.32.179.nip.io`)"
+      entryPoints:
+        - "websecure"
+      service: "android-service"
+      tls:
+        certResolver: "myresolver"
+
   middlewares:
     hexmedia-redirect-https:
       redirectScheme:
@@ -146,3 +162,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://169.58.32.179:9100"
+
+    android-service:
+      loadBalancer:
+        servers:
+          - url: "http://169.58.32.179:8079"
