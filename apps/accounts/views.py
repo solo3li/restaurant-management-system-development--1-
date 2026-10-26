@@ -53,12 +53,24 @@ def login_view(request):
         error_message = "تم إيقاف حساب هذه المنشأة مؤقتاً. يرجى مراجعة إدارة المطعم أو صاحب العمل."
 
     if request.method == "POST":
-        auth_type = request.POST.get("auth_type", "credentials")
+        is_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+            or "application/json" in (request.content_type or "")
+        )
+        post_data = request.POST
+        if "application/json" in (request.content_type or "") and request.body:
+            try:
+                post_data = json.loads(request.body.decode("utf-8"))
+            except Exception:
+                post_data = request.POST
+
+        auth_type = post_data.get("auth_type", "credentials")
 
         if auth_type == "pin":
             # Mode B: Quick Shift PIN Login for shift workers
-            code = request.POST.get("employee_code", "").strip()
-            pin = request.POST.get("pin", "").strip()
+            code = post_data.get("employee_code", "").strip()
+            pin = post_data.get("pin", "").strip()
 
             # Normalize Arabic digits (٠١٢٣٤٥٦٧٨٩ -> 0123456789)
             trans_table = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
@@ -155,8 +167,8 @@ def login_view(request):
 
         else:
             # Mode A: Standard Credentials
-            username = request.POST.get("username", "").strip()
-            password = request.POST.get("password", "")
+            username = post_data.get("username", "").strip()
+            password = post_data.get("password", "")
 
             client_ip = _get_client_ip(request) or "unknown"
             cred_rate_key = f"rate_limit_cred_{client_ip}_{username}"
@@ -186,12 +198,16 @@ def login_view(request):
                         if not is_owner:
                             _record_failed_attempt(cred_rate_key)
                             error_message = "تم إيقاف حساب هذه المنشأة مؤقتاً. يرجى مراجعة إدارة المطعم أو صاحب العمل."
+                            if is_json:
+                                return JsonResponse({"status": "error", "message": error_message}, status=403)
                             return render(request, "login.html", {"error": error_message})
                         else:
                             # Owner is routed exclusively to owner_subscription
                             _clear_rate_limit(cred_rate_key)
                             login(request, user)
                             request.session["active_tenant_id"] = target_tenant.id
+                            if is_json:
+                                return JsonResponse({"status": "success", "username": user.username, "redirect": reverse("owner_subscription")})
                             return redirect("owner_subscription")
 
                     _clear_rate_limit(cred_rate_key)
@@ -211,6 +227,8 @@ def login_view(request):
 
                     # Route platform admin / superuser directly to Django Admin
                     if user.is_superuser or (profile and profile.is_platform_admin):
+                        if is_json:
+                            return JsonResponse({"status": "success", "username": user.username, "redirect": "/admin/"})
                         return redirect("/admin/")
 
                     # Bind tenant
@@ -225,10 +243,22 @@ def login_view(request):
                         if profile.branch:
                             request.session["active_branch_id"] = profile.branch.id
 
+                    if is_json:
+                        rest_name = profile.tenant.name if (profile and profile.tenant) else "مطاعم"
+                        return JsonResponse({
+                            "status": "success",
+                            "username": user.username,
+                            "restaurant_name": rest_name,
+                            "redirect": get_post_login_redirect(user),
+                        })
+
                     return redirect(get_post_login_redirect(user))
                 else:
                     _record_failed_attempt(cred_rate_key)
                     error_message = "اسم المستخدم أو كلمة المرور غير صحيحة"
+
+        if is_json and error_message:
+            return JsonResponse({"status": "error", "message": error_message}, status=400)
 
     return render(request, "login.html", {"error": error_message})
 
@@ -246,14 +276,26 @@ def register_view(request):
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("ordering")
 
     if request.method == "POST":
-        restaurant_name = request.POST.get("restaurant_name", "").strip()
-        cuisine_type = request.POST.get("cuisine_type", "شعبي وتراثي").strip()
-        owner_name = request.POST.get("owner_name", "").strip()
-        phone = request.POST.get("phone", "").strip()
-        email = request.POST.get("email", "").strip()
-        username = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "").strip()
-        plan_code = request.POST.get("plan_code", "").strip() or "trial"
+        is_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+            or "application/json" in (request.content_type or "")
+        )
+        post_data = request.POST
+        if "application/json" in (request.content_type or "") and request.body:
+            try:
+                post_data = json.loads(request.body.decode("utf-8"))
+            except Exception:
+                post_data = request.POST
+
+        restaurant_name = post_data.get("restaurant_name", "").strip()
+        cuisine_type = post_data.get("cuisine_type", "شعبي وتراثي").strip()
+        owner_name = post_data.get("owner_name", "").strip()
+        phone = post_data.get("phone", "").strip()
+        email = post_data.get("email", "").strip()
+        username = post_data.get("username", "").strip()
+        password = post_data.get("password", "").strip()
+        plan_code = post_data.get("plan_code", "").strip() or "trial"
 
         if not restaurant_name or not username or not password:
             error_message = "يرجى تعبئة الحقول الإلزامية: اسم المطعم، اسم المستخدم، وكلمة المرور."
@@ -315,10 +357,32 @@ def register_view(request):
                 # 7. Authenticate and redirect directly to Profile page
                 login(request, user)
                 request.session["active_tenant_id"] = tenant.id
+
+                # 8. Auto-provision Voice AI on partner platform
+                try:
+                    from core import partner_service as ps
+                    ps.ensure_tenant_registered(tenant, password=password)
+                except Exception as ex_voice:
+                    logger.warning(f"Voice auto-registration on signup failed: {ex_voice}")
+
+                if is_json:
+                    return JsonResponse({
+                        "status": "success",
+                        "username": user.username,
+                        "tenant_id": tenant.id,
+                        "tenant_name": tenant.name,
+                        "voice_client_id": tenant.voice_client_id or 49,
+                        "redirect": reverse("dashboard"),
+                    })
+
                 return redirect("profile")
 
             except Exception as e:
                 error_message = f"حدث خطأ أثناء إنشاء الحساب: {str(e)}"
+
+        if is_json and error_message:
+            return JsonResponse({"status": "error", "message": error_message}, status=400)
+
 
     return render(request, "register.html", {
         "error": error_message,

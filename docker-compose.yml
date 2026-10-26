@@ -66,6 +66,7 @@ services:
       - motaem_network
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=motaem_motaem_network"
 
       # Middleware: Redirect HTTP to HTTPS
       - "traefik.http.middlewares.motaem-redirect-https.redirectscheme.scheme=https"
@@ -79,24 +80,43 @@ services:
       - "traefik.http.middlewares.motaem-sec-headers.headers.browserXssFilter=true"
       - "traefik.http.middlewares.motaem-sec-headers.headers.contentTypeNosniff=true"
 
-      # Router: HTTP for uggu.space (Redirects to HTTPS)
+      # Middleware: Canonical Redirect from IP or www or HTTP to https://uggu.space
+      - "traefik.http.middlewares.motaem-canonical-redirect.redirectregex.regex=^(?:http://(?:169\\.58\\.32\\.179|www\\.uggu\\.space|uggu\\.space)|https://www\\.uggu\\.space)/(.*)"
+      - "traefik.http.middlewares.motaem-canonical-redirect.redirectregex.replacement=https://uggu.space/$${1}"
+      - "traefik.http.middlewares.motaem-canonical-redirect.redirectregex.permanent=true"
+
+      # Router: Direct IP access (Auto-Redirects to https://uggu.space)
+      - "traefik.http.routers.motaem-direct.rule=Host(`169.58.32.179`)"
+      - "traefik.http.routers.motaem-direct.entrypoints=web"
+      - "traefik.http.routers.motaem-direct.service=motaem"
+      - "traefik.http.routers.motaem-direct.middlewares=motaem-canonical-redirect"
+
+      # Router: HTTP for uggu.space & www (Redirects to https://uggu.space)
       - "traefik.http.routers.motaem-http.rule=Host(`uggu.space`) || Host(`www.uggu.space`)"
       - "traefik.http.routers.motaem-http.entrypoints=web"
-      - "traefik.http.routers.motaem-http.middlewares=motaem-redirect-https"
+      - "traefik.http.routers.motaem-http.service=motaem"
+      - "traefik.http.routers.motaem-http.middlewares=motaem-canonical-redirect"
+
 
       # Router: HTTPS for uggu.space (SSL via Let's Encrypt)
-      - "traefik.http.routers.motaem-https.rule=Host(`uggu.space`) || Host(`www.uggu.space`)"
+      - "traefik.http.routers.motaem-https.rule=Host(`uggu.space`)"
       - "traefik.http.routers.motaem-https.entrypoints=websecure"
+      - "traefik.http.routers.motaem-https.service=motaem"
       - "traefik.http.routers.motaem-https.tls=true"
       - "traefik.http.routers.motaem-https.tls.certresolver=myresolver"
       - "traefik.http.routers.motaem-https.middlewares=motaem-sec-headers"
 
-      # Router: Direct IP & Localhost access (allows testing before DNS propagates)
-      - "traefik.http.routers.motaem-direct.rule=Host(`169.58.32.179`) || Host(`localhost`)"
-      - "traefik.http.routers.motaem-direct.entrypoints=web"
+      # Router: HTTPS for www.uggu.space (Redirects to https://uggu.space)
+      - "traefik.http.routers.motaem-www-https.rule=Host(`www.uggu.space`)"
+      - "traefik.http.routers.motaem-www-https.entrypoints=websecure"
+      - "traefik.http.routers.motaem-www-https.service=motaem"
+      - "traefik.http.routers.motaem-www-https.tls=true"
+      - "traefik.http.routers.motaem-www-https.tls.certresolver=myresolver"
+      - "traefik.http.routers.motaem-www-https.middlewares=motaem-canonical-redirect"
 
       # Target Service
       - "traefik.http.services.motaem.loadbalancer.server.port=8000"
+
 
 volumes:
   postgres_data:

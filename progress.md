@@ -2,9 +2,11 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-23 23:40
-**Session ID:** Landing Page Simplification, Bilingual Coverage, Profile Page & Post-Registration Routing
+**Last Updated:** 2026-10-26 13:25
+**Session ID:** Landing Page WebRTC Direct Voice Agent Demo & In-Page Stepper Auth
 **Active Features:** 
+- `feat-https-canonical-domain-redirect` (Completed)
+- `feat-landing-webrtc-voice-demo` (Completed)
 - `feat-landing-navbar-auth` (Completed)
 - `feat-landing-bilingual` (Completed)
 - `feat-user-subscription-profile` (Completed)
@@ -13,6 +15,35 @@
 ## Status
 
 ### What's Done
+
+- [x] **R0: HTTPS & Canonical Domain Enforcement (`uggu.space`)**
+  - Configured Traefik gateway middleware `motaem-canonical-redirect` to permanently redirect (308) all HTTP, direct IP (`169.58.32.179`), and `www.uggu.space` traffic to `https://uggu.space/{path}`.
+  - Resolved browser "Secure Context" restriction, allowing microphone access and LiveKit WebRTC streaming without security warnings.
+  - Rebuilt and stabilized Docker container with `django-jazzmin` installed, connected to `motaem_motaem_network`.
+  - Verified 100% via automated HTTP checks across all entry routes.
+
+
+- [x] **R1: Partner WebRTC Voice Session (`POST /clients/{client_id}/calls/webrtc/`)**
+  - Added `initiate_webrtc_call` in `core/partner_service.py` to communicate directly with the Voice AI partner platform.
+  - Generates LiveKit encrypted token, room credentials, and binds active restaurant agent profile.
+  - Exposed `/api/webrtc/session/` proxy view in `apps/callcenter/views.py` and routed in `core/urls.py` with rate limiting and tenant binding.
+- [x] **R2: In-Page Stepper Auth Modal (Zero Page Reload)**
+  - Implemented 2-step registration stepper modal: Step 1 (Restaurant Info) -> Step 2 (Account Info & Phone).
+  - Quick tab toggle to Instant Login for existing users.
+  - Updated `register_view` and `login_view` in `apps/accounts/views.py` to seamlessly handle JSON/AJAX requests with session persistence and error handling.
+  - Auto-provisions restaurant on partner platform upon registration via `ensure_tenant_registered(tenant)`.
+- [x] **R3: Glassmorphic WebRTC Voice Call Modal (LiveKit WebRTC)**
+  - Built `static/js/landing_webrtc_agent.js` with dynamic LiveKit JS loader and fallback.
+  - Web Audio API (`AnalyserNode`) real-time audio wave equalizer bars animating on microphone input and AI voice speech.
+  - Integrated 5-minute call countdown timer, Mute/Unmute microphone toggle, and End Call action.
+- [x] **R4: Post-Call Experience on Landing Page**
+  - Keeps visitor on landing page with call summary statistics (call duration, connection quality).
+  - Provides dual actions: "إعادة الاتصال / تجربة مكالمة جديدة" and "الانتقال إلى لوحة التحكم وإكمال إعداد مطعمك".
+- [x] **R5: Verification & E2E Testing**
+  - Django system check: 0 issues.
+  - End-to-end AJAX registration -> tenant voice provisioning -> LiveKit WebRTC token generation test: 100% verified.
+  - Regression check: `test_system.py` and `test_e2e_rbac.py` pass 100%.
+
 
 - [x] **R1: Landing Page Navbar Simplification & Auth States**
   - Removed content anchor tabs (`#features`, `#pos-kds`, `#ai-phone`, `#pricing`, `#faq`) from desktop navbar and mobile drawer while preserving all body sections.

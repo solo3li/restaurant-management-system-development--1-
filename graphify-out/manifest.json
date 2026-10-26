@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "apps/accounts/views.py": {
-    "mtime": 1792791519.2831576,
-    "seen": 1792791687.2004616,
-    "ast_hash": "861c31a801e3cd6de6342f8cd00fcce1",
+    "mtime": 1793009714.2369845,
+    "seen": 1793010234.4879446,
+    "ast_hash": "4f916a6e9d91a6919ad01dab3ce4c708",
     "semantic_hash": ""
   },
   "apps/audit/__init__.py": {
@@ -330,15 +330,15 @@
     "semantic_hash": ""
   },
   "apps/callcenter/urls.py": {
-    "mtime": 1792736544.9049299,
-    "seen": 1792755068.7957842,
-    "ast_hash": "10d0b9d75fa193dd131593c5dc9cf89b",
+    "mtime": 1793009624.9712746,
+    "seen": 1793010234.489106,
+    "ast_hash": "4d8d75a33cbb2b0f54774617cbb083aa",
     "semantic_hash": ""
   },
   "apps/callcenter/views.py": {
-    "mtime": 1792748113.302388,
-    "seen": 1792755068.7957861,
-    "ast_hash": "c6e35382cf10298466c5fb03c1f3ad62",
+    "mtime": 1793009608.9747891,
+    "seen": 1793010234.4891093,
+    "ast_hash": "4b858de8bbbcc55b0d1e7c6be09f6b1b",
     "semantic_hash": ""
   },
   "apps/inventory/__init__.py": {
@@ -840,9 +840,9 @@
     "semantic_hash": ""
   },
   "core/partner_service.py": {
-    "mtime": 1792534819.3105545,
-    "seen": 1792755068.7959862,
-    "ast_hash": "50d2d5a20d907b30208a96e04ce6bec0",
+    "mtime": 1793009588.24716,
+    "seen": 1793010234.4953732,
+    "ast_hash": "5480301fe9657c87780b0218e1482acb",
     "semantic_hash": ""
   },
   "core/redis_mcp_cache.py": {
@@ -864,15 +864,15 @@
     "semantic_hash": ""
   },
   "core/urls.py": {
-    "mtime": 1792791177.888746,
-    "seen": 1792791687.2068286,
-    "ast_hash": "ba9ecd7a6cc537a5864007c97fb4d9bf",
+    "mtime": 1793010133.475711,
+    "seen": 1793010234.4955463,
+    "ast_hash": "fd183e6eda10df46efffc761c1dba6ae",
     "semantic_hash": ""
   },
   "core/views.py": {
-    "mtime": 1792794455.5560336,
-    "seen": 1792794727.4527414,
-    "ast_hash": "1767e36a3ab8e97c11f6164c73ea2b21",
+    "mtime": 1793010122.7783864,
+    "seen": 1793010234.4955492,
+    "ast_hash": "e4cedbf15c60879a6f6e2023711ef244",
     "semantic_hash": ""
   },
   "data_dump.json": {
@@ -1710,9 +1710,9 @@
     "semantic_hash": ""
   },
   "traefik_data/acme.json": {
-    "mtime": 1791856248.137143,
-    "seen": 1792755068.7963374,
-    "ast_hash": "f05bee8569bba0b068e6d87bf623161b",
+    "mtime": 1792980175.6208904,
+    "seen": 1793010234.5063972,
+    "ast_hash": "efcdcf8fb4a30c4bc2757b45bbfecf71",
     "semantic_hash": ""
   },
   ".agent/skills/harness-creator/README-UK.md": {
@@ -2448,9 +2448,9 @@
     "semantic_hash": ""
   },
   "templates/landing.html": {
-    "mtime": 1792793892.635833,
-    "seen": 1792794026.082178,
-    "ast_hash": "60ee5e541d7c1125cca64092d0eebacb",
+    "mtime": 1793010035.7807453,
+    "seen": 1793010234.5201359,
+    "ast_hash": "be8b9a56b3c762db17c0ef1deae2f03c",
     "semantic_hash": ""
   },
   "templates/login.html": {
@@ -2496,9 +2496,9 @@
     "semantic_hash": ""
   },
   "traefik_data/voice_dynamic.yml": {
-    "mtime": 1791739359.8355997,
-    "seen": 1792755068.7966526,
-    "ast_hash": "69eea29ec90fe928650e1d81ccc80042",
+    "mtime": 1792980183.3221273,
+    "seen": 1793010234.5205786,
+    "ast_hash": "04d596e86770a4073f9fc8b79d84b870",
     "semantic_hash": ""
   },
   "unique_arabic_phrases.txt": {
@@ -3735,6 +3735,30 @@
     "mtime": 1792795374.0173957,
     "seen": 1792795719.3198678,
     "ast_hash": "78ee7cadbc0191a14c9603cc05464f24",
+    "semantic_hash": ""
+  },
+  "static/js/landing_webrtc_agent.js": {
+    "mtime": 1793009767.78761,
+    "seen": 1793010234.4980378,
+    "ast_hash": "a2e722a118752e3017f972f1a5f7f321",
+    "semantic_hash": ""
+  },
+  "static/js/vendor/livekit-client.umd.min.js": {
+    "mtime": 1793009520.0670903,
+    "seen": 1793010234.4980414,
+    "ast_hash": "20b8499f644804c242c5b39da934defb",
+    "semantic_hash": ""
+  },
+  "staticfiles/js/landing_webrtc_agent.js": {
+    "mtime": 1793010049.4841614,
+    "seen": 1793010234.505693,
+    "ast_hash": "a2e722a118752e3017f972f1a5f7f321",
+    "semantic_hash": ""
+  },
+  "staticfiles/js/vendor/livekit-client.umd.min.js": {
+    "mtime": 1793010049.4921615,
+    "seen": 1793010234.5056982,
+    "ast_hash": "20b8499f644804c242c5b39da934defb",
     "semantic_hash": ""
   }
 }

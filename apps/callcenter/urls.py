@@ -54,4 +54,6 @@ urlpatterns = [
     path("api/ai-callcenter/telephony/info/", views.api_ai_callcenter_telephony_info, name="api_ai_callcenter_telephony_info"),
     path("api/ai-callcenter/usage/", views.api_ai_callcenter_usage, name="api_ai_callcenter_usage"),
     path("api/ai-callcenter/sync-caps/", views.api_ai_callcenter_sync_caps, name="api_ai_callcenter_sync_caps"),
+    path("api/ai-callcenter/calls/webrtc/", views.api_ai_callcenter_initiate_webrtc, name="api_ai_callcenter_initiate_webrtc"),
+    path("api/webrtc/session/", views.api_ai_callcenter_initiate_webrtc, name="api_webrtc_session"),
 ]

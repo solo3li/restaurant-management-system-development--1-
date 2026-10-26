@@ -1,17 +1,17 @@
-# Graph Report - motaem  (2026-10-24)
+# Graph Report - motaem  (2026-10-26)
 
 ## Corpus Check
-- 466 files · ~983,617 words
+- 470 files · ~1,020,097 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 101 file(s) not represented in the graph (top: .css 48, .map 31, (none) 5)
+- Unclassified: 102 file(s) not represented in the graph (top: .css 48, .map 31, (none) 5)
 
 ## Summary
-- 5442 nodes · 10817 edges · 405 communities (212 shown, 193 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 824 edges (avg confidence: 0.89)
+- 8176 nodes · 17284 edges · 443 communities (242 shown, 201 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 1183 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4f39fd2b`
+- Built from commit: `b56d3133`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,7 +19,7 @@
 - live-browser.js
 - orders/views.py
 - core/views.py
-- os
+- json
 - setLiveState
 - initGlobalBar
 - post_profile_data
@@ -27,14 +27,14 @@
 - evaluation.py
 - resumeSession
 - el
-- menu/views.py
+- core/views.py
 - tools.py
 - modern-screenshot.umd.js
 - initPageChat
 - select2.full.js
 - Awesome Harness Engineering [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 - cs
-- new-work.md
+- impeccable/SKILL.md
 - Running Evaluations
 - jquery.min.js
 - Node/TypeScript MCP Server Implementation Guide
@@ -55,12 +55,12 @@
 - bootstrap.min.js
 - xt
 - .agents/skills/harness-creator/scripts/lib/harness-utils.mjs
-- Any
-- challenge_harness.py
+- partner_service.py
+- ChallengeTracker
 - .apply
-- impeccable/SKILL.md
+- Operate mode depth (and Read notes)
 - handleManualEditActivity
-- Tenant
+- static/js/vendor/livekit-client.umd.min.js
 - MCP Implementation Security Review
 - xregexp.min.js
 - MultipleSelection
@@ -75,7 +75,7 @@
 - Python MCP Server Implementation Guide
 - fe
 - oe
-- accounts/views.py
+- kr
 - W
 - W
 - MCP Server Best Practices
@@ -89,11 +89,11 @@
 - select2.min.js
 - on
 - .agents/skills/harness-creator/scripts/run-benchmark.mjs
-- UpgradeRequest
+- .emit
 - 🚀 High-Level Workflow
 - ao
 - Jn
-- colorize.md
+- kr
 - Is
 - ms
 - .agent/skills/harness-creator/scripts/run-benchmark.mjs
@@ -106,7 +106,7 @@
 - .agents/skills/harness-creator/scripts/create-harness.mjs
 - display
 - Victory Audit Report & Handoff — Landing Navbar, Bilingual, User/Subscription Profile & Routing
-- Any
+- staticfiles/js/vendor/livekit-client.umd.min.js
 - matcherFromTokens
 - Results
 - Context Engineering Pattern
@@ -151,13 +151,13 @@
 - Session Progress Log
 - TenantApiKeyAdmin
 - AttachBody
-- currencies.py
+- hl
 - clarify.md
 - Nielsen's 10 Heuristics
 - polish.md
 - quieter.md
 - scheduleAcceptCleanup
-- log_audit_event
+- hl
 - actions.js
 - domManip
 - BaseSelection
@@ -172,13 +172,13 @@
 - Session Handoff
 - asgi.py
 - MCP Security Audit
-- Search
+- .emit
 - harness-creator
 - harness-creator
 - {{AGENT_FILE_NAME}}
 - Common Cognitive Load Violations
 - iOS platform
-- Operate mode depth (and Read notes)
+- o
 - Shape
 - harness-creator
 - harness-creator
@@ -187,37 +187,37 @@
 - Animation
 - ie
 - InputData
-- Tags
+- ed
 - ui-builder.js
-- q
+- Se
 - TEST_INFRA.md — Restaurant Profile Management Test Infrastructure
 - Android platform
 - Persona-Based Design Testing
-- doctor.md
+- Lh
 - Extract Flow
 - BaseAdapter
 - related-modal.js
-- H
+- Lh
 - Skill Runtime Pattern
 - Cognitive Load Assessment
 - Impeccable Finish Reviewer
 - Impeccable Manual Edit Applier
 - live-browser-ignores.js
 - Skill Runtime Pattern
-- Answer Guidelines
+- iu
 - BRIEFING — 2026-10-23T21:26:00Z
-- v
+- calendar.js
 - Quality Checklist
 - nodeName
-- Handoff Report — Adversarial Testing Challenge
+- ed
 - Diagnostic Scan
 - Visualize: Direction Comps & Asset Production
 - Survey Analysis: Backend Models, Data Storage, and Endpoints for Restaurant Profile
 - Region map
-- sync_tenant_live_context
+- Cl
 - README Taxonomy Implementation Plan
-- disconnect_whatsapp
-- Quick Reference
+- iu
+- Jd
 - Advanced FastMCP Features
 - invertBmp
 - jazzmin/js/change_form.js
@@ -231,12 +231,12 @@
 - Heuristics Scoring Guide
 - st
 - Original User Request
-- update_employee
-- get_client_live_context
+- Cl
+- Jd
 - theme.js
 - AjaxAdapter
 - BRIEFING — 2026-10-23T20:20:30Z
-- send_whatsapp_message
+- h
 - initSidebarQuickFilter
 - urlify.js
 - done
@@ -247,18 +247,18 @@
 - .agents/skills/harness-creator/templates/init.sh
 - victory_auditor_2/DISPATCH.md
 - victory_auditor_2/progress.md
-- get_whatsapp_conversation_messages
+- Ac
 - BRIEFING — 2026-10-23T20:33:00Z
 - BRIEFING — 2026-10-23T20:39:50Z
 - Review & Handoff Report — Restaurant Profile Implementation
 - TEST_READY.md — Restaurant Profile Management Test Suite Certification
-- dial_outbound_call
+- Ac
 - BRIEFING — 2026-10-23T20:17:00Z
 - BRIEFING — 2026-10-23T20:07:56Z
 - inspect
 - buildAstral
 - getContextualTokenSeparator
-- update_client_mcp_server
+- create_callcenter_order
 - AGENTS.md
 - BRIEFING — 2026-10-23T20:52:00Z
 - BRIEFING — 2026-10-23T20:44:00Z
@@ -268,10 +268,10 @@
 - BRIEFING — 2026-10-23T20:35:46Z
 - Generate Report
 - BRIEFING — 2026-10-23T20:43:00Z
-- owner_subscription_view
+- gu
 - K
 - Progress Log — worker_1
-- toggle_whatsapp_conversation_ai
+- ih
 - TestTracker
 - Progress — explorer_survey_3
 - orchestrator_1/progress.md
@@ -290,22 +290,31 @@
 - test_writer_1/progress.md
 - test_writer_1/README.md
 - worker_1/README.md
-- stream_whatsapp_message_media
+- ih
 - safe_cleanup_media
 - Review & Handoff Report — Restaurant Profile Implementation
 - FastMCPAuthMiddleware
+- gu
 - BRIEFING — 2026-10-23T22:41:00Z
 - Forensic Audit Report & Handoff — Restaurant Profile Implementation
+- eh
 - Adversarial Challenge Handoff Report — Restaurant Profile
 - Sentinel Handoff Report
 - Handoff Report — E2E Test Suite Creation for Restaurant Profile Management
 - Victory Audit Report & Handoff — Central HQ Restaurant Profile
-- ai_callcenter_queues_view
-- manage.py
-- P
+- zu
+- eh
+- ic
+- ic
+- adminlte.min.js
+- c
+- w
 - Progress — challenger_1
+- h
+- hh
 - Progress — reviewer_1
 - Progress Log - Victory Auditor
+- Ai
 - Acceptance Criteria
 - Progress Log - Victory Auditor
 - auditor_1/README.md
@@ -321,26 +330,54 @@
 - reviewer_2/progress.md
 - reviewer_2/README.md
 - victory_auditor_1/DISPATCH.md
+- hc
+- static/js/landing_webrtc_agent.js
 - Progress & Open-Issues Ledger
-- get_pbx_trunks
+- staticfiles/js/landing_webrtc_agent.js
+- jl
+- jl
 - swe_1/DISPATCH.md
-- get_studio_metadata
+- nc
+- nc
+- u
+- MenuItemVariant
+- PlatformConfigurationAdmin
+- g
+- vc
+- g
+- vc
+- qu
+- qu
+- Quality Checklist
+- Uc
+- Uc
+- InfiniteScroll
+- Diagnostic Scan
+- bolder.md
+- Advanced MCP Features
+- no
+- no
+- Adaptation Strategies
+- Impeccable Documenter
+- ah
+- Operate
+- Persuade and Experience
+- Read
+- th
 
 ## God Nodes (most connected - your core abstractions)
-1. `get_active_tenant()` - 115 edges
-2. `user_has_perm()` - 77 edges
-3. `run_restaurant_profile_tests()` - 68 edges
-4. `Tenant` - 63 edges
-5. `Branch` - 63 edges
-6. `_request()` - 51 edges
-7. `post_profile_data()` - 44 edges
-8. `log_audit_event()` - 43 edges
-9. `_get_client_ip()` - 40 edges
-10. `Employee` - 40 edges
+1. `kr()` - 264 edges
+2. `kr()` - 264 edges
+3. `get_active_tenant()` - 116 edges
+4. `user_has_perm()` - 77 edges
+5. `hl` - 77 edges
+6. `hl` - 77 edges
+7. `run_restaurant_profile_tests()` - 68 edges
+8. `mh` - 66 edges
+9. `mh` - 66 edges
+10. `Tenant` - 63 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `3. Caveats` --references--> `JobRole`  [INFERRED]
-  .agents/teamwork/explorer_survey_3/handoff.md → apps/accounts/models.py
 - `Test Data Generation` --references--> `JobRole`  [INFERRED]
   TEST_INFRA.md → apps/accounts/models.py
 - `3. Caveats` --references--> `log_audit_event()`  [INFERRED]
@@ -349,27 +386,29 @@
   .agents/teamwork/victory_auditor_2/handoff.md → apps/billing/models.py
 - `2.1 Role Hierarchy & Personas` --references--> `inventory_view()`  [INFERRED]
   .agents/teamwork/explorer_survey_3/analysis.md → apps/inventory/views.py
+- `Strict Role-Based Access Control (RBAC) Matrix` --references--> `inventory_view()`  [INFERRED]
+  TEST_INFRA.md → apps/inventory/views.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (405 total, 193 thin omitted)
+## Communities (443 total, 201 thin omitted)
 
 ### Community 1 - "live-browser.js"
 Cohesion: 0.03
 Nodes (137): applyGlobalBarLabelState(), applyLiveBarPreference(), applyPlaceholderDimensions(), applyPlaceholderSizingStyles(), averageRgb01(), beginEditPin(), bindEditBadgeProxy(), bufferToBase64() (+129 more)
 
 ### Community 2 - "orders/views.py"
-Cohesion: 0.05
-Nodes (51): A. HTML Views Pattern:, B. JSON API Endpoints Pattern:, 1. Observation, user_has_perm(), employees_view(), call_center_view(), inventory_view(), notify_kitchen_order_event() (+43 more)
+Cohesion: 0.08
+Nodes (31): B. JSON API Endpoints Pattern:, notify_kitchen_order_event(), serialize_kitchen_order(), api_digital_menu_place_order(), CustomerAdmin, OrderAdmin, OrderItemInline, notify_delivery_order_event() (+23 more)
 
 ### Community 3 - "core/views.py"
-Cohesion: 0.07
-Nodes (54): ai_callcenter_calls_view(), ai_callcenter_capabilities_view(), ai_callcenter_hours_view(), ai_callcenter_knowledge_view(), ai_callcenter_management_view(), ai_callcenter_omnichannel_view(), ai_callcenter_overview_view(), ai_callcenter_persona_view() (+46 more)
+Cohesion: 0.06
+Nodes (48): TenantApiKey, Meta, ai_callcenter_calls_view(), ai_callcenter_management_view(), ai_callcenter_omnichannel_view(), api_ai_callcenter_activate_profile(), api_ai_callcenter_add_doc(), api_ai_callcenter_add_employee() (+40 more)
 
-### Community 4 - "os"
-Cohesion: 0.09
-Nodes (8): branch_context(), normalize_plan_features(), test_dashboard(), run_bilingual_tests(), assert_equal(), assert_true(), print_header(), run_system_tests()
+### Community 4 - "json"
+Cohesion: 0.04
+Nodes (40): cleanup_fixtures(), main(), run_brand_color_boundary_probes(), run_concurrency_and_sequential_probes(), run_extended_adversarial_probes(), run_media_lifecycle_probes(), run_partial_update_probes(), run_whitespace_and_normalization_probes() (+32 more)
 
 ### Community 5 - "setLiveState"
 Cohesion: 0.12
@@ -399,17 +438,17 @@ Nodes (90): abortSvelteComponentInjection(), applyParamDefaults(), applyParamVal
 Cohesion: 0.08
 Nodes (54): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), bindConfigureModifierPillHover(), buildConfigureActionControl(), buildConfigureCountControl(), buildConfigureRow() (+46 more)
 
-### Community 12 - "menu/views.py"
-Cohesion: 0.09
-Nodes (29): BranchMenuAvailabilityAdmin, BranchVariantPriceAdmin, MenuCategoryAdmin, MenuItemAdmin, MenuItemVariantInline, BranchMenuAvailability, Meta, BranchVariantPrice (+21 more)
+### Community 12 - "core/views.py"
+Cohesion: 0.04
+Nodes (87): 1. Observation, 3.2 File Storage & Pillow Dependency, 2.2 Permissions Engine & Native Django Integration, A. HTML Views Pattern:, 1. Observation, _check_rate_limit(), _clear_rate_limit(), _get_client_ip() (+79 more)
 
 ### Community 13 - "tools.py"
-Cohesion: 0.08
-Nodes (37): handle_cart_add_item(), handle_cart_clear(), handle_cart_remove_item(), handle_cart_view(), _authenticate(), _canonical_food_name(), _clean_phone(), _find_menu_item() (+29 more)
+Cohesion: 0.09
+Nodes (24): handle_cart_add_item(), handle_cart_clear(), handle_cart_remove_item(), handle_cart_view(), _canonical_food_name(), _clean_phone(), _find_menu_item(), _format_branch_closed_err() (+16 more)
 
 ### Community 14 - "modern-screenshot.umd.js"
 Cohesion: 0.10
-Nodes (50): ae(), be(), bt(), Ce(), s(), Ct(), de(), _e() (+42 more)
+Nodes (51): ae(), be(), bt(), Ce(), s(), Ct(), de(), _e() (+43 more)
 
 ### Community 15 - "initPageChat"
 Cohesion: 0.08
@@ -423,37 +462,37 @@ Nodes (19): AttachContainer(), BaseConstructor(), callDep(), ContainerCSS(), cou
 Cohesion: 0.05
 Nodes (42): Before opening a PR, Contributing, Entry format, Placement, Pull requests, Quality bar, Self-submissions and commercial promotion, What belongs here (+34 more)
 
-### Community 19 - "new-work.md"
+### Community 19 - "impeccable/SKILL.md"
 Cohesion: 0.06
-Nodes (28): Recommended Actions, Craft (deprecated alias), Impeccable Documenter, Input Contract, Output Contract, Workflow, Apply, Live-mode signature params (+20 more)
+Nodes (32): Assess Adaptation Challenge, Implement & Verify, Recommended Actions, Recommended Actions, Craft (deprecated alias), Monorepo notes, Opting out of the boot check, Step 1: Run the pass (+24 more)
 
 ### Community 20 - "Running Evaluations"
-Cohesion: 0.13
+Cohesion: 0.12
 Nodes (15): 1. Local STDIO Server, 2. Server-Sent Events (SSE), 3. HTTP (Streamable HTTP), Command-Line Options, Complete Example Workflow, Connection Errors, Evaluation File Format, Low Accuracy (+7 more)
 
 ### Community 21 - "jquery.min.js"
 Cohesion: 0.10
-Nodes (35): Ae(), B(), Be(), c(), $e(), ee(), F(), fe() (+27 more)
+Nodes (39): se(), onClick(), Ae(), B(), Be(), c(), $e(), ee() (+31 more)
 
 ### Community 22 - "Node/TypeScript MCP Server Implementation Guide"
-Cohesion: 0.05
-Nodes (41): Advanced Features (where applicable), Advanced MCP Features, Async/Await Best Practices, Building and Running, Character Limits and Truncation, Code Best Practices, Code Composability and Reusability, Code Quality (+33 more)
+Cohesion: 0.07
+Nodes (27): Async/Await Best Practices, Building and Running, Character Limits and Truncation, Code Best Practices, Code Composability and Reusability, Complete Example, Error Handling, Key Imports (+19 more)
 
 ### Community 23 - "jquery.js"
 Cohesion: 0.06
 Nodes (12): completed(), computeStyleTests(), createCache(), cache(), dataAttr(), finalPropName(), getData(), leverageNative() (+4 more)
 
 ### Community 24 - "live.md"
-Cohesion: 0.07
-Nodes (26): Step 1: Parse the request, Step 2: Reuse the page, then start, Step 3: Generate, Step 4: Accept and close, Cleanup, Exit, First-time setup, Handle `accept` (+18 more)
+Cohesion: 0.06
+Nodes (33): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode, Step 1: Parse the request (+25 more)
 
 ### Community 25 - "mountSvelteComponentVariant"
 Cohesion: 0.16
 Nodes (19): buildSvelteExpressionTextMap(), buildSveltePropValuesFromLiveElement(), buildSveltePropValuesV2(), cloneWithoutElements(), collectTextNodes(), collectVisibleTexts(), cssEscapeIdent(), elementMatchesOriginalMarkup() (+11 more)
 
 ### Community 26 - "get_redis_client"
-Cohesion: 0.09
-Nodes (28): _check_key_valid(), _get_cached_session_key(), _get_key_and_tenant(), _get_latest_session_for_key(), _is_rate_limited(), _set_cached_session_key(), intercept_sse_send(), cache_active_order() (+20 more)
+Cohesion: 0.13
+Nodes (18): _is_rate_limited(), track_order(), cache_active_order(), cart_add_item(), cart_clear(), cart_get(), _cart_key(), cart_remove_item() (+10 more)
 
 ### Community 27 - ".agent/skills/harness-creator/templates/feature-list.schema.json"
 Cohesion: 0.06
@@ -477,59 +516,51 @@ Nodes (30): args, force, initPath, replacements, results, target, copyFileSafe()
 
 ### Community 32 - "Ot"
 Cohesion: 0.13
-Nodes (7): dt(), Et(), ft(), Ct(), dt(), kt(), Ot
+Nodes (8): dt(), Et(), ft(), Ct(), dt(), kt(), vt(), Ot
 
 ### Community 33 - "django_apps"
 Cohesion: 0.06
 Nodes (10): AccountsConfig, AuditConfig, BillingConfig, CallcenterConfig, InventoryConfig, KitchenConfig, MenuConfig, OrdersConfig (+2 more)
 
 ### Community 34 - "callcenter/google_maps_service.py"
-Cohesion: 0.08
-Nodes (14): calculate_driving_distance_matrix(), extract_coordinates_from_text(), extract_coordinates_from_url(), geocode_address(), get_active_google_maps_key(), haversine_distance_km(), is_point_in_polygon(), resolve_smart_delivery_with_google() (+6 more)
-
-### Community 35 - "Ni"
-Cohesion: 0.07
-Nodes (3): Ai, Mi, Ni
+Cohesion: 0.12
+Nodes (10): calculate_driving_distance_matrix(), extract_coordinates_from_text(), extract_coordinates_from_url(), geocode_address(), get_active_google_maps_key(), haversine_distance_km(), is_point_in_polygon(), resolve_smart_delivery_with_google() (+2 more)
 
 ### Community 36 - "applyEditing"
 Cohesion: 0.06
 Nodes (43): addManualContextText(), applyEditing(), buildLocatorForLeaf(), canRestoreManualEditElement(), collectEditableTextRows(), visit(), collectManualContextPieces(), walk() (+35 more)
 
 ### Community 37 - "bootstrap.min.js"
-Cohesion: 0.11
-Nodes (19): B, D(), F(), getDataAttributes(), H(), I(), L(), M() (+11 more)
+Cohesion: 0.12
+Nodes (18): D(), F(), getDataAttributes(), H(), I(), L(), M(), N() (+10 more)
 
 ### Community 38 - "xt"
-Cohesion: 0.14
-Nodes (5): ut(), gt(), ht(), yt(), xt
+Cohesion: 0.13
+Nodes (6): ut(), gt(), ht(), yt(), s(), xt
 
 ### Community 39 - ".agents/skills/harness-creator/scripts/lib/harness-utils.mjs"
 Cohesion: 0.11
 Nodes (25): dedupe(), escapeForEcho(), escapeHtml(), formatScoreReport(), hasFile(), htmlReport(), initScriptFromCommands(), jsonFeatureList() (+17 more)
 
-### Community 40 - "Any"
-Cohesion: 0.11
-Nodes (20): activate_profile(), add_employee(), clear_client_live_context(), create_profile(), delete_queue(), get_business_hours(), get_calls(), get_client_mcp_servers() (+12 more)
-
-### Community 41 - "challenge_harness.py"
-Cohesion: 0.16
-Nodes (10): ChallengeTracker, cleanup_fixtures(), main(), run_brand_color_boundary_probes(), run_concurrency_and_sequential_probes(), run_extended_adversarial_probes(), run_media_lifecycle_probes(), run_partial_update_probes() (+2 more)
+### Community 40 - "partner_service.py"
+Cohesion: 0.04
+Nodes (69): ai_callcenter_capabilities_view(), ai_callcenter_hours_view(), ai_callcenter_knowledge_view(), ai_callcenter_overview_view(), ai_callcenter_persona_view(), ai_callcenter_queues_view(), api_ai_callcenter_sync_mcp(), api_ai_callcenter_update_mcp_url() (+61 more)
 
 ### Community 42 - ".apply"
-Cohesion: 0.08
-Nodes (9): ctr(), Defaults(), Dropdown(), EventRelay(), getMethods(), MaximumInputLength(), MinimumInputLength(), Options() (+1 more)
+Cohesion: 0.11
+Nodes (7): ctr(), Defaults(), Dropdown(), EventRelay(), getMethods(), Options(), Translation()
 
-### Community 43 - "impeccable/SKILL.md"
-Cohesion: 0.08
-Nodes (21): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat, Craft floor, Refuse, Verify (+13 more)
+### Community 43 - "Operate mode depth (and Read notes)"
+Cohesion: 0.10
+Nodes (18): Craft floor, Refuse, Verify, Constraints, Failure modes, Flow, /impeccable hooks, Routing (+10 more)
 
 ### Community 44 - "handleManualEditActivity"
 Cohesion: 0.19
 Nodes (24): clearStoredManualApplyState(), fetchPendingCount(), handleManualEditActivity(), hidePendingApplyDock(), manualApplyLoadingText(), manualApplyStateKey(), manualEditEventForCurrentPage(), numberOrNull() (+16 more)
 
-### Community 45 - "Tenant"
-Cohesion: 0.05
-Nodes (48): 2. Logic Chain, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Central HQ Portal Architecture & Restaurant Profile Survey, 1. Executive Summary (+40 more)
+### Community 45 - "static/js/vendor/livekit-client.umd.min.js"
+Cohesion: 0.02
+Nodes (128): Ae(), ap, Ar(), b(), Bo(), bubbleNohandler(), buildHandlerArgs(), Ce() (+120 more)
 
 ### Community 46 - "MCP Implementation Security Review"
 Cohesion: 0.07
@@ -540,16 +571,16 @@ Cohesion: 0.11
 Nodes (12): _arrayLikeToArray(), augment(), cacheInvertedBmp(), charCode(), clipDuplicates(), copyRegex(), _createForOfIteratorHelper(), isType() (+4 more)
 
 ### Community 48 - "MultipleSelection"
-Cohesion: 0.11
+Cohesion: 0.12
 Nodes (4): HidePlaceholder(), MultipleSelection(), Placeholder(), SingleSelection()
 
 ### Community 49 - "bootstrap.bundle.min.js"
 Cohesion: 0.10
-Nodes (42): Ae(), Ce(), D(), De(), di(), $e(), Ee(), ei() (+34 more)
+Nodes (41): Ce(), D(), De(), di(), $e(), Ee(), ei(), fe() (+33 more)
 
 ### Community 50 - ".trigger"
-Cohesion: 0.13
-Nodes (3): AllowClear(), CloseOnSelect(), InfiniteScroll()
+Cohesion: 0.10
+Nodes (5): AllowClear(), CloseOnSelect(), MaximumInputLength(), MinimumInputLength(), Search()
 
 ### Community 51 - "document.md"
 Cohesion: 0.08
@@ -560,16 +591,16 @@ Cohesion: 0.16
 Nodes (15): createLiveBrowserDomHelpers(), activeElementDeep(), cloneWithoutChrome(), copyTextViaSelection(), cssId(), liveUiRoot(), makeFrozenAnchor(), raiseHitModal() (+7 more)
 
 ### Community 53 - "select2.full.min.js"
-Cohesion: 0.16
-Nodes (16): Picture Element for Art Direction, Responsive Images: Get It Right, srcset with Width Descriptors, A(), c(), e(), i(), l() (+8 more)
+Cohesion: 0.17
+Nodes (15): Tt(), Ut(), A(), b(), c(), D(), e(), l() (+7 more)
 
 ### Community 54 - "Ue"
 Cohesion: 0.14
 Nodes (5): He(), qe(), Qe(), Ve(), Ue
 
 ### Community 55 - "Responsive Design"
-Cohesion: 0.06
-Nodes (29): Assess Adaptation Challenge, Breakpoints: Content-Driven, Content Adaptation, Desktop Adaptation (Mobile → Desktop), Detect Input Method, Not Just Screen Size, Email Adaptation (Web → Email), Implement Adaptations, Layout Adaptation Patterns (+21 more)
+Cohesion: 0.08
+Nodes (25): Assess Adaptation Challenge, Breakpoints: Content-Driven, Content Adaptation, Desktop Adaptation (Mobile → Desktop), Detect Input Method, Not Just Screen Size, Email Adaptation (Web → Email), Implement Adaptations, Layout Adaptation Patterns (+17 more)
 
 ### Community 56 - "onboard.md"
 Cohesion: 0.09
@@ -579,21 +610,21 @@ Nodes (22): Assess Onboarding Needs, Context Over Ceremony, Contextual Help, Des
 Cohesion: 0.09
 Nodes (23): Async/Await Best Practices, Code Best Practices, Code Composability and Reusability, Complete Example, Error Handling, Key Imports, MCP Python SDK and FastMCP, Overview (+15 more)
 
-### Community 60 - "accounts/views.py"
-Cohesion: 0.05
-Nodes (31): _check_rate_limit(), _clear_rate_limit(), get_post_login_redirect(), _record_failed_attempt(), Employee, Meta, ensure_tenant_preset_roles(), JobRole (+23 more)
+### Community 60 - "kr"
+Cohesion: 0.03
+Nodes (39): a(), Al(), as, ba(), br(), canHandle(), Ch, da() (+31 more)
 
 ### Community 61 - "W"
-Cohesion: 0.12
-Nodes (3): Q, W, Y
+Cohesion: 0.11
+Nodes (3): H, W, Y
 
 ### Community 62 - "W"
-Cohesion: 0.12
-Nodes (3): J, U, W
+Cohesion: 0.11
+Nodes (3): J, q, W
 
 ### Community 63 - "MCP Server Best Practices"
-Cohesion: 0.09
-Nodes (22): Authentication and Authorization, DNS Rebinding Protection, Documentation Requirements, Error Handling, Error Handling, Input Validation, JSON Format (`response_format="json"`), Markdown Format (`response_format="markdown"`, typically default) (+14 more)
+Cohesion: 0.07
+Nodes (28): Authentication and Authorization, DNS Rebinding Protection, Documentation Requirements, Error Handling, Error Handling, Input Validation, JSON Format (`response_format="json"`), Markdown Format (`response_format="markdown"`, typically default) (+20 more)
 
 ### Community 65 - "The Toolkit"
 Cohesion: 0.10
@@ -617,27 +648,31 @@ Nodes (4): EmployeeAdmin, JobRoleAdmin, RestaurantOwnerAdmin, UserProfileAdmin
 
 ### Community 70 - "django_urls"
 Cohesion: 0.05
-Nodes (9): AuditLogAdmin, KnowledgeDocumentAdmin, AuditLog, Meta, KnowledgeDocument, Meta, api_audit_logs(), TenantSubscription (+1 more)
+Nodes (8): AuditLogAdmin, KnowledgeDocumentAdmin, AuditLog, Meta, KnowledgeDocument, Meta, UpgradeRequest, Meta
 
 ### Community 71 - "select2.min.js"
-Cohesion: 0.33
-Nodes (7): a(), c(), e(), i(), l(), n(), s()
+Cohesion: 0.20
+Nodes (10): k, a(), b(), c(), e(), i(), l(), n() (+2 more)
 
 ### Community 73 - ".agents/skills/harness-creator/scripts/run-benchmark.mjs"
 Cohesion: 0.12
 Nodes (14): loadHarnessFiles(), args, escapeHtml(), evalPath, evalResult, execFileAsync, harnessResult, output (+6 more)
 
-### Community 74 - "UpgradeRequest"
-Cohesion: 0.15
-Nodes (7): ensure_tenant_registered(), get_client_usage(), get_plan_voice_caps(), register_sub_client(), sync_tenant_voice_caps(), update_client_cap(), test_voice_partner_quota_integration()
+### Community 74 - ".emit"
+Cohesion: 0.03
+Nodes (16): Bs(), clone(), da(), Dh(), ia(), j(), ja(), mh (+8 more)
 
 ### Community 75 - "🚀 High-Level Workflow"
 Cohesion: 0.11
 Nodes (19): 1.1 Understand Modern MCP Design, 1.2 Study MCP Protocol Documentation, 1.3 Study Framework Documentation, 1.4 Plan Your Implementation, 2.1 Set Up Project Structure, 2.2 Implement Core Infrastructure, 2.3 Implement Tools, 3.1 Code Quality (+11 more)
 
-### Community 78 - "colorize.md"
-Cohesion: 0.25
-Nodes (7): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode
+### Community 76 - "ao"
+Cohesion: 0.15
+Nodes (5): eo(), io(), so(), ao, Q
+
+### Community 78 - "kr"
+Cohesion: 0.03
+Nodes (37): aa(), Al(), as, ba(), ca(), canHandle(), Ch, es (+29 more)
 
 ### Community 81 - ".agent/skills/harness-creator/scripts/run-benchmark.mjs"
 Cohesion: 0.12
@@ -648,8 +683,8 @@ Cohesion: 0.29
 Nodes (17): actOnAgentTarget(), agentTargetBusyReason(), agentTargetOverlayGone(), agentTargetTaken(), claimAgentTarget(), claimAndActOnAgentTarget(), declineAgentTargetBusy(), declineAgentTargetUnresolvable() (+9 more)
 
 ### Community 84 - "MCP Server Evaluation Guide"
-Cohesion: 0.11
-Nodes (18): Complexity and Depth, Core Requirements, Evaluation Examples, Evaluation Overview, Evaluation Requirements, Good Questions, MCP Server Evaluation Guide, Output Format (+10 more)
+Cohesion: 0.09
+Nodes (23): Answer Guidelines, Complexity and Depth, Core Requirements, Diversity, Evaluation Examples, Evaluation Overview, Evaluation Requirements, Good Questions (+15 more)
 
 ### Community 86 - "Gotchas — Harness Engineering Failure Modes"
 Cohesion: 0.12
@@ -671,9 +706,9 @@ Nodes (3): SubscriptionPlanAdmin, TenantSubscriptionAdmin, UpgradeRequestAdmin
 Cohesion: 0.29
 Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Victory Audit Report & Handoff — Landing Navbar, Bilingual, User/Subscription Profile & Routing
 
-### Community 91 - "Any"
-Cohesion: 0.12
-Nodes (10): add_document(), create_client_mcp_server(), delete_document(), delete_employee(), delete_profile(), get_telephony_numbers(), get_whatsapp_qr(), sync_client_mcp_tools() (+2 more)
+### Community 91 - "staticfiles/js/vendor/livekit-client.umd.min.js"
+Cohesion: 0.02
+Nodes (87): a(), ap, Ar(), b(), Bo(), br(), bubbleNohandler(), buildHandlerArgs() (+79 more)
 
 ### Community 92 - "matcherFromTokens"
 Cohesion: 0.18
@@ -720,16 +755,20 @@ Cohesion: 0.12
 Nodes (16): Bypass-Immune Rules, Concurrency is Per-Call, Not Per-Tool, Default to Fail-Closed, Evidence, Golden Rules, Gotchas, Implementation Patterns, Permission Pipeline (+8 more)
 
 ### Community 105 - "gi"
-Cohesion: 0.21
-Nodes (3): oi(), ri(), gi
+Cohesion: 0.18
+Nodes (4): ni(), oi(), ri(), gi
 
 ### Community 107 - "Generate Report"
-Cohesion: 0.13
-Nodes (14): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Audit Health Score, Detailed Findings by Severity, Diagnostic Scan (+6 more)
+Cohesion: 0.29
+Nodes (7): Audit Health Score, Detailed Findings by Severity, Executive Summary, Generate Report, Implementation Integrity Verdict, Patterns & Systemic Issues, Positive Findings
 
 ### Community 108 - "Central HQ Management Portal Frontend Architecture Survey"
 Cohesion: 0.09
 Nodes (22): 1. Executive Summary, 2.1 Base Layout (`templates/base.html`), 2.2 Enterprise Dark Sidebar (`#app-sidebar` in `templates/base.html`), 2.3 Secondary Navigation Bar (`templates/_admin_nav_tabs.html`), 2.4 HQ Dashboard Toolbar (`templates/hq_dashboard.html`), 2. Central HQ Portal Layout & Navigation Hierarchy, 3.1 Tailwind CSS Configuration, 3.2 Standard Component Patterns (+14 more)
+
+### Community 109 - "SelectAdapter"
+Cohesion: 0.17
+Nodes (3): ArrayAdapter(), SelectAdapter(), Tags()
 
 ### Community 112 - "Memory and Persistence Pattern"
 Cohesion: 0.14
@@ -768,7 +807,7 @@ Cohesion: 0.15
 Nodes (11): Act on the receipt, Assemble and review, Plan and asset review, Plan, capture, serve, Core Rule, Decision Comps, Impeccable Asset Producer, Input Contract (+3 more)
 
 ### Community 125 - "mcp-builder/SKILL.md"
-Cohesion: 0.15
+Cohesion: 0.17
 Nodes (8): Core MCP Documentation (Load First), 📚 Documentation Library, Evaluation Guide (Load During Phase 4), Language-Specific Implementation Guides (Load During Phase 2), MCP Server Development Guide, Overview, Reference Files, SDK Documentation (Load During Phase 1/2)
 
 ### Community 128 - "Session Progress Log"
@@ -795,6 +834,10 @@ Nodes (11): Accessibility Resilience, Assess Hardening Needs, Edge Cases & Bound
 Cohesion: 0.17
 Nodes (11): Blockers / Risks, Current State, Decisions Made, Evidence of Completion, Files Modified This Session, Notes for Next Session, Session Progress Log, Status (+3 more)
 
+### Community 137 - "hl"
+Cohesion: 0.03
+Nodes (17): bl, ea(), fs, gl(), hl, is, kc(), Kl() (+9 more)
+
 ### Community 138 - "clarify.md"
 Cohesion: 0.18
 Nodes (10): Actions and navigation, Audit the language, Errors and permissions, Forms, Help and instructional text, Loading, empty, and success states, Rewrite by function, Set the message hierarchy (+2 more)
@@ -815,9 +858,9 @@ Nodes (10): Assess Current State, Color Refinement, Composition Refinement, Moti
 Cohesion: 0.31
 Nodes (11): acceptedDomAlreadyClean(), clearHandledWrapperReloadStamp(), deferredRecoverySuperseded(), ensureAcceptedDomClean(), findAcceptedRuntimeWrappers(), handledWrapperReloadKey(), reloadAfterMissingAcceptedDom(), restoreAcceptedDomFromSnapshot() (+3 more)
 
-### Community 143 - "log_audit_event"
-Cohesion: 0.10
-Nodes (20): _get_client_ip(), api_job_role_detail(), api_job_roles(), log_audit_event(), TenantApiKey, Meta, api_create_api_key(), api_delete_api_key() (+12 more)
+### Community 143 - "hl"
+Cohesion: 0.03
+Nodes (18): bl, ds, ea(), fs, gl(), hl, is, kc() (+10 more)
 
 ### Community 144 - "actions.js"
 Cohesion: 0.38
@@ -859,6 +902,10 @@ Nodes (9): Blockers / Risks, Completed This Session, Current Objective, Decision
 Cohesion: 0.20
 Nodes (9): Audit Check 1: Hardcoded Secrets, Audit Check 2: Shell Injection Patterns, Audit Check 3: Mutable Package References, Audit Check 4: Full Audit Runner, MCP Security Audit, Output Format, Overview, Related Resources (+1 more)
 
+### Community 158 - ".emit"
+Cohesion: 0.04
+Nodes (5): Bs(), mh, ph, Qc, sh
+
 ### Community 159 - "harness-creator"
 Cohesion: 0.22
 Nodes (8): Boundaries, Files, harness-creator, Install, Status, Use, What It Checks, What It Creates
@@ -879,12 +926,12 @@ Nodes (9): 1. The Wall of Options, 2. The Memory Bridge, 3. The Hidden Navigatio
 Cohesion: 0.22
 Nodes (9): Color & materials, Components & controls, iOS platform, Layout & structure, Motion, The iOS slop test, Touch targets, Typography (+1 more)
 
-### Community 164 - "Operate mode depth (and Read notes)"
-Cohesion: 0.22
-Nodes (9): Color, Components, Layout, Motion, Operate mode depth (and Read notes), Product constraints, Product permissions, The product slop test (+1 more)
+### Community 164 - "o"
+Cohesion: 0.03
+Nodes (42): Ae(), c(), Ce(), D(), de(), _e(), ee(), fe() (+34 more)
 
 ### Community 165 - "Shape"
-Cohesion: 0.22
+Cohesion: 0.25
 Nodes (8): Cadence, Confirm and stop, Phase 1: Discovery interview, Phase 2: Resolve the design direction, Phase 3: Write the brief, Round 1: purpose, people, and outcome, Round 2: material, behavior, and boundaries, Shape
 
 ### Community 166 - "harness-creator"
@@ -907,6 +954,14 @@ Nodes (8): Adding a new icon, Contributing SVG Icons, Example SVG Structure, ⚠
 Cohesion: 0.22
 Nodes (9): Animation(), camelCase(), createFxNow(), createTween(), defaultPrefilter(), fcamelCase(), getDefaultDisplay(), propFilter() (+1 more)
 
+### Community 172 - "InputData"
+Cohesion: 0.22
+Nodes (3): InputData(), MaximumSelectionLength(), Tokenizer()
+
+### Community 173 - "ed"
+Cohesion: 0.05
+Nodes (9): Cd(), ed(), ip, kd(), oc(), wd(), yd, Zc (+1 more)
+
 ### Community 174 - "ui-builder.js"
 Cohesion: 0.28
 Nodes (3): applyThemeMode(), setFromExisting(), themeChooserListeners()
@@ -923,9 +978,9 @@ Nodes (8): Android platform, Color & theming, Components & motion, Layout & stru
 Cohesion: 0.25
 Nodes (8): 1. Impatient Power User: "Alex", 2. Confused First-Timer: "Jordan", 3. Accessibility-Dependent User: "Sam", 4. Deliberate Stress Tester: "Riley", 5. Distracted Mobile User: "Casey", Persona-Based Design Testing, Project-Specific Personas, Selecting Personas
 
-### Community 179 - "doctor.md"
-Cohesion: 0.25
-Nodes (7): Monorepo notes, Opting out of the boot check, Step 1: Run the pass, Step 2: Act by severity, Step 3: Deprecated fields are binding, Step 4: Do not overclaim on truth drift, What this owns, and what it does not
+### Community 179 - "Lh"
+Cohesion: 0.04
+Nodes (10): bh(), fh, ga(), jh, Lh, nh, qh, uh() (+2 more)
 
 ### Community 180 - "Extract Flow"
 Cohesion: 0.25
@@ -934,6 +989,10 @@ Nodes (7): Extract Flow, Step 1: Discover the Design System, Step 2: Identify Pa
 ### Community 182 - "related-modal.js"
 Cohesion: 0.46
 Nodes (7): checkIfInIframe(), dismissModal(), dismissRelatedLookupModal(), init(), presentRelatedObjectModal(), presentRelatedObjectModalOnClickOn(), showModal()
+
+### Community 183 - "Lh"
+Cohesion: 0.05
+Nodes (10): bh(), fh, ga(), jh, Lh, nh, qh, uh() (+2 more)
 
 ### Community 185 - "Skill Runtime Pattern"
 Cohesion: 0.29
@@ -959,17 +1018,13 @@ Nodes (6): globToRegex(), matchesScope(), normalizeIgnoreRule(), normalizeIgnore
 Cohesion: 0.29
 Nodes (6): Design Rules, Runtime Shape, Skill Runtime Pattern, Validation Checklist, What Belongs in a Skill, What Does Not Belong in a Skill
 
-### Community 193 - "Answer Guidelines"
-Cohesion: 0.40
-Nodes (5): Answer Guidelines, Diversity, Readability, Stability, Verification
+### Community 193 - "iu"
+Cohesion: 0.04
+Nodes (14): au(), cs, cu, du, eu, iu, lu, nu (+6 more)
 
 ### Community 194 - "BRIEFING — 2026-10-23T21:26:00Z"
 Cohesion: 0.17
 Nodes (11): Active Timers, Artifact Index, BRIEFING — 2026-10-23T21:26:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+3 more)
-
-### Community 195 - "v"
-Cohesion: 0.18
-Nodes (12): calendarMonth(), onClick(), m(), p(), Tt(), b(), D(), v() (+4 more)
 
 ### Community 196 - "Quality Checklist"
 Cohesion: 0.29
@@ -979,9 +1034,9 @@ Nodes (7): Advanced Features (where applicable), Code Quality, Implementation Qu
 Cohesion: 0.29
 Nodes (7): boxModelAdjustment(), createButtonPseudo(), createInputPseudo(), curCSS(), getWidthOrHeight(), manipulationTarget(), nodeName()
 
-### Community 198 - "Handoff Report — Adversarial Testing Challenge"
-Cohesion: 0.33
-Nodes (5): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Adversarial Testing Challenge
+### Community 198 - "ed"
+Cohesion: 0.05
+Nodes (9): Cd(), ed(), m(), ip, oc(), p(), wd(), yd (+1 more)
 
 ### Community 199 - "Diagnostic Scan"
 Cohesion: 0.33
@@ -999,17 +1054,21 @@ Nodes (17): 1. Page View (`restaurant_profile_view`), 2.1 The `Tenant` Model, 2.
 Cohesion: 0.40
 Nodes (4): Containment, Painted material, Region map, What varies independently
 
-### Community 203 - "sync_tenant_live_context"
-Cohesion: 0.33
-Nodes (3): build_tenant_live_context_payload(), sync_tenant_live_context(), update_client_live_context()
+### Community 203 - "Cl"
+Cohesion: 0.04
+Nodes (7): Cl, dr(), es, ha(), Ks(), pa(), Ws
 
 ### Community 204 - "README Taxonomy Implementation Plan"
 Cohesion: 0.33
 Nodes (5): README Taxonomy Implementation Plan, Task 1: Establish invariants, Task 2: Add the taxonomy, Task 3: Update navigation, Task 4: Verify and publish
 
-### Community 206 - "Quick Reference"
-Cohesion: 0.33
-Nodes (6): Pagination, Quick Reference, Response Formats, Server Naming, Tool Naming, Transport
+### Community 205 - "iu"
+Cohesion: 0.05
+Nodes (14): au(), cs, cu, du, eu, iu, lu, nu (+6 more)
+
+### Community 206 - "Jd"
+Cohesion: 0.05
+Nodes (8): dl, el(), Jd, Qd(), rs, Vd(), vo(), Zd()
 
 ### Community 207 - "Advanced FastMCP Features"
 Cohesion: 0.33
@@ -1036,12 +1095,12 @@ Cohesion: 0.40
 Nodes (4): i18n_context(), get(), __getitem__(), __init__()
 
 ### Community 213 - "Tenant"
-Cohesion: 0.03
-Nodes (43): AdversarialTestTracker, cleanup_adversarial_fixtures(), create_adversarial_fixtures(), main(), run_cross_tenant_probes(), run_injection_probes(), run_media_upload_probes(), run_rbac_bypass_probes() (+35 more)
+Cohesion: 0.02
+Nodes (96): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Adversarial Testing Challenge, AdversarialTestTracker, cleanup_adversarial_fixtures() (+88 more)
 
 ### Community 214 - "time"
-Cohesion: 0.13
-Nodes (8): clean_text(), main(), translate_online_batch(), translate_online_single(), _check_key_in_db(), FastMCPSseAuthMiddleware, sample_tool(), test_all()
+Cohesion: 0.44
+Nodes (4): clean_text(), main(), translate_online_batch(), translate_online_single()
 
 ### Community 215 - "translateNode"
 Cohesion: 0.70
@@ -1059,6 +1118,14 @@ Nodes (4): Heuristics Scoring Guide, Issue Severity (P0–P3), Reference Materia
 Cohesion: 0.08
 Nodes (25): 2026-10-23T20:07:56Z, 2026-10-23T21:24:43Z, Acceptance Criteria, Acceptance Criteria, Functionality & APIs, Interface & Navigation, Language & Internationalization, Navbar & Authentication (+17 more)
 
+### Community 221 - "Cl"
+Cohesion: 0.04
+Nodes (6): Cl, dr(), ha(), Ks(), pa(), Ws
+
+### Community 222 - "Jd"
+Cohesion: 0.05
+Nodes (8): dl, el(), Jd, Qd(), rs, Vd(), vo(), Zd()
+
 ### Community 223 - "theme.js"
 Cohesion: 0.83
 Nodes (3): cycleTheme(), initTheme(), setTheme()
@@ -1066,6 +1133,10 @@ Nodes (3): cycleTheme(), initTheme(), setTheme()
 ### Community 225 - "BRIEFING — 2026-10-23T20:20:30Z"
 Cohesion: 0.17
 Nodes (11): Active Timers, Artifact Index, BRIEFING — 2026-10-23T20:46:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+3 more)
+
+### Community 226 - "h"
+Cohesion: 0.05
+Nodes (4): f(), h(), u(), w()
 
 ### Community 230 - "done"
 Cohesion: 0.67
@@ -1078,6 +1149,10 @@ Nodes (3): Identity(), resolve(), Thrower()
 ### Community 233 - "BRIEFING — 2026-10-23T20:21:00Z"
 Cohesion: 0.20
 Nodes (9): Artifact Index, BRIEFING — 2026-10-23T20:34:30Z, Current Parent, 🔒 Key Constraints, Loaded Skills, Mission, 🔒 My Identity, Quality Status (+1 more)
+
+### Community 238 - "Ac"
+Cohesion: 0.07
+Nodes (13): aa(), Ac, ca(), Cc(), hs(), jc, ns, oa() (+5 more)
 
 ### Community 239 - "BRIEFING — 2026-10-23T20:33:00Z"
 Cohesion: 0.18
@@ -1095,6 +1170,10 @@ Nodes (11): 1. Observation, 2. Logic Chain, 3. Adversarial Challenges & Findings
 Cohesion: 0.18
 Nodes (10): 1. Test Suite Certification Status, 2. Test Execution Summary, 3. Tier-by-Tier Verification Details, 4. Verification Harness Health, 5. Certification Sign-off, TEST_READY.md — Restaurant Profile Management Test Suite Certification, Tier 1: Feature Coverage (25 test cases — 5 per feature), Tier 2: Boundary & Corner Cases (13 test cases) (+2 more)
 
+### Community 243 - "Ac"
+Cohesion: 0.06
+Nodes (6): Ac, Cc(), Dc(), hc(), mc(), pr()
+
 ### Community 244 - "BRIEFING — 2026-10-23T20:17:00Z"
 Cohesion: 0.22
 Nodes (8): Artifact Index, BRIEFING — 2026-10-23T20:17:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
@@ -1102,6 +1181,10 @@ Nodes (8): Artifact Index, BRIEFING — 2026-10-23T20:17:00Z, Current Parent, In
 ### Community 245 - "BRIEFING — 2026-10-23T20:07:56Z"
 Cohesion: 0.22
 Nodes (8): Artifact Index, BRIEFING — 2026-10-23T21:24:43Z, 🔒 Key Constraints, Mission, 🔒 My Identity, Project Status, User Context, Victory Audit Status
+
+### Community 264 - "create_callcenter_order"
+Cohesion: 0.11
+Nodes (19): _authenticate(), _check_key_valid(), _get_key_and_tenant(), check_delivery_coverage(), checkout_cart(), create_callcenter_order(), get_branches(), get_digital_menu_link() (+11 more)
 
 ### Community 334 - "AGENTS.md"
 Cohesion: 0.22
@@ -1135,9 +1218,9 @@ Nodes (7): Audit Health Score, Detailed Findings by Severity, Executive Summary,
 Cohesion: 0.18
 Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-10-23T20:43:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
 
-### Community 347 - "owner_subscription_view"
-Cohesion: 0.17
-Nodes (10): 1. Observation, register_view(), SubscriptionPlan, Meta, UpgradeRequest, Meta, api_request_upgrade(), owner_subscription_view() (+2 more)
+### Community 347 - "gu"
+Cohesion: 0.11
+Nodes (9): ec(), fu(), gu, hu(), ku(), pu(), qa(), uu() (+1 more)
 
 ### Community 348 - "K"
 Cohesion: 0.43
@@ -1147,6 +1230,10 @@ Nodes (3): U, getDataAttributes(), j()
 Cohesion: 0.50
 Nodes (3): Current Step, Progress Log — worker_1, Status
 
+### Community 350 - "ih"
+Cohesion: 0.09
+Nodes (3): gh, ih, Rh
+
 ### Community 353 - "orchestrator_1/progress.md"
 Cohesion: 0.50
 Nodes (3): Current Status, Iteration Status, Retrospective Notes
@@ -1155,13 +1242,21 @@ Nodes (3): Current Status, Iteration Status, Retrospective Notes
 Cohesion: 0.13
 Nodes (4): Command, Command, get_mcp_asgi_app(), run_server()
 
+### Community 369 - "ih"
+Cohesion: 0.09
+Nodes (3): gh, ih, Rh
+
 ### Community 371 - "Review & Handoff Report — Restaurant Profile Implementation"
 Cohesion: 0.18
 Nodes (10): 1.1 Integrity & Facade Verification, 1.2 Requirements & Architecture Conformance, 1.3 Adversarial Stress Testing, 1.4 Verification Suite Results, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion (+2 more)
 
 ### Community 372 - "FastMCPAuthMiddleware"
-Cohesion: 0.13
-Nodes (5): build_unified_mcp_asgi(), FastMCPAuthMiddleware, intercept_send(), SSEAuthMiddleware, run_asgi_tests()
+Cohesion: 0.11
+Nodes (9): build_unified_mcp_asgi(), FastMCPAuthMiddleware, intercept_send(), _get_cached_session_key(), _get_latest_session_for_key(), _set_cached_session_key(), SSEAuthMiddleware, intercept_sse_send() (+1 more)
+
+### Community 373 - "gu"
+Cohesion: 0.12
+Nodes (9): ec(), fu(), gu, hu(), ku(), pu(), qa(), uu() (+1 more)
 
 ### Community 374 - "BRIEFING — 2026-10-23T22:41:00Z"
 Cohesion: 0.20
@@ -1187,9 +1282,17 @@ Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verific
 Cohesion: 0.29
 Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Victory Audit Report & Handoff — Central HQ Restaurant Profile
 
-### Community 383 - "ai_callcenter_queues_view"
-Cohesion: 0.33
-Nodes (5): ai_callcenter_queues_view(), add_or_update_queue(), add_queue_member(), get_employees(), get_queues()
+### Community 383 - "ic"
+Cohesion: 0.08
+Nodes (6): gc(), ic(), on(), rc(), setKey(), yc
+
+### Community 384 - "ic"
+Cohesion: 0.08
+Nodes (6): gc(), ic(), on(), rc(), setKey(), yc
+
+### Community 385 - "adminlte.min.js"
+Cohesion: 0.20
+Nodes (3): a, B, P
 
 ### Community 388 - "Progress — challenger_1"
 Cohesion: 0.50
@@ -1199,28 +1302,84 @@ Nodes (3): Progress — challenger_1, Status, Steps
 Cohesion: 0.14
 Nodes (13): 2026-10-23T22:33:53Z, Acceptance Criteria, Language & Internationalization, Navbar & Authentication, Profile & Subscriptions, R1. Landing Page Navbar Simplification & Auth States, R2. 100% Bilingual Landing Page (Full Arabic & Full English), R3. Comprehensive User & Subscription Profile Page (+5 more)
 
+### Community 409 - "hc"
+Cohesion: 0.12
+Nodes (3): Dc(), hc(), mc()
+
+### Community 410 - "static/js/landing_webrtc_agent.js"
+Cohesion: 0.25
+Nodes (13): ensureLiveKitLoaded(), formatTime(), getCookie(), handleCallTermination(), setupLocalAudioAnalyser(), setupRemoteAudioAnalyser(), showCallError(), startCallTimer() (+5 more)
+
 ### Community 411 - "Progress & Open-Issues Ledger"
 Cohesion: 0.33
 Nodes (5): Current Status, Iteration Status, Open Issues Ledger, Progress & Open-Issues Ledger, Retrospective Notes
 
+### Community 412 - "staticfiles/js/landing_webrtc_agent.js"
+Cohesion: 0.25
+Nodes (13): ensureLiveKitLoaded(), formatTime(), getCookie(), handleCallTermination(), setupLocalAudioAnalyser(), setupRemoteAudioAnalyser(), showCallError(), startCallTimer() (+5 more)
+
+### Community 419 - "MenuItemVariant"
+Cohesion: 0.23
+Nodes (7): BranchMenuAvailabilityAdmin, BranchVariantPriceAdmin, MenuCategoryAdmin, MenuItemAdmin, MenuItemVariantInline, MenuItemVariant, Meta
+
+### Community 420 - "PlatformConfigurationAdmin"
+Cohesion: 0.21
+Nodes (4): BranchAdmin, DeliveryAreaAdmin, PlatformConfigurationAdmin, TenantAdmin
+
+### Community 427 - "Quality Checklist"
+Cohesion: 0.25
+Nodes (8): Advanced Features (where applicable), Code Quality, Implementation Quality, Project Configuration, Quality Checklist, Strategic Design, Testing and Build, TypeScript Quality
+
+### Community 431 - "Diagnostic Scan"
+Cohesion: 0.33
+Nodes (6): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Diagnostic Scan
+
+### Community 432 - "bolder.md"
+Cohesion: 0.33
+Nodes (5): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat
+
+### Community 433 - "Advanced MCP Features"
+Cohesion: 0.33
+Nodes (6): Advanced MCP Features, Notification Support, Resource Registration, stdio (For Local Integrations), Streamable HTTP (Recommended for Remote Servers), Transport Options
+
+### Community 436 - "Adaptation Strategies"
+Cohesion: 0.40
+Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
+
+### Community 437 - "Impeccable Documenter"
+Cohesion: 0.40
+Nodes (4): Impeccable Documenter, Input Contract, Output Contract, Workflow
+
+### Community 439 - "Operate"
+Cohesion: 0.50
+Nodes (3): Comps, Directions, Operate
+
+### Community 440 - "Persuade and Experience"
+Cohesion: 0.50
+Nodes (3): Comps, Directions, Persuade and Experience
+
+### Community 441 - "Read"
+Cohesion: 0.50
+Nodes (3): Comps, Directions, Read
+
 ## Knowledge Gaps
 - **4 isolated node(s):** `type`, `description`, `type`, `description`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2539 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **193 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3259 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **201 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Tenant` connect `Tenant` to `orchestrator_1/progress.md`, `orders/views.py`, `core/views.py`, `os`, `run_restaurant_profile_tests`, `django_urls`, `challenge_harness.py`, `Survey Analysis: Backend Models, Data Storage, and Endpoints for Restaurant Profile`, `Central HQ Management Portal Frontend Architecture Survey`, `Tenant`, `menu/views.py`, `BRIEFING — 2026-10-23T20:17:00Z`, `owner_subscription_view`, `accounts/views.py`?**
-  _High betweenness centrality (0.293) - this node is a cross-community bridge._
+- **Why does `mh` connect `.emit` to `o`, `ed`, `.GetData`, `iu`, `kr`, `hl`, `staticfiles/js/vendor/livekit-client.umd.min.js`?**
+  _High betweenness centrality (0.296) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `get_active_tenant()` (e.g. with `2. Logic Chain` and `kitchen_stream_view()`) actually correct?**
   _`get_active_tenant()` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `type`, `description`, `type` to the rest of the system?**
   _4 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `xregexp.js` be split into smaller, more focused modules?**
   _Cohesion score 0.012048192771084338 - nodes in this community are weakly interconnected._
-- **Why does `t()` connect `select2.full.min.js` to `Central HQ Management Portal Frontend Architecture Survey`, `jquery.min.js`, `modern-screenshot.umd.js`, `select2.min.js`?**
-  _High betweenness centrality (0.273) - this node is a cross-community bridge._
+- **Why does `1. Observation` connect `Tenant` to `showToast`, `jquery.js`?**
+  _High betweenness centrality (0.272) - this node is a cross-community bridge._
 - **Are the 8 inferred relationships involving `user_has_perm()` (e.g. with `2.2 Permissions Engine & Native Django Integration` and `3.2 Test Suites Breakdown`) actually correct?**
   _`user_has_perm()` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **Should `live-browser.js` be split into smaller, more focused modules?**

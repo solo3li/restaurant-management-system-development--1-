@@ -1865,3 +1865,74 @@ def api_ai_callcenter_sync_caps(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
+@login_required
+def api_ai_callcenter_initiate_webrtc(request):
+    """
+    Initiate direct in-browser WebRTC call session via LiveKit for active tenant or demo user.
+    Target: Partner API POST /clients/{client_id}/calls/webrtc/
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    from core import partner_service as ps
+    from apps.tenants.helpers import get_active_tenant
+
+    tenant = get_active_tenant(request)
+
+    # Resolve client_id: tenant's voice_client_id or auto-register, fallback to demo client 49
+    client_id = 49
+    if tenant:
+        try:
+            client_id = ps.get_client_id_for_tenant(tenant)
+        except Exception as e:
+            logger.warning(f"Failed to get client_id for tenant {tenant.name}: {e}")
+            client_id = 49
+
+    # Rate limiting on WebRTC sessions per user/IP
+    client_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR", "unknown")
+    session_key = f"webrtc_calls_{request.user.id}_{client_ip}"
+    recent_calls = request.session.get(session_key, 0)
+    if recent_calls >= 10:
+        return JsonResponse({
+            "status": "error",
+            "message": "وصلت إلى الحد الأقصى للمكالمات التجريبية (10 مكالمات). يرجى مراجعة لوحة التحكم لتفعيل الباقة الكاملة."
+        }, status=429)
+
+    request.session[session_key] = recent_calls + 1
+    request.session.modified = True
+
+    caller_name = request.user.get_full_name() or request.user.username or "زائر المنصة التجريبي"
+    restaurant_name = tenant.name if tenant else "مطاعم"
+    welcome_msg = f"أهلاً بك في مطعم {restaurant_name}! أنا المساعد الصوتي الذكي. كيف يمكنني خدمتك اليوم بخصوص الأطباق أو الأسعار أو الطلبات؟"
+
+    try:
+        res = ps.initiate_webrtc_call(
+            client_id=client_id,
+            max_duration_seconds=300,
+            caller_name=caller_name,
+            welcome_message=welcome_msg,
+        )
+        if res.get("status") == "success" and res.get("livekit_url") and res.get("livekit_token"):
+            return JsonResponse({
+                "status": "success",
+                "call_id": res.get("call_id"),
+                "room_name": res.get("room_name"),
+                "livekit_url": res.get("livekit_url"),
+                "livekit_token": res.get("livekit_token"),
+                "max_duration_seconds": res.get("max_duration_seconds", 300),
+                "expires_in": res.get("expires_in", 300),
+                "agent_profile": res.get("agent_profile", {}),
+                "restaurant_name": restaurant_name,
+                "client_id": client_id,
+            })
+        else:
+            return JsonResponse({
+                "status": "error",
+                "message": res.get("message") or "تعذر بدء الجلسة الصوتية من خادم الاتصالات."
+            }, status=502)
+    except Exception as ex:
+        logger.error(f"Error initiating WebRTC call for client {client_id}: {ex}", exc_info=True)
+        return JsonResponse({"status": "error", "message": f"خطأ غير متوقع: {str(ex)}"}, status=500)
+
+
+

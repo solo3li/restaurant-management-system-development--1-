@@ -186,14 +186,18 @@ from apps.callcenter.views import (
     api_ai_callcenter_telephony_info,
     api_ai_callcenter_usage,
     api_ai_callcenter_sync_caps,
+    api_ai_callcenter_initiate_webrtc,
 )
 
 from apps.audit.views import (
     api_audit_logs,
 )
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
+@ensure_csrf_cookie
 def landing_view(request):
+
     """Public Landing Page with guest and authenticated navigation states."""
     plans = SubscriptionPlan.objects.filter(is_active=True).order_by("ordering", "price_monthly")
     total_tenants = Tenant.objects.filter(is_active=True).count()

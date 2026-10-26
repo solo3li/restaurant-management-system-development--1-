@@ -794,4 +794,29 @@ def get_pbx_trunks(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/telephony/pbx-trunks/")
 
 
+# =========================================================================
+# Client WebRTC Direct Voice Sessions (LiveKit AI Calls)
+# =========================================================================
+
+def initiate_webrtc_call(
+    client_id: int,
+    max_duration_seconds: int = 300,
+    caller_name: str = "زائر المنصة التجريبي",
+    welcome_message: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Generate encrypted smart voice session & LiveKit WebRTC credentials
+    for browser direct calling.
+    Target: POST /clients/{client_id}/calls/webrtc/
+    """
+    payload: Dict[str, Any] = {
+        "max_duration_seconds": int(max_duration_seconds),
+        "caller_name": caller_name,
+    }
+    if welcome_message:
+        payload["welcome_message"] = welcome_message
+    return _request(f"/clients/{client_id}/calls/webrtc/", method="POST", data=payload)
+
+
+
 
