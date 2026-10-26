@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-26 13:40
-**Session ID:** SubscriptionPlan Admin Features Grid Checkboxes & Jazzmin UI Integration
+**Last Updated:** 2026-10-26 14:20
+**Session ID:** Kitchen Display System (KDS) Standby State Redesign & Live Digital Clock
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -12,10 +12,26 @@
 - `feat-user-subscription-profile` (Completed)
 - `feat-post-registration-routing` (Completed)
 - `feat-subscription-plan-features-grid` (Completed)
+- `feat-kds-standby-redesign` (Completed)
 
 ## Status
 
 ### What's Done
+
+- [x] **KDS Empty Standby State Redesign & Live Clock (`templates/kitchen.html` & `apps/kitchen/views.py`)**
+  - **Full Standby Hero (Centered, Zero Scroll)**: Centered the standby hero state in the heart of the viewport (`flex-1 flex flex-col items-center justify-center my-auto min-h-[calc(100vh-7.5rem)]`).
+  - **Eliminated Phantom Reserved Height**: Completely removed `min-h-[350px]` from `#kitchen-orders-grid` and toggled `hidden` class + `display: none` when no active orders exist, eliminating all bottom overflow and vertical scrolling.
+  - **Live Digital Kitchen Clock**: Implemented high-contrast, large commercial digital clock (`font-mono text-5xl sm:text-6xl md:text-7xl font-black`) displaying real-time hours, minutes, seconds, and AM/PM tag, with live localized date formatting (`ar-u-nu-latn` in Arabic, `en-US` in English) plus SSR default rendering to eliminate placeholder flashing.
+  - **Live Standby Beacon with Real-Time SSE Sync**: Added pulsating readiness indicator dynamically bound to SSE state (emerald when live, amber when connecting, rose when reconnecting).
+  - **Pure Non-Interactive UI**: Kept the standby screen clean and distraction-free without extra buttons, as explicitly requested.
+  - **100% Bilingual Support (Arabic & English)**: Translated all kitchen interface elements, top toolbar buttons, search placeholder, category station pills, empty state headlines, ticket card actions, timers (`m`/`د`), order types, and SSE toasts according to `CURRENT_LANG`. Added missing entries to `core/i18n_catalog.py`.
+  - **Bugfixes & Robustness**:
+    - Protected `#badge-station-all` from being wiped to 0 or hidden in category loop.
+    - Added `pendingRemovalOrders` set to eliminate double-removal and duplicate toast flicker during concurrent SSE status events.
+    - Added specific empty state copy when search query returns no matches.
+    - Added bidirectional fullscreen UI sync and icon state toggle.
+  - **Seamless JavaScript Transitions**: Handled instant transition between Standby Hero and Orders Grid upon receiving new SSE orders or completing all orders, updating station-specific idle headings when filtered by station.
+  - **Verified & Deployed**: All 5 suites in `scratch/test_kitchen_standby.py` passed 100%, `./init.sh` passed 100%, and verified live deployment on `https://uggu.space/kitchen/`.
 
 - [x] **SubscriptionPlan Admin Features Grid Checkboxes (`/admin/core/subscriptionplan/`)**
   - Converted raw textarea `JSONField` for `features` in Django Admin / Jazzmin into a responsive Grid Cards layout with interactive checkboxes.

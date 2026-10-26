@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}شاشة المطبخ وإدارة المحطات (KDS Live) — {{ tenant_name|default:t.app_title }}{% endblock %}
+{% block title %}{% if CURRENT_LANG == 'en' %}Kitchen Display System (KDS Live){% else %}شاشة المطبخ وإدارة المحطات (KDS Live){% endif %} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
-<div class="space-y-3 font-sans">
+<div class="font-sans flex flex-col flex-1 min-h-[calc(100vh-7.5rem)]">
 
     <!-- ======================================================== -->
     <!-- KDS COMPACT FLAT TOP TOOLBAR (NO CARD - 2 SLIM ROWS)     -->
     <!-- ======================================================== -->
-    <div class="space-y-1.5 pb-2 border-b border-slate-100">
+    <div class="space-y-1.5 pb-2.5 mb-3 border-b border-slate-100 shrink-0">
         
         <!-- Row 1: Station Info & Quick Action Tools (Slim 30px height) -->
         <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -18,7 +18,7 @@
                 <span class="flex h-6 w-6 items-center justify-center rounded-md bg-violet-50 border border-violet-200/60 text-violet-600">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 </span>
-                <span class="text-xs font-bold text-slate-900 tracking-tight">المطبخ KDS</span>
+                <span class="text-xs font-bold text-slate-900 tracking-tight">{% if CURRENT_LANG == 'en' %}Kitchen KDS{% else %}المطبخ KDS{% endif %}</span>
                 <span id="header-total-badge" class="rounded-full bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-xs font-bold text-violet-700">
                     <span id="total-pending-count">{{ total_pending }}</span>
                 </span>
@@ -26,7 +26,7 @@
                 <!-- SSE Connection Status Beacon -->
                 <div id="sse-status-pill" class="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-semibold text-emerald-900">
                     <span id="sse-status-dot" class="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span id="sse-status-text">مباشر 0ms</span>
+                    <span id="sse-status-text">{% if CURRENT_LANG == 'en' %}Live 0ms{% else %}مباشر 0ms{% endif %}</span>
                 </div>
 
                 <!-- Branch Filter Dropdown -->
@@ -36,7 +36,7 @@
                     onchange="changeBranchFilter(this.value)" 
                     class="px-2 py-0.5 rounded-md bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 >
-                    <option value="" {% if not target_branch_id %}selected{% endif %}>كل الفروع</option>
+                    <option value="" {% if not target_branch_id %}selected{% endif %}>{% if CURRENT_LANG == 'en' %}All Branches{% else %}كل الفروع{% endif %}</option>
                     {% for b in branches %}
                     <option value="{{ b.id }}" {% if target_branch_id == b.id %}selected{% endif %}>{{ b.name }}</option>
                     {% endfor %}
@@ -52,10 +52,10 @@
                         type="text" 
                         id="kds-search-input" 
                         oninput="handleSearch(this.value)" 
-                        placeholder="بحث برقم الطلب..." 
-                        class="w-full pl-2 pr-6 py-1 rounded-lg bg-white border border-slate-200/70 text-xs font-semibold text-slate-900 placeholder-slate-500 focus:outline-none focus:border-violet-600 focus:bg-white transition"
+                        placeholder="{% if CURRENT_LANG == 'en' %}Search by order #...{% else %}بحث برقم الطلب...{% endif %}" 
+                        class="w-full {% if IS_RTL %}pl-2 pr-6{% else %}pr-2 pl-6{% endif %} py-1 rounded-lg bg-white border border-slate-200/70 text-xs font-semibold text-slate-900 placeholder-slate-500 focus:outline-none focus:border-violet-600 focus:bg-white transition"
                     >
-                    <svg class="w-3.5 h-3.5 text-slate-500 absolute right-1.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <svg class="w-3.5 h-3.5 text-slate-500 absolute {% if IS_RTL %}right-1.5{% else %}left-1.5{% endif %} top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
 
                 <!-- Toggle Completed In Station -->
@@ -64,10 +64,10 @@
                     id="toggle-completed-btn"
                     onclick="toggleShowCompleted()" 
                     class="h-7 px-2 rounded-md border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                    title="إظهار / إخفاء المكتملة"
+                    title="{% if CURRENT_LANG == 'en' %}Show / Hide Completed{% else %}إظهار / إخفاء المكتملة{% endif %}"
                 >
                     <span id="toggle-completed-icon">👁️</span>
-                    <span class="hidden sm:inline" id="toggle-completed-text">المكتملة</span>
+                    <span class="hidden sm:inline" id="toggle-completed-text">{% if CURRENT_LANG == 'en' %}Completed{% else %}المكتملة{% endif %}</span>
                 </button>
 
                 <!-- Sound toggle -->
@@ -76,19 +76,20 @@
                     type="button" 
                     onclick="toggleSound()" 
                     class="h-7 px-2 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-xs font-bold text-slate-800 transition flex items-center gap-1 cursor-pointer"
-                    title="تفعيل أو كتم جرس تنبيه المطبخ"
+                    title="{% if CURRENT_LANG == 'en' %}Toggle kitchen bell sound{% else %}تفعيل أو كتم جرس تنبيه المطبخ{% endif %}"
                 >
                     <span id="sound-icon">🔔</span>
                 </button>
 
                 <!-- Fullscreen -->
                 <button 
+                    id="btn-fullscreen-toggle"
                     type="button" 
                     onclick="toggleFullscreen()" 
                     class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-700 transition flex items-center justify-center cursor-pointer"
-                    title="ملء الشاشة"
+                    title="{% if CURRENT_LANG == 'en' %}Fullscreen{% else %}ملء الشاشة{% endif %}"
                 >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    <svg id="fullscreen-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                 </button>
 
                 <!-- Manual Refresh -->
@@ -96,7 +97,7 @@
                     type="button" 
                     onclick="manualRefresh()" 
                     class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-700 transition flex items-center justify-center cursor-pointer"
-                    title="مزامنة فورية"
+                    title="{% if CURRENT_LANG == 'en' %}Instant Sync{% else %}مزامنة فورية{% endif %}"
                 >
                     <svg id="refresh-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </button>
@@ -111,19 +112,19 @@
                 id="station-pill-all" 
                 class="station-pill active px-2.5 py-1 text-violet-600 border-b-2 border-blue-700 font-semibold shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
             >
-                <span>🍽️ الكل</span>
+                <span>🍽️ {% if CURRENT_LANG == 'en' %}All{% else %}الكل{% endif %}</span>
                 <span id="badge-station-all" class="px-2 py-0.5 rounded-full bg-violet-600 text-white text-[10.5px] font-semibold">{{ total_pending }}</span>
             </button>
             
-            {% for cat in menu_categories %}
+            {% for cat in categories_data %}
             <button 
                 type="button" 
-                onclick="setStationFilter('{{ cat }}')" 
-                id="station-pill-{{ cat|slugify }}" 
+                onclick="setStationFilter('{{ cat.id }}')" 
+                id="station-pill-{{ cat.slug }}" 
                 class="station-pill px-2 py-1 text-slate-700 hover:text-slate-900 border-b-2 border-transparent font-bold shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
             >
-                <span>{{ cat }}</span>
-                <span id="badge-station-{{ cat|slugify }}" class="station-count-badge px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 text-[10.5px] font-semibold" style="display: none;">
+                <span>{% if CURRENT_LANG == 'en' %}{{ cat.name_en }}{% else %}{{ cat.name_ar }}{% endif %}</span>
+                <span id="badge-station-{{ cat.slug }}" class="station-count-badge px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 text-[10.5px] font-semibold" style="display: none;">
                     0
                 </span>
             </button>
@@ -134,20 +135,64 @@
 
     <!-- ======================================================== -->
     <!-- KITCHEN ORDERS GRID CONTAINER (High-Density Columns)     -->
+    <!-- Hidden when empty, zero phantom space                    -->
     <!-- ======================================================== -->
-    <div id="kitchen-orders-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3 font-sans min-h-[350px]">
+    <div id="kitchen-orders-grid" class="{% if not total_pending %}hidden {% endif %}grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3 font-sans w-full">
         <!-- Cards are dynamically rendered and updated in real-time -->
     </div>
 
-    <!-- Empty State (Shown when no pending orders exist) -->
-    <div id="kitchen-empty-state" class="hidden py-16 text-center bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-        <div class="h-14 w-14 mx-auto mb-3 rounded-2xl bg-blue-50 border border-violet-200/50 flex items-center justify-center text-blue-600 shadow-sm">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <!-- ======================================================== -->
+    <!-- FULL STANDBY HERO (Centered in heart of screen, 0 scroll)-->
+    <!-- Pure Standby State without unnecessary interactive btns  -->
+    <!-- ======================================================== -->
+    <div id="kitchen-empty-state" class="{% if total_pending %}hidden {% else %}flex {% endif %}flex-1 flex-col items-center justify-center py-6 px-4 text-center my-auto w-full transition-all duration-300">
+        
+        <div class="w-full max-w-xl mx-auto flex flex-col items-center">
+            
+            <!-- 1. Live Standby Beacon (Gentle pulsing indicator) -->
+            <div id="standby-beacon-pill" class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-xs sm:text-sm font-bold text-emerald-800 shadow-xs mb-5 transition-all">
+                <span class="relative flex h-3 w-3 items-center justify-center shrink-0">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="standby-beacon-text">
+                    {% if CURRENT_LANG == 'en' %}Station Connected & Live • Awaiting Inbound Orders{% else %}المحطة متصلة وجاهزة • بانتظار الطلبات الفورية{% endif %}
+                </span>
+            </div>
+
+            <!-- 2. Ambient KDS Station Badge / Chef Icon with soft glow -->
+            <div class="relative mb-5 flex items-center justify-center">
+                <!-- Soft ambient glow -->
+                <div class="absolute -inset-3 bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-indigo-500/15 rounded-3xl blur-xl opacity-80 pointer-events-none"></div>
+                
+                <div class="relative flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-3xl bg-white border border-slate-200/90 shadow-sm text-slate-800">
+                    <svg class="w-10 h-10 sm:w-12 sm:h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 4a2 2 0 00-2 2c0 .38.1.73.28 1.03C6.72 7.7 4 10.95 4 14.8V16h16v-1.2c0-3.85-2.72-7.1-6.28-7.77.18-.3.28-.65.28-1.03a2 2 0 00-2-2zM3 18h18v1.5a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 19.5V18z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 3. Live Digital Kitchen Clock (Large, high-contrast, seconds & date) -->
+            <div class="flex flex-col items-center justify-center select-none mb-4">
+                <div class="flex items-baseline justify-center gap-1.5 sm:gap-2 font-mono tracking-tight font-black text-slate-900 dir-ltr" dir="ltr">
+                    <span id="standby-clock-time" class="text-5xl sm:text-6xl md:text-7xl font-black tabular-nums tracking-tight drop-shadow-xs">{% now "h:i:s" %}</span>
+                    <span id="standby-clock-ampm" class="text-lg sm:text-xl md:text-2xl font-black text-emerald-600 uppercase">{% if CURRENT_LANG == 'en' %}{% now "A" %}{% else %}{% now "A" as initial_ampm %}{% if initial_ampm == "AM" %}ص{% else %}م{% endif %}{% endif %}</span>
+                </div>
+                <div id="standby-clock-date" class="mt-2 text-xs sm:text-sm md:text-base font-bold text-slate-500 tracking-wider">
+                    {% if CURRENT_LANG == 'en' %}{% now "l, F j, Y" %}{% else %}{% now "l، j F Y" %}{% endif %}
+                </div>
+            </div>
+
+            <!-- 4. Standby Status Heading & Contextual Subtitle -->
+            <h2 id="empty-state-title" class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-snug">
+                {% if CURRENT_LANG == 'en' %}Kitchen is Idle — All Orders Fulfilled{% else %}المطبخ هادئ الآن — جميع الطلبات منجزة{% endif %}
+            </h2>
+            <p id="empty-state-desc" class="text-xs sm:text-sm text-slate-500 mt-2 max-w-md sm:max-w-lg mx-auto leading-relaxed">
+                {% if CURRENT_LANG == 'en' %}New order tickets from Cashier, Call Center, and Online delivery will appear here in real-time with instant audio alerts.{% else %}ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر أو تطبيقات التوصيل مصحوبة برنين التنبيه.{% endif %}
+            </p>
+
         </div>
-        <h3 id="empty-state-title" class="text-base font-bold text-slate-900">المطبخ هادئ الآن — جميع الطلبات منجزة</h3>
-        <p id="empty-state-desc" class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر بدون الحاجة لتحديث الصفحة.
-        </p>
+
     </div>
 
 </div>
@@ -160,6 +205,7 @@
 {% block extra_scripts %}
 {{ kitchen_orders|json_script:"initial-orders-data" }}
 {{ station_counts|json_script:"initial-stations-data" }}
+{{ category_translations|json_script:"category-translations-data" }}
 <script>
     // ================================================================
     // KURA KDS (Kitchen Display System) - True Real-Time SSE Engine
@@ -169,7 +215,11 @@
     // Initial server state passed securely via json_script
     const INITIAL_ORDERS = JSON.parse(document.getElementById('initial-orders-data')?.textContent || '[]');
     const INITIAL_STATION_COUNTS = JSON.parse(document.getElementById('initial-stations-data')?.textContent || '{}');
+    const CATEGORY_TRANSLATIONS = JSON.parse(document.getElementById('category-translations-data')?.textContent || '{}');
     const TARGET_BRANCH_ID = "{{ target_branch_id|default:'' }}";
+    const CURRENT_LANG = "{{ CURRENT_LANG|default:'ar' }}";
+    const IS_RTL = {{ IS_RTL|yesno:"true,false" }};
+    const CURRENCY_SYMBOL = "{{ t.currency|default:'ر.س' }}";
 
     // Application state in memory
     let activeOrders = [...INITIAL_ORDERS];
@@ -180,6 +230,104 @@
     let checkedItemsState = JSON.parse(localStorage.getItem('kura_kds_checked') || '{}');
     let sseEventSource = null;
     let audioCtx = null;
+
+    // Helper: Safe Cookie Retriever
+    function safeGetCookie(name) {
+        if (typeof getCookie === 'function') return getCookie(name);
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Helper: Category Translation Resolver
+    function getStationDisplayName(catName) {
+        if (!catName) return '';
+        if (CURRENT_LANG === 'en') {
+            return CATEGORY_TRANSLATIONS[catName] || catName;
+        }
+        return catName;
+    }
+
+    // Helper: Order Type Translation Resolver
+    function getOrderTypeDisplay(type, rawDisplay) {
+        if (CURRENT_LANG === 'en') {
+            const typeMap = {
+                'dine_in': 'Dine-In',
+                'takeaway': 'Takeaway',
+                'delivery': 'Delivery',
+                'call_center': 'Call Center',
+            };
+            return typeMap[type] || rawDisplay || type;
+        }
+        return rawDisplay || type;
+    }
+
+    // ----------------------------------------------------------------
+    // 0. Live Digital Kitchen Clock Engine
+    // ----------------------------------------------------------------
+    function startLiveKitchenClock() {
+        function updateClock() {
+            const now = new Date();
+            const timeEl = document.getElementById('standby-clock-time');
+            const ampmEl = document.getElementById('standby-clock-ampm');
+            const dateEl = document.getElementById('standby-clock-date');
+
+            if (!timeEl && !dateEl) return;
+
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const isPm = hours >= 12;
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 12-hour format
+            const hoursStr = String(hours).padStart(2, '0');
+
+            if (timeEl) {
+                timeEl.textContent = `${hoursStr}:${minutes}:${seconds}`;
+            }
+            if (ampmEl) {
+                if (CURRENT_LANG === 'en') {
+                    ampmEl.textContent = isPm ? 'PM' : 'AM';
+                } else {
+                    ampmEl.textContent = isPm ? 'م' : 'ص';
+                }
+            }
+
+            if (dateEl) {
+                try {
+                    if (CURRENT_LANG === 'en') {
+                        dateEl.textContent = now.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    } else {
+                        dateEl.textContent = now.toLocaleDateString('ar-u-nu-latn', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    }
+                } catch (e) {
+                    dateEl.textContent = now.toDateString();
+                }
+            }
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    }
 
     // ----------------------------------------------------------------
     // 1. Web Audio API Hotel Kitchen Bell Chime
@@ -240,21 +388,21 @@
         updateSoundUI();
         if (isSoundEnabled) {
             playKitchenBell();
-            showKdsToast("تم تفعيل جرس تنبيه المطبخ 🔔");
+            showKdsToast(CURRENT_LANG === 'en' ? 'Kitchen alert bell enabled 🔔' : 'تم تفعيل جرس تنبيه المطبخ 🔔');
         } else {
-            showKdsToast("تم كتم صوت التنبيه 🔕");
+            showKdsToast(CURRENT_LANG === 'en' ? 'Kitchen alert bell muted 🔕' : 'تم كتم صوت التنبيه 🔕');
         }
     }
 
     function updateSoundUI() {
         const icon = document.getElementById('sound-icon');
-        const label = document.getElementById('sound-label');
+        const btn = document.getElementById('btn-sound-toggle');
         if (isSoundEnabled) {
             if (icon) icon.textContent = '🔔';
-            if (label) label.textContent = 'جرس التنبيه: مفعّل';
+            if (btn) btn.title = CURRENT_LANG === 'en' ? 'Kitchen alert bell: Active (Click to mute)' : 'جرس تنبيه المطبخ: مفعّل (انقر للكتم)';
         } else {
             if (icon) icon.textContent = '🔕';
-            if (label) label.textContent = 'جرس التنبيه: مكتوم';
+            if (btn) btn.title = CURRENT_LANG === 'en' ? 'Kitchen alert bell: Muted (Click to activate)' : 'جرس تنبيه المطبخ: مكتوم (انقر للتفعيل)';
         }
     }
 
@@ -309,7 +457,10 @@
         sseEventSource.addEventListener('order_cancelled', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
-                handleOrderRemoved(orderData.id, 'تم إلغاء الطلب #' + orderData.order_number);
+                const msg = CURRENT_LANG === 'en' 
+                    ? `Order #${orderData.order_number} was cancelled`
+                    : `تم إلغاء الطلب #${orderData.order_number}`;
+                handleOrderRemoved(orderData.id, msg);
             } catch (err) {
                 console.error("Failed to parse order_cancelled payload:", err);
             }
@@ -317,7 +468,6 @@
 
         sseEventSource.onerror = (err) => {
             updateSSEStatus('disconnected');
-            // Browser EventSource automatically attempts reconnection
         };
     }
 
@@ -326,27 +476,67 @@
         const text = document.getElementById('sse-status-text');
         const pill = document.getElementById('sse-status-pill');
 
+        const standbyBeaconPill = document.getElementById('standby-beacon-pill');
+
         if (status === 'connected') {
-            if (dot) dot.className = 'h-2 w-2 rounded-full bg-emerald-500 animate-ping';
+            if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse';
             if (text) {
-                text.textContent = 'متصل بالبث المباشر (0ms)';
-                text.className = 'text-emerald-600 font-bold';
+                text.textContent = CURRENT_LANG === 'en' ? 'Live 0ms' : 'مباشر 0ms';
+                text.className = 'text-emerald-900 font-bold';
             }
-            if (pill) pill.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 transition';
+            if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-semibold text-emerald-900 transition';
+
+            if (standbyBeaconPill) {
+                standbyBeaconPill.className = 'inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-xs sm:text-sm font-bold text-emerald-800 shadow-xs mb-5 transition-all';
+                standbyBeaconPill.innerHTML = `
+                    <span class="relative flex h-3 w-3 items-center justify-center shrink-0">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span id="standby-beacon-text">
+                        ${CURRENT_LANG === 'en' ? 'Station Connected & Live • Awaiting Inbound Orders' : 'المحطة متصلة وجاهزة • بانتظار الطلبات الفورية'}
+                    </span>
+                `;
+            }
         } else if (status === 'connecting') {
-            if (dot) dot.className = 'h-2 w-2 rounded-full bg-amber-500 animate-pulse';
+            if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse';
             if (text) {
-                text.textContent = 'جاري الاتصال...';
-                text.className = 'text-amber-600 font-bold';
+                text.textContent = CURRENT_LANG === 'en' ? 'Connecting...' : 'جاري الاتصال...';
+                text.className = 'text-amber-900 font-bold';
             }
-            if (pill) pill.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800 transition';
+            if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-[11px] font-semibold text-amber-900 transition';
+
+            if (standbyBeaconPill) {
+                standbyBeaconPill.className = 'inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-xs sm:text-sm font-bold text-amber-800 shadow-xs mb-5 transition-all';
+                standbyBeaconPill.innerHTML = `
+                    <span class="relative flex h-3 w-3 items-center justify-center shrink-0">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    <span id="standby-beacon-text">
+                        ${CURRENT_LANG === 'en' ? 'Connecting to Live Stream...' : 'جاري الاتصال بالبث المباشر...'}
+                    </span>
+                `;
+            }
         } else {
-            if (dot) dot.className = 'h-2 w-2 rounded-full bg-rose-500';
+            if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-rose-500';
             if (text) {
-                text.textContent = 'انقطع الاتصال — جاري إعادة الربط';
-                text.className = 'text-rose-600 font-bold';
+                text.textContent = CURRENT_LANG === 'en' ? 'Reconnecting...' : 'إعادة الربط...';
+                text.className = 'text-rose-900 font-bold';
             }
-            if (pill) pill.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-800 transition';
+            if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-100 border border-rose-300 text-[11px] font-semibold text-rose-900 transition';
+
+            if (standbyBeaconPill) {
+                standbyBeaconPill.className = 'inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-xs sm:text-sm font-bold text-rose-800 shadow-xs mb-5 transition-all';
+                standbyBeaconPill.innerHTML = `
+                    <span class="relative flex h-3 w-3 items-center justify-center shrink-0">
+                        <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                    </span>
+                    <span id="standby-beacon-text">
+                        ${CURRENT_LANG === 'en' ? 'Reconnecting to Live Stream...' : 'جاري إعادة الربط بالبث المباشر...'}
+                    </span>
+                `;
+            }
         }
     }
 
@@ -354,14 +544,16 @@
     // 3. Real-Time Event Handlers
     // ----------------------------------------------------------------
     function handleIncomingNewOrder(newOrder) {
-        // If already exists, update
         const existingIdx = activeOrders.findIndex(o => o.id === newOrder.id);
         if (existingIdx >= 0) {
             activeOrders[existingIdx] = newOrder;
         } else {
             activeOrders.unshift(newOrder);
             playKitchenBell();
-            showKdsToast(`وصل طلب جديد #${newOrder.order_number} (${newOrder.total_items_count} أصناف) 🛎️`, 'success');
+            const toastMsg = CURRENT_LANG === 'en'
+                ? `New order #${newOrder.order_number} received (${newOrder.total_items_count} items) 🛎️`
+                : `وصل طلب جديد #${newOrder.order_number} (${newOrder.total_items_count} أصناف) 🛎️`;
+            showKdsToast(toastMsg, 'success');
         }
         recalculateStationCounts();
         renderOrdersGrid(true); // highlight new order
@@ -369,7 +561,10 @@
 
     function handleOrderStatusChanged(updatedOrder) {
         if (updatedOrder.status === 'ready' || updatedOrder.status === 'delivered' || updatedOrder.status === 'cancelled') {
-            handleOrderRemoved(updatedOrder.id, `تم إنجاز الطلب #${updatedOrder.order_number}`);
+            const msg = CURRENT_LANG === 'en'
+                ? `Order #${updatedOrder.order_number} fulfilled`
+                : `تم إنجاز الطلب #${updatedOrder.order_number}`;
+            handleOrderRemoved(updatedOrder.id, msg);
         } else {
             const idx = activeOrders.findIndex(o => o.id === updatedOrder.id);
             if (idx >= 0) {
@@ -392,19 +587,24 @@
         }
     }
 
+    const pendingRemovalOrders = new Set();
     function handleOrderRemoved(orderId, msg) {
+        if (pendingRemovalOrders.has(orderId)) return;
+        pendingRemovalOrders.add(orderId);
+
         const cardEl = document.getElementById(`order-card-${orderId}`);
         if (cardEl) {
-            cardEl.style.transition = 'all 0.4s ease-out';
+            cardEl.style.transition = 'all 0.35s ease-out';
             cardEl.style.opacity = '0';
             cardEl.style.transform = 'scale(0.9) translateY(10px)';
         }
         setTimeout(() => {
             activeOrders = activeOrders.filter(o => o.id !== orderId);
+            pendingRemovalOrders.delete(orderId);
             recalculateStationCounts();
             renderOrdersGrid();
             if (msg) showKdsToast(msg);
-        }, 350);
+        }, 320);
     }
 
     // ----------------------------------------------------------------
@@ -419,7 +619,11 @@
             btn.classList.add('text-slate-700', 'border-transparent', 'font-bold');
             const badge = btn.querySelector('.station-count-badge') || btn.querySelector('span:last-child');
             if (badge) {
-                badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-slate-200 text-slate-800';
+                if (badge.id === 'badge-station-all') {
+                    badge.className = 'px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-slate-200 text-slate-800';
+                } else {
+                    badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-slate-200 text-slate-800';
+                }
             }
         });
 
@@ -432,7 +636,11 @@
             activeBtn.classList.remove('text-slate-700', 'border-transparent', 'font-bold');
             const badge = activeBtn.querySelector('.station-count-badge') || activeBtn.querySelector('span:last-child');
             if (badge) {
-                badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-violet-600 text-white';
+                if (badge.id === 'badge-station-all') {
+                    badge.className = 'px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-violet-600 text-white';
+                } else {
+                    badge.className = 'station-count-badge px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-violet-600 text-white';
+                }
             }
         }
 
@@ -446,17 +654,17 @@
         if (showCompletedInStation) {
             if (btn) {
                 btn.classList.add('bg-violet-600', 'text-white', 'border-violet-600');
-                btn.classList.remove('bg-slate-50', 'text-slate-700', 'border-slate-200');
+                btn.classList.remove('bg-white', 'text-slate-800', 'border-slate-200/70');
             }
-            if (txt) txt.textContent = 'إخفاء المكتملة';
-            showKdsToast("تم إظهار الطلبات المكتملة في هذا القسم");
+            if (txt) txt.textContent = CURRENT_LANG === 'en' ? 'Hide Completed' : 'إخفاء المكتملة';
+            showKdsToast(CURRENT_LANG === 'en' ? 'Showing completed station orders' : 'تم إظهار الطلبات المكتملة في هذا القسم');
         } else {
             if (btn) {
                 btn.classList.remove('bg-violet-600', 'text-white', 'border-violet-600');
-                btn.classList.add('bg-slate-50', 'text-slate-700', 'border-slate-200');
+                btn.classList.add('bg-white', 'text-slate-800', 'border-slate-200/70');
             }
-            if (txt) txt.textContent = 'المكتملة';
-            showKdsToast("تم إخفاء الطلبات المكتملة في هذا القسم");
+            if (txt) txt.textContent = CURRENT_LANG === 'en' ? 'Completed' : 'المكتملة';
+            showKdsToast(CURRENT_LANG === 'en' ? 'Hiding completed station orders' : 'تم إخفاء الطلبات المكتملة في هذا القسم');
         }
         renderOrdersGrid();
     }
@@ -464,15 +672,13 @@
     function recalculateStationCounts() {
         const counts = {};
         activeOrders.forEach(o => {
-            // Group items by category
             const catMap = {};
             (o.items || []).forEach(it => {
-                const cat = it.category || 'عام';
+                const cat = it.category || (CURRENT_LANG === 'en' ? 'General' : 'عام');
                 if (!catMap[cat]) catMap[cat] = [];
                 catMap[cat].push(it);
             });
 
-            // A station has pending work only if at least one item in that station is NOT checked
             Object.entries(catMap).forEach(([cat, items]) => {
                 const hasUnfinished = items.some(it => !checkedItemsState[`order_${o.id}_item_${it.id}`]);
                 if (hasUnfinished) {
@@ -485,16 +691,21 @@
         const totalPendingEl = document.getElementById('total-pending-count');
         const badgeAllEl = document.getElementById('badge-station-all');
         if (totalPendingEl) totalPendingEl.textContent = activeOrders.length;
-        if (badgeAllEl) badgeAllEl.textContent = activeOrders.length;
+        if (badgeAllEl) {
+            badgeAllEl.textContent = activeOrders.length;
+            badgeAllEl.style.display = 'inline-block';
+        }
 
-        // Update individual station pills
+        // Update individual station pills (skip 'all' badge)
         document.querySelectorAll('.station-count-badge').forEach(badge => {
+            if (badge.id === 'badge-station-all') return;
             const pillBtn = badge.closest('.station-pill');
             if (pillBtn) {
                 const match = pillBtn.getAttribute('onclick') || '';
                 const catNameMatch = match.match(/setStationFilter\('([^']+)'\)/);
                 if (catNameMatch && catNameMatch[1]) {
                     const catName = catNameMatch[1];
+                    if (catName === 'all') return;
                     const count = counts[catName] || 0;
                     badge.textContent = count;
                     badge.style.display = count > 0 ? 'inline-block' : 'none';
@@ -510,7 +721,7 @@
 
     function getFilteredOrders() {
         return activeOrders.filter(order => {
-            // STRICT STATION FILTER:
+            // STRICT STATION FILTER
             if (activeStationFilter !== 'all') {
                 const stationItems = (order.items || []).filter(it => it.category === activeStationFilter);
                 
@@ -547,28 +758,73 @@
         const filtered = getFilteredOrders();
 
         if (filtered.length === 0) {
-            grid.innerHTML = '';
+            if (grid) {
+                grid.innerHTML = '';
+                grid.classList.add('hidden');
+                grid.style.display = 'none';
+            }
+
             if (emptyState) {
                 emptyState.classList.remove('hidden');
-                if (activeStationFilter !== 'all') {
-                    if (emptyTitle) emptyTitle.textContent = `قسم (${activeStationFilter}) هادئ الآن — لا توجد طلبات قيد التحضير`;
-                    if (emptyDesc) emptyDesc.textContent = `ستظهر تذاكر أصناف (${activeStationFilter}) هنا فورياً بمجرد طلبها من الكاشير أو الطاولات.`;
+                emptyState.classList.add('flex');
+                emptyState.style.display = 'flex';
+
+                if (searchQuery) {
+                    if (emptyTitle) {
+                        emptyTitle.textContent = CURRENT_LANG === 'en'
+                            ? `No orders matching "${searchQuery}"`
+                            : `لا توجد طلبات مطابقة لـ "${searchQuery}"`;
+                    }
+                    if (emptyDesc) {
+                        emptyDesc.textContent = CURRENT_LANG === 'en'
+                            ? 'Please check the order number or customer name and try again.'
+                            : 'يرجى التحقق من رقم الطلب أو اسم العميل والمحاولة مجدداً.';
+                    }
+                } else if (activeStationFilter !== 'all') {
+                    const stationNameDisplay = getStationDisplayName(activeStationFilter);
+                    if (emptyTitle) {
+                        emptyTitle.textContent = CURRENT_LANG === 'en'
+                            ? `${stationNameDisplay} Station is Idle — No Pending Orders`
+                            : `قسم (${activeStationFilter}) هادئ الآن — لا توجد طلبات قيد التحضير`;
+                    }
+                    if (emptyDesc) {
+                        emptyDesc.textContent = CURRENT_LANG === 'en'
+                            ? `Tickets for ${stationNameDisplay} items will appear here in real-time once placed by Cashier or Tables.`
+                            : `ستظهر تذاكر أصناف (${activeStationFilter}) هنا فورياً بمجرد طلبها من الكاشير أو الطاولات.`;
+                    }
                 } else {
-                    if (emptyTitle) emptyTitle.textContent = 'المطبخ هادئ الآن — جميع الطلبات منجزة';
-                    if (emptyDesc) emptyDesc.textContent = 'ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر.';
+                    if (emptyTitle) {
+                        emptyTitle.textContent = CURRENT_LANG === 'en'
+                            ? 'Kitchen is Idle — All Orders Fulfilled'
+                            : 'المطبخ هادئ الآن — جميع الطلبات منجزة';
+                    }
+                    if (emptyDesc) {
+                        emptyDesc.textContent = CURRENT_LANG === 'en'
+                            ? 'New order tickets from Cashier, Call Center, and Online delivery will appear here in real-time with instant audio alerts.'
+                            : 'ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر أو تطبيقات التوصيل مصحوبة برنين التنبيه.';
+                    }
                 }
             }
             return;
         }
 
-        if (emptyState) emptyState.classList.add('hidden');
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+            emptyState.style.display = 'none';
+        }
 
-        let html = '';
-        filtered.forEach((order, idx) => {
-            html += generateOrderCardHtml(order, highlightNew && idx === 0);
-        });
+        if (grid) {
+            grid.classList.remove('hidden');
+            grid.style.display = '';
 
-        grid.innerHTML = html;
+            let html = '';
+            filtered.forEach((order, idx) => {
+                html += generateOrderCardHtml(order, highlightNew && idx === 0);
+            });
+
+            grid.innerHTML = html;
+        }
     }
 
     function generateOrderCardHtml(order, isNewGlow = false) {
@@ -578,7 +834,6 @@
         const isStationMode = activeStationFilter !== 'all';
 
         // STRICT STATION ISOLATION:
-        // When a station is selected, filter items strictly for this station only!
         const relevantItems = isStationMode 
             ? (order.items || []).filter(it => it.category === activeStationFilter)
             : (order.items || []);
@@ -608,10 +863,14 @@
         const progressPct = totalItemsInView > 0 ? Math.round((checkedCountInView / totalItemsInView) * 100) : 0;
         const isStationAllDone = totalItemsInView > 0 && checkedCountInView === totalItemsInView;
 
-        // Items list HTML - Compact discrete box per item with checkbox (A2 Choice)
+        // Items list HTML
         let itemsHtml = '';
         relevantItems.forEach(it => {
             const isChecked = !!checkedItemsState[`order_${order.id}_item_${it.id}`];
+            const itemCatDisplay = getStationDisplayName(it.category);
+            const itemPriceDisplay = it.qty > 1 
+                ? (it.qty * it.price) + ' ' + CURRENCY_SYMBOL 
+                : it.price + ' ' + CURRENCY_SYMBOL;
 
             itemsHtml += `
                 <div 
@@ -627,11 +886,11 @@
                         </span>
                         ${isStationMode ? `
                             <span class="text-[11px] font-bold text-slate-700 shrink-0">
-                                ${it.qty > 1 ? (it.qty * it.price) + ' ج.م' : it.price + ' ج.م'}
+                                ${itemPriceDisplay}
                             </span>
                         ` : `
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200/70 text-slate-800 shrink-0">
-                                ${it.category}
+                                ${itemCatDisplay}
                             </span>
                         `}
                     </div>
@@ -641,20 +900,21 @@
 
         // Action button
         let actionBtnHtml = '';
+        const stationDisplayName = getStationDisplayName(activeStationFilter);
+
         if (isStationMode) {
-            // Station Mode Action
             if (isStationAllDone) {
                 actionBtnHtml = `
                     <div class="flex items-center gap-1.5">
                         <div class="flex-1 py-1.5 px-2 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-semibold text-center flex items-center justify-center gap-1">
                             <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>مكتمل بالقسم ✓</span>
+                            <span>${CURRENT_LANG === 'en' ? 'Station Done ✓' : 'مكتمل بالقسم ✓'}</span>
                         </div>
                         <button 
                             type="button" 
                             onclick="undoStationCompletion(${order.id}, '${activeStationFilter}')" 
                             class="px-2 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-800 text-xs font-bold transition cursor-pointer"
-                            title="تراجع"
+                            title="${CURRENT_LANG === 'en' ? 'Undo' : 'تراجع'}"
                         >
                             ↩
                         </button>
@@ -669,12 +929,11 @@
                         class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        <span>جاهز (${activeStationFilter}) ✓</span>
+                        <span>${CURRENT_LANG === 'en' ? `Ready (${stationDisplayName}) ✓` : `جاهز (${activeStationFilter}) ✓`}</span>
                     </button>
                 `;
             }
         } else {
-            // Expo Mode Action
             if (order.status === 'new') {
                 actionBtnHtml = `
                     <button 
@@ -684,7 +943,7 @@
                         class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-                        <span>بدء التحضير</span>
+                        <span>${CURRENT_LANG === 'en' ? 'Start Cooking' : 'بدء التحضير'}</span>
                     </button>
                 `;
             } else if (order.status === 'preparing') {
@@ -696,11 +955,20 @@
                         class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>جاهز للتسليم 🚀</span>
+                        <span>${CURRENT_LANG === 'en' ? 'Ready for Pickup 🚀' : 'جاهز للتسليم 🚀'}</span>
                     </button>
                 `;
             }
         }
+
+        const customerDisplay = (order.customer_name === 'عميل نقدي' && CURRENT_LANG === 'en') 
+            ? 'Walk-in Customer' 
+            : (order.customer_name || '');
+        const orderTypeBadge = getOrderTypeDisplay(order.order_type, order.order_type_display);
+        const timerSuffix = CURRENT_LANG === 'en' ? 'm' : 'د';
+        const itemsLabel = isStationMode
+            ? (CURRENT_LANG === 'en' ? `Items (${totalItemsInView}):` : `أصناف (${totalItemsInView}):`)
+            : (CURRENT_LANG === 'en' ? `Items (${totalItemsInView}):` : `الأصناف (${totalItemsInView}):`);
 
         return `
             <div id="order-card-${order.id}" class="rounded-xl bg-white border border-slate-200/70 overflow-hidden shadow-xs flex flex-col justify-between ${topBorderClass} ${glowClass}">
@@ -712,25 +980,27 @@
                             <span class="text-xs font-bold text-slate-900 tracking-tight">#${order.order_number}</span>
                             ${isStationMode ? `
                                 <span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">
-                                    ${activeStationFilter}
+                                    ${stationDisplayName}
                                 </span>
                                 ${isStationAllDone ? '<span class="px-1 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">✓</span>' : ''}
                             ` : `
-                                ${isPreparing ? '<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">طهي</span>' : '<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">جديد</span>'}
+                                ${isPreparing 
+                                    ? `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">${CURRENT_LANG === 'en' ? 'Cooking' : 'طهي'}</span>` 
+                                    : `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">${CURRENT_LANG === 'en' ? 'New' : 'جديد'}</span>`}
                             `}
                         </div>
                         <span class="block text-[11px] font-bold text-slate-700 truncate mt-0.5">
-                            ${order.created_at_time} • ${order.customer_name}
+                            ${order.created_at_time} • ${customerDisplay}
                         </span>
                     </div>
                     <div class="text-left shrink-0 space-y-0.5">
                         <span class="rounded px-1.5 py-0.5 text-[10px] font-bold inline-block
                             ${isTakeaway ? 'bg-slate-200 border border-slate-200/70 text-slate-900' : (isDelivery ? 'bg-sky-100 text-sky-900 border border-sky-300' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60')}">
-                            ${order.order_type_display}
+                            ${orderTypeBadge}
                         </span>
                         <div class="flex items-center justify-end gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-mono border ${timerColorClass}">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>${order.elapsed_minutes}د</span>
+                            <span>${order.elapsed_minutes}${timerSuffix}</span>
                         </div>
                     </div>
                 </div>
@@ -743,7 +1013,7 @@
                 <!-- Items Checklist -->
                 <div class="p-2.5 flex-1 space-y-1.5">
                     <div class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-0.5">
-                        <span>${isStationMode ? `أصناف (${totalItemsInView}):` : `الأصناف (${totalItemsInView}):`}</span>
+                        <span>${itemsLabel}</span>
                         <span class="text-[11px] text-violet-600 font-semibold">${checkedCountInView}/${totalItemsInView}</span>
                     </div>
 
@@ -780,7 +1050,6 @@
             const stationItems = (order.items || []).filter(it => it.category === activeStationFilter);
             const allStationDone = stationItems.length > 0 && stationItems.every(it => !!checkedItemsState[`order_${orderId}_item_${it.id}`]);
 
-            // If checking this item completed the entire station
             if (allStationDone && !showCompletedInStation) {
                 renderOrdersGrid();
                 setTimeout(() => {
@@ -820,18 +1089,22 @@
         // 4. Check if all items across ALL stations in the entire order are done
         const allOrderItemsCompleted = (order.items || []).every(it => !!checkedItemsState[`order_${orderId}_item_${it.id}`]);
 
+        const stationNameDisplay = getStationDisplayName(stationName);
+
         if (allOrderItemsCompleted) {
-            // Entire order is ready across all kitchen stations! Update status to ready
             fetch(`/api/orders/${orderId}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': safeGetCookie('csrftoken')
                 },
                 body: JSON.stringify({ status: 'ready' })
             }).catch(err => console.error("Error updating order to ready:", err));
 
-            showKdsToast(`تم اكتمال كافة أقسام الطلب #${order.order_number}! جاهز للتسليم 🚀`, 'success');
+            const toastMsg = CURRENT_LANG === 'en'
+                ? `All stations completed for order #${order.order_number}! Ready for pickup 🚀`
+                : `تم اكتمال كافة أقسام الطلب #${order.order_number}! جاهز للتسليم 🚀`;
+            showKdsToast(toastMsg, 'success');
 
             setTimeout(() => {
                 activeOrders = activeOrders.filter(o => o.id !== orderId);
@@ -839,20 +1112,22 @@
                 renderOrdersGrid();
             }, 360);
         } else {
-            // If order was new, update status to preparing so expo knows kitchen is working
             if (order.status === 'new') {
                 order.status = 'preparing';
                 fetch(`/api/orders/${orderId}/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
+                        'X-CSRFToken': safeGetCookie('csrftoken')
                     },
                     body: JSON.stringify({ status: 'preparing' })
                 }).catch(err => console.error("Error updating status to preparing:", err));
             }
 
-            showKdsToast(`تم إنجاز أصناف قسم (${stationName}) للطلب #${order.order_number} بنجاح ✓`, 'success');
+            const toastMsg = CURRENT_LANG === 'en'
+                ? `Station (${stationNameDisplay}) items completed for order #${order.order_number} ✓`
+                : `تم إنجاز أصناف قسم (${stationName}) للطلب #${order.order_number} بنجاح ✓`;
+            showKdsToast(toastMsg, 'success');
 
             setTimeout(() => {
                 recalculateStationCounts();
@@ -871,15 +1146,20 @@
         localStorage.setItem('kura_kds_checked', JSON.stringify(checkedItemsState));
         recalculateStationCounts();
         renderOrdersGrid();
-        showKdsToast(`تم إعادة أصناف (${stationName}) للطلب #${order.order_number}`);
+        const stationNameDisplay = getStationDisplayName(stationName);
+        const toastMsg = CURRENT_LANG === 'en'
+            ? `Restored (${stationNameDisplay}) items for order #${order.order_number}`
+            : `تم إعادة أصناف (${stationName}) للطلب #${order.order_number}`;
+        showKdsToast(toastMsg);
     }
 
     async function updateOrderStatusInPlace(orderId, nextStatus) {
         initAudio();
         const btn = document.getElementById(`btn-action-${orderId}`);
+        const processingText = CURRENT_LANG === 'en' ? 'Processing...' : 'جاري المعالجة...';
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>جاري المعالجة...</span>`;
+            btn.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>${processingText}</span>`;
         }
 
         try {
@@ -887,36 +1167,41 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': safeGetCookie('csrftoken')
                 },
                 body: JSON.stringify({ status: nextStatus })
             });
             const data = await res.json();
             if (data.ok) {
-                // If ready, card will fade out smoothly
                 if (nextStatus === 'ready') {
-                    handleOrderRemoved(orderId, 'تم تجهيز الوجبة بنجاح! جاهزة للتسليم 🚀');
+                    const readyMsg = CURRENT_LANG === 'en' 
+                        ? 'Meal prepared successfully! Ready for pickup 🚀' 
+                        : 'تم تجهيز الوجبة بنجاح! جاهزة للتسليم 🚀';
+                    handleOrderRemoved(orderId, readyMsg);
                 } else {
                     const idx = activeOrders.findIndex(o => o.id === orderId);
                     if (idx >= 0) {
                         activeOrders[idx].status = nextStatus;
                         renderOrdersGrid();
                     }
-                    showKdsToast('بدء تجهيز الطلب في المطبخ 🔥');
+                    const cookingMsg = CURRENT_LANG === 'en'
+                        ? 'Cooking started in kitchen 🔥'
+                        : 'بدء تجهيز الطلب في المطبخ 🔥';
+                    showKdsToast(cookingMsg);
                 }
             } else {
-                showKdsToast('تعذر تحديث حالة الطلب', 'error');
+                showKdsToast(CURRENT_LANG === 'en' ? 'Failed to update order status' : 'تعذر تحديث حالة الطلب', 'error');
                 if (btn) btn.disabled = false;
             }
         } catch (e) {
             console.error("Order status update failed:", e);
-            showKdsToast('خطأ في الاتصال بالخادم', 'error');
+            showKdsToast(CURRENT_LANG === 'en' ? 'Server connection error' : 'خطأ في الاتصال بالخادم', 'error');
             if (btn) btn.disabled = false;
         }
     }
 
     // ----------------------------------------------------------------
-    // 6. Branch Switcher & Fullscreen Helpers
+    // 6. Branch Switcher, Fullscreen & Refresh Helpers
     // ----------------------------------------------------------------
     function changeBranchFilter(branchId) {
         const url = new URL(window.location.href);
@@ -940,6 +1225,25 @@
         }
     }
 
+    function syncFullscreenUI() {
+        const isFull = !!document.fullscreenElement;
+        const icon = document.getElementById('fullscreen-icon');
+        const btn = document.getElementById('btn-fullscreen-toggle');
+        if (btn) {
+            btn.title = isFull 
+                ? (CURRENT_LANG === 'en' ? 'Exit Fullscreen' : 'خروج من ملء الشاشة')
+                : (CURRENT_LANG === 'en' ? 'Fullscreen' : 'ملء الشاشة');
+        }
+        if (icon) {
+            if (isFull) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9L4 4m0 0v5m0-5h5m6 6l5-5m0 0v5m0-5h-5m-6 6l-5 5m0 0v-5m0 5h5m6-6l5 5m0 0v-5m0 5h-5"/>';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>';
+            }
+        }
+    }
+    document.addEventListener('fullscreenchange', syncFullscreenUI);
+
     function manualRefresh() {
         const icon = document.getElementById('refresh-icon');
         if (icon) icon.classList.add('animate-spin');
@@ -951,7 +1255,7 @@
                     activeOrders = data.orders;
                     recalculateStationCounts();
                     renderOrdersGrid();
-                    showKdsToast("تم تحديث شاشة المطبخ بنجاح");
+                    showKdsToast(CURRENT_LANG === 'en' ? 'Kitchen display refreshed successfully' : 'تم تحديث شاشة المطبخ بنجاح');
                 }
             })
             .catch(err => console.error(err))
@@ -995,7 +1299,8 @@
     }, 60000);
 
     // Initial setup on DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
+    function initKdsApp() {
+        startLiveKitchenClock();
         updateSoundUI();
         recalculateStationCounts();
         renderOrdersGrid();
@@ -1009,6 +1314,12 @@
         };
         document.addEventListener('click', unlockAudio);
         document.addEventListener('touchstart', unlockAudio);
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initKdsApp);
+    } else {
+        initKdsApp();
+    }
 </script>
 {% endblock %}

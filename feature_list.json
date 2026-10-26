@@ -103,6 +103,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "apps/billing/admin.py (SubscriptionPlanAdminForm, FeatureCardsCheckboxSelectMultiple), apps/billing/models.py (AVAILABLE_FEATURES), templates/admin/billing/widgets/feature_cards_select.html, scratch/test_admin_subscriptionplan_features.py (100% PASS)."
+    },
+    {
+      "id": "feat-kds-standby-redesign",
+      "name": "KDS Empty Standby State Redesign & Live Clock",
+      "description": "Full Standby Hero vertically centered with zero scroll, eliminating min-h-[350px] phantom space, live digital kitchen clock, pulsing standby beacon, clean non-interactive interface, 100% bilingual (AR/EN) support, and seamless real-time order transitions.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "templates/kitchen.html, apps/kitchen/views.py, core/i18n_catalog.py, scratch/test_kitchen_standby.py (5 suites 100% pass), ./init.sh verified."
     }
   ]
 }

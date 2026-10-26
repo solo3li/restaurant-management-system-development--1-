@@ -72,6 +72,20 @@ def kitchen_view(request):
         for cat in o.get("categories", []):
             station_counts[cat] = station_counts.get(cat, 0) + 1
 
+    from django.utils.text import slugify
+    from core.i18n_catalog import I18N_CATALOG
+
+    category_translations = {cat: I18N_CATALOG.get(cat, cat) for cat in menu_categories}
+    categories_data = [
+        {
+            "id": cat,
+            "slug": slugify(cat, allow_unicode=True) or f"station-{i}",
+            "name_ar": cat,
+            "name_en": I18N_CATALOG.get(cat, cat),
+        }
+        for i, cat in enumerate(menu_categories)
+    ]
+
     branches = list(Branch.objects.filter(tenant=tenant, status="active"))
 
     context = {
@@ -83,6 +97,9 @@ def kitchen_view(request):
         "kitchen_orders_json": json.dumps(orders_data),
         "total_pending": len(orders_data),
         "menu_categories": menu_categories,
+        "categories_data": categories_data,
+        "category_translations": category_translations,
+        "category_translations_json": json.dumps(category_translations),
         "station_counts": station_counts,
         "station_counts_json": json.dumps(station_counts),
     }

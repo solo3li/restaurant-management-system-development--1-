@@ -402,9 +402,9 @@
     "semantic_hash": ""
   },
   "apps/kitchen/views.py": {
-    "mtime": 1792736404.2646182,
-    "seen": 1792755068.7958107,
-    "ast_hash": "6885956c731a02a74b10ce7369505b7e",
+    "mtime": 1793020381.360102,
+    "seen": 1793020965.3799815,
+    "ast_hash": "97bfeb5118e31eb40587a7cb213899dc",
     "semantic_hash": ""
   },
   "apps/menu/__init__.py": {
@@ -570,9 +570,9 @@
     "semantic_hash": ""
   },
   "core/i18n_catalog.py": {
-    "mtime": 1792792191.7144523,
-    "seen": 1792792555.1664586,
-    "ast_hash": "aee2e217954ad45270473ad06e459f9a",
+    "mtime": 1793021494.880336,
+    "seen": 1793021740.3246262,
+    "ast_hash": "4716c374e5ebed39236328f066108caa",
     "semantic_hash": ""
   },
   "core/kitchen_events.py": {
@@ -2442,9 +2442,9 @@
     "semantic_hash": ""
   },
   "templates/kitchen.html": {
-    "mtime": 1792630659.226044,
-    "seen": 1792755068.7966354,
-    "ast_hash": "1bc5231b725f8d63ac2162c357ee2c15",
+    "mtime": 1793021671.4807632,
+    "seen": 1793021740.353429,
+    "ast_hash": "53e2fbbad40e64ba5a04529571dedbce",
     "semantic_hash": ""
   },
   "templates/landing.html": {
@@ -3204,9 +3204,9 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793018355.3785377,
-    "seen": 1793019076.1216938,
-    "ast_hash": "324ac25cf70f1ed3103cc7f503c70ebf",
+    "mtime": 1793020907.942296,
+    "seen": 1793020965.387346,
+    "ast_hash": "ed5f9d9e831933a5802c8fd9b3967c5c",
     "semantic_hash": ""
   },
   "init.sh": {
@@ -3222,9 +3222,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793018367.6809142,
-    "seen": 1793019076.1487796,
-    "ast_hash": "3b8cac92aaf8d1a069c597e8b4733c30",
+    "mtime": 1793020922.5387447,
+    "seen": 1793020965.4384892,
+    "ast_hash": "3a1f1bd6be58fb21ed3884bab0e0c436",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3771,6 +3771,12 @@
     "mtime": 1793018931.627218,
     "seen": 1793019076.149318,
     "ast_hash": "819f865eceb0955f86f3cf918a4f008a",
+    "semantic_hash": ""
+  },
+  "scratch/test_kitchen_standby.py": {
+    "mtime": 1793021687.744263,
+    "seen": 1793021740.328864,
+    "ast_hash": "b68d23a96b1a886ab647d83c22758b4b",
     "semantic_hash": ""
   }
 }
