@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-26 15:30
-**Session ID:** POS Screen Dynamic Categories & Multi-language Filter
+**Last Updated:** 2026-10-27 00:03
+**Session ID:** AI Call Center Telephony & SIP Trunk Integration + WhatsApp Branding
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -14,10 +14,18 @@
 - `feat-subscription-plan-features-grid` (Completed)
 - `feat-kds-standby-redesign` (Completed)
 - `feat-pos-dynamic-categories` (Completed)
+- `feat-callcenter-telephony-sip-trunks` (Completed)
 
 ## Status
 
 ### What's Done
+
+- [x] **AI Call Center Telephony & SIP Trunk Integration + WhatsApp Branding (`templates/ai_callcenter/omnichannel.html`, `apps/callcenter/`, `core/partner_service.py`)**
+  - **WhatsApp Branding & UI Cleanup**: Removed random emojis across header, badges, status indicators, tabs, and action buttons. Replaced with official WhatsApp brand SVG (`#25D366`) and clean Tailwind iconography.
+  - **Central Telephony Partner API Integration**: Implemented backend services in `core/partner_service.py` for PBX trunks, direct SIP trunks, DID assignment, and trunk deletion.
+  - **Backend API Endpoints**: Created endpoints in `apps/callcenter/views.py` (`api_ai_callcenter_telephony_info`, `api_ai_callcenter_create_pbx_trunk`, `api_ai_callcenter_delete_pbx_trunk`, `api_ai_callcenter_create_sip_trunk`, `api_ai_callcenter_delete_telephony_trunk`, `api_ai_callcenter_assign_did`) with role-based access control (RBAC) and registered in `apps/callcenter/urls.py` & `core/urls.py`.
+  - **Modals & Interactive UX**: Added PBX vs Direct SIP Trunk connect modal, Issabel Asterisk config viewer with 1-click copy for PEER and USER details, and DID number assignment modal.
+  - **Comprehensive Verification**: Executed `manage.py check`, `test_system.py`, `test_e2e_rbac.py`, and custom `test_telephony_suite.py` (10/10 PASS). Deployed live with `docker restart motaem_web`.
 
 - [x] **POS Screen Dynamic Categories & Multi-Language Filter (`templates/pos.html` & `apps/orders/views.py`)**
   - **Dynamic `MenuCategory` Integration**: Replaced hardcoded category list with tenant-scoped dynamic query (`MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id")`).

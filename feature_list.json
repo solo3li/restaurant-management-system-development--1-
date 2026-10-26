@@ -119,6 +119,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "apps/orders/views.py, templates/pos.html, verified with ./init.sh (100% pass), manage.py check, test_system.py, test_e2e_rbac.py, and live container motaem_web test for tenant 77."
+    },
+    {
+      "id": "feat-callcenter-telephony-sip-trunks",
+      "name": "AI Call Center Telephony & SIP Trunk Integration + WhatsApp Branding",
+      "description": "Full integration with Central Telephony Partner API (PBX Trunks, Direct SIP Trunks, DID assignment, Issabel Asterisk config viewer with 1-click copy, and trunk deletion). Complete visual overhaul of Omnichannel page with official WhatsApp SVG branding (#25D366) and modern iconography replacing emojis.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "core/partner_service.py, apps/callcenter/views.py, apps/callcenter/urls.py, core/urls.py, core/views.py, templates/ai_callcenter/omnichannel.html. Verified via test_telephony_suite.py (10/10 PASS), manage.py check (0 issues), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), and live container motaem_web restart."
     }
   ]
 }

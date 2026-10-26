@@ -794,6 +794,75 @@ def get_pbx_trunks(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/telephony/pbx-trunks/")
 
 
+def get_telephony_trunks(client_id: int) -> Dict[str, Any]:
+    """Fetch direct telephony trunks (inbound & outbound SIP trunks) for sub-client."""
+    return _request(f"/clients/{client_id}/telephony/")
+
+
+def create_pbx_trunk(client_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Create a new PBX trunk (Issabel / FreePBX) and generate LiveKit SIP configurations.
+    Target: POST /api/partner/v1/clients/<client_id>/telephony/pbx-trunks/
+    """
+    return _request(f"/clients/{client_id}/telephony/pbx-trunks/", method="POST", data=data)
+
+
+def delete_pbx_trunk(client_id: int, trunk_id: int) -> Dict[str, Any]:
+    """
+    Delete a PBX trunk configuration by ID.
+    Target: DELETE /api/partner/v1/clients/<client_id>/telephony/pbx-trunks/<trunk_id>/
+    """
+    return _request(f"/clients/{client_id}/telephony/pbx-trunks/{trunk_id}/", method="DELETE")
+
+
+def register_sip_trunk(client_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Register an external direct SIP trunk (Telecom provider or Asterisk / PBX).
+    Target: POST /api/partner/v1/clients/<client_id>/telephony/
+    """
+    payload = dict(data)
+    payload.setdefault("trunk_type", "sip")
+    # Compatibility with both OpenAPI host/port/secret and backend sip_host/sip_port/auth_password
+    if "host" in payload and "sip_host" not in payload:
+        payload["sip_host"] = payload["host"]
+    if "sip_host" in payload and "host" not in payload:
+        payload["host"] = payload["sip_host"]
+    if "port" in payload and "sip_port" not in payload:
+        payload["sip_port"] = payload["port"]
+    if "username" in payload and "auth_username" not in payload:
+        payload["auth_username"] = payload["username"]
+    if "secret" in payload and "auth_password" not in payload:
+        payload["auth_password"] = payload["secret"]
+    if "auth_password" in payload and "secret" not in payload:
+        payload["secret"] = payload["auth_password"]
+    payload.setdefault("is_active", True)
+    return _request(f"/clients/{client_id}/telephony/", method="POST", data=payload)
+
+
+def delete_telephony_trunk(client_id: int, trunk_type: str, trunk_id: int) -> Dict[str, Any]:
+    """
+    Delete a telephony trunk (sip or pbx).
+    Target: DELETE /api/partner/v1/clients/<client_id>/telephony/<trunk_type>/<trunk_id>/
+    """
+    trunk_type = str(trunk_type).lower()
+    return _request(f"/clients/{client_id}/telephony/{trunk_type}/{trunk_id}/", method="DELETE")
+
+
+def assign_did_number(client_id: int, phone_number: str, pbx_trunk_id: Optional[int] = None, description: str = "") -> Dict[str, Any]:
+    """
+    Assign a direct inward dialing (DID) phone number to client telephony.
+    Target: POST /api/partner/v1/clients/<client_id>/telephony/numbers/
+    """
+    payload: Dict[str, Any] = {
+        "phone_number": str(phone_number).strip(),
+    }
+    if pbx_trunk_id is not None:
+        payload["pbx_trunk_id"] = int(pbx_trunk_id)
+    if description:
+        payload["description"] = description
+    return _request(f"/clients/{client_id}/telephony/numbers/", method="POST", data=payload)
+
+
 # =========================================================================
 # Client WebRTC Direct Voice Sessions (LiveKit AI Calls)
 # =========================================================================

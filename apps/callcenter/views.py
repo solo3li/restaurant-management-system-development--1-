@@ -9,6 +9,7 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbid
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.db.models import Sum, Count, F, Q
 from django.core.cache import cache
@@ -621,11 +622,18 @@ def ai_callcenter_omnichannel_view(request):
 
     has_did = bool(primary_did and primary_did != "لا يوجد خط هاتف مخصص بعد")
 
+    pbx_resp = ps.get_pbx_trunks(client_id)
+    pbx_trunks = pbx_resp.get("trunks", []) if isinstance(pbx_resp, dict) else []
+    sip_resp = ps.get_telephony_trunks(client_id)
+    sip_trunks = (sip_resp.get("outbound_trunks", []) + sip_resp.get("inbound_trunks", [])) if isinstance(sip_resp, dict) else []
+
     context = {
         "tenant": tenant,
         "did_number": primary_did,
         "has_did": has_did,
         "did_numbers": raw_nums,
+        "pbx_trunks": pbx_trunks,
+        "sip_trunks": sip_trunks,
     }
     return render(request, "ai_callcenter/omnichannel.html", context)
 
@@ -1795,7 +1803,7 @@ def api_ai_callcenter_whatsapp_sync(request):
 
 @login_required
 def api_ai_callcenter_telephony_info(request):
-    """Fetch assigned direct inward dialing numbers and PBX trunks."""
+    """Fetch assigned direct inward dialing numbers, PBX trunks, and direct SIP lines."""
     err = _check_callcenter_admin(request)
     if err:
         return err
@@ -1806,9 +1814,233 @@ def api_ai_callcenter_telephony_info(request):
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
     nums_resp = ps.get_telephony_numbers(client_id)
-    trunks = ps.get_pbx_trunks(client_id)
+    pbx_resp = ps.get_pbx_trunks(client_id)
+    sip_resp = ps.get_telephony_trunks(client_id)
+
     raw_nums = nums_resp.get("numbers", []) if isinstance(nums_resp, dict) else (nums_resp if isinstance(nums_resp, list) else [])
-    return JsonResponse({"status": "success", "numbers": raw_nums, "raw_telephony": nums_resp, "trunks": trunks})
+    pbx_trunks = pbx_resp.get("trunks", []) if isinstance(pbx_resp, dict) else []
+    outbound_sip = sip_resp.get("outbound_trunks", []) if isinstance(sip_resp, dict) else []
+    inbound_sip = sip_resp.get("inbound_trunks", []) if isinstance(sip_resp, dict) else []
+    sip_trunks = outbound_sip + inbound_sip
+
+    return JsonResponse({
+        "status": "success",
+        "client_id": client_id,
+        "numbers": raw_nums,
+        "pbx_trunks": pbx_trunks,
+        "sip_trunks": sip_trunks,
+        "trunks": pbx_resp,
+        "raw_telephony": nums_resp,
+        "raw_sip_trunks": sip_resp,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_ai_callcenter_create_pbx_trunk(request):
+    """
+    Create a PBX Trunk (Issabel / FreePBX) and generate connection configurations.
+    Optionally auto-assign a DID number.
+    """
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        return JsonResponse({"status": "error", "message": "صيغة بيانات غير صحيحة (JSON غير صالح)"}, status=400)
+
+    name = str(data.get("name") or "").strip()
+    if not name:
+        return JsonResponse({"status": "error", "message": "اسم السنترال مطلوب"}, status=400)
+
+    auth_mode = str(data.get("auth_mode") or "ip").strip().lower()
+    if auth_mode not in ("ip", "credentials"):
+        auth_mode = "ip"
+
+    pbx_ip = str(data.get("pbx_ip") or "").strip()
+    auth_username = str(data.get("auth_username") or "").strip()
+    auth_password = str(data.get("auth_password") or "").strip()
+
+    if auth_mode == "ip" and not pbx_ip:
+        return JsonResponse({"status": "error", "message": "عنوان IP للسنترال مطلوب في حال اختيار مصادقة الـ IP"}, status=400)
+    if auth_mode == "credentials" and not auth_username:
+        return JsonResponse({"status": "error", "message": "اسم المستخدم مطلوب في حال اختيار مصادقة بيانات SIP"}, status=400)
+
+    inbound_numbers = str(data.get("inbound_numbers") or "").strip()
+    destination_type = str(data.get("destination_type") or "ai_assistant").strip()
+    did_number = str(data.get("did_number") or "").strip()
+
+    payload = {
+        "name": name,
+        "auth_mode": auth_mode,
+        "destination_type": destination_type,
+        "enable_outbound": bool(data.get("enable_outbound", True)),
+        "outbound_port": int(data.get("outbound_port") or 5060),
+        "outbound_transport": str(data.get("outbound_transport") or "UDP").upper(),
+    }
+    if pbx_ip:
+        payload["pbx_ip"] = pbx_ip
+    if auth_username:
+        payload["auth_username"] = auth_username
+    if auth_password:
+        payload["auth_password"] = auth_password
+    if inbound_numbers:
+        payload["inbound_numbers"] = inbound_numbers
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    resp = ps.create_pbx_trunk(client_id, payload)
+
+    if resp.get("status") == "success":
+        trunk_obj = resp.get("trunk") or {}
+        trunk_id = trunk_obj.get("id")
+
+        # Auto-assign DID if provided
+        if did_number and trunk_id:
+            try:
+                ps.assign_did_number(client_id, did_number, pbx_trunk_id=trunk_id, description=f"DID for {name}")
+            except Exception as e:
+                logger.warning(f"Could not auto-assign DID {did_number} to trunk {trunk_id}: {e}")
+
+        return JsonResponse({
+            "status": "success",
+            "message": resp.get("message") or "تم ربط سنترال PBX وتوليد الإعدادات بنجاح",
+            "trunk": trunk_obj,
+            "issabel_config": trunk_obj.get("issabel_config") or resp.get("issabel_config"),
+        })
+    return JsonResponse(resp, status=400 if resp.get("code") in (400, 422) else 500)
+
+
+@login_required
+@require_http_methods(["POST", "DELETE"])
+def api_ai_callcenter_delete_pbx_trunk(request, trunk_id: int):
+    """Delete a PBX trunk configuration."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    resp = ps.delete_pbx_trunk(client_id, trunk_id)
+    status_code = 200 if resp.get("status") == "success" else 400
+    return JsonResponse(resp, status=status_code)
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_ai_callcenter_create_sip_trunk(request):
+    """Register a direct external SIP trunk."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        return JsonResponse({"status": "error", "message": "صيغة بيانات غير صحيحة (JSON غير صالح)"}, status=400)
+
+    name = str(data.get("name") or "").strip()
+    host = str(data.get("host") or data.get("sip_host") or "").strip()
+    if not name or not host:
+        return JsonResponse({"status": "error", "message": "اسم الخط وعنوان السيرفر (Host) مطلوبان"}, status=400)
+
+    port = int(data.get("port") or data.get("sip_port") or 5060)
+    username = str(data.get("username") or data.get("auth_username") or "").strip()
+    secret = str(data.get("secret") or data.get("auth_password") or "").strip()
+    did_number = str(data.get("did_number") or "").strip()
+
+    payload = {
+        "trunk_type": "sip",
+        "name": name,
+        "host": host,
+        "sip_host": host,
+        "port": port,
+        "sip_port": port,
+        "username": username,
+        "auth_username": username,
+        "secret": secret,
+        "auth_password": secret,
+        "is_active": True,
+    }
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    resp = ps.register_sip_trunk(client_id, payload)
+
+    if resp.get("status") == "success":
+        trunk_obj = resp.get("trunk") or {}
+        trunk_id = trunk_obj.get("id") or resp.get("trunk_id")
+        if did_number and trunk_id:
+            try:
+                ps.assign_did_number(client_id, did_number, pbx_trunk_id=trunk_id, description=f"DID for {name}")
+            except Exception as e:
+                logger.warning(f"Could not auto-assign DID {did_number} to SIP trunk {trunk_id}: {e}")
+
+        return JsonResponse({
+            "status": "success",
+            "message": resp.get("message") or "تم ربط خط الـ SIP المباشر بنجاح",
+            "trunk": trunk_obj,
+        })
+    return JsonResponse(resp, status=400 if resp.get("code") in (400, 422) else 500)
+
+
+@login_required
+@require_http_methods(["POST", "DELETE"])
+def api_ai_callcenter_delete_telephony_trunk(request, trunk_type: str, trunk_id: int):
+    """Delete an inbound/outbound SIP or PBX trunk."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    resp = ps.delete_telephony_trunk(client_id, trunk_type, trunk_id)
+    status_code = 200 if resp.get("status") == "success" else 400
+    return JsonResponse(resp, status=status_code)
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_ai_callcenter_assign_did(request):
+    """Assign a DID phone number to tenant telephony."""
+    err = _check_callcenter_admin(request)
+    if err:
+        return err
+    tenant = get_active_tenant(request)
+    if not tenant:
+        return JsonResponse({"status": "error", "message": "منشأة غير موجودة"}, status=400)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        return JsonResponse({"status": "error", "message": "صيغة بيانات غير صحيحة (JSON غير صالح)"}, status=400)
+
+    phone_number = str(data.get("phone_number") or "").strip()
+    if not phone_number:
+        return JsonResponse({"status": "error", "message": "رقم الهاتف الموحد (DID) مطلوب"}, status=400)
+
+    pbx_trunk_id = data.get("pbx_trunk_id")
+    description = str(data.get("description") or f"رقم مخصص لمنشأة {tenant.name}").strip()
+
+    from core import partner_service as ps
+    client_id = ps.get_client_id_for_tenant(tenant)
+    resp = ps.assign_did_number(client_id, phone_number, pbx_trunk_id=pbx_trunk_id, description=description)
+    status_code = 200 if resp.get("status") == "success" else 400
+    return JsonResponse(resp, status=status_code)
 
 
 @login_required
