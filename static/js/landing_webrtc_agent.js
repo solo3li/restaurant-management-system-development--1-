@@ -59,7 +59,7 @@
                 const cdnScript = document.createElement('script');
                 cdnScript.src = 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js';
                 cdnScript.onload = () => resolve(window.LivekitClient || window.livekit);
-                cdnScript.onerror = () => reject(new Error('تعذر تحميل مكتبة LiveKit للاتصال الصوتي.'));
+                cdnScript.onerror = () => reject(new Error('تعذر تحميل مشغل الاتصال الصوتي المباشر.'));
                 document.head.appendChild(cdnScript);
             };
             document.head.appendChild(script);

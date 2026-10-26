@@ -208,7 +208,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                 </span>
-                <span>{% if CURRENT_LANG == 'en' %}Live Voice AI Demo (WebRTC){% else %}تحدث مع المساعد الصوتي الآن (WebRTC){% endif %}</span>
+                <span>{% if CURRENT_LANG == 'en' %}Talk to Voice AI Assistant Now{% else %}تحدث مع المساعد الصوتي الآن مباشرة{% endif %}</span>
                 <span class="group-hover:scale-110 transition-transform">🎙️</span>
             </button>
         </div>
@@ -253,7 +253,7 @@
                     <div>
                         <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 mb-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>{% if CURRENT_LANG == 'en' %}Live Zero-Latency WebRTC Stream{% else %}بث صوتي حي ومباشر عبر WebRTC بدون تأخير{% endif %}</span>
+                            <span>{% if CURRENT_LANG == 'en' %}Instant Live Voice Call • Zero Delay{% else %}اتصال صوتي حي ومباشر فائق السرعة{% endif %}</span>
                         </div>
                         <h3 class="text-base sm:text-lg font-bold text-white">
                             {% if CURRENT_LANG == 'en' %}Test the AI Voice Agent Live in Your Browser{% else %}جرّب المساعد الصوتي الذكي الآن وتحدث معه مباشرة من المتصفح{% endif %}
@@ -332,7 +332,7 @@
                             <span>{% if CURRENT_LANG == 'en' %}Try Live Call Now{% else %}جرّب المكالمة الصوتية الآن{% endif %}</span>
                             <span class="rtl:rotate-180">→</span>
                         </button>
-                        <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">WebRTC Live</span>
+                        <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">{% if CURRENT_LANG == 'en' %}Live Voice Demo{% else %}مكالمة صوتية مباشرة{% endif %}</span>
                     </div>
                 </div>
 
@@ -775,7 +775,7 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- 10. GLASSMORPHIC WEBRTC VOICE CALL MODAL (LiveKit AI)    -->
+    <!-- 10. GLASSMORPHIC VOICE CALL MODAL                        -->
     <!-- ======================================================== -->
     <div id="webrtc-call-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md transition-all" role="dialog" aria-modal="true">
         <div class="relative w-full max-w-md bg-gradient-to-b from-slate-900/95 via-slate-900 to-slate-950 text-white rounded-3xl border border-slate-700/60 shadow-2xl p-6 sm:p-8 overflow-hidden text-center">
@@ -802,7 +802,7 @@
                 <h3 id="call-agent-name" class="text-xl sm:text-2xl font-bold tracking-tight text-white mb-1">
                     المساعد الصوتي الذكي
                 </h3>
-                <p class="text-xs text-slate-400 mb-6">مكالمة ذكاء اصطناعي مشفرة ومباشرة (LiveKit WebRTC)</p>
+                <p class="text-xs text-slate-400 mb-6">مكالمة ذكاء اصطناعي مشفرة وفورية من المتصفح مباشرة</p>
 
                 <!-- Visualizer Sphere & Soundwaves -->
                 <div class="relative w-36 h-36 flex items-center justify-center my-2">
@@ -880,7 +880,7 @@
                     <div class="h-6 w-px bg-slate-700"></div>
                     <div>
                         <span class="text-[10px] text-slate-400 block">جودة الاتصال</span>
-                        <span class="font-bold text-emerald-400 text-sm">ممتازة (WebRTC)</span>
+                        <span class="font-bold text-emerald-400 text-sm">فائقة النقاء (HD Voice)</span>
                     </div>
                 </div>
 
