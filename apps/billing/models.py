@@ -4,14 +4,54 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 AVAILABLE_FEATURES = [
-    {"key": "pos", "label": "شاشة الكاشير ونقاط البيع (POS)", "desc": "تسجيل طلبات الصالة والسفري والفواتير"},
-    {"key": "kds", "label": "شاشة المطبخ وتحضير الوجبات (KDS)", "desc": "إدارة تجهيز وتحضير الوجبات فورياً"},
-    {"key": "menu_management", "label": "إدارة قائمة الطعام والوجبات", "desc": "تعديل الأسعار وإتاحة الأطباق بالفروع"},
-    {"key": "delivery_management", "label": "نظام التوصيل ومناطق الخريطة", "desc": "تحديد الزون والكمبوندات وإسناد السائقين"},
-    {"key": "call_center", "label": "الكول سنتر وخدمة العملاء", "desc": "استقبال طلبات الهاتف والتوجيه الآلي للفروع"},
-    {"key": "inventory", "label": "إدارة المخزون والمواد الخام", "desc": "المستودعات والجرد وتنبيهات النواقص"},
-    {"key": "custom_roles", "label": "المسميات الوظيفية والصلاحيات المخصصة", "desc": "إنشاء مسميات مخصصة ومصفوفة الصلاحيات"},
-    {"key": "financial_analytics", "label": "التقارير والتحليلات المالية", "desc": "مؤشرات الإيرادات والمبيعات وتفاصيل الدفع"},
+    {
+        "key": "pos",
+        "label": "نقاط البيع والكاشير (POS)",
+        "desc": "تسجيل طلبات الصالة والسفري والفواتير والمدفوعات",
+        "icon": "fas fa-cash-register",
+    },
+    {
+        "key": "kds",
+        "label": "شاشة المطبخ (KDS)",
+        "desc": "تجهيز وتحضير الوجبات فورياً في مطبخ الفرع",
+        "icon": "fas fa-utensils",
+    },
+    {
+        "key": "menu_management",
+        "label": "إدارة المنيو وقائمة الطعام",
+        "desc": "إضافة وتعديل الوجبات والأسعار والفئات وتوفر الأطباق",
+        "icon": "fas fa-book-open",
+    },
+    {
+        "key": "delivery_management",
+        "label": "نظام التوصيل ومناطق الخدمة",
+        "desc": "تحديد مناطق التوصيل، إسناد ومتابعة السائقين",
+        "icon": "fas fa-motorcycle",
+    },
+    {
+        "key": "call_center",
+        "label": "الكول سنتر ومساعد الذكاء الاصطناعي (AI Voice)",
+        "desc": "استقبال المكالمات ومساعد الطلبات الذكي",
+        "icon": "fas fa-headset",
+    },
+    {
+        "key": "inventory",
+        "label": "إدارة المخزون والمستودعات",
+        "desc": "جرد المواد الخام، فواتير الموردين، وتسجيل الهدر",
+        "icon": "fas fa-boxes",
+    },
+    {
+        "key": "custom_roles",
+        "label": "الأدوار والصلاحيات المخصصة",
+        "desc": "مسميات وظيفية مخصصة ومصفوفة الصلاحيات",
+        "icon": "fas fa-user-shield",
+    },
+    {
+        "key": "financial_analytics",
+        "label": "التقارير والتحليلات المالية",
+        "desc": "مؤشرات الإيرادات والمبيعات والأرباح",
+        "icon": "fas fa-chart-line",
+    },
 ]
 SAAS_FEATURES_CATALOG = AVAILABLE_FEATURES
 

@@ -1,14 +1,128 @@
+import json
+from django import forms
 from django.contrib import admin
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.urls import path, reverse
 from django.shortcuts import redirect, get_object_or_404
-from .models import SubscriptionPlan, UpgradeRequest, TenantSubscription
+from .models import SubscriptionPlan, UpgradeRequest, TenantSubscription, AVAILABLE_FEATURES
+
+LEGACY_FEATURE_MAP = {
+    "pos_billing": "pos",
+    "kds_kitchen": "kds",
+    "inventory_mgmt": "inventory",
+    "delivery": "delivery_management",
+    "delivery_zones": "delivery_management",
+    "menu": "menu_management",
+    "ai_call_center": "call_center",
+    "ai_phone_agent": "call_center",
+    "callcenter": "call_center",
+    "manage_roles": "custom_roles",
+    "basic_reports": "financial_analytics",
+    "reports": "financial_analytics",
+    "analytics": "financial_analytics",
+}
+
+
+class FeatureCardsCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
+    template_name = "admin/billing/widgets/feature_cards_select.html"
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        if value is None:
+            selected_set = set()
+        elif isinstance(value, (list, tuple, set)):
+            selected_set = {str(item) for item in value if not isinstance(item, (dict, list, set))}
+        elif isinstance(value, dict):
+            selected_set = {str(k) for k, v in value.items() if v}
+        elif isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+                if isinstance(parsed, (list, tuple, set)):
+                    selected_set = {str(item) for item in parsed if not isinstance(item, (dict, list, set))}
+                elif isinstance(parsed, dict):
+                    selected_set = {str(k) for k, v in parsed.items() if v}
+                else:
+                    selected_set = {str(parsed)}
+            except Exception:
+                selected_set = {value}
+        else:
+            selected_set = {str(value)}
+
+        base_id = (attrs or {}).get("id", f"id_{name}")
+        feature_cards = []
+        for idx, feat in enumerate(AVAILABLE_FEATURES):
+            key = feat["key"]
+            is_checked = key in selected_set
+            feature_cards.append({
+                "key": key,
+                "label": feat["label"],
+                "desc": feat.get("desc", ""),
+                "icon": feat.get("icon", "fas fa-cube"),
+                "id": f"{base_id}_{idx}",
+                "checked": is_checked,
+            })
+
+        context["feature_cards"] = feature_cards
+        context["selected_count"] = sum(1 for c in feature_cards if c["checked"])
+        context["total_count"] = len(feature_cards)
+        context["field_name"] = name
+        return context
+
+    def render(self, name, value, attrs=None, renderer=None):
+        context = self.get_context(name, value, attrs)
+        return mark_safe(render_to_string(self.template_name, context))
+
+
+class SubscriptionPlanAdminForm(forms.ModelForm):
+    features = forms.MultipleChoiceField(
+        choices=[(item["key"], item["label"]) for item in AVAILABLE_FEATURES],
+        widget=FeatureCardsCheckboxSelectMultiple,
+        required=False,
+        label="الميزات المفعلة في الباقة",
+        help_text="حدد الميزات والأنظمة المتاحة للمنشآت المشتركة في هذه الباقة عبر النقر على البطاقات.",
+    )
+
+    class Meta:
+        model = SubscriptionPlan
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            raw = self.instance.features
+            if isinstance(raw, str):
+                try:
+                    raw = json.loads(raw)
+                except Exception:
+                    raw = [raw]
+            if isinstance(raw, dict):
+                raw_list = [k for k, v in raw.items() if v]
+            elif isinstance(raw, (list, tuple, set)):
+                raw_list = list(raw)
+            else:
+                raw_list = []
+
+            canonical_keys = {item["key"] for item in AVAILABLE_FEATURES}
+            normalized = []
+            for item in raw_list:
+                canon = LEGACY_FEATURE_MAP.get(str(item), str(item))
+                if canon in canonical_keys and canon not in normalized:
+                    normalized.append(canon)
+            self.initial["features"] = normalized
+
+    def clean_features(self):
+        val = self.cleaned_data.get("features")
+        if not val:
+            return []
+        return list(val)
 
 
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
+    form = SubscriptionPlanAdminForm
     list_display = (
         "name",
         "code",
@@ -16,6 +130,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         "price_yearly",
         "max_branches_display",
         "max_employees_display",
+        "features_count_display",
         "is_active",
         "is_popular",
         "ordering",
@@ -37,9 +152,41 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         }),
         ("الميزات والأنظمة المضمنة", {
             "fields": ("features",),
-            "description": "قائمة المفاتيح للميزات المسموحة (pos, kds, menu_management, delivery_management, call_center, inventory, custom_roles, financial_analytics)"
+            "description": "حدد الميزات والأنظمة المتاحة للمنشآت المشتركة في هذه الباقة بالنقر على البطاقات أدناه."
         }),
     )
+
+    @admin.display(description="الميزات المضمنة")
+    def features_count_display(self, obj):
+        feats = obj.features
+        if isinstance(feats, (list, tuple, set)):
+            count = len(feats)
+        elif isinstance(feats, dict):
+            count = sum(1 for v in feats.values() if v)
+        else:
+            count = 0
+
+        if count == 0:
+            badge_class = "badge-secondary"
+            text = "لا توجد ميزات"
+        elif count == 1:
+            badge_class = "badge-info"
+            text = "ميزة واحدة"
+        elif count == 2:
+            badge_class = "badge-info"
+            text = "ميزتان"
+        elif 3 <= count <= 10:
+            badge_class = "badge-info"
+            text = f"{count} ميزات"
+        else:
+            badge_class = "badge-info"
+            text = f"{count} ميزة"
+
+        return format_html(
+            '<span class="badge {}" style="font-size: 11px; padding: 4px 8px;">{}</span>',
+            badge_class,
+            text,
+        )
 
     @admin.display(description="الحد الأقصى للفروع")
     def max_branches_display(self, obj):

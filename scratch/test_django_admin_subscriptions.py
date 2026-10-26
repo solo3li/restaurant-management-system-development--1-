@@ -9,8 +9,7 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-# Setup Django environment
-sys.path.append(r"c:\Users\solo\Downloads\restaurant-management-system-development (1)")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "restaurant_system.settings")
 django.setup()
 

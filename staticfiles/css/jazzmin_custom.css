@@ -65,3 +65,27 @@ body, .main-sidebar, .card, table, input, button, select {
     font-size: 0.85rem !important;
     font-weight: 500 !important;
 }
+
+/* SubscriptionPlan Features Grid Full Width in Jazzmin */
+.field-features .col-sm-2,
+.field-features .col-sm-3 {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    margin-bottom: 8px !important;
+    color: #1e293b !important;
+}
+
+.dark-mode .field-features .col-sm-2,
+.dark-mode .field-features .col-sm-3 {
+    color: #f1f5f9 !important;
+}
+
+.field-features .col-sm-10,
+.field-features .col-sm-9 {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+}

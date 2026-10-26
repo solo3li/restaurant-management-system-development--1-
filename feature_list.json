@@ -95,6 +95,14 @@
       "dependencies": ["feat-user-subscription-profile"],
       "status": "completed",
       "evidence": "apps/accounts/views.py: register_view redirects to profile, fixed missing slugify and timedelta imports. Verified in test_landing_and_profile.py Suite 5."
+    },
+    {
+      "id": "feat-subscription-plan-features-grid",
+      "name": "SubscriptionPlan Admin Features Grid Checkboxes",
+      "description": "Transform SubscriptionPlan features JSONField in Django Admin / Jazzmin into an elegant responsive grid card interface with checkboxes, normalized initial values, and quick selection toolbar.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "apps/billing/admin.py (SubscriptionPlanAdminForm, FeatureCardsCheckboxSelectMultiple), apps/billing/models.py (AVAILABLE_FEATURES), templates/admin/billing/widgets/feature_cards_select.html, scratch/test_admin_subscriptionplan_features.py (100% PASS)."
     }
   ]
 }

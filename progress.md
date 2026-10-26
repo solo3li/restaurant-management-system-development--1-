@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-26 13:25
-**Session ID:** Landing Page WebRTC Direct Voice Agent Demo & In-Page Stepper Auth
+**Last Updated:** 2026-10-26 13:40
+**Session ID:** SubscriptionPlan Admin Features Grid Checkboxes & Jazzmin UI Integration
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -11,10 +11,29 @@
 - `feat-landing-bilingual` (Completed)
 - `feat-user-subscription-profile` (Completed)
 - `feat-post-registration-routing` (Completed)
+- `feat-subscription-plan-features-grid` (Completed)
 
 ## Status
 
 ### What's Done
+
+- [x] **SubscriptionPlan Admin Features Grid Checkboxes (`/admin/core/subscriptionplan/`)**
+  - Converted raw textarea `JSONField` for `features` in Django Admin / Jazzmin into a responsive Grid Cards layout with interactive checkboxes.
+  - Aligned catalog in `apps/billing/models.py` (`AVAILABLE_FEATURES`) with the 8 approved features, merging Call Center & AI Voice under `call_center` ("الكول سنتر ومساعد الذكاء الاصطناعي (AI Voice)").
+  - Implemented `SubscriptionPlanAdminForm` with `MultipleChoiceField` and custom `FeatureCardsCheckboxSelectMultiple` widget.
+  - Hardened widget against unhashable dictionary and scalar inputs (`TypeError: unhashable type: 'dict'`), parsing dictionary truthy keys and JSON strings safely.
+  - Hardened `SubscriptionPlanAdminForm.__init__` against non-iterable integers/booleans (`TypeError: 'int' object is not iterable`), gracefully defaulting to empty list and filtering dictionary truthy keys.
+  - Implemented automatic legacy key normalization in `__init__` (mapping `pos_billing`, `kds_kitchen`, `inventory_mgmt`, `delivery_zones`, `manage_roles`, `ai_call_center`, `basic_reports` to their canonical keys).
+  - Implemented `clean_features` to persist the selected checkboxes as a clean Python JSON list without schema migration.
+  - Created custom widget template `templates/admin/billing/widgets/feature_cards_select.html` featuring:
+    - Selected features counter badge with Bidi-safe RTL formatting (`الميزات المفعلة: X من 8`).
+    - Quick actions: "تحديد الكل" (Select All) and "إلغاء التحديد" (Deselect All) with native `change` event dispatch for form-change detection.
+    - Grid layout with distinctive feature icons, key badge, bold title, descriptive subtitle, and active status pill.
+    - Full dark-mode support matching Jazzmin's Slate theme.
+    - Click-to-toggle card behavior with live counter synchronization.
+  - Added Arabic pluralization rules in `SubscriptionPlanAdmin.features_count_display` (0 features: 'لا توجد ميزات', 1: 'ميزة واحدة', 2: 'ميزتان', 3-10: 'X ميزات').
+  - Added layout rules in `static/css/jazzmin_custom.css` so feature cards span the full tab width.
+  - Verified 100% via unit and integration test `scratch/test_admin_subscriptionplan_features.py` (6 suites) and `./init.sh`.
 
 - [x] **R0: HTTPS & Canonical Domain Enforcement (`uggu.space`)**
   - Configured Traefik gateway middleware `motaem-canonical-redirect` to permanently redirect (308) all HTTP, direct IP (`169.58.32.179`), and `www.uggu.space` traffic to `https://uggu.space/{path}`.

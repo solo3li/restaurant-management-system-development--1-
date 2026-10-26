@@ -1,0 +1,436 @@
+{% load static %}
+<div class="feature-cards-widget-root" id="container_{{ field_name }}">
+    <style>
+        .feature-cards-widget-root {
+            width: 100%;
+            margin-top: 4px;
+            font-family: inherit;
+        }
+
+        /* Top Action Bar / Counter */
+        .fcw-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+
+        .dark-mode .fcw-toolbar {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .fcw-counter-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fcw-counter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .fcw-counter-hint {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .dark-mode .fcw-counter-hint {
+            color: #94a3b8;
+        }
+
+        .fcw-btn-group {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .fcw-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 11px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .fcw-btn:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+            color: #0f172a;
+        }
+
+        .dark-mode .fcw-btn {
+            background: #334155;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+
+        .dark-mode .fcw-btn:hover {
+            background: #475569;
+            border-color: #64748b;
+        }
+
+        /* Grid Layout */
+        .fcw-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        /* Feature Card */
+        .fcw-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            margin-bottom: 0;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .dark-mode .fcw-card {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f8fafc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .fcw-card:hover {
+            border-color: #93c5fd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .dark-mode .fcw-card:hover {
+            border-color: #38bdf8;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Checked Active State */
+        .fcw-card.is-checked {
+            border-color: #2563eb !important;
+            background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%) !important;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.14) !important;
+        }
+
+        .dark-mode .fcw-card.is-checked {
+            border-color: #38bdf8 !important;
+            background: linear-gradient(180deg, #0f2c44 0%, #1e293b 100%) !important;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.16) !important;
+        }
+
+        /* Card Header */
+        .fcw-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .fcw-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fcw-checkbox-wrap {
+            display: flex;
+            align-items: center;
+        }
+
+        .fcw-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: #2563eb;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .fcw-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            transition: transform 0.2s ease;
+        }
+
+        .fcw-card:hover .fcw-icon-box {
+            transform: scale(1.08);
+        }
+
+        /* Specific Feature Accent Colors */
+        .fcw-icon-pos { background: #dcfce7; color: #15803d; }
+        .fcw-icon-kds { background: #fef3c7; color: #b45309; }
+        .fcw-icon-menu_management { background: #e0f2fe; color: #0369a1; }
+        .fcw-icon-delivery_management { background: #f3e8ff; color: #7e22ce; }
+        .fcw-icon-call_center { background: #ffe4e6; color: #be123c; }
+        .fcw-icon-inventory { background: #e0e7ff; color: #4338ca; }
+        .fcw-icon-custom_roles { background: #f1f5f9; color: #334155; }
+        .fcw-icon-financial_analytics { background: #ccfbf1; color: #0f766e; }
+
+        .dark-mode .fcw-icon-pos { background: #064e3b; color: #86efac; }
+        .dark-mode .fcw-icon-kds { background: #78350f; color: #fde68a; }
+        .dark-mode .fcw-icon-menu_management { background: #0c4a6e; color: #7dd3fc; }
+        .dark-mode .fcw-icon-delivery_management { background: #581c87; color: #d8b4fe; }
+        .dark-mode .fcw-icon-call_center { background: #881337; color: #fda4af; }
+        .dark-mode .fcw-icon-inventory { background: #312e81; color: #a5b4fc; }
+        .dark-mode .fcw-icon-custom_roles { background: #334155; color: #cbd5e1; }
+        .dark-mode .fcw-icon-financial_analytics { background: #134e4a; color: #5eead4; }
+
+        .fcw-key-tag {
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 5px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            direction: ltr;
+        }
+
+        .dark-mode .fcw-key-tag {
+            background: #334155;
+            color: #cbd5e1;
+            border-color: #475569;
+        }
+
+        /* Card Body */
+        .fcw-card-body {
+            flex-grow: 1;
+            margin-bottom: 12px;
+        }
+
+        .fcw-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 5px;
+            line-height: 1.35;
+        }
+
+        .dark-mode .fcw-card-title {
+            color: #f8fafc;
+        }
+
+        .fcw-card-desc {
+            font-size: 12.5px;
+            color: #64748b;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .dark-mode .fcw-card-desc {
+            color: #94a3b8;
+        }
+
+        /* Active Badge Footer */
+        .fcw-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 8px;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        .dark-mode .fcw-card-footer {
+            border-top-color: #334155;
+        }
+
+        .fcw-status-indicator {
+            font-size: 11.5px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .fcw-card.is-checked .fcw-status-indicator {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .dark-mode .fcw-card.is-checked .fcw-status-indicator {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        .fcw-card:not(.is-checked) .fcw-status-indicator {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .dark-mode .fcw-card:not(.is-checked) .fcw-status-indicator {
+            background: #334155;
+            color: #64748b;
+        }
+    </style>
+
+    <!-- Toolbar -->
+    <div class="fcw-toolbar">
+        <div class="fcw-counter-wrap">
+            <span class="fcw-counter-badge">
+                <i class="fas fa-check-circle"></i>
+                <span>الميزات المفعلة:</span>
+                <span class="fcw-counter-num">{{ selected_count }}</span>
+                <span>من {{ total_count }}</span>
+            </span>
+            <span class="fcw-counter-hint">انقر على أي بطاقة لتفعيل الميزة أو تعطيلها في الباقة</span>
+        </div>
+        <div class="fcw-btn-group">
+            <button type="button" class="fcw-btn fcw-btn-select-all" title="تفعيل جميع الميزات في الباقة">
+                <i class="fas fa-check-double"></i>
+                <span>تحديد الكل</span>
+            </button>
+            <button type="button" class="fcw-btn fcw-btn-deselect-all" title="إلغاء تحديد كافة الميزات">
+                <i class="fas fa-times"></i>
+                <span>إلغاء التحديد</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="fcw-grid">
+        {% for item in feature_cards %}
+        <label class="fcw-card {% if item.checked %}is-checked{% endif %}" for="{{ item.id }}">
+            <div class="fcw-card-header">
+                <div class="fcw-header-right">
+                    <div class="fcw-checkbox-wrap">
+                        <input type="checkbox"
+                               name="{{ field_name }}"
+                               value="{{ item.key }}"
+                               id="{{ item.id }}"
+                               class="fcw-checkbox"
+                               {% if item.checked %}checked{% endif %}>
+                    </div>
+                    <div class="fcw-icon-box fcw-icon-{{ item.key }}">
+                        <i class="{{ item.icon }}"></i>
+                    </div>
+                </div>
+                <span class="fcw-key-tag">{{ item.key }}</span>
+            </div>
+
+            <div class="fcw-card-body">
+                <div class="fcw-card-title">{{ item.label }}</div>
+                <div class="fcw-card-desc">{{ item.desc }}</div>
+            </div>
+
+            <div class="fcw-card-footer">
+                <span class="fcw-status-indicator">
+                    {% if item.checked %}
+                        <i class="fas fa-check-circle text-primary"></i> <span>مضمن في الباقة</span>
+                    {% else %}
+                        <i class="far fa-circle"></i> <span>غير مفعل</span>
+                    {% endif %}
+                </span>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+
+    <script>
+        (function() {
+            var root = document.getElementById("container_{{ field_name }}");
+            if (!root) return;
+
+            var checkboxes = root.querySelectorAll(".fcw-checkbox");
+            var counterNum = root.querySelector(".fcw-counter-num");
+            var selectAllBtn = root.querySelector(".fcw-btn-select-all");
+            var deselectAllBtn = root.querySelector(".fcw-btn-deselect-all");
+
+            function updateCard(cb) {
+                var card = cb.closest(".fcw-card");
+                if (!card) return;
+                var indicator = card.querySelector(".fcw-status-indicator");
+                if (cb.checked) {
+                    card.classList.add("is-checked");
+                    if (indicator) {
+                        indicator.innerHTML = '<i class="fas fa-check-circle text-primary"></i> <span>مضمن في الباقة</span>';
+                    }
+                } else {
+                    card.classList.remove("is-checked");
+                    if (indicator) {
+                        indicator.innerHTML = '<i class="far fa-circle"></i> <span>غير مفعل</span>';
+                    }
+                }
+            }
+
+            function syncAll() {
+                var count = 0;
+                checkboxes.forEach(function(cb) {
+                    if (cb.checked) count++;
+                    updateCard(cb);
+                });
+                if (counterNum) counterNum.textContent = count;
+            }
+
+            checkboxes.forEach(function(cb) {
+                cb.addEventListener("change", syncAll);
+            });
+
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    checkboxes.forEach(function(cb) {
+                        if (!cb.checked) {
+                            cb.checked = true;
+                            cb.dispatchEvent(new Event("change", { bubbles: true }));
+                        }
+                    });
+                    syncAll();
+                });
+            }
+
+            if (deselectAllBtn) {
+                deselectAllBtn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    checkboxes.forEach(function(cb) {
+                        if (cb.checked) {
+                            cb.checked = false;
+                            cb.dispatchEvent(new Event("change", { bubbles: true }));
+                        }
+                    });
+                    syncAll();
+                });
+            }
+
+            // Sync on initial load
+            syncAll();
+        })();
+    </script>
+</div>
