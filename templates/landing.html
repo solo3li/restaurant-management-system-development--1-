@@ -187,7 +187,7 @@
         <div id="hero-ambient-glow" class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-violet-600/10 blur-[100px] rounded-full pointer-events-none -z-10"></div>
 
         <!-- Main Headline -->
-        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.25] min-h-[1.3em]">
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.25] min-h-[1.3em] hero-anim-item">
             {% if CURRENT_LANG == 'en' %}
             <span>The Unified Operating System for</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" id="hero-typewriter"></span>
             <span class="sr-only">The Unified Operating System for Modern Restaurant Chains</span>
@@ -505,7 +505,7 @@
             </div>
             {% empty %}
             <!-- Fallback Static Cards if plans not populated in DB -->
-            <div class="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div class="pricing-card bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between">
                 <div>
                     <h3 class="text-xl font-bold text-slate-900">{% if CURRENT_LANG == 'en' %}Starter Plan{% else %}باقة البداية{% endif %}</h3>
                     <p class="text-xs text-slate-500 mt-1">{% if CURRENT_LANG == 'en' %}Ideal for individual restaurants & cafes{% else %}مثالية للمطاعم الفردية والكافيهات{% endif %}</p>
@@ -523,7 +523,7 @@
                 </a>
             </div>
 
-            <div class="bg-white rounded-2xl p-7 border-2 border-violet-600 shadow-sm relative flex flex-col justify-between">
+            <div class="pricing-card bg-white rounded-2xl p-7 border-2 border-violet-600 shadow-sm relative flex flex-col justify-between">
                 <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-semibold uppercase tracking-wider">
                     {% if CURRENT_LANG == 'en' %}Most Popular{% else %}الأكثر طلباً{% endif %}
                 </span>
@@ -544,7 +544,7 @@
                 </a>
             </div>
 
-            <div class="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div class="pricing-card bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between">
                 <div>
                     <h3 class="text-xl font-bold text-slate-900">{% if CURRENT_LANG == 'en' %}Enterprise Plan{% else %}باقة السلاسل (Enterprise){% endif %}</h3>
                     <p class="text-xs text-slate-500 mt-1">{% if CURRENT_LANG == 'en' %}For major hospitality chains & franchise brands{% else %}لسلاسل الضيافة الكبرى وحسابات الامتياز{% endif %}</p>
@@ -636,7 +636,7 @@
     <!-- ======================================================== -->
     <!-- 8. MINIMALIST FOOTER                                     -->
     <!-- ======================================================== -->
-    <footer class="border-t border-slate-200/80 py-8 px-4 sm:px-6 lg:px-8 bg-white text-xs text-slate-500">
+    <footer class="footer-reveal border-t border-slate-200/80 py-8 px-4 sm:px-6 lg:px-8 bg-white text-xs text-slate-500">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
                 <img src="{% static 'img/motaem_symbol_trans.png' %}" alt="Logo" class="h-6 w-auto" />
@@ -945,9 +945,12 @@
 <script src="{% static 'js/landing_webrtc_agent.js' %}?v={% now 'U' %}"></script>
 
 <!-- Animation Libraries (Typed.js, GSAP & ScrollTrigger) with Local Fallback -->
-<script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/typed.umd.js' %}?v={% now 'U' %}';"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/gsap.min.js' %}?v={% now 'U' %}';"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/ScrollTrigger.min.js' %}?v={% now 'U' %}';"></script>
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.js"></script>
+<script>window.Typed || document.write('<script src="{% static 'js/vendor/typed.umd.js' %}?v={% now 'U' %}"><\/script>');</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>window.gsap || document.write('<script src="{% static 'js/vendor/gsap.min.js' %}?v={% now 'U' %}"><\/script>');</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script>window.ScrollTrigger || document.write('<script src="{% static 'js/vendor/ScrollTrigger.min.js' %}?v={% now 'U' %}"><\/script>');</script>
 <script src="{% static 'js/landing_animations.js' %}?v={% now 'U' %}"></script>
 
 <style>

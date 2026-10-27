@@ -6,33 +6,53 @@
 (function () {
     'use strict';
 
-    // Respect reduced motion preference
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        const elLatency = document.getElementById('metric-latency');
-        if (elLatency) elLatency.textContent = '0';
-        const elHrs = document.getElementById('metric-uptime-hrs');
-        if (elHrs) elHrs.textContent = '24';
-        const elPct = document.getElementById('metric-uptime-pct');
-        if (elPct) elPct.textContent = '99.9';
-        document.querySelectorAll('[data-counter-target]').forEach((el) => {
-            const targetVal = parseFloat(el.getAttribute('data-counter-target')) || 0;
-            const isFloat = el.getAttribute('data-counter-float') === 'true';
-            const hasComma = el.getAttribute('data-counter-comma') === 'true';
-            if (isFloat) el.textContent = targetVal.toFixed(1);
-            else if (hasComma) el.textContent = Math.round(targetVal).toLocaleString('en-US');
-            else el.textContent = Math.round(targetVal);
-        });
+    // Safety fallback helper to ensure text & numbers are never blank or zero
+    function ensureFallbackValues() {
         const typewriterEl = document.getElementById('hero-typewriter');
-        if (typewriterEl) {
+        if (typewriterEl && !typewriterEl.textContent.trim()) {
             const isEnglish = (document.documentElement.lang === 'en' || document.documentElement.dir === 'ltr');
             typewriterEl.textContent = isEnglish ? 'Modern Restaurant Chains' : 'سلاسل المطاعم الحديثة';
         }
+
+        const elLatency = document.getElementById('metric-latency');
+        if (elLatency && (!elLatency.textContent.trim() || elLatency.textContent === '0')) {
+            elLatency.textContent = '0';
+        }
+        const elHrs = document.getElementById('metric-uptime-hrs');
+        if (elHrs && (!elHrs.textContent.trim() || elHrs.textContent === '0')) {
+            elHrs.textContent = '24';
+        }
+        const elPct = document.getElementById('metric-uptime-pct');
+        if (elPct && (!elPct.textContent.trim() || elPct.textContent === '0')) {
+            elPct.textContent = '99.9';
+        }
+
+        document.querySelectorAll('[data-counter-target]').forEach((el) => {
+            if (!el.textContent.trim() || el.textContent === '0') {
+                const targetVal = parseFloat(el.getAttribute('data-counter-target')) || 0;
+                const isFloat = el.getAttribute('data-counter-float') === 'true';
+                const hasComma = el.getAttribute('data-counter-comma') === 'true';
+                if (isFloat) el.textContent = targetVal.toFixed(1);
+                else if (hasComma) el.textContent = Math.round(targetVal).toLocaleString('en-US');
+                else el.textContent = Math.round(targetVal);
+            }
+        });
+    }
+
+    // Respect reduced motion preference
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        ensureFallbackValues();
         return;
     }
 
     function initTypewriter() {
         const typewriterEl = document.getElementById('hero-typewriter');
-        if (!typewriterEl || typeof window.Typed === 'undefined') {
+        if (!typewriterEl) {
+            return;
+        }
+
+        if (typeof window.Typed === 'undefined') {
+            ensureFallbackValues();
             return;
         }
 
@@ -51,21 +71,27 @@
                 'أسطول التوصيل وخدمات الضيافة'
               ];
 
-        new window.Typed('#hero-typewriter', {
-            strings: typedStrings,
-            typeSpeed: 55,
-            backSpeed: 30,
-            backDelay: 2200,
-            startDelay: 100,
-            loop: true,
-            showCursor: true,
-            cursorChar: '|',
-            autoInsertCss: false
-        });
+        try {
+            new window.Typed('#hero-typewriter', {
+                strings: typedStrings,
+                typeSpeed: 55,
+                backSpeed: 30,
+                backDelay: 2200,
+                startDelay: 100,
+                loop: true,
+                showCursor: true,
+                cursorChar: '|',
+                autoInsertCss: false
+            });
+        } catch (err) {
+            console.warn('Typed.js initialization failed:', err);
+            ensureFallbackValues();
+        }
     }
 
     function initGsapAnimations() {
         if (typeof window.gsap === 'undefined') {
+            ensureFallbackValues();
             return;
         }
 
@@ -86,7 +112,7 @@
             });
         }
 
-        // 2. Hero Action Row & Badges Staggered Entrance
+        // 2. Hero Elements (H1 headline, subheadline, CTAs, badges, metrics strip, voice demo teaser)
         const heroStaggerItems = document.querySelectorAll('.hero-anim-item');
         if (heroStaggerItems.length > 0) {
             window.gsap.from(heroStaggerItems, {
@@ -99,20 +125,22 @@
             });
         }
 
-        // 3. Hero Metrics Strip (0ms, 24/7, 99.9%) - Runs immediately on page load without ScrollTrigger
+        // 3. Hero Metrics Strip (0ms, 24/7, 99.9%) - Smooth immediate rollup without ScrollTrigger
         const elLatency = document.getElementById('metric-latency');
         const elHrs = document.getElementById('metric-uptime-hrs');
         const elPct = document.getElementById('metric-uptime-pct');
 
         if (elLatency || elHrs || elPct) {
-            const counterState = { latency: 85, hrs: 0, pct: 0 };
+            const counterState = { latency: 60, hrs: 0, pct: 0 };
+            if (elLatency) elLatency.textContent = Math.round(counterState.latency);
+            if (elHrs) elHrs.textContent = Math.round(counterState.hrs);
+            if (elPct) elPct.textContent = counterState.pct.toFixed(1);
 
             window.gsap.to(counterState, {
                 latency: 0,
                 hrs: 24,
                 pct: 99.9,
                 duration: 1.6,
-                delay: 0.1,
                 ease: 'power2.out',
                 onUpdate: function () {
                     if (elLatency) elLatency.textContent = Math.round(counterState.latency);
@@ -122,7 +150,7 @@
             });
         }
 
-        // 4. Section Headers Text Reveals (Titles, Subtitles & Badges)
+        // 4. Section Headers Text Reveals (Badges, Titles & Subtitles)
         const sectionHeaders = document.querySelectorAll('.section-header-reveal');
         sectionHeaders.forEach((header) => {
             const items = header.querySelectorAll('.reveal-item');
@@ -283,6 +311,22 @@
                     ease: 'power2.out'
                 });
             }
+        }
+
+        // 10. Minimalist Footer Scroll Reveal
+        const footerEl = document.querySelector('.footer-reveal');
+        if (footerEl && window.ScrollTrigger) {
+            window.gsap.from(footerEl, {
+                scrollTrigger: {
+                    trigger: footerEl,
+                    start: 'top 95%',
+                    once: true
+                },
+                opacity: 0,
+                y: 20,
+                duration: 0.6,
+                ease: 'power2.out'
+            });
         }
     }
 
