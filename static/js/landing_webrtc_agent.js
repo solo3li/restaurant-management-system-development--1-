@@ -71,13 +71,9 @@
     // ========================================================
 
     window.openDemoVoiceFlow = function () {
-        const isAuth = document.body.dataset.userAuthenticated === 'true';
-        if (isAuth) {
-            openVoiceCallModal();
-            startWebRTCCall();
-        } else {
-            openAuthStepperModal();
-        }
+        // Direct instant access for landing page visitors (no login required)
+        openVoiceCallModal();
+        startWebRTCCall();
     };
 
     window.openAuthStepperModal = function () {
@@ -367,7 +363,11 @@
             }
 
             if (sessionData.restaurant_name && restNameEl) {
-                restNameEl.textContent = sessionData.restaurant_name;
+                if (sessionData.remaining_calls_today !== undefined) {
+                    restNameEl.textContent = `${sessionData.restaurant_name} • متبقي: ${sessionData.remaining_calls_today} مكالمات اليوم`;
+                } else {
+                    restNameEl.textContent = sessionData.restaurant_name;
+                }
             }
             if (sessionData.agent_profile && sessionData.agent_profile.name) {
                 const agentEl = document.getElementById('call-agent-name');

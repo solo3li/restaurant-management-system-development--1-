@@ -128,7 +128,8 @@ urlpatterns = [
     path("api/ai-callcenter/telephony/numbers/assign/", views.api_ai_callcenter_assign_did, name="api_ai_callcenter_assign_did"),
     path("api/ai-callcenter/usage/", views.api_ai_callcenter_usage, name="api_ai_callcenter_usage"),
     path("api/ai-callcenter/sync-caps/", views.api_ai_callcenter_sync_caps, name="api_ai_callcenter_sync_caps"),
-    path("api/webrtc/session/", views.api_ai_callcenter_initiate_webrtc, name="api_webrtc_session"),
+    path("api/webrtc/session/", views.api_landing_webrtc_session, name="api_webrtc_session"),
+    path("api/landing/voice-session/", views.api_landing_webrtc_session, name="api_landing_voice_session"),
     path("api/ai-callcenter/calls/webrtc/", views.api_ai_callcenter_initiate_webrtc, name="api_ai_callcenter_initiate_webrtc"),
     path("api/audit-logs/", views.api_audit_logs, name="api_audit_logs"),
 

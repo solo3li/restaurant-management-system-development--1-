@@ -133,6 +133,96 @@
         </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- INTERACTIVE RESTAURANT VOICE BOT TESTING STUDIO          -->
+    <!-- ======================================================== -->
+    <div id="restaurant-voice-studio" class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white rounded-2xl border border-slate-800 shadow-xl p-4 sm:p-5 overflow-hidden relative">
+        <!-- Ambient decorative glow -->
+        <div class="absolute -top-16 -right-16 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <!-- Studio Info & Details -->
+            <div class="space-y-1.5 max-w-xl">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        {{ "استوديو البث الحي WebRTC"|t }}
+                    </span>
+                    <span class="text-[11px] font-semibold text-slate-400 font-mono">LiveKit + Gemini Live</span>
+                </div>
+                <h3 class="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-2">
+                    <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                    <span>{{ "استوديو اختبار المساعد الصوتي الحي لمطعمك"|t }}</span>
+                </h3>
+                <p class="text-xs text-slate-300/90 leading-relaxed font-normal">
+                    {{ "تحدث مباشرة مع المساعد الصوتي لمطعمك من داخل المتصفح لاختبار فهمه لقائمة أطباقك، الأسعار، الفروع، واللهجة المختارة قبل تشغيله مع الزبائن."|t }}
+                </p>
+
+                <!-- Active Profile Info Chips -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-1.5 text-[10.5px]">
+                    <span class="px-2.5 py-0.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-200 font-bold flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        {{ profile.name|default:tenant.name|default:"المساعد الصوتي" }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300">
+                        🎙️ {{ profile.voice_name|default:"Aoede" }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300">
+                        🗣️ {{ profile.dialect_display|default:profile.dialect|default:"سعودي" }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300">
+                        🍽️ {{ tenant.name }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Studio Action / Controls Box -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                <!-- Idle State: Start Button -->
+                <div id="studio-idle-box" class="flex items-center gap-2">
+                    <button type="button" onclick="startStudioCall()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                        <span>{{ "بدء اختبار الصوت المباشر"|t }}</span>
+                    </button>
+                </div>
+
+                <!-- Active In-Call State (hidden initially) -->
+                <div id="studio-active-box" class="hidden flex-col sm:flex-row items-center gap-3 p-2 rounded-xl bg-slate-800/80 border border-slate-700/80 backdrop-blur-sm">
+                    <!-- Dynamic Waveform / Equalizer -->
+                    <div class="flex items-center gap-1 h-7 px-2">
+                        <div class="studio-wave-bar w-1 h-2.5 bg-brand-400 rounded-full animate-bounce"></div>
+                        <div class="studio-wave-bar w-1 h-4 bg-brand-400 rounded-full animate-pulse"></div>
+                        <div class="studio-wave-bar w-1 h-6 bg-emerald-400 rounded-full animate-bounce"></div>
+                        <div class="studio-wave-bar w-1 h-3.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <div class="studio-wave-bar w-1 h-5 bg-brand-400 rounded-full animate-bounce"></div>
+                    </div>
+
+                    <!-- Call Status & Timer -->
+                    <div class="text-right sm:text-left px-2">
+                        <div id="studio-status-text" class="text-[10px] font-bold text-emerald-300 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>{{ "جاري الاتصال..."|t }}</span>
+                        </div>
+                        <div id="studio-timer-text" class="text-xs font-mono font-bold text-white">00:00</div>
+                    </div>
+
+                    <!-- Controls: Mute & Hangup -->
+                    <div class="flex items-center gap-1.5 pt-1 sm:pt-0">
+                        <button type="button" id="studio-mute-btn" onclick="toggleStudioMute()" class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition cursor-pointer" title="{{ 'كتم/تشغيل الميكروفون'|t }}">
+                            <svg id="studio-mic-on" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <svg id="studio-mic-off" class="w-3.5 h-3.5 hidden text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+                        </button>
+                        <button type="button" onclick="endStudioCall()" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"/></svg>
+                            <span>{{ "إنهاء"|t }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Active / Selected Profile Edit Form -->
     <form id="persona-form" onsubmit="savePersona(event)" class="bg-white rounded-xl border border-slate-200/70 p-3 sm:p-4 space-y-3 shadow-xs">
         {% csrf_token %}
@@ -758,6 +848,168 @@
         } catch (err) {
             showNotification('تعذر الاتصال بالخادم', true);
         }
+    }
+
+    // ========================================================
+    // LIVE RESTAURANT WEBRTC VOICE BOT TESTING STUDIO
+    // ========================================================
+    let studioRoom = null;
+    let studioLocalAudioTrack = null;
+    let studioRemoteAudio = null;
+    let studioTimer = null;
+    let studioSeconds = 0;
+    let studioIsMuted = false;
+
+    function ensureLiveKitSDK() {
+        if (window.LivekitClient || window.livekit) {
+            return Promise.resolve(window.LivekitClient || window.livekit);
+        }
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js';
+            script.onload = () => resolve(window.LivekitClient || window.livekit);
+            script.onerror = () => reject(new Error(tJs('تعذر تحميل مشغل LiveKit للاتصال الحي.', 'Failed to load LiveKit audio player.')));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function startStudioCall() {
+        const idleBox = document.getElementById('studio-idle-box');
+        const activeBox = document.getElementById('studio-active-box');
+        const statusText = document.getElementById('studio-status-text');
+        const timerText = document.getElementById('studio-timer-text');
+
+        if (idleBox) idleBox.classList.add('hidden');
+        if (activeBox) activeBox.classList.remove('hidden');
+        if (statusText) statusText.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span><span>${tJs('جاري طلب إذن الميكروفون...', 'Requesting microphone permission...')}</span>`;
+
+        try {
+            // 1. Mic permission
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            if (statusText) statusText.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span><span>${tJs('جاري الاتصال بالمساعد...', 'Connecting to voice assistant...')}</span>`;
+
+            // 2. Initiate session
+            const res = await fetch("{% url 'api_ai_callcenter_initiate_webrtc' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie('csrftoken') || '{{ csrf_token }}',
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({ profile_id: "{{ profile.id }}" })
+            });
+
+            const data = await res.json();
+            if (!res.ok || data.status !== 'success' || !data.livekit_url || !data.livekit_token) {
+                throw new Error(data.message || tJs('تعذر بدء جلسة الاتصال الذكية', 'Could not initiate voice session'));
+            }
+
+            // 3. Load LiveKit
+            const LK = await ensureLiveKitSDK();
+            const { Room, RoomEvent, createLocalAudioTrack } = LK;
+
+            studioRoom = new Room({
+                adaptiveStream: true,
+                dynacast: true,
+                audioCaptureDefaults: {
+                    autoGainControl: true,
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                }
+            });
+
+            studioRoom.on(RoomEvent.TrackSubscribed, (track) => {
+                if (track.kind === 'audio') {
+                    if (!studioRemoteAudio) {
+                        studioRemoteAudio = document.createElement('audio');
+                        studioRemoteAudio.autoplay = true;
+                        document.body.appendChild(studioRemoteAudio);
+                    }
+                    track.attach(studioRemoteAudio);
+                    if (statusText) statusText.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse"></span><span>${tJs('المساعد يتحدث الآن...', 'Assistant speaking...')}</span>`;
+                }
+            });
+
+            studioRoom.on(RoomEvent.Disconnected, () => {
+                endStudioCall();
+            });
+
+            await studioRoom.connect(data.livekit_url, data.livekit_token);
+
+            studioLocalAudioTrack = await createLocalAudioTrack({
+                autoGainControl: true,
+                echoCancellation: true,
+                noiseSuppression: true,
+            });
+            await studioRoom.localParticipant.publishTrack(studioLocalAudioTrack);
+
+            if (statusText) statusText.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>${tJs('متصل بنجاح — تحدث الآن', 'Connected — Speak now')}</span>`;
+
+            // Start timer
+            studioSeconds = 0;
+            if (studioTimer) clearInterval(studioTimer);
+            studioTimer = setInterval(() => {
+                studioSeconds++;
+                const mins = String(Math.floor(studioSeconds / 60)).padStart(2, '0');
+                const secs = String(studioSeconds % 60).padStart(2, '0');
+                if (timerText) timerText.textContent = `${mins}:${secs}`;
+            }, 1000);
+
+            showNotification(tJs('تم الاتصال بالمساعد الصوتي بنجاح!', 'Connected to voice assistant successfully!'));
+
+        } catch (err) {
+            console.error('Studio call error:', err);
+            showNotification(err.message || tJs('حدث خطأ أثناء بدء الاتصال', 'Error starting call'), true);
+            endStudioCall();
+        }
+    }
+
+    function toggleStudioMute() {
+        if (!studioLocalAudioTrack) return;
+        studioIsMuted = !studioIsMuted;
+        const micOn = document.getElementById('studio-mic-on');
+        const micOff = document.getElementById('studio-mic-off');
+        const statusText = document.getElementById('studio-status-text');
+
+        if (studioIsMuted) {
+            studioLocalAudioTrack.mute();
+            if (micOn) micOn.classList.add('hidden');
+            if (micOff) micOff.classList.remove('hidden');
+            if (statusText) statusText.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>${tJs('الميكروفون مكتوم', 'Microphone muted')}</span>`;
+        } else {
+            studioLocalAudioTrack.unmute();
+            if (micOff) micOff.classList.add('hidden');
+            if (micOn) micOn.classList.remove('hidden');
+            if (statusText) statusText.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>${tJs('الميكروفون مفعّل — تحدث الآن', 'Microphone active — Speak now')}</span>`;
+        }
+    }
+
+    function endStudioCall() {
+        if (studioTimer) {
+            clearInterval(studioTimer);
+            studioTimer = null;
+        }
+        if (studioLocalAudioTrack) {
+            try { studioLocalAudioTrack.stop(); } catch (e) {}
+            studioLocalAudioTrack = null;
+        }
+        if (studioRoom) {
+            try { studioRoom.disconnect(); } catch (e) {}
+            studioRoom = null;
+        }
+        if (studioRemoteAudio) {
+            try {
+                studioRemoteAudio.pause();
+                studioRemoteAudio.remove();
+            } catch (e) {}
+            studioRemoteAudio = null;
+        }
+
+        const idleBox = document.getElementById('studio-idle-box');
+        const activeBox = document.getElementById('studio-active-box');
+        if (activeBox) activeBox.classList.add('hidden');
+        if (idleBox) idleBox.classList.remove('hidden');
     }
 
     // Initialize edit form selections on page load

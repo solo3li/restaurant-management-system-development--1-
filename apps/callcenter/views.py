@@ -166,13 +166,17 @@ def call_center_view(request):
             "raw_name": "uncategorized",
             "is_all": False,
         })
-    if has_uncategorized and not any(c["id"] == "uncategorized" for c in categories):
-        categories.append({
-            "id": "uncategorized",
-            "name": "أطباق عامة" if lang == "ar" else "General",
-            "raw_name": "uncategorized",
-            "is_all": False,
-        })
+
+    # If restaurant has no menu items yet, simplify categories to only 'All'
+    if not menu_items:
+        categories = [
+            {
+                "id": "all",
+                "name": "الكل" if lang == "ar" else "All",
+                "raw_name": "all",
+                "is_all": True,
+            }
+        ]
 
     currency_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
 
@@ -2228,10 +2232,105 @@ def api_ai_callcenter_sync_caps(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def api_landing_webrtc_session(request):
+    """
+    Public in-browser WebRTC voice session for landing page visitors.
+    No login required. Direct instant conversation with Motaem Platform Sales Advisor.
+    Strictly rate limited by IP: max_daily_calls_per_ip (default 3 calls / day).
+    Max duration: max_call_duration_seconds (default 180s = 3 minutes).
+    Managed via Django Admin (PlatformVoiceAssistantConfig).
+    """
+    if request.method != "POST" and request.method != "GET":
+        return HttpResponseBadRequest("POST or GET required")
+
+    from apps.callcenter.models import PlatformVoiceAssistantConfig
+    from core import partner_service as ps
+
+    config = PlatformVoiceAssistantConfig.get_config()
+    if not config.is_active:
+        return JsonResponse({
+            "status": "error",
+            "code": "assistant_disabled",
+            "message": "المساعد الصوتي العام للمنصة غير متاح حالياً. يرجى تجربة الخدمة لاحقاً أو تسجيل حساب جديد."
+        }, status=403)
+
+    # 1. IP Rate Limiting (Daily Quota Protection)
+    client_ip = (
+        request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+        or request.META.get("REMOTE_ADDR", "127.0.0.1")
+    )
+    today_str = timezone.now().strftime("%Y-%m-%d")
+    cache_key = f"landing_voice_calls_{client_ip}_{today_str}"
+
+    current_calls = cache.get(cache_key, 0)
+    max_calls = config.max_daily_calls_per_ip or 3
+
+    if current_calls >= max_calls:
+        return JsonResponse({
+            "status": "error",
+            "code": "daily_limit_reached",
+            "message": f"عذراً، لقد استنفذت الحد اليومي للتجربة الصوتية المجانية ({max_calls} مكالمات). يرجى تسجيل حساب مجاني لمواصلة التجربة بدون أي قيود."
+        }, status=429)
+
+    # 2. Call Partner Service WebRTC API
+    partner_client_id = config.partner_client_id or "49"
+    try:
+        partner_client_id = int(partner_client_id)
+    except (ValueError, TypeError):
+        partner_client_id = 49
+
+    try:
+        res = ps.initiate_webrtc_call(
+            client_id=partner_client_id,
+            max_duration_seconds=config.max_call_duration_seconds,
+            caller_name="زائر المنصة التجريبي",
+            welcome_message=config.welcome_message,
+        )
+        if res.get("status") == "success" and res.get("livekit_url") and res.get("livekit_token"):
+            # Increment daily call count in cache
+            cache.set(cache_key, current_calls + 1, timeout=86400)
+
+            return JsonResponse({
+                "status": "success",
+                "call_id": res.get("call_id"),
+                "room_name": res.get("room_name"),
+                "livekit_url": res.get("livekit_url"),
+                "livekit_token": res.get("livekit_token"),
+                "max_duration_seconds": config.max_call_duration_seconds,
+                "expires_in": config.max_call_duration_seconds,
+                "agent_profile": {
+                    "name": config.assistant_name,
+                    "voice": config.voice_name,
+                    "language": config.language,
+                },
+                "restaurant_name": "منصة كُـورَا لإدارة المطاعم",
+                "client_id": partner_client_id,
+                "remaining_calls_today": max(0, max_calls - (current_calls + 1)),
+            })
+        else:
+            return JsonResponse({
+                "status": "error",
+                "code": "upstream_error",
+                "message": res.get("message") or "تعذر بدء الجلسة الصوتية من خادم الاتصالات."
+            }, status=502)
+    except Exception as ex:
+        logger.error(f"Error in api_landing_webrtc_session for IP {client_ip}: {ex}", exc_info=True)
+        return JsonResponse({
+            "status": "error",
+            "code": "internal_error",
+            "message": f"حدث خطأ غير متوقع: {str(ex)}"
+        }, status=500)
+
+
 @login_required
 def api_ai_callcenter_initiate_webrtc(request):
     """
-    Initiate direct in-browser WebRTC call session via LiveKit for active tenant or demo user.
+    Initiate direct in-browser WebRTC call session via LiveKit for active tenant in Persona studio.
+    Uses tenant's active persona profile, menu, branches, and custom dialect.
     Target: Partner API POST /clients/{client_id}/calls/webrtc/
     """
     if request.method != "POST":
@@ -2241,32 +2340,40 @@ def api_ai_callcenter_initiate_webrtc(request):
     from apps.tenants.helpers import get_active_tenant
 
     tenant = get_active_tenant(request)
+    client_id, _ = _get_callcenter_client_info(tenant)
 
-    # Resolve client_id: tenant's voice_client_id or auto-register, fallback to demo client 49
-    client_id = 49
-    if tenant:
-        try:
-            client_id = ps.get_client_id_for_tenant(tenant)
-        except Exception as e:
-            logger.warning(f"Failed to get client_id for tenant {tenant.name}: {e}")
-            client_id = 49
-
-    # Rate limiting on WebRTC sessions per user/IP
+    # Rate limiting on authenticated testing calls (per user/IP)
     client_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR", "unknown")
     session_key = f"webrtc_calls_{request.user.id}_{client_ip}"
     recent_calls = request.session.get(session_key, 0)
-    if recent_calls >= 10:
+    if recent_calls >= 25:
         return JsonResponse({
             "status": "error",
-            "message": "وصلت إلى الحد الأقصى للمكالمات التجريبية (10 مكالمات). يرجى مراجعة لوحة التحكم لتفعيل الباقة الكاملة."
+            "message": "وصلت إلى الحد الأقصى للمكالمات التجريبية اليومية (25 مكالمة). يرجى مراجعة لوحة التحكم لتفعيل الباقة الكاملة."
         }, status=429)
 
     request.session[session_key] = recent_calls + 1
     request.session.modified = True
 
-    caller_name = request.user.get_full_name() or request.user.username or "زائر المنصة التجريبي"
-    restaurant_name = tenant.name if tenant else "مطاعم"
-    welcome_msg = f"أهلاً بك في مطعم {restaurant_name}! أنا المساعد الصوتي الذكي. كيف يمكنني خدمتك اليوم بخصوص الأطباق أو الأسعار أو الطلبات؟"
+    # Fetch active persona profile to customize welcome message & voice
+    restaurant_name = tenant.name if tenant else "المطعم"
+    agent_name = "المساعد الصوتي للمطعم"
+    voice_name = "Aoede"
+    welcome_msg = None
+    try:
+        prof_resp = ps.get_profile(client_id)
+        profile_data = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
+        if profile_data:
+            agent_name = profile_data.get("name") or agent_name
+            voice_name = profile_data.get("voice_name") or voice_name
+            welcome_msg = profile_data.get("welcome_message")
+    except Exception as prof_err:
+        logger.warning(f"Failed to fetch profile for client {client_id}: {prof_err}")
+
+    if not welcome_msg:
+        welcome_msg = f"أهلاً بك في مطعم {restaurant_name}! أنا المساعد الصوتي الذكي. كيف يمكنني خدمتك اليوم بخصوص الأطباق أو الأسعار أو الطلبات؟"
+
+    caller_name = request.user.get_full_name() or request.user.username or "مالك المطعم (تجربة حية)"
 
     try:
         res = ps.initiate_webrtc_call(
@@ -2284,7 +2391,10 @@ def api_ai_callcenter_initiate_webrtc(request):
                 "livekit_token": res.get("livekit_token"),
                 "max_duration_seconds": res.get("max_duration_seconds", 300),
                 "expires_in": res.get("expires_in", 300),
-                "agent_profile": res.get("agent_profile", {}),
+                "agent_profile": {
+                    "name": agent_name,
+                    "voice": voice_name,
+                },
                 "restaurant_name": restaurant_name,
                 "client_id": client_id,
             })

@@ -281,3 +281,22 @@
   - Added Suite 3.5 testing open redirect attack payloads.
   - Added Suite 4.9 testing tab badge localization, fallbackCopy presence, bilingual API error responses, and clean modal options.
   - Verified 100% pass across `./init.sh`, `test_system.py`, `test_e2e_rbac.py`, `test_restaurant_profile.py`, and `test_landing_and_profile.py`.
+
+## Decoupled Public Voice Assistant & In-Dashboard Persona WebRTC Studio
+- **Decoupled Landing WebRTC Voice Assistant from Signup/Login**:
+  - Removed authentication modal gating (`webrtc-auth-modal`) when visitors click "Talk to Voice AI Assistant Now" on `https://uggu.space/`.
+  - Created public guest endpoint `/api/webrtc/session/` (and `/api/landing/voice-session/`) powered by `PlatformVoiceAssistantConfig` with strict IP rate limiting (3 calls/day per IP) and max duration (180 seconds = 3 minutes).
+- **Platform Voice Assistant Admin Configuration**:
+  - Implemented singleton model `PlatformVoiceAssistantConfig` in `apps/callcenter/models.py`.
+  - Registered in Django Admin with custom fieldsets for Persona identity, system prompt, Gemini Live voice tone, and consumption limits.
+- **In-Dashboard Restaurant Voice Studio (`/ai-callcenter/persona/`)**:
+  - Created interactive WebRTC Voice Bot Studio card in `templates/ai_callcenter/persona.html` for restaurant owners to test their custom restaurant's voice bot live in-browser with their own menu, branches, and configured dialect.
+  - Integrated with authenticated endpoint `api_ai_callcenter_initiate_webrtc`.
+- **Call Center Menu Empty State & Pizza Restaurant Seeding**:
+  - Fixed empty category void on `/call-center/` when restaurants have 0 items by adding an empty state card with CTA button.
+  - Seeded 11 starter dishes across 4 categories for "بيتزا البحر" (Tenant 78).
+- **Automated Verification**:
+  - `test_decoupled_voice_and_studio.py` (7/7 tests 100% PASS).
+  - Full regression `./init.sh` (100% PASS).
+  - Graphify knowledge graph updated via `graphify update .`.
+

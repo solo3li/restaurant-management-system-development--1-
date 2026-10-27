@@ -167,6 +167,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "apps/callcenter/views.py (dynamic MenuCategory query, category_rel resolution, border color mapping, and clean pill construction), templates/call_center.html (category buttons, data-category-id, data-category, and setCategory JS filtering). Verified via manage.py check, test_multilingual_5lang.py, test_system.py, test_e2e_rbac.py, and container verification."
+    },
+    {
+      "id": "feat-decoupled-public-voice-and-persona-studio",
+      "name": "Decoupled Landing Public Voice Assistant & In-Dashboard Persona WebRTC Studio",
+      "description": "Decoupled the WebRTC Voice Assistant on the landing page from the restaurant demo/signup funnel. Visitors on https://uggu.space/ can click 'Talk to Voice AI Assistant Now' and talk directly in-browser to the Motaem Platform Sales & Product Advisor with zero login/registration barrier and daily IP rate limiting (3 calls/day, 180s duration). Managed via Django Admin singleton (PlatformVoiceAssistantConfig) for persona, system prompt, Gemini Live voice, and call duration. Moved internal restaurant bot testing into an interactive WebRTC Studio inside /ai-callcenter/persona/ for restaurant owners to test their custom menu, branches, and dialect.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "apps/callcenter/models.py (PlatformVoiceAssistantConfig singleton model), apps/callcenter/admin.py (PlatformVoiceAssistantConfigAdmin), apps/callcenter/views.py (api_landing_webrtc_session with IP rate limiting and api_ai_callcenter_initiate_webrtc with active persona profile), apps/callcenter/urls.py, core/urls.py, templates/landing.html, static/js/landing_webrtc_agent.js, templates/ai_callcenter/persona.html (interactive live WebRTC testing studio card with mic, timer, waveform, and mute/hangup controls), templates/call_center.html (empty menu state), test_decoupled_voice_and_studio.py (7/7 tests 100% PASS), and verified live on https://uggu.space/."
     }
   ]
 }

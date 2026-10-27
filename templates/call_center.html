@@ -64,6 +64,7 @@
             </div>
 
             <!-- 2. Menu Items Grid (High-Density Touch Buttons - Exact POS Style) -->
+            {% if menu_items %}
             <div id="menu-grid" class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {% for m in menu_items %}
                 <button 
@@ -100,6 +101,26 @@
                 {% endfor %}
             </div>
             <div id="no-items-msg" class="hidden py-10 text-center text-xs text-slate-700 font-bold">{{ "لا توجد أصناف مطابقة للبحث أو القسم المحدد"|t }}</div>
+            {% else %}
+            <!-- Empty State when restaurant has no dishes yet -->
+            <div class="rounded-2xl border-2 border-dashed border-slate-200/80 bg-white p-8 sm:p-12 text-center space-y-3.5 my-2 shadow-xs">
+                <div class="w-14 h-14 mx-auto rounded-full bg-violet-50 text-violet-600 flex items-center justify-center text-2xl shadow-inner">
+                    🍽️
+                </div>
+                <div class="max-w-md mx-auto space-y-1">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-900">{{ "قائمة الطعام فارغة حالياً"|t }}</h3>
+                    <p class="text-[11px] sm:text-xs text-slate-500 leading-relaxed font-normal">
+                        {{ "لم يتم إضافة وجبات لهذا المطعم بعد. يمكنك البدء بإضافة وجباتك وأقسام المنيو من شاشة نقاط البيع أو إدارة المنيو."|t }}
+                    </p>
+                </div>
+                <div class="flex items-center justify-center gap-2 pt-1">
+                    <a href="{% url 'pos' %}" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                        <span>{{ "إدارة الأصناف والمنيو"|t }}</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Right Section: Caller Info + Cart / Invoice Panel -->

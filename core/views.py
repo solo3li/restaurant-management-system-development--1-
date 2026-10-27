@@ -192,6 +192,7 @@ from apps.callcenter.views import (
     api_ai_callcenter_usage,
     api_ai_callcenter_sync_caps,
     api_ai_callcenter_initiate_webrtc,
+    api_landing_webrtc_session,
 )
 
 from apps.audit.views import (
