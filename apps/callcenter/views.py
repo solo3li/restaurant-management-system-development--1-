@@ -2779,4 +2779,302 @@ def api_ai_callcenter_initiate_webrtc(request):
         return JsonResponse({"status": "error", "message": f"خطأ غير متوقع: {str(ex)}"}, status=500)
 
 
+# ==============================================================================
+# Platform Landing Voice Assistant Admin Tab APIs (Super Admin & Staff)
+# ==============================================================================
+
+@login_required
+def api_landing_assistant_documents_list(request):
+    """List all isolated knowledge base documents for Landing Voice Assistant."""
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.models import PlatformVoiceAssistantConfig
+    config = PlatformVoiceAssistantConfig.get_config()
+    docs = []
+    for d in config.knowledge_documents.all().order_by("-created_at"):
+        docs.append({
+            "id": d.id,
+            "title": d.title,
+            "source_type": d.source_type,
+            "source_type_display": d.get_source_type_display(),
+            "content": d.content,
+            "file_url": d.file.url if d.file else "",
+            "file_name": os.path.basename(d.file.name) if d.file else "",
+            "file_type": d.file_type,
+            "file_size": d.file_size,
+            "partner_doc_id": d.partner_doc_id,
+            "created_at": d.created_at.strftime("%Y-%m-%d %H:%M") if d.created_at else "",
+        })
+    return JsonResponse({"status": "success", "documents": docs})
+
+
+@login_required
+def api_landing_assistant_add_faq(request):
+    """Add a structured FAQ item to the Landing Voice Assistant knowledge base."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.models import PlatformVoiceAssistantConfig, LandingKnowledgeDocument
+    from apps.callcenter.landing_assistant_service import sync_knowledge_doc_to_partner, sync_landing_assistant_live_context
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else request.POST.dict()
+    except Exception:
+        data = request.POST.dict()
+
+    title = (data.get("title") or "").strip()
+    content = (data.get("content") or "").strip()
+
+    if not title or not content:
+        return JsonResponse({"status": "error", "message": "يرجى إدخال السؤال والإجابة بشكل صحيح"}, status=400)
+
+    config = PlatformVoiceAssistantConfig.get_config()
+    doc = LandingKnowledgeDocument.objects.create(
+        config=config,
+        title=title,
+        content=content,
+        source_type="faq",
+    )
+    # Sync with partner service
+    partner_res = sync_knowledge_doc_to_partner(doc, "add")
+    # Auto refresh live context
+    sync_landing_assistant_live_context(config)
+
+    return JsonResponse({
+        "status": "success",
+        "message": "تم إضافة السؤال وإجابته بنجاح ومزامنته مع السنترال والذاكرة الحية",
+        "document": {
+            "id": doc.id,
+            "title": doc.title,
+            "source_type": doc.source_type,
+            "source_type_display": doc.get_source_type_display(),
+            "content": doc.content,
+            "file_url": "",
+            "file_name": "",
+            "file_type": "",
+            "file_size": 0,
+            "partner_doc_id": doc.partner_doc_id,
+            "created_at": doc.created_at.strftime("%Y-%m-%d %H:%M"),
+        },
+        "partner_res": partner_res,
+    })
+
+
+@login_required
+def api_landing_assistant_upload_document(request):
+    """Upload a document file (PDF, Word, TXT) to Landing Voice Assistant knowledge base."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.models import PlatformVoiceAssistantConfig, LandingKnowledgeDocument
+    from apps.callcenter.landing_assistant_service import sync_knowledge_doc_to_partner, sync_landing_assistant_live_context
+
+    file_obj = request.FILES.get("file")
+    if not file_obj:
+        return JsonResponse({"status": "error", "message": "يرجى اختيار ملف لرفعه"}, status=400)
+
+    title = (request.POST.get("title") or "").strip()
+    if not title:
+        title = os.path.splitext(file_obj.name)[0].replace("_", " ").title()
+
+    content = (request.POST.get("content") or "").strip()
+    ext = os.path.splitext(file_obj.name)[1].lower().lstrip(".")
+
+    # If text file, try to extract text content directly
+    if ext == "txt" and not content:
+        try:
+            file_obj.seek(0)
+            content = file_obj.read().decode("utf-8", errors="ignore")[:10000]
+            file_obj.seek(0)
+        except Exception:
+            pass
+
+    config = PlatformVoiceAssistantConfig.get_config()
+    doc = LandingKnowledgeDocument.objects.create(
+        config=config,
+        title=title,
+        file=file_obj,
+        content=content,
+        file_type=ext,
+        file_size=file_obj.size,
+        source_type="file",
+    )
+    # Sync with partner service
+    partner_res = sync_knowledge_doc_to_partner(doc, "add")
+    # Auto refresh live context
+    sync_landing_assistant_live_context(config)
+
+    return JsonResponse({
+        "status": "success",
+        "message": "تم رفع المستند بنجاح ومزامنته مع السنترال والذاكرة الحية",
+        "document": {
+            "id": doc.id,
+            "title": doc.title,
+            "source_type": doc.source_type,
+            "source_type_display": doc.get_source_type_display(),
+            "content": doc.content,
+            "file_url": doc.file.url if doc.file else "",
+            "file_name": os.path.basename(doc.file.name) if doc.file else "",
+            "file_type": doc.file_type,
+            "file_size": doc.file_size,
+            "partner_doc_id": doc.partner_doc_id,
+            "created_at": doc.created_at.strftime("%Y-%m-%d %H:%M"),
+        },
+        "partner_res": partner_res,
+    })
+
+
+@login_required
+def api_landing_assistant_edit_document(request, doc_id):
+    """Edit title and/or content of a knowledge document."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.models import LandingKnowledgeDocument
+    from apps.callcenter.landing_assistant_service import sync_landing_assistant_live_context
+
+    try:
+        doc = LandingKnowledgeDocument.objects.get(pk=doc_id)
+    except LandingKnowledgeDocument.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "المستند غير موجود"}, status=404)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else request.POST.dict()
+    except Exception:
+        data = request.POST.dict()
+
+    title = (data.get("title") or "").strip()
+    content = data.get("content")
+
+    if title:
+        doc.title = title
+    if content is not None:
+        doc.content = content.strip()
+
+    doc.save()
+    sync_landing_assistant_live_context(doc.config)
+
+    return JsonResponse({
+        "status": "success",
+        "message": "تم تحديث المستند بنجاح",
+        "document": {
+            "id": doc.id,
+            "title": doc.title,
+            "content": doc.content,
+            "source_type": doc.source_type,
+            "updated_at": doc.updated_at.strftime("%Y-%m-%d %H:%M") if doc.updated_at else "",
+        }
+    })
+
+
+@login_required
+def api_landing_assistant_delete_document(request, doc_id):
+    """Delete a knowledge document and remove from Partner Service."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.models import LandingKnowledgeDocument
+    from apps.callcenter.landing_assistant_service import sync_knowledge_doc_to_partner, sync_landing_assistant_live_context
+
+    try:
+        doc = LandingKnowledgeDocument.objects.get(pk=doc_id)
+    except LandingKnowledgeDocument.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "المستند غير موجود"}, status=404)
+
+    config = doc.config
+    partner_res = sync_knowledge_doc_to_partner(doc, "delete")
+    doc.delete()
+    sync_landing_assistant_live_context(config)
+
+    return JsonResponse({
+        "status": "success",
+        "message": "تم حذف المستند بنجاح من قاعدة المعرفة والسنترال",
+        "partner_res": partner_res,
+    })
+
+
+@login_required
+def api_landing_assistant_lead_status(request, lead_id):
+    """Instantly update lead_status for a landing voice call visitor."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.models import LandingVoiceLead
+
+    try:
+        lead = LandingVoiceLead.objects.get(pk=lead_id)
+    except LandingVoiceLead.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "العميل غير موجود"}, status=404)
+
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else request.POST.dict()
+    except Exception:
+        data = request.POST.dict()
+
+    new_status = data.get("lead_status")
+    valid_statuses = [choice[0] for choice in LandingVoiceLead.LEAD_STATUS_CHOICES]
+    if new_status not in valid_statuses:
+        return JsonResponse({"status": "error", "message": f"حالة غير صالحة: {new_status}"}, status=400)
+
+    lead.lead_status = new_status
+    notes = data.get("notes")
+    if notes is not None:
+        lead.notes = notes
+    lead.save(update_fields=["lead_status", "notes", "updated_at"])
+
+    return JsonResponse({
+        "status": "success",
+        "message": f"تم تحديث حالة العميل إلى «{lead.get_lead_status_display()}»",
+        "lead_id": lead.id,
+        "lead_status": lead.lead_status,
+        "lead_status_display": lead.get_lead_status_display(),
+    })
+
+
+@login_required
+def api_landing_assistant_redis_status(request):
+    """Fetch live Redis memory status and JSON context for Landing Voice Assistant."""
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.landing_assistant_service import get_landing_assistant_redis_status
+    status_data = get_landing_assistant_redis_status()
+    return JsonResponse(status_data)
+
+
+@login_required
+def api_landing_assistant_redis_sync(request):
+    """Trigger immediate live memory compilation and Redis / Partner Service sync."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.landing_assistant_service import sync_landing_assistant_live_context
+    result = sync_landing_assistant_live_context()
+    return JsonResponse(result)
+
+
+@login_required
+def api_landing_assistant_ensure_partner_client(request):
+    """Check and ensure Landing-Sales-Client is registered and linked to partner_client_id."""
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.landing_assistant_service import ensure_landing_sales_client
+    result = ensure_landing_sales_client()
+    return JsonResponse(result)
+
+
 

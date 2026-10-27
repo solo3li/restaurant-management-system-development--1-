@@ -195,6 +195,15 @@ from apps.callcenter.views import (
     api_ai_callcenter_initiate_webrtc,
     api_landing_webrtc_session,
     api_landing_voice_session_end,
+    api_landing_assistant_documents_list,
+    api_landing_assistant_add_faq,
+    api_landing_assistant_upload_document,
+    api_landing_assistant_edit_document,
+    api_landing_assistant_delete_document,
+    api_landing_assistant_lead_status,
+    api_landing_assistant_redis_status,
+    api_landing_assistant_redis_sync,
+    api_landing_assistant_ensure_partner_client,
 )
 
 from apps.audit.views import (

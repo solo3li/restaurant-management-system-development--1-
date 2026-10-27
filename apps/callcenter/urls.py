@@ -64,4 +64,15 @@ urlpatterns = [
     path("api/webrtc/session/", views.api_landing_webrtc_session, name="api_webrtc_session"),
     path("api/landing/voice-session/", views.api_landing_webrtc_session, name="api_landing_voice_session"),
     path("api/landing/voice-session/end/", views.api_landing_voice_session_end, name="api_landing_voice_session_end"),
+
+    # Platform Landing Voice Assistant Admin Tab APIs
+    path("api/landing-assistant/documents/", views.api_landing_assistant_documents_list, name="api_landing_assistant_documents_list"),
+    path("api/landing-assistant/documents/add-faq/", views.api_landing_assistant_add_faq, name="api_landing_assistant_add_faq"),
+    path("api/landing-assistant/documents/upload/", views.api_landing_assistant_upload_document, name="api_landing_assistant_upload_document"),
+    path("api/landing-assistant/documents/<int:doc_id>/edit/", views.api_landing_assistant_edit_document, name="api_landing_assistant_edit_document"),
+    path("api/landing-assistant/documents/<int:doc_id>/delete/", views.api_landing_assistant_delete_document, name="api_landing_assistant_delete_document"),
+    path("api/landing-assistant/leads/<int:lead_id>/status/", views.api_landing_assistant_lead_status, name="api_landing_assistant_lead_status"),
+    path("api/landing-assistant/redis/status/", views.api_landing_assistant_redis_status, name="api_landing_assistant_redis_status"),
+    path("api/landing-assistant/redis/sync/", views.api_landing_assistant_redis_sync, name="api_landing_assistant_redis_sync"),
+    path("api/landing-assistant/partner-client/ensure/", views.api_landing_assistant_ensure_partner_client, name="api_landing_assistant_ensure_partner_client"),
 ]

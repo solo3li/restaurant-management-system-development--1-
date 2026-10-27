@@ -1,0 +1,1223 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static jazzmin %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* ==============================================================================
+   PLATFORM VOICE ASSISTANT 6-TAB UNIFIED SLATE THEME
+   ============================================================================== */
+.landing-tabs-bar {
+    background-color: #272b30 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 8px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.landing-tab-btn {
+    background-color: #32383e !important;
+    color: #94a3b8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 8px !important;
+    padding: 10px 16px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease-in-out !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-decoration: none !important;
+}
+
+.landing-tab-btn:hover {
+    background-color: #3a3f44 !important;
+    color: #f8fafc !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.landing-tab-btn.active {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    color: #38bdf8 !important;
+    border: 2px solid #0284c7 !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
+}
+
+.landing-tab-btn .badge {
+    font-size: 0.75rem !important;
+    padding: 2px 7px !important;
+    border-radius: 9999px !important;
+}
+
+.tab-pane-card {
+    background-color: #32383e !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25) !important;
+    margin-bottom: 20px !important;
+}
+
+.slate-subcard {
+    background-color: #272b30 !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 10px !important;
+    padding: 16px 20px !important;
+}
+
+.metric-pill-card {
+    background: linear-gradient(145deg, #272b30 0%, #1e2227 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
+    padding: 14px 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.metric-pill-card .metric-val {
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    color: #f8fafc !important;
+}
+
+.metric-pill-card .metric-lbl {
+    font-size: 0.78rem !important;
+    color: #94a3b8 !important;
+    font-weight: 500 !important;
+}
+
+.slate-table {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.slate-table th {
+    background-color: #272b30 !important;
+    color: #94a3b8 !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    padding: 10px 14px !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.slate-table td {
+    background-color: #32383e !important;
+    color: #e2e8f0 !important;
+    padding: 12px 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    vertical-align: middle !important;
+    font-size: 0.85rem !important;
+}
+
+.slate-table tbody tr:hover td {
+    background-color: #3a3f44 !important;
+}
+
+.slate-input, .slate-select {
+    background-color: #272b30 !important;
+    border: 1px solid #4b5563 !important;
+    color: #f8fafc !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 0.88rem !important;
+    width: 100% !important;
+}
+
+.slate-input:focus, .slate-select:focus {
+    border-color: #0284c7 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.3) !important;
+}
+
+.btn-slate-primary {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 8px 16px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: background 0.15s ease !important;
+}
+.btn-slate-primary:hover {
+    background-color: #0369a1 !important;
+    color: #ffffff !important;
+}
+
+.btn-slate-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 8px 18px !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+.btn-slate-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    color: #ffffff !important;
+}
+
+.btn-slate-danger {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 5px 10px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+.btn-slate-danger:hover {
+    background-color: #b91c1c !important;
+}
+
+.json-viewer-box {
+    background-color: #1a1e24 !important;
+    color: #38bdf8 !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-size: 0.82rem !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    max-height: 480px !important;
+    overflow-y: auto !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    line-height: 1.5 !important;
+}
+
+/* Modal styling for Dark Slate */
+.modal-content.slate-modal {
+    background-color: #32383e !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+.modal-content.slate-modal .modal-header {
+    background-color: #272b30 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.modal-content.slate-modal .modal-footer {
+    background-color: #272b30 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Toast alert notification */
+#landing-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 99999;
+    min-width: 300px;
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block field_sets %}
+<div class="col-12 col-lg-9">
+    <!-- 1. The 6-Tab Unified Horizontal Navigation Ribbon -->
+    <div class="landing-tabs-bar" role="tablist" id="landingAssistantTabs">
+        <a class="landing-tab-btn active" id="tab-btn-1" href="#tab-identity" data-tab="tab-identity">
+            <i class="fas fa-brain text-info"></i>
+            <span>1. هوية المساعد والشخصية</span>
+        </a>
+        <a class="landing-tab-btn" id="tab-btn-2" href="#tab-telephony" data-tab="tab-telephony">
+            <i class="fas fa-phone-volume text-success"></i>
+            <span>2. إعدادات الصوت والاتصال</span>
+        </a>
+        <a class="landing-tab-btn" id="tab-btn-3" href="#tab-quotas" data-tab="tab-quotas">
+            <i class="fas fa-shield-alt text-warning"></i>
+            <span>3. حدود الاستهلاك وحماية التكاليف</span>
+        </a>
+        <a class="landing-tab-btn" id="tab-btn-4" href="#tab-knowledge" data-tab="tab-knowledge">
+            <i class="fas fa-book-reader text-primary"></i>
+            <span>4. قاعدة المعرفة المعزولة</span>
+            <span class="badge bg-primary ms-1" id="tab4-count-badge">{{ documents|length }}</span>
+        </a>
+        <a class="landing-tab-btn" id="tab-btn-5" href="#tab-leads" data-tab="tab-leads">
+            <i class="fas fa-headset text-danger"></i>
+            <span>5. سجل المكالمات والعملاء المحتملين</span>
+            <span class="badge bg-danger ms-1" id="tab5-count-badge">{{ total_leads_count }}</span>
+        </a>
+        <a class="landing-tab-btn" id="tab-btn-6" href="#tab-redis" data-tab="tab-redis">
+            <i class="fas fa-bolt text-warning"></i>
+            <span>6. الذاكرة المنظمة الحية (Redis)</span>
+        </a>
+    </div>
+
+    <!-- 2. The Tab Content Containers -->
+    <div class="tab-content" id="landingAssistantTabsContent">
+
+        <!-- ================================================================
+             TAB 1: هوية المساعد والشخصية (Identity & Brain)
+             ================================================================ -->
+        <div class="tab-pane active" id="tab-identity" role="tabpanel">
+            <div class="tab-pane-card">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary">
+                    <div>
+                        <h4 class="m-0 text-white font-weight-bold">
+                            <i class="fas fa-brain text-info me-2"></i> هوية المساعد وتوجيهات الذكاء (Identity & Brain)
+                        </h4>
+                        <p class="text-muted small mt-1 mb-0">تحديد اسم المساعد الصوتي، رسالته الترحيبية للزوار، ونظام التوجيه الذكي (System Prompt).</p>
+                    </div>
+                    <span class="badge bg-info px-3 py-2" style="font-size: 0.85rem;">التبويب 1 من 6</span>
+                </div>
+
+                {% for fieldset in adminform %}
+                    {% if forloop.counter == 1 %}
+                        {% include "admin/includes/fieldset.html" with card=False %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 2: إعدادات الصوت والاتصال (Gemini Live & Telephony)
+             ================================================================ -->
+        <div class="tab-pane" id="tab-telephony" role="tabpanel" style="display: none;">
+            <div class="tab-pane-card">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary">
+                    <div>
+                        <h4 class="m-0 text-white font-weight-bold">
+                            <i class="fas fa-phone-volume text-success me-2"></i> إعدادات الصوت ومزود السنترال (Gemini Live & Telephony)
+                        </h4>
+                        <p class="text-muted small mt-1 mb-0">ربط المساعد بخدمة LiveKit وGemini Live مع خامات الصوت واللهجات وحساب السنترال المعزول.</p>
+                    </div>
+                    <span class="badge bg-success px-3 py-2" style="font-size: 0.85rem;">التبويب 2 من 6</span>
+                </div>
+
+                <!-- Dedicated Isolated Account Status Card -->
+                <div class="slate-subcard mb-4">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="background: rgba(16, 185, 129, 0.15); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-server text-success fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-white font-weight-bold" style="font-size: 0.95rem;">
+                                    حساب السنترال المعزول: <code style="color: #38bdf8;">Landing-Sales-Client</code>
+                                </div>
+                                <div class="text-muted small">
+                                    معرف العميل (Partner Client ID): <strong class="text-white" id="partner-client-id-badge">{{ original.partner_client_id|default:"49" }}</strong>
+                                    — مخصص بالكامل لمكالمات صفحة الهبوط العامة بدون أي تداخل مع حسابات المطاعم.
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-info" id="btn-check-partner-client" onclick="ensurePartnerClient();">
+                            <i class="fas fa-sync-alt me-1"></i> فحص وربط الحساب الآن
+                        </button>
+                    </div>
+                </div>
+
+                {% for fieldset in adminform %}
+                    {% if forloop.counter == 2 %}
+                        {% include "admin/includes/fieldset.html" with card=False %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 3: حدود الاستهلاك وحماية التكاليف (Usage Quotas & Limits)
+             ================================================================ -->
+        <div class="tab-pane" id="tab-quotas" role="tabpanel" style="display: none;">
+            <div class="tab-pane-card">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary">
+                    <div>
+                        <h4 class="m-0 text-white font-weight-bold">
+                            <i class="fas fa-shield-alt text-warning me-2"></i> حدود الاستهلاك وحماية التكاليف (Usage Quotas & Limits)
+                        </h4>
+                        <p class="text-muted small mt-1 mb-0">حماية رصيد المنصة من الاستنزاف عبر تحديد المدة القصوى للمكالمة والحد اليومي للزوار.</p>
+                    </div>
+                    <span class="badge bg-warning text-dark px-3 py-2" style="font-size: 0.85rem;">التبويب 3 من 6</span>
+                </div>
+
+                <!-- Quota explanation card -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="slate-subcard h-100">
+                            <div class="text-info font-weight-bold mb-1">
+                                <i class="fas fa-stopwatch me-1"></i> مهلة المكالمة التلقائية (Max Call Duration)
+                            </div>
+                            <p class="text-muted small mb-0">يتم قطع جلسة WebRTC الصوتية تلقائياً فور بلوغ الحد بالثواني لمنع المكالمات المفتوحة بلا نهاية.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="slate-subcard h-100">
+                            <div class="text-warning font-weight-bold mb-1">
+                                <i class="fas fa-network-wired me-1"></i> درع حماية الـ IP (Daily Rate Limiting)
+                            </div>
+                            <p class="text-muted small mb-0">يمنع أي عنوان IP من إجراء أكثر من الحد اليومي المسموح به لمنع هجمات الاستنزاف (Burn Attack Prevention).</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% for fieldset in adminform %}
+                    {% if forloop.counter == 3 %}
+                        {% include "admin/includes/fieldset.html" with card=False %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 4: قاعدة المعرفة المعزولة (Isolated Landing Knowledge Base)
+             ================================================================ -->
+        <div class="tab-pane" id="tab-knowledge" role="tabpanel" style="display: none;">
+            <div class="tab-pane-card">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary flex-wrap gap-2">
+                    <div>
+                        <h4 class="m-0 text-white font-weight-bold">
+                            <i class="fas fa-book-reader text-primary me-2"></i> قاعدة المعرفة المعزولة لمساعد الهبوط (Isolated Knowledge Base)
+                        </h4>
+                        <p class="text-muted small mt-1 mb-0">إدارة المستندات والأسئلة الشائعة الخاصة بالمبيعات وباقات المنصة والمزامنة التلقائية مع السنترال.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-slate-primary" onclick="openAddFaqModal();">
+                            <i class="fas fa-plus"></i> إضافة سؤال وجواب (FAQ)
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="openUploadDocModal();">
+                            <i class="fas fa-upload"></i> رفع مستند جديد (PDF/TXT)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Documents List Table -->
+                <div class="table-responsive rounded mt-3">
+                    <table class="slate-table" id="documents-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 30%;">العنوان / السؤال</th>
+                                <th style="width: 15%;">نوع المصدر</th>
+                                <th style="width: 15%;">الملف والحجم</th>
+                                <th style="width: 15%;">معرف المزود</th>
+                                <th style="width: 10%;">تاريخ الإضافة</th>
+                                <th style="width: 10%; text-align: center;">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documents-tbody">
+                            {% if documents %}
+                                {% for doc in documents %}
+                                <tr id="doc-row-{{ doc.id }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <strong class="text-white">{{ doc.title }}</strong>
+                                        {% if doc.content %}
+                                        <div class="text-muted small mt-1" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            {{ doc.content }}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if doc.source_type == "file" %}
+                                            <span class="badge bg-primary">📄 مستند مرفوع</span>
+                                        {% else %}
+                                            <span class="badge bg-success">❓ سؤال وجواب (FAQ)</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if doc.file %}
+                                            <a href="{{ doc.file.url }}" target="_blank" class="text-info font-weight-bold" style="text-decoration: none;">
+                                                <i class="fas fa-paperclip me-1"></i> {{ doc.file_type|upper }}
+                                            </a>
+                                            <span class="text-muted small">({{ doc.file_size|filesizeformat }})</span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if doc.partner_doc_id %}
+                                            <span class="badge bg-secondary font-monospace">#{{ doc.partner_doc_id }} ✓</span>
+                                        {% else %}
+                                            <span class="badge bg-dark text-muted">غير مربوط</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small text-muted">{{ doc.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-outline-light me-1" onclick="openEditDocModal({{ doc.id }}, '{{ doc.title|escapejs }}', '{{ doc.content|escapejs }}');">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteDocument({{ doc.id }});">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="no-docs-row">
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <i class="fas fa-book-open fa-2x mb-2 d-block text-secondary"></i>
+                                        لا توجد مستندات أو أسئلة شائعة مضافة بعد. انقر على الأزرار أعلاه لإضافة أول مستند.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 5: سجل المكالمات والعملاء المحتملين (Landing Leads & Calls)
+             ================================================================ -->
+        <div class="tab-pane" id="tab-leads" role="tabpanel" style="display: none;">
+            <div class="tab-pane-card">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary flex-wrap gap-2">
+                    <div>
+                        <h4 class="m-0 text-white font-weight-bold">
+                            <i class="fas fa-headset text-danger me-2"></i> سجل المكالمات والعملاء المحتملين (Landing Leads CRM)
+                        </h4>
+                        <p class="text-muted small mt-1 mb-0">متابعة كافة الزوار الذين بدأوا اتصالات صوتية مع المساعد، مع رابط واتساب فوري وتحديث حالة العميل.</p>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="text" id="leads-search-input" class="slate-input" placeholder="🔍 بحث بالاسم أو الهاتف..." style="width: 240px;" oninput="filterLeadsTable();">
+                    </div>
+                </div>
+
+                <!-- KPI Metrics Ribbon -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">إجمالي الزوار</div>
+                                <div class="metric-val text-white" id="stat-total-leads">{{ total_leads_count }}</div>
+                            </div>
+                            <i class="fas fa-users text-primary fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">مكالمات متصلة</div>
+                                <div class="metric-val text-success" id="stat-connected-calls">{{ connected_calls_count }}</div>
+                            </div>
+                            <i class="fas fa-phone-alt text-success fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">تم التعاقد</div>
+                                <div class="metric-val text-info" id="stat-converted-leads">{{ converted_leads_count }}</div>
+                            </div>
+                            <i class="fas fa-file-contract text-info fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">عملاء جدد</div>
+                                <div class="metric-val text-warning" id="stat-new-leads">{{ new_leads_count }}</div>
+                            </div>
+                            <i class="fas fa-user-clock text-warning fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leads Table -->
+                <div class="table-responsive rounded">
+                    <table class="slate-table" id="leads-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 18%;">اسم الزائر</th>
+                                <th style="width: 16%;">رقم الجوال</th>
+                                <th style="width: 12%;">واتساب</th>
+                                <th style="width: 14%;">حالة المكالمة</th>
+                                <th style="width: 10%;">المدة</th>
+                                <th style="width: 14%;">تاريخ الاتصال</th>
+                                <th style="width: 16%;">حالة المتابعة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-tbody">
+                            {% if leads %}
+                                {% for lead in leads %}
+                                <tr id="lead-row-{{ lead.id }}" class="lead-data-row" data-search="{{ lead.name|lower }} {{ lead.full_phone|lower }} {{ lead.phone }}">
+                                    <td>
+                                        <strong class="text-white">{{ lead.name }}</strong>
+                                        {% if lead.notes %}
+                                            <div class="small text-muted text-truncate" style="max-width: 200px;">{{ lead.notes }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="font-monospace text-light">{{ lead.full_phone|default:lead.phone }}</span>
+                                    </td>
+                                    <td>
+                                        {% if lead.whatsapp_url %}
+                                            <a href="{{ lead.whatsapp_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="background:#10b981; color:#fff; font-size:11px; font-weight:bold; border-radius:6px; padding:3px 9px;">
+                                                <i class="fab fa-whatsapp me-1"></i> واتساب
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if lead.call_status == "connected" %}
+                                            <span class="badge bg-success">متصلة 🎧</span>
+                                        {% elif lead.call_status == "completed" %}
+                                            <span class="badge bg-primary">مكتملة ✓</span>
+                                        {% elif lead.call_status == "initiated" %}
+                                            <span class="badge bg-warning text-dark">قيد البدء ⏳</span>
+                                        {% elif lead.call_status == "missed" %}
+                                            <span class="badge bg-danger">لم تكتمل ✕</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ lead.get_call_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code class="text-info font-weight-bold">{{ lead.formatted_duration }}</code>
+                                    </td>
+                                    <td class="small text-muted">{{ lead.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <select class="slate-select form-select-sm" data-lead-id="{{ lead.id }}" onchange="updateLeadStatus({{ lead.id }}, this.value);" style="padding: 4px 8px; font-size: 12px;">
+                                            {% for opt_val, opt_lbl in lead_status_choices %}
+                                                <option value="{{ opt_val }}" {% if lead.lead_status == opt_val %}selected{% endif %}>
+                                                    {{ opt_lbl }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <i class="fas fa-headset fa-2x mb-2 d-block text-secondary"></i>
+                                        لم يتم تسجيل أي مكالمات من زوار صفحة الهبوط بعد.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 6: الذاكرة المنظمة الحية (Redis Live Context)
+             ================================================================ -->
+        <div class="tab-pane" id="tab-redis" role="tabpanel" style="display: none;">
+            <div class="tab-pane-card">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary flex-wrap gap-2">
+                    <div>
+                        <h4 class="m-0 text-white font-weight-bold">
+                            <i class="fas fa-bolt text-warning me-2"></i> الذاكرة المنظمة الحية لكاش Redis لمساعد الهبوط
+                        </h4>
+                        <p class="text-muted small mt-1 mb-0">فحص محتوى وحجم الذاكرة الحية الذكية لمساعد الهبوط ومزامنتها فورياً بضغطة زر واحدة.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-slate-success" id="btn-redis-sync-now" onclick="syncRedisLiveContext();">
+                            <i class="fas fa-bolt"></i> ⚡ مزامنة الذاكرة الحية إلى Redis الآن
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Redis Status Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">حالة الكاش</div>
+                                <div class="metric-val" id="redis-host-badge" style="font-size: 1.05rem; color: #10b981;">
+                                    <i class="fas fa-check-circle me-1"></i> {{ redis_status.redis_host }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">حجم الذاكرة</div>
+                                <div class="metric-val text-info" id="redis-size-badge">{{ redis_status.size_formatted }}</div>
+                            </div>
+                            <i class="fas fa-memory text-info fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">عدد المفاتيح</div>
+                                <div class="metric-val text-warning" id="redis-keys-badge">{{ redis_status.keys_count }}</div>
+                            </div>
+                            <i class="fas fa-key text-warning fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-pill-card">
+                            <div>
+                                <div class="metric-lbl">آخر مزامنة</div>
+                                <div class="metric-val text-light" id="redis-synced-badge" style="font-size: 0.85rem; word-break: break-all;">
+                                    {{ redis_status.last_synced_at }}
+                                </div>
+                            </div>
+                            <i class="fas fa-clock text-light fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live JSON Explorer Toolbar -->
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-white font-weight-bold small">
+                        <i class="fas fa-code me-1 text-info"></i> مستعرض الذاكرة المنظمة الحية (Live Working Memory JSON):
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-light" onclick="copyLiveContextJson();">
+                        <i class="fas fa-copy me-1"></i> نسخ محتوى الـ JSON
+                    </button>
+                </div>
+
+                <!-- JSON Code Viewer -->
+                <pre class="json-viewer-box" id="live-context-pre"><code id="live-context-json">{{ redis_status.raw_json }}</code></pre>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ==============================================================================
+     MODALS FOR TAB 4 (Knowledge Base CRUD)
+     ============================================================================== -->
+
+<!-- Add FAQ Modal -->
+<div class="modal fade" id="modal-add-faq" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content slate-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white font-weight-bold">
+                    <i class="fas fa-question-circle text-info me-2"></i> إضافة سؤال وجواب جديد (FAQ)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-faq" onsubmit="submitAddFaq(event);">
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">السؤال أو الموضوع:</label>
+                        <input type="text" id="faq-title" class="slate-input" placeholder="مثال: كم مدة التجربة المجانية؟" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">الإجابة التفصيلية للمساعد:</label>
+                        <textarea id="faq-content" class="slate-input" rows="4" placeholder="اكتب الإجابة التي سينطق بها المساعد لزوار صفحة الهبوط..." required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn-slate-primary" id="btn-save-faq">
+                            <i class="fas fa-check"></i> حفظ ومزامنة السؤال
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Document Modal -->
+<div class="modal fade" id="modal-upload-doc" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content slate-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white font-weight-bold">
+                    <i class="fas fa-file-upload text-primary me-2"></i> رفع مستند معرفة جديد
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-upload-doc" onsubmit="submitUploadDoc(event);" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">عنوان المستند:</label>
+                        <input type="text" id="upload-doc-title" class="slate-input" placeholder="مثال: دليل أسعار وباقات المنظومة السحابية">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">الملف (PDF, DOCX, TXT):</label>
+                        <input type="file" id="upload-doc-file" class="slate-input" accept=".pdf,.doc,.docx,.txt" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">نص إضافي أو مستخلص (اختياري):</label>
+                        <textarea id="upload-doc-content" class="slate-input" rows="3" placeholder="ملاحظات أو تلخيص لنص المستند لسهولة مطابقة الذكاء الاصطناعي..."></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn-slate-primary" id="btn-submit-upload">
+                            <i class="fas fa-upload"></i> رفع ومزامنة المستند
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Document Modal -->
+<div class="modal fade" id="modal-edit-doc" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content slate-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white font-weight-bold">
+                    <i class="fas fa-edit text-warning me-2"></i> تعديل المستند / السؤال
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edit-doc" onsubmit="submitEditDoc(event);">
+                    <input type="hidden" id="edit-doc-id">
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">العنوان أو السؤال:</label>
+                        <input type="text" id="edit-doc-title" class="slate-input" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">المحتوى النصي أو الإجابة:</label>
+                        <textarea id="edit-doc-content" class="slate-input" rows="4"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn-slate-primary" id="btn-save-edit-doc">
+                            <i class="fas fa-save"></i> حفظ التعديلات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Alert -->
+<div id="landing-toast" class="alert alert-success alert-dismissible fade show shadow-lg" role="alert">
+    <span id="toast-message"><i class="fas fa-check-circle me-2"></i> تم بنجاح</span>
+</div>
+
+<!-- ==============================================================================
+     INTERACTIVE JAVASCRIPT LOGIC
+     ============================================================================== -->
+<script>
+function showToast(msg, isError = false) {
+    const toast = document.getElementById('landing-toast');
+    const msgEl = document.getElementById('toast-message');
+    if (!toast || !msgEl) return;
+    toast.className = `alert ${isError ? 'alert-danger' : 'alert-success'} alert-dismissible fade show shadow-lg`;
+    msgEl.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'} me-2"></i> ${msg}`;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+}
+
+function getCsrfToken() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (el) return el.value;
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+    return cookie ? cookie.split('=')[1] : '';
+}
+
+// Tab Switching & Hash Persistence
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.landing-tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    function activateTab(tabId) {
+        tabButtons.forEach(btn => {
+            if (btn.getAttribute('data-tab') === tabId) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        tabPanes.forEach(pane => {
+            if (pane.id === tabId) {
+                pane.style.display = 'block';
+                pane.classList.add('active');
+            } else {
+                pane.style.display = 'none';
+                pane.classList.remove('active');
+            }
+        });
+        if (history.replaceState) {
+            history.replaceState(null, null, '#' + tabId);
+        }
+    }
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetTab = this.getAttribute('data-tab');
+            activateTab(targetTab);
+        });
+    });
+
+    // Check URL Hash on load
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(hash)) {
+        activateTab(hash);
+    }
+});
+
+// Ensure Partner Client Account
+function ensurePartnerClient() {
+    const btn = document.getElementById('btn-check-partner-client');
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الفحص...';
+
+    fetch('/api/landing-assistant/partner-client/ensure/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (btn) btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> فحص وربط الحساب الآن';
+        if (data.status === 'success') {
+            const badge = document.getElementById('partner-client-id-badge');
+            if (badge) badge.innerText = data.client_id;
+            showToast(`تم ربط حساب السنترال بنجاح (${data.client_name} - ID: ${data.client_id})`);
+        } else {
+            showToast(data.message || 'حدث خطأ أثناء فحص الحساب', true);
+        }
+    })
+    .catch(err => {
+        if (btn) btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> فحص وربط الحساب الآن';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// Open modals
+function openAddFaqModal() {
+    const modalEl = document.getElementById('modal-add-faq');
+    if (window.bootstrap && bootstrap.Modal) {
+        new bootstrap.Modal(modalEl).show();
+    } else {
+        $(modalEl).modal('show');
+    }
+}
+
+function openUploadDocModal() {
+    const modalEl = document.getElementById('modal-upload-doc');
+    if (window.bootstrap && bootstrap.Modal) {
+        new bootstrap.Modal(modalEl).show();
+    } else {
+        $(modalEl).modal('show');
+    }
+}
+
+function openEditDocModal(id, title, content) {
+    document.getElementById('edit-doc-id').value = id;
+    document.getElementById('edit-doc-title').value = title;
+    document.getElementById('edit-doc-content').value = content;
+    const modalEl = document.getElementById('modal-edit-doc');
+    if (window.bootstrap && bootstrap.Modal) {
+        new bootstrap.Modal(modalEl).show();
+    } else {
+        $(modalEl).modal('show');
+    }
+}
+
+// Add FAQ submit
+function submitAddFaq(e) {
+    e.preventDefault();
+    const title = document.getElementById('faq-title').value.trim();
+    const content = document.getElementById('faq-content').value.trim();
+    const btn = document.getElementById('btn-save-faq');
+
+    if (!title || !content) return;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+
+    fetch('/api/landing-assistant/documents/add-faq/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({ title, content })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.innerHTML = '<i class="fas fa-check"></i> حفظ ومزامنة السؤال';
+        if (data.status === 'success') {
+            showToast(data.message);
+            appendDocRow(data.document);
+            document.getElementById('form-add-faq').reset();
+            const modalEl = document.getElementById('modal-add-faq');
+            if (window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getInstance(modalEl).hide();
+            } else {
+                $(modalEl).modal('hide');
+            }
+        } else {
+            showToast(data.message || 'فشل حفظ السؤال', true);
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = '<i class="fas fa-check"></i> حفظ ومزامنة السؤال';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// Upload Document submit
+function submitUploadDoc(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('upload-doc-file');
+    const title = document.getElementById('upload-doc-title').value.trim();
+    const content = document.getElementById('upload-doc-content').value.trim();
+    const btn = document.getElementById('btn-submit-upload');
+
+    if (!fileInput.files || !fileInput.files[0]) return;
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('title', title);
+    formData.append('content', content);
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الرفع...';
+
+    fetch('/api/landing-assistant/documents/upload/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.innerHTML = '<i class="fas fa-upload"></i> رفع ومزامنة المستند';
+        if (data.status === 'success') {
+            showToast(data.message);
+            appendDocRow(data.document);
+            document.getElementById('form-upload-doc').reset();
+            const modalEl = document.getElementById('modal-upload-doc');
+            if (window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getInstance(modalEl).hide();
+            } else {
+                $(modalEl).modal('hide');
+            }
+        } else {
+            showToast(data.message || 'فشل رفع المستند', true);
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = '<i class="fas fa-upload"></i> رفع ومزامنة المستند';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// Edit Document submit
+function submitEditDoc(e) {
+    e.preventDefault();
+    const docId = document.getElementById('edit-doc-id').value;
+    const title = document.getElementById('edit-doc-title').value.trim();
+    const content = document.getElementById('edit-doc-content').value.trim();
+    const btn = document.getElementById('btn-save-edit-doc');
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+
+    fetch(`/api/landing-assistant/documents/${docId}/edit/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({ title, content })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+        if (data.status === 'success') {
+            showToast(data.message);
+            const row = document.getElementById(`doc-row-${docId}`);
+            if (row) {
+                row.querySelector('strong').innerText = title;
+                const snippet = row.querySelector('.text-muted.small');
+                if (snippet) snippet.innerText = content;
+            }
+            const modalEl = document.getElementById('modal-edit-doc');
+            if (window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getInstance(modalEl).hide();
+            } else {
+                $(modalEl).modal('hide');
+            }
+        } else {
+            showToast(data.message || 'فشل تعديل المستند', true);
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// Delete Document
+function deleteDocument(docId) {
+    if (!confirm('هل أنت متأكد من رغبتك في حذف هذا المستند من قاعدة المعرفة والسنترال؟')) return;
+
+    fetch(`/api/landing-assistant/documents/${docId}/delete/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast(data.message);
+            const row = document.getElementById(`doc-row-${docId}`);
+            if (row) {
+                row.style.transition = 'opacity 0.3s';
+                row.style.opacity = '0';
+                setTimeout(() => row.remove(), 300);
+            }
+            const badge = document.getElementById('tab4-count-badge');
+            if (badge) {
+                const count = Math.max(0, parseInt(badge.innerText || '1') - 1);
+                badge.innerText = count;
+            }
+        } else {
+            showToast(data.message || 'فشل حذف المستند', true);
+        }
+    })
+    .catch(err => {
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// Append new row to documents table dynamically
+function appendDocRow(doc) {
+    const tbody = document.getElementById('documents-tbody');
+    const noRow = document.getElementById('no-docs-row');
+    if (noRow) noRow.remove();
+
+    const tr = document.createElement('tr');
+    tr.id = `doc-row-${doc.id}`;
+    const rowNum = tbody.querySelectorAll('tr').length + 1;
+
+    const sourceBadge = doc.source_type === 'file'
+        ? '<span class="badge bg-primary">📄 مستند مرفوع</span>'
+        : '<span class="badge bg-success">❓ سؤال وجواب (FAQ)</span>';
+
+    const fileInfo = doc.file_url
+        ? `<a href="${doc.file_url}" target="_blank" class="text-info font-weight-bold" style="text-decoration:none;"><i class="fas fa-paperclip me-1"></i> ${doc.file_type.toUpperCase()}</a>`
+        : '<span class="text-muted">—</span>';
+
+    const partnerBadge = doc.partner_doc_id
+        ? `<span class="badge bg-secondary font-monospace">#${doc.partner_doc_id} ✓</span>`
+        : '<span class="badge bg-dark text-muted">غير مربوط</span>';
+
+    tr.innerHTML = `
+        <td>${rowNum}</td>
+        <td>
+            <strong class="text-white">${doc.title}</strong>
+            <div class="text-muted small mt-1" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${doc.content || ''}
+            </div>
+        </td>
+        <td>${sourceBadge}</td>
+        <td>${fileInfo}</td>
+        <td>${partnerBadge}</td>
+        <td class="small text-muted">${doc.created_at || 'الآن'}</td>
+        <td style="text-align: center;">
+            <button type="button" class="btn btn-sm btn-outline-light me-1" onclick="openEditDocModal(${doc.id}, '${escapeHtml(doc.title)}', '${escapeHtml(doc.content || '')}');">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.id});">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </td>
+    `;
+    tbody.prepend(tr);
+
+    const badge = document.getElementById('tab4-count-badge');
+    if (badge) {
+        badge.innerText = parseInt(badge.innerText || '0') + 1;
+    }
+}
+
+function escapeHtml(str) {
+    return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// Instant Update Lead Status
+function updateLeadStatus(leadId, newStatus) {
+    fetch(`/api/landing-assistant/leads/${leadId}/status/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({ lead_status: newStatus })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast(data.message);
+            const row = document.getElementById(`lead-row-${leadId}`);
+            if (row) {
+                row.style.background = 'rgba(16, 185, 129, 0.2)';
+                setTimeout(() => { row.style.background = ''; }, 1200);
+            }
+        } else {
+            showToast(data.message || 'فشل تحديث حالة العميل', true);
+        }
+    })
+    .catch(err => {
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// Filter Leads Table
+function filterLeadsTable() {
+    const query = document.getElementById('leads-search-input').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('.lead-data-row');
+    rows.forEach(row => {
+        const searchStr = (row.getAttribute('data-search') || '').toLowerCase();
+        if (!query || searchStr.includes(query)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Sync Redis Live Context
+function syncRedisLiveContext() {
+    const btn = document.getElementById('btn-redis-sync-now');
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري التجميع والمزامنة...';
+
+    fetch('/api/landing-assistant/redis/sync/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (btn) btn.innerHTML = '<i class="fas fa-bolt"></i> ⚡ مزامنة الذاكرة الحية إلى Redis الآن';
+        if (data.status === 'success') {
+            showToast('تمت مزامنة وتجميع الذاكرة الحية في Redis والسنترال بنجاح!');
+            document.getElementById('redis-size-badge').innerText = data.size_formatted;
+            document.getElementById('redis-keys-badge').innerText = data.keys_count;
+            document.getElementById('redis-synced-badge').innerText = data.synced_at;
+            document.getElementById('live-context-json').innerText = JSON.stringify(data.context, null, 2);
+        } else {
+            showToast(data.message || 'فشلت مزامنة الذاكرة', true);
+        }
+    })
+    .catch(err => {
+        if (btn) btn.innerHTML = '<i class="fas fa-bolt"></i> ⚡ مزامنة الذاكرة الحية إلى Redis الآن';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// Copy Live Context JSON
+function copyLiveContextJson() {
+    const codeEl = document.getElementById('live-context-json');
+    if (!codeEl) return;
+    navigator.clipboard.writeText(codeEl.innerText)
+        .then(() => showToast('تم نسخ محتوى الذاكرة JSON إلى الحافظة بنجاح ✓'))
+        .catch(() => showToast('تعذر النسخ إلى الحافظة', true));
+}
+</script>
+{% endblock %}

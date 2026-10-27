@@ -24,6 +24,9 @@ venv/bin/python manage.py test test_landing_persona_sync
 echo "=== venv/bin/python manage.py test test_landing_voice_leads ==="
 venv/bin/python manage.py test test_landing_voice_leads
 
+echo "=== venv/bin/python manage.py test test_landing_assistant_admin_tabs ==="
+venv/bin/python manage.py test test_landing_assistant_admin_tabs
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

@@ -191,6 +191,14 @@
       "dependencies": ["feat-landing-persona-live-sync"],
       "status": "completed",
       "evidence": "apps/callcenter/models.py (LandingVoiceLead model with format_full_phone and whatsapp_url), core/migrations/0032_landingvoicelead.py, apps/callcenter/admin.py (LandingVoiceLeadAdmin with WhatsApp button, status badge, formatted duration, list_editable), apps/callcenter/views.py (api_landing_webrtc_session with lead capture and name greeting, api_landing_voice_session_end), apps/callcenter/urls.py, core/urls.py, core/views.py, templates/landing.html (landing-lead-modal with global country code picker and custom code input), static/js/landing_webrtc_agent.js, staticfiles/js/landing_webrtc_agent.js, test_landing_voice_leads.py (11/11 PASS), and ./init.sh (100% PASS)."
+    },
+    {
+      "id": "feat-landing-assistant-admin-tabs",
+      "name": "Platform Voice Assistant Admin 6-Tab Unified Slate Architecture",
+      "description": "Unified 6-tab horizontal ribbon in PlatformVoiceAssistantConfigAdmin: Tab 1 (Identity & Brain), Tab 2 (Gemini Live & Telephony with isolated Landing-Sales-Client auto-link), Tab 3 (Usage Quotas & Abuse Safeguards), Tab 4 (Isolated Landing Knowledge Base model LandingKnowledgeDocument with full in-tab AJAX CRUD and Partner Service doc sync), Tab 5 (Landing Leads CRM embedded table with 1-click WhatsApp links and instant status dropdown), and Tab 6 (Redis Live Context monitoring, live JSON explorer, and 1-click atomic sync). Fully compliant with unified dark Slate theme with zero sidebar tampering.",
+      "dependencies": ["feat-landing-voice-leads-crm"],
+      "status": "completed",
+      "evidence": "apps/callcenter/models.py (LandingKnowledgeDocument model), core/migrations/0033_landingknowledgedocument.py, apps/callcenter/landing_assistant_service.py, apps/callcenter/admin.py (PlatformVoiceAssistantConfigAdmin 6-tab setup, change_view, get_urls, save_model, LandingKnowledgeDocumentAdmin), apps/callcenter/views.py (9 landing assistant admin AJAX API endpoints), apps/callcenter/urls.py, core/urls.py, core/views.py, templates/admin/core/platformvoiceassistantconfig/change_form.html, test_landing_assistant_admin_tabs.py (8/8 PASS 100%), init.sh (100% PASS), and graphify update ."
     }
   ]
 }

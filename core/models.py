@@ -59,6 +59,7 @@ from apps.callcenter.models import (
     TenantApiKey,
     PlatformVoiceAssistantConfig,
     LandingVoiceLead,
+    LandingKnowledgeDocument,
 )
 from apps.audit.models import (
     AuditLog,
@@ -105,6 +106,7 @@ __all__ = [
     "TenantApiKey",
     "PlatformVoiceAssistantConfig",
     "LandingVoiceLead",
+    "LandingKnowledgeDocument",
     # Audit
     "AuditLog",
     "log_audit_event",

@@ -1,3 +1,4 @@
+import os
 import re
 import secrets
 from django.db import models
@@ -310,6 +311,64 @@ class LandingVoiceLead(models.Model):
             self.full_phone = self.format_full_phone(self.phone, self.country_code)
         elif not self.full_phone:
             self.full_phone = "—"
+        super().save(*args, **kwargs)
+
+
+class LandingKnowledgeDocument(models.Model):
+    """
+    Isolated Knowledge Base Document for Landing Page Voice Assistant.
+    Supports uploaded documents (PDF, Word, TXT) and structured Q&A (FAQ) items.
+    Synchronized with central telephony Partner Service.
+    """
+    SOURCE_TYPE_CHOICES = [
+        ("file", "مستند مرفوع (File)"),
+        ("faq", "سؤال وجواب (FAQ)"),
+    ]
+
+    config = models.ForeignKey(
+        PlatformVoiceAssistantConfig,
+        on_delete=models.CASCADE,
+        related_name="knowledge_documents",
+        verbose_name="إعدادات المساعد",
+    )
+    title = models.CharField(max_length=255, verbose_name="العنوان / السؤال")
+    file = models.FileField(
+        upload_to="landing_knowledge/",
+        blank=True,
+        null=True,
+        verbose_name="الملف المرفوع",
+    )
+    content = models.TextField(blank=True, default="", verbose_name="المحتوى النصي / الإجابة")
+    file_type = models.CharField(max_length=50, blank=True, default="", verbose_name="نوع الملف")
+    file_size = models.PositiveIntegerField(default=0, verbose_name="حجم الملف (بالبايت)")
+    source_type = models.CharField(
+        max_length=20,
+        choices=SOURCE_TYPE_CHOICES,
+        default="faq",
+        verbose_name="نوع المصدر",
+    )
+    partner_doc_id = models.IntegerField(blank=True, null=True, verbose_name="معرف المستند لدى مزود الاتصالات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
+
+    class Meta:
+        app_label = "core"
+        verbose_name = "مستند معرفة مساعد الهبوط"
+        verbose_name_plural = "قاعدة معرفة مساعد الهبوط (Landing Knowledge Documents)"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} ({self.get_source_type_display()})"
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            if not self.file_type and hasattr(self.file, "name"):
+                ext = os.path.splitext(self.file.name)[1].lower()
+                self.file_type = ext.lstrip(".") or "file"
+            if not self.file_size and hasattr(self.file, "size"):
+                self.file_size = self.file.size
+            if not self.source_type or self.source_type == "faq":
+                self.source_type = "file"
         super().save(*args, **kwargs)
 
 

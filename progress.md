@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 12:40
-**Session ID:** Landing Page Voice Leads Capture, Global Phone Codes, Personalized Greeting & Admin CRM
+**Last Updated:** 2026-10-27 13:45
+**Session ID:** Platform Voice Assistant Admin 6-Tab Unified Slate Architecture
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -23,10 +23,35 @@
 - `feat-decoupled-public-voice-and-persona-studio` (Completed & Verified 100%)
 - `feat-landing-persona-live-sync` (Completed & Verified 100%)
 - `feat-landing-voice-leads-crm` (Completed & Verified 100%)
+- `feat-landing-assistant-admin-tabs` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
+
+- [x] **Platform Voice Assistant Admin 6-Tab Unified Slate Architecture (`feat-landing-assistant-admin-tabs`)**
+  - **Unified 6-Tab Horizontal Ribbon (`PlatformVoiceAssistantConfigAdmin`)**:
+    - **Tab 1: هوية المساعد والشخصية (Identity & Brain)**: `is_active`, `landing_profile_id`, `assistant_name`, `system_prompt`, `welcome_message`.
+    - **Tab 2: إعدادات الصوت والاتصال (Gemini Live & Telephony)**: `partner_client_id`, `voice_name`, `language`, `accent`. Guaranteed automatic registration and isolated binding of Partner Service account `Landing-Sales-Client` to `partner_client_id`.
+    - **Tab 3: حدود الاستهلاك وحماية التكاليف (Usage Quotas & Limits)**: `max_call_duration_seconds`, `max_daily_calls_per_ip` with visual protection overview.
+    - **Tab 4: قاعدة المعرفة المعزولة (Isolated Landing Knowledge Base)**:
+      - Model `LandingKnowledgeDocument` in `apps/callcenter/models.py` with `config`, `title`, `file`, `content`, `file_type`, `file_size`, `source_type` (`file` / `faq`), `partner_doc_id`, `created_at`.
+      - Full interactive CRUD inside the tab without page reload (Upload PDF/Word/TXT, Add FAQ, View documents, Edit questions/titles, Delete with Partner Service sync `ps.add_document` / `ps.delete_document`).
+    - **Tab 5: سجل المكالمات والعملاء المحتملين (Landing Leads CRM)**:
+      - Interactive embedded table for `LandingVoiceLead` with visitor name, formatted E.164 phone, 1-click WhatsApp button (`https://wa.me/...`), technical call status badge, formatted duration (MM:SS), and instant AJAX auto-saving status dropdown (`جديد`, `تم التواصل`, `مهتم`, `تم التعاقد`, `لم يرد`, `ملغي`).
+    - **Tab 6: الذاكرة المنظمة الحية (Redis Live Context)**:
+      - Live memory inspection card for Redis cache on `127.0.0.1:6379`.
+      - Memory size, number of stored keys, last sync timestamp.
+      - Interactive JSON explorer for live compiled working memory.
+      - Instant action button `[ ⚡ مزامنة الذاكرة الحية إلى Redis الآن ]` compiling and pushing assistant config, knowledge base documents, and SaaS subscription tiers atomically to Redis, Django DB cache, and Central Partner PBX.
+  - **Design & Theme**:
+    - Strict adherence to unified dark Slate palette (`#272b30` canvas, `#32383e` cards, `#3a3f44` borders/hover).
+    - Preserved 100% of existing sidebar items, topbar links, and models without hiding or modifying.
+  - **Automated Verification**:
+    - Created `test_landing_assistant_admin_tabs.py` with 8 comprehensive test cases across all 5 test suites. Added to `./init.sh`.
+    - Ran `./init.sh` passing 100% across all 8 verification test suites.
+    - Updated knowledge graph via `graphify update .` (8,875 nodes, 18,976 edges, 470 communities).
+
 
 - [x] **Landing Page Voice Leads Capture, Global Phone Codes, Personalized Greeting & Admin CRM (`feat-landing-voice-leads-crm`)**
   - **Visitor Lead Capture Modal (`templates/landing.html`)**: Created `#landing-lead-modal` triggered whenever a visitor clicks to start a voice call. Prompts for Full Name and Phone Number with a comprehensive global country code dropdown (+966, +20, +971, +965, +974, +968, +973, +962, +1, +44, +90, +49, +33, etc.) and a custom international code input (`lead-custom-code-wrap`). Validates full name and non-zero phone digits client-side before starting the call. Added backdrop click-dismiss and `Escape` keyboard handler. Added full bilingual / 5-language rendering without Arabic leakage.

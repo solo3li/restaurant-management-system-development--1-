@@ -1,39 +1,48 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import TenantApiKey, PlatformVoiceAssistantConfig, LandingVoiceLead
+from django.urls import path
+from .models import TenantApiKey, PlatformVoiceAssistantConfig, LandingVoiceLead, LandingKnowledgeDocument
+from apps.callcenter import views as cc_views
+from apps.callcenter.landing_assistant_service import (
+    ensure_landing_sales_client,
+    sync_landing_assistant_live_context,
+    get_landing_assistant_redis_status,
+)
 
 
-@admin.register(TenantApiKey)
-class TenantApiKeyAdmin(admin.ModelAdmin):
+@admin.register(LandingKnowledgeDocument)
+class LandingKnowledgeDocumentAdmin(admin.ModelAdmin):
     list_display = (
-        "name",
-        "tenant",
-        "key_preview",
-        "assigned_branch",
-        "total_orders_placed",
-        "last_used_at",
-        "is_active_badge",
+        "title",
+        "source_type_badge",
+        "file_type",
+        "formatted_size",
+        "partner_doc_id",
         "created_at",
     )
-    list_filter = ("tenant", "is_active", "assigned_branch")
-    search_fields = ("name", "key", "tenant__name")
-    readonly_fields = ("created_at", "last_used_at", "total_orders_placed")
+    list_filter = ("source_type", "file_type")
+    search_fields = ("title", "content")
+    readonly_fields = ("created_at", "updated_at", "partner_doc_id", "file_size")
 
-    @admin.display(description="مفتاح الدخول (Access Key)")
-    def key_preview(self, obj):
-        prefix = obj.key[:14]
-        return format_html('<code style="background: #f4eee2; padding: 2px 6px; border-radius: 4px; font-weight: bold;">{}...</code>', prefix)
+    @admin.display(description="نوع المصدر")
+    def source_type_badge(self, obj):
+        if obj.source_type == "file":
+            return mark_safe('<span style="color:#0284c7;font-weight:bold;">📄 مستند مرفوع</span>')
+        return mark_safe('<span style="color:#10b981;font-weight:bold;">❓ سؤال وجواب (FAQ)</span>')
 
-    @admin.display(description="الحالة")
-    def is_active_badge(self, obj):
-        if obj.is_active:
-            return mark_safe('<span style="color: #257a4e; font-weight: bold;">مفعل ✓</span>')
-        return mark_safe('<span style="color: #b53a2b; font-weight: bold;">معطل ✕</span>')
+    @admin.display(description="حجم الملف")
+    def formatted_size(self, obj):
+        if not obj.file_size:
+            return "—"
+        if obj.file_size >= 1024 * 1024:
+            return f"{obj.file_size / (1024*1024):.1f} MB"
+        return f"{obj.file_size / 1024:.1f} KB"
 
 
 @admin.register(PlatformVoiceAssistantConfig)
 class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
+    change_form_template = "admin/core/platformvoiceassistantconfig/change_form.html"
     list_display = (
         "assistant_name",
         "is_active_badge",
@@ -45,20 +54,15 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
         "updated_at",
     )
     fieldsets = (
-        ("الحالة وهوية المساعد (Identity & Activation)", {
+        ("هوية المساعد والشخصية (Identity & Brain)", {
             "fields": (
                 "is_active",
                 "landing_profile_id",
                 "assistant_name",
+                "system_prompt",
                 "welcome_message",
             ),
-            "description": "تحديد هوية المساعد الصوتي ورسالته الترحيبية الأولى لزوار صفحة الهبوط العامة."
-        }),
-        ("قاعدة المعرفة والشخصية (Prompt Engineering & Brain)", {
-            "fields": (
-                "system_prompt",
-            ),
-            "description": "تعليمات الذكاء الاصطناعي ومعرفته بمنتجات المنصة وباقاتها وأسعارها للإجابة عن أسئلة الزوار."
+            "description": "تحديد هوية المساعد الصوتي، توجيهات الشخصية والذكاء، والرسالة الترحيبية الأولى لزوار صفحة الهبوط."
         }),
         ("إعدادات الصوت والاتصال (Gemini Live & Telephony)", {
             "fields": (
@@ -89,6 +93,48 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        obj = self.get_object(request, object_id)
+        if obj:
+            # 1. Isolated Knowledge Documents
+            extra_context["documents"] = obj.knowledge_documents.all().order_by("-created_at")
+            # 2. Landing Leads & Voice Calls
+            extra_context["leads"] = LandingVoiceLead.objects.all().order_by("-created_at")[:100]
+            extra_context["total_leads_count"] = LandingVoiceLead.objects.count()
+            extra_context["connected_calls_count"] = LandingVoiceLead.objects.filter(call_status="connected").count()
+            extra_context["converted_leads_count"] = LandingVoiceLead.objects.filter(lead_status="converted").count()
+            extra_context["new_leads_count"] = LandingVoiceLead.objects.filter(lead_status="new").count()
+            # 3. Redis Live Context
+            extra_context["redis_status"] = get_landing_assistant_redis_status(obj)
+            # 4. Partner Account Check
+            extra_context["partner_client_info"] = ensure_landing_sales_client(obj)
+            extra_context["lead_status_choices"] = LandingVoiceLead.LEAD_STATUS_CHOICES
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        try:
+            ensure_landing_sales_client(obj)
+            sync_landing_assistant_live_context(obj)
+        except Exception as e:
+            pass
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path("documents/list/", self.admin_site.admin_view(cc_views.api_landing_assistant_documents_list), name="core_platformvoiceassistantconfig_documents_list"),
+            path("documents/add-faq/", self.admin_site.admin_view(cc_views.api_landing_assistant_add_faq), name="core_platformvoiceassistantconfig_documents_add_faq"),
+            path("documents/upload/", self.admin_site.admin_view(cc_views.api_landing_assistant_upload_document), name="core_platformvoiceassistantconfig_documents_upload"),
+            path("documents/<int:doc_id>/edit/", self.admin_site.admin_view(cc_views.api_landing_assistant_edit_document), name="core_platformvoiceassistantconfig_documents_edit"),
+            path("documents/<int:doc_id>/delete/", self.admin_site.admin_view(cc_views.api_landing_assistant_delete_document), name="core_platformvoiceassistantconfig_documents_delete"),
+            path("leads/<int:lead_id>/status/", self.admin_site.admin_view(cc_views.api_landing_assistant_lead_status), name="core_platformvoiceassistantconfig_lead_status"),
+            path("redis/status/", self.admin_site.admin_view(cc_views.api_landing_assistant_redis_status), name="core_platformvoiceassistantconfig_redis_status"),
+            path("redis/sync/", self.admin_site.admin_view(cc_views.api_landing_assistant_redis_sync), name="core_platformvoiceassistantconfig_redis_sync"),
+            path("partner-client/ensure/", self.admin_site.admin_view(cc_views.api_landing_assistant_ensure_partner_client), name="core_platformvoiceassistantconfig_ensure_partner_client"),
+        ]
+        return custom_urls + urls
 
 
 @admin.register(LandingVoiceLead)
