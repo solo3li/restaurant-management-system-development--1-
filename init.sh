@@ -27,6 +27,9 @@ venv/bin/python manage.py test test_landing_voice_leads
 echo "=== venv/bin/python manage.py test test_landing_assistant_admin_tabs ==="
 venv/bin/python manage.py test test_landing_assistant_admin_tabs
 
+echo "=== venv/bin/python manage.py test test_landing_voice_customization ==="
+venv/bin/python manage.py test test_landing_voice_customization
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

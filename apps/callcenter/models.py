@@ -112,9 +112,9 @@ class PlatformVoiceAssistantConfig(models.Model):
     )
     partner_client_id = models.CharField(
         max_length=100,
-        default="49",
+        default="662",
         verbose_name="معرف العميل لدى مزود الاتصالات (Partner Client ID)",
-        help_text="Client ID المخصص في مزود تقنية WebRTC (افتراضياً 49)."
+        help_text="Client ID المخصص في مزود تقنية WebRTC (معرف نظامي معزول ومقفول 662)."
     )
     voice_name = models.CharField(
         max_length=50,
@@ -214,10 +214,59 @@ class LandingVoiceLead(models.Model):
         ("cancelled", "ملغي"),
     ]
 
+    LANGUAGE_CHOICES = [
+        ("ar", "العربية (Arabic)"),
+        ("en", "الإنجليزية (English)"),
+        ("fr", "الفرنسية (French)"),
+        ("tr", "التركية (Turkish)"),
+        ("de", "الألمانية (German)"),
+    ]
+
+    DIALECT_CHOICES = [
+        ("saudi", "🇸🇦 سعودية (افتراضي)"),
+        ("egyptian", "🇪🇬 مصرية"),
+        ("gulf", "🇦🇪 إماراتية وخليجية"),
+        ("moroccan", "🇲🇦 مغربية"),
+        ("levantine", "🇱🇧 شامية"),
+        ("modern_standard", "🌐 فصحى معاصرة"),
+        ("us", "🇺🇸 أمريكية (US)"),
+        ("uk", "🇬🇧 بريطانية (UK)"),
+        ("standard", "🌐 لهجة قياسية (Standard)"),
+    ]
+
+    VOICE_CHOICES = [
+        ("Aoede", "👩 سارة (Aoede) - نبرة أنثوية هادئة واحترافية"),
+        ("Puck", "👨 أحمد (Puck) - نبرة رجالية مرنة وحيوية"),
+        ("Fenrir", "👨 عمر (Fenrir) - نبرة رجالية رخيمة وواثقة"),
+        ("Kore", "👩 مريم (Kore) - نبرة نسائية دافئة وواضحة"),
+        ("Charon", "👨 خالد (Charon) - نبرة رجالية متزنة ورسمية"),
+    ]
+
     name = models.CharField(max_length=150, verbose_name="اسم الزائر")
     phone = models.CharField(max_length=30, verbose_name="رقم الجوال")
     country_code = models.CharField(max_length=10, default="+966", verbose_name="كود الدولة")
     full_phone = models.CharField(max_length=40, db_index=True, verbose_name="الرقم الدولي الكامل")
+    language = models.CharField(
+        max_length=20,
+        choices=LANGUAGE_CHOICES,
+        default="ar",
+        verbose_name="اللغة المختارة",
+        help_text="اللغة التي اختارها الزائر لبدء المكالمة."
+    )
+    dialect = models.CharField(
+        max_length=50,
+        choices=DIALECT_CHOICES,
+        default="saudi",
+        verbose_name="اللهجة المختارة",
+        help_text="اللهجة التي اختارها الزائر لبدء المكالمة."
+    )
+    voice_name = models.CharField(
+        max_length=50,
+        choices=VOICE_CHOICES,
+        default="Aoede",
+        verbose_name="بروفايل الصوت المختار",
+        help_text="بروفايل ونبرة الصوت التي اختارها الزائر للمكالمة."
+    )
     call_status = models.CharField(
         max_length=20,
         choices=CALL_STATUS_CHOICES,

@@ -872,6 +872,10 @@ def initiate_webrtc_call(
     max_duration_seconds: int = 300,
     caller_name: str = "زائر المنصة التجريبي",
     welcome_message: Optional[str] = None,
+    language: Optional[str] = None,
+    accent: Optional[str] = None,
+    voice_name: Optional[str] = None,
+    **extra_kwargs,
 ) -> Dict[str, Any]:
     """
     Generate encrypted smart voice session & LiveKit WebRTC credentials
@@ -884,6 +888,20 @@ def initiate_webrtc_call(
     }
     if welcome_message:
         payload["welcome_message"] = welcome_message
+    if language:
+        payload["language"] = language
+    if accent:
+        payload["accent"] = accent
+        payload["dialect"] = accent
+    elif extra_kwargs.get("dialect"):
+        payload["accent"] = extra_kwargs["dialect"]
+        payload["dialect"] = extra_kwargs["dialect"]
+    if voice_name:
+        payload["voice_name"] = voice_name
+        payload["voice"] = voice_name
+    elif extra_kwargs.get("voice"):
+        payload["voice_name"] = extra_kwargs["voice"]
+        payload["voice"] = extra_kwargs["voice"]
     return _request(f"/clients/{client_id}/calls/webrtc/", method="POST", data=payload)
 
 

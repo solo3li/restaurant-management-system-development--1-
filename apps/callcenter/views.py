@@ -2495,7 +2495,7 @@ def api_landing_webrtc_session(request):
             "message": f"عذراً، لقد استنفذت الحد اليومي للتجربة الصوتية المجانية ({max_calls} مكالمات). يرجى تسجيل حساب مجاني لمواصلة التجربة بدون أي قيود."
         }, status=429)
 
-    # 2. Parse Visitor Lead Information (Payload)
+    # 2. Parse Visitor Lead Information & Customization Preferences (Payload)
     payload = {}
     if request.body:
         try:
@@ -2510,6 +2510,36 @@ def api_landing_webrtc_session(request):
     raw_cc = str(payload.get("country_code") or "+966").strip()
     cc_digits = re.sub(r"\D", "", raw_cc).lstrip("0")
     country_code = f"+{cc_digits}" if (1 <= len(cc_digits) <= 4) else "+966"
+
+    # Customization: Language, Dialect, Voice Profile
+    allowed_languages = ["ar", "en", "fr", "tr", "de"]
+    raw_lang = (payload.get("language") or config.language or "ar").strip().lower()
+    visitor_language = raw_lang if raw_lang in allowed_languages else "ar"
+
+    # Dialect mapping scoped strictly per language
+    valid_dialects_by_lang = {
+        "ar": ["saudi", "egyptian", "gulf", "moroccan", "levantine", "modern_standard"],
+        "en": ["us", "uk"],
+        "fr": ["standard"],
+        "tr": ["standard"],
+        "de": ["standard"],
+    }
+    allowed_dialects_for_lang = valid_dialects_by_lang.get(visitor_language, ["standard"])
+    raw_dialect = (payload.get("dialect") or payload.get("accent") or "").strip().lower()
+    if raw_dialect in allowed_dialects_for_lang:
+        visitor_dialect = raw_dialect
+    else:
+        if visitor_language == "ar":
+            visitor_dialect = config.accent if config.accent in allowed_dialects_for_lang else "saudi"
+        elif visitor_language == "en":
+            visitor_dialect = "us"
+        else:
+            visitor_dialect = "standard"
+
+    allowed_voices = {"aoede": "Aoede", "puck": "Puck", "fenrir": "Fenrir", "kore": "Kore", "charon": "Charon"}
+    raw_voice = (payload.get("voice_name") or payload.get("voice") or "").strip()
+    default_voice = config.voice_name if (config.voice_name and config.voice_name in allowed_voices.values()) else "Aoede"
+    visitor_voice = allowed_voices.get(raw_voice.lower(), default_voice)
 
     lead = None
     if visitor_name or visitor_phone:
@@ -2536,6 +2566,9 @@ def api_landing_webrtc_session(request):
             phone=visitor_phone,
             country_code=country_code,
             full_phone=full_phone,
+            language=visitor_language,
+            dialect=visitor_dialect,
+            voice_name=visitor_voice,
             call_status="initiated",
             ip_address=client_ip,
             lead_status="new",
@@ -2547,26 +2580,50 @@ def api_landing_webrtc_session(request):
             phone="—",
             country_code="+966",
             full_phone="—",
+            language=visitor_language,
+            dialect=visitor_dialect,
+            voice_name=visitor_voice,
             call_status="initiated",
             ip_address=client_ip,
             lead_status="new",
         )
 
-    # 3. Personalize Welcome Message (speak caller's name)
-    if visitor_name and visitor_name != "زائر المنصة التجريبي":
-        if "{name}" in config.welcome_message:
-            welcome_msg = config.welcome_message.replace("{name}", visitor_name)
+    # 3. Personalize Welcome Message (speak caller's name & match language)
+    if visitor_language == "en":
+        if visitor_name and visitor_name != "زائر المنصة التجريبي":
+            welcome_msg = f"Hello {visitor_name}! I am the Motaem platform sales advisor. How can I assist you with your restaurant today?"
         else:
-            welcome_msg = f"أهلاً بك يا {visitor_name}! أنا مستشار مبيعات منصة مطاعم، كيف أقدر أساعدك اليوم في إدارة وتطوير مطعمك؟"
+            welcome_msg = "Hello! Welcome to Motaem Cloud Restaurant OS. How can I help you today?"
+    elif visitor_language == "fr":
+        if visitor_name and visitor_name != "زائر المنصة التجريبي":
+            welcome_msg = f"Bonjour {visitor_name}! Je suis le conseiller commercial de Motaem. Comment puis-je vous aider aujourd'hui?"
+        else:
+            welcome_msg = "Bonjour! Bienvenue sur Motaem Cloud Restaurant OS. Comment puis-je vous aider aujourd'hui?"
+    elif visitor_language == "tr":
+        if visitor_name and visitor_name != "زائر المنصة التجريبي":
+            welcome_msg = f"Merhaba {visitor_name}! Motaem platformu satış danışmanıyım. Restoranınız için bugün size nasıl yardımcı olabilirim?"
+        else:
+            welcome_msg = "Merhaba! Motaem Bulut Restoran İşletim Sistemine hoş geldiniz. Size nasıl yardımcı olabilirim?"
+    elif visitor_language == "de":
+        if visitor_name and visitor_name != "زائر المنصة التجريبي":
+            welcome_msg = f"Hallo {visitor_name}! Ich bin der Motaem-Verkaufsberater. Wie kann ich Ihnen heute bei Ihrem Restaurant helfen?"
+        else:
+            welcome_msg = "Hallo! Willkommen bei Motaem Cloud Restaurant OS. Wie kann ich Ihnen heute helfen?"
     else:
-        welcome_msg = config.welcome_message
+        if visitor_name and visitor_name != "زائر المنصة التجريبي":
+            if "{name}" in config.welcome_message:
+                welcome_msg = config.welcome_message.replace("{name}", visitor_name)
+            else:
+                welcome_msg = f"أهلاً بك يا {visitor_name}! أنا مستشار مبيعات منصة مطاعم، كيف أقدر أساعدك اليوم في إدارة وتطوير مطعمك؟"
+        else:
+            welcome_msg = config.welcome_message
 
     # 4. Call Partner Service WebRTC API
-    partner_client_id = config.partner_client_id or "49"
+    partner_client_id = config.partner_client_id or "662"
     try:
         partner_client_id = int(partner_client_id)
     except (ValueError, TypeError):
-        partner_client_id = 49
+        partner_client_id = 662
 
     try:
         res = ps.initiate_webrtc_call(
@@ -2574,6 +2631,9 @@ def api_landing_webrtc_session(request):
             max_duration_seconds=config.max_call_duration_seconds,
             caller_name=caller_name,
             welcome_message=welcome_msg,
+            language=visitor_language,
+            accent=visitor_dialect,
+            voice_name=visitor_voice,
         )
         if res.get("status") == "success" and res.get("livekit_url") and res.get("livekit_token"):
             cache.set(cache_key, current_calls + 1, timeout=86400)
@@ -2594,9 +2654,11 @@ def api_landing_webrtc_session(request):
                 "expires_in": config.max_call_duration_seconds,
                 "agent_profile": {
                     "name": config.assistant_name,
-                    "voice": config.voice_name,
-                    "language": config.language,
-                    "accent": config.accent,
+                    "voice": visitor_voice,
+                    "voice_name": visitor_voice,
+                    "language": visitor_language,
+                    "accent": visitor_dialect,
+                    "dialect": visitor_dialect,
                 },
                 "welcome_message": welcome_msg,
                 "restaurant_name": "منصة كُـورَا لإدارة المطاعم",

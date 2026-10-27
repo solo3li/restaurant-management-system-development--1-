@@ -199,6 +199,14 @@
       "dependencies": ["feat-landing-voice-leads-crm"],
       "status": "completed",
       "evidence": "apps/callcenter/models.py (LandingKnowledgeDocument model), core/migrations/0033_landingknowledgedocument.py, apps/callcenter/landing_assistant_service.py, apps/callcenter/admin.py (PlatformVoiceAssistantConfigAdmin 6-tab setup, change_view, get_urls, save_model, LandingKnowledgeDocumentAdmin), apps/callcenter/views.py (9 landing assistant admin AJAX API endpoints), apps/callcenter/urls.py, core/urls.py, core/views.py, templates/admin/core/platformvoiceassistantconfig/change_form.html, test_landing_assistant_admin_tabs.py (8/8 PASS 100%), init.sh (100% PASS), and graphify update ."
+    },
+    {
+      "id": "feat-landing-voice-customization-and-lock",
+      "name": "Landing Visitor Voice Customization (Language/Dialect/Voice) & Admin Telephony Client Lock",
+      "description": "Lock partner_client_id in PlatformVoiceAssistantConfigAdmin with readonly enforcement, lock icon 🔒, and system badge ('معرف نظامي معزول ومقفول'), retaining one-click auto-sync with Landing-Sales-Client (ID 662). Visitor pre-call customization in #landing-lead-modal and landing_webrtc_agent.js: Language (ar, en, fr, tr, de), Dialect (saudi, egyptian, gulf, moroccan, levantine, modern_standard, us, uk, standard with dynamic JS select), Voice profile (Aoede, Puck, Fenrir, Kore, Charon). Persisted in LandingVoiceLead (language, dialect, voice_name) with migration 0034. Instant live reflection in WebRTC session and lead CRM tables.",
+      "dependencies": ["feat-landing-assistant-admin-tabs"],
+      "status": "completed",
+      "evidence": "apps/callcenter/models.py, core/migrations/0034_landingvoicelead_dialect_landingvoicelead_language_and_more.py, apps/callcenter/views.py, apps/callcenter/admin.py, core/partner_service.py, templates/landing.html, static/js/landing_webrtc_agent.js, templates/admin/core/platformvoiceassistantconfig/change_form.html, test_landing_voice_customization.py (12/12 PASS 100%), and ./init.sh (100% PASS)."
     }
   ]
 }

@@ -93,9 +93,9 @@ def ensure_landing_sales_client(config: Optional[PlatformVoiceAssistantConfig] =
     except Exception as e:
         logger.warning(f"Error checking/registering Landing-Sales-Client: {e}")
 
-    # Fallback to current config ID or default '49'
+    # Fallback to current config ID or default '662'
     if not config.partner_client_id:
-        config.partner_client_id = "49"
+        config.partner_client_id = "662"
         config.save(update_fields=["partner_client_id", "updated_at"])
 
     return {

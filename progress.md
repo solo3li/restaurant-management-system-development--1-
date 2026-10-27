@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 13:45
-**Session ID:** Platform Voice Assistant Admin 6-Tab Unified Slate Architecture
+**Last Updated:** 2026-10-27 14:40
+**Session ID:** Landing Visitor Voice Customization & Admin Telephony Client Lock
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -24,12 +24,65 @@
 - `feat-landing-persona-live-sync` (Completed & Verified 100%)
 - `feat-landing-voice-leads-crm` (Completed & Verified 100%)
 - `feat-landing-assistant-admin-tabs` (Completed & Verified 100%)
+- `feat-landing-voice-customization-and-lock` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
 
-- [x] **Platform Voice Assistant Admin 6-Tab Unified Slate Architecture (`feat-landing-assistant-admin-tabs`)**
+- [x] **Landing Visitor Voice Customization (Language/Dialect/Voice) & Admin Telephony Client Lock (`feat-landing-voice-customization-and-lock`)**
+  - **Locking `partner_client_id` in Admin**:
+    - Marked `partner_client_id` as `readonly_fields = ("partner_client_id",)` in `PlatformVoiceAssistantConfigAdmin`.
+    - Added custom ModelAdmin renderer with lock icon 🔒, badge `🔒 معرف نظامي معزول ومقفول`, and descriptive subtext clarifying automated sync exclusivity.
+    - Updated Tab 2 in `templates/admin/core/platformvoiceassistantconfig/change_form.html` with lock icon, system badge, and default ID 662.
+    - Added client-side DOM safeguard in `change_form.html` enforcing `readOnly = true; disabled = true;` on any input, and dynamically enhancing `.field-partner_client_id .readonly` with visual lock badge in the form row.
+    - Maintained button `[ 🔄 فحص وربط الحساب الآن ]` exclusively for auto-syncing and linking with `Landing-Sales-Client` (client ID 662).
+    - Enforced backend model immutability in `PlatformVoiceAssistantConfigAdmin.save_model` to guarantee `partner_client_id` cannot be overridden via forged admin POST requests.
+    - Protected admin helper methods (`partner_client_id`, `partner_client_id_display`) against `AttributeError` when `obj=None` (e.g. on Add view).
+  - **Visitor Pre-Call Customization in `#landing-lead-modal` (`templates/landing.html` & JS)**:
+    - Added dedicated options card to the visitor lead capture modal:
+      1. **Language (`language`)**: العربية (Arabic - default), English, Français, Türkçe, Deutsch.
+      2. **Dialect (`dialect`)**:
+         - Arabic: 🇸🇦 سعودية (default), 🇪🇬 مصرية, 🇦🇪 إماراتية وخليجية, 🇲🇦 مغربية, 🇱🇧 شامية, 🌐 فصحى معاصرة.
+         - English: 🇺🇸 أمريكية (US), 🇬🇧 بريطانية (UK).
+         - Other languages: 🌐 اللهجة القياسية (Standard / Français Standard / Standart Türkçe / Standarddeutsch).
+         - Dynamic reactive select updating via `handleLeadLanguageChange(lang)` and `DIALECT_MAP` in `landing_webrtc_agent.js`.
+         - Synchronized dialect options automatically on `DOMContentLoaded` and whenever `openLandingLeadModal()` is invoked.
+      3. **Voice Profile / Tone (`voice_name`)**:
+         - 👩 سارة (Aoede) - نبرة أنثوية هادئة واحترافية.
+         - 👨 أحمد (Puck) - نبرة رجالية مرنة وحيوية.
+         - 👨 عمر (Fenrir) - نبرة رجالية رخيمة وواثقة.
+         - 👩 مريم (Kore) - نبرة نسائية دافئة وواضحة.
+         - 👨 خالد (Charon) - نبرة رجالية متزنة ورسمية.
+  - **Model & Database Migration**:
+    - Added `language`, `dialect`, and `voice_name` fields with full verbose names, choices, and defaults to `LandingVoiceLead` in `apps/callcenter/models.py`.
+    - Updated `PlatformVoiceAssistantConfig.partner_client_id` default to "662".
+    - Generated and executed migration `0034_landingvoicelead_dialect_landingvoicelead_language_and_more.py`.
+  - **Backend API & WebRTC Session (`apps/callcenter/views.py` & `core/partner_service.py`)**:
+    - Received `language`, `dialect`, and `voice_name` in `api_landing_webrtc_session`.
+    - Enforced strict language-scoped dialect validation (preventing cross-language dialect leaks, such as English with Moroccan dialect or French with Saudi dialect).
+    - Hardened voice name sanitization with fallback to assistant config voice or "Aoede".
+    - Sanitized, validated, and persisted options on `LandingVoiceLead` records.
+    - Passed customization parameters into `partner_service.initiate_webrtc_call` and returned custom `agent_profile` in JSON.
+  - **Review & Hardening Fixes Applied**:
+    - Fixed cross-language dialect leakage in `api_landing_webrtc_session` by scoping allowed dialects per language (`ar` -> regional Arabic, `en` -> US/UK, others -> standard).
+    - Fixed `AttributeError` on `obj=None` across admin methods in `apps/callcenter/admin.py` (`partner_client_id`, `partner_client_id_display`, `language_display`, `dialect_display`, `voice_display`, `whatsapp_button`, `whatsapp_link_display`, `call_status_badge`, `formatted_duration_display`).
+    - Enforced server-side model immutability for `partner_client_id` in `PlatformVoiceAssistantConfigAdmin.save_model`.
+    - Enhanced fieldset DOM rendering in `change_form.html` to inject lock icon 🔒 and badge `🔒 معرف نظامي معزول ومقفول` directly into the `.field-partner_client_id .readonly` element.
+    - Updated leads table search in Tab 5 to index language, dialect, and voice profile.
+    - Re-synchronized `collectstatic` to update `staticfiles/`.
+    - Expanded test suite `test_landing_voice_customization.py` from 12 to 16 automated tests.
+    - Personalized and localized welcome messages across all 5 supported languages.
+    - Passed customization directly into `partner_service.initiate_webrtc_call(..., language=..., accent=..., voice_name=...)`.
+    - Returned `agent_profile` in JSON response with custom voice, dialect, and language.
+  - **Django Admin CRM Integration (`LandingVoiceLeadAdmin` & Tab 5)**:
+    - Added `language_display`, `dialect_display`, and `voice_display` to `list_display`, `list_filter`, and dedicated fieldset in `LandingVoiceLeadAdmin`.
+    - Added "تفضيلات المكالمة" column to Tab 5 leads CRM table in `change_form.html`.
+  - **Automated Verification**:
+    - Created `test_landing_voice_customization.py` with 12 comprehensive test cases covering admin lock, partner client ID immutability, Arabic/Saudi/Regional dialects, English US/UK, multilingual French/German/Turkish, lead persistence, and admin rendering.
+    - Updated `init.sh` to include `test_landing_voice_customization`.
+    - Full `./init.sh` suite passed 100% across all 9 verification pipelines.
+    - Ran `graphify update .` (8,913 nodes, 19,052 edges, 471 communities).
   - **Unified 6-Tab Horizontal Ribbon (`PlatformVoiceAssistantConfigAdmin`)**:
     - **Tab 1: هوية المساعد والشخصية (Identity & Brain)**: `is_active`, `landing_profile_id`, `assistant_name`, `system_prompt`, `welcome_message`.
     - **Tab 2: إعدادات الصوت والاتصال (Gemini Live & Telephony)**: `partner_client_id`, `voice_name`, `language`, `accent`. Guaranteed automatic registration and isolated binding of Partner Service account `Landing-Sales-Client` to `partner_client_id`.

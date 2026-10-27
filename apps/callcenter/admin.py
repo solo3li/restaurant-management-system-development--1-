@@ -43,9 +43,11 @@ class LandingKnowledgeDocumentAdmin(admin.ModelAdmin):
 @admin.register(PlatformVoiceAssistantConfig)
 class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
     change_form_template = "admin/core/platformvoiceassistantconfig/change_form.html"
+    readonly_fields = ("partner_client_id",)
     list_display = (
         "assistant_name",
         "is_active_badge",
+        "partner_client_id_display",
         "voice_name",
         "language",
         "accent",
@@ -82,6 +84,30 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
         }),
     )
 
+    @admin.display(description="معرف العميل لدى مزود الاتصالات (Partner Client ID)")
+    def partner_client_id(self, obj):
+        cid = (obj.partner_client_id if obj else None) or "662"
+        return format_html(
+            '<div style="display:inline-flex;align-items:center;gap:10px;padding:6px 14px;background:#1e293b;border-radius:8px;border:1px solid #475569;">'
+            '<span style="font-family:monospace;font-size:1.1rem;font-weight:bold;color:#38bdf8;">🔒 {}</span>'
+            '<span class="badge" style="background:#0f766e;color:#ccfbf1;padding:5px 10px;border-radius:6px;font-size:0.8rem;font-weight:bold;">'
+            '🔒 معرف نظامي معزول ومقفول'
+            '</span>'
+            '</div>'
+            '<div class="help text-muted" style="margin-top:6px;font-size:0.8rem;">'
+            'هذا المعرف معزول ومقفول ضد التعديل اليدوي، ومسؤول عنه حصراً زر [ 🔄 فحص وربط الحساب الآن ] بالأعلى للمزامنة التلقائية مع حساب Landing-Sales-Client (معرف 662).'
+            '</div>',
+            cid
+        )
+
+    @admin.display(description="معرف العميل")
+    def partner_client_id_display(self, obj):
+        cid = (obj.partner_client_id if obj else None) or "662"
+        return format_html(
+            '<span style="font-family:monospace;font-weight:bold;color:#0284c7;background:#0f172a;padding:2px 8px;border-radius:6px;">🔒 {}</span>',
+            cid
+        )
+
     @admin.display(description="الحالة")
     def is_active_badge(self, obj):
         if obj.is_active:
@@ -114,6 +140,12 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
+        if change and obj.pk:
+            orig = PlatformVoiceAssistantConfig.objects.filter(pk=obj.pk).values_list("partner_client_id", flat=True).first()
+            if orig:
+                obj.partner_client_id = orig
+        elif not obj.partner_client_id:
+            obj.partner_client_id = "662"
         super().save_model(request, obj, form, change)
         try:
             ensure_landing_sales_client(obj)
@@ -143,7 +175,9 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
         "name",
         "whatsapp_button",
         "full_phone",
-        "country_code",
+        "language_display",
+        "dialect_display",
+        "voice_display",
         "call_status_badge",
         "formatted_duration_display",
         "lead_status",
@@ -153,6 +187,9 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
     list_filter = (
         "lead_status",
         "call_status",
+        "language",
+        "dialect",
+        "voice_name",
         "country_code",
         ("created_at", admin.DateFieldListFilter),
     )
@@ -165,6 +202,9 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
         "call_id",
         "ip_address",
         "formatted_duration_display",
+        "language_display",
+        "dialect_display",
+        "voice_display",
     )
     list_per_page = 25
     date_hierarchy = "created_at"
@@ -179,6 +219,14 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
                 "whatsapp_link_display",
             ),
             "description": "بيانات العميل المحتمل المستلمة من نافذة بدء المكالمة في صفحة الهبوط."
+        }),
+        ("التفضيلات الصوتية واللغوية (Voice & Language Preferences)", {
+            "fields": (
+                "language",
+                "dialect",
+                "voice_name",
+            ),
+            "description": "خيارات اللغة واللهجة ونبرة الصوت التي اختارها الزائر قبل بدء المكالمة."
         }),
         ("حالة المكالمة الفنية (Technical Call Session)", {
             "fields": (
@@ -206,8 +254,44 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
         }),
     )
 
+    @admin.display(description="اللغة")
+    def language_display(self, obj):
+        if not obj or not getattr(obj, "language", None):
+            return "—"
+        flags = {
+            "ar": "🇸🇦 العربية",
+            "en": "🇬🇧 English",
+            "fr": "🇫🇷 Français",
+            "tr": "🇹🇷 Türkçe",
+            "de": "🇩🇪 Deutsch",
+        }
+        val = flags.get(obj.language, obj.get_language_display() or obj.language)
+        return format_html('<span style="font-weight:600;color:#f8fafc;">{}</span>', val)
+
+    @admin.display(description="اللهجة")
+    def dialect_display(self, obj):
+        if not obj or not getattr(obj, "dialect", None):
+            return "—"
+        return format_html('<span style="font-weight:500;color:#93c5fd;">{}</span>', obj.get_dialect_display() or obj.dialect)
+
+    @admin.display(description="بروفايل الصوت")
+    def voice_display(self, obj):
+        if not obj or not getattr(obj, "voice_name", None):
+            return "—"
+        voices = {
+            "Aoede": "👩 سارة (Aoede)",
+            "Puck": "👨 أحمد (Puck)",
+            "Fenrir": "👨 عمر (Fenrir)",
+            "Kore": "👩 مريم (Kore)",
+            "Charon": "👨 خالد (Charon)",
+        }
+        val = voices.get(obj.voice_name, obj.voice_name)
+        return format_html('<span style="font-weight:600;color:#a7f3d0;">{}</span>', val)
+
     @admin.display(description="محادثة واتساب")
     def whatsapp_button(self, obj):
+        if not obj:
+            return mark_safe('<span style="color:#94a3b8;">—</span>')
         url = obj.whatsapp_url
         if not url:
             return mark_safe('<span style="color:#94a3b8;">—</span>')
@@ -223,6 +307,8 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
 
     @admin.display(description="رابط واتساب المباشر")
     def whatsapp_link_display(self, obj):
+        if not obj:
+            return mark_safe('<span style="color:#94a3b8;">—</span>')
         url = obj.whatsapp_url
         if not url:
             return mark_safe('<span style="color:#94a3b8;">لا يوجد رقم صالح</span>')
@@ -237,6 +323,8 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
 
     @admin.display(description="حالة المكالمة")
     def call_status_badge(self, obj):
+        if not obj:
+            return mark_safe('<span style="color:#94a3b8;">—</span>')
         color_map = {
             "completed": ("#059669", "#d1fae5", "مكتملة ✓"),
             "connected": ("#2563eb", "#dbeafe", "متصلة 🎧"),
@@ -253,6 +341,8 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
 
     @admin.display(description="مدة المكالمة")
     def formatted_duration_display(self, obj):
+        if not obj or obj.duration_seconds is None:
+            return mark_safe('<span style="font-family:monospace;font-weight:bold;color:#0f172a;">00:00</span>')
         mins = obj.duration_seconds // 60
         secs = obj.duration_seconds % 60
         duration_str = f"{mins:02d}:{secs:02d}"

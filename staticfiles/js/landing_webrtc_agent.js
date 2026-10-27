@@ -80,6 +80,13 @@
             document.body.classList.add('overflow-hidden');
             const errBox = document.getElementById('lead-modal-error');
             if (errBox) errBox.classList.add('hidden');
+
+            // Sync dialects dropdown with currently selected language
+            const langSelect = document.getElementById('lead-visitor-language');
+            if (langSelect && window.handleLeadLanguageChange) {
+                window.handleLeadLanguageChange(langSelect.value);
+            }
+
             setTimeout(() => {
                 const nameInput = document.getElementById('lead-visitor-name');
                 if (nameInput) nameInput.focus();
@@ -99,6 +106,52 @@
         }
     };
 
+    const DIALECT_MAP = {
+        ar: [
+            { value: 'saudi', label: '🇸🇦 سعودية (افتراضي)', selected: true },
+            { value: 'egyptian', label: '🇪🇬 مصرية' },
+            { value: 'gulf', label: '🇦🇪 إماراتية وخليجية' },
+            { value: 'moroccan', label: '🇲🇦 مغربية' },
+            { value: 'levantine', label: '🇱🇧 شامية' },
+            { value: 'modern_standard', label: '🌐 فصحى معاصرة' }
+        ],
+        en: [
+            { value: 'us', label: '🇺🇸 أمريكية (US)', selected: true },
+            { value: 'uk', label: '🇬🇧 بريطانية (UK)' }
+        ],
+        fr: [
+            { value: 'standard', label: '🌐 Français Standard', selected: true }
+        ],
+        tr: [
+            { value: 'standard', label: '🌐 Standart Türkçe', selected: true }
+        ],
+        de: [
+            { value: 'standard', label: '🌐 Standarddeutsch', selected: true }
+        ]
+    };
+
+    window.handleLeadLanguageChange = function (lang) {
+        const dialectSelect = document.getElementById('lead-visitor-dialect');
+        if (!dialectSelect) return;
+        const cleanLang = (lang || 'ar').toLowerCase();
+        const options = DIALECT_MAP[cleanLang] || DIALECT_MAP.ar;
+        dialectSelect.innerHTML = '';
+        options.forEach(opt => {
+            const optionEl = document.createElement('option');
+            optionEl.value = opt.value;
+            optionEl.textContent = opt.label;
+            if (opt.selected) optionEl.selected = true;
+            dialectSelect.appendChild(optionEl);
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const langSelect = document.getElementById('lead-visitor-language');
+        if (langSelect && window.handleLeadLanguageChange) {
+            window.handleLeadLanguageChange(langSelect.value);
+        }
+    });
+
     window.handleCountryCodeChange = function (selectEl) {
         const customWrap = document.getElementById('lead-custom-code-wrap');
         const customInput = document.getElementById('lead-custom-code-input');
@@ -116,6 +169,9 @@
         const phoneInput = document.getElementById('lead-visitor-phone');
         const codeSelect = document.getElementById('lead-country-code');
         const customCodeInput = document.getElementById('lead-custom-code-input');
+        const langSelect = document.getElementById('lead-visitor-language');
+        const dialectSelect = document.getElementById('lead-visitor-dialect');
+        const voiceSelect = document.getElementById('lead-visitor-voice');
         const errorBox = document.getElementById('lead-modal-error');
         const errorText = document.getElementById('lead-modal-error-text');
 
@@ -149,10 +205,17 @@
 
         if (errorBox) errorBox.classList.add('hidden');
 
+        const language = (langSelect?.value || 'ar').trim();
+        const dialect = (dialectSelect?.value || 'saudi').trim();
+        const voiceName = (voiceSelect?.value || 'Aoede').trim();
+
         currentVisitorInfo = {
             name: name,
             phone: rawPhone,
-            country_code: countryCode
+            country_code: countryCode,
+            language: language,
+            dialect: dialect,
+            voice_name: voiceName,
         };
 
         closeLandingLeadModal();

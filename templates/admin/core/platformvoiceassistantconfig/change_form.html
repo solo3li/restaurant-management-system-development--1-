@@ -311,16 +311,19 @@
                 <div class="slate-subcard mb-4">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div class="d-flex align-items-center gap-3">
-                            <div style="background: rgba(16, 185, 129, 0.15); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-server text-success fa-lg"></i>
+                            <div style="background: rgba(14, 165, 233, 0.15); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-lock text-info fa-lg"></i>
                             </div>
                             <div>
-                                <div class="text-white font-weight-bold" style="font-size: 0.95rem;">
-                                    حساب السنترال المعزول: <code style="color: #38bdf8;">Landing-Sales-Client</code>
+                                <div class="text-white font-weight-bold d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                                    <span>حساب السنترال المعزول: <code style="color: #38bdf8;">Landing-Sales-Client</code></span>
+                                    <span class="badge" style="background: #0f766e; color: #ccfbf1; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 6px;">
+                                        🔒 معرف نظامي معزول ومقفول
+                                    </span>
                                 </div>
-                                <div class="text-muted small">
-                                    معرف العميل (Partner Client ID): <strong class="text-white" id="partner-client-id-badge">{{ original.partner_client_id|default:"49" }}</strong>
-                                    — مخصص بالكامل لمكالمات صفحة الهبوط العامة بدون أي تداخل مع حسابات المطاعم.
+                                <div class="text-muted small mt-1">
+                                    معرف العميل لدى المزود: <strong class="text-white font-monospace" id="partner-client-id-badge">🔒 {{ original.partner_client_id|default:"662" }}</strong>
+                                    <span class="text-secondary ms-1">(غير قابل للتعديل اليدوي — الربط آلي ومحصور بزر الفحص أدناه مع حساب Landing-Sales-Client)</span>
                                 </div>
                             </div>
                         </div>
@@ -545,19 +548,20 @@
                     <table class="slate-table" id="leads-table">
                         <thead>
                             <tr>
-                                <th style="width: 18%;">اسم الزائر</th>
-                                <th style="width: 16%;">رقم الجوال</th>
-                                <th style="width: 12%;">واتساب</th>
-                                <th style="width: 14%;">حالة المكالمة</th>
-                                <th style="width: 10%;">المدة</th>
-                                <th style="width: 14%;">تاريخ الاتصال</th>
-                                <th style="width: 16%;">حالة المتابعة</th>
+                                <th style="width: 15%;">اسم الزائر</th>
+                                <th style="width: 14%;">رقم الجوال</th>
+                                <th style="width: 8%;">واتساب</th>
+                                <th style="width: 16%;">تفضيلات المكالمة</th>
+                                <th style="width: 12%;">حالة المكالمة</th>
+                                <th style="width: 8%;">المدة</th>
+                                <th style="width: 12%;">تاريخ الاتصال</th>
+                                <th style="width: 15%;">حالة المتابعة</th>
                             </tr>
                         </thead>
                         <tbody id="leads-tbody">
                             {% if leads %}
                                 {% for lead in leads %}
-                                <tr id="lead-row-{{ lead.id }}" class="lead-data-row" data-search="{{ lead.name|lower }} {{ lead.full_phone|lower }} {{ lead.phone }}">
+                                <tr id="lead-row-{{ lead.id }}" class="lead-data-row" data-search="{{ lead.name|lower }} {{ lead.full_phone|lower }} {{ lead.phone }} {{ lead.language|lower }} {{ lead.dialect|lower }} {{ lead.voice_name|lower }}">
                                     <td>
                                         <strong class="text-white">{{ lead.name }}</strong>
                                         {% if lead.notes %}
@@ -575,6 +579,14 @@
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="small text-white font-weight-bold">
+                                            <span>{{ lead.get_language_display|default:lead.language }}</span> • <span class="text-info">{{ lead.get_dialect_display|default:lead.dialect }}</span>
+                                        </div>
+                                        <div class="small text-muted mt-0.5">
+                                            <i class="fas fa-volume-up text-success me-1"></i> {{ lead.get_voice_name_display|default:lead.voice_name }}
+                                        </div>
                                     </td>
                                     <td>
                                         {% if lead.call_status == "connected" %}
@@ -606,7 +618,7 @@
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td colspan="7" class="text-center py-4 text-muted">
+                                    <td colspan="8" class="text-center py-4 text-muted">
                                         <i class="fas fa-headset fa-2x mb-2 d-block text-secondary"></i>
                                         لم يتم تسجيل أي مكالمات من زوار صفحة الهبوط بعد.
                                     </td>
@@ -907,7 +919,9 @@ function ensurePartnerClient() {
         if (btn) btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> فحص وربط الحساب الآن';
         if (data.status === 'success') {
             const badge = document.getElementById('partner-client-id-badge');
-            if (badge) badge.innerText = data.client_id;
+            if (badge) badge.innerText = `🔒 ${data.client_id}`;
+            const readonlySpan = document.getElementById('field-partner-client-id-val');
+            if (readonlySpan) readonlySpan.innerText = `🔒 ${data.client_id}`;
             showToast(`تم ربط حساب السنترال بنجاح (${data.client_name} - ID: ${data.client_id})`);
         } else {
             showToast(data.message || 'حدث خطأ أثناء فحص الحساب', true);
@@ -918,6 +932,33 @@ function ensurePartnerClient() {
         showToast('خطأ في الاتصال بالخادم', true);
     });
 }
+
+// Ensure partner_client_id is locked in DOM if input exists and style readonly display
+document.addEventListener('DOMContentLoaded', function() {
+    const pInput = document.getElementById('id_partner_client_id');
+    if (pInput) {
+        pInput.readOnly = true;
+        pInput.disabled = true;
+        pInput.style.backgroundColor = '#1e293b';
+        pInput.style.color = '#94a3b8';
+        pInput.style.cursor = 'not-allowed';
+    }
+    const readonlyEl = document.querySelector('.field-partner_client_id .readonly');
+    if (readonlyEl) {
+        const val = readonlyEl.textContent.trim() || '662';
+        readonlyEl.innerHTML = `
+            <div style="display:inline-flex;align-items:center;gap:10px;padding:6px 14px;background:#1e293b;border-radius:8px;border:1px solid #475569;">
+                <span id="field-partner-client-id-val" style="font-family:monospace;font-size:1.1rem;font-weight:bold;color:#38bdf8;">🔒 ${val}</span>
+                <span class="badge" style="background:#0f766e;color:#ccfbf1;padding:5px 10px;border-radius:6px;font-size:0.8rem;font-weight:bold;">
+                    🔒 معرف نظامي معزول ومقفول
+                </span>
+            </div>
+            <div class="help text-muted" style="margin-top:6px;font-size:0.8rem;">
+                هذا المعرف معزول ومقفول ضد التعديل اليدوي، ومسؤول عنه حصراً زر [ 🔄 فحص وربط الحساب الآن ] بالأعلى للمزامنة التلقائية مع حساب Landing-Sales-Client (معرف 662).
+            </div>
+        `;
+    }
+});
 
 // Open modals
 function openAddFaqModal() {
