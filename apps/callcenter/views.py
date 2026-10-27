@@ -17,8 +17,9 @@ from django.core.cache import cache
 from apps.tenants.helpers import get_active_tenant, get_active_branch
 from apps.accounts.helpers import user_has_perm, _get_client_ip
 from apps.callcenter.models import TenantApiKey
+from django.utils import translation
 from apps.tenants.models import Tenant, Branch, DeliveryArea
-from apps.menu.models import MenuItem
+from apps.menu.models import MenuItem, MenuCategory
 from apps.orders.models import Order, Customer
 from apps.audit.models import log_audit_event, KnowledgeDocument
 from apps.accounts.models import Employee
@@ -32,16 +33,146 @@ def call_center_view(request):
 
     if not user_has_perm(request.user, "call_center_access"):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى الكول سنتر")
-    branches = Branch.objects.filter(tenant=tenant, status="active").prefetch_related("delivery_areas").order_by("name")
-    menu_items = MenuItem.objects.filter(tenant=tenant, available=True).order_by("category", "name")
-    recent_orders = Order.objects.filter(tenant=tenant, channel="call_center").order_by("-id")[:10]
-    delivery_areas = DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).select_related("branch").order_by("branch__name", "name")
 
-    seen_cats = []
-    for m in menu_items:
-        if m.category and m.category not in seen_cats:
-            seen_cats.append(m.category)
-    categories = ["الكل"] + (seen_cats if seen_cats else ["أطباق رئيسية", "مشويات", "ساندويتشات", "مشروبات"])
+    lang = getattr(request, "LANGUAGE_CODE", None) or translation.get_language() or "ar"
+    if "-" in lang:
+        lang = lang.split("-")[0]
+    if lang not in ["ar", "en"]:
+        lang = "ar"
+
+    branches = Branch.objects.filter(tenant=tenant, status="active").prefetch_related("delivery_areas").order_by("name")
+    recent_orders = Order.objects.filter(tenant=tenant, channel="call_center").order_by("-id")[:10] if tenant else []
+    delivery_areas = DeliveryArea.objects.filter(branch__tenant=tenant, is_active=True).select_related("branch").order_by("branch__name", "name") if tenant else []
+
+    # Dynamic Menu Categories from apps.menu.models.MenuCategory (matching POS)
+    active_categories_qs = (
+        MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by("ordering", "id")
+        if tenant
+        else MenuCategory.objects.none()
+    )
+
+    # Legacy migration fallback: ONLY if tenant has NEVER had any MenuCategories in DB before
+    if tenant and not MenuCategory.objects.filter(tenant=tenant).exists():
+        legacy_cats = list(
+            MenuItem.objects.filter(tenant=tenant)
+            .exclude(category="")
+            .exclude(category__isnull=True)
+            .values_list("category", flat=True)
+            .distinct()
+        )
+        if legacy_cats:
+            order_idx = 10
+            for cat_name in legacy_cats:
+                cat_name_clean = str(cat_name).strip()
+                if cat_name_clean:
+                    MenuCategory.objects.get_or_create(
+                        tenant=tenant,
+                        name=cat_name_clean,
+                        defaults={"ordering": order_idx, "is_active": True},
+                    )
+                    order_idx += 10
+            active_categories_qs = MenuCategory.objects.filter(
+                tenant=tenant, is_active=True
+            ).order_by("ordering", "id")
+
+    active_cats_list = list(active_categories_qs)
+    cat_by_id = {c.id: c for c in active_cats_list}
+    cat_by_name = {}
+    for c in active_cats_list:
+        if c.name:
+            cat_by_name[c.name.strip().lower()] = c
+        if c.name_en and c.name_en.strip():
+            cat_by_name[c.name_en.strip().lower()] = c
+
+    raw_items = (
+        MenuItem.objects.filter(tenant=tenant, available=True, is_active=True)
+        .select_related("category_rel")
+        .order_by("category_rel__ordering", "category_rel__id", "category", "name")
+        if tenant
+        else MenuItem.objects.none()
+    )
+
+    BORDER_PALETTE = [
+        "border-r-4 border-r-violet-500",
+        "border-r-4 border-r-blue-500",
+        "border-r-4 border-r-emerald-500",
+        "border-r-4 border-r-amber-500",
+        "border-r-4 border-r-orange-500",
+        "border-r-4 border-r-teal-500",
+        "border-r-4 border-r-cyan-500",
+        "border-r-4 border-r-rose-500",
+        "border-r-4 border-r-pink-500",
+        "border-r-4 border-r-indigo-500",
+    ]
+
+    menu_items = []
+    seen_extra_cats = []
+    has_uncategorized = False
+    for m in raw_items:
+        resolved_cat = None
+        if m.category_rel_id and m.category_rel_id in cat_by_id:
+            resolved_cat = cat_by_id[m.category_rel_id]
+        elif m.category and m.category.strip().lower() in cat_by_name:
+            resolved_cat = cat_by_name[m.category.strip().lower()]
+
+        if resolved_cat:
+            m.pos_category_id = str(resolved_cat.id)
+            m.pos_category_name = resolved_cat.get_display_name(lang)
+            color_idx = resolved_cat.id % len(BORDER_PALETTE)
+            m.border_color_class = BORDER_PALETTE[color_idx]
+        elif m.category and m.category.strip():
+            clean_cat = m.category.strip()
+            m.pos_category_id = f"custom_{clean_cat}"
+            m.pos_category_name = clean_cat
+            if clean_cat not in seen_extra_cats and clean_cat.lower() not in cat_by_name:
+                seen_extra_cats.append(clean_cat)
+            color_idx = abs(hash(clean_cat)) % len(BORDER_PALETTE)
+            m.border_color_class = BORDER_PALETTE[color_idx]
+        else:
+            m.pos_category_id = "uncategorized"
+            m.pos_category_name = "أطباق عامة" if lang == "ar" else "General"
+            m.border_color_class = "border-r-4 border-r-slate-400"
+            has_uncategorized = True
+
+        menu_items.append(m)
+
+    # Build category list for Call Center tab pills
+    categories = [
+        {
+            "id": "all",
+            "name": "الكل" if lang == "ar" else "All",
+            "raw_name": "all",
+            "is_all": True,
+        }
+    ]
+    for c in active_cats_list:
+        categories.append({
+            "id": str(c.id),
+            "name": c.get_display_name(lang),
+            "raw_name": c.name,
+            "is_all": False,
+        })
+    for ex in seen_extra_cats:
+        categories.append({
+            "id": f"custom_{ex}",
+            "name": ex,
+            "raw_name": ex,
+            "is_all": False,
+        })
+    if has_uncategorized and not any(c["id"] == "uncategorized" for c in categories):
+        categories.append({
+            "id": "uncategorized",
+            "name": "أطباق عامة" if lang == "ar" else "General",
+            "raw_name": "uncategorized",
+            "is_all": False,
+        })
+    if has_uncategorized and not any(c["id"] == "uncategorized" for c in categories):
+        categories.append({
+            "id": "uncategorized",
+            "name": "أطباق عامة" if lang == "ar" else "General",
+            "raw_name": "uncategorized",
+            "is_all": False,
+        })
 
     currency_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
 

@@ -159,6 +159,14 @@
       "dependencies": ["feat-official-5-language-multilingual"],
       "status": "completed",
       "evidence": "core/templatetags/i18n_tags.py (auto punctuation stripping regex and sentinel fallback), core/i18n_catalog.py (expanded to 2857 verified terms), templates/call_center.html, templates/employees.html, templates/base.html, static/js/diyafa_i18n_catalog.json, static/js/diyafa_i18n_engine.js, staticfiles/. Verified via test_multilingual_5lang.py (9/9 suites 100% PASS including targeted screen assertions), test_landing_and_profile.py (100% PASS), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), ./init.sh (100% PASS), collectstatic, and live container motaem_web verified on https://uggu.space/."
+    },
+    {
+      "id": "feat-callcenter-dynamic-categories",
+      "name": "Dynamic Menu Categories Integration for Call Center Screen",
+      "description": "Make Call Center menu categories 100% dynamic matching the POS architecture. Replace static fallback categories ('أطباق رئيسية', 'مشويات', 'ساندويتشات', 'مشروبات') with dynamic MenuCategory objects from the database and auto-resolve item categories, ensuring real categories (e.g. Pizza, Burgers) appear in category filter pills with instant JavaScript filtering.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "apps/callcenter/views.py (dynamic MenuCategory query, category_rel resolution, border color mapping, and clean pill construction), templates/call_center.html (category buttons, data-category-id, data-category, and setCategory JS filtering). Verified via manage.py check, test_multilingual_5lang.py, test_system.py, test_e2e_rbac.py, and container verification."
     }
   ]
 }

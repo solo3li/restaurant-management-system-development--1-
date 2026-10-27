@@ -42,12 +42,13 @@
                     {% for c in categories %}
                     <button 
                         type="button" 
-                        onclick="setCategory('{{ c }}')" 
+                        onclick="setCategory('{{ c.id|default:c|escapejs }}')" 
                         id="cat-btn-{{ forloop.counter }}"
-                        class="cat-btn rounded-full px-3 py-0.5 text-xs font-bold transition cursor-pointer {% if forloop.first %}bg-violet-600 text-white shadow-xs{% else %}border border-slate-200/70 bg-white text-slate-800 hover:text-slate-900 hover:bg-slate-100{% endif %}"
-                        data-cat="{{ c }}"
+                        class="cat-btn shrink-0 whitespace-nowrap rounded-full px-3 py-0.5 text-xs font-bold transition cursor-pointer {% if forloop.first %}bg-violet-600 text-white shadow-xs{% else %}border border-slate-200/70 bg-white text-slate-800 hover:text-slate-900 hover:bg-slate-100{% endif %}"
+                        data-cat-id="{{ c.id|default:c }}"
+                        data-cat="{{ c.name|default:c }}"
                     >
-                        {{ c|t }}
+                        {{ c.name|default:c|t }}
                     </button>
                     {% endfor %}
                 </div>
@@ -67,11 +68,12 @@
                 {% for m in menu_items %}
                 <button 
                     type="button"
-                    class="menu-item group relative flex flex-col justify-between p-2.5 rounded-xl border border-slate-200/70 bg-white hover:border-violet-600 hover:bg-blue-50/30 active:scale-[0.98] transition-all text-right shadow-xs cursor-pointer select-none min-h-[64px] {% if not m.available %}opacity-40 pointer-events-none{% endif %} {% if m.category == 'أطباق رئيسية' %}border-r-4 border-r-blue-500{% elif m.category == 'مشويات' %}border-r-4 border-r-amber-500{% elif m.category == 'ساندويتشات' %}border-r-4 border-r-emerald-500{% elif m.category == 'برجر' %}border-r-4 border-r-orange-500{% elif m.category == 'دجاج' %}border-r-4 border-r-yellow-500{% elif m.category == 'مقبلات' %}border-r-4 border-r-teal-500{% elif m.category == 'مشروبات' %}border-r-4 border-r-cyan-500{% elif m.category == 'حلويات' %}border-r-4 border-r-pink-500{% else %}border-r-4 border-r-blue-400{% endif %}"
+                    class="menu-item group relative flex flex-col justify-between p-2.5 rounded-xl border border-slate-200/70 bg-white hover:border-violet-600 hover:bg-blue-50/30 active:scale-[0.98] transition-all text-right shadow-xs cursor-pointer select-none min-h-[64px] {% if not m.available %}opacity-40 pointer-events-none{% endif %} {{ m.border_color_class|default:'border-r-4 border-r-blue-400' }}"
                     data-id="{{ m.id }}"
                     data-name="{{ m.name }}"
                     data-price="{{ m.price }}"
-                    data-category="{{ m.category }}"
+                    data-category-id="{{ m.pos_category_id|default:m.category }}"
+                    data-category="{{ m.pos_category_name|default:m.category }}"
                     onclick="addToCart({{ m.id }}, '{{ m.name|escapejs }}', {{ m.price }})"
                 >
                     <!-- Top: Dish Name (Preserve Dish Name as entered by Restaurant) -->
@@ -87,7 +89,7 @@
                             {{ m.price|floatformat:0 }} <span class="text-[10.5px] font-bold text-slate-700 font-sans">{{ tenant_currency_symbol|t }}</span>
                         </span>
                         <span class="text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-800 border border-slate-200 max-w-[65px] truncate">
-                            {{ m.category|t }}
+                            {{ m.pos_category_name|default:m.category|t }}
                         </span>
                     </div>
 
@@ -431,13 +433,18 @@
         renderCart();
     }
 
-    function setCategory(cat) {
-        currentCategory = cat;
+    let currentCategory = 'all';
+
+    function setCategory(catId) {
+        currentCategory = String(catId);
         document.querySelectorAll('.cat-btn').forEach(btn => {
-            if (btn.dataset.cat === cat) {
-                btn.className = 'cat-btn rounded-full px-3 py-0.5 text-xs font-bold bg-violet-600 text-white shadow-xs transition cursor-pointer';
+            const btnCatId = String(btn.dataset.catId || btn.dataset.cat || '');
+            const isMatch = (btnCatId === currentCategory) || 
+                            ((currentCategory === 'all' || currentCategory === 'الكل') && (btnCatId === 'all' || btnCatId === 'الكل'));
+            if (isMatch) {
+                btn.className = 'cat-btn shrink-0 whitespace-nowrap rounded-full px-3 py-0.5 text-xs font-bold bg-violet-600 text-white shadow-xs transition cursor-pointer';
             } else {
-                btn.className = 'cat-btn rounded-full px-3 py-0.5 text-xs font-medium border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition cursor-pointer';
+                btn.className = 'cat-btn shrink-0 whitespace-nowrap rounded-full px-3 py-0.5 text-xs font-medium border border-slate-200/70 bg-white text-slate-800 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer';
             }
         });
         filterMenu();
@@ -448,15 +455,18 @@
         let visibleCount = 0;
         document.querySelectorAll('.menu-item').forEach(el => {
             const name = (el.dataset.name || '').toLowerCase();
-            const cat = el.dataset.category || '';
-            const matchCat = (currentCategory === 'الكل') || (cat === currentCategory);
+            const catId = String(el.dataset.categoryId || '').toLowerCase();
+            const catName = String(el.dataset.category || '').toLowerCase();
+            const isAll = (currentCategory === 'all' || currentCategory === 'الكل');
+            const targetCat = currentCategory.toLowerCase();
+            const matchCat = isAll || (catId === targetCat) || (catName === targetCat);
             const matchSearch = !q || name.includes(q);
             if (matchCat && matchSearch) {
                 el.style.display = 'flex';
+                visibleCount++;
             } else {
                 el.style.display = 'none';
             }
-            if (matchCat && matchSearch) visibleCount++;
         });
         const noMsg = document.getElementById('no-items-msg');
         if (noMsg) noMsg.style.display = visibleCount === 0 ? 'block' : 'none';
