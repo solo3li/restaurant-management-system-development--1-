@@ -124,13 +124,9 @@
         let countryCode = codeSelect?.value || '+966';
 
         if (countryCode === 'custom') {
-            countryCode = (customCodeInput?.value || '').trim();
-            if (!countryCode.startsWith('+')) {
-                countryCode = '+' + countryCode.replace(/^\+*/, '');
-            }
-            if (countryCode.length < 2) {
-                countryCode = '+966';
-            }
+            const rawCustom = (customCodeInput?.value || '').trim();
+            const cleanDigits = rawCustom.replace(/\D/g, '').replace(/^0+/, '');
+            countryCode = cleanDigits ? `+${cleanDigits}` : '+966';
         }
 
         // Validate name (min 2 chars)
@@ -141,9 +137,10 @@
             return;
         }
 
-        // Validate phone (min 5 digits, max 16 digits)
+        // Validate phone (min 5 digits, max 16 digits, non-zero)
         const digits = rawPhone.replace(/\D/g, '');
-        if (digits.length < 5 || digits.length > 16) {
+        const nonZeroDigits = digits.replace(/^0+/, '');
+        if (digits.length < 5 || digits.length > 16 || nonZeroDigits.length < 4) {
             if (errorText) errorText.textContent = 'يرجى إدخال رقم جوال صحيح يتكون من 5 إلى 16 رقماً.';
             if (errorBox) errorBox.classList.remove('hidden');
             phoneInput?.focus();
@@ -420,7 +417,7 @@
     // ========================================================
 
     async function startWebRTCCall(visitorData) {
-        updateCallStatus('جاري طلب إذن الميكروفون...', 'connecting');
+        updateCallStatus('جاري الاتصال بالسيرفر والذكاء الاصطناعي...', 'connecting');
         const restNameEl = document.getElementById('call-restaurant-name');
         if (restNameEl && document.body.dataset.restaurantName) {
             restNameEl.textContent = document.body.dataset.restaurantName;
@@ -429,12 +426,7 @@
         const payloadData = visitorData || currentVisitorInfo || {};
 
         try {
-            // 1. Request Browser Mic
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            updateCallStatus('جاري الاتصال بالسيرفر والذكاء الاصطناعي...', 'connecting');
-
-            // 2. Fetch LiveKit Credentials from Backend Proxy
+            // 1. Fetch LiveKit Credentials & Persist Visitor Lead First
             const sessionResp = await fetch('/api/landing/voice-session/', {
                 method: 'POST',
                 headers: {
@@ -473,6 +465,12 @@
 
             maxDurationSeconds = sessionData.max_duration_seconds || 300;
 
+            // 2. Request Browser Mic Permission
+            updateCallStatus('جاري طلب إذن الميكروفون...', 'connecting');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            updateCallStatus('جاري الاتصال بالمساعد الصوتي...', 'connecting');
+
             // 3. Load LiveKit SDK
             const LK = await ensureLiveKitLoaded();
             const { Room, RoomEvent, createLocalAudioTrack } = LK;
@@ -502,6 +500,23 @@
                     // Hook AI Audio Analyser
                     setupRemoteAudioAnalyser(remoteAudioElement);
                     updateCallStatus('المساعد الصوتي متصل — تحدث الآن', 'connected');
+
+                    // Notify backend call is connected
+                    if (currentLeadId || currentCallId) {
+                        fetch('/api/landing/voice-session/end/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken'),
+                            },
+                            body: JSON.stringify({
+                                lead_id: currentLeadId,
+                                call_id: currentCallId,
+                                call_status: 'connected',
+                                duration_seconds: 0
+                            })
+                        }).catch(() => {});
+                    }
                 }
             });
 
@@ -715,7 +730,8 @@
     function handleCallTermination(reason) {
         stopCallTimer();
         stopVisualizerLoop();
-        sendEndSessionTelemetry('completed');
+        const endStatus = callDurationSeconds > 0 ? 'completed' : 'missed';
+        sendEndSessionTelemetry(endStatus);
 
         if (localAudioTrack) {
             try {
@@ -784,5 +800,12 @@
         document.getElementById('call-active-state')?.classList.remove('hidden');
         startWebRTCCall(currentVisitorInfo);
     };
+
+    // Global ESC key listener to dismiss visitor lead modal
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            closeLandingLeadModal();
+        }
+    });
 
 })();

@@ -255,25 +255,48 @@ class LandingVoiceLead(models.Model):
 
     @staticmethod
     def format_full_phone(phone: str, country_code: str = "+966") -> str:
+        """
+        Normalize international phone numbers across all world dial codes to standard E.164.
+        Handles leading 00 international prefix, internal zeros, spaces, dashes, and parentheses.
+        """
         clean_cc = (country_code or "+966").strip()
-        if not clean_cc.startswith("+"):
-            clean_cc = "+" + clean_cc
-        clean_p = (phone or "").strip()
-        if clean_p.startswith("+"):
-            return clean_p
-        digits = re.sub(r"\D", "", clean_p)
+        cc_digits = re.sub(r"\D", "", clean_cc).lstrip("0")
+        if not cc_digits:
+            cc_digits = "966"
+        clean_cc = f"+{cc_digits}"
+
+        raw_p = (phone or "").strip()
+        digits = re.sub(r"\D", "", raw_p)
         if not digits:
-            return clean_p or "—"
-        cc_digits = clean_cc.lstrip("+")
-        if digits.startswith(cc_digits):
+            return raw_p or "—"
+
+        # If phone begins with 00 (international prefix), strip it
+        if digits.startswith("00"):
+            digits = digits[2:]
+
+        # If original phone started with "+" or "00", check if user typed country code
+        if raw_p.startswith("+") or raw_p.startswith("00"):
+            if digits.startswith(cc_digits):
+                remainder = digits[len(cc_digits):].lstrip("0")
+                return f"{clean_cc}{remainder}"
             return f"+{digits}"
+
+        # If digits directly begin with cc_digits without leading +/00:
+        if digits.startswith(cc_digits):
+            remainder = digits[len(cc_digits):].lstrip("0")
+            return f"{clean_cc}{remainder}"
+
+        # Local digits stripping leading 0
         local_digits = digits.lstrip("0")
+        if not local_digits:
+            local_digits = digits
         return f"{clean_cc}{local_digits}"
 
     @property
     def whatsapp_url(self) -> str:
+        """Generate direct WhatsApp click-to-chat URL for valid international mobile numbers."""
         digits = re.sub(r"\D", "", self.full_phone or self.phone or "")
-        if digits:
+        if digits and len(digits) >= 7:
             return f"https://wa.me/{digits}"
         return ""
 
@@ -283,10 +306,10 @@ class LandingVoiceLead(models.Model):
         return f"{mins:02d}:{secs:02d}"
 
     def save(self, *args, **kwargs):
-        if self.phone and not self.full_phone:
+        if self.phone and self.phone != "—":
             self.full_phone = self.format_full_phone(self.phone, self.country_code)
-        elif self.phone and self.country_code and not self.full_phone.startswith("+"):
-            self.full_phone = self.format_full_phone(self.phone, self.country_code)
+        elif not self.full_phone:
+            self.full_phone = "—"
         super().save(*args, **kwargs)
 
 

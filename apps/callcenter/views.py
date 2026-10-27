@@ -2507,9 +2507,9 @@ def api_landing_webrtc_session(request):
 
     visitor_name = (payload.get("name") or payload.get("caller_name") or "").strip()
     visitor_phone = (payload.get("phone") or "").strip()
-    country_code = (payload.get("country_code") or "+966").strip()
-    if not country_code.startswith("+"):
-        country_code = f"+{country_code}"
+    raw_cc = str(payload.get("country_code") or "+966").strip()
+    cc_digits = re.sub(r"\D", "", raw_cc).lstrip("0")
+    country_code = f"+{cc_digits}" if (1 <= len(cc_digits) <= 4) else "+966"
 
     lead = None
     if visitor_name or visitor_phone:
@@ -2521,7 +2521,8 @@ def api_landing_webrtc_session(request):
             }, status=400)
 
         digits = re.sub(r"\D", "", visitor_phone)
-        if len(digits) < 5 or len(digits) > 16:
+        local_digits = digits.lstrip("0")
+        if len(digits) < 5 or len(digits) > 16 or not local_digits or len(local_digits) < 4:
             return JsonResponse({
                 "status": "error",
                 "code": "invalid_phone",
@@ -2649,10 +2650,10 @@ def api_landing_voice_session_end(request):
     else:
         payload = request.POST.dict()
 
-    lead_id = payload.get("lead_id")
-    call_id = payload.get("call_id")
-    duration_seconds = payload.get("duration_seconds", 0)
-    call_status = payload.get("call_status", "completed")
+    lead_id = payload.get("lead_id") or request.POST.get("lead_id")
+    call_id = payload.get("call_id") or request.POST.get("call_id")
+    duration_seconds = payload.get("duration_seconds", request.POST.get("duration_seconds", 0))
+    call_status = payload.get("call_status", request.POST.get("call_status", "completed"))
 
     try:
         duration_seconds = max(0, int(duration_seconds))
@@ -2678,6 +2679,10 @@ def api_landing_voice_session_end(request):
 
     valid_statuses = dict(LandingVoiceLead.CALL_STATUS_CHOICES).keys()
     if call_status not in valid_statuses:
+        call_status = "completed"
+
+    # Prevent overwriting a completed session with initiated/connected
+    if lead.call_status == "completed" and call_status in ("initiated", "connected"):
         call_status = "completed"
 
     lead.duration_seconds = max(lead.duration_seconds, duration_seconds)

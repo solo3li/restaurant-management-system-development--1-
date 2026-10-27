@@ -85,6 +85,10 @@ class LandingVoiceLeadsTestSuite(TestCase):
             ("612345678", "+33", "+33612345678", "https://wa.me/33612345678"),
             ("987654321", "+351", "+351987654321", "https://wa.me/351987654321"),  # Portugal (Custom)
             ("+966501234567", "+966", "+966501234567", "https://wa.me/966501234567"),
+            ("00966501234567", "+966", "+966501234567", "https://wa.me/966501234567"),  # 00 prefix no duplication
+            ("00201012345678", "+20", "+201012345678", "https://wa.me/201012345678"),
+            ("+966 50 123 4567", "+966", "+966501234567", "https://wa.me/966501234567"),
+            ("+966 (050) 123-4567", "+966", "+966501234567", "https://wa.me/966501234567"),
         ]
         for phone, cc, expected_full, expected_wa in cases:
             res_full = LandingVoiceLead.format_full_phone(phone, cc)
@@ -359,3 +363,86 @@ class LandingVoiceLeadsTestSuite(TestCase):
         self.assertContains(res, "custom") # Other/custom country code
         self.assertContains(res, "id=\"lead-custom-code-wrap\"")
         self.assertContains(res, "بدء المكالمة الصوتية الآن 🎙️")
+
+    def test_12_whatsapp_url_validity_threshold_and_admin_sync(self):
+        """Verify whatsapp_url returns empty for short/invalid numbers and save() resyncs full_phone on phone edit."""
+        lead = LandingVoiceLead.objects.create(
+            name="طارق الخالدي",
+            phone="0501112233",
+            country_code="+966",
+        )
+        self.assertEqual(lead.full_phone, "+966501112233")
+        self.assertEqual(lead.whatsapp_url, "https://wa.me/966501112233")
+
+        # Edit phone on model instance and save
+        lead.phone = "0559998877"
+        lead.save()
+        lead.refresh_from_db()
+        self.assertEqual(lead.full_phone, "+966559998877")
+        self.assertEqual(lead.whatsapp_url, "https://wa.me/966559998877")
+
+        # Short/invalid phone threshold check
+        lead_dummy = LandingVoiceLead(name="زائر تجريبي", phone="—", full_phone="—")
+        self.assertEqual(lead_dummy.whatsapp_url, "")
+
+    def test_13_connected_telemetry_and_no_downgrade(self):
+        """Verify call transitions to connected, and completed status is not downgraded."""
+        lead = LandingVoiceLead.objects.create(
+            name="سالم الغامدي",
+            phone="0504445566",
+            country_code="+966",
+            call_status="initiated",
+        )
+
+        # 1. Update to connected
+        res = self.client.post(
+            "/api/landing/voice-session/end/",
+            data=json.dumps({
+                "lead_id": lead.id,
+                "call_status": "connected",
+                "duration_seconds": 0,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 200)
+        lead.refresh_from_db()
+        self.assertEqual(lead.call_status, "connected")
+
+        # 2. Complete session with duration
+        res = self.client.post(
+            "/api/landing/voice-session/end/",
+            data=json.dumps({
+                "lead_id": lead.id,
+                "call_status": "completed",
+                "duration_seconds": 75,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 200)
+        lead.refresh_from_db()
+        self.assertEqual(lead.call_status, "completed")
+        self.assertEqual(lead.duration_seconds, 75)
+
+        # 3. Trailing connected ping cannot downgrade completed
+        res = self.client.post(
+            "/api/landing/voice-session/end/",
+            data=json.dumps({
+                "lead_id": lead.id,
+                "call_status": "connected",
+                "duration_seconds": 10,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 200)
+        lead.refresh_from_db()
+        self.assertEqual(lead.call_status, "completed")
+        self.assertEqual(lead.duration_seconds, 75)
+
+    def test_14_landing_modal_bilingual_english_rendering(self):
+        """Verify landing lead modal renders localized English labels when lang=en is queried."""
+        res = self.client.get("/?lang=en")
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "id=\"landing-lead-modal\"")
+        self.assertContains(res, "Start Voice Call Now 🎙️")
+        self.assertContains(res, "Full Name")
+        self.assertContains(res, "Mobile Number")
