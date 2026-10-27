@@ -346,7 +346,7 @@ JAZZMIN_SETTINGS = {
     "default_icon_children": "fas fa-circle",
     "related_modal_active": True,
     "custom_css": "css/jazzmin_custom.css",
-    "custom_js": None,
+    "custom_js": "js/jazzmin_custom.js",
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
     "changeform_format": "horizontal_tabs",
@@ -377,7 +377,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "slate",                   # IBM Carbon / Technical Slate!
-    "default_theme_mode": "auto",
+    "default_theme_mode": "dark",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",

@@ -89,3 +89,76 @@ body, .main-sidebar, .card, table, input, button, select {
     max-width: 100% !important;
     flex: 0 0 100% !important;
 }
+
+/* ==============================================================================
+   UNIFIED SLATE ADMIN PALETTE (Eliminate stark white body canvas)
+   ============================================================================== */
+html,
+body,
+body.bg-body-tertiary,
+.bg-body-tertiary,
+.app-wrapper,
+.app-main,
+.app-content-header,
+.app-content,
+.content-wrapper,
+.content-header {
+    background-color: #272b30 !important;
+    color: #e9ecef !important;
+}
+
+/* Headings on Admin Canvas */
+.app-content-header h1,
+.app-content-header h2,
+.app-content-header h3,
+.app-content-header h4,
+.content-header h1,
+.content-header h2,
+.content-header h3,
+h1.m-0 {
+    color: #f8fafc !important;
+    font-weight: 700 !important;
+}
+
+/* Breadcrumbs text color and background */
+.app-content-header .breadcrumb,
+.content-header .breadcrumb {
+    background: transparent !important;
+}
+
+.app-content-header .breadcrumb-item,
+.app-content-header .breadcrumb-item a,
+.content-header .breadcrumb-item,
+.content-header .breadcrumb-item a,
+.breadcrumb-item a {
+    color: #94a3b8 !important;
+}
+
+.app-content-header .breadcrumb-item.active,
+.content-header .breadcrumb-item.active,
+.breadcrumb-item.active {
+    color: #f1f5f9 !important;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: #64748b !important;
+}
+
+/* Tables in Changelist and Dashboard */
+.table {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.03) !important;
+    color: #dee2e6 !important;
+}
+
+/* Admin cards */
+.card {
+    background-color: #32383e !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+

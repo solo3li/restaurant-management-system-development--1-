@@ -912,14 +912,14 @@
     "semantic_hash": ""
   },
   "restaurant_system/settings.py": {
-    "mtime": 1793069305.1566021,
-    "seen": 1793072290.5395668,
-    "ast_hash": "fd675d027cc6beb229d6d0561dc5cf46",
+    "mtime": 1793093083.6333256,
+    "seen": 1793093241.7763186,
+    "ast_hash": "fca497d3a92dff98b091834263c37b7a",
     "semantic_hash": ""
   },
   "restaurant_system/urls.py": {
-    "mtime": 1792656372.037178,
-    "seen": 1792755068.7960136,
+    "mtime": 1793090983.1747806,
+    "seen": 1793093241.7763212,
     "ast_hash": "1d1b45c6d040cf62a8924e18e4018e0f",
     "semantic_hash": ""
   },
@@ -3060,9 +3060,9 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793080331.5667307,
-    "seen": 1793089832.700306,
-    "ast_hash": "6c78135638c3f580b0056bde5e82fef8",
+    "mtime": 1793090983.0937781,
+    "seen": 1793093241.7760026,
+    "ast_hash": "df302ac42d0d62e64760a0aba25f9642",
     "semantic_hash": ""
   },
   "init.sh": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793080340.722007,
-    "seen": 1793089832.7340598,
-    "ast_hash": "637c44979dbf9795501a37d43cd2da47",
+    "mtime": 1793090983.1747806,
+    "seen": 1793093241.8050516,
+    "ast_hash": "28edb7816b36193b3dc010a2e62b294c",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3873,6 +3873,18 @@
     "mtime": 1793089583.4833384,
     "seen": 1793089832.7167594,
     "ast_hash": "7e8c28741984fee8171c2ded04410e6e",
+    "semantic_hash": ""
+  },
+  "static/js/jazzmin_custom.js": {
+    "mtime": 1793093087.3644388,
+    "seen": 1793093241.7784333,
+    "ast_hash": "412e255ef234903244f6ebab733bf1f9",
+    "semantic_hash": ""
+  },
+  "staticfiles/js/jazzmin_custom.js": {
+    "mtime": 1793093114.6142654,
+    "seen": 1793093241.787152,
+    "ast_hash": "412e255ef234903244f6ebab733bf1f9",
     "semantic_hash": ""
   }
 }

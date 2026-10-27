@@ -300,3 +300,15 @@
   - Full regression `./init.sh` (100% PASS).
   - Graphify knowledge graph updated via `graphify update .`.
 
+## Django Admin Unified Dark Slate Theme Fix
+- **Eliminated White Body Canvas in Admin**:
+  - Root Cause: Jazzmin hardcoded `bg-body-tertiary` on `<body>` which in light mode overrides background with `#eff3f6`.
+  - Configured `restaurant_system/settings.py`:
+    - `JAZZMIN_UI_TWEAKS["default_theme_mode"] = "dark"`
+    - `JAZZMIN_SETTINGS["custom_js"] = "js/jazzmin_custom.js"`
+  - Created `static/js/jazzmin_custom.js` to ensure `data-bs-theme="dark"` is enforced and stored in `localStorage`.
+  - Updated `static/css/jazzmin_custom.css` with unified `#272b30` Slate palette covering `html`, `body`, `.bg-body-tertiary`, `.app-wrapper`, `.app-main`, `.app-content-header`, `.app-content`, `.content-wrapper`, and `.content-header`.
+  - Added high-contrast breadcrumb and heading styling (`#f8fafc`).
+  - Ran `collectstatic`, restarted `motaem_web` container, and verified `./init.sh` passes 100%.
+
+
