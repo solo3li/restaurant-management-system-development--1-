@@ -231,11 +231,12 @@ def branch_context(request):
 def i18n_context(request):
     """
     Comprehensive context processor providing language, layout direction,
-    and a rich bilingual translation dictionary (Arabic & English 100%).
+    and a rich multi-language translation dictionary (Arabic, English, French, Turkish, German).
     """
     lang = None
     query_lang = request.GET.get("lang") if hasattr(request, "GET") else None
-    if query_lang in ["ar", "en"]:
+    supported_langs = ["ar", "en", "fr", "tr", "de"]
+    if query_lang in supported_langs:
         lang = query_lang
         if hasattr(request, "session"):
             request.session["django_language"] = lang
@@ -252,10 +253,10 @@ def i18n_context(request):
 
     if "-" in lang:
         lang = lang.split("-")[0]
-    if lang not in ["ar", "en"]:
+    if lang not in supported_langs:
         lang = "ar"
 
-    from .i18n_catalog import I18N_CATALOG
+    from .i18n_catalog import I18N_CATALOG, get_translation
 
     is_rtl = (lang == "ar")
 
@@ -289,191 +290,240 @@ def i18n_context(request):
     except Exception:
         pass
 
+    def pick_lang(ar_text, en_text, fr_text=None, tr_text=None, de_text=None):
+        if lang == "ar":
+            return ar_text
+        if lang == "fr":
+            return fr_text or en_text
+        if lang == "tr":
+            return tr_text or en_text
+        if lang == "de":
+            return de_text or en_text
+        return en_text
+
     base_t = {
         # App & Brand
-        "app_title": "منظومة مطاعم السحابية" if is_rtl else "Motaem Restaurant OS",
-        "brand_name": "مطاعم" if is_rtl else "Motaem",
+        "app_title": pick_lang("منظومة مطاعم السحابية", "Motaem Restaurant OS", "Système d'exploitation Motaem Restaurant", "Motaem Restoran Bulut İşletim Sistemi", "Motaem Restaurant Cloud-Betriebssystem"),
+        "brand_name": pick_lang("مطاعم", "Motaem", "Motaem", "Motaem", "Motaem"),
         "brand_hq": "HQ",
-        "brand_subtitle": "نظام إدارة المطاعم" if is_rtl else "Restaurant Management System",
-        "brand_tagline": "النظام السحابي لإدارة سلاسل المطاعم والضيافة الحديثة" if is_rtl else "Cloud Operating System for Hospitality & Dining",
-        "online_system": "متصل بالنظام السحابي" if is_rtl else "Connected to Cloud OS",
-        "all_branches_label": "الإدارة العامة (كافة الفروع)" if is_rtl else "Central HQ (All Branches)",
-        "branch_prefix": "فرع" if is_rtl else "Branch",
+        "brand_subtitle": pick_lang("نظام إدارة المطاعم", "Restaurant Management System", "Système de gestion de restaurant", "Restoran Yönetim Sistemi", "Restaurant-Management-System"),
+        "brand_tagline": pick_lang("النظام السحابي لإدارة سلاسل المطاعم والضيافة الحديثة", "Cloud Operating System for Hospitality & Dining", "Système d'exploitation cloud pour la restauration et l'hôtellerie", "Restoran ve Ağırlama İçin Bulut İşletim Sistemi", "Cloud-Betriebssystem für Gastronomie & Restaurants"),
+        "online_system": pick_lang("متصل بالنظام السحابي", "Connected to Cloud OS", "Connecté au système cloud", "Bulut Sistemine Bağlı", "Mit Cloud-System verbunden"),
+        "all_branches_label": pick_lang("الإدارة العامة (كافة الفروع)", "Central HQ (All Branches)", "Siège central (Toutes les succursales)", "Genel Merkez (Tüm Şubeler)", "Hauptsitz (Alle Filialen)"),
+        "branch_prefix": pick_lang("فرع", "Branch", "Succursale", "Şube", "Filiale"),
 
         # Navigation
-        "nav_dashboard": "لوحة الإدارة العامة (HQ)" if is_rtl else "HQ Central Dashboard",
-        "nav_branch_dashboard": "لوحة تشغيل الفرع" if is_rtl else "Branch Operations",
-        "nav_branches": "إدارة الفروع والمواقع" if is_rtl else "Branches & Locations",
-        "nav_all_branches": "كافة الفروع والمدن" if is_rtl else "All Branches & Cities",
-        "nav_switch_hq": "التحويل للإدارة العامة (HQ)" if is_rtl else "Switch to HQ Mode",
-        "nav_pos_menu": "نقاط البيع وقائمة الطعام" if is_rtl else "POS & Menu",
-        "nav_pos": "كاشير نقطة البيع (POS)" if is_rtl else "Cashier Point of Sale (POS)",
-        "nav_menu": "قائمة الأطباق والأسعار" if is_rtl else "Menu Dishes & Pricing",
-        "nav_kitchen": "شاشات المطبخ (KDS)" if is_rtl else "Kitchen Displays (KDS)",
-        "nav_ai_callcenter": "كول سنتر الذكاء الاصطناعي" if is_rtl else "AI Call Center",
-        "nav_callcenter_live": "مركز الاتصالات المباشر" if is_rtl else "Live Call Center",
-        "nav_callcenter_mgmt": "إعدادات المساعد الصوتي" if is_rtl else "AI Voice Assistant Settings",
-        "nav_callcenter_overview": "نظرة عامة وإحصائيات" if is_rtl else "Overview & Stats",
-        "nav_callcenter_persona": "شخصية المساعد واللهجة" if is_rtl else "Persona & Voice",
-        "nav_callcenter_hours": "مواعيد العمل والاعتذار" if is_rtl else "Working Hours",
-        "nav_callcenter_knowledge": "قاعدة المعرفة (RAG)" if is_rtl else "Knowledge Base",
-        "nav_callcenter_queues": "طوابير وموظفو التحويل" if is_rtl else "Queues & Agents",
-        "nav_callcenter_calls": "سجل المكالمات والتسجيلات" if is_rtl else "Call Logs & Audio",
-        "nav_callcenter_capabilities": "صلاحيات وقدرات الذكاء" if is_rtl else "AI Capabilities & MCP",
-        "nav_callcenter_omnichannel": "قنوات الاتصال والواتساب" if is_rtl else "Omnichannel & WhatsApp",
-        "nav_inventory": "المستودعات والمخزون" if is_rtl else "Inventory & Warehouses",
-        "nav_stock_audit": "جرد المواد والمستودعات" if is_rtl else "Stock Audit & Materials",
-        "nav_delivery": "أسطول التوصيل والمناديب" if is_rtl else "Delivery Fleet & Drivers",
-        "nav_orders": "سجل كافة الطلبات والفواتير" if is_rtl else "All Orders & Invoices",
-        "nav_branch_orders": "طلبات وفواتير الفرع" if is_rtl else "Branch Orders & Invoices",
-        "nav_employees": "الموظفون والرواتب" if is_rtl else "Staff & Payroll",
-        "nav_subscription": "الاشتراك والتقارير المالية" if is_rtl else "Subscription & Financials",
-        "nav_general_admin": "الإدارة العامة" if is_rtl else "General Admin",
-        "nav_platform": "إدارة منصة SaaS العامة" if is_rtl else "SaaS Platform Admin",
-        "nav_django_admin": "لوحة Django Admin" if is_rtl else "Django Admin Console",
+        "nav_dashboard": pick_lang("لوحة الإدارة العامة (HQ)", "HQ Central Dashboard", "Tableau de bord central HQ", "Genel Merkez Paneli", "HQ-Zentral-Dashboard"),
+        "nav_branch_dashboard": pick_lang("لوحة تشغيل الفرع", "Branch Operations", "Opérations de succursale", "Şube Operasyonları", "Filialbetrieb"),
+        "nav_branches": pick_lang("إدارة الفروع والمواقع", "Branches & Locations", "Succursales & Emplacements", "Şubeler ve Konumlar", "Filialen & Standorte"),
+        "nav_all_branches": pick_lang("كافة الفروع والمدن", "All Branches & Cities", "Toutes les succursales", "Tüm Şubeler ve Şehirler", "Alle Filialen & Städte"),
+        "nav_switch_hq": pick_lang("التحويل للإدارة العامة (HQ)", "Switch to HQ Mode", "Passer au mode HQ", "Genel Merkez Moduna Geç", "In den HQ-Modus wechseln"),
+        "nav_pos_menu": pick_lang("نقاط البيع وقائمة الطعام", "POS & Menu", "PDV & Menu", "POS ve Menü", "POS & Speisekarte"),
+        "nav_pos": pick_lang("كاشير نقطة البيع (POS)", "Cashier Point of Sale (POS)", "Caisse point de vente (PDV)", "Kasiyer Satış Noktası (POS)", "Kasse & POS"),
+        "nav_menu": pick_lang("قائمة الأطباق والأسعار", "Menu Dishes & Pricing", "Menu et tarifs", "Menü ve Fiyatlandırma", "Speisekarte & Preise"),
+        "nav_kitchen": pick_lang("شاشات المطبخ (KDS)", "Kitchen Displays (KDS)", "Écrans de cuisine (KDS)", "Mutfak Ekranları (KDS)", "Küchenanzeigen (KDS)"),
+        "nav_ai_callcenter": pick_lang("كول سنتر الذكاء الاصطناعي", "AI Call Center", "Centre d'appels IA", "Yapay Zeka Çağrı Merkezi", "KI-Call-Center"),
+        "nav_callcenter_live": pick_lang("مركز الاتصالات المباشر", "Live Call Center", "Centre d'appels en direct", "Canlı Çağrı Merkezi", "Live-Call-Center"),
+        "nav_callcenter_mgmt": pick_lang("إعدادات المساعد الصوتي", "AI Voice Assistant Settings", "Paramètres de l'assistant vocal IA", "Yapay Zeka Sesli Asistan Ayarları", "KI-Sprachassistent-Einstellungen"),
+        "nav_callcenter_overview": pick_lang("نظرة عامة وإحصائيات", "Overview & Stats", "Aperçu et statistiques", "Genel Bakış ve İstatistikler", "Übersicht & Statistiken"),
+        "nav_callcenter_persona": pick_lang("شخصية المساعد واللهجة", "Persona & Voice", "Personnalité et voix", "Kişilik ve Ses", "Persönlichkeit & Stimme"),
+        "nav_callcenter_hours": pick_lang("مواعيد العمل والاعتذار", "Working Hours", "Heures de travail", "Çalışma Saatleri", "Öffnungszeiten"),
+        "nav_callcenter_knowledge": pick_lang("قاعدة المعرفة (RAG)", "Knowledge Base", "Base de connaissances (RAG)", "Bilgi Tabanı (RAG)", "Wissensdatenbank (RAG)"),
+        "nav_callcenter_queues": pick_lang("طوابير وموظفو التحويل", "Queues & Agents", "Files d'attente et agents", "Kuyruklar ve Temsilciler", "Warteschlangen & Mitarbeiter"),
+        "nav_callcenter_calls": pick_lang("سجل المكالمات والتسجيلات", "Call Logs & Audio", "Historique des appels", "Çağrı Kayıtları", "Anrufliste & Aufnahmen"),
+        "nav_callcenter_capabilities": pick_lang("صلاحيات وقدرات الذكاء", "AI Capabilities & MCP", "Capacités de l'IA & MCP", "Yapay Zeka Yetenekleri ve MCP", "KI-Fähigkeiten & MCP"),
+        "nav_callcenter_omnichannel": pick_lang("قنوات الاتصال والواتساب", "Omnichannel & WhatsApp", "Omnicanal & WhatsApp", "Çok Kanallı ve WhatsApp", "Omnichannel & WhatsApp"),
+        "nav_inventory": pick_lang("المستودعات والمخزون", "Inventory & Warehouses", "Inventaire et stocks", "Envanter ve Depolar", "Warenlager & Inventar"),
+        "nav_stock_audit": pick_lang("جرد المواد والمستودعات", "Stock Audit & Materials", "Inventaire des stocks", "Stok Sayımı ve Malzemeler", "Bestandsprüfung & Materialien"),
+        "nav_delivery": pick_lang("أسطول التوصيل والمناديب", "Delivery Fleet & Drivers", "Flotte de livraison et livreurs", "Teslimat Filosu ve Kuryeler", "Lieferflotte & Fahrer"),
+        "nav_orders": pick_lang("سجل كافة الطلبات والفواتير", "All Orders & Invoices", "Toutes les commandes et factures", "Tüm Siparişler ve Faturalar", "Alle Bestellungen & Rechnungen"),
+        "nav_branch_orders": pick_lang("طلبات وفواتير الفرع", "Branch Orders & Invoices", "Commandes de la succursale", "Şube Siparişleri ve Faturaları", "Filialbestellungen & Rechnungen"),
+        "nav_employees": pick_lang("الموظفون والرواتب", "Staff & Payroll", "Personnel et paie", "Personel ve Maaşlar", "Personal & Gehaltsabrechnung"),
+        "nav_subscription": pick_lang("الاشتراك والتقارير المالية", "Subscription & Financials", "Abonnement et finances", "Abonelik ve Finansal Raporlar", "Abonnement & Finanzen"),
+        "nav_general_admin": pick_lang("الإدارة العامة", "General Admin", "Administration générale", "Genel Yönetim", "Hauptverwaltung"),
+        "nav_platform": pick_lang("إدارة منصة SaaS العامة", "SaaS Platform Admin", "Administration de la plateforme SaaS", "SaaS Platform Yöneticisi", "SaaS-Plattform-Administration"),
+        "nav_django_admin": pick_lang("لوحة Django Admin", "Django Admin Console", "Console Django Admin", "Django Yönetici Paneli", "Django Admin-Konsole"),
 
         # Header & User Actions
-        "profile": "الملف الشخصي" if is_rtl else "User Profile",
-        "logout": "تسجيل الخروج" if is_rtl else "Sign Out",
-        "login": "تسجيل الدخول" if is_rtl else "Sign In",
-        "register": "إنشاء حساب منشأة" if is_rtl else "Register Restaurant",
-        "notifications": "الإشعارات" if is_rtl else "Notifications",
-        "collapse_sidebar": "تصغير / توسيع القائمة الجانبية (Ctrl + B)" if is_rtl else "Collapse / Expand Sidebar (Ctrl + B)",
-        "open_menu": "فتح القائمة الرئيسية" if is_rtl else "Open Main Menu",
-        "live": "مباشر" if is_rtl else "LIVE",
+        "profile": pick_lang("الملف الشخصي", "User Profile", "Profil utilisateur", "Kullanıcı Profili", "Benutzerprofil"),
+        "logout": pick_lang("تسجيل الخروج", "Sign Out", "Déconnexion", "Çıkış Yap", "Abmelden"),
+        "login": pick_lang("تسجيل الدخول", "Sign In", "Connexion", "Giriş Yap", "Anmelden"),
+        "register": pick_lang("إنشاء حساب منشأة", "Register Restaurant", "Inscrire un restaurant", "Restoran Kaydet", "Restaurant registrieren"),
+        "notifications": pick_lang("الإشعارات", "Notifications", "Notifications", "Bildirimler", "Benachrichtigungen"),
+        "collapse_sidebar": pick_lang("تصغير / توسيع القائمة الجانبية (Ctrl + B)", "Collapse / Expand Sidebar (Ctrl + B)", "Réduire / Agrandir la barre latérale", "Kenar Çubuğunu Daralt / Genişlet", "Seitenleiste ein-/ausklappen"),
+        "open_menu": pick_lang("فتح القائمة الرئيسية", "Open Main Menu", "Ouvrir le menu principal", "Ana Menüyü Aç", "Hauptmenü öffnen"),
+        "live": pick_lang("مباشر", "LIVE", "EN DIRECT", "CANLI", "LIVE"),
 
         # Common Actions
-        "save": "حفظ" if is_rtl else "Save",
-        "cancel": "إلغاء" if is_rtl else "Cancel",
-        "delete": "حذف" if is_rtl else "Delete",
-        "edit": "تعديل" if is_rtl else "Edit",
-        "create": "إضافة جديد" if is_rtl else "Add New",
-        "search": "بحث..." if is_rtl else "Search...",
-        "filter": "تصفية" if is_rtl else "Filter",
-        "all": "الكل" if is_rtl else "All",
-        "close": "إغلاق" if is_rtl else "Close",
-        "back": "رجوع" if is_rtl else "Back",
-        "confirm": "تأكيد" if is_rtl else "Confirm",
-        "print": "طباعة" if is_rtl else "Print",
-        "export": "تصدير" if is_rtl else "Export",
-        "refresh": "تحديث" if is_rtl else "Refresh",
-        "details": "التفاصيل" if is_rtl else "Details",
-        "actions": "الإجراءات" if is_rtl else "Actions",
+        "save": pick_lang("حفظ", "Save", "Enregistrer", "Kaydet", "Speichern"),
+        "cancel": pick_lang("إلغاء", "Cancel", "Annuler", "İptal", "Abbrechen"),
+        "delete": pick_lang("حذف", "Delete", "Supprimer", "Sil", "Löschen"),
+        "edit": pick_lang("تعديل", "Edit", "Modifier", "Düzenle", "Bearbeiten"),
+        "create": pick_lang("إضافة جديد", "Add New", "Ajouter nouveau", "Yeni Ekle", "Neu hinzufügen"),
+        "search": pick_lang("بحث...", "Search...", "Rechercher...", "Ara...", "Suchen..."),
+        "filter": pick_lang("تصفية", "Filter", "Filtrer", "Filtrele", "Filtern"),
+        "all": pick_lang("الكل", "All", "Tous", "Tümü", "Alle"),
+        "close": pick_lang("إغلاق", "Close", "Fermer", "Kapat", "Schließen"),
+        "back": pick_lang("رجوع", "Back", "Retour", "Geri", "Zurück"),
+        "confirm": pick_lang("تأكيد", "Confirm", "Confirmer", "Onayla", "Bestätigen"),
+        "print": pick_lang("طباعة", "Print", "Imprimer", "Yazdır", "Drucken"),
+        "export": pick_lang("تصدير", "Export", "Exporter", "Dışa Aktar", "Exportieren"),
+        "refresh": pick_lang("تحديث", "Refresh", "Actualiser", "Yenile", "Aktualisieren"),
+        "details": pick_lang("التفاصيل", "Details", "Détails", "Ayrıntılar", "Details"),
+        "actions": pick_lang("الإجراءات", "Actions", "Actions", "İşlemler", "Aktionen"),
 
         # Common Statuses & Financials
-        "status": "الحالة" if is_rtl else "Status",
-        "active": "نشط" if is_rtl else "Active",
-        "inactive": "معطل" if is_rtl else "Inactive",
-        "pending": "قيد المراجعة" if is_rtl else "Pending",
-        "approved": "تمت الموافقة" if is_rtl else "Approved",
-        "rejected": "مرفوض" if is_rtl else "Rejected",
-        "completed": "مكتمل" if is_rtl else "Completed",
-        "cancelled": "ملغي" if is_rtl else "Cancelled",
+        "status": pick_lang("الحالة", "Status", "Statut", "Durum", "Status"),
+        "active": pick_lang("نشط", "Active", "Actif", "Aktif", "Aktiv"),
+        "inactive": pick_lang("معطل", "Inactive", "Inactif", "Pasif", "Inaktiv"),
+        "pending": pick_lang("قيد المراجعة", "Pending", "En attente", "Beklemede", "Ausstehend"),
+        "approved": pick_lang("تمت الموافقة", "Approved", "Approuvé", "Onaylandı", "Genehmigt"),
+        "rejected": pick_lang("مرفوض", "Rejected", "Rejeté", "Reddedildi", "Abgelehnt"),
+        "completed": pick_lang("مكتمل", "Completed", "Terminé", "Tamamlandı", "Abgeschlossen"),
+        "cancelled": pick_lang("ملغي", "Cancelled", "Annulé", "İptal Edildi", "Storniert"),
         "currency": currency_sym,
-        "total": "الإجمالي" if is_rtl else "Total",
-        "subtotal": "المجموع الفرعي" if is_rtl else "Subtotal",
-        "vat": "ضريبة القيمة المضافة (15%)" if is_rtl else "VAT (15%)",
-        "discount": "الخصم" if is_rtl else "Discount",
-        "quantity": "الكمية" if is_rtl else "Qty",
-        "price": "السعر" if is_rtl else "Price",
-        "date": "التاريخ" if is_rtl else "Date",
-        "notes": "الملاحظات" if is_rtl else "Notes",
+        "total": pick_lang("الإجمالي", "Total", "Total", "Toplam", "Gesamt"),
+        "subtotal": pick_lang("المجموع الفرعي", "Subtotal", "Sous-total", "Ara Toplam", "Zwischensumme"),
+        "vat": pick_lang("ضريبة القيمة المضافة (15%)", "VAT (15%)", "TVA (15%)", "KDV (%15)", "MwSt. (15%)"),
+        "discount": pick_lang("الخصم", "Discount", "Remise", "İndirim", "Rabatt"),
+        "quantity": pick_lang("الكمية", "Qty", "Qté", "Adet", "Menge"),
+        "price": pick_lang("السعر", "Price", "Prix", "Fiyat", "Preis"),
+        "date": pick_lang("التاريخ", "Date", "Date", "Tarih", "Datum"),
+        "notes": pick_lang("الملاحظات", "Notes", "Remarques", "Notlar", "Notizen"),
 
         # POS & KDS
-        "cashier": "الكاشير" if is_rtl else "Cashier",
-        "dine_in": "محلي" if is_rtl else "Dine-In",
-        "takeaway": "سفري" if is_rtl else "Takeaway",
-        "delivery_type": "توصيل" if is_rtl else "Delivery",
-        "cash": "نقداً" if is_rtl else "Cash",
-        "card": "شبكة / مدى" if is_rtl else "Card / Mada",
-        "order_num": "طلب رقم" if is_rtl else "Order #",
-        "cooking": "قيد الطهي" if is_rtl else "Cooking",
-        "ready": "جاهز للاستلام" if is_rtl else "Ready",
-        "on_the_way": "في الطريق" if is_rtl else "On The Way",
+        "cashier": pick_lang("الكاشير", "Cashier", "Caisse", "Kasiyer", "Kasse"),
+        "dine_in": pick_lang("محلي", "Dine-In", "Sur place", "Restoranda", "Im Restaurant"),
+        "takeaway": pick_lang("سفري", "Takeaway", "À emporter", "Paket Servis", "Zum Mitnehmen"),
+        "delivery_type": pick_lang("توصيل", "Delivery", "Livraison", "Teslimat", "Lieferung"),
+        "cash": pick_lang("نقداً", "Cash", "Espèces", "Nakit", "Barzahlung"),
+        "card": pick_lang("شبكة / مدى", "Card / Mada", "Carte bancaire", "Banka Kartı", "Kartenzahlung"),
+        "order_num": pick_lang("طلب رقم", "Order #", "Commande n°", "Sipariş No", "Bestellung Nr."),
+        "cooking": pick_lang("قيد الطهي", "Cooking", "En cuisson", "Pişiriliyor", "In Zubereitung"),
+        "ready": pick_lang("جاهز للاستلام", "Ready", "Prêt", "Hazır", "Fertig"),
+        "on_the_way": pick_lang("في الطريق", "On The Way", "En route", "Yolda", "Unterwegs"),
 
         # Languages
         "language_arabic": "العربية",
         "language_english": "English",
+        "language_french": "Français",
+        "language_turkish": "Türkçe",
+        "language_german": "Deutsch",
         "switch_to_arabic": "التبديل إلى العربية",
         "switch_to_english": "Switch to English",
+        "switch_to_french": "Passer au français",
+        "switch_to_turkish": "Türkçe'ye Geç",
+        "switch_to_german": "Zu Deutsch wechseln",
+        "select_language": pick_lang("اختيار اللغة", "Select Language", "Choisir la langue", "Dil Seçin", "Sprache wählen"),
 
         # Operational Domains
-        "dash_command_center": "مركز القيادة والعمليات" if is_rtl else "Command & Operations Center",
-        "dash_subtitle": "متابعة حية للتدفق المالي، توزيع الطلبات، أداء الفروع، وكول سنتر الذكاء الاصطناعي في شاشة موحدة." if is_rtl else "Live monitoring of cash flow, order distribution, branch performance, and AI Call Center.",
-        "dash_unified_system": "النظام الموحد للإدارة العليا" if is_rtl else "Unified Executive Management System",
-        "dash_live_monitoring": "متابعة فورية ومباشرة لكافة الفروع" if is_rtl else "Live Real-Time Monitoring of All Branches",
-        "dash_chain_sales_today": "إجمالي مبيعات السلسلة اليوم" if is_rtl else "Total Chain Revenue Today",
-        "dash_net_revenue": "صافي الإيراد المحصل" if is_rtl else "Net Collected Revenue",
-        "dash_completed_orders": "عدد الطلبات المكتملة" if is_rtl else "Completed Orders Count",
-        "dash_active_orders": "الطلبات النشطة حالياً" if is_rtl else "Currently Active Orders",
-        "dash_branches_performance": "أداء الفروع المباشر" if is_rtl else "Live Branch Performance",
-        "dash_sales_by_channel": "توزيع المبيعات حسب القنوات" if is_rtl else "Sales Distribution by Channel",
-        "dash_top_dishes": "أكثر الأطباق طلباً بالسلسلة" if is_rtl else "Top Selling Dishes Across Chain",
-        "dash_sales_last_7_days": "مبيعات آخر 7 أيام" if is_rtl else "Sales - Last 7 Days",
+        "dash_command_center": pick_lang("مركز القيادة والعمليات", "Command & Operations Center", "Centre de commandement et d'opérations", "Komuta ve Operasyon Merkezi", "Kommando- und Betriebszentrum"),
+        "dash_subtitle": pick_lang("متابعة حية للتدفق المالي، توزيع الطلبات، أداء الفروع، وكول سنتر الذكاء الاصطناعي في شاشة موحدة.", "Live monitoring of cash flow, order distribution, branch performance, and AI Call Center.", "Suivi en direct des flux de trésorerie, de la répartition des commandes, des performances des succursales et du centre d'appels IA.", "Nakit akışı, sipariş dağılımı, şube performansı ve Yapay Zeka Çağrı Merkezi canlı takibi.", "Live-Überwachung von Cashflow, Auftragsverteilung, Filialleistung und KI-Call-Center auf einem Bildschirm."),
+        "dash_unified_system": pick_lang("النظام الموحد للإدارة العليا", "Unified Executive Management System", "Système unifié de gestion exécutive", "Birleşik Üst Düzey Yönetim Sistemi", "Einheitliches Führungsinformationssystem"),
+        "dash_live_monitoring": pick_lang("متابعة فورية ومباشرة لكافة الفروع", "Live Real-Time Monitoring of All Branches", "Surveillance en temps réel de toutes les succursales", "Tüm Şubelerin Anlık Canlı Takibi", "Echtzeit-Überwachung aller Filialen"),
+        "dash_chain_sales_today": pick_lang("إجمالي مبيعات السلسلة اليوم", "Total Chain Revenue Today", "Revenu total de la chaîne aujourd'hui", "Zincirin Bugünkü Toplam Geliri", "Gesamter Kettenumsatz heute"),
+        "dash_net_revenue": pick_lang("صافي الإيراد المحصل", "Net Collected Revenue", "Revenu net collecté", "Net Tahsil Edilen Gelir", "Eingenommener Nettoerlös"),
+        "dash_completed_orders": pick_lang("عدد الطلبات المكتملة", "Completed Orders Count", "Nombre de commandes terminées", "Tamamlanan Sipariş Sayısı", "Abgeschlossene Bestellungen"),
+        "dash_active_orders": pick_lang("الطلبات النشطة حالياً", "Currently Active Orders", "Commandes actuellement actives", "Şu Anda Aktif Siparişler", "Aktuell aktive Bestellungen"),
+        "dash_branches_performance": pick_lang("أداء الفروع المباشر", "Live Branch Performance", "Performance en direct des succursales", "Canlı Şube Performansı", "Live-Filialleistung"),
+        "dash_sales_by_channel": pick_lang("توزيع المبيعات حسب القنوات", "Sales Distribution by Channel", "Distribution des ventes par canal", "Kanallara Göre Satış Dağılımı", "Umsatzverteilung nach Kanälen"),
+        "dash_top_dishes": pick_lang("أكثر الأطباق طلباً بالسلسلة", "Top Selling Dishes Across Chain", "Plats les plus vendus de la chaîne", "Zincirde En Çok Satan Yemekler", "Meistverkaufte Gerichte der Kette"),
+        "dash_sales_last_7_days": pick_lang("مبيعات آخر 7 أيام", "Sales - Last 7 Days", "Ventes des 7 derniers jours", "Son 7 Günlük Satışlar", "Umsatz der letzten 7 Tage"),
 
-        "pos_title": "الكاشير — نقطة البيع الذكية" if is_rtl else "Smart Cashier & POS Terminal",
-        "pos_subtitle": "تسجيل الطلبات، إصدار الفواتير الفورية، والتحصيل المباشر" if is_rtl else "Fast order entry, instant receipt printing, and live checkout",
-        "pos_manage_menu": "إدارة أصناف القائمة" if is_rtl else "Manage Menu Items",
-        "pos_search_ph": "ابحث عن وجبة أو مشروب…" if is_rtl else "Search meal or beverage…",
-        "pos_cart_details": "تفاصيل الفاتورة والحساب" if is_rtl else "Invoice & Bill Details",
-        "pos_checkout_btn": "إتمام الطلب والدفع" if is_rtl else "Complete Order & Checkout",
+        "pos_title": pick_lang("الكاشير — نقطة البيع الذكية", "Smart Cashier & POS Terminal", "Caisse intelligente et terminal PDV", "Akıllı Kasiyer ve POS Terminali", "Intelligente Kasse & POS-Terminal"),
+        "pos_subtitle": pick_lang("تسجيل الطلبات، إصدار الفواتير الفورية، والتحصيل المباشر", "Fast order entry, instant receipt printing, and live checkout", "Prise de commande rapide, impression de reçus et encaissement en direct", "Hızlı sipariş girişi, anında fiş yazdırma ve canlı ödeme", "Schnelle Auftragserfassung, Sofortbelegdruck und Live-Kassierung"),
+        "pos_manage_menu": pick_lang("إدارة أصناف القائمة", "Manage Menu Items", "Gérer les éléments du menu", "Menü Öğelerini Yönet", "Menüelemente verwalten"),
+        "pos_search_ph": pick_lang("ابحث عن وجبة أو مشروب…", "Search meal or beverage…", "Rechercher un plat ou une boisson…", "Yemek veya içecek ara…", "Gericht oder Getränk suchen…"),
+        "pos_cart_details": pick_lang("تفاصيل الفاتورة والحساب", "Invoice & Bill Details", "Détails de la facture", "Fatura ve Hesap Ayrıntıları", "Rechnungsdetails"),
+        "pos_checkout_btn": pick_lang("إتمام الطلب والدفع", "Complete Order & Checkout", "Finaliser la commande et payer", "Siparişi Tamamla ve Öde", "Bestellung abschließen & bezahlen"),
 
-        "kds_title": "شاشات المطبخ الذكية (KDS)" if is_rtl else "Smart Kitchen Display System (KDS)",
-        "kds_subtitle": "تتبع فوري لأوامر الطهي والتحضير بالمطابخ والأقسام" if is_rtl else "Real-time kitchen order tickets, timers, and cooking workflow",
+        "kds_title": pick_lang("شاشات المطبخ الذكية (KDS)", "Smart Kitchen Display System (KDS)", "Système d'affichage de cuisine intelligent (KDS)", "Akıllı Mutfak Ekran Sistemi (KDS)", "Intelligentes Küchenanzeigesystem (KDS)"),
+        "kds_subtitle": pick_lang("تتبع فوري لأوامر الطهي والتحضير بالمطابخ والأقسام", "Real-time kitchen order tickets, timers, and cooking workflow", "Tickets de commande en temps réel, minuteurs et flux de cuisson", "Gerçek zamanlı mutfak sipariş fişleri, zamanlayıcılar ve pişirme akışı", "Echtzeit-Küchenbestellscheine, Timer und Zubereitungsablauf"),
 
-        "branch_title": "إدارة الفروع والمواقع" if is_rtl else "Manage Branches & Locations",
-        "branch_subtitle": "شبكة الفروع والمواقع التشغيلية" if is_rtl else "Operational Branches & Locations Network",
+        "branch_title": pick_lang("إدارة الفروع والمواقع", "Manage Branches & Locations", "Gérer les succursales et emplacements", "Şubeleri ve Konumları Yönet", "Filialen & Standorte verwalten"),
+        "branch_subtitle": pick_lang("شبكة الفروع والمواقع التشغيلية", "Operational Branches & Locations Network", "Réseau opérationnel de succursales", "Operasyonel Şubeler ve Konumlar Ağı", "Betriebsfilialen & Standortnetzwerk"),
 
-        "inv_title": "المستودعات والمخزون" if is_rtl else "Inventory & Warehouses",
-        "inv_subtitle": "إدارة المخزون والمستودعات" if is_rtl else "Inventory & Stock Management",
+        "inv_title": pick_lang("المستودعات والمخزون", "Inventory & Warehouses", "Inventaire et stocks", "Envanter ve Depolar", "Warenlager & Inventar"),
+        "inv_subtitle": pick_lang("إدارة المخزون والمستودعات", "Inventory & Stock Management", "Gestion des stocks et entrepôts", "Envanter ve Stok Yönetimi", "Inventar- & Lagerverwaltung"),
 
-        "emp_title": "الموظفون والرواتب" if is_rtl else "Staff & Payroll",
-        "emp_subtitle": "إدارة الكادر والمسميات الوظيفية والصلاحيات" if is_rtl else "Manage Staff, Job Roles & Permissions",
+        "emp_title": pick_lang("الموظفون والرواتب", "Staff & Payroll", "Personnel et paie", "Personel ve Maaşlar", "Personal & Gehaltsabrechnung"),
+        "emp_subtitle": pick_lang("إدارة الكادر والمسميات الوظيفية والصلاحيات", "Manage Staff, Job Roles & Permissions", "Gérer le personnel, les rôles et permissions", "Personeli, Görevleri ve Yetkileri Yönet", "Mitarbeiter, Rollen & Berechtigungen verwalten"),
 
-        "sub_title": "الاشتراك والتقارير المالية" if is_rtl else "Subscription & Financial Reports",
-        "sub_subtitle": "إدارة الاشتراك واستهلاك الحساب" if is_rtl else "Manage Subscription & Account Consumption",
+        "sub_title": pick_lang("الاشتراك والتقارير المالية", "Subscription & Financial Reports", "Abonnement et rapports financiers", "Abonelik ve Finansal Raporlar", "Abonnement & Finanzberichte"),
+        "sub_subtitle": pick_lang("إدارة الاشتراك واستهلاك الحساب", "Manage Subscription & Account Consumption", "Gérer l'abonnement et la consommation du compte", "Abonelik ve Hesap Tüketimini Yönet", "Abonnement & Kontoverbrauch verwalten"),
 
-        "plat_title": "لوحة الإدارة المركزية للمنصة (SaaS Superadmin)" if is_rtl else "SaaS Platform Central Management",
-        "plat_subtitle": "إدارة المطاعم المشتركة، الباقات والاشتراكات، والتحكم بالمنظومة" if is_rtl else "Manage subscribed restaurants, plans & subscriptions, and platform controls",
+        "plat_title": pick_lang("لوحة الإدارة المركزية للمنصة (SaaS Superadmin)", "SaaS Platform Central Management", "Gestion centrale de la plateforme SaaS", "SaaS Platformu Merkezi Yönetimi", "Zentrale Verwaltung der SaaS-Plattform"),
+        "plat_subtitle": pick_lang("إدارة المطاعم المشتركة، الباقات والاشتراكات، والتحكم بالمنظومة", "Manage subscribed restaurants, plans & subscriptions, and platform controls", "Gérer les restaurants abonnés, plans et paramètres", "Abone restoranları, planları ve platform kontrollerini yönet", "Abonnierte Restaurants, Tarife und Plattformsteuerungen verwalten"),
 
-        "cc_title": "الكول سنتر — منظومة كورا" if is_rtl else "Call Center — KURA Dining OS",
-        "cc_heading": "الكول سنتر وخدمة العملاء" if is_rtl else "Call Center & Customer Care",
-        "cc_subtitle": "استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل" if is_rtl else "Incoming customer calls, rapid customer lookup, and delivery order dispatch",
-        "cc_lines_ready": "الخطوط جاهزة لاستقبال الاتصالات" if is_rtl else "Lines Ready for Inbound Calls",
+        "cc_title": pick_lang("الكول سنتر — منظومة كورا", "Call Center — KURA Dining OS", "Centre d'appels — KURA Dining OS", "Çağrı Merkezi — KURA Dining OS", "Call-Center — KURA Dining OS"),
+        "cc_heading": pick_lang("الكول سنتر وخدمة العملاء", "Call Center & Customer Care", "Centre d'appels et service client", "Çağrı Merkezi ve Müşteri Hizmetleri", "Call-Center & Kundenservice"),
+        "cc_subtitle": pick_lang("استقبال اتصالات الزبائن، البحث الفوري عن العملاء، وتسجيل طلبات التوصيل", "Incoming customer calls, rapid customer lookup, and delivery order dispatch", "Appels clients entrants, recherche rapide de clients et expédition des livraisons", "Gelen müşteri çağrıları, hızlı müşteri arama ve teslimat siparişi kaydı", "Eingehende Kundenanrufe, schnelle Kundensuche und Lieferbestellungsaufgabe"),
+        "cc_lines_ready": pick_lang("الخطوط جاهزة لاستقبال الاتصالات", "Lines Ready for Inbound Calls", "Lignes prêtes pour les appels entrants", "Hatlar Gelen Aramalar İçin Hazır", "Leitungen bereit für eingehende Anrufe"),
 
-        "deliv_title": "إدارة التوصيل — منظومة كورا" if is_rtl else "Delivery Fleet — KURA Dining OS",
-        "deliv_heading": "إدارة وتوزيع طلبات التوصيل" if is_rtl else "Delivery Dispatch & Fleet Management",
-        "deliv_subtitle": "متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين" if is_rtl else "Step-by-step order tracking and live driver fleet dispatching",
+        "deliv_title": pick_lang("إدارة التوصيل — منظومة كورا", "Delivery Fleet — KURA Dining OS", "Flotte de livraison — KURA Dining OS", "Teslimat Filosu — KURA Dining OS", "Lieferflotte — KURA Dining OS"),
+        "deliv_heading": pick_lang("إدارة وتوزيع طلبات التوصيل", "Delivery Dispatch & Fleet Management", "Gestion de la flotte et répartition des livraisons", "Teslimat Dağıtımı ve Filo Yönetimi", "Lieferdisposition & Flottenmanagement"),
+        "deliv_subtitle": pick_lang("متابعة مسار الطلبات خطوة بخطوة وتوزيعها على أسطول السائقين", "Step-by-step order tracking and live driver fleet dispatching", "Suivi des commandes étape par étape et répartition des chauffeurs", "Adım adım sipariş takibi ve canlı sürücü filosu sevkiyatı", "Schritt-für-Schritt-Auftragsverfolgung und Live-Fahrerflottendisposition"),
 
-        "hq_orders_title": "سجل كافة الطلبات والفواتير — الإدارة العامة" if is_rtl else "Chain Orders & Invoices — Central HQ",
-        "hq_orders_heading": "سجل كافة الطلبات والفواتير الموحد" if is_rtl else "Unified Orders & Invoices Record",
-        "hq_orders_subtitle": "متابعة مباشرة لتدفق طلبات وفواتير كافة الفروع في شاشة واحدة" if is_rtl else "Live monitoring of incoming orders and bills across all branches in one screen",
+        "hq_orders_title": pick_lang("سجل كافة الطلبات والفواتير — الإدارة العامة", "Chain Orders & Invoices — Central HQ", "Commandes et factures de la chaîne — Siège central", "Zincir Siparişleri ve Faturaları — Genel Merkez", "Kettenbestellungen & Rechnungen — Hauptsitz"),
+        "hq_orders_heading": pick_lang("سجل كافة الطلبات والفواتير الموحد", "Unified Orders & Invoices Record", "Registre unifié des commandes et factures", "Birleşik Siparişler ve Faturalar Kaydı", "Einheitliches Bestell- & Rechnungsregister"),
+        "hq_orders_subtitle": pick_lang("متابعة مباشرة لتدفق طلبات وفواتير كافة الفروع في شاشة واحدة", "Live monitoring of incoming orders and bills across all branches in one screen", "Suivi en direct des commandes et factures de toutes les succursales", "Tüm şubelerdeki sipariş ve fatura akışının tek ekranda canlı takibi", "Live-Überwachung von Bestellungen und Rechnungen aller Filialen auf einem Bildschirm"),
     }
 
     # Safe lookup dictionary that provides translations for any string
     class SafeI18nDict(dict):
-        def __init__(self, data, rtl):
+        def __init__(self, data, active_lang):
             super().__init__(data)
-            self._is_rtl = rtl
+            self._lang = active_lang
+            self._is_rtl = (active_lang == "ar")
 
         def __getitem__(self, key):
             if key in self:
                 return super().__getitem__(key)
             if self._is_rtl:
                 return key
-            return I18N_CATALOG.get(key, key)
+            return get_translation(key, self._lang, default=key)
 
         def get(self, key, default=None):
             if key in self:
                 return super().get(key, default)
             if self._is_rtl:
                 return key
-            return I18N_CATALOG.get(key, default if default is not None else key)
+            fallback = default if default is not None else key
+            return get_translation(key, self._lang, default=fallback)
 
-    t = SafeI18nDict(base_t, is_rtl)
+    t = SafeI18nDict(base_t, lang)
+
+    lang_names = {
+        "ar": "العربية",
+        "en": "English",
+        "fr": "Français",
+        "tr": "Türkçe",
+        "de": "Deutsch",
+    }
+    lang_flags = {
+        "ar": "🇸🇦",
+        "en": "🇬🇧",
+        "fr": "🇫🇷",
+        "tr": "🇹🇷",
+        "de": "🇩🇪",
+    }
+
+    languages_list = [
+        {"code": "ar", "name": "العربية", "flag": "🇸🇦", "is_active": (lang == "ar")},
+        {"code": "en", "name": "English", "flag": "🇬🇧", "is_active": (lang == "en")},
+        {"code": "fr", "name": "Français", "flag": "🇫🇷", "is_active": (lang == "fr")},
+        {"code": "tr", "name": "Türkçe", "flag": "🇹🇷", "is_active": (lang == "tr")},
+        {"code": "de", "name": "Deutsch", "flag": "🇩🇪", "is_active": (lang == "de")},
+    ]
 
     return {
         "CURRENT_LANG": lang,
+        "CURRENT_LANGUAGE": lang,
+        "LANG_CODE": lang,
+        "LANGUAGE_CODE": lang,
+        "CURRENT_LANG_NAME": lang_names.get(lang, "العربية"),
+        "CURRENT_LANG_FLAG": lang_flags.get(lang, "🇸🇦"),
+        "LANGUAGES_LIST": languages_list,
         "IS_RTL": is_rtl,
         "DIR": "rtl" if is_rtl else "ltr",
         "OPPOSITE_DIR": "ltr" if is_rtl else "rtl",

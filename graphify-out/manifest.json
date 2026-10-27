@@ -552,9 +552,9 @@
     "semantic_hash": ""
   },
   "core/context_processors.py": {
-    "mtime": 1792794577.8936396,
-    "seen": 1792794727.4482296,
-    "ast_hash": "370143bceb8e6ca798d798ae81da89e3",
+    "mtime": 1793065997.5779405,
+    "seen": 1793066221.5162892,
+    "ast_hash": "71723f97f262109ecf85b24a9939249b",
     "semantic_hash": ""
   },
   "core/currencies.py": {
@@ -570,9 +570,9 @@
     "semantic_hash": ""
   },
   "core/i18n_catalog.py": {
-    "mtime": 1793021494.880336,
-    "seen": 1793021740.3246262,
-    "ast_hash": "4716c374e5ebed39236328f066108caa",
+    "mtime": 1793065487.9517117,
+    "seen": 1793066221.516407,
+    "ast_hash": "3db5a1cfd82f7114e801bd2799fa64a7",
     "semantic_hash": ""
   },
   "core/kitchen_events.py": {
@@ -870,9 +870,9 @@
     "semantic_hash": ""
   },
   "core/views.py": {
-    "mtime": 1793054973.2214315,
-    "seen": 1793055750.1637425,
-    "ast_hash": "294120572c8a56a24585052be9044970",
+    "mtime": 1793065353.2857366,
+    "seen": 1793066221.5198398,
+    "ast_hash": "271f91592e04e684094fd3e61c664fe2",
     "semantic_hash": ""
   },
   "data_dump.json": {
@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   "restaurant_system/settings.py": {
-    "mtime": 1792735440.139079,
-    "seen": 1792755068.7960114,
-    "ast_hash": "abe4c9025089612c6bb1fba64ff65ac7",
+    "mtime": 1793065346.60954,
+    "seen": 1793066221.5201943,
+    "ast_hash": "67bcbfcfab69f6dec9a327147fee8a47",
     "semantic_hash": ""
   },
   "restaurant_system/urls.py": {
@@ -1080,15 +1080,15 @@
     "semantic_hash": ""
   },
   "static/js/diyafa_i18n_catalog.json": {
-    "mtime": 1792533728.7560973,
-    "seen": 1792755068.7960737,
-    "ast_hash": "69bc71161902027cbb58345f245d7e46",
+    "mtime": 1793065487.9337113,
+    "seen": 1793066221.5222628,
+    "ast_hash": "67f4194464026a28c746b0277b037be6",
     "semantic_hash": ""
   },
   "static/js/diyafa_i18n_engine.js": {
-    "mtime": 1792624192.258601,
-    "seen": 1792755068.796076,
-    "ast_hash": "025d8f7f7422db1d1a8cc3c6db1bbdcb",
+    "mtime": 1793065534.405085,
+    "seen": 1793066221.5222657,
+    "ast_hash": "2297bc9ab07d66322b86b253b74fc59d",
     "semantic_hash": ""
   },
   "staticfiles/admin/js/SelectBox.js": {
@@ -1632,15 +1632,15 @@
     "semantic_hash": ""
   },
   "staticfiles/js/diyafa_i18n_catalog.json": {
-    "mtime": 1792542813.0053988,
-    "seen": 1792755068.7963088,
-    "ast_hash": "69bc71161902027cbb58345f245d7e46",
+    "mtime": 1793066114.8063748,
+    "seen": 1793066221.5308073,
+    "ast_hash": "67f4194464026a28c746b0277b037be6",
     "semantic_hash": ""
   },
   "staticfiles/js/diyafa_i18n_engine.js": {
-    "mtime": 1792624228.6367497,
-    "seen": 1792755068.7963111,
-    "ast_hash": "025d8f7f7422db1d1a8cc3c6db1bbdcb",
+    "mtime": 1793066114.8113751,
+    "seen": 1793066221.5308118,
+    "ast_hash": "2297bc9ab07d66322b86b253b74fc59d",
     "semantic_hash": ""
   },
   "staticfiles/vendor/adminlte/js/adminlte.min.js": {
@@ -2364,9 +2364,9 @@
     "semantic_hash": ""
   },
   "templates/base.html": {
-    "mtime": 1792793863.2670157,
-    "seen": 1792794026.081276,
-    "ast_hash": "d3b6de291fff6acbbec09b288360bdb3",
+    "mtime": 1793065884.2624524,
+    "seen": 1793066221.5471025,
+    "ast_hash": "f308545f2249a507af0d71112b29e433",
     "semantic_hash": ""
   },
   "templates/branch_dashboard.html": {
@@ -2448,9 +2448,9 @@
     "semantic_hash": ""
   },
   "templates/landing.html": {
-    "mtime": 1793063114.5828538,
-    "seen": 1793063307.3633795,
-    "ast_hash": "167458fd180cd38ed769e0f608448f36",
+    "mtime": 1793065824.0786664,
+    "seen": 1793066221.5478702,
+    "ast_hash": "ddc3cb496ae11855c713a9a96be6c8d5",
     "semantic_hash": ""
   },
   "templates/login.html": {
@@ -3204,15 +3204,15 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793062488.3656383,
-    "seen": 1793063307.332448,
-    "ast_hash": "86011f4eb6991c30014b4fc606b198e7",
+    "mtime": 1793066166.6342793,
+    "seen": 1793066221.5199447,
+    "ast_hash": "2a7d79c7cd5fd94fbf37cea2b392bb64",
     "semantic_hash": ""
   },
   "init.sh": {
-    "mtime": 1792791607.380781,
-    "seen": 1792791687.2069292,
-    "ast_hash": "720bfe74539b13dda2d5b14a8aa72294",
+    "mtime": 1793066093.6265874,
+    "seen": 1793066221.5199485,
+    "ast_hash": "fb49045740f646f2eafa89daa3d868f1",
     "semantic_hash": ""
   },
   "harness-assessment.html": {
@@ -3222,9 +3222,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793062499.0629685,
-    "seen": 1793063307.3601506,
-    "ast_hash": "a3f6da3aca7d22ee674f0caa889c4cf9",
+    "mtime": 1793066182.520857,
+    "seen": 1793066221.5456228,
+    "ast_hash": "391002e27bb3217adb583ccf47ef542a",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3786,9 +3786,9 @@
     "semantic_hash": ""
   },
   "static/js/landing_animations.js": {
-    "mtime": 1793063165.985424,
-    "seen": 1793063307.3355684,
-    "ast_hash": "9f00a3f8e59cbf64f5edb4cf4c8af397",
+    "mtime": 1793065380.1165278,
+    "seen": 1793066221.522269,
+    "ast_hash": "3e91c16f2e657eca9f1c02bfdbf11b4e",
     "semantic_hash": ""
   },
   "static/js/vendor/ScrollTrigger.min.js": {
@@ -3810,9 +3810,9 @@
     "semantic_hash": ""
   },
   "staticfiles/js/landing_animations.js": {
-    "mtime": 1793063169.6415355,
-    "seen": 1793063307.3444664,
-    "ast_hash": "9f00a3f8e59cbf64f5edb4cf4c8af397",
+    "mtime": 1793066114.809375,
+    "seen": 1793066221.5308156,
+    "ast_hash": "3e91c16f2e657eca9f1c02bfdbf11b4e",
     "semantic_hash": ""
   },
   "staticfiles/js/vendor/ScrollTrigger.min.js": {
@@ -3831,6 +3831,18 @@
     "mtime": 1793058961.1788113,
     "seen": 1793060396.713726,
     "ast_hash": "3ba6a3f6e22122d8f5ed22c423299981",
+    "semantic_hash": ""
+  },
+  "scripts/generate_multilingual_catalogs.py": {
+    "mtime": 1793065322.8838408,
+    "seen": 1793066221.5222578,
+    "ast_hash": "aa299e8c294866f674a55349d9884dba",
+    "semantic_hash": ""
+  },
+  "test_multilingual_5lang.py": {
+    "mtime": 1793066082.1051564,
+    "seen": 1793066221.5318022,
+    "ast_hash": "fda8453bfab7feaacf23737260179496",
     "semantic_hash": ""
   }
 }

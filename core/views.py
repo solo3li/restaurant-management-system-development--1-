@@ -383,10 +383,11 @@ def dashboard_view(request):
 
 def set_language_view(request, lang_code):
     """
-    Switch active interface language (ar/en), save to session and cookie,
+    Switch active interface language (ar/en/fr/tr/de), save to session and cookie,
     and redirect back to the previous page or next parameter.
     """
-    if lang_code not in ["ar", "en"]:
+    supported_langs = ["ar", "en", "fr", "tr", "de"]
+    if lang_code not in supported_langs:
         lang_code = "ar"
 
     translation.activate(lang_code)

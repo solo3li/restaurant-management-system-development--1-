@@ -15,6 +15,9 @@ venv/bin/python test_e2e_rbac.py
 echo "=== venv/bin/python test_landing_and_profile.py ==="
 venv/bin/python test_landing_and_profile.py
 
+echo "=== venv/bin/python test_multilingual_5lang.py ==="
+venv/bin/python test_multilingual_5lang.py
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

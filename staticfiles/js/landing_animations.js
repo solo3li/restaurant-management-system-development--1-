@@ -10,18 +10,26 @@
     // Check reduced motion preference
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Detect language (Arabic / English)
+    // Detect language (Arabic / English / French / Turkish / German)
     function detectLanguage() {
-        const docLang = (document.documentElement.lang || '').toLowerCase();
-        const docDir = (document.documentElement.dir || '').toLowerCase();
-        if (docLang === 'en' || docDir === 'ltr') return 'en';
+        const docLang = (document.documentElement.lang || '').toLowerCase().substring(0, 2);
+        if (['en', 'fr', 'tr', 'de', 'ar'].includes(docLang)) return docLang;
 
         try {
-            const landingEl = document.getElementById('landing-page');
-            if (landingEl && landingEl.getAttribute('dir') === 'ltr') return 'en';
             const params = new URLSearchParams(window.location.search);
-            if (params.get('lang') === 'en') return 'en';
+            const qLang = (params.get('lang') || '').toLowerCase().substring(0, 2);
+            if (['en', 'fr', 'tr', 'de', 'ar'].includes(qLang)) return qLang;
+
+            const landingEl = document.getElementById('landing-page');
+            if (landingEl) {
+                const elLang = (landingEl.getAttribute('lang') || '').toLowerCase().substring(0, 2);
+                if (['en', 'fr', 'tr', 'de', 'ar'].includes(elLang)) return elLang;
+                if (landingEl.getAttribute('dir') === 'ltr') return 'en';
+            }
         } catch (e) {}
+
+        const docDir = (document.documentElement.dir || '').toLowerCase();
+        if (docDir === 'ltr') return 'en';
 
         return 'ar';
     }
@@ -30,9 +38,18 @@
     function ensureFallbackValues() {
         const typewriterEl = document.getElementById('hero-typewriter');
         if (typewriterEl && (!typewriterEl.textContent.trim() || typewriterEl.textContent === '\u200B')) {
-            typewriterEl.textContent = detectLanguage() === 'en'
-                ? 'Modern Restaurant Chains'
-                : 'سلاسل المطاعم الحديثة';
+            const lang = detectLanguage();
+            if (lang === 'fr') {
+                typewriterEl.textContent = 'Chaînes de restaurants modernes';
+            } else if (lang === 'tr') {
+                typewriterEl.textContent = 'Modern Restoran Zincirleri';
+            } else if (lang === 'de') {
+                typewriterEl.textContent = 'Moderne Restaurantketten';
+            } else if (lang === 'en') {
+                typewriterEl.textContent = 'Modern Restaurant Chains';
+            } else {
+                typewriterEl.textContent = 'سلاسل المطاعم الحديثة';
+            }
         }
 
         const elLatency = document.getElementById('metric-latency');
@@ -144,20 +161,43 @@
         const typewriterEl = document.getElementById('hero-typewriter');
         if (!typewriterEl) return;
 
-        const isEnglish = detectLanguage() === 'en';
-        const words = isEnglish
-            ? [
+        const lang = detectLanguage();
+        let words = [
+            'سلاسل المطاعم الحديثة',
+            'المطابخ السحابية',
+            'الكافيهات والمقاهي العصرية',
+            'أسطول التوصيل وخدمات الضيافة'
+        ];
+
+        if (lang === 'en') {
+            words = [
                 'Modern Restaurant Chains',
                 'Cloud & Ghost Kitchens',
                 'Fast Casuals & Cafes',
                 'Hospitality & Delivery Fleets'
-              ]
-            : [
-                'سلاسل المطاعم الحديثة',
-                'المطابخ السحابية',
-                'الكافيهات والمقاهي العصرية',
-                'أسطول التوصيل وخدمات الضيافة'
-              ];
+            ];
+        } else if (lang === 'fr') {
+            words = [
+                'Chaînes de restaurants modernes',
+                'Cuisines fantômes & cloud',
+                'Cafés & restauration rapide',
+                'Flottes de livraison & hospitalité'
+            ];
+        } else if (lang === 'tr') {
+            words = [
+                'Modern Restoran Zincirleri',
+                'Bulut ve Hayalet Mutfaklar',
+                'Hızlı Servis ve Kafeler',
+                'Teslimat Filosu ve Ağırlama'
+            ];
+        } else if (lang === 'de') {
+            words = [
+                'Moderne Restaurantketten',
+                'Cloud- & Ghost-Kitchens',
+                'Fast-Casual & Cafés',
+                'Lieferflotten & Gastronomie'
+            ];
+        }
 
         // Find or create pulsing purple cursor element
         let cursorEl = typewriterEl.parentNode.querySelector('.native-typewriter-cursor');
