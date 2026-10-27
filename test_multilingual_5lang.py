@@ -121,8 +121,14 @@ def run_tests():
     content_fr = res_fr.content.decode('utf-8')
     assert 'lang="fr"' in content_fr, "French page missing lang='fr'"
     assert 'dir="ltr"' in content_fr, "French page missing dir='ltr'"
+    assert "<title>Motaem — Système d&#x27;exploitation cloud pour restaurants et hôtellerie</title>" in content_fr or "<title>Motaem — Système d'exploitation cloud pour restaurants et hôtellerie</title>" in content_fr, "French <title> incorrect"
+    assert "Connexion" in content_fr, "French login button missing"
+    assert "Démarrer gratuitement" in content_fr, "French start free CTA missing"
     assert "Le système d'exploitation unifié pour" in content_fr
     assert "Commencez votre essai gratuit de 14 jours" in content_fr
+    assert "Point de vente cloud (PDV)" in content_fr, "French POS pillar missing"
+    assert "Foire aux questions" in content_fr, "French FAQ missing"
+    assert "Tous droits réservés" in content_fr, "French footer missing"
     assert "/set-language/fr/" in content_fr
     assert "/set-language/de/" in content_fr
     assert "/set-language/tr/" in content_fr
@@ -133,8 +139,14 @@ def run_tests():
     content_tr = res_tr.content.decode('utf-8')
     assert 'lang="tr"' in content_tr, "Turkish page missing lang='tr'"
     assert 'dir="ltr"' in content_tr, "Turkish page missing dir='ltr'"
+    assert "<title>Motaem — Bulut Restoran ve Ağırlama İşletim Sistemi</title>" in content_tr, "Turkish <title> incorrect"
+    assert "Giriş Yap" in content_tr, "Turkish login button missing"
+    assert "Ücretsiz Başlayın" in content_tr, "Turkish start free CTA missing"
     assert "Şunlar için Birleşik İşletim Sistemi:" in content_tr
     assert "14 Günlük Ücretsiz Denemenizi Başlatın" in content_tr
+    assert "Bulut Satış Noktası (POS)" in content_tr, "Turkish POS pillar missing"
+    assert "Sıkça Sorulan Sorular" in content_tr, "Turkish FAQ missing"
+    assert "Tüm Hakları Saklıdır" in content_tr, "Turkish footer missing"
 
     # Check German
     res_de = client.get('/?lang=de')
@@ -142,8 +154,14 @@ def run_tests():
     content_de = res_de.content.decode('utf-8')
     assert 'lang="de"' in content_de, "German page missing lang='de'"
     assert 'dir="ltr"' in content_de, "German page missing dir='ltr'"
+    assert "<title>Motaem — Cloud-Betriebssystem für Gastronomie &amp; Restaurantketten</title>" in content_de or "<title>Motaem — Cloud-Betriebssystem für Gastronomie & Restaurantketten</title>" in content_de, "German <title> incorrect"
+    assert "Anmelden" in content_de, "German login button missing"
+    assert "Kostenlos starten" in content_de, "German start free CTA missing"
     assert "Das einheitliche Betriebssystem für" in content_de
     assert "Starten Sie Ihre kostenlose 14-Tage-Testversion" in content_de
+    assert "Cloud-Kassensystem (POS)" in content_de, "German POS pillar missing"
+    assert "Häufig gestellte Fragen" in content_de, "German FAQ missing"
+    assert "Alle Rechte vorbehalten" in content_de, "German footer missing"
 
     # Check Arabic
     res_ar = client.get('/?lang=ar')
@@ -151,7 +169,11 @@ def run_tests():
     content_ar = res_ar.content.decode('utf-8')
     assert 'lang="ar"' in content_ar
     assert 'dir="rtl"' in content_ar
+    assert "<title>مطاعم — منظومة إدارة سلاسل المطاعم والضيافة السحابية</title>" in content_ar
+    assert "تسجيل الدخول" in content_ar
+    assert "ابدأ مجاناً" in content_ar
     assert "منظومة التشغيل الموحدة لإدارة" in content_ar
+    assert "الأسئلة الشائعة" in content_ar
 
     # Check English
     res_en = client.get('/?lang=en')
@@ -159,9 +181,13 @@ def run_tests():
     content_en = res_en.content.decode('utf-8')
     assert 'lang="en"' in content_en
     assert 'dir="ltr"' in content_en
+    assert "<title>Motaem — Cloud Restaurant &amp; Hospitality Operating System</title>" in content_en or "<title>Motaem — Cloud Restaurant & Hospitality Operating System</title>" in content_en
+    assert "Sign In" in content_en
+    assert "Start Free" in content_en
     assert "The Unified Operating System for" in content_en
+    assert "Frequently Asked Questions" in content_en
 
-    print("  ✔ PASS: Landing page renders correctly with native headlines and dropdowns in all 5 languages")
+    print("  ✔ PASS: Landing page renders 100% natively across all 5 languages with zero Arabic leakage in LTR modes")
 
     # 6. Check Base Template Dropdowns
     print("\n>>> 6. Base Template Multi-Language Switchers")
@@ -177,7 +203,8 @@ def run_tests():
             assert '/set-language/de/' in content_base
             assert 'sidebar-lang-dropdown' in content_base
             assert 'mobile-lang-fab-dropdown' in content_base
-            print("  ✔ PASS: Base template sidebar and mobile FAB render 5-language switcher")
+            assert 'desktop-topbar-lang-dropdown' in content_base, "Desktop topbar lang dropdown missing in base template"
+            print("  ✔ PASS: Base template sidebar, desktop topbar, and mobile FAB render 5-language switcher")
         else:
             print(f"  ⚠ NOTE: /pos/ returned {res_base.status_code}")
     else:

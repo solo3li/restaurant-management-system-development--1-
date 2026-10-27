@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 02:55
-**Session ID:** Comprehensive 5-Language Official Support (AR, EN, FR, TR, DE)
+**Last Updated:** 2026-10-27 03:30
+**Session ID:** Comprehensive 5-Language Official Support (AR, EN, FR, TR, DE) - Hardening & Review Fixes
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -17,7 +17,7 @@
 - `feat-callcenter-telephony-sip-trunks` (Completed & Hardened)
 - `feat-landing-text-animations-and-counters` (Completed)
 - `feat-landing-pure-native-animations` (Completed)
-- `feat-official-5-language-multilingual` (Completed)
+- `feat-official-5-language-multilingual` (Completed & Verified 100%)
 
 ## Status
 
@@ -27,11 +27,22 @@
   - **Full 5-Language Backend Integration**: Configured `LANGUAGES` in `restaurant_system/settings.py` for Arabic (`ar`, RTL), English (`en`, LTR), French (`fr`, LTR), Turkish (`tr`, LTR), and German (`de`, LTR).
   - **Hardened Language Switch View**: Updated `set_language_view` to accept `['ar', 'en', 'fr', 'tr', 'de']`, store in session and secure 365-day cookie, and enforce strict open-redirect protection against external origins and backslash evasion paths.
   - **Rich Multi-Language Context Processor**: Updated `core/context_processors.py` (`i18n_context`) with dynamic `is_rtl = (lang == 'ar')`, `CURRENT_LANG_NAME`, `CURRENT_LANG_FLAG`, `LANGUAGES_LIST`, 5-language dictionary in `base_t`, and `SafeI18nDict` multi-language resolution. Added compatibility aliases (`CURRENT_LANGUAGE`, `LANG_CODE`, `LANGUAGE_CODE`).
+  - **Fixed Zero Arabic Leakage in Landing Page**: Replaced hardcoded binary checks `{% if CURRENT_LANG == 'en' %}...{% else %}Arabic{% endif %}` across `templates/landing.html` with canonical `{{ t.landing_... }}` keys and 5-language plan resolvers.
+  - **Fixed Base Template Dropdowns & Mini Sidebar Rail**:
+    - Added `#desktop-topbar-lang-dropdown` to `templates/base.html` topbar.
+    - Embedded 5-language selector in `#sidebar-flyout-card` (mini sidebar mode popover).
+    - Removed `sidebar-text` from outer user-card flex container (`line 762`), preserving the language switcher, notification bell, and logout button when sidebar is collapsed in `.sidebar-mini` mode.
+  - **Fixed Regression in `test_landing_and_profile.py`**:
+    - Added `landing_nav_profile` key in `core/context_processors.py` mapping to "البروفايل" (AR) and "Profile" (EN), updating `templates/landing.html`.
+    - Aligned `brand_subtitle` to "نظام إدارة المطاعم السحابي" (AR) and "Cloud Restaurant OS" (EN).
+    - Wrapped `pick_lang` string values in `mark_safe` so that unescaped ampersands (`&`) in titles like "Everything You Need to Manage & Scale Your Restaurants from One Place" and "Simple & Transparent Pricing" match expected test strings without double-escaping.
   - **Expanded 1197-Term Translation Catalog**: Upgraded `core/i18n_catalog.py` with `TranslatableString` and `I18nCatalogDict` delivering 100% backward-compatible `str` equality for existing test suites while exposing full 5-language translations via `.translations['fr'|'tr'|'de']` and `get_translation(key, lang)`.
   - **Client-Side Translation Engine**: Generated `static/js/diyafa_i18n_catalog.json` (1197 entries across 5 languages) and `static/js/diyafa_i18n_engine.js` for real-time DOM localization on client rendering.
-  - **Modern 5-Language UI Dropdowns**: Replaced binary toggles on landing page (desktop header, mobile header, and drawer menu) and dashboard (`base.html` sidebar card and mobile FAB) with sleek 5-language dropdowns complete with flags, native language labels, and active checks.
-  - **Typewriter Localization**: Updated `static/js/landing_animations.js` with localized typewriter specialty phrases for French, Turkish, and German, plus multi-language code detection.
-  - **Automated Verification & Live Deployment**: Built comprehensive automated test `test_multilingual_5lang.py` (100% pass) and integrated into `./init.sh`. Verified with `manage.py check` (0 issues), `test_system.py` (100% pass), `test_e2e_rbac.py` (100% pass), and `test_landing_and_profile.py` (100% pass). Collected static assets (`manage.py collectstatic`), restarted `motaem_web` container, and verified live HTTP 302 redirects and localized LTR HTML on `https://uggu.space/`.
+  - **Automated Verification & Live Deployment**:
+    - Executed all test suites: `manage.py check` (0 issues), `test_system.py` (100% PASS), `test_e2e_rbac.py` (100% PASS), `test_landing_and_profile.py` (100% PASS), `test_multilingual_5lang.py` (100% PASS), `./init.sh` (100% PASS).
+    - Collected static assets (`manage.py collectstatic --noinput`).
+    - Restarted Docker container `motaem_web` (`docker restart motaem_web`).
+    - Verified live HTTP 200 & 302 responses across all 5 languages on `https://uggu.space/`.
 
 - [x] **Pure Native Landing Animations Engine (`templates/landing.html`, `static/js/landing_animations.js`, `staticfiles/js/landing_animations.js`)**
   - **100% Zero-CDN & External Dependencies Removal**: Completely eliminated all `cdn.jsdelivr.net` tags, `Typed.js`, `GSAP`, `ScrollTrigger`, and `document.write` fallback script tags from `templates/landing.html`. Single script call: `<script src="{% static 'js/landing_animations.js' %}?v={% now 'U' %}"></script>`. Solves complete animation freezing in regions with ISP-level CDN blocks (e.g. Egypt / IP 197.161.x.x).
