@@ -2,9 +2,9 @@
   "هوية وبيانات المطعم": {
     "ar": "هوية وبيانات المطعم",
     "en": "Restaurant Profile",
-    "fr": "Restaurant Profile",
-    "tr": "Restaurant Profile",
-    "de": "Restaurant Profile"
+    "fr": "Profil et identité du restaurant",
+    "tr": "Restoran Profili ve Bilgileri",
+    "de": "Restaurantprofil und -identität"
   },
   "الهوية البصرية والبيانات الرسمية": {
     "ar": "الهوية البصرية والبيانات الرسمية",
@@ -1359,10 +1359,10 @@
   },
   "إدارة المخزون والمستودعات": {
     "ar": "إدارة المخزون والمستودعات",
-    "en": "Inventory & Stock Management",
-    "fr": "Gestion des stocks et des entrepôts",
-    "tr": "Envanter ve depo yönetimi",
-    "de": "Bestands- und Lagerverwaltung"
+    "en": "Inventory & Warehouse Management",
+    "fr": "Gestion des Stocks & Entrepôts",
+    "tr": "Envanter ve Depo Yönetimi",
+    "de": "Lager- & Bestandsverwaltung"
   },
   "جرد المواد والمستودعات": {
     "ar": "جرد المواد والمستودعات",
@@ -4937,8 +4937,8 @@
   "تم اختيار 0 صلاحيات": {
     "ar": "تم اختيار 0 صلاحيات",
     "en": "0 permissions selected",
-    "fr": "0 autorisations sélectionnées",
-    "tr": "0 izin seçildi",
+    "fr": "0 permission sélectionnée",
+    "tr": "0 yetki seçildi",
     "de": "0 Berechtigungen ausgewählt"
   },
   "تم الإنشاء": {
@@ -5951,9 +5951,9 @@
   },
   "شاشة الكول سنتر المباشرة": {
     "ar": "شاشة الكول سنتر المباشرة",
-    "en": "Live call center screen",
+    "en": "Live Call Center Screen",
     "fr": "Écran du centre d'appels en direct",
-    "tr": "Canlı çağrı merkezi ekranı",
+    "tr": "Canlı Çağrı Merkezi Ekranı",
     "de": "Live-Callcenter-Bildschirm"
   },
   "شاشة المطبخ": {
@@ -6371,9 +6371,9 @@
   },
   "عنوان التوصيل بالتفصيل": {
     "ar": "عنوان التوصيل بالتفصيل",
-    "en": "Detailed delivery address",
+    "en": "Detailed Delivery Address",
     "fr": "Adresse de livraison détaillée",
-    "tr": "Detaylı teslimat adresi",
+    "tr": "Ayrıntılı Teslimat Adresi",
     "de": "Detaillierte Lieferadresse"
   },
   "عنوان الموضوع أو السؤال": {
@@ -9437,10 +9437,10 @@
   },
   "مشاعر المكالمة": {
     "ar": "مشاعر المكالمة",
-    "en": "Sentiment",
-    "fr": "Sentiment",
-    "tr": "Duygu Durumu",
-    "de": "Stimmung"
+    "en": "Call Sentiment",
+    "fr": "Sentiment de l'appel",
+    "tr": "Arama Duygusu",
+    "de": "Anruf-Stimmung"
   },
   "إيجابي": {
     "ar": "إيجابي",
@@ -9571,121 +9571,121 @@
   "قائمة الأطباق والأسعار": {
     "ar": "قائمة الأطباق والأسعار",
     "en": "Dishes & Menu Pricing",
-    "fr": "Dishes & Menu Pricing",
-    "tr": "Dishes & Menu Pricing",
-    "de": "Dishes & Menu Pricing"
+    "fr": "Plats et Tarifs du Menu",
+    "tr": "Yemekler ve Menü Fiyatlandırması",
+    "de": "Gerichte & Menüpreise"
   },
   "جرد المخزون والمستودعات": {
     "ar": "جرد المخزون والمستودعات",
     "en": "Inventory & Warehouses",
-    "fr": "Inventory & Warehouses",
-    "tr": "Inventory & Warehouses",
-    "de": "Inventory & Warehouses"
+    "fr": "Inventaire et Entrepôts",
+    "tr": "Envanter ve Depolar",
+    "de": "Inventar & Lagerhäuser"
   },
   "فريق العمل والرواتب": {
     "ar": "فريق العمل والرواتب",
     "en": "Staff & Payroll",
-    "fr": "Staff & Payroll",
-    "tr": "Staff & Payroll",
-    "de": "Staff & Payroll"
+    "fr": "Personnel et Paie",
+    "tr": "Personel ve Bordro",
+    "de": "Personal & Gehaltsabrechnung"
   },
   "الاشتراكات والتقارير المالية": {
     "ar": "الاشتراكات والتقارير المالية",
     "en": "Subscriptions & Billing",
-    "fr": "Subscriptions & Billing",
-    "tr": "Subscriptions & Billing",
-    "de": "Subscriptions & Billing"
+    "fr": "Abonnements et Facturation",
+    "tr": "Abonelikler ve Faturalandırma",
+    "de": "Abonnements & Abrechnung"
   },
   "الإدارة العامة (HQ)": {
     "ar": "الإدارة العامة (HQ)",
     "en": "Central HQ Dashboard",
-    "fr": "Central HQ Dashboard",
-    "tr": "Central HQ Dashboard",
-    "de": "Central HQ Dashboard"
+    "fr": "Tableau de bord central HQ",
+    "tr": "Merkezi Genel Merkez Paneli",
+    "de": "Zentrales HQ-Dashboard"
   },
   "مفاتيح الذكاء الاصطناعي (MCP)": {
     "ar": "مفاتيح الذكاء الاصطناعي (MCP)",
     "en": "AI MCP Keys",
-    "fr": "AI MCP Keys",
-    "tr": "AI MCP Keys",
-    "de": "AI MCP Keys"
+    "fr": "Clés IA MCP",
+    "tr": "Yapay Zeka MCP Anahtarları",
+    "de": "KI-MCP-Schlüssel"
   },
   "سيتم تفعيل الميزات والمحددات الجديدة فور مراجعة وموافقة المسؤول.": {
     "ar": "سيتم تفعيل الميزات والمحددات الجديدة فور مراجعة وموافقة المسؤول.",
     "en": "New quotas and modules will be activated immediately once approved.",
-    "fr": "New quotas and modules will be activated immediately once approved.",
-    "tr": "New quotas and modules will be activated immediately once approved.",
-    "de": "New quotas and modules will be activated immediately once approved."
+    "fr": "Les nouvelles fonctionnalités seront activées dès validation par l'administrateur.",
+    "tr": "Yeni özellikler yönetici onayından hemen sonra aktif edilecektir.",
+    "de": "Neue Funktionen werden sofort nach der Genehmigung aktiviert."
   },
   "هوية المنشأة، وسائل التواصل، وبيانات الحساب الإداري": {
     "ar": "هوية المنشأة، وسائل التواصل، وبيانات الحساب الإداري",
     "en": "Identity, contact information, and management credentials",
-    "fr": "Identity, contact information, and management credentials",
-    "tr": "Identity, contact information, and management credentials",
-    "de": "Identity, contact information, and management credentials"
+    "fr": "Identité, coordonnées et données du compte administrateur",
+    "tr": "Kuruluş kimliği, iletişim bilgileri ve yönetim hesabı verileri",
+    "de": "Identität, Kontaktdaten und Administratorkontoinformationen"
   },
   "بيانات المنشأة والمطعم": {
     "ar": "بيانات المنشأة والمطعم",
     "en": "Restaurant / Organization",
-    "fr": "Restaurant / Organization",
-    "tr": "Restaurant / Organization",
-    "de": "Restaurant / Organization"
+    "fr": "Établissement et Restaurant",
+    "tr": "İşletme ve Restoran",
+    "de": "Betrieb und Restaurant"
   },
   "اسم المطعم": {
     "ar": "اسم المطعم",
     "en": "Restaurant Name",
-    "fr": "Restaurant Name",
-    "tr": "Restaurant Name",
-    "de": "Restaurant Name"
+    "fr": "Nom du restaurant",
+    "tr": "Restoran Adı",
+    "de": "Restaurantname"
   },
   "المعرف الرقمي": {
     "ar": "المعرف الرقمي",
     "en": "Identifier / Slug",
-    "fr": "Identifier / Slug",
-    "tr": "Identifier / Slug",
-    "de": "Identifier / Slug"
+    "fr": "Identifiant / Slug",
+    "tr": "Tanımlayıcı / Kısa Ad",
+    "de": "Identifikator / Slug"
   },
   "بيانات المستخدم والمالك": {
     "ar": "بيانات المستخدم والمالك",
     "en": "Account & Manager Credentials",
-    "fr": "Account & Manager Credentials",
-    "tr": "Account & Manager Credentials",
-    "de": "Account & Manager Credentials"
+    "fr": "Identifiants du compte et du gérant",
+    "tr": "Hesap ve Yönetici Bilgileri",
+    "de": "Konto- und Verwalterdaten"
   },
   "مالك المنشأة": {
     "ar": "مالك المنشأة",
-    "en": "Owner",
-    "fr": "Owner",
-    "tr": "Owner",
-    "de": "Owner"
+    "en": "Organization Owner",
+    "fr": "Propriétaire de l'établissement",
+    "tr": "İşletme Sahibi",
+    "de": "Inhaber des Betriebs"
   },
   "الاسم الكريم": {
     "ar": "الاسم الكريم",
     "en": "Full Name",
-    "fr": "Full Name",
-    "tr": "Full Name",
-    "de": "Full Name"
+    "fr": "Nom complet",
+    "tr": "Tam Ad",
+    "de": "Vollständiger Name"
   },
   "البريد المسجل": {
     "ar": "البريد المسجل",
     "en": "Account Email",
-    "fr": "Account Email",
-    "tr": "Account Email",
-    "de": "Account Email"
+    "fr": "E-mail enregistré",
+    "tr": "Kayıtlı E-posta",
+    "de": "Registrierte E-Mail"
   },
   "الانتهاء:": {
     "ar": "الانتهاء:",
     "en": "Renewal/Expiry:",
-    "fr": "Renewal/Expiry:",
-    "tr": "Renewal/Expiry:",
-    "de": "Renewal/Expiry:"
+    "fr": "Expiration :",
+    "tr": "Bitiş Tarihi:",
+    "de": "Ablaufdatum:"
   },
   "المتبقي:": {
     "ar": "المتبقي:",
     "en": "Remaining:",
-    "fr": "Remaining:",
-    "tr": "Remaining:",
-    "de": "Remaining:"
+    "fr": "Restant :",
+    "tr": "Kalan:",
+    "de": "Verbleibend:"
   },
   "السعر:": {
     "ar": "السعر:",
@@ -9697,86 +9697,86 @@
   "دولار / سنوياً": {
     "ar": "دولار / سنوياً",
     "en": "USD / Year",
-    "fr": "USD / Year",
-    "tr": "USD / Year",
-    "de": "USD / Year"
+    "fr": "USD / an",
+    "tr": "USD / Yıl",
+    "de": "USD / Jahr"
   },
   "دولار / شهرياً": {
     "ar": "دولار / شهرياً",
     "en": "USD / Month",
-    "fr": "USD / Month",
-    "tr": "USD / Month",
-    "de": "USD / Month"
+    "fr": "USD / mois",
+    "tr": "USD / Ay",
+    "de": "USD / Monat"
   },
   "محدد الباقة": {
     "ar": "محدد الباقة",
     "en": "Plan Limit",
-    "fr": "Plan Limit",
-    "tr": "Plan Limit",
-    "de": "Plan Limit"
+    "fr": "Limite du forfait",
+    "tr": "Paket Limiti",
+    "de": "Tariflimit"
   },
   "الحد الأقصى": {
     "ar": "الحد الأقصى",
     "en": "Max Limit Reached",
-    "fr": "Max Limit Reached",
-    "tr": "Max Limit Reached",
-    "de": "Max Limit Reached"
+    "fr": "Limite maximale atteinte",
+    "tr": "Maksimum Limite Ulaşıldı",
+    "de": "Höchstgrenze erreicht"
   },
   "فروع غير محدودة": {
     "ar": "فروع غير محدودة",
     "en": "Unlimited branches",
-    "fr": "Unlimited branches",
-    "tr": "Unlimited branches",
-    "de": "Unlimited branches"
+    "fr": "Succursales illimitées",
+    "tr": "Sınırsız şubeler",
+    "de": "Unbegrenzte Filialen"
   },
   "موظفون غير محدودين": {
     "ar": "موظفون غير محدودين",
     "en": "Unlimited staff",
-    "fr": "Unlimited staff",
-    "tr": "Unlimited staff",
-    "de": "Unlimited staff"
+    "fr": "Personnel illimité",
+    "tr": "Sınırsız personel",
+    "de": "Unbegrenztes Personal"
   },
   "استيعاب الطلبات:": {
     "ar": "استيعاب الطلبات:",
     "en": "Order Capacity:",
-    "fr": "Order Capacity:",
-    "tr": "Order Capacity:",
-    "de": "Order Capacity:"
+    "fr": "Capacité de commandes :",
+    "tr": "Sipariş Kapasitesi:",
+    "de": "Bestellkapazität:"
   },
   "مفعل:": {
     "ar": "مفعل:",
     "en": "Active:",
-    "fr": "Active:",
-    "tr": "Active:",
-    "de": "Active:"
+    "fr": "Actif :",
+    "tr": "Aktif:",
+    "de": "Aktiv:"
   },
   "+ ترقية لفتح الميزة": {
     "ar": "+ ترقية لفتح الميزة",
     "en": "+ Upgrade to unlock",
-    "fr": "+ Upgrade to unlock",
-    "tr": "+ Upgrade to unlock",
-    "de": "+ Upgrade to unlock"
+    "fr": "+ Mettre à niveau pour débloquer",
+    "tr": "+ Kilidi açmak için yükseltin",
+    "de": "+ Upgrade zum Freischalten"
   },
   "أقصى فروع:": {
     "ar": "أقصى فروع:",
     "en": "Allowed Branches:",
-    "fr": "Allowed Branches:",
-    "tr": "Allowed Branches:",
-    "de": "Allowed Branches:"
+    "fr": "Succursales max :",
+    "tr": "Maksimum Şubeler:",
+    "de": "Maximale Filialen:"
   },
   "أقصى موظفين:": {
     "ar": "أقصى موظفين:",
     "en": "Staff Members:",
-    "fr": "Staff Members:",
-    "tr": "Staff Members:",
-    "de": "Staff Members:"
+    "fr": "Personnel max :",
+    "tr": "Maksimum Personel:",
+    "de": "Maximales Personal:"
   },
   "الميزات المضمنة:": {
     "ar": "الميزات المضمنة:",
     "en": "Included Features:",
-    "fr": "Included Features:",
-    "tr": "Included Features:",
-    "de": "Included Features:"
+    "fr": "Fonctionnalités incluses :",
+    "tr": "Dahil Olan Özellikler:",
+    "de": "Enthaltene Funktionen:"
   },
   "لا توجد طلبات ترقية سابقة. يمكنك تقديم طلب جديد في أي وقت!": {
     "ar": "لا توجد طلبات ترقية سابقة. يمكنك تقديم طلب جديد في أي وقت!",
@@ -10984,10 +10984,10 @@
   },
   "شاشة المطبخ (KDS)": {
     "ar": "شاشة المطبخ (KDS)",
-    "en": "Kitchen Display (KDS)",
-    "fr": "Écran de cuisine (KDS)",
-    "tr": "Mutfak Ekranı (KDS)",
-    "de": "Küchenbildschirm (KDS)"
+    "en": "Kitchen Display System (KDS)",
+    "fr": "Écran de Cuisine (KDS)",
+    "tr": "Mutfak Ekran Sistemi (KDS)",
+    "de": "Küchendisplay-System (KDS)"
   },
   "لوحة التوصيل والسائقين": {
     "ar": "لوحة التوصيل والسائقين",
@@ -15660,10 +15660,10 @@
   },
   "حساس - حذف فواتير نهائي": {
     "ar": "حساس - حذف فواتير نهائي",
-    "en": "Sensitive - permanently delete invoices",
-    "fr": "Sensible - supprimer définitivement les factures",
-    "tr": "Hassas - faturaları kalıcı olarak sil",
-    "de": "Sensibel – Rechnungen dauerhaft löschen"
+    "en": "Sensitive - Permanent Deletion",
+    "fr": "Sensible - Suppression définitive",
+    "tr": "Hassas - Kalıcı Silme",
+    "de": "Sensibel - Dauerhafte Löschung"
   },
   "حفظ الطابور": {
     "ar": "حفظ الطابور",
@@ -18320,10 +18320,10 @@
   },
   "ملف المطعم": {
     "ar": "ملف المطعم",
-    "en": "Restaurant file",
-    "fr": "Dossier des restaurants",
-    "tr": "Restoran dosyası",
-    "de": "Restaurantdatei"
+    "en": "Restaurant Profile",
+    "fr": "Profil du restaurant",
+    "tr": "Restoran Profili",
+    "de": "Restaurantprofil"
   },
   "ملف من جهازك": {
     "ar": "ملف من جهازك",
@@ -19346,5 +19346,656 @@
     "fr": "passée via le menu numérique.",
     "tr": "dijital menü üzerinden verildi.",
     "de": "aufgegeben über die digitale Speisekarte."
+  },
+  "الفرع المنفذ": {
+    "ar": "الفرع المنفذ",
+    "en": "Fulfilling Branch",
+    "fr": "Succursale exécutante",
+    "tr": "Yapan Şube",
+    "de": "Ausführende Filiale"
+  },
+  "فاتورة الطلب": {
+    "ar": "فاتورة الطلب",
+    "en": "Order Invoice",
+    "fr": "Facture de commande",
+    "tr": "Sipariş Faturası",
+    "de": "Bestellrechnung"
+  },
+  "رقم التأكيد": {
+    "ar": "رقم التأكيد",
+    "en": "Confirmation Number",
+    "fr": "Numéro de confirmation",
+    "tr": "Onay Numarası",
+    "de": "Bestätigungsnummer"
+  },
+  "الحي، اسم الشارع، رقم العمارة أو الشقة...": {
+    "ar": "الحي، اسم الشارع، رقم العمارة أو الشقة...",
+    "en": "District, street name, building or apt number...",
+    "fr": "Quartier, nom de rue, numéro d'immeuble ou d'appartement...",
+    "tr": "Semt, sokak adı, bina veya daire numarası...",
+    "de": "Stadtteil, Straßenname, Gebäude- oder Wohnungsnummer..."
+  },
+  "-- اختر المنطقة لتوجيه الفرع وحساب التوصيل --": {
+    "ar": "-- اختر المنطقة لتوجيه الفرع وحساب التوصيل --",
+    "en": "-- Select area to route branch & calculate delivery --",
+    "fr": "-- Sélectionnez la zone pour router la succursale et calculer la livraison --",
+    "tr": "-- Şube yönlendirme ve teslimat hesaplama için bölge seçin --",
+    "de": "-- Wählen Sie das Gebiet zur Filialzuweisung und Lieferberechnung --"
+  },
+  "اسم العميل ورقم الجوال مطلوبان لطلب التوصيل": {
+    "ar": "اسم العميل ورقم الجوال مطلوبان لطلب التوصيل",
+    "en": "Customer name and phone number required for delivery",
+    "fr": "Nom du client et numéro de téléphone requis pour la livraison",
+    "tr": "Teslimat siparişi için müşteri adı ve telefon numarası gereklidir",
+    "de": "Kundenname und Telefonnummer für die Lieferung erforderlich"
+  },
+  "يرجى إدخال اسم العميل أو رقم الجوال على الأقل لتمييز طلب السفري": {
+    "ar": "يرجى إدخال اسم العميل أو رقم الجوال على الأقل لتمييز طلب السفري",
+    "en": "Please enter customer name or phone for takeaway",
+    "fr": "Veuillez entrer au moins le nom du client ou le téléphone pour l'emporter",
+    "tr": "Paket servis için lütfen en azından müşteri adını veya telefonunu girin",
+    "de": "Bitte geben Sie mindestens Kundennamen oder Telefonnummer für Takeaway ein"
+  },
+  "لا توجد طلبات مسلّمة اليوم": {
+    "ar": "لا توجد طلبات مسلّمة اليوم",
+    "en": "No delivered orders today",
+    "fr": "Aucune commande livrée aujourd'hui",
+    "tr": "Bugün teslim edilen sipariş yok",
+    "de": "Heute keine gelieferten Bestellungen"
+  },
+  "الطلبات المكتملة والمستلمة بنجاح تسجل في هذا التبويب": {
+    "ar": "الطلبات المكتملة والمستلمة بنجاح تسجل في هذا التبويب",
+    "en": "Successfully completed and received orders are recorded in this tab",
+    "fr": "Les commandes terminées et reçues avec succès sont enregistrées dans cet onglet",
+    "tr": "Başarıyla tamamlanan ve teslim alınan siparişler bu sekmede kaydedilir",
+    "de": "Erfolgreich abgeschlossene und erhaltene Bestellungen werden in diesem Tab erfasst"
+  },
+  "نقاط البيع والكاشير (POS)": {
+    "ar": "نقاط البيع والكاشير (POS)",
+    "en": "Point of Sale & Cashier (POS)",
+    "fr": "Point de Vente & Caisse (POS)",
+    "tr": "Satış Noktası ve Kasiyer (POS)",
+    "de": "Kassensystem & POS"
+  },
+  "تسجيل طلبات الصالة والسفري والفواتير والمدفوعات": {
+    "ar": "تسجيل طلبات الصالة والسفري والفواتير والمدفوعات",
+    "en": "Record dine-in & takeaway orders, billing and payments",
+    "fr": "Enregistrement des commandes sur place/à emporter, factures et paiements",
+    "tr": "Masa ve paket siparişleri kaydetme, faturalar ve ödemeler",
+    "de": "Erfassung von Vor-Ort- und Takeaway-Bestellungen, Rechnungen und Zahlungen"
+  },
+  "تجهيز وتحضير الوجبات فورياً في مطبخ الفرع": {
+    "ar": "تجهيز وتحضير الوجبات فورياً في مطبخ الفرع",
+    "en": "Real-time meal preparation in branch kitchen",
+    "fr": "Préparation instantanée des repas dans la cuisine de la succursale",
+    "tr": "Şube mutfağında yemeklerin anında hazırlanması",
+    "de": "Sofortige Zubereitung von Mahlzeiten in der Filialküche"
+  },
+  "إدارة المنيو وقائمة الطعام": {
+    "ar": "إدارة المنيو وقائمة الطعام",
+    "en": "Menu & Dish Management",
+    "fr": "Gestion du Menu & Carte",
+    "tr": "Menü ve Yemek Yönetimi",
+    "de": "Menü- & Speisekartenverwaltung"
+  },
+  "إضافة وتعديل الوجبات والأسعار والفئات وتوفر الأطباق": {
+    "ar": "إضافة وتعديل الوجبات والأسعار والفئات وتوفر الأطباق",
+    "en": "Add & edit dishes, pricing, categories and availability",
+    "fr": "Ajout et modification des plats, prix, catégories et disponibilités",
+    "tr": "Yemekleri, fiyatları, kategorileri ve stok durumunu düzenleme",
+    "de": "Gerichte, Preise, Kategorien und Verfügbarkeit hinzufügen und bearbeiten"
+  },
+  "نظام التوصيل ومناطق الخدمة": {
+    "ar": "نظام التوصيل ومناطق الخدمة",
+    "en": "Delivery Fleet & Service Zones",
+    "fr": "Système de Livraison & Zones Desservies",
+    "tr": "Teslimat Sistemi ve Hizmet Bölgeleri",
+    "de": "Liefersystem & Servicezonen"
+  },
+  "تحديد مناطق التوصيل، إسناد ومتابعة السائقين": {
+    "ar": "تحديد مناطق التوصيل، إسناد ومتابعة السائقين",
+    "en": "Define delivery zones, assign and track drivers",
+    "fr": "Définition des zones de livraison, attribution et suivi des livreurs",
+    "tr": "Teslimat bölgelerini belirleme, sürücü atama ve takip",
+    "de": "Lieferzonen definieren, Fahrer zuweisen und verfolgen"
+  },
+  "الكول سنتر ومساعد الذكاء الاصطناعي (AI Voice)": {
+    "ar": "الكول سنتر ومساعد الذكاء الاصطناعي (AI Voice)",
+    "en": "Call Center & AI Voice Assistant",
+    "fr": "Centre d'Appels & Assistant Vocal IA",
+    "tr": "Çağrı Merkezi ve Yapay Zeka Sesli Asistanı",
+    "de": "Callcenter & KI-Sprachassistent"
+  },
+  "استقبال المكالمات ومساعد الطلبات الذكي": {
+    "ar": "استقبال المكالمات ومساعد الطلبات الذكي",
+    "en": "Inbound telephony and automated AI order assistant",
+    "fr": "Réception des appels et assistant de commande intelligent",
+    "tr": "Çağrı karşılama ve akıllı sipariş asistanı",
+    "de": "Anrufannahme und intelligenter Bestellassistent"
+  },
+  "جرد المواد الخام، فواتير الموردين، وتسجيل الهدر": {
+    "ar": "جرد المواد الخام، فواتير الموردين، وتسجيل الهدر",
+    "en": "Raw material stock count, supplier bills and waste logs",
+    "fr": "Inventaire des matières premières, factures fournisseurs et pertes",
+    "tr": "Hammadde sayımı, tedarikçi faturaları ve israf kaydı",
+    "de": "Rohstoffinventur, Lieferantenrechnungen und Schwunderfassung"
+  },
+  "الأدوار والصلاحيات المخصصة": {
+    "ar": "الأدوار والصلاحيات المخصصة",
+    "en": "Custom Roles & Permissions Matrix",
+    "fr": "Rôles et Permissions Personnalisés",
+    "tr": "Özel Roller ve Yetki Matrisi",
+    "de": "Benutzerdefinierte Rollen & Berechtigungsmatrix"
+  },
+  "مسميات وظيفية مخصصة ومصفوفة الصلاحيات": {
+    "ar": "مسميات وظيفية مخصصة ومصفوفة الصلاحيات",
+    "en": "Custom job titles and granular permission matrix",
+    "fr": "Intitulés de postes personnalisés et matrice des permissions",
+    "tr": "Özel iş unvanları ve ayrıntılı izin matrisi",
+    "de": "Benutzerdefinierte Jobtitel und detaillierte Berechtigungsmatrix"
+  },
+  "التقارير والتحليلات المالية": {
+    "ar": "التقارير والتحليلات المالية",
+    "en": "Financial Analytics & Reports",
+    "fr": "Analyses et Rapports Financiers",
+    "tr": "Finansal Analizler ve Raporlar",
+    "de": "Finanzanalysen & Berichte"
+  },
+  "مؤشرات الإيرادات والمبيعات والأرباح": {
+    "ar": "مؤشرات الإيرادات والمبيعات والأرباح",
+    "en": "Revenue KPIs, sales volume, and profit margins",
+    "fr": "Indicateurs de revenus, volume des ventes et marges",
+    "tr": "Gelir göstergeleri, satış hacmi ve kâr oranları",
+    "de": "Umsatzkennzahlen, Verkaufsvolumen und Gewinnmargen"
+  },
+  "التوصيل وأسطول المناديب": {
+    "ar": "التوصيل وأسطول المناديب",
+    "en": "Delivery Fleet & Couriers",
+    "fr": "Flotte de livraison et coursiers",
+    "tr": "Teslimat Filosu ve Kuryeler",
+    "de": "Lieferflotte und Kuriere"
+  },
+  "سجل طلبات الفرع (Branch Orders)": {
+    "ar": "سجل طلبات الفرع (Branch Orders)",
+    "en": "Branch Orders Log",
+    "fr": "Journal des commandes de la succursale",
+    "tr": "Şube Sipariş Geçmişi",
+    "de": "Filialbestellungs-Protokoll"
+  },
+  "قائمة طعام الفرع والأسعار (Branch Menu)": {
+    "ar": "قائمة طعام الفرع والأسعار (Branch Menu)",
+    "en": "Branch Menu & Pricing",
+    "fr": "Menu et tarifs de la succursale",
+    "tr": "Şube Menüsü ve Fiyatlandırması",
+    "de": "Filialmenü & Preise"
+  },
+  "جرد ومخزون الفرع (Branch Inventory)": {
+    "ar": "جرد ومخزون الفرع (Branch Inventory)",
+    "en": "Branch Inventory & Stock",
+    "fr": "Inventaire et stock de la succursale",
+    "tr": "Şube Envanteri ve Stoğu",
+    "de": "Filialinventar & Lagerbestand"
+  },
+  "سجل كافة طلبات السلسلة (HQ Orders)": {
+    "ar": "سجل كافة طلبات السلسلة (HQ Orders)",
+    "en": "Chain All Orders Log (HQ)",
+    "fr": "Journal de toutes les commandes du réseau (HQ)",
+    "tr": "Tüm Zincir Sipariş Geçmişi (Genel Merkez)",
+    "de": "Ketten-Bestellprotokoll (HQ)"
+  },
+  "مركز الاتصالات المباشرة (Central Call Center)": {
+    "ar": "مركز الاتصالات المباشرة (Central Call Center)",
+    "en": "Central Direct Call Center",
+    "fr": "Centre d'appels direct centralisé",
+    "tr": "Merkezi Doğrudan Çağrı Merkezi",
+    "de": "Zentrales Direkt-Callcenter"
+  },
+  "المطبخ وإعداد الوجبات (KDS)": {
+    "ar": "المطبخ وإعداد الوجبات (KDS)",
+    "en": "Kitchen Preparation (KDS)",
+    "fr": "Cuisine et préparation des repas (KDS)",
+    "tr": "Mutfak ve Yemek Hazırlama (KDS)",
+    "de": "Küche & Mahlzeitenzubereitung (KDS)"
+  },
+  "شاشة الكاشير (POS)": {
+    "ar": "شاشة الكاشير (POS)",
+    "en": "Cashier Screen (POS)",
+    "fr": "Écran de caisse (POS)",
+    "tr": "Kasiyer Ekranı (POS)",
+    "de": "Kassenbildschirm (POS)"
+  },
+  "فتح واستخدام شاشة نقاط البيع وإصدار الفواتير وتسجيل الطلبات": {
+    "ar": "فتح واستخدام شاشة نقاط البيع وإصدار الفواتير وتسجيل الطلبات",
+    "en": "Open and operate POS screen, issue invoices, and record orders",
+    "fr": "Ouvrir et utiliser l'écran POS, émettre des factures et enregistrer des commandes",
+    "tr": "POS ekranını açma/kullanma, fatura düzenleme ve sipariş kaydetme",
+    "de": "POS-Bildschirm öffnen/bedienen, Rechnungen ausstellen und Bestellungen erfassen"
+  },
+  "تطبيق الخصومات والعروض": {
+    "ar": "تطبيق الخصومات والعروض",
+    "en": "Apply Discounts & Offers",
+    "fr": "Appliquer des remises et promotions",
+    "tr": "İndirim ve Kampanya Uygulama",
+    "de": "Rabatte und Angebote anwenden"
+  },
+  "تخفيض الفاتورة وتطبيق الكوبونات والعروض": {
+    "ar": "تخفيض الفاتورة وتطبيق الكوبونات والعروض",
+    "en": "Discount bill totals and apply promotional coupons",
+    "fr": "Réduire le montant de la facture et appliquer des coupons promotionnels",
+    "tr": "Fatura tutarını indirme ve kupon/kampanya uygulama",
+    "de": "Rechnungsbetrag rabattieren und Gutscheine anwenden"
+  },
+  "إلغاء الفواتير بالكاشير": {
+    "ar": "إلغاء الفواتير بالكاشير",
+    "en": "Cancel Orders at Cashier",
+    "fr": "Annuler les factures en caisse",
+    "tr": "Kasadaki Siparişleri İptal Etme",
+    "de": "Bestellungen an der Kasse stornieren"
+  },
+  "إلغاء الفواتير المسجلة مباشرة من شاشة نقاط البيع": {
+    "ar": "إلغاء الفواتير المسجلة مباشرة من شاشة نقاط البيع",
+    "en": "Cancel recorded invoices directly from POS screen",
+    "fr": "Annuler les factures enregistrées directement depuis l'écran POS",
+    "tr": "Doğrudan POS ekranından kayıtlı faturaları iptal etme",
+    "de": "Erfasste Rechnungen direkt am POS stornieren"
+  },
+  "استرجاع الفاتورة ورد المبلغ": {
+    "ar": "استرجاع الفاتورة ورد المبلغ",
+    "en": "Refund Order & Return Payment",
+    "fr": "Rembourser la facture et restituer le paiement",
+    "tr": "Fatura İadesi ve Ödeme İadesi",
+    "de": "Rechnung erstatten & Zahlung zurückbuchen"
+  },
+  "استرداد الأموال للعميل نقدية أو شبكة": {
+    "ar": "استرداد الأموال للعميل نقدية أو شبكة",
+    "en": "Refund customer money via cash or card",
+    "fr": "Rembourser le client en espèces ou par carte",
+    "tr": "Müşteriye nakit veya kartla para iadesi yapma",
+    "de": "Kundenrückerstattung in bar oder per Karte"
+  },
+  "تقفيل الوردية ودرج النقدية": {
+    "ar": "تقفيل الوردية ودرج النقدية",
+    "en": "Close Shift & Cash Drawer",
+    "fr": "Clôturer le shift et le tiroir-caisse",
+    "tr": "Vardiya ve Kasa Çekmecesini Kapatma",
+    "de": "Schicht & Kassenschublade abschließen"
+  },
+  "إغلاق الوردية وإصدار تقرير Z-Report وفتح درج النقدية": {
+    "ar": "إغلاق الوردية وإصدار تقرير Z-Report وفتح درج النقدية",
+    "en": "Close cashier shift, print Z-Report, and pop cash drawer",
+    "fr": "Fermer le shift de caisse, imprimer le rapport Z et ouvrir le tiroir-caisse",
+    "tr": "Vardiyayı kapatma, Z Raporu yazdırma ve para çekmecesini açma",
+    "de": "Kassenschicht beenden, Z-Bericht drucken und Kassenlade öffnen"
+  },
+  "إعادة طباعة الفواتير": {
+    "ar": "إعادة طباعة الفواتير",
+    "en": "Reprint Invoices",
+    "fr": "Réimprimer les factures",
+    "tr": "Faturaları Yeniden Yazdırma",
+    "de": "Rechnungen nachdrucken"
+  },
+  "طباعة نسخ مكررة من الإيصالات والفواتير السابقة": {
+    "ar": "طباعة نسخ مكررة من الإيصالات والفواتير السابقة",
+    "en": "Print duplicate copies of previous receipts and bills",
+    "fr": "Imprimer des duplicatas de reçus et de factures précédentes",
+    "tr": "Önceki makbuz ve faturaların kopyalarını yazdırma",
+    "de": "Duplikate früherer Belege und Rechnungen drucken"
+  },
+  "متابعة أوامر الطبخ وتحديث حالة الوجبات (قيد الطهي / جاهز)": {
+    "ar": "متابعة أوامر الطبخ وتحديث حالة الوجبات (قيد الطهي / جاهز)",
+    "en": "Track cooking orders and update meal status (cooking / ready)",
+    "fr": "Suivre les commandes de cuisson et mettre à jour l'état (en cours / prêt)",
+    "tr": "Pişirme siparişlerini izleme ve durumu güncelleme (pişiyor / hazır)",
+    "de": "Kochaufträge verfolgen und Status aktualisieren (wird zubereitet / fertig)"
+  },
+  "استرجاع طلب تم إتمامه": {
+    "ar": "استرجاع طلب تم إتمامه",
+    "en": "Recall Completed Order",
+    "fr": "Rappeler une commande terminée",
+    "tr": "Tamamlanan Siparişi Geri Çağırma",
+    "de": "Abgeschlossene Bestellung zurückrufen"
+  },
+  "إعادة الطلب لشاشة الطهي في حال إنجازه بالخطأ": {
+    "ar": "إعادة الطلب لشاشة الطهي في حال إنجازه بالخطأ",
+    "en": "Return order back to kitchen screen if cleared by accident",
+    "fr": "Renvoyer la commande à l'écran de cuisine en cas d'erreur",
+    "tr": "Yanlışlıkla tamamlandıysa siparişi mutfak ekranına geri gönderme",
+    "de": "Bestellung bei versehentlicher Fertigstellung zur Küche zurücksenden"
+  },
+  "تعليق إعداد صنف مؤقتاً": {
+    "ar": "تعليق إعداد صنف مؤقتاً",
+    "en": "Pause Item Preparation",
+    "fr": "Mettre en pause la préparation d'un plat",
+    "tr": "Yemek Hazırlığını Geçici Durdurma",
+    "de": "Zubereitung eines Artikels vorübergehend anhalten"
+  },
+  "إشعار الصالة بتأخير أو تعليق صنف محدد بالمطبخ": {
+    "ar": "إشعار الصالة بتأخير أو تعليق صنف محدد بالمطبخ",
+    "en": "Notify front-of-house of delay or temporary hold on specific dish",
+    "fr": "Notifier la salle d'un retard ou d'une suspension temporaire d'un plat",
+    "tr": "Salona belirli bir yemeğin gecikmesini veya askıya alındığını bildirme",
+    "de": "Servicebereich über Verzögerung oder Sperrung eines Artikels informieren"
+  },
+  "شاشة متابعة وتوزيع التوصيل": {
+    "ar": "شاشة متابعة وتوزيع التوصيل",
+    "en": "Delivery Tracking & Dispatch",
+    "fr": "Écran de suivi et de répartition des livraisons",
+    "tr": "Teslimat Takip ve Dağıtım Ekranı",
+    "de": "Lieferverfolgungs- & Versandbildschirm"
+  },
+  "متابعة كباتن التوصيل والطلبات الجاهزة للنقل لحظياً": {
+    "ar": "متابعة كباتن التوصيل والطلبات الجاهزة للنقل لحظياً",
+    "en": "Live tracking of couriers and orders ready for pickup",
+    "fr": "Suivi en direct des livreurs et des commandes prêtes pour expédition",
+    "tr": "Kuryelerin ve teslimata hazır siparişlerin anlık takibi",
+    "de": "Live-Verfolgung von Kurieren und abholbereiten Bestellungen"
+  },
+  "إسناد الطلبات للسائقين": {
+    "ar": "إسناد الطلبات للسائقين",
+    "en": "Assign Orders to Drivers",
+    "fr": "Attribuer des commandes aux livreurs",
+    "tr": "Siparişleri Sürücülere Atama",
+    "de": "Bestellungen an Fahrer zuweisen"
+  },
+  "تعيين وتوزيع الطلبات على السائقين المتاحين بالفرع": {
+    "ar": "تعيين وتوزيع الطلبات على السائقين المتاحين بالفرع",
+    "en": "Assign and dispatch orders among available branch drivers",
+    "fr": "Affecter et répartir les commandes entre les livreurs disponibles",
+    "tr": "Şubedeki mevcut sürücülere sipariş atama ve dağıtma",
+    "de": "Bestellungen unter verfügbaren Filialfahrern aufteilen"
+  },
+  "تأكيد التسليم اليدوي": {
+    "ar": "تأكيد التسليم اليدوي",
+    "en": "Manual Delivery Confirmation",
+    "fr": "Confirmation manuelle de livraison",
+    "tr": "Manuel Teslimat Onayı",
+    "de": "Manuelle Lieferbestätigung"
+  },
+  "تحديث حالة التوصيل يدوياً ومعالجة تعذر التسليم": {
+    "ar": "تحديث حالة التوصيل يدوياً ومعالجة تعذر التسليم",
+    "en": "Manually update delivery status and resolve failed deliveries",
+    "fr": "Mettre à jour manuellement l'état de livraison et gérer les échecs",
+    "tr": "Teslimat durumunu manuel güncelleme ve başarısızlıkları yönetme",
+    "de": "Lieferstatus manuell aktualisieren und Fehlschläge bearbeiten"
+  },
+  "تتبع مسارات السائقين": {
+    "ar": "تتبع مسارات السائقين",
+    "en": "Track Driver Routes",
+    "fr": "Suivre les itinéraires des livreurs",
+    "tr": "Sürücü Güzergahlarını Takip Etme",
+    "de": "Fahrerrouten verfolgen"
+  },
+  "متابعة مسارات الكباتن الحية على الخريطة": {
+    "ar": "متابعة مسارات الكباتن الحية على الخريطة",
+    "en": "Monitor live courier locations on map",
+    "fr": "Suivre en direct les positions des livreurs sur la carte",
+    "tr": "Kuryelerin canlı konumlarını haritada izleme",
+    "de": "Live-Standorte der Kuriere auf der Karte überwachen"
+  },
+  "استعراض سجل طلبات الفرع": {
+    "ar": "استعراض سجل طلبات الفرع",
+    "en": "View Branch Orders Log",
+    "fr": "Consulter le journal des commandes de la succursale",
+    "tr": "Şube Sipariş Geçmişini Görüntüleme",
+    "de": "Filialbestellungs-Protokoll einsehen"
+  },
+  "رؤية وبحث وتصفية كافة فواتير وطلبات الفرع الحالي": {
+    "ar": "رؤية وبحث وتصفية كافة فواتير وطلبات الفرع الحالي",
+    "en": "View, search, and filter all orders of current branch",
+    "fr": "Voir, rechercher et filtrer toutes les factures de la succursale",
+    "tr": "Mevcut şubenin tüm faturalarını görüntüleme, arama ve filtreleme",
+    "de": "Alle Rechnungen der aktuellen Filiale ansehen, durchsuchen und filtern"
+  },
+  "تعديل تفاصيل الطلبات القائمة": {
+    "ar": "تعديل تفاصيل الطلبات القائمة",
+    "en": "Edit Existing Order Details",
+    "fr": "Modifier les détails des commandes existantes",
+    "tr": "Mevcut Sipariş Detaylarını Düzenleme",
+    "de": "Details bestehender Bestellungen bearbeiten"
+  },
+  "تعديل أصناف وملاحظات وحالة الطلبات بالفرع": {
+    "ar": "تعديل أصناف وملاحظات وحالة الطلبات بالفرع",
+    "en": "Modify items, notes, and statuses of branch orders",
+    "fr": "Modifier les articles, notes et statuts des commandes",
+    "tr": "Şube siparişlerinin ürünlerini, notlarını ve durumlarını düzenleme",
+    "de": "Artikel, Notizen und Status von Filialbestellungen ändern"
+  },
+  "إلغاء طلبات الفرع": {
+    "ar": "إلغاء طلبات الفرع",
+    "en": "Cancel Branch Orders",
+    "fr": "Annuler les commandes de la succursale",
+    "tr": "Şube Siparişlerini İptal Etme",
+    "de": "Filialbestellungen stornieren"
+  },
+  "إلغاء فواتير وطلبات الفرع المعتمدة": {
+    "ar": "إلغاء فواتير وطلبات الفرع المعتمدة",
+    "en": "Cancel confirmed branch invoices and orders",
+    "fr": "Annuler les factures et commandes confirmées de la succursale",
+    "tr": "Onaylanmış şube fatura ve siparişlerini iptal etme",
+    "de": "Bestätigte Rechnungen und Bestellungen stornieren"
+  },
+  "حذف فواتير الفرع نهائياً (حساس)": {
+    "ar": "حذف فواتير الفرع نهائياً (حساس)",
+    "en": "Permanently Delete Branch Orders (Sensitive)",
+    "fr": "Supprimer définitivement les factures (Sensible)",
+    "tr": "Şube Faturalarını Kalıcı Olarak Silme (Hassas)",
+    "de": "Filialrechnungen dauerhaft löschen (Sensibel)"
+  },
+  "حذف سجل الفاتورة بالكامل من قاعدة البيانات": {
+    "ar": "حذف سجل الفاتورة بالكامل من قاعدة البيانات",
+    "en": "Permanently purge order record from database",
+    "fr": "Purger définitivement l'enregistrement de commande de la base",
+    "tr": "Sipariş kaydını veritabanından kalıcı olarak temizleme",
+    "de": "Bestelldatensatz dauerhaft aus der Datenbank entfernen"
+  },
+  "استعراض قائمة الطعام": {
+    "ar": "استعراض قائمة الطعام",
+    "en": "View Menu",
+    "fr": "Consulter le menu",
+    "tr": "Menüyü Görüntüleme",
+    "de": "Speisekarte ansehen"
+  },
+  "الاطلاع على الأصناف والتصنيفات والأسعار المعتمدة": {
+    "ar": "الاطلاع على الأصناف والتصنيفات والأسعار المعتمدة",
+    "en": "Browse items, categories, and approved prices",
+    "fr": "Parcourir les plats, catégories et tarifs approuvés",
+    "tr": "Yemeklere, kategorilere ve onaylı fiyatlara göz atma",
+    "de": "Artikel, Kategorien und genehmigte Preise durchsuchen"
+  },
+  "توفر الأصناف بالفرع": {
+    "ar": "توفر الأصناف بالفرع",
+    "en": "Branch Item Availability",
+    "fr": "Disponibilité des plats en succursale",
+    "tr": "Şube Ürün Stok Durumu",
+    "de": "Verfügbarkeit der Filialartikel"
+  },
+  "إيقاف أو تفعيل توفر الصنف بمطبخ الفرع (نفدت الكمية)": {
+    "ar": "إيقاف أو تفعيل توفر الصنف بمطبخ الفرع (نفدت الكمية)",
+    "en": "Toggle item availability in kitchen (out of stock)",
+    "fr": "Activer/désactiver la disponibilité d'un plat en cuisine (épuisé)",
+    "tr": "Mutfakta yemek durumunu değiştirme (tükendi)",
+    "de": "Artikelverfügbarkeit in der Küche umschalten (ausverkauft)"
+  },
+  "تعديل بيانات ومكونات الأطباق": {
+    "ar": "تعديل بيانات ومكونات الأطباق",
+    "en": "Edit Dish Details & Ingredients",
+    "fr": "Modifier les détails et ingrédients des plats",
+    "tr": "Yemek Detaylarını ve Malzemelerini Düzenleme",
+    "de": "Gerichtdetails & Zutaten bearbeiten"
+  },
+  "تعديل صور ومكونات وإضافات وخيارات الأطباق بالفرع": {
+    "ar": "تعديل صور ومكونات وإضافات وخيارات الأطباق بالفرع",
+    "en": "Edit photos, ingredients, add-ons, and options",
+    "fr": "Modifier photos, ingrédients, options et suppléments",
+    "tr": "Fotoğrafları, malzemeleri, ekstraları ve seçenekleri düzenleme",
+    "de": "Fotos, Zutaten, Zusatzoptionen und Beilagen bearbeiten"
+  },
+  "تعديل أسعار الأطباق بالفرع": {
+    "ar": "تعديل أسعار الأطباق بالفرع",
+    "en": "Edit Branch Dish Prices",
+    "fr": "Modifier les tarifs des plats de la succursale",
+    "tr": "Şube Yemek Fiyatlarını Düzenleme",
+    "de": "Filialpreise für Gerichte anpassen"
+  },
+  "تغيير وتخصيص أسعار الوجبات الخاصة بالفرع": {
+    "ar": "تغيير وتخصيص أسعار الوجبات الخاصة بالفرع",
+    "en": "Customize dish prices specific to this branch",
+    "fr": "Personnaliser les prix des repas spécifiques à la succursale",
+    "tr": "Bu şubeye özel yemek fiyatlarını özelleştirme",
+    "de": "Gerichtpreise speziell für diese Filiale anpassen"
+  },
+  "استعراض كميات المخزون": {
+    "ar": "استعراض كميات المخزون",
+    "en": "View Inventory Quantities",
+    "fr": "Consulter les quantités de stock",
+    "tr": "Envanter Miktarlarını Görüntüleme",
+    "de": "Lagerbestände ansehen"
+  },
+  "رؤية أرصدة المواد الأولية ونواقص مستودع الفرع": {
+    "ar": "رؤية أرصدة المواد الأولية ونواقص مستودع الفرع",
+    "en": "Check raw material balances and warehouse shortages",
+    "fr": "Vérifier les soldes de matières premières et les ruptures",
+    "tr": "Hammadde bakiyelerini ve depo eksikliklerini kontrol etme",
+    "de": "Rohstoffbestände und Lagerengpässe prüfen"
+  },
+  "جرد وتسوية المخزون": {
+    "ar": "جرد وتسوية المخزون",
+    "en": "Stocktake & Adjustment",
+    "fr": "Inventaire physique et ajustement",
+    "tr": "Sayım ve Stok Düzeltme",
+    "de": "Inventur & Bestandsanpassung"
+  },
+  "تسجيل الجرد الفعلي ومطابقة وتعديل الكميات": {
+    "ar": "تسجيل الجرد الفعلي ومطابقة وتعديل الكميات",
+    "en": "Log physical counts, reconcile, and adjust variances",
+    "fr": "Enregistrer le comptage réel, rapprocher et ajuster les écarts",
+    "tr": "Fiili sayımı kaydetme, mutabakat ve farkları düzeltme",
+    "de": "Physische Zählung erfassen, abgleichen und anpassen"
+  },
+  "تسجيل توريد وشراء بضاعة": {
+    "ar": "تسجيل توريد وشراء بضاعة",
+    "en": "Record Inbound Stock & Purchases",
+    "fr": "Enregistrer les réceptions et achats de marchandises",
+    "tr": "Giriş Stoğu ve Satın Alımları Kaydetme",
+    "de": "Wareneingang und Einkäufe erfassen"
+  },
+  "إدخال فواتير الشراء وتوريد مواد جديدة للمستودع": {
+    "ar": "إدخال فواتير الشراء وتوريد مواد جديدة للمستودع",
+    "en": "Enter purchase invoices and receive new stock into warehouse",
+    "fr": "Saisir les factures d'achat et réceptionner les matières en stock",
+    "tr": "Satın alma faturalarını girme ve depoya yeni stok girişi yapma",
+    "de": "Einkaufsrechnungen buchen und Waren im Lager einbuchen"
+  },
+  "تسجيل الهدر والتالف": {
+    "ar": "تسجيل الهدر والتالف",
+    "en": "Record Waste & Spoilage",
+    "fr": "Enregistrer les pertes et le gaspillage",
+    "tr": "İsraf ve Fire Kaydı",
+    "de": "Schwund und Verderb erfassen"
+  },
+  "حصر وتسجيل المواد الغذائية التالفة بمطبخ الفرع": {
+    "ar": "حصر وتسجيل المواد الغذائية التالفة بمطبخ الفرع",
+    "en": "Track and log spoiled food items in branch kitchen",
+    "fr": "Recenser et enregistrer les denrées gâchées en cuisine",
+    "tr": "Şube mutfağında bozulan gıda maddelerini izleme ve kaydetme",
+    "de": "Verdorbene Lebensmittel in der Küche erfassen"
+  },
+  "استعراض طلبات كافة الفروع (HQ)": {
+    "ar": "استعراض طلبات كافة الفروع (HQ)",
+    "en": "View All Branch Orders (HQ)",
+    "fr": "Consulter les commandes de toutes les succursales (HQ)",
+    "tr": "Tüm Şube Siparişlerini Görüntüleme (HQ)",
+    "de": "Bestellungen aller Filialen ansehen (HQ)"
+  },
+  "استعراض وبحث وتصفية طلبات كل فروع السلسلة مجمعة": {
+    "ar": "استعراض وبحث وتصفية طلبات كل فروع السلسلة مجمعة",
+    "en": "Search and filter consolidated orders across all chain branches",
+    "fr": "Rechercher et filtrer les commandes consolidées du réseau",
+    "tr": "Tüm zincir şubelerindeki birleştirilmiş siparişleri arama ve filtreleme",
+    "de": "Konsolidierte Bestellungen aller Kettenfilialen durchsuchen und filtern"
+  },
+  "تعديل الطلبات المركزية": {
+    "ar": "تعديل الطلبات المركزية",
+    "en": "Edit Central Orders",
+    "fr": "Modifier les commandes centralisées",
+    "tr": "Merkezi Siparişleri Düzenleme",
+    "de": "Zentrale Bestellungen bearbeiten"
+  },
+  "تعديل وتوجيه الطلبات عبر فروع السلسلة": {
+    "ar": "تعديل وتوجيه الطلبات عبر فروع السلسلة",
+    "en": "Edit and reroute orders across chain branches",
+    "fr": "Modifier et réacheminer les commandes entre succursales",
+    "tr": "Zincir şubeleri arasında siparişleri düzenleme ve yönlendirme",
+    "de": "Bestellungen zwischen den Filialen bearbeiten und umleiten"
+  },
+  "إلغاء الطلبات المركزية": {
+    "ar": "إلغاء الطلبات المركزية",
+    "en": "Cancel Central Orders",
+    "fr": "Annuler les commandes centralisées",
+    "tr": "Merkezi Siparişleri İptal Etme",
+    "de": "Zentrale Bestellungen stornieren"
+  },
+  "إلغاء أي فاتورة عبر أي فرع من الإدارة العامة": {
+    "ar": "إلغاء أي فاتورة عبر أي فرع من الإدارة العامة",
+    "en": "Cancel any invoice across any branch from HQ",
+    "fr": "Annuler n'importe quelle facture de n'importe quelle succursale depuis le siège",
+    "tr": "Genel merkezden herhangi bir şubedeki herhangi bir faturayı iptal etme",
+    "de": "Rechnungen beliebiger Filialen von der Zentrale aus stornieren"
+  },
+  "حذف الفواتير نهائياً (حساس جداً)": {
+    "ar": "حذف الفواتير نهائياً (حساس جداً)",
+    "en": "Purge Invoices Permanently (Ultra-Sensitive)",
+    "fr": "Supprimer définitivement les factures (Très sensible)",
+    "tr": "Faturaları Kalıcı Olarak Silme (Çok Hassas)",
+    "de": "Rechnungen dauerhaft löschen (Sehr sensibel)"
+  },
+  "حذف الفواتير نهائياً من قاعدة البيانات للإدارة العامة": {
+    "ar": "حذف الفواتير نهائياً من قاعدة البيانات للإدارة العامة",
+    "en": "Permanently remove invoice records from central database",
+    "fr": "Supprimer définitivement les factures de la base de données centrale",
+    "tr": "Fatura kayıtlarını merkezi veritabanından kalıcı olarak silme",
+    "de": "Rechnungsdatensätze dauerhaft aus der zentralen Datenbank entfernen"
+  },
+  "استقبال وإجراء المكالمات الهاتفية الحية للعملاء": {
+    "ar": "استقبال وإجراء المكالمات الهاتفية الحية للعملاء",
+    "en": "Handle inbound and outbound live customer phone calls",
+    "fr": "Gérer les appels téléphoniques entrants et sortants des clients",
+    "tr": "Müşterilerin gelen ve giden canlı telefon aramalarını yönetme",
+    "de": "Eingehende und ausgehende Kundenanrufe live abwickeln"
+  },
+  "تسجيل وتوجيه طلبات الهاتف": {
+    "ar": "تسجيل وتوجيه طلبات الهاتف",
+    "en": "Record & Route Phone Orders",
+    "fr": "Enregistrer et router les commandes téléphoniques",
+    "tr": "Telefon Siparişlerini Kaydetme ve Yönlendirme",
+    "de": "Telefonbestellungen erfassen und weiterleiten"
+  },
+  "إنشاء طلب هاتفي وتوجيهه آلياً للفرع الأنسب للعميل": {
+    "ar": "إنشاء طلب هاتفي وتوجيهه آلياً للفرع الأنسب للعميل",
+    "en": "Create phone order and auto-route to optimal branch",
+    "fr": "Créer une commande téléphonique et l'acheminer vers la succursale optimale",
+    "tr": "Telefon siparişi oluşturma ve en uygun şubeye otomatik yönlendirme",
+    "de": "Telefonbestellung anlegen und automatisch an die beste Filiale leiten"
+  },
+  "بيانات وسجل العملاء": {
+    "ar": "بيانات وسجل العملاء",
+    "en": "Customer Directory & Order History",
+    "fr": "Répertoire et historique des clients",
+    "tr": "Müşteri Rehberi ve Sipariş Geçmişi",
+    "de": "Kundenkartei & Bestellhistorie"
+  },
+  "استعراض سجل طلبات العملاء وعناوينهم السابقة": {
+    "ar": "استعراض سجل طلبات العملاء وعناوينهم السابقة",
+    "en": "Review customer past orders and saved delivery addresses",
+    "fr": "Consulter les commandes passées et adresses enregistrées des clients",
+    "tr": "Müşterilerin geçmiş siparişlerini ve kayıtlı adreslerini inceleme",
+    "de": "Frühere Bestellungen und gespeicherte Kundenadressen einsehen"
+  },
+  "صلاحيات متاحة لهذا النطاق": {
+    "ar": "صلاحيات متاحة لهذا النطاق",
+    "en": "permissions available for this scope",
+    "fr": "autorisations disponibles pour cette portée",
+    "tr": "bu kapsam için kullanılabilir yetki",
+    "de": "Berechtigungen für diesen Bereich verfügbar"
   }
 }

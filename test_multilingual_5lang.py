@@ -267,6 +267,33 @@ def run_tests():
 
     print(f"  ✔ PASS: All {len(internal_views)} internal views verified 100% functional across all 5 languages (ar, en, fr, tr, de)")
 
+    # 9. Targeted 5-Screen Zero-Leakage Verification (User Reported Screens)
+    print("\n>>> 9. Targeted 5 Screens Zero-Leakage Verification")
+    from django.template import Template, Context
+    from django.utils import translation
+
+    specific_screen_tests = [
+        ('call_center customer label with asterisk', '{{ "اسم العميل *"|t }}', 'Nom du client *'),
+        ('call_center order invoice', '{{ "فاتورة الطلب"|t }}', 'Facture de commande'),
+        ('call_center fulfilling branch', '{{ "الفرع المنفذ"|t }}', 'Succursale exécutante'),
+        ('delivery empty state card', '{{ "لا توجد طلبات مسلّمة اليوم"|t }}', "Aucune commande livrée aujourd'hui"),
+        ('restaurant profile tab dishes', '{{ "قائمة الأطباق والأسعار"|t }}', 'Plats et Tarifs du Menu'),
+        ('restaurant profile tab inventory', '{{ "جرد المخزون والمستودعات"|t }}', 'Inventaire et Entrepôts'),
+        ('restaurant profile tab staff', '{{ "فريق العمل والرواتب"|t }}', 'Personnel et Paie'),
+        ('subscription plan feature POS', '{{ "نقاط البيع والكاشير (POS)"|t }}', 'Point de Vente & Caisse (POS)'),
+        ('subscription plan feature desc', '{{ "تسجيل طلبات الصالة والسفري والفواتير والمدفوعات"|t }}', 'Enregistrement des commandes sur place/à emporter, factures et paiements'),
+        ('employees role perm category KDS', '{{ "المطبخ وإعداد الوجبات (KDS)"|t }}', 'Cuisine et préparation des repas (KDS)'),
+        ('employees role perm discount', '{{ "تطبيق الخصومات والعروض"|t }}', 'Appliquer des remises et promotions'),
+    ]
+
+    with translation.override('fr'):
+        for name, tpl_str, expected in specific_screen_tests:
+            t = Template('{% load i18n_tags %}' + tpl_str)
+            res = t.render(Context({'CURRENT_LANG': 'fr'}))
+            assert expected == res, f"Screen test '{name}' failed: expected '{expected}', got '{res}'"
+
+    print(f"  ✔ PASS: All {len(specific_screen_tests)} user-reported screen elements verified 100% in French without leakage")
+
     print("\n" + "=" * 70)
     print("ALL 5-LANGUAGE TESTS PASSED SUCCESSFULLY! 100% VERIFIED.")
     print("=" * 70)

@@ -1020,7 +1020,7 @@
                             </span>
                             <div>
                                 <h4 class="font-bold text-slate-900 text-xs flex items-center gap-2">
-                                    {{ group.category }}
+                                    {{ group.category|t }}
                                     <span class="text-[11px] font-medium text-slate-500">[{% if group.scope == 'branch' %}{{ "نطاق فرع"|t }}{% else %}{{ "نطاق HQ"|t }}{% endif %}]</span>
                                 </h4>
                             </div>
@@ -1044,7 +1044,7 @@
                                 <div class="flex items-center gap-2.5 min-w-0">
                                     <input type="checkbox" value="{{ p.key }}" class="perm-checkbox rounded border-slate-300 text-violet-600 focus:ring-violet-500 w-4 h-4 cursor-pointer">
                                     <span class="font-bold text-slate-900 text-xs truncate">
-                                        {{ p.label }}
+                                        {{ p.label|t }}
                                         {% if p.key == 'branch_delete_orders' or p.key == 'hq_delete_orders' or p.key == 'delete_orders' %}
                                         <span class="text-[11px] text-rose-700 font-bold ml-1.5">[{{ "حساس - حذف فواتير نهائي"|t }}]</span>
                                         {% endif %}
@@ -1058,7 +1058,7 @@
                                         </svg>
                                     </span>
                                     <div class="hidden group-hover/tip:block group-focus/tip:block absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-64 p-2.5 bg-slate-900 text-white text-[11px] font-normal rounded-lg shadow-xl z-30 pointer-events-none leading-relaxed text-right">
-                                        {{ p.desc }}
+                                        {{ p.desc|t }}
                                         <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
                                     </div>
                                 </div>
@@ -1426,7 +1426,8 @@
                 perms.forEach(p => {
                     const pill = document.createElement('span');
                     pill.className = 'rounded-full bg-violet-600/10 text-slate-900 border border-slate-200 px-2.5 py-1 text-[11px] font-bold flex items-center gap-1.5 shadow-xs';
-                    pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-violet-600"></span><span>${p.label}</span>`;
+                    const localizedLabel = (typeof window.tJs === 'function' ? window.tJs(p.label, p.label) : p.label);
+                    pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-violet-600"></span><span>${localizedLabel}</span>`;
                     permsContainer.appendChild(pill);
                 });
             }
@@ -1765,9 +1766,21 @@
         const total = activeBoxes.length;
         const count = activeChecked.length;
 
+        const lang = (window.CURRENT_LANG || document.documentElement.lang || 'ar').substring(0, 2);
+        let msg = `تم اختيار ${count} من ${total} صلاحية متاحة لهذا النطاق`;
+        if (lang === 'fr') {
+            msg = `${count} sur ${total} autorisations sélectionnées pour cette portée`;
+        } else if (lang === 'en') {
+            msg = `${count} of ${total} permissions selected for this scope`;
+        } else if (lang === 'tr') {
+            msg = `Bu kapsam için ${total} yetkiden ${count} tanesi seçildi`;
+        } else if (lang === 'de') {
+            msg = `${count} von ${total} Berechtigungen für diesen Bereich ausgewählt`;
+        }
+
         const countEl = document.getElementById('role-perm-selected-count');
         if (countEl) {
-            countEl.textContent = `تم اختيار ${count} من ${total} صلاحية متاحة لهذا النطاق`;
+            countEl.textContent = msg;
         }
 
         document.querySelectorAll('.perm-group-card:not(.hidden)').forEach(card => {
@@ -1775,7 +1788,17 @@
             const groupChecked = card.querySelectorAll('.perm-checkbox:checked').length;
             const groupCountEl = card.querySelector('.group-selected-count');
             if (groupCountEl) {
-                groupCountEl.textContent = `(${groupChecked} من ${groupTotal})`;
+                if (lang === 'fr') {
+                    groupCountEl.textContent = `(${groupChecked} sur ${groupTotal})`;
+                } else if (lang === 'en') {
+                    groupCountEl.textContent = `(${groupChecked} of ${groupTotal})`;
+                } else if (lang === 'tr') {
+                    groupCountEl.textContent = `(${groupChecked} / ${groupTotal})`;
+                } else if (lang === 'de') {
+                    groupCountEl.textContent = `(${groupChecked} von ${groupTotal})`;
+                } else {
+                    groupCountEl.textContent = `(${groupChecked} من ${groupTotal})`;
+                }
             }
         });
     }

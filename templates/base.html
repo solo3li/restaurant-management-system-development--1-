@@ -1451,7 +1451,7 @@
         });
     </script>
     <!-- Diyafa Master 5-Language Translation Engine (100% AR, EN, FR, TR, DE across all views) -->
-    <script src="{% static 'js/diyafa_i18n_engine.js' %}"></script>
+    <script src="{% static 'js/diyafa_i18n_engine.js' %}?v={% now 'U' %}"></script>
     <script>
         window.tJs = function(k, fallback) {
             return (window.DiyafaI18n && typeof window.DiyafaI18n.translate === 'function') ? window.DiyafaI18n.translate(k) : (fallback || k);

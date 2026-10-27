@@ -1,9 +1,12 @@
+import re
 from django import template
 from django.utils import translation
 from django.utils.safestring import mark_safe
 from core.i18n_catalog import get_translation, I18N_CATALOG
 
 register = template.Library()
+
+_PUNCT_RE = re.compile(r"^[\s\*\:\-\•\—\–\.\,\،\؟\?]+|[\s\*\:\-\•\—\–\.\,\،\؟\?]+$")
 
 
 @register.filter(name="t", is_safe=True)
@@ -18,9 +21,11 @@ def t_filter(value, lang=None):
         active_lang = active_lang.split("-")[0]
     if active_lang == "ar":
         return value
+
     res = get_translation(text, active_lang, default=None)
     if res is not None:
         return mark_safe(res) if hasattr(value, "__html__") else res
+
     stripped = text.strip()
     res = get_translation(stripped, active_lang, default=None)
     if res is not None:
@@ -28,6 +33,19 @@ def t_filter(value, lang=None):
         trailing = text[len(text.rstrip()) :]
         final_str = f"{leading}{res}{trailing}"
         return mark_safe(final_str) if hasattr(value, "__html__") else final_str
+
+    # Automatic punctuation stripping: *, :, -, •, ?, etc.
+    cleaned = _PUNCT_RE.sub("", text).strip()
+    if cleaned and cleaned != stripped:
+        res = get_translation(cleaned, active_lang, default=None)
+        if res is not None:
+            idx = text.find(cleaned)
+            if idx != -1:
+                prefix = text[:idx]
+                suffix = text[idx + len(cleaned) :]
+                final_str = f"{prefix}{res}{suffix}"
+                return mark_safe(final_str) if hasattr(value, "__html__") else final_str
+
     return value
 
 

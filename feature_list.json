@@ -151,6 +151,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "core/templatetags/i18n_tags.py (|t, |trans5, trans_text builtins), restaurant_system/settings.py, core/context_processors.py, core/i18n_catalog.py (2764 clean terms with 0 fake translations), static/js/diyafa_i18n_catalog.json, static/js/diyafa_i18n_engine.js, refactored 34 templates (base.html, dashboard.html, hq_dashboard.html, branches.html, branch_dashboard.html, branch_menu.html, inventory.html, employees.html, pos.html, omnichannel.html, queues.html, persona.html, hours.html, knowledge.html, capabilities.html, calls.html, overview.html, hq_orders.html, branch_orders.html, order_detail.html, order_edit.html, kitchen.html, delivery.html, delivery_card.html, call_center.html, owner_subscription.html, restaurant_profile.html, login.html, qr_menu.html, 404.html, 500.html). Verified via test_multilingual_5lang.py (8 suites 100% PASS), ./init.sh (100% PASS), manage.py check (0 issues), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), test_landing_and_profile.py (100% PASS), collectstatic, and live verified on https://uggu.space/ across all 5 languages."
+    },
+    {
+      "id": "feat-zero-arabic-leakage-multilingual",
+      "name": "Zero-Leakage 5-Language Coverage & Auto-Punctuation Translation Engine",
+      "description": "Eliminate 100% of residual Arabic leakage across all screens and modals. Automatic punctuation stripping in |t template filter to cleanly match keys with asterisks, colons, and hyphens while preserving markup; full translation of 8 SaaS subscription features and descriptions; complete translation of 25 JobRole permissions, categories, and dynamic JS selection counters in employees modal; fix English fallback values for French, Turkish, and German admin tabs; catalog expansion to 2,857 terms; and client-side DOM mutation observer fallback in diyafa_i18n_engine.js with cache busting.",
+      "dependencies": ["feat-official-5-language-multilingual"],
+      "status": "completed",
+      "evidence": "core/templatetags/i18n_tags.py (auto punctuation stripping regex and sentinel fallback), core/i18n_catalog.py (expanded to 2857 verified terms), templates/call_center.html, templates/employees.html, templates/base.html, static/js/diyafa_i18n_catalog.json, static/js/diyafa_i18n_engine.js, staticfiles/. Verified via test_multilingual_5lang.py (9/9 suites 100% PASS including targeted screen assertions), test_landing_and_profile.py (100% PASS), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), ./init.sh (100% PASS), collectstatic, and live container motaem_web verified on https://uggu.space/."
     }
   ]
 }

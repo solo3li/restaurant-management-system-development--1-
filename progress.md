@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 05:45
-**Session ID:** Comprehensive 5-Language Official Support (AR, EN, FR, TR, DE) - Full 25+ Screen Rollout
+**Last Updated:** 2026-10-27 06:35
+**Session ID:** Zero-Leakage 5-Language Multi-Lingual Architecture (AR, EN, FR, TR, DE) - Residual Cleanup
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -18,12 +18,23 @@
 - `feat-landing-text-animations-and-counters` (Completed)
 - `feat-landing-pure-native-animations` (Completed)
 - `feat-official-5-language-multilingual` (Completed & Verified 100%)
+- `feat-zero-arabic-leakage-multilingual` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
 
-- [x] **Full 25+ Screen 5-Language Internationalization Rollout (`ar`, `en`, `fr`, `tr`, `de`)**
+- [x] **Zero-Leakage Multi-Language Coverage & Auto-Punctuation Engine (`ar`, `en`, `fr`, `tr`, `de`)**
+  - **Auto Punctuation Stripping in `|t` Filter**: Enhanced `core/templatetags/i18n_tags.py` to automatically strip punctuation (`*`, `:`, `-`, `•`, `?`) before catalog lookup and preserve surrounding markup, resolving mismatches in forms and labels.
+  - **Sentinel Default Fallback**: Fixed `I18nCatalogDict.get_translation` so `default=None` returns `None` instead of returning the raw key, allowing clean fallback logic.
+  - **Call Center Screen Hardening**: Updated `templates/call_center.html` to decouple asterisks (`{{ "اسم العميل"|t }} *`), cataloged order invoice and branch selection labels.
+  - **Delivery Screen Empty State**: Added 5-language translations for delivery kanban empty states in `templates/delivery.html`.
+  - **Admin Navigation & Profile Tabs**: Replaced English fallback placeholders in `core/i18n_catalog.py` with authentic French, Turkish, and German terms for menu, inventory, staff, and restaurant profile tabs.
+  - **Subscription Plan Features Cataloging**: Fully cataloged all 8 SaaS plan features and descriptions across all 5 languages in `core/i18n_catalog.py` and JSON files.
+  - **Role & Permission Modal Full Translation**: Added `|t` to group categories, permission labels, and tooltips in `templates/employees.html`. Added localized counter strings in JavaScript (`updateSelectedPermCount`).
+  - **Catalog Expansion**: Expanded master catalog to 2,857 verified terms with identical synchronized JSON in `static/` and `staticfiles/`.
+  - **Client-Side DOM Fallback Engine**: Updated `static/js/diyafa_i18n_engine.js` with full 2,857-term catalog and enhanced asterisk regex in `punctMatch`, with cache busting in `templates/base.html`.
+  - **Verification**: Ran `manage.py check`, `test_multilingual_5lang.py` (including 11 targeted screen tests), `test_landing_and_profile.py`, `test_system.py`, `test_e2e_rbac.py`, `./init.sh`, `collectstatic`, and restarted `motaem_web` container. All passed 100%.
   - **Django Template Builtin Filter**: Created `core/templatetags/i18n_tags.py` (`|t`, `|trans5`, `trans_text`) and registered as built-in in `restaurant_system/settings.py` `TEMPLATES[0]['OPTIONS']['builtins']`.
   - **Catalog Scaled to 2,764 Verified Terms**: Expanded `core/i18n_catalog.py`, `static/js/diyafa_i18n_catalog.json`, and `staticfiles/js/diyafa_i18n_catalog.json` with 2,764 verified keys across all 5 official languages (`ar`, `en`, `fr`, `tr`, `de`). Purged all fake entries from prior attempt. Zero non-Arabic entries match Arabic characters. Backward-compatible `TranslatableString` and `I18nCatalogDict` ensure 100% string equality with existing tests.
   - **Eliminated Binary Language Checks**: Replaced hardcoded binary checks (`{% if CURRENT_LANG == 'en' %}`, `{% if not IS_RTL %}`, and JS `CURRENT_LANG === 'en'`) across 34 templates with canonical `{{ ...|t }}` and `tJs(key, fallback)` helpers.

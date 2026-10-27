@@ -165,11 +165,11 @@
 
                     <div class="grid grid-cols-2 gap-1.5">
                         <div>
-                            <label class="text-xs font-bold text-slate-800 block mb-0.5">{{ "اسم العميل *"|t }}</label>
+                            <label class="text-xs font-bold text-slate-800 block mb-0.5">{{ "اسم العميل"|t }} <span class="text-rose-500">*</span></label>
                             <input type="text" id="order-cust-name" placeholder="{{ "الاسم الكامل"|t }}" class="input !py-1 text-xs font-bold w-full border-slate-200/70">
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-slate-800 block mb-0.5">{{ "رقم التأكيد *"|t }}</label>
+                            <label class="text-xs font-bold text-slate-800 block mb-0.5">{{ "رقم التأكيد"|t }} <span class="text-rose-500">*</span></label>
                             <input type="text" id="order-cust-phone" placeholder="{{ "جوال العميل"|t }}" dir="ltr" class="input !py-1 text-xs font-mono font-bold w-full border-slate-200/70">
                         </div>
                     </div>
@@ -181,7 +181,7 @@
                     <div id="delivery-fields" class="space-y-1.5 pt-1 border-t border-slate-200 transition-all">
                         <div>
                             <div class="flex items-center justify-between mb-0.5">
-                                <label class="text-xs font-bold text-slate-800">{{ "المنطقة / الكومبوند المغطى *"|t }}</label>
+                                <label class="text-xs font-bold text-slate-800">{{ "المنطقة / الكومبوند المغطى"|t }} <span class="text-rose-500">*</span></label>
                                 <span id="area-route-badge" class="hidden text-[10px] text-violet-800 bg-violet-50 px-1.5 py-0.5 rounded font-semibold border border-violet-200/60"></span>
                             </div>
                             <select id="order-delivery-area" class="input !py-1 text-xs font-bold w-full border-slate-200/70" onchange="onDeliveryAreaChanged()">
@@ -194,7 +194,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-slate-800 block mb-0.5">{{ "عنوان التوصيل بالتفصيل *"|t }}</label>
+                            <label class="text-xs font-bold text-slate-800 block mb-0.5">{{ "عنوان التوصيل بالتفصيل"|t }} <span class="text-rose-500">*</span></label>
                             <input type="text" id="order-cust-address" placeholder="{{ "الحي، اسم الشارع، رقم العمارة أو الشقة..."|t }}" class="input !py-1 text-xs font-bold w-full border-slate-200/70">
                         </div>
                     </div>
