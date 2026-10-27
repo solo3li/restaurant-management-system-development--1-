@@ -47,20 +47,27 @@ def ensure_landing_sales_client(config: Optional[PlatformVoiceAssistantConfig] =
     try:
         # Check existing clients on Partner Service
         list_resp = ps._request("/clients/")
-        if list_resp.get("status") == "success" and "clients" in list_resp:
-            for c in list_resp.get("clients", []):
-                if c.get("name") == LANDING_SALES_CLIENT_NAME or c.get("external_reference") == LANDING_SALES_EXTERNAL_REF:
-                    cid = str(c.get("client_id") or c.get("id"))
-                    if config.partner_client_id != cid:
-                        config.partner_client_id = cid
-                        config.save(update_fields=["partner_client_id", "updated_at"])
-                    return {
-                        "status": "success",
-                        "client_id": cid,
-                        "client_name": LANDING_SALES_CLIENT_NAME,
-                        "action": "linked_existing",
-                        "details": c,
-                    }
+        clients_list = []
+        if isinstance(list_resp, list):
+            clients_list = list_resp
+        elif isinstance(list_resp, dict):
+            clients_list = list_resp.get("clients") or []
+
+        for c in clients_list:
+            if not isinstance(c, dict):
+                continue
+            if c.get("name") == LANDING_SALES_CLIENT_NAME or c.get("external_reference") == LANDING_SALES_EXTERNAL_REF:
+                cid = str(c.get("client_id") or c.get("id"))
+                if config.partner_client_id != cid:
+                    config.partner_client_id = cid
+                    config.save(update_fields=["partner_client_id", "updated_at"])
+                return {
+                    "status": "success",
+                    "client_id": cid,
+                    "client_name": LANDING_SALES_CLIENT_NAME,
+                    "action": "linked_existing",
+                    "details": c,
+                }
 
         # If not found, register new client
         reg_resp = ps.register_sub_client(
@@ -70,8 +77,9 @@ def ensure_landing_sales_client(config: Optional[PlatformVoiceAssistantConfig] =
             spending_cap=100.0,
             minute_cap=1000,
         )
-        if reg_resp.get("status") == "success":
-            cid = str(reg_resp.get("client_id") or (reg_resp.get("client") or {}).get("client_id") or "")
+        if isinstance(reg_resp, dict) and reg_resp.get("status") == "success":
+            client_dict = reg_resp.get("client") if isinstance(reg_resp.get("client"), dict) else {}
+            cid = str(reg_resp.get("client_id") or client_dict.get("client_id") or client_dict.get("id") or "")
             if cid:
                 config.partner_client_id = cid
                 config.save(update_fields=["partner_client_id", "updated_at"])
@@ -100,7 +108,7 @@ def ensure_landing_sales_client(config: Optional[PlatformVoiceAssistantConfig] =
 
 def sync_knowledge_doc_to_partner(doc: LandingKnowledgeDocument, action: str = "add") -> Dict[str, Any]:
     """
-    Sync a LandingKnowledgeDocument to central Partner Service (add or delete).
+    Sync a LandingKnowledgeDocument to central Partner Service (add, update, or delete).
     """
     config = doc.config
     try:
@@ -131,6 +139,35 @@ def sync_knowledge_doc_to_partner(doc: LandingKnowledgeDocument, action: str = "
             doc_id = resp.get("document_id") or (resp.get("document") or {}).get("id")
             if doc_id:
                 doc.partner_doc_id = doc_id
+                doc.save(update_fields=["partner_doc_id", "updated_at"])
+        return resp
+
+    elif action == "update":
+        if doc.partner_doc_id:
+            try:
+                ps.delete_document(client_id=client_id, doc_id=doc.partner_doc_id)
+            except Exception as e:
+                logger.warning(f"Failed deleting old doc #{doc.partner_doc_id} on partner: {e}")
+
+        content_to_send = doc.content or doc.title
+        file_url = ""
+        if doc.file and hasattr(doc.file, "url"):
+            raw_url = str(doc.file.url or "")
+            if raw_url.startswith("http://") or raw_url.startswith("https://"):
+                file_url = raw_url
+            elif raw_url.startswith("/"):
+                file_url = f"https://uggu.space{raw_url}"
+
+        resp = ps.add_document(
+            client_id=client_id,
+            title=doc.title,
+            content=content_to_send,
+            file_url=file_url,
+        )
+        if resp.get("status") == "success":
+            new_id = resp.get("document_id") or (resp.get("document") or {}).get("id")
+            if new_id:
+                doc.partner_doc_id = new_id
                 doc.save(update_fields=["partner_doc_id", "updated_at"])
         return resp
 
@@ -185,7 +222,7 @@ def build_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
 
     # 3. Quick Stats
     leads_count = LandingVoiceLead.objects.count()
-    connected_calls = LandingVoiceLead.objects.filter(call_status="connected").count()
+    connected_calls = LandingVoiceLead.objects.filter(call_status__in=["connected", "completed"]).count()
 
     context_payload = {
         "platform_name": "منظومة كُـورَا (KURA Cloud Restaurant OS)",

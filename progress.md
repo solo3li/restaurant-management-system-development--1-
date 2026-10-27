@@ -44,13 +44,16 @@
       - Memory size, number of stored keys, last sync timestamp.
       - Interactive JSON explorer for live compiled working memory.
       - Instant action button `[ ⚡ مزامنة الذاكرة الحية إلى Redis الآن ]` compiling and pushing assistant config, knowledge base documents, and SaaS subscription tiers atomically to Redis, Django DB cache, and Central Partner PBX.
-  - **Design & Theme**:
-    - Strict adherence to unified dark Slate palette (`#272b30` canvas, `#32383e` cards, `#3a3f44` borders/hover).
-    - Preserved 100% of existing sidebar items, topbar links, and models without hiding or modifying.
+  - **Review & Hardening Fixes Applied**:
+    - **Fatal Nested `<form>` Bug Fixed**: Moved modal dialogs (`#modal-add-faq`, `#modal-upload-doc`, `#modal-edit-doc`) and `#landing-toast` completely outside the main Django admin `<form>` into `{% block content %}`, and decoupled modal buttons with explicit `type="button"` and `onsubmit="event.preventDefault();"`, eliminating HTML parser form stripping and accidental admin submissions.
+    - **Multiline JavaScript Syntax Error Fixed**: Switched document edit trigger to HTML5 `data-*` attributes (`data-id`, `data-title`, `data-content`) and added `escapeAttr()`, completely eliminating JS `Uncaught SyntaxError: Unterminated string literal` when editing multiline FAQs.
+    - **Security & Validation Hardening**: Enforced 20MB file upload ceiling and whitelist verification for document extensions (`pdf`, `doc`, `docx`, `txt`, `md`, `csv`); sanitized null bytes (`\x00`) to prevent DB driver crashes; enforced non-empty title validation on edits; enforced HTTP 405 Method Not Allowed for GET on `ensure_partner_client`.
+    - **Partner Document Re-Sync on Edit**: Added `action == "update"` in `sync_knowledge_doc_to_partner` to delete old doc ID and re-index updated titles/content on the Partner telephony platform.
+    - **KPI Accuracy**: Included both `"connected"` and `"completed"` calls in `connected_calls_count` and live Redis context compilation.
   - **Automated Verification**:
-    - Created `test_landing_assistant_admin_tabs.py` with 8 comprehensive test cases across all 5 test suites. Added to `./init.sh`.
-    - Ran `./init.sh` passing 100% across all 8 verification test suites.
-    - Updated knowledge graph via `graphify update .` (8,875 nodes, 18,976 edges, 470 communities).
+    - Created `test_landing_assistant_admin_tabs.py` with 8 comprehensive test cases covering RBAC, HTML ribbon rendering, form saves, partner client linking, full KB CRUD with partner sync, boundary validation, leads CRM status, and Redis live context compilation.
+    - Full test suite `./init.sh` passed 100% across all 8 verification suites.
+    - Knowledge graph updated via `graphify update .` (8,875 nodes, 18,984 edges, 471 communities).
 
 
 - [x] **Landing Page Voice Leads Capture, Global Phone Codes, Personalized Greeting & Admin CRM (`feat-landing-voice-leads-crm`)**

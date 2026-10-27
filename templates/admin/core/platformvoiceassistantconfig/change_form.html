@@ -425,7 +425,7 @@
                                     <td>
                                         <strong class="text-white">{{ doc.title }}</strong>
                                         {% if doc.content %}
-                                        <div class="text-muted small mt-1" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        <div class="text-muted small mt-1 doc-content-snippet" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                             {{ doc.content }}
                                         </div>
                                         {% endif %}
@@ -456,7 +456,11 @@
                                     </td>
                                     <td class="small text-muted">{{ doc.created_at|date:"Y-m-d H:i" }}</td>
                                     <td style="text-align: center;">
-                                        <button type="button" class="btn btn-sm btn-outline-light me-1" onclick="openEditDocModal({{ doc.id }}, '{{ doc.title|escapejs }}', '{{ doc.content|escapejs }}');">
+                                        <button type="button" class="btn btn-sm btn-outline-light me-1 btn-edit-doc"
+                                                data-id="{{ doc.id }}"
+                                                data-title="{{ doc.title }}"
+                                                data-content="{{ doc.content }}"
+                                                onclick="openEditDocModal(this);">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-danger" onclick="deleteDocument({{ doc.id }});">
@@ -693,9 +697,13 @@
 
     </div>
 </div>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
 
 <!-- ==============================================================================
-     MODALS FOR TAB 4 (Knowledge Base CRUD)
+     MODALS FOR TAB 4 (Rendered outside main Django admin form to prevent nested form issues)
      ============================================================================== -->
 
 <!-- Add FAQ Modal -->
@@ -709,7 +717,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="form-add-faq" onsubmit="submitAddFaq(event);">
+                <form id="form-add-faq" onsubmit="event.preventDefault(); submitAddFaq();">
                     <div class="mb-3">
                         <label class="form-label text-light font-weight-bold">السؤال أو الموضوع:</label>
                         <input type="text" id="faq-title" class="slate-input" placeholder="مثال: كم مدة التجربة المجانية؟" required>
@@ -720,7 +728,7 @@
                     </div>
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn-slate-primary" id="btn-save-faq">
+                        <button type="button" class="btn-slate-primary" id="btn-save-faq" onclick="submitAddFaq();">
                             <i class="fas fa-check"></i> حفظ ومزامنة السؤال
                         </button>
                     </div>
@@ -741,14 +749,14 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="form-upload-doc" onsubmit="submitUploadDoc(event);" enctype="multipart/form-data">
+                <form id="form-upload-doc" onsubmit="event.preventDefault(); submitUploadDoc();" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label text-light font-weight-bold">عنوان المستند:</label>
                         <input type="text" id="upload-doc-title" class="slate-input" placeholder="مثال: دليل أسعار وباقات المنظومة السحابية">
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-light font-weight-bold">الملف (PDF, DOCX, TXT):</label>
-                        <input type="file" id="upload-doc-file" class="slate-input" accept=".pdf,.doc,.docx,.txt" required>
+                        <input type="file" id="upload-doc-file" class="slate-input" accept=".pdf,.doc,.docx,.txt,.md,.csv" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-light font-weight-bold">نص إضافي أو مستخلص (اختياري):</label>
@@ -756,7 +764,7 @@
                     </div>
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn-slate-primary" id="btn-submit-upload">
+                        <button type="button" class="btn-slate-primary" id="btn-submit-upload" onclick="submitUploadDoc();">
                             <i class="fas fa-upload"></i> رفع ومزامنة المستند
                         </button>
                     </div>
@@ -777,7 +785,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="form-edit-doc" onsubmit="submitEditDoc(event);">
+                <form id="form-edit-doc" onsubmit="event.preventDefault(); submitEditDoc();">
                     <input type="hidden" id="edit-doc-id">
                     <div class="mb-3">
                         <label class="form-label text-light font-weight-bold">العنوان أو السؤال:</label>
@@ -789,7 +797,7 @@
                     </div>
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn-slate-primary" id="btn-save-edit-doc">
+                        <button type="button" class="btn-slate-primary" id="btn-save-edit-doc" onclick="submitEditDoc();">
                             <i class="fas fa-save"></i> حفظ التعديلات
                         </button>
                     </div>
@@ -803,10 +811,10 @@
 <div id="landing-toast" class="alert alert-success alert-dismissible fade show shadow-lg" role="alert">
     <span id="toast-message"><i class="fas fa-check-circle me-2"></i> تم بنجاح</span>
 </div>
+{% endblock %}
 
-<!-- ==============================================================================
-     INTERACTIVE JAVASCRIPT LOGIC
-     ============================================================================== -->
+{% block extrajs %}
+{{ block.super }}
 <script>
 function showToast(msg, isError = false) {
     const toast = document.getElementById('landing-toast');
@@ -823,6 +831,24 @@ function getCsrfToken() {
     if (el) return el.value;
     const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
     return cookie ? cookie.split('=')[1] : '';
+}
+
+function escapeHtml(str) {
+    return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(str) {
+    return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }
 
 // Tab Switching & Hash Persistence
@@ -912,7 +938,17 @@ function openUploadDocModal() {
     }
 }
 
-function openEditDocModal(id, title, content) {
+function openEditDocModal(btnOrId, titleArg, contentArg) {
+    let id, title, content;
+    if (typeof btnOrId === 'object' && btnOrId !== null && btnOrId.getAttribute) {
+        id = btnOrId.getAttribute('data-id');
+        title = btnOrId.getAttribute('data-title') || '';
+        content = btnOrId.getAttribute('data-content') || '';
+    } else {
+        id = btnOrId;
+        title = titleArg || '';
+        content = contentArg || '';
+    }
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('edit-doc-title').value = title;
     document.getElementById('edit-doc-content').value = content;
@@ -926,12 +962,15 @@ function openEditDocModal(id, title, content) {
 
 // Add FAQ submit
 function submitAddFaq(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const title = document.getElementById('faq-title').value.trim();
     const content = document.getElementById('faq-content').value.trim();
     const btn = document.getElementById('btn-save-faq');
 
-    if (!title || !content) return;
+    if (!title || !content) {
+        showToast('يرجى كتابة السؤال والإجابة بشكل صحيح', true);
+        return;
+    }
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
 
     fetch('/api/landing-assistant/documents/add-faq/', {
@@ -951,7 +990,8 @@ function submitAddFaq(e) {
             document.getElementById('form-add-faq').reset();
             const modalEl = document.getElementById('modal-add-faq');
             if (window.bootstrap && bootstrap.Modal) {
-                bootstrap.Modal.getInstance(modalEl).hide();
+                const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                inst.hide();
             } else {
                 $(modalEl).modal('hide');
             }
@@ -967,13 +1007,16 @@ function submitAddFaq(e) {
 
 // Upload Document submit
 function submitUploadDoc(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const fileInput = document.getElementById('upload-doc-file');
     const title = document.getElementById('upload-doc-title').value.trim();
     const content = document.getElementById('upload-doc-content').value.trim();
     const btn = document.getElementById('btn-submit-upload');
 
-    if (!fileInput.files || !fileInput.files[0]) return;
+    if (!fileInput.files || !fileInput.files[0]) {
+        showToast('يرجى اختيار ملف لرفعه', true);
+        return;
+    }
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
     formData.append('title', title);
@@ -995,7 +1038,8 @@ function submitUploadDoc(e) {
             document.getElementById('form-upload-doc').reset();
             const modalEl = document.getElementById('modal-upload-doc');
             if (window.bootstrap && bootstrap.Modal) {
-                bootstrap.Modal.getInstance(modalEl).hide();
+                const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                inst.hide();
             } else {
                 $(modalEl).modal('hide');
             }
@@ -1011,11 +1055,16 @@ function submitUploadDoc(e) {
 
 // Edit Document submit
 function submitEditDoc(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const docId = document.getElementById('edit-doc-id').value;
     const title = document.getElementById('edit-doc-title').value.trim();
     const content = document.getElementById('edit-doc-content').value.trim();
     const btn = document.getElementById('btn-save-edit-doc');
+
+    if (!title) {
+        showToast('يرجى كتابة عنوان المستند أو السؤال', true);
+        return;
+    }
 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
 
@@ -1034,13 +1083,28 @@ function submitEditDoc(e) {
             showToast(data.message);
             const row = document.getElementById(`doc-row-${docId}`);
             if (row) {
-                row.querySelector('strong').innerText = title;
-                const snippet = row.querySelector('.text-muted.small');
-                if (snippet) snippet.innerText = content;
+                const titleEl = row.querySelector('strong');
+                if (titleEl) titleEl.innerText = title;
+                let snippet = row.querySelector('.doc-content-snippet');
+                if (snippet) {
+                    snippet.innerText = content;
+                } else if (content) {
+                    const snipDiv = document.createElement('div');
+                    snipDiv.className = 'text-muted small mt-1 doc-content-snippet';
+                    snipDiv.style.cssText = 'max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                    snipDiv.innerText = content;
+                    if (titleEl && titleEl.parentNode) titleEl.parentNode.appendChild(snipDiv);
+                }
+                const editBtn = row.querySelector('.btn-edit-doc');
+                if (editBtn) {
+                    editBtn.setAttribute('data-title', title);
+                    editBtn.setAttribute('data-content', content);
+                }
             }
             const modalEl = document.getElementById('modal-edit-doc');
             if (window.bootstrap && bootstrap.Modal) {
-                bootstrap.Modal.getInstance(modalEl).hide();
+                const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                inst.hide();
             } else {
                 $(modalEl).modal('hide');
             }
@@ -1070,7 +1134,23 @@ function deleteDocument(docId) {
             if (row) {
                 row.style.transition = 'opacity 0.3s';
                 row.style.opacity = '0';
-                setTimeout(() => row.remove(), 300);
+                setTimeout(() => {
+                    const tbody = document.getElementById('documents-tbody');
+                    row.remove();
+                    if (tbody) {
+                        const remainingRows = tbody.querySelectorAll('tr:not(#no-docs-row)');
+                        if (remainingRows.length === 0) {
+                            tbody.innerHTML = `
+                                <tr id="no-docs-row">
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <i class="fas fa-book-open fa-2x mb-2 d-block text-secondary"></i>
+                                        لا توجد مستندات أو أسئلة شائعة مضافة بعد. انقر على الأزرار أعلاه لإضافة أول مستند.
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                    }
+                }, 300);
             }
             const badge = document.getElementById('tab4-count-badge');
             if (badge) {
@@ -1101,7 +1181,7 @@ function appendDocRow(doc) {
         : '<span class="badge bg-success">❓ سؤال وجواب (FAQ)</span>';
 
     const fileInfo = doc.file_url
-        ? `<a href="${doc.file_url}" target="_blank" class="text-info font-weight-bold" style="text-decoration:none;"><i class="fas fa-paperclip me-1"></i> ${doc.file_type.toUpperCase()}</a>`
+        ? `<a href="${doc.file_url}" target="_blank" class="text-info font-weight-bold" style="text-decoration:none;"><i class="fas fa-paperclip me-1"></i> ${(doc.file_type || 'FILE').toUpperCase()}</a>`
         : '<span class="text-muted">—</span>';
 
     const partnerBadge = doc.partner_doc_id
@@ -1111,17 +1191,21 @@ function appendDocRow(doc) {
     tr.innerHTML = `
         <td>${rowNum}</td>
         <td>
-            <strong class="text-white">${doc.title}</strong>
-            <div class="text-muted small mt-1" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                ${doc.content || ''}
+            <strong class="text-white">${escapeHtml(doc.title)}</strong>
+            <div class="text-muted small mt-1 doc-content-snippet" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${escapeHtml(doc.content || '')}
             </div>
         </td>
         <td>${sourceBadge}</td>
         <td>${fileInfo}</td>
         <td>${partnerBadge}</td>
-        <td class="small text-muted">${doc.created_at || 'الآن'}</td>
+        <td class="small text-muted">${escapeHtml(doc.created_at || 'الآن')}</td>
         <td style="text-align: center;">
-            <button type="button" class="btn btn-sm btn-outline-light me-1" onclick="openEditDocModal(${doc.id}, '${escapeHtml(doc.title)}', '${escapeHtml(doc.content || '')}');">
+            <button type="button" class="btn btn-sm btn-outline-light me-1 btn-edit-doc"
+                    data-id="${doc.id}"
+                    data-title="${escapeAttr(doc.title)}"
+                    data-content="${escapeAttr(doc.content || '')}"
+                    onclick="openEditDocModal(this);">
                 <i class="fas fa-edit"></i>
             </button>
             <button type="button" class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.id});">
@@ -1135,10 +1219,6 @@ function appendDocRow(doc) {
     if (badge) {
         badge.innerText = parseInt(badge.innerText || '0') + 1;
     }
-}
-
-function escapeHtml(str) {
-    return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
 // Instant Update Lead Status

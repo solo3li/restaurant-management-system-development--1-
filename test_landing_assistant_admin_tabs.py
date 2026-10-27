@@ -198,8 +198,11 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         self.config.refresh_from_db()
         self.assertEqual(self.config.partner_client_id, "789")
 
-        # Scenario B: Calling API endpoint as superadmin
+        # Scenario B: Calling API endpoint as superadmin (POST allowed, GET rejected with 405)
         self.client.force_login(self.admin_user)
+        get_resp = self.client.get("/api/landing-assistant/partner-client/ensure/")
+        self.assertEqual(get_resp.status_code, 405)
+
         api_resp = self.client.post("/api/landing-assistant/partner-client/ensure/")
         self.assertEqual(api_resp.status_code, 200)
         self.assertEqual(api_resp.json()["status"], "success")
@@ -280,8 +283,10 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         self.assertFalse(LandingKnowledgeDocument.objects.filter(pk=doc_id).exists())
         mock_del_doc.assert_called_with(client_id=662, doc_id=991)
 
-    def test_06_knowledge_document_validation(self):
+    @patch("core.partner_service.add_document")
+    def test_06_knowledge_document_validation(self, mock_add_doc):
         """Test boundary cases and validations on knowledge documents."""
+        mock_add_doc.return_value = {"status": "success", "document_id": 992}
         self.client.force_login(self.admin_user)
 
         # Missing title or content in FAQ
@@ -303,6 +308,39 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, 404)
+
+        # Edit with empty title rejected
+        faq = LandingKnowledgeDocument.objects.create(
+            config=self.config,
+            title="سؤال تجريبي",
+            content="إجابة تجريبية",
+            source_type="faq"
+        )
+        resp = self.client.post(
+            f"/api/landing-assistant/documents/{faq.id}/edit/",
+            data=json.dumps({"title": ""}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+        # Unsupported file extension rejected (.exe)
+        bad_file = SimpleUploadedFile("malicious.exe", b"binary content", content_type="application/octet-stream")
+        resp = self.client.post(
+            "/api/landing-assistant/documents/upload/",
+            {"file": bad_file, "title": "ملف تنفيذي غير مدعوم"},
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("غير مدعوم", resp.json()["message"])
+
+        # File with null bytes handled safely without DB crash
+        txt_with_null = SimpleUploadedFile("null_test.txt", b"Safe text\x00with null\x00bytes", content_type="text/plain")
+        resp = self.client.post(
+            "/api/landing-assistant/documents/upload/",
+            {"file": txt_with_null, "title": "مستند يحتوي على رموز صفرية"},
+        )
+        self.assertEqual(resp.status_code, 200)
+        created_doc = LandingKnowledgeDocument.objects.get(pk=resp.json()["document"]["id"])
+        self.assertNotIn("\x00", created_doc.content)
 
         # Delete non-existent document
         resp = self.client.post("/api/landing-assistant/documents/999999/delete/")
@@ -365,6 +403,18 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, 404)
+
+        # 5. Verify completed calls are included in connected_voice_calls KPI
+        lead_completed = LandingVoiceLead.objects.create(
+            name="سعد الدوسري",
+            phone="0501234567",
+            country_code="+966",
+            call_status="completed",
+            duration_seconds=90,
+            lead_status="new",
+        )
+        ctx = build_landing_assistant_live_context(self.config)
+        self.assertEqual(ctx["system_kpis"]["connected_voice_calls"], 2)  # 1 connected + 1 completed
 
     # =========================================================================
     # SUITE 5: Tab 6 Redis Live Context Monitoring & Instant Sync

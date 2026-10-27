@@ -2878,18 +2878,30 @@ def api_landing_assistant_upload_document(request):
     if not file_obj:
         return JsonResponse({"status": "error", "message": "يرجى اختيار ملف لرفعه"}, status=400)
 
+    # Validate file size (max 20MB)
+    if file_obj.size > 20 * 1024 * 1024:
+        return JsonResponse({"status": "error", "message": "حجم الملف يتجاوز الحد الأقصى المسموح به (20 ميجابايت)"}, status=400)
+
+    ext = os.path.splitext(file_obj.name)[1].lower().lstrip(".")
+    allowed_extensions = {"pdf", "doc", "docx", "txt", "md", "csv"}
+    if ext not in allowed_extensions:
+        return JsonResponse({
+            "status": "error",
+            "message": f"نوع الملف '{ext}' غير مدعوم. الصيغ المسموحة: PDF, Word (doc/docx), TXT"
+        }, status=400)
+
     title = (request.POST.get("title") or "").strip()
     if not title:
         title = os.path.splitext(file_obj.name)[0].replace("_", " ").title()
 
     content = (request.POST.get("content") or "").strip()
-    ext = os.path.splitext(file_obj.name)[1].lower().lstrip(".")
 
-    # If text file, try to extract text content directly
-    if ext == "txt" and not content:
+    # If text/md/csv file, extract text content safely (removing null characters)
+    if ext in ("txt", "md", "csv") and not content:
         try:
             file_obj.seek(0)
-            content = file_obj.read().decode("utf-8", errors="ignore")[:10000]
+            raw_text = file_obj.read().decode("utf-8", errors="ignore")[:10000]
+            content = raw_text.replace("\x00", "").strip()
             file_obj.seek(0)
         except Exception:
             pass
@@ -2938,7 +2950,7 @@ def api_landing_assistant_edit_document(request, doc_id):
         return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
 
     from apps.callcenter.models import LandingKnowledgeDocument
-    from apps.callcenter.landing_assistant_service import sync_landing_assistant_live_context
+    from apps.callcenter.landing_assistant_service import sync_landing_assistant_live_context, sync_knowledge_doc_to_partner
 
     try:
         doc = LandingKnowledgeDocument.objects.get(pk=doc_id)
@@ -2950,27 +2962,33 @@ def api_landing_assistant_edit_document(request, doc_id):
     except Exception:
         data = request.POST.dict()
 
-    title = (data.get("title") or "").strip()
-    content = data.get("content")
+    if "title" in data:
+        new_title = (data.get("title") or "").strip()
+        if not new_title:
+            return JsonResponse({"status": "error", "message": "عنوان المستند أو السؤال لا يمكن أن يكون فارغاً"}, status=400)
+        doc.title = new_title
 
-    if title:
-        doc.title = title
-    if content is not None:
-        doc.content = content.strip()
+    if "content" in data and data.get("content") is not None:
+        doc.content = str(data.get("content") or "").replace("\x00", "").strip()
 
     doc.save()
+
+    # Re-sync with partner service
+    partner_res = sync_knowledge_doc_to_partner(doc, "update")
     sync_landing_assistant_live_context(doc.config)
 
     return JsonResponse({
         "status": "success",
-        "message": "تم تحديث المستند بنجاح",
+        "message": "تم تحديث المستند بنجاح ومزامنته",
         "document": {
             "id": doc.id,
             "title": doc.title,
             "content": doc.content,
             "source_type": doc.source_type,
+            "partner_doc_id": doc.partner_doc_id,
             "updated_at": doc.updated_at.strftime("%Y-%m-%d %H:%M") if doc.updated_at else "",
-        }
+        },
+        "partner_res": partner_res,
     })
 
 
@@ -3069,6 +3087,8 @@ def api_landing_assistant_redis_sync(request):
 @login_required
 def api_landing_assistant_ensure_partner_client(request):
     """Check and ensure Landing-Sales-Client is registered and linked to partner_client_id."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
     if not (request.user.is_superuser or request.user.is_staff):
         return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
 

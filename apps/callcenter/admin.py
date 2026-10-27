@@ -103,7 +103,7 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
             # 2. Landing Leads & Voice Calls
             extra_context["leads"] = LandingVoiceLead.objects.all().order_by("-created_at")[:100]
             extra_context["total_leads_count"] = LandingVoiceLead.objects.count()
-            extra_context["connected_calls_count"] = LandingVoiceLead.objects.filter(call_status="connected").count()
+            extra_context["connected_calls_count"] = LandingVoiceLead.objects.filter(call_status__in=["connected", "completed"]).count()
             extra_context["converted_leads_count"] = LandingVoiceLead.objects.filter(lead_status="converted").count()
             extra_context["new_leads_count"] = LandingVoiceLead.objects.filter(lead_status="new").count()
             # 3. Redis Live Context
