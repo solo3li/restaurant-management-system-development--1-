@@ -944,33 +944,95 @@
 <!-- Voice Agent JavaScript Engine -->
 <script src="{% static 'js/landing_webrtc_agent.js' %}?v={% now 'U' %}"></script>
 
-<!-- Animation Libraries (Typed.js, GSAP & ScrollTrigger) with Local Fallback -->
-<script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.js"></script>
-<script>window.Typed || document.write('<script src="{% static 'js/vendor/typed.umd.js' %}?v={% now 'U' %}"><\/script>');</script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script>window.gsap || document.write('<script src="{% static 'js/vendor/gsap.min.js' %}?v={% now 'U' %}"><\/script>');</script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script>window.ScrollTrigger || document.write('<script src="{% static 'js/vendor/ScrollTrigger.min.js' %}?v={% now 'U' %}"><\/script>');</script>
+<!-- Pure Native Landing Animations Engine (100% Vanilla JS & CSS - Zero CDN) -->
 <script src="{% static 'js/landing_animations.js' %}?v={% now 'U' %}"></script>
 
 <style>
+    /* Native Typewriter Cursor */
+    .native-typewriter-cursor,
     .typed-cursor {
+        display: inline-block;
         color: #7C3AED;
         font-weight: 300;
         margin-inline-start: 2px;
-        opacity: 1;
-        animation: typedjsBlink 0.8s infinite;
+        animation: nativeCursorBlink 0.8s infinite;
+        vertical-align: baseline;
     }
-    @keyframes typedjsBlink {
+    @keyframes nativeCursorBlink {
         0%, 100% { opacity: 1; }
         50% { opacity: 0; }
     }
+
+    /* Ambient Hero Mesh Glow subtle breathing animation */
+    @keyframes heroAmbientGlowPulse {
+        0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.12;
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.18);
+            opacity: 0.24;
+        }
+    }
+    #hero-ambient-glow {
+        animation: heroAmbientGlowPulse 4.5s ease-in-out infinite;
+    }
+
+    /* Native Scroll Reveal Base Styles */
+    .motaem-anim-active .hero-anim-item,
+    .motaem-anim-active .section-header-reveal .reveal-item,
+    .motaem-anim-active .bento-card,
+    .motaem-anim-active .stat-card,
+    .motaem-anim-active .pricing-card,
+    .motaem-anim-active .faq-item,
+    .motaem-anim-active .conversion-banner,
+    .motaem-anim-active .banner-item,
+    .motaem-anim-active .footer-reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
+    }
+
+    .motaem-anim-active .hero-anim-item.is-revealed,
+    .motaem-anim-active .section-header-reveal .reveal-item.is-revealed,
+    .motaem-anim-active .bento-card.is-revealed,
+    .motaem-anim-active .stat-card.is-revealed,
+    .motaem-anim-active .pricing-card.is-revealed,
+    .motaem-anim-active .faq-item.is-revealed,
+    .motaem-anim-active .conversion-banner.is-revealed,
+    .motaem-anim-active .banner-item.is-revealed,
+    .motaem-anim-active .footer-reveal.is-revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Voice demo equalizer bars */
     @keyframes eqBar1 { 0%, 100% { height: 4px; } 50% { height: 12px; } }
     @keyframes eqBar2 { 0%, 100% { height: 14px; } 50% { height: 6px; } }
     @keyframes eqBar3 { 0%, 100% { height: 6px; } 50% { height: 16px; } }
     .animate-eq-1 { animation: eqBar1 1s ease-in-out infinite; }
     .animate-eq-2 { animation: eqBar2 1.3s ease-in-out infinite 0.2s; }
     .animate-eq-3 { animation: eqBar3 0.9s ease-in-out infinite 0.4s; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .motaem-anim-active .hero-anim-item,
+        .motaem-anim-active .section-header-reveal .reveal-item,
+        .motaem-anim-active .bento-card,
+        .motaem-anim-active .stat-card,
+        .motaem-anim-active .pricing-card,
+        .motaem-anim-active .faq-item,
+        .motaem-anim-active .conversion-banner,
+        .motaem-anim-active .banner-item,
+        .motaem-anim-active .footer-reveal {
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
+        }
+        #hero-ambient-glow {
+            animation: none !important;
+        }
+    }
 </style>
 
 

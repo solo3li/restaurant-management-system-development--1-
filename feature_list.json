@@ -135,6 +135,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "templates/landing.html, static/js/landing_animations.js, staticfiles/js/landing_animations.js. Verified via manage.py check (0 issues), test_landing_and_profile.py (100% PASS), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), ./init.sh (100% PASS), and verified on live container motaem_web at https://uggu.space/."
+    },
+    {
+      "id": "feat-landing-pure-native-animations",
+      "name": "Pure Native Vanilla JS & CSS Landing Animations Engine (Zero CDN)",
+      "description": "Completely remove external CDN dependencies (jsdelivr, Typed.js, GSAP, ScrollTrigger, document.write fallbacks) to prevent failures in regions with blocked CDNs. Build 100% native vanilla JS typewriter, requestAnimationFrame 60fps counters, and IntersectionObserver CSS scroll reveal with stagger.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "templates/landing.html (removed all CDN links & document.write, single script call to landing_animations.js), static/js/landing_animations.js and staticfiles/js/landing_animations.js (pure vanilla JS typewriter, rAF easing counters, and IntersectionObserver scroll reveal). Verified via manage.py check (0 issues), test_landing_and_profile.py (100% PASS), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), ./init.sh (100% PASS), and live verified at https://uggu.space/."
     }
   ]
 }
