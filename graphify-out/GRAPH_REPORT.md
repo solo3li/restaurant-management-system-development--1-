@@ -1,17 +1,17 @@
 # Graph Report - motaem  (2026-10-27)
 
 ## Corpus Check
-- 483 files · ~1,195,417 words
+- 483 files · ~1,197,242 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 102 file(s) not represented in the graph (top: .css 48, .map 31, (none) 5)
 
 ## Summary
-- 8668 nodes · 18468 edges · 468 communities (275 shown, 193 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 1393 edges (avg confidence: 0.88)
+- 8668 nodes · 18470 edges · 466 communities (270 shown, 196 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 1394 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8760a506`
+- Built from commit: `854298c2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -189,7 +189,6 @@
 - InputData
 - ed
 - ui-builder.js
-- TenantApiKey
 - TEST_INFRA.md — Restaurant Profile Management Test Infrastructure
 - Android platform
 - Persona-Based Design Testing
@@ -223,8 +222,8 @@
 - jazzmin/js/change_form.js
 - main.js
 - fh
-- api_restaurant_profile_update
-- restaurant_profile_view
+- accounts/views.py
+- get_currency_info
 - staticfiles/js/vendor/ScrollTrigger.min.js
 - translateNode
 - translateNode
@@ -298,7 +297,7 @@
 - BRIEFING — 2026-10-23T22:41:00Z
 - Forensic Audit Report & Handoff — Restaurant Profile Implementation
 - Tween
-- Adversarial Challenge Handoff Report — Restaurant Profile
+- PlatformConfigurationAdmin
 - Sentinel Handoff Report
 - Handoff Report — E2E Test Suite Creation for Restaurant Profile Management
 - Victory Audit Report & Handoff — Central HQ Restaurant Profile
@@ -350,7 +349,7 @@
 - qu
 - Quality Checklist
 - se
-- AuditLog
+- Victory Audit Report & Handoff — Landing Navbar, Bilingual, User/Subscription Profile & Routing
 - InfiniteScroll
 - Diagnostic Scan
 - bolder.md
@@ -363,17 +362,15 @@
 - select2.min.js
 - Persuade and Experience
 - Read
-- Handoff Report — Adversarial Testing Challenge
+- UpgradeRequest
 - Bc
 - hc
 - K
-- Handoff Report — Restaurant Profile Implementation
+- TenantApiKeyAdmin
 - r
 - _d
 - K
 - ja
-- Handoff Report: RBAC, Multi-Tenant Isolation & Test Infrastructure Survey
-- 1. Observation
 - Completed Steps
 - Et
 - U
@@ -403,21 +400,21 @@
 10. `Tenant` - 65 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `3. Caveats` --references--> `JobRole`  [INFERRED]
-  .agents/teamwork/explorer_survey_3/handoff.md → apps/accounts/models.py
 - `Test Data Generation` --references--> `JobRole`  [INFERRED]
   TEST_INFRA.md → apps/accounts/models.py
 - `3. Caveats` --references--> `log_audit_event()`  [INFERRED]
   .agents/teamwork/explorer_survey_2/handoff.md → apps/audit/models.py
+- `1. Observation` --references--> `UpgradeRequest`  [INFERRED]
+  .agents/teamwork/victory_auditor_2/handoff.md → apps/billing/models.py
+- `2.1 Role Hierarchy & Personas` --references--> `inventory_view()`  [INFERRED]
+  .agents/teamwork/explorer_survey_3/analysis.md → apps/inventory/views.py
 - `Strict Role-Based Access Control (RBAC) Matrix` --references--> `inventory_view()`  [INFERRED]
   TEST_INFRA.md → apps/inventory/views.py
-- `1. Executive Summary` --references--> `Tenant`  [INFERRED]
-  .agents/teamwork/explorer_survey_1/analysis.md → apps/tenants/models.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (468 total, 193 thin omitted)
+## Communities (466 total, 196 thin omitted)
 
 ### Community 1 - "live-browser.js"
 Cohesion: 0.03
@@ -429,11 +426,11 @@ Nodes (26): a(), Ar(), br(), canHandle(), co(), emit(), Fl, Hr() (+18 more)
 
 ### Community 3 - "core/views.py"
 Cohesion: 0.06
-Nodes (57): logout_view(), KnowledgeDocument, Meta, ai_callcenter_calls_view(), ai_callcenter_capabilities_view(), ai_callcenter_hours_view(), ai_callcenter_knowledge_view(), ai_callcenter_management_view() (+49 more)
+Nodes (58): KnowledgeDocument, Meta, ai_callcenter_calls_view(), ai_callcenter_capabilities_view(), ai_callcenter_hours_view(), ai_callcenter_knowledge_view(), ai_callcenter_management_view(), ai_callcenter_omnichannel_view() (+50 more)
 
 ### Community 4 - "json"
-Cohesion: 0.04
-Nodes (47): cleanup_fixtures(), main(), run_brand_color_boundary_probes(), run_concurrency_and_sequential_probes(), run_extended_adversarial_probes(), run_media_lifecycle_probes(), run_partial_update_probes(), run_whitespace_and_normalization_probes() (+39 more)
+Cohesion: 0.05
+Nodes (36): cleanup_fixtures(), main(), run_brand_color_boundary_probes(), run_concurrency_and_sequential_probes(), run_extended_adversarial_probes(), run_media_lifecycle_probes(), run_partial_update_probes(), run_whitespace_and_normalization_probes() (+28 more)
 
 ### Community 5 - "setLiveState"
 Cohesion: 0.12
@@ -448,8 +445,8 @@ Cohesion: 0.06
 Nodes (31): post_profile_data(), t1_color_01(), t1_color_02(), t1_color_03(), t1_color_04(), t1_cont_01(), t1_cont_02(), t1_cont_03() (+23 more)
 
 ### Community 8 - "callcenter/views.py"
-Cohesion: 0.04
-Nodes (28): Migration, Migration, Migration, Migration, Migration, Migration, Migration, Migration (+20 more)
+Cohesion: 0.03
+Nodes (38): AuditLogAdmin, KnowledgeDocumentAdmin, AuditLog, Meta, InventoryItemAdmin, InventoryItem, Meta, api_adjust_inventory() (+30 more)
 
 ### Community 9 - "evaluation.py"
 Cohesion: 0.05
@@ -465,7 +462,7 @@ Nodes (54): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTool
 
 ### Community 12 - "core/views.py"
 Cohesion: 0.03
-Nodes (116): 3.2 File Storage & Pillow Dependency, 2.1 Role Hierarchy & Personas, 2.2 Permissions Engine & Native Django Integration, 2.3 403 Forbidden Enforcement Patterns, 2. RBAC Architecture & 403 Forbidden Enforcement, A. HTML Views Pattern:, B. JSON API Endpoints Pattern:, 1. Observation (+108 more)
+Nodes (88): 1. Observation, 2.3 403 Forbidden Enforcement Patterns, A. HTML Views Pattern:, B. JSON API Endpoints Pattern:, 1. Observation, user_has_perm(), employees_view(), register_view() (+80 more)
 
 ### Community 13 - "tools.py"
 Cohesion: 0.09
@@ -569,7 +566,7 @@ Nodes (25): dedupe(), escapeForEcho(), escapeHtml(), formatScoreReport(), hasFil
 
 ### Community 40 - "partner_service.py"
 Cohesion: 0.04
-Nodes (68): api_ai_callcenter_sync_mcp(), api_ai_callcenter_test_mcp_tool(), api_ai_callcenter_update_mcp_url(), _authenticate_callcenter_request(), activate_profile(), add_document(), add_employee(), add_or_update_queue() (+60 more)
+Nodes (69): ai_callcenter_queues_view(), api_ai_callcenter_sync_mcp(), api_ai_callcenter_test_mcp_tool(), api_ai_callcenter_update_mcp_url(), _authenticate_callcenter_request(), activate_profile(), add_document(), add_employee() (+61 more)
 
 ### Community 42 - ".apply"
 Cohesion: 0.11
@@ -676,8 +673,8 @@ Cohesion: 0.07
 Nodes (21): Ad(), ee(), Jd(), Kd(), la(), Ld(), ma(), Md() (+13 more)
 
 ### Community 71 - "Tenant"
-Cohesion: 0.03
-Nodes (38): AdversarialTestTracker, cleanup_adversarial_fixtures(), create_adversarial_fixtures(), main(), run_cross_tenant_probes(), run_injection_probes(), run_media_upload_probes(), run_rbac_bypass_probes() (+30 more)
+Cohesion: 0.02
+Nodes (92): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Adversarial Testing Challenge, AdversarialTestTracker, cleanup_adversarial_fixtures() (+84 more)
 
 ### Community 72 - "on"
 Cohesion: 0.12
@@ -908,8 +905,8 @@ Cohesion: 0.22
 Nodes (11): buildFragment(), buildParams(), disableScript(), DOMEval(), domManip(), getAll(), isArrayLike(), remove() (+3 more)
 
 ### Community 147 - "billing/views.py"
-Cohesion: 0.04
-Nodes (38): 1. Observation, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Victory Audit Report & Handoff — Landing Navbar, Bilingual, User/Subscription Profile & Routing, register_view() (+30 more)
+Cohesion: 0.05
+Nodes (31): FeatureCardsCheckboxSelectMultiple, SubscriptionPlanAdminForm, Meta, SubscriptionPlan, Meta, TenantSubscription, Meta, generate_api_key() (+23 more)
 
 ### Community 148 - "ui"
 Cohesion: 0.21
@@ -1015,10 +1012,6 @@ Nodes (11): Cd(), ed(), m(), ip, kd(), oc(), p(), wd() (+3 more)
 Cohesion: 0.28
 Nodes (3): applyThemeMode(), setFromExisting(), themeChooserListeners()
 
-### Community 175 - "TenantApiKey"
-Cohesion: 0.06
-Nodes (6): BranchAdmin, DeliveryAreaAdmin, PlatformConfigurationAdmin, TenantAdmin, PlatformConfiguration, Meta
-
 ### Community 176 - "TEST_INFRA.md — Restaurant Profile Management Test Infrastructure"
 Cohesion: 0.09
 Nodes (21): 1. Overview & Architecture, 2. The 4-Tier Test Methodology, 3. Test Fixtures & Teardown Protocol, 4. Execution Commands, 5. Requirements Traceability Matrix, Environment & Test Harness, Feature 1: GET `/restaurant/profile/` (HQ Profile View), Feature 2: POST Name & Bio Updates (+13 more)
@@ -1101,7 +1094,7 @@ Nodes (5): After approval: the comp becomes a spec, Generate three compositional
 
 ### Community 201 - "Survey Analysis: Backend Models, Data Storage, and Endpoints for Restaurant Profile"
 Cohesion: 0.11
-Nodes (18): 1. Executive Summary, 1. Page View (`restaurant_profile_view`), 2.1 The `Tenant` Model, 2.2 Field Inventory vs Requirements (R1 / R2), 2. Existing Model Definitions and Data Storage, 2. Update Endpoint (`api_update_restaurant_profile`), 3.1 Settings Configuration, 3.3 Recommended Upload Validation Rules (+10 more)
+Nodes (17): 1. Page View (`restaurant_profile_view`), 2.1 The `Tenant` Model, 2.2 Field Inventory vs Requirements (R1 / R2), 2. Existing Model Definitions and Data Storage, 2. Update Endpoint (`api_update_restaurant_profile`), 3.1 Settings Configuration, 3.3 Recommended Upload Validation Rules, 3. Media Configuration and Upload Architecture (+9 more)
 
 ### Community 202 - "Region map"
 Cohesion: 0.40
@@ -1139,13 +1132,13 @@ Nodes (4): FixSelectorHeight(), handleCarousel(), handleCollapsible(), handleTab
 Cohesion: 0.47
 Nodes (3): getCookie(), handleMenu(), setCookie()
 
-### Community 212 - "api_restaurant_profile_update"
-Cohesion: 0.12
-Nodes (15): 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Central HQ Portal Architecture & Restaurant Profile Survey, Execution Steps & Status, Objective, Orchestration Plan: Restaurant Profile Management (Central HQ) (+7 more)
+### Community 212 - "accounts/views.py"
+Cohesion: 0.07
+Nodes (31): 2.1 Role Hierarchy & Personas, 2.2 Permissions Engine & Native Django Integration, 2. RBAC Architecture & 403 Forbidden Enforcement, _check_rate_limit(), _clear_rate_limit(), _get_client_ip(), get_post_login_redirect(), _record_failed_attempt() (+23 more)
 
-### Community 213 - "restaurant_profile_view"
-Cohesion: 0.16
-Nodes (15): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Restaurant Profile Backend Survey, 4.3 Existing Backend Handler vs Gap Analysis, Review Checklist (+7 more)
+### Community 213 - "get_currency_info"
+Cohesion: 0.14
+Nodes (3): format_currency_amount(), get_currency_choices(), get_currency_info()
 
 ### Community 214 - "staticfiles/js/vendor/ScrollTrigger.min.js"
 Cohesion: 0.07
@@ -1208,8 +1201,8 @@ Cohesion: 0.17
 Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFING — 2026-10-23T22:37:45Z, Current Parent, 🔒 Key Constraints, Key Decisions Made (+3 more)
 
 ### Community 241 - "Review & Handoff Report — Restaurant Profile Implementation"
-Cohesion: 0.15
-Nodes (12): 1. Observation, 2. Logic Chain, 3. Adversarial Challenges & Findings, 4. Caveats, 5. Conclusion, 6. Verification Method, Adversarial Risk Assessment: LOW, Codebase Observations (+4 more)
+Cohesion: 0.17
+Nodes (11): 1. Observation, 2. Logic Chain, 3. Adversarial Challenges & Findings, 4. Caveats, 5. Conclusion, 6. Verification Method, Adversarial Risk Assessment: LOW, Finding 1 (Minor / Security Hardening Note) (+3 more)
 
 ### Community 242 - "TEST_READY.md — Restaurant Profile Management Test Suite Certification"
 Cohesion: 0.18
@@ -1240,8 +1233,8 @@ Cohesion: 0.18
 Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-10-23T20:44:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
 
 ### Community 342 - "BRIEFING — 2026-10-23T20:18:15Z"
-Cohesion: 0.22
-Nodes (8): Artifact Index, BRIEFING — 2026-10-23T20:18:15Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+Cohesion: 0.12
+Nodes (13): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Adversarial Challenge Handoff Report — Restaurant Profile, Artifact Index, BRIEFING — 2026-10-23T20:18:15Z (+5 more)
 
 ### Community 343 - "BRIEFING — 2026-10-23T20:16:30Z"
 Cohesion: 0.25
@@ -1311,9 +1304,9 @@ Nodes (5): 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Ha
 Cohesion: 0.17
 Nodes (15): _assertThisInitialized(), Ec(), Fc(), gc(), ka(), qa(), t(), tb() (+7 more)
 
-### Community 377 - "Adversarial Challenge Handoff Report — Restaurant Profile"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Adversarial Challenge Handoff Report — Restaurant Profile
+### Community 377 - "PlatformConfigurationAdmin"
+Cohesion: 0.21
+Nodes (4): BranchAdmin, DeliveryAreaAdmin, PlatformConfigurationAdmin, TenantAdmin
 
 ### Community 378 - "Sentinel Handoff Report"
 Cohesion: 0.29
@@ -1391,9 +1384,9 @@ Nodes (8): Advanced Features (where applicable), Code Quality, Implementation Qu
 Cohesion: 0.20
 Nodes (15): se(), df(), ff(), gf(), hf(), jf(), M(), N() (+7 more)
 
-### Community 429 - "AuditLog"
-Cohesion: 0.33
-Nodes (4): AuditLogAdmin, KnowledgeDocumentAdmin, AuditLog, Meta
+### Community 429 - "Victory Audit Report & Handoff — Landing Navbar, Bilingual, User/Subscription Profile & Routing"
+Cohesion: 0.29
+Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Victory Audit Report & Handoff — Landing Navbar, Bilingual, User/Subscription Profile & Routing
 
 ### Community 431 - "Diagnostic Scan"
 Cohesion: 0.33
@@ -1435,10 +1428,6 @@ Nodes (3): Comps, Directions, Persuade and Experience
 Cohesion: 0.50
 Nodes (3): Comps, Directions, Read
 
-### Community 442 - "Handoff Report — Adversarial Testing Challenge"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Adversarial Testing Challenge
-
 ### Community 443 - "Bc"
 Cohesion: 0.19
 Nodes (13): Bc(), Cq(), Dq(), Jq(), Ha(), Ia(), ob(), tc() (+5 more)
@@ -1450,10 +1439,6 @@ Nodes (6): hb(), lb(), oa(), ob(), Wa(), hc()
 ### Community 445 - "K"
 Cohesion: 0.20
 Nodes (11): A(), B(), F(), G(), dd(), K(), pc(), r() (+3 more)
-
-### Community 446 - "Handoff Report — Restaurant Profile Implementation"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Restaurant Profile Implementation
 
 ### Community 447 - "r"
 Cohesion: 0.15
@@ -1471,17 +1456,9 @@ Nodes (10): A(), B(), F(), G(), dd(), K(), O(), P() (+2 more)
 Cohesion: 0.28
 Nodes (9): Aa(), Animation(), ha(), ja(), Jc(), Lc(), Ra(), Sa() (+1 more)
 
-### Community 451 - "Handoff Report: RBAC, Multi-Tenant Isolation & Test Infrastructure Survey"
-Cohesion: 0.33
-Nodes (5): 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: RBAC, Multi-Tenant Isolation & Test Infrastructure Survey
-
-### Community 452 - "1. Observation"
-Cohesion: 0.33
-Nodes (5): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Orchestrator Handoff Report: Restaurant Profile Feature
-
 ### Community 453 - "Completed Steps"
-Cohesion: 0.40
-Nodes (4): Completed Steps, Current Step, Progress Log — worker_1, Status
+Cohesion: 0.50
+Nodes (3): Current Step, Progress Log — worker_1, Status
 
 ### Community 454 - "Et"
 Cohesion: 0.29
@@ -1521,13 +1498,13 @@ Nodes (3): Comps, Directions, Operate
 
 ## Knowledge Gaps
 - **4 isolated node(s):** `type`, `description`, `type`, `description`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3358 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **193 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3357 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **196 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `What's Done` connect `billing/views.py` to `BRIEFING — 2026-10-23T22:42:50Z`, `core/views.py`, `json`, `partner_service.py`, `core/views.py`, `modern-screenshot.umd.js`, `display`?**
+- **Why does `What's Done` connect `billing/views.py` to `BRIEFING — 2026-10-23T22:42:50Z`, `core/views.py`, `partner_service.py`, `core/views.py`, `modern-screenshot.umd.js`, `accounts/views.py`, `display`?**
   _High betweenness centrality (0.204) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `get_active_tenant()` (e.g. with `2. Logic Chain` and `kitchen_stream_view()`) actually correct?**
   _`get_active_tenant()` has 4 INFERRED edges - model-reasoned connections that need verification._
