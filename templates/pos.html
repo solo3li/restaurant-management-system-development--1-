@@ -65,12 +65,12 @@
                     data-category="{{ m.pos_category_name|default:m.category }}"
                     data-category-id="{{ m.pos_category_id|default:'' }}"
                     data-category-name="{{ m.pos_category_name|default:m.category }}"
-                    onclick="addToCart({{ m.id }}, '{% if not IS_RTL and m.name_en %}{{ m.name_en|escapejs }}{% else %}{{ m.name|escapejs }}{% endif %}', {{ m.price }})"
+                    onclick="addToCart({{ m.id }}, '{% if CURRENT_LANG != 'ar' and m.name_en %}{{ m.name_en|escapejs }}{% else %}{{ m.name|escapejs }}{% endif %}', {{ m.price }})"
                 >
                     <!-- Top: Dish Name -->
                     <div class="flex items-start justify-between gap-1 w-full">
                         <span class="text-xs font-bold text-slate-900 group-hover:text-violet-700 transition leading-snug line-clamp-2">
-                            {% if not IS_RTL and m.name_en %}{{ m.name_en }}{% else %}{{ m.name }}{% endif %}
+                            {% if CURRENT_LANG != 'ar' and m.name_en %}{{ m.name_en }}{% else %}{{ m.name }}{% endif %}
                         </span>
                     </div>
 
@@ -85,16 +85,16 @@
                     </div>
 
                     {% if not m.available %}
-                    <span class="absolute top-1.5 left-1.5 rounded-md bg-rose-100 border border-rose-300 px-1 py-0.5 text-[9px] font-semibold text-rose-900">{% if not IS_RTL %}Out of Stock{% else %}نفد{% endif %}</span>
+                    <span class="absolute top-1.5 left-1.5 rounded-md bg-rose-100 border border-rose-300 px-1 py-0.5 text-[9px] font-semibold text-rose-900">{{ "نفد"|t }}</span>
                     {% endif %}
                 </button>
                 {% empty %}
                 <div class="col-span-full py-12 text-center text-xs text-slate-500 font-bold">
-                    {% if not IS_RTL %}No items available in this menu yet. Click 'Manage Menu' to add items.{% else %}لا توجد أصناف في قائمة هذا المطعم حالياً. يمكنك إضافة أصناف جديدة عبر زر «إدارة أصناف القائمة» أعلاه.{% endif %}
+                    {{ "لا توجد أصناف في قائمة هذا المطعم حالياً. يمكنك إضافة أصناف جديدة عبر زر «إدارة أصناف القائمة» أعلاه"|t }}.
                 </div>
                 {% endfor %}
             </div>
-            <div id="no-items-msg" class="hidden py-12 text-center text-xs text-slate-700 font-bold">{% if not IS_RTL %}No items match the selected category or search{% else %}لا توجد أصناف مطابقة للبحث أو القسم المحدد{% endif %}</div>
+            <div id="no-items-msg" class="hidden py-12 text-center text-xs text-slate-700 font-bold">{{ "لا توجد أصناف مطابقة للبحث أو القسم المحدد"|t }}</div>
         </div>
 
         <!-- Invoice / Cart Section -->
@@ -103,14 +103,14 @@
                 <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3 bg-slate-100 rounded-t-xl">
                     <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span>الفاتورة الحالية</span>
+                        <span>{{ "الفاتورة الحالية"|t }}</span>
                     </h2>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="scrollToMenu()" class="lg:hidden text-[11px] font-bold text-slate-800 hover:text-slate-900 px-2 py-1 rounded-lg border border-slate-200/70 bg-white flex items-center gap-1 cursor-pointer">
-                            <span>الأصناف</span>
+                            <span>{{ "الأصناف"|t }}</span>
                             <span>↑</span>
                         </button>
-                        <span id="cart-badge" class="rounded-full bg-violet-50 border border-violet-200/60 px-2.5 py-0.5 text-xs font-bold text-violet-700">0 أصناف</span>
+                        <span id="cart-badge" class="rounded-full bg-violet-50 border border-violet-200/60 px-2.5 py-0.5 text-xs font-bold text-violet-700">{{ "0 أصناف"|t }}</span>
                     </div>
                 </div>
 
@@ -120,7 +120,7 @@
                         <span class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 border border-slate-200/70 text-slate-600">
                             <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </span>
-                        <p class="font-bold text-slate-800">اضغط على أي صنف لإضافته إلى الفاتورة</p>
+                        <p class="font-bold text-slate-800">{{ "اضغط على أي صنف لإضافته إلى الفاتورة"|t }}</p>
                     </div>
                 </div>
 
@@ -130,22 +130,22 @@
                     <div class="grid grid-cols-3 gap-1.5">
                         <button type="button" onclick="setOrderType('dine_in')" id="btn-type-dine_in" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-violet-600 bg-violet-600 py-1.5 text-xs font-bold text-white transition cursor-pointer shadow-xs">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                            <span>محلي</span>
+                            <span>{{ "محلي"|t }}</span>
                         </button>
                         <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200/70 bg-white py-1.5 text-xs font-bold text-slate-800 transition hover:bg-slate-100 cursor-pointer shadow-xs">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                            <span>سفري</span>
+                            <span>{{ "سفري"|t }}</span>
                         </button>
                         <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="type-btn inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200/70 bg-white py-1.5 text-xs font-bold text-slate-800 transition hover:bg-slate-100 cursor-pointer shadow-xs">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            <span>توصيل</span>
+                            <span>{{ "توصيل"|t }}</span>
                         </button>
                     </div>
 
                     <!-- Branch & Payment -->
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div>
-                            <label class="mb-1 block font-bold text-slate-800">الفرع</label>
+                            <label class="mb-1 block font-bold text-slate-800">{{ "الفرع"|t }}</label>
                             <select id="order-branch" class="input text-xs font-bold border-slate-200/70">
                                 {% for b in branches %}
                                 <option value="{{ b.id }}" {% if current_branch and current_branch.id == b.id %}selected{% endif %}>{{ b.name }}</option>
@@ -155,33 +155,33 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mb-1 block font-bold text-slate-800">طريقة الدفع</label>
+                            <label class="mb-1 block font-bold text-slate-800">{{ "طريقة الدفع"|t }}</label>
                             <select id="order-pay" class="input text-xs font-bold border-slate-200/70">
-                                <option value="cash">💵 نقداً (Cash)</option>
-                                <option value="card">💳 مدى / بطاقة</option>
-                                <option value="wallet">📱 محفظة رقمية</option>
+                                <option value="cash">💵 {{ "نقداً (Cash"|t }})</option>
+                                <option value="card">💳 {{ "مدى / بطاقة"|t }}</option>
+                                <option value="wallet">📱 {{ "محفظة رقمية"|t }}</option>
                             </select>
                         </div>
                     </div>
 
                     <!-- Delivery info (conditionally shown) -->
                     <div id="delivery-fields" class="hidden space-y-2 rounded-lg border border-violet-200/60 bg-blue-50/80 p-3 text-xs">
-                        <p class="font-bold text-violet-900">بيانات التوصيل:</p>
+                        <p class="font-bold text-violet-900">{{ "بيانات التوصيل"|t }}:</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="cust-name" placeholder="اسم العميل" class="input text-xs font-bold border-slate-200/70">
-                            <input type="text" id="cust-phone" placeholder="رقم الجوال" dir="ltr" class="input text-xs font-bold font-mono border-slate-200/70">
+                            <input type="text" id="cust-name" placeholder='{{ "اسم العميل"|t }}' class="input text-xs font-bold border-slate-200/70">
+                            <input type="text" id="cust-phone" placeholder='{{ "رقم الجوال"|t }}' dir="ltr" class="input text-xs font-bold font-mono border-slate-200/70">
                         </div>
-                        <input type="text" id="cust-address" placeholder="عنوان التوصيل (الحي، الشارع...)" class="input text-xs font-bold border-slate-200/70">
+                        <input type="text" id="cust-address" placeholder='{{ "عنوان التوصيل (الحي، الشارع...)"|t }}' class="input text-xs font-bold border-slate-200/70">
                     </div>
 
                     <!-- Cashier and Discount -->
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="cashier-name" placeholder="اسم الكاشير" value="{{ user.username }}" class="input text-xs font-bold border-slate-200/70">
+                        <input type="text" id="cashier-name" placeholder='{{ "اسم الكاشير"|t }}' value="{{ user.username }}" class="input text-xs font-bold border-slate-200/70">
                         {% if perms.core.pos_apply_discount or "pos_apply_discount" in user_perms %}
                         <input type="number" id="order-discount" placeholder="خصم ({{ branch_currency_symbol }})" min="0" step="1" oninput="updateTotals()" class="input text-xs font-bold border-slate-200/70">
                         {% else %}
-                        <div class="flex items-center justify-between text-xs text-slate-600 px-2.5 border border-slate-200/70 rounded-lg bg-slate-100" title="غير مصرح لك بتطبيق خصومات على الفاتورة">
-                            <span class="text-xs font-bold text-slate-700 flex items-center gap-1">🔒 الخصم مقفل</span>
+                        <div class="flex items-center justify-between text-xs text-slate-600 px-2.5 border border-slate-200/70 rounded-lg bg-slate-100" title='{{ "غير مصرح لك بتطبيق خصومات على الفاتورة"|t }}'>
+                            <span class="text-xs font-bold text-slate-700 flex items-center gap-1">🔒 {{ "الخصم مقفل"|t }}</span>
                             <input type="hidden" id="order-discount" value="0">
                         </div>
                         {% endif %}
@@ -190,19 +190,19 @@
                     <!-- Invoice Totals Box -->
                     <div class="rounded-lg bg-white p-3 text-xs space-y-1.5 border border-slate-200/70 shadow-xs">
                         <div class="flex justify-between text-slate-700 font-bold">
-                            <span>المجموع الفرعي</span>
+                            <span>{{ "المجموع الفرعي"|t }}</span>
                             <span id="sum-subtotal" class="font-bold text-slate-900 font-mono">0.00 {{ branch_currency_symbol }}</span>
                         </div>
                         <div id="row-delivery-fee" class="hidden flex justify-between text-slate-700 font-bold">
-                            <span>رسوم التوصيل</span>
+                            <span>{{ "رسوم التوصيل"|t }}</span>
                             <span class="font-bold text-slate-900 font-mono">8.00 {{ branch_currency_symbol }}</span>
                         </div>
                         <div id="row-discount" class="hidden flex justify-between text-rose-700 font-bold">
-                            <span>الخصم</span>
+                            <span>{{ "الخصم"|t }}</span>
                             <span id="sum-discount" class="font-bold font-mono">- 0.00 {{ branch_currency_symbol }}</span>
                         </div>
                         <div class="flex justify-between border-t border-slate-100 pt-2 text-sm font-bold text-slate-900">
-                            <span>الإجمالي المستحق</span>
+                            <span>{{ "الإجمالي المستحق"|t }}</span>
                             <span id="sum-total" class="text-base text-violet-800 font-bold font-mono">0.00 {{ branch_currency_symbol }}</span>
                         </div>
                     </div>
@@ -220,7 +220,7 @@
                             >
                                 <span class="text-xs sm:text-sm flex items-center gap-1.5 font-semibold">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                    <span>تحصيل كاش</span>
+                                    <span>{{ "تحصيل كاش"|t }}</span>
                                 </span>
                                 <span id="cash-total-preview" class="text-[10px] font-bold text-emerald-100 font-mono">0.00 {{ branch_currency_symbol }}</span>
                             </button>
@@ -235,7 +235,7 @@
                             >
                                 <span class="text-xs sm:text-sm flex items-center gap-1.5 font-semibold">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                                    <span>تحصيل مدى</span>
+                                    <span>{{ "تحصيل مدى"|t }}</span>
                                 </span>
                                 <span id="card-total-preview" class="text-[10px] font-bold text-blue-100 font-mono">0.00 {{ branch_currency_symbol }}</span>
                             </button>
@@ -249,7 +249,7 @@
                             class="w-full rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-900 py-1.5 text-xs font-bold transition cursor-pointer disabled:opacity-40 disabled:pointer-events-none shadow-xs"
                             disabled
                         >
-                            تحصيل بطريقة الدفع المحددة
+                            {{ "تحصيل بطريقة الدفع المحددة"|t }}
                         </button>
                     </div>
                 </div>
@@ -265,12 +265,12 @@
                 <span id="mobile-cart-badge" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-[10px] font-bold text-white">0</span>
             </span>
             <div>
-                <p class="text-[11px] text-slate-300 font-medium">الفاتورة الحالية</p>
+                <p class="text-[11px] text-slate-300 font-medium">{{ "الفاتورة الحالية"|t }}</p>
                 <p id="mobile-cart-total" class="text-sm font-bold text-white">0.00 {{ branch_currency_symbol }}</p>
             </div>
         </div>
         <button type="button" onclick="scrollToCart()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-2 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer">
-            <span>عرض الفاتورة والتحصيل</span>
+            <span>{{ "عرض الفاتورة والتحصيل"|t }}</span>
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
         </button>
     </div>
@@ -282,11 +282,11 @@
         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 mx-auto mb-3">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
-        <h3 class="text-base font-bold text-slate-900 tracking-tight">تم إصدار الطلب بنجاح</h3>
+        <h3 class="text-base font-bold text-slate-900 tracking-tight">{{ "تم إصدار الطلب بنجاح"|t }}</h3>
         <p id="modal-order-number" class="text-2xl font-bold text-blue-600 my-2">ORD-1000</p>
-        <p class="text-xs text-slate-500 mb-5">تم إرسال الطلب للمطبخ وحفظ الفاتورة في النظام</p>
+        <p class="text-xs text-slate-500 mb-5">{{ "تم إرسال الطلب للمطبخ وحفظ الفاتورة في النظام"|t }}</p>
         <button onclick="closeOrderModal()" class="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium py-2.5 text-xs font-medium transition cursor-pointer">
-            فاتورة جديدة
+            {{ "فاتورة جديدة"|t }}
         </button>
     </div>
 </div>
@@ -296,11 +296,11 @@
     <div class="bg-white rounded-xl border border-slate-200 max-w-xl w-full p-6 shadow-xl">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
             <div>
-                <h3 class="text-sm font-bold text-slate-900 tracking-tight">إدارة أصناف القائمة</h3>
-                <p class="text-xs text-slate-500">{% if not IS_RTL %}Toggle dish availability or create new items{% else %}تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة{% endif %}</p>
+                <h3 class="text-sm font-bold text-slate-900 tracking-tight">{{ "إدارة أصناف القائمة"|t }}</h3>
+                <p class="text-xs text-slate-500">{{ "تفعيل أو إيقاف توفر الأصناف وإضافة وجبات جديدة"|t }}</p>
             </div>
             <button onclick="openAddMenuModal()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-xs font-medium transition cursor-pointer">
-                + {% if not IS_RTL %}New Item{% else %}صنف جديد{% endif %}
+                + {{ "صنف جديد"|t }}
             </button>
         </div>
 
@@ -312,7 +312,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </span>
                     <div>
-                        <p class="text-xs font-semibold text-slate-900">{% if not IS_RTL and m.name_en %}{{ m.name_en }}{% else %}{{ m.name }}{% endif %}</p>
+                        <p class="text-xs font-semibold text-slate-900">{% if CURRENT_LANG != 'ar' and m.name_en %}{{ m.name_en }}{% else %}{{ m.name }}{% endif %}</p>
                         <p class="text-[10px] text-slate-400">{{ m.pos_category_name|default:m.category }} • {{ m.price }} {{ branch_currency_symbol }}</p>
                     </div>
                 </div>
@@ -320,19 +320,19 @@
                     onclick="toggleMenuItem({{ m.id }}, this)" 
                     class="rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer {% if m.available %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %}"
                 >
-                    {% if m.available %}{% if not IS_RTL %}Available{% else %}متوفر{% endif %}{% else %}{% if not IS_RTL %}Unavailable{% else %}غير متوفر{% endif %}{% endif %}
+                    {% if m.available %}{{ "متوفر"|t }}{% else %}{{ "غير متوفر"|t }}{% endif %}
                 </button>
             </div>
             {% empty %}
             <div class="p-6 text-center text-xs text-slate-500">
-                {% if not IS_RTL %}No dishes found. Click "+ New Item" to create one.{% else %}لا توجد أصناف حالياً. اضغط على «+ صنف جديد» لإضافة طبق.{% endif %}
+                {{ "لا توجد أصناف حالياً. اضغط على «+ صنف جديد» لإضافة طبق"|t }}.
             </div>
             {% endfor %}
         </div>
 
         <div class="mt-4 pt-3 border-t border-slate-100 {% if IS_RTL %}text-left{% else %}text-right{% endif %}">
             <button onclick="closeMenuManager()" class="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">
-                {% if not IS_RTL %}Close{% else %}إغلاق{% endif %}
+                {{ "إغلاق"|t }}
             </button>
         </div>
     </div>
@@ -341,45 +341,45 @@
 <!-- Add Menu Item Modal -->
 <div id="add-menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 font-body backdrop-blur-xs">
     <div class="bg-white rounded-xl border border-slate-200 max-w-md w-full p-6 shadow-xl">
-        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-4">{% if not IS_RTL %}Add New Menu Item{% else %}إضافة صنف جديد للمنيو{% endif %}</h3>
+        <h3 class="text-sm font-bold text-slate-900 tracking-tight mb-4">{{ "إضافة صنف جديد للمنيو"|t }}</h3>
         <div class="space-y-3 text-xs">
             <div>
-                <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Item Name{% else %}اسم الصنف{% endif %}</label>
-                <input type="text" id="new-item-name" placeholder="{% if not IS_RTL %}e.g. Crispy Chicken Burger{% else %}مثال: مقلوبة دجاج فاخرة{% endif %}" class="input text-xs font-bold">
+                <label class="mb-1 block font-medium text-slate-600">{{ "اسم الصنف"|t }}</label>
+                <input type="text" id="new-item-name" placeholder="{{ "مثال: مقلوبة دجاج فاخرة"|t }}" class="input text-xs font-bold">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Category{% else %}الفئة / القسم{% endif %}</label>
+                    <label class="mb-1 block font-medium text-slate-600">{{ "الفئة / القسم"|t }}</label>
                     <select id="new-item-cat" class="input text-xs font-bold" onchange="toggleCustomCatInput()">
                         {% for c in active_categories %}
-                        <option value="{{ c.id }}" data-name="{{ c.name }}">{% if not IS_RTL and c.name_en %}{{ c.name_en }}{% else %}{{ c.name }}{% endif %}</option>
+                        <option value="{{ c.id }}" data-name="{{ c.name }}">{% if CURRENT_LANG != 'ar' and c.name_en %}{{ c.name_en }}{% else %}{{ c.name }}{% endif %}</option>
                         {% empty %}
-                        <option value="" data-name="عام">{% if not IS_RTL %}General Dishes{% else %}أطباق عامة{% endif %}</option>
+                        <option value="" data-name="عام">{{ "أطباق عامة"|t }}</option>
                         {% endfor %}
-                        <option value="__new__">+ {% if not IS_RTL %}Add New Category…{% else %}إضافة قسم جديد…{% endif %}</option>
+                        <option value="__new__">+ {{ "إضافة قسم جديد"|t }}…</option>
                     </select>
-                    <input type="text" id="new-item-custom-cat" placeholder="{% if not IS_RTL %}Type category name…{% else %}اكتب اسم القسم الجديد…{% endif %}" class="input text-xs font-bold mt-1.5 hidden border-violet-300">
+                    <input type="text" id="new-item-custom-cat" placeholder="{{ "اكتب اسم القسم الجديد…"|t }}" class="input text-xs font-bold mt-1.5 hidden border-violet-300">
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Emoji / Icon{% else %}أيقونة أو رمز{% endif %}</label>
+                    <label class="mb-1 block font-medium text-slate-600">{{ "أيقونة أو رمز"|t }}</label>
                     <input type="text" id="new-item-emoji" placeholder="🍽️" class="input text-xs font-bold">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Selling Price ({{ branch_currency_symbol }}){% else %}سعر البيع ({{ branch_currency_symbol }}){% endif %}</label>
+                    <label class="mb-1 block font-medium text-slate-600">{{ "سعر البيع"|t }} ({{ branch_currency_symbol }})</label>
                     <input type="number" id="new-item-price" placeholder="45" class="input text-xs font-bold">
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">{% if not IS_RTL %}Cost Price ({{ branch_currency_symbol }}){% else %}التكلفة ({{ branch_currency_symbol }}){% endif %}</label>
+                    <label class="mb-1 block font-medium text-slate-600">{{ "التكلفة"|t }} ({{ branch_currency_symbol }})</label>
                     <input type="number" id="new-item-cost" placeholder="18" class="input text-xs font-bold">
                 </div>
             </div>
         </div>
 
         <div class="mt-5 flex items-center justify-end gap-2">
-            <button onclick="closeAddMenuModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">{% if not IS_RTL %}Cancel{% else %}إلغاء{% endif %}</button>
-            <button onclick="saveNewMenuItem()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-1.5 text-xs font-medium transition cursor-pointer">{% if not IS_RTL %}Save Item{% else %}حفظ الصنف{% endif %}</button>
+            <button onclick="closeAddMenuModal()" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">{{ "إلغاء"|t }}</button>
+            <button onclick="saveNewMenuItem()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-1.5 text-xs font-medium transition cursor-pointer">{{ "حفظ الصنف"|t }}</button>
         </div>
     </div>
 </div>
@@ -777,7 +777,7 @@
         if (catSelect.value === '__new__') {
             catName = (customInput.value || '').trim();
             if (!catName) {
-                showToast(IS_RTL_UI ? 'يرجى كتابة اسم القسم الجديد' : 'Please enter a name for the new category', 'error');
+                showToast(tJs('يرجى كتابة اسم القسم الجديد', 'Please enter a name for the new category'), 'error');
                 return;
             }
         } else if (catSelect.value) {
@@ -785,7 +785,7 @@
             const opt = catSelect.options[catSelect.selectedIndex];
             catName = opt ? (opt.dataset.name || opt.text) : '';
         } else {
-            catName = IS_RTL_UI ? 'أطباق عامة' : 'General Dishes';
+            catName = tJs('أطباق عامة', 'General Dishes');
         }
 
         const emoji = (document.getElementById('new-item-emoji').value || '').trim() || '🍽️';
@@ -793,7 +793,7 @@
         const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
 
         if (!name || isNaN(price) || price <= 0) {
-            showToast(IS_RTL_UI ? 'اسم الصنف وسعر البيع مطلوبان' : 'Item name and valid selling price are required', 'error');
+            showToast(tJs('اسم الصنف وسعر البيع مطلوبان', 'Item name and valid selling price are required'), 'error');
             return;
         }
 
@@ -815,9 +815,9 @@
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || (IS_RTL_UI ? 'تعذر إضافة الصنف' : 'Failed to add item'));
+            if (!res.ok) throw new Error(data.error || tJs('تعذر إضافة الصنف', 'Failed to add item'));
 
-            showToast(IS_RTL_UI ? `تمت إضافة «${data.name}» للقائمة!` : `Added "${data.name}" to menu!`);
+            showToast(`${tJs('تمت إضافة', 'Added')} «${data.name}» ${tJs('للقائمة!', 'to menu!')}`);
             closeAddMenuModal();
             setTimeout(() => location.reload(), 1000);
         } catch (e) {

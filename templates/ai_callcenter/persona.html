@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}شخصية المساعد واللهجة واستوديو الذكاء الاصطناعي — {{ tenant.name }}{% endblock %}
+{% block title %}{{ "شخصية المساعد واللهجة واستوديو الذكاء الاصطناعي"|t }} — {{ tenant.name }}{% endblock %}
 
 {% block content %}
 {% include "ai_callcenter/_nav_tabs.html" %}
@@ -12,19 +12,19 @@
             <div>
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
-                    <h3 class="text-sm font-bold text-slate-900">بروفايلات المساعد الصوتي (Persona Profiles)</h3>
+                    <h3 class="text-sm font-bold text-slate-900">{{ "بروفايلات المساعد الصوتي (Persona Profiles"|t }})</h3>
                     <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
-                        {{ profiles|length }} بروفايل
+                        {{ profiles|length }} {{ "بروفايل"|t }}
                     </span>
                 </div>
                 <p class="text-[11px] text-slate-500 font-normal mt-0.5">
-                    استوديو شامل يدعم 11 لغة عالمية، 29 لهجة إقليمية، و 30 خامة صوتية استوديو عالية الدقة من Google Gemini Live.
+                    {{ "استوديو شامل يدعم 11 لغة عالمية، 29 لهجة إقليمية، و 30 خامة صوتية استوديو عالية الدقة من Google Gemini Live"|t }}.
                 </p>
             </div>
             <div class="flex items-center gap-2">
                 <button type="button" onclick="openCreateProfileModal()" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    <span>بروفايل جديد</span>
+                    <span>{{ "بروفايل جديد"|t }}</span>
                 </button>
             </div>
         </div>
@@ -38,11 +38,11 @@
                         <span class="text-xs font-bold text-slate-900 truncate">{{ p.name|default:"مساعد صوتي" }}</span>
                         {% if p.is_active %}
                         <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-bold flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> نشط للمكالمات
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {{ "نشط للمكالمات"|t }}
                         </span>
                         {% else %}
                         <span class="px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 border border-slate-200/70">
-                            غير نشط
+                            {{ "غير نشط"|t }}
                         </span>
                         {% endif %}
                     </div>
@@ -57,27 +57,27 @@
                             {% elif p.language == 'italian' %}🇮🇹 Italiano
                             {% elif p.language == 'turkish' %}🇹🇷 Türkçe
                             {% elif p.language == 'russian' %}🇷🇺 Русский
-                            {% elif p.language == 'urdu' %}🇵🇰 اردو
+                            {% elif p.language == 'urdu' %}🇵🇰 {{ "اردو"|t }}
                             {% elif p.language == 'hindi' %}🇮🇳 हिन्दी
                             {% elif p.language == 'chinese' %}🇨🇳 中文
-                            {% else %}🇸🇦 العربية{% endif %}
+                            {% else %}🇸🇦 {{ "العربية"|t }}{% endif %}
                         </span>
 
                         <!-- Dialect Badge -->
                         <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-200/70 text-slate-700 font-medium">
-                            {% if p.dialect == 'saudi' %}🇸🇦 سعودي
-                            {% elif p.dialect == 'egyptian' %}🇪🇬 مصري
-                            {% elif p.dialect == 'emirati' %}🇦🇪 إماراتي
-                            {% elif p.dialect == 'kuwaiti' %}🇰🇼 كويتي
-                            {% elif p.dialect == 'levantine' %}🇱🇧 شامي
-                            {% elif p.dialect == 'jordanian_palestinian' %}🇯🇴 أردني وفلسطيني
-                            {% elif p.dialect == 'moroccan' %}🇲🇦 مغربي
-                            {% elif p.dialect == 'algerian' %}🇩🇿 جزائري
-                            {% elif p.dialect == 'tunisian' %}🇹🇳 تونسي
-                            {% elif p.dialect == 'iraqi' %}🇮🇶 عراقي
-                            {% elif p.dialect == 'sudanese' %}🇸🇩 سوداني
-                            {% elif p.dialect == 'yemeni' %}🇾🇪 يمني
-                            {% elif p.dialect == 'fusha' or p.dialect == 'modern_standard' %}🌐 فصحى معاصرة
+                            {% if p.dialect == 'saudi' %}🇸🇦 {{ "سعودي"|t }}
+                            {% elif p.dialect == 'egyptian' %}🇪🇬 {{ "مصري"|t }}
+                            {% elif p.dialect == 'emirati' %}🇦🇪 {{ "إماراتي"|t }}
+                            {% elif p.dialect == 'kuwaiti' %}🇰🇼 {{ "كويتي"|t }}
+                            {% elif p.dialect == 'levantine' %}🇱🇧 {{ "شامي"|t }}
+                            {% elif p.dialect == 'jordanian_palestinian' %}🇯🇴 {{ "أردني وفلسطيني"|t }}
+                            {% elif p.dialect == 'moroccan' %}🇲🇦 {{ "مغربي"|t }}
+                            {% elif p.dialect == 'algerian' %}🇩🇿 {{ "جزائري"|t }}
+                            {% elif p.dialect == 'tunisian' %}🇹🇳 {{ "تونسي"|t }}
+                            {% elif p.dialect == 'iraqi' %}🇮🇶 {{ "عراقي"|t }}
+                            {% elif p.dialect == 'sudanese' %}🇸🇩 {{ "سوداني"|t }}
+                            {% elif p.dialect == 'yemeni' %}🇾🇪 {{ "يمني"|t }}
+                            {% elif p.dialect == 'fusha' or p.dialect == 'modern_standard' %}🌐 {{ "فصحى معاصرة"|t }}
                             {% elif p.dialect == 'english_us' %}🇺🇸 US Accent
                             {% elif p.dialect == 'english_uk' %}🇬🇧 UK Accent
                             {% elif p.dialect == 'english_aus' %}🇦🇺 Australian
@@ -91,23 +91,23 @@
 
                         <!-- Voice & Gender Badge -->
                         <span class="px-1.5 py-0.2 rounded bg-slate-50 border border-slate-200/70 text-slate-500 font-medium">
-                            {% if p.gender == 'male' %}♂ ذكوري{% else %}♀ أنثوي{% endif %} ({{ p.voice_name|default:'Aoede' }})
+                            {% if p.gender == 'male' %}♂ {{ "ذكوري"|t }}{% else %}♀ {{ "أنثوي"|t }}{% endif %} ({{ p.voice_name|default:'Aoede' }})
                         </span>
 
                         <!-- Role Badge -->
                         <span class="px-1.5 py-0.2 rounded bg-brand-50 border border-brand-200 text-brand-700 font-medium">
-                            {% if p.persona_role == 'restaurant_orders' or p.persona_role == 'order_taker' %}🍽️ طلبات
-                            {% elif p.persona_role == 'table_booking_concierge' %}🛎️ حجز طاولات
-                            {% elif p.persona_role == 'sales_advisor' or p.persona_role == 'inbound_telesales' %}💰 مبيعات
-                            {% elif p.persona_role == 'customer_service' or p.persona_role == 'ecommerce_support' %}🎧 خدمة عملاء
-                            {% elif p.persona_role == 'delivery_dispatch' %}🚚 توصيل
+                            {% if p.persona_role == 'restaurant_orders' or p.persona_role == 'order_taker' %}🍽️ {{ "طلبات"|t }}
+                            {% elif p.persona_role == 'table_booking_concierge' %}🛎️ {{ "حجز طاولات"|t }}
+                            {% elif p.persona_role == 'sales_advisor' or p.persona_role == 'inbound_telesales' %}💰 {{ "مبيعات"|t }}
+                            {% elif p.persona_role == 'customer_service' or p.persona_role == 'ecommerce_support' %}🎧 {{ "خدمة عملاء"|t }}
+                            {% elif p.persona_role == 'delivery_dispatch' %}🚚 {{ "توصيل"|t }}
                             {% else %}{{ p.persona_role_display|default:p.persona_role|default:'استقبال وتأكيد طلبات' }}{% endif %}
                         </span>
                     </div>
 
                     {% if p.off_topic_response %}
                     <p class="text-[10px] text-slate-500 line-clamp-1 mt-1.5 bg-slate-50 p-1 rounded border border-slate-200/70" title="{{ p.off_topic_response }}">
-                        <span class="font-bold text-slate-700">الاستبعاد:</span> {{ p.off_topic_response }}
+                        <span class="font-bold text-slate-700">{{ "الاستبعاد"|t }}:</span> {{ p.off_topic_response }}
                     </p>
                     {% endif %}
                 </div>
@@ -115,19 +115,19 @@
                 <div class="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-100">
                     <a href="?profile_id={{ p.id }}" class="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        <span>{% if p.id == profile.id %}قيد التعديل الآن{% else %}تعديل هذا البروفايل{% endif %}</span>
+                        <span>{% if p.id == profile.id %}{{ "قيد التعديل الآن"|t }}{% else %}{{ "تعديل هذا البروفايل"|t }}{% endif %}</span>
                     </a>
 
                     {% if not p.is_active %}
                     <button type="button" onclick="activateProfile({{ p.id }})" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold transition cursor-pointer">
-                        تفعيل كرئيسي
+                        {{ "تفعيل كرئيسي"|t }}
                     </button>
                     {% endif %}
                 </div>
             </div>
             {% empty %}
             <div class="col-span-full py-4 text-center text-xs text-slate-400 font-medium">
-                لا توجد بروفايلات مسجلة بعد، اضغط على زر "بروفايل جديد" للبدء.
+                {{ 'لا توجد بروفايلات مسجلة بعد، اضغط على زر "بروفايل جديد" للبدء'|t }}.
             </div>
             {% endfor %}
         </div>
@@ -142,19 +142,19 @@
             <div>
                 <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <svg class="w-4 h-4 inline-block align-middle text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
-                    <span>تعديل استوديو المساعد:</span>
+                    <span>{{ "تعديل استوديو المساعد"|t }}:</span>
                     <span class="text-brand-600">{{ profile.name|default:tenant.name|default:'المساعد الصوتي الذكي' }}</span>
                 </h3>
-                <p class="text-[11px] text-slate-500 font-normal mt-0.5">تخصيص كامل للغة، اللهجة، الصوت الرسمي من Google (30 خامة صوتية)، والدور الوظيفي</p>
+                <p class="text-[11px] text-slate-500 font-normal mt-0.5">{{ "تخصيص كامل للغة، اللهجة، الصوت الرسمي من Google (30 خامة صوتية)، والدور الوظيفي"|t }}</p>
             </div>
             <div class="flex items-center gap-2">
                 {% if profile.is_active %}
                 <span class="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> البروفايل النشط حالياً للمكالمات
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> {{ "البروفايل النشط حالياً للمكالمات"|t }}
                 </span>
                 {% else %}
                 <button type="button" onclick="activateProfile({{ profile.id }})" class="text-xs px-2.5 py-1 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer">
-                    تفعيل هذا البروفايل للمكالمات
+                    {{ "تفعيل هذا البروفايل للمكالمات"|t }}
                 </button>
                 {% endif %}
             </div>
@@ -163,37 +163,37 @@
         <!-- Row 1: Name, Role, Gender -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">اسم المساعد الصوتي</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "اسم المساعد الصوتي"|t }}</label>
                 <input type="text" name="name" id="edit-profile-name" value="{{ profile.name|default:tenant.name|default:'المساعد الصوتي الذكي' }}" required class="input py-1.5 px-2.5 text-xs">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">الدور والشخصية (Persona Role)</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "الدور والشخصية (Persona Role"|t }})</label>
                 <select name="persona_role" id="edit-profile-role" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
                     <optgroup label="🍽️ قطاع المطاعم والضيافة">
-                        <option value="restaurant_orders" {% if profile.persona_role == 'restaurant_orders' or profile.persona_role == 'order_taker' or not profile.persona_role %}selected{% endif %}>استقبال وتأكيد طلبات المطاعم وتوصيلها (Order Taker)</option>
-                        <option value="table_booking_concierge" {% if profile.persona_role == 'table_booking_concierge' %}selected{% endif %}>حجز طاولات ومناسبات خاصة وضيافة (Table Booking)</option>
+                        <option value="restaurant_orders" {% if profile.persona_role == 'restaurant_orders' or profile.persona_role == 'order_taker' or not profile.persona_role %}selected{% endif %}>{{ "استقبال وتأكيد طلبات المطاعم وتوصيلها (Order Taker"|t }})</option>
+                        <option value="table_booking_concierge" {% if profile.persona_role == 'table_booking_concierge' %}selected{% endif %}>{{ "حجز طاولات ومناسبات خاصة وضيافة (Table Booking"|t }})</option>
                     </optgroup>
                     <optgroup label="🛍️ خدمة العملاء والمبيعات">
-                        <option value="customer_service" {% if profile.persona_role == 'customer_service' %}selected{% endif %}>خدمة عملاء واستفسارات المنيو (Customer Support)</option>
-                        <option value="sales_advisor" {% if profile.persona_role == 'sales_advisor' or profile.persona_role == 'inbound_telesales' %}selected{% endif %}>مستشار مبيعات وترويج العروض (Sales Advisor)</option>
-                        <option value="ecommerce_support" {% if profile.persona_role == 'ecommerce_support' %}selected{% endif %}>خدمة عملاء ومتابعة الشحنات والطلبات</option>
+                        <option value="customer_service" {% if profile.persona_role == 'customer_service' %}selected{% endif %}>{{ "خدمة عملاء واستفسارات المنيو (Customer Support"|t }})</option>
+                        <option value="sales_advisor" {% if profile.persona_role == 'sales_advisor' or profile.persona_role == 'inbound_telesales' %}selected{% endif %}>{{ "مستشار مبيعات وترويج العروض (Sales Advisor"|t }})</option>
+                        <option value="ecommerce_support" {% if profile.persona_role == 'ecommerce_support' %}selected{% endif %}>{{ "خدمة عملاء ومتابعة الشحنات والطلبات"|t }}</option>
                     </optgroup>
                     <optgroup label="🚚 الخدمات اللوجستية والشحن">
-                        <option value="delivery_dispatch" {% if profile.persona_role == 'delivery_dispatch' %}selected{% endif %}>منسق توصيل وشحن لوجستي ومتابعة عناوين</option>
+                        <option value="delivery_dispatch" {% if profile.persona_role == 'delivery_dispatch' %}selected{% endif %}>{{ "منسق توصيل وشحن لوجستي ومتابعة عناوين"|t }}</option>
                     </optgroup>
                     <optgroup label="🌟 أدوار عامة وتنفيذية">
-                        <option value="vip_concierge_care" {% if profile.persona_role == 'vip_concierge_care' %}selected{% endif %}>ممثل علاقات كبار العملاء (VIP Concierge)</option>
-                        <option value="executive_personal_assistant" {% if profile.persona_role == 'executive_personal_assistant' %}selected{% endif %}>مساعد تنفيذي شخصي وذكي</option>
+                        <option value="vip_concierge_care" {% if profile.persona_role == 'vip_concierge_care' %}selected{% endif %}>{{ "ممثل علاقات كبار العملاء (VIP Concierge"|t }})</option>
+                        <option value="executive_personal_assistant" {% if profile.persona_role == 'executive_personal_assistant' %}selected{% endif %}>{{ "مساعد تنفيذي شخصي وذكي"|t }}</option>
                     </optgroup>
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">الجنس الصوتي (Gender)</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "الجنس الصوتي (Gender"|t }})</label>
                 <select name="gender" id="edit-profile-gender" onchange="syncGenderVoices('edit')" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                    <option value="female" {% if profile.gender == 'female' or not profile.gender %}selected{% endif %}>أنثوي (Female)</option>
-                    <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>ذكوري (Male)</option>
+                    <option value="female" {% if profile.gender == 'female' or not profile.gender %}selected{% endif %}>{{ "أنثوي (Female"|t }})</option>
+                    <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>{{ "ذكوري (Male"|t }})</option>
                 </select>
             </div>
         </div>
@@ -201,9 +201,9 @@
         <!-- Row 2: Language, Dialect, Google Voice, Style, Verbosity -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">اللغة الأساسية</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "اللغة الأساسية"|t }}</label>
                 <select name="language" id="edit-profile-language" onchange="syncLanguageDialects('edit')" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                    <option value="arabic" {% if profile.language == 'arabic' or not profile.language %}selected{% endif %}>🇸🇦 العربية</option>
+                    <option value="arabic" {% if profile.language == 'arabic' or not profile.language %}selected{% endif %}>🇸🇦 {{ "العربية"|t }}</option>
                     <option value="english" {% if profile.language == 'english' %}selected{% endif %}>🇺🇸 English</option>
                     <option value="french" {% if profile.language == 'french' %}selected{% endif %}>🇫🇷 Français</option>
                     <option value="spanish" {% if profile.language == 'spanish' %}selected{% endif %}>🇪🇸 Español</option>
@@ -211,42 +211,42 @@
                     <option value="italian" {% if profile.language == 'italian' %}selected{% endif %}>🇮🇹 Italiano</option>
                     <option value="turkish" {% if profile.language == 'turkish' %}selected{% endif %}>🇹🇷 Türkçe</option>
                     <option value="russian" {% if profile.language == 'russian' %}selected{% endif %}>🇷🇺 Русский</option>
-                    <option value="urdu" {% if profile.language == 'urdu' %}selected{% endif %}>🇵🇰 اردو</option>
+                    <option value="urdu" {% if profile.language == 'urdu' %}selected{% endif %}>🇵🇰 {{ "اردو"|t }}</option>
                     <option value="hindi" {% if profile.language == 'hindi' %}selected{% endif %}>🇮🇳 हिन्दी</option>
                     <option value="chinese" {% if profile.language == 'chinese' %}selected{% endif %}>🇨🇳 中文</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">اللهجة المعتمدة</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "اللهجة المعتمدة"|t }}</label>
                 <select name="dialect" id="edit-profile-dialect" onchange="onDialectChange('edit')" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
                     <!-- Populated dynamically via syncLanguageDialects -->
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">صوت Google الرسمي</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "صوت Google الرسمي"|t }}</label>
                 <select name="voice_name" id="edit-profile-voice" class="input py-1.5 px-2.5 font-bold cursor-pointer font-mono text-xs">
                     <!-- Populated dynamically via syncGenderVoices -->
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">أسلوب الحديث والنبرة</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "أسلوب الحديث والنبرة"|t }}</label>
                 <select name="speaking_style" id="edit-profile-style" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                    <option value="friendly" {% if profile.speaking_style == 'friendly' or profile.speaking_style == 'ودود ولطيف ومرح' %}selected{% endif %}>ودود ولطيف ومرح</option>
-                    <option value="formal" {% if profile.speaking_style == 'formal' or profile.speaking_style == 'رسمي وهادئ ورصين' %}selected{% endif %}>رسمي وهادئ ورصين</option>
-                    <option value="concise" {% if profile.speaking_style == 'concise' or profile.speaking_style == 'مباشر وسريع وموجز' %}selected{% endif %}>سريع وموجز (للذروة)</option>
-                    <option value="enthusiastic" {% if profile.speaking_style == 'enthusiastic' or profile.speaking_style == 'حماسي وتشجيعي' %}selected{% endif %}>حماسي وتشجيعي</option>
+                    <option value="friendly" {% if profile.speaking_style == 'friendly' or profile.speaking_style == 'ودود ولطيف ومرح' %}selected{% endif %}>{{ "ودود ولطيف ومرح"|t }}</option>
+                    <option value="formal" {% if profile.speaking_style == 'formal' or profile.speaking_style == 'رسمي وهادئ ورصين' %}selected{% endif %}>{{ "رسمي وهادئ ورصين"|t }}</option>
+                    <option value="concise" {% if profile.speaking_style == 'concise' or profile.speaking_style == 'مباشر وسريع وموجز' %}selected{% endif %}>{{ "سريع وموجز (للذروة"|t }})</option>
+                    <option value="enthusiastic" {% if profile.speaking_style == 'enthusiastic' or profile.speaking_style == 'حماسي وتشجيعي' %}selected{% endif %}>{{ "حماسي وتشجيعي"|t }}</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">مستوى الإسهاب</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "مستوى الإسهاب"|t }}</label>
                 <select name="verbosity" id="edit-profile-verbosity" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                    <option value="balanced" {% if profile.verbosity == 'balanced' or not profile.verbosity %}selected{% endif %}>متوازن ⚖️</option>
-                    <option value="concise" {% if profile.verbosity == 'concise' %}selected{% endif %}>مختصر ⚡ (1-2 جملة)</option>
-                    <option value="detailed" {% if profile.verbosity == 'detailed' %}selected{% endif %}>مفصل 📖</option>
+                    <option value="balanced" {% if profile.verbosity == 'balanced' or not profile.verbosity %}selected{% endif %}>{{ "متوازن"|t }} ⚖️</option>
+                    <option value="concise" {% if profile.verbosity == 'concise' %}selected{% endif %}>{{ "مختصر ⚡ (1-2 جملة"|t }})</option>
+                    <option value="detailed" {% if profile.verbosity == 'detailed' %}selected{% endif %}>{{ "مفصل"|t }} 📖</option>
                 </select>
             </div>
         </div>
@@ -257,14 +257,14 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-900 flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-brand-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                        <span>الرد على الأسئلة الخارجة عن السياق (Off-Topic)</span>
+                        <span>{{ "الرد على الأسئلة الخارجة عن السياق (Off-Topic"|t }})</span>
                     </label>
                     <p class="text-[10px] text-slate-500 font-normal">
-                        الرسالة التي يعتذر بها المساعد بلباقة ويوجه العميل مجدداً لمنيو وخدمات المطعم عند سؤاله عن مواضيع غير ذات صلة.
+                        {{ "الرسالة التي يعتذر بها المساعد بلباقة ويوجه العميل مجدداً لمنيو وخدمات المطعم عند سؤاله عن مواضيع غير ذات صلة"|t }}.
                     </p>
                 </div>
                 <button type="button" onclick="applyOffTopicSuggestion('edit')" class="px-2 py-0.5 rounded border border-slate-200/70 bg-white hover:bg-slate-50 text-brand-700 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> اقتراح نص ذكي
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> {{ "اقتراح نص ذكي"|t }}
                 </button>
             </div>
             <textarea 
@@ -280,11 +280,11 @@
         <div>
             <div class="flex items-center justify-between mb-1">
                 <label class="block text-xs font-bold text-slate-700">
-                    رسالة الترحيب الأولى المباشرة (Welcome Message)
+                    {{ "رسالة الترحيب الأولى المباشرة (Welcome Message"|t }})
                 </label>
                 <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer">
                     <input type="checkbox" name="is_welcome_message_enabled" {% if profile.is_welcome_message_enabled != False %}checked{% endif %} class="rounded border-slate-200/70 text-brand-600">
-                    تفعيل الترحيب الفوري
+                    {{ "تفعيل الترحيب الفوري"|t }}
                 </label>
             </div>
             <textarea 
@@ -292,13 +292,13 @@
                 rows="2" 
                 class="input py-1.5 px-2.5 text-xs font-medium text-brand-900 bg-brand-50/20"
             >{{ profile.welcome_message|default:"أهلاً بحضرتك في مطاعمنا! معاك خدمة العملاء لتسجيل طلبك، تؤمر بإيه النهارده يا فندم؟" }}</textarea>
-            <p class="text-[10px] text-slate-400 mt-0.5">أول جملة ينطقها المساعد الصوتي فور رد السنترال على العميل لبدء استقبال طلبه.</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">{{ "أول جملة ينطقها المساعد الصوتي فور رد السنترال على العميل لبدء استقبال طلبه"|t }}.</p>
         </div>
 
         <!-- Custom Instructions & Daily Specials -->
         <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">
-                التعليمات الخاصة وعروض اليوم (Custom Instructions & Specials)
+                {{ "التعليمات الخاصة وعروض اليوم (Custom Instructions & Specials"|t }})
             </label>
             <textarea 
                 name="custom_instructions" 
@@ -306,14 +306,14 @@
                 class="input py-1.5 px-2.5 text-xs font-mono"
             >{{ profile.custom_instructions|default:"أنت موظف كول سنتر واستقبال طلبات ذكي. تتحدث باللهجة المهذبة واللبقة لخدمة العملاء. تستخدم أدوات النظام المتاحة للبحث عن بيانات العميل وعناوينه وتوفر الأصناف وتسجيل الطلب فوراً في النظام." }}</textarea>
             <p class="text-[10px] text-slate-400 mt-0.5">
-                يمكنك إضافة ملاحظات يومية هنا مثل: "عرض اليوم: كبسة اللحم مع بيبسي مجاناً".
+                {{ 'يمكنك إضافة ملاحظات يومية هنا مثل: "عرض اليوم: كبسة اللحم مع بيبسي مجاناً'|t }}".
             </p>
         </div>
 
         <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
             <button type="submit" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                <span>حفظ وتحديث الاستوديو</span>
+                <span>{{ "حفظ وتحديث الاستوديو"|t }}</span>
             </button>
         </div>
     </form>
@@ -324,7 +324,7 @@
     <div class="bg-white rounded-2xl max-w-xl w-full p-4 sm:p-5 border border-slate-200/70 shadow-2xl space-y-3 animate-toast max-h-[90vh] overflow-y-auto" dir="{{ DIR|default:'rtl' }}">
         <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <span>🎭</span> إنشاء بروفايل صوتي وشخصية جديدة
+                <span>🎭</span> {{ "إنشاء بروفايل صوتي وشخصية جديدة"|t }}
             </h3>
             <button type="button" onclick="closeCreateProfileModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
         </div>
@@ -332,36 +332,36 @@
         <form id="create-profile-form" onsubmit="createProfile(event)" class="space-y-3">
             {% csrf_token %}
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">اسم البروفايل الصوتي</label>
-                <input type="text" name="name" id="create-prof-name" placeholder="مثال: مسؤولة استقبال الطلبات أو المساعد الإنجليزي" required class="input py-1.5 px-2.5 text-xs">
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "اسم البروفايل الصوتي"|t }}</label>
+                <input type="text" name="name" id="create-prof-name" placeholder='{{ "مثال: مسؤولة استقبال الطلبات أو المساعد الإنجليزي"|t }}' required class="input py-1.5 px-2.5 text-xs">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">الدور والشخصية (Persona Role)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "الدور والشخصية (Persona Role"|t }})</label>
                     <select name="persona_role" id="create-prof-role" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                        <option value="restaurant_orders" selected>🍽️ استقبال وتأكيد طلبات المطاعم وتوصيلها</option>
-                        <option value="table_booking_concierge">🛎️ حجز طاولات ومناسبات خاصة وضيافة</option>
-                        <option value="customer_service">🎧 خدمة عملاء واستفسارات المنيو</option>
-                        <option value="sales_advisor">💰 مستشار مبيعات وترويج العروض</option>
-                        <option value="delivery_dispatch">🚚 منسق توصيل وشحن لوجستي</option>
-                        <option value="vip_concierge_care">🌟 ممثل علاقات كبار العملاء (VIP)</option>
+                        <option value="restaurant_orders" selected>🍽️ {{ "استقبال وتأكيد طلبات المطاعم وتوصيلها"|t }}</option>
+                        <option value="table_booking_concierge">🛎️ {{ "حجز طاولات ومناسبات خاصة وضيافة"|t }}</option>
+                        <option value="customer_service">🎧 {{ "خدمة عملاء واستفسارات المنيو"|t }}</option>
+                        <option value="sales_advisor">💰 {{ "مستشار مبيعات وترويج العروض"|t }}</option>
+                        <option value="delivery_dispatch">🚚 {{ "منسق توصيل وشحن لوجستي"|t }}</option>
+                        <option value="vip_concierge_care">🌟 {{ "ممثل علاقات كبار العملاء (VIP"|t }})</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">الجنس الصوتي (Gender)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "الجنس الصوتي (Gender"|t }})</label>
                     <select name="gender" id="create-prof-gender" onchange="syncGenderVoices('create')" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                        <option value="female" selected>أنثوي (Female)</option>
-                        <option value="male">ذكوري (Male)</option>
+                        <option value="female" selected>{{ "أنثوي (Female"|t }})</option>
+                        <option value="male">{{ "ذكوري (Male"|t }})</option>
                     </select>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">اللغة (Language)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "اللغة (Language"|t }})</label>
                     <select name="language" id="create-prof-language" onchange="syncLanguageDialects('create')" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                        <option value="arabic" selected>🇸🇦 العربية</option>
+                        <option value="arabic" selected>🇸🇦 {{ "العربية"|t }}</option>
                         <option value="english">🇺🇸 English</option>
                         <option value="french">🇫🇷 Français</option>
                         <option value="spanish">🇪🇸 Español</option>
@@ -369,19 +369,19 @@
                         <option value="italian">🇮🇹 Italiano</option>
                         <option value="turkish">🇹🇷 Türkçe</option>
                         <option value="russian">🇷🇺 Русский</option>
-                        <option value="urdu">🇵🇰 اردو</option>
+                        <option value="urdu">🇵🇰 {{ "اردو"|t }}</option>
                         <option value="hindi">🇮🇳 हिन्दी</option>
                         <option value="chinese">🇨🇳 中文</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">اللهجة المعتمدة (Dialect)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "اللهجة المعتمدة (Dialect"|t }})</label>
                     <select name="dialect" id="create-prof-dialect" onchange="onDialectChange('create')" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
                         <!-- Populated dynamically via syncLanguageDialects -->
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">صوت Google الرسمي</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "صوت Google الرسمي"|t }}</label>
                     <select name="voice_name" id="create-prof-voice" class="input py-1.5 px-2.5 font-bold cursor-pointer font-mono text-xs">
                         <!-- Populated dynamically via syncGenderVoices -->
                     </select>
@@ -390,20 +390,20 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">أسلوب الحديث والنبرة</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "أسلوب الحديث والنبرة"|t }}</label>
                     <select name="speaking_style" id="create-prof-style" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                        <option value="friendly" selected>ودود ولطيف ومرح</option>
-                        <option value="formal">رسمي وهادئ ورصين</option>
-                        <option value="concise">سريع ومباشر وموجز</option>
-                        <option value="enthusiastic">حماسي وتشجيعي</option>
+                        <option value="friendly" selected>{{ "ودود ولطيف ومرح"|t }}</option>
+                        <option value="formal">{{ "رسمي وهادئ ورصين"|t }}</option>
+                        <option value="concise">{{ "سريع ومباشر وموجز"|t }}</option>
+                        <option value="enthusiastic">{{ "حماسي وتشجيعي"|t }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">مستوى الإسهاب</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "مستوى الإسهاب"|t }}</label>
                     <select name="verbosity" id="create-prof-verbosity" class="input py-1.5 px-2.5 font-bold cursor-pointer text-xs">
-                        <option value="balanced" selected>متوازن ⚖️</option>
-                        <option value="concise">مختصر ⚡</option>
-                        <option value="detailed">مفصل 📖</option>
+                        <option value="balanced" selected>{{ "متوازن"|t }} ⚖️</option>
+                        <option value="concise">{{ "مختصر"|t }} ⚡</option>
+                        <option value="detailed">{{ "مفصل"|t }} 📖</option>
                     </select>
                 </div>
             </div>
@@ -412,38 +412,38 @@
             <div class="rounded-lg border border-slate-200/70 bg-slate-50 p-2.5 space-y-1">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-slate-700">
-                        الرد على الأسئلة الخارجة عن السياق (Off-Topic)
+                        {{ "الرد على الأسئلة الخارجة عن السياق (Off-Topic"|t }})
                     </label>
                     <button type="button" onclick="applyOffTopicSuggestion('create')" class="text-[10px] text-brand-600 hover:text-brand-700 font-bold cursor-pointer">
-                        ⚡ اقتراح تلقائي
+                        ⚡ {{ "اقتراح تلقائي"|t }}
                     </button>
                 </div>
-                <textarea name="off_topic_response" id="create-prof-off-topic" rows="2" class="input py-1.5 px-2.5 text-xs bg-white" placeholder="الرد اللبق عند السؤال عن مواضيع خارج المطعم والمنيو"></textarea>
+                <textarea name="off_topic_response" id="create-prof-off-topic" rows="2" class="input py-1.5 px-2.5 text-xs bg-white" placeholder='{{ "الرد اللبق عند السؤال عن مواضيع خارج المطعم والمنيو"|t }}'></textarea>
             </div>
 
             <!-- Welcome Message in Modal -->
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">رسالة الترحيب الأولى (Welcome Message)</label>
-                <textarea name="welcome_message" id="create-prof-welcome" rows="2" class="input py-1.5 px-2.5 text-xs" placeholder="أهلاً بحضرتك في مطعمنا! كيف أقدر أساعدك اليوم؟"></textarea>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "رسالة الترحيب الأولى (Welcome Message"|t }})</label>
+                <textarea name="welcome_message" id="create-prof-welcome" rows="2" class="input py-1.5 px-2.5 text-xs" placeholder='{{ "أهلاً بحضرتك في مطعمنا! كيف أقدر أساعدك اليوم؟"|t }}'></textarea>
             </div>
 
             <!-- Custom Instructions in Modal -->
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">التعليمات المخصصة وعروض اليوم</label>
-                <textarea name="custom_instructions" id="create-prof-instructions" rows="2" class="input py-1.5 px-2.5 text-xs font-mono" placeholder="تعليمات وسياق عمل المساعد..."></textarea>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "التعليمات المخصصة وعروض اليوم"|t }}</label>
+                <textarea name="custom_instructions" id="create-prof-instructions" rows="2" class="input py-1.5 px-2.5 text-xs font-mono" placeholder='{{ "تعليمات وسياق عمل المساعد..."|t }}'></textarea>
             </div>
 
             <div class="pt-2 flex items-center justify-between border-t border-slate-100">
                 <label class="flex items-center gap-1.5 text-xs font-medium text-slate-700 cursor-pointer">
                     <input type="checkbox" name="is_active" checked class="rounded border-slate-200/70 text-brand-600">
-                    تفعيل هذا البروفايل فوراً
+                    {{ "تفعيل هذا البروفايل فوراً"|t }}
                 </label>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="closeCreateProfileModal()" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-bold transition cursor-pointer">
-                        إلغاء
+                        {{ "إلغاء"|t }}
                     </button>
                     <button type="submit" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-xs transition cursor-pointer">
-                        حفظ وإنشاء البروفايل
+                        {{ "حفظ وإنشاء البروفايل"|t }}
                     </button>
                 </div>
             </div>

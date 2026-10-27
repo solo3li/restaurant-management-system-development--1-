@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 03:30
-**Session ID:** Comprehensive 5-Language Official Support (AR, EN, FR, TR, DE) - Hardening & Review Fixes
+**Last Updated:** 2026-10-27 05:45
+**Session ID:** Comprehensive 5-Language Official Support (AR, EN, FR, TR, DE) - Full 25+ Screen Rollout
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -22,6 +22,59 @@
 ## Status
 
 ### What's Done
+
+- [x] **Full 25+ Screen 5-Language Internationalization Rollout (`ar`, `en`, `fr`, `tr`, `de`)**
+  - **Django Template Builtin Filter**: Created `core/templatetags/i18n_tags.py` (`|t`, `|trans5`, `trans_text`) and registered as built-in in `restaurant_system/settings.py` `TEMPLATES[0]['OPTIONS']['builtins']`.
+  - **Catalog Scaled to 2,764 Verified Terms**: Expanded `core/i18n_catalog.py`, `static/js/diyafa_i18n_catalog.json`, and `staticfiles/js/diyafa_i18n_catalog.json` with 2,764 verified keys across all 5 official languages (`ar`, `en`, `fr`, `tr`, `de`). Purged all fake entries from prior attempt. Zero non-Arabic entries match Arabic characters. Backward-compatible `TranslatableString` and `I18nCatalogDict` ensure 100% string equality with existing tests.
+  - **Eliminated Binary Language Checks**: Replaced hardcoded binary checks (`{% if CURRENT_LANG == 'en' %}`, `{% if not IS_RTL %}`, and JS `CURRENT_LANG === 'en'`) across 34 templates with canonical `{{ ...|t }}` and `tJs(key, fallback)` helpers.
+  - **Syntax-Safe Template Refactoring**: Built parser protecting Django blocks (`{% ... %}` and `{{ ... }}`) so comparisons (e.g. `<=`, `&&`) never break tag splitting.
+  - **34 Screens Refactored**:
+    1. `templates/base.html`: Global language switcher, user flyout, and `window.tJs` registration.
+    2. `templates/_admin_nav_tabs.html`: Sub-navigation tabs with dynamic localized plan badge.
+    3. `templates/dashboard.html` & `templates/hq_dashboard.html`: Main dashboard and HQ overview.
+    4. `templates/branch_dashboard.html`: Branch operations, active POS counters, shift metrics.
+    5. `templates/branches.html`: Multi-branch manager, branch cards, status badges.
+    6. `templates/branch_menu.html`: Dish availability toggles, branch-specific pricing, category filter ribbon.
+    7. `templates/inventory.html`: Inventory stock items, safety thresholds, stock adjust modal.
+    8. `templates/employees.html`: Employee staff list, job role badges, employee create modal.
+    9. `templates/pos.html`: Point of Sale live register, category selector, cart, checkout modal.
+    10. `templates/ai_callcenter/_nav_tabs.html`: 8 AI Call Center navigation tabs.
+    11. `templates/ai_callcenter/_common_scripts.html`: Common JS helpers with `tJs` translations.
+    12. `templates/ai_callcenter/overview.html`: Call center KPIs, quota bars, recent calls, AI orders, and audio modal.
+    13. `templates/ai_callcenter/omnichannel.html`: Omnichannel WhatsApp inbox, SIP Trunks, telephonist configs.
+    14. `templates/ai_callcenter/calls.html`: Call logs, filters, table headers, audio player.
+    15. `templates/ai_callcenter/queues.html`: Call queue distribution, agents, live load.
+    16. `templates/ai_callcenter/persona.html`: AI voice agent persona, tone, language parameters.
+    17. `templates/ai_callcenter/hours.html`: Operating hours, schedule toggle, auto-response message.
+    18. `templates/ai_callcenter/knowledge.html`: RAG knowledge items, questions, approved answers.
+    19. `templates/ai_callcenter/capabilities.html`: FastMCP live tools, live menu, KDS order dispatch, delivery zone checks.
+    20. `templates/hq_orders.html`: Central order stream, multi-branch filters, status badges.
+    21. `templates/branch_orders.html`: Branch specific order listing and live statuses.
+    22. `templates/order_detail.html`: Detailed invoice, order lines, timeline, receipt printing.
+    23. `templates/order_edit.html`: Order line item adjustments, add/remove items.
+    24. `templates/kitchen.html`: KDS live display, station filters, empty state hero, audio alerts, clock locale formatting.
+    25. `templates/delivery.html`: Dispatcher dashboard, live driver fleet panel, order cards, SSE toasts.
+    26. `templates/delivery_card.html`: Delivery order tooltips, currency, phone button, status actions.
+    27. `templates/call_center.html`: Order taker dashboard, cart, takeaway/delivery toggles, live search.
+    28. `templates/owner_subscription.html`: Subscriptions & billing, quotas progress bars, FastMCP keys, plan upgrade modal, clipboard toasts.
+    29. `templates/restaurant_profile.html`: Brand identity, logo/cover upload validations, color swatches, contact info, live preview.
+    30. `templates/qr_menu.html`: Customer digital self-ordering menu, 5-language capsule switcher, sizes, cart, delivery area selector.
+    31. `templates/login.html`: Auth login screen, credentials form, register link.
+    32. `templates/404.html`: Localized Not Found error page.
+    33. `templates/500.html`: Localized Server Error page.
+  - **Menu Dish Names Preserved**: Database menu dishes, categories, and custom modifiers remain strictly preserved as entered by the restaurant.
+  - **Automated Verification**:
+    - `manage.py check`: 0 issues identified.
+    - `test_multilingual_5lang.py`: 8/8 suites 100% PASS (2,754 verified terms, 0 fake translations, 9 internal view routes across 5 languages).
+    - `test_restaurant_profile.py`: 59/59 PASS (100%).
+    - `test_landing_and_profile.py`: 100% PASS (5 suites).
+    - `test_system.py`: 100% PASS.
+    - `test_e2e_rbac.py`: 100% PASS.
+    - `./init.sh`: 100% PASS.
+    - `collectstatic --noinput`: Completed.
+    - `docker restart motaem_web`: Restarted.
+    - `curl -k -I https://uggu.space/?lang={ar,en,fr,tr,de}`: HTTP 200 OK across all 5 languages.
+    - `graphify update .`: AST update complete.
 
 - [x] **Comprehensive 5-Language Official Support (`restaurant_system/settings.py`, `core/views.py`, `core/context_processors.py`, `core/i18n_catalog.py`, `static/js/diyafa_i18n_catalog.json`, `static/js/diyafa_i18n_engine.js`, `templates/landing.html`, `templates/base.html`, `static/js/landing_animations.js`)**
   - **Full 5-Language Backend Integration**: Configured `LANGUAGES` in `restaurant_system/settings.py` for Arabic (`ar`, RTL), English (`en`, LTR), French (`fr`, LTR), Turkish (`tr`, LTR), and German (`de`, LTR).

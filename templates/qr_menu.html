@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ tenant.name }} — {% if CURRENT_LANG == 'en' %}Digital Menu & Self-Ordering{% else %}قائمة الطعام والطلب الذاتي{% endif %}</title>
+    <title>{{ tenant.name }} — {{ "قائمة الطعام والطلب الذاتي"|t }}</title>
     
     <!-- Tailwind CSS CDN & Cairo / Inter / Amiri Fonts -->
     <script>
@@ -39,7 +39,7 @@
                         }
                     },
                     fontFamily: {
-                        sans: {% if CURRENT_LANG == 'en' %}['Inter', 'Cairo', 'sans-serif']{% else %}['Cairo', 'Inter', 'sans-serif']{% endif %},
+                        sans: {% if IS_RTL %}['Cairo', 'Inter', 'sans-serif']{% else %}['Inter', 'Cairo', 'sans-serif']{% endif %},
                         royal: ['Cairo', 'Inter', 'sans-serif'],
                     }
                 }
@@ -49,7 +49,7 @@
 
     <style>
         body {
-            font-family: {% if CURRENT_LANG == 'en' %}'Inter', 'Cairo', sans-serif{% else %}'Cairo', 'Inter', sans-serif{% endif %};
+            font-family: {% if IS_RTL %}'Cairo', 'Inter', sans-serif{% else %}'Inter', 'Cairo', sans-serif{% endif %};
             background-color: #F8FAFC;
             color: #1A1A1A;
             -webkit-tap-highlight-color: transparent;
@@ -90,11 +90,11 @@
                         <h1 class="text-2xl sm:text-3xl font-semibold font-sans text-white tracking-wide">{{ tenant.name }}</h1>
                         {% if is_open %}
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                                {% if CURRENT_LANG == 'en' %}Open for Orders{% else %}مفتوح للطلب{% endif %}
+                                {{ "مفتوح للطلب"|t }}
                             </span>
                         {% else %}
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-400/30">
-                                {% if CURRENT_LANG == 'en' %}Currently Closed{% else %}مغلق حالياً{% endif %}
+                                {{ "مغلق حالياً"|t }}
                             </span>
                         {% endif %}
                     </div>
@@ -123,16 +123,34 @@
                 <!-- Royal Language Switcher Capsule -->
                 <div class="inline-flex items-center bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-inner text-xs font-bold">
                     <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" 
-                       class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
+                       class="px-2 py-0.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'ar' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
                        title="العربية">
                         <span>🇸🇦</span>
-                        <span>عربي</span>
+                        <span class="text-[11px]">عربي</span>
                     </a>
                     <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" 
-                       class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
+                       class="px-2 py-0.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'en' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
                        title="English">
                         <span>🇬🇧</span>
-                        <span>EN</span>
+                        <span class="text-[11px]">EN</span>
+                    </a>
+                    <a href="{% url 'set_language' 'fr' %}?next={{ request.get_full_path|urlencode }}" 
+                       class="px-2 py-0.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'fr' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
+                       title="Français">
+                        <span>🇫🇷</span>
+                        <span class="text-[11px]">FR</span>
+                    </a>
+                    <a href="{% url 'set_language' 'tr' %}?next={{ request.get_full_path|urlencode }}" 
+                       class="px-2 py-0.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'tr' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
+                       title="Türkçe">
+                        <span>🇹🇷</span>
+                        <span class="text-[11px]">TR</span>
+                    </a>
+                    <a href="{% url 'set_language' 'de' %}?next={{ request.get_full_path|urlencode }}" 
+                       class="px-2 py-0.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'de' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
+                       title="Deutsch">
+                        <span>🇩🇪</span>
+                        <span class="text-[11px]">DE</span>
                     </a>
                 </div>
 
@@ -142,7 +160,7 @@
                     <select id="branch-select" onchange="switchBranch(this.value)" class="bg-black/40 backdrop-blur-md text-white border border-white/20 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-gold-500">
                         {% for b in branches %}
                             <option value="{{ b.id }}" {% if selected_branch and b.id == selected_branch.id %}selected{% endif %} class="text-stone-900 font-bold">
-                                {% if CURRENT_LANG == 'en' %}Branch: {{ b.display_name|default:'' }}{% else %}فرع: {{ b.display_name|default:'' }}{% endif %}
+                                {{ "فرع:"|t }} {{ b.display_name|default:'' }}
                             </option>
                         {% endfor %}
                     </select>
@@ -159,31 +177,15 @@
             <span class="text-2xl flex-shrink-0">⛔</span>
             <div class="text-xs">
                 <p class="font-semibold text-amber-900">
-                    {% if CURRENT_LANG == 'en' %}
-                        Sorry, "{{ selected_branch.display_name|default:'' }}" branch is currently closed for orders
-                    {% else %}
-                        عذراً، فرع «{{ selected_branch.display_name|default:'' }}» مغلق حالياً لاستقبال الطلبات
-                    {% endif %}
+                    {{ "عذراً، فرع"|t }} «{{ selected_branch.display_name|default:'' }}» {{ "مغلق حالياً لاستقبال الطلبات"|t }}
                 </p>
                 <p class="text-stone-600 mt-0.5">
                     {% if selected_branch.opening_time and selected_branch.closing_time %}
-                        {% if CURRENT_LANG == 'en' %}
-                            Official working hours: {{ selected_branch.opening_time|time:"g:i A" }} to {{ selected_branch.closing_time|time:"g:i A" }}.
-                        {% else %}
-                            ساعات العمل الرسمية: من {{ selected_branch.opening_time|time:"g:i A" }} وحتى {{ selected_branch.closing_time|time:"g:i A" }}.
-                        {% endif %}
+                        {{ "ساعات العمل الرسمية: من"|t }} {{ selected_branch.opening_time|time:"g:i A" }} {{ "وحتى"|t }} {{ selected_branch.closing_time|time:"g:i A" }}.
                     {% else %}
-                        {% if CURRENT_LANG == 'en' %}
-                            Orders are temporarily paused for this branch.
-                        {% else %}
-                            الفرع متوقف مؤقتاً عن استقبال الطلبات بأمر الإدارة.
-                        {% endif %}
+                        {{ "الفرع متوقف مؤقتاً عن استقبال الطلبات بأمر الإدارة."|t }}
                     {% endif %}
-                    {% if CURRENT_LANG == 'en' %}
-                        You can still browse meals and prices.
-                    {% else %}
-                        يمكنك تصفح قائمة الوجبات والأسعار.
-                    {% endif %}
+                    {{ "يمكنك تصفح قائمة الوجبات والأسعار."|t }}
                 </p>
             </div>
         </div>
@@ -197,10 +199,10 @@
             <span class="text-2xl flex-shrink-0">ℹ️</span>
             <div class="text-xs">
                 <p class="font-bold text-blue-900">
-                    {% if CURRENT_LANG == 'en' %}No active branches currently available.{% else %}لا توجد فروع نشطة حالياً لهذا المطعم.{% endif %}
+                    {{ "لا توجد فروع نشطة حالياً لهذا المطعم."|t }}
                 </p>
                 <p class="text-blue-700 mt-0.5">
-                    {% if CURRENT_LANG == 'en' %}Please contact restaurant management or visit later.{% else %}يرجى التواصل مع إدارة المطعم أو معاودة الزيارة لاحقاً.{% endif %}
+                    {{ "يرجى التواصل مع إدارة المطعم أو معاودة الزيارة لاحقاً."|t }}
                 </p>
             </div>
         </div>
@@ -214,11 +216,11 @@
         <div class="bg-white rounded-2xl p-1.5 shadow-lg border border-stone-200 grid grid-cols-2 gap-1.5">
             <button type="button" onclick="setOrderType('takeaway')" id="btn-type-takeaway" class="py-2.5 px-4 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 bg-brand-600 text-white shadow-sm">
                 <span class="text-base">🛍️</span>
-                <span>{% if CURRENT_LANG == 'en' %}Takeaway Pickup{% else %}استلام سفري من الفرع{% endif %}</span>
+                <span>{{ "استلام سفري من الفرع"|t }}</span>
             </button>
             <button type="button" onclick="setOrderType('delivery')" id="btn-type-delivery" class="py-2.5 px-4 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 text-stone-600 hover:bg-stone-100">
                 <span class="text-base">🛵</span>
-                <span>{% if CURRENT_LANG == 'en' %}Home Delivery{% else %}توصيل إلى منزلك{% endif %}</span>
+                <span>{{ "توصيل إلى منزلك"|t }}</span>
             </button>
         </div>
     </div>
@@ -230,7 +232,7 @@
         <div class="max-w-4xl mx-auto px-4 space-y-2.5">
             <!-- Search Input -->
             <div class="relative">
-                <input type="text" id="menu-search" oninput="filterDishes()" placeholder="{% if CURRENT_LANG == 'en' %}Search for a meal, dish, or drink...{% else %}ابحث عن وجبة، صنف، أو مشروب...{% endif %}" class="w-full bg-white border border-stone-200 rounded-xl py-2 ps-9 pe-9 text-xs font-bold text-stone-800 placeholder-stone-400 focus:outline-none focus:border-brand-600 shadow-xs">
+                <input type="text" id="menu-search" oninput="filterDishes()" placeholder="{{ "ابحث عن وجبة، صنف، أو مشروب..."|t }}" class="w-full bg-white border border-stone-200 rounded-xl py-2 ps-9 pe-9 text-xs font-bold text-stone-800 placeholder-stone-400 focus:outline-none focus:border-brand-600 shadow-xs">
                 <svg class="w-4 h-4 text-stone-400 absolute start-3 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <button type="button" onclick="clearSearch()" id="clear-search-btn" class="hidden absolute end-3 top-2 text-stone-400 hover:text-stone-700 text-xs font-bold">✕</button>
             </div>
@@ -238,7 +240,7 @@
             <!-- Categories Horizontal Scroll with Images -->
             <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
                 <button type="button" onclick="selectCategory('all')" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-brand-600 text-white shadow-xs" data-cat="all">
-                    {% if CURRENT_LANG == 'en' %}All{% else %}الكل{% endif %}
+                    {{ "الكل"|t }}
                 </button>
                 {% for cat in category_objs %}
                 <button type="button" onclick="selectCategory('{{ cat.name|escapejs }}')" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition bg-white text-stone-700 border border-stone-200 hover:border-gold-500 shadow-xs flex items-center gap-1.5" data-cat="{{ cat.name }}">
@@ -294,7 +296,7 @@
                         <!-- Variant / Size Choices (If available) -->
                         {% if item.has_variants %}
                         <div class="mt-2.5 pt-2 border-t border-stone-100">
-                            <span class="text-[10px] font-bold text-stone-400 block mb-1">{% if CURRENT_LANG == 'en' %}Choose size:{% else %}اختر الحجم:{% endif %}</span>
+                            <span class="text-[10px] font-bold text-stone-400 block mb-1">{{ "اختر الحجم:"|t }}</span>
                             <div class="flex flex-wrap items-center gap-1.5" id="variant-group-{{ item.id }}">
                                 {% for v in item.variants %}
                                 <label class="cursor-pointer">
@@ -313,7 +315,7 @@
                         <div class="mt-3 pt-2 border-t border-stone-50 flex items-center justify-between">
                             <div>
                                 {% if item.has_variants %}
-                                    <span class="text-[10px] text-stone-400 font-bold block leading-none">{% if CURRENT_LANG == 'en' %}Price:{% else %}السعر:{% endif %}</span>
+                                    <span class="text-[10px] text-stone-400 font-bold block leading-none">{{ "السعر:"|t }}</span>
                                     <span id="price-display-{{ item.id }}" class="text-sm font-semibold text-brand-600" dir="ltr">
                                         {{ item.min_price|floatformat:2 }} <span class="text-[10px] font-bold">{{ branch_currency_symbol }}</span>
                                     </span>
@@ -326,14 +328,14 @@
 
                             <!-- Controls -->
                             {% if not item.is_available %}
-                                <span class="px-2.5 py-1 rounded-lg bg-stone-200 text-stone-600 text-[10px] font-semibold">{% if CURRENT_LANG == 'en' %}Sold Out{% else %}نفد اليوم{% endif %}</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-stone-200 text-stone-600 text-[10px] font-semibold">{{ "نفد اليوم"|t }}</span>
                             {% elif not is_open %}
-                                <span class="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-400 text-[10px] font-bold">{% if CURRENT_LANG == 'en' %}Branch Closed{% else %}الفرع مغلق{% endif %}</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-400 text-[10px] font-bold">{{ "الفرع مغلق"|t }}</span>
                             {% else %}
                                 <div id="controls-{{ item.id }}" class="flex items-center gap-2">
                                     <button type="button" onclick="handleItemAdd({{ item.id }}, '{{ item.name|escapejs }}', {{ item.price }}, '{{ item.emoji|escapejs }}', {{ item.has_variants|yesno:'true,false' }})" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition flex items-center gap-1 shadow-xs">
                                         <span>+</span>
-                                        <span>{% if CURRENT_LANG == 'en' %}Add{% else %}أضف{% endif %}</span>
+                                        <span>{{ "أضف"|t }}</span>
                                     </button>
                                 </div>
                             {% endif %}
@@ -346,8 +348,8 @@
         {% else %}
             <div class="text-center py-16 bg-white rounded-3xl border border-stone-200 p-8 shadow-xs my-6">
                 <span class="text-5xl block mb-3">🍽️</span>
-                <h3 class="text-base font-semibold text-stone-800">{% if CURRENT_LANG == 'en' %}Menu is being prepared{% else %}قائمة الطعام قيد التجهيز{% endif %}</h3>
-                <p class="text-xs text-stone-500 mt-1">{% if CURRENT_LANG == 'en' %}No meals have been published for this branch yet. Please check back soon.{% else %}لم يتم نشر وجبات في هذا الفرع بعد. يرجى مراجعة إدارة المطعم.{% endif %}</p>
+                <h3 class="text-base font-semibold text-stone-800">{{ "قائمة الطعام قيد التجهيز"|t }}</h3>
+                <p class="text-xs text-stone-500 mt-1">{{ "لم يتم نشر وجبات في هذا الفرع بعد. يرجى مراجعة إدارة المطعم."|t }}</p>
             </div>
         {% endif %}
     </main>
@@ -360,12 +362,12 @@
             <button type="button" onclick="openCheckoutModal()" class="w-full bg-brand-600 hover:bg-brand-700 text-white rounded-2xl p-3.5 shadow-2xl border border-gold-500/40 flex items-center justify-between transition transform active:scale-98">
                 <div class="flex items-center gap-2.5">
                     <span id="cart-badge-count" class="w-7 h-7 rounded-lg bg-gold-500 text-stone-900 font-semibold text-xs flex items-center justify-center shadow-xs">0</span>
-                    <span class="text-xs font-semibold">{% if CURRENT_LANG == 'en' %}View Cart & Order{% else %}معاينة الطلب والسلة{% endif %}</span>
+                    <span class="text-xs font-semibold">{{ "معاينة الطلب والسلة"|t }}</span>
                 </div>
                 <div class="flex items-center gap-1.5 text-sm font-semibold" dir="ltr">
                     <span id="cart-total-display">0.00</span>
                     <span class="text-xs text-gold-400">{{ branch_currency_symbol }}</span>
-                    <span class="text-xs font-normal ms-1">{% if CURRENT_LANG == 'en' %}→{% else %}←{% endif %}</span>
+                    <span class="text-xs font-normal ms-1">{% if IS_RTL %}←{% else %}→{% endif %}</span>
                 </div>
             </button>
         </div>
@@ -380,7 +382,7 @@
             <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">🛒</span>
-                    <h3 class="text-sm font-semibold text-stone-900">{% if CURRENT_LANG == 'en' %}Order Cart — Order Summary{% else %}سلة الطلب — تأكيد الفاتورة{% endif %}</h3>
+                    <h3 class="text-sm font-semibold text-stone-900">{{ "سلة الطلب — تأكيد الفاتورة"|t }}</h3>
                 </div>
                 <button type="button" onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-600 font-bold flex items-center justify-center text-xs">✕</button>
             </div>
@@ -389,20 +391,20 @@
             <div class="p-4 overflow-y-auto space-y-4 flex-1">
                 <!-- Selected Items List -->
                 <div class="space-y-2">
-                    <span class="text-xs font-bold text-stone-500 block">{% if CURRENT_LANG == 'en' %}Selected Items:{% else %}الوجبات المختارة:{% endif %}</span>
+                    <span class="text-xs font-bold text-stone-500 block">{{ "الوجبات المختارة:"|t }}</span>
                     <div id="cart-items-container" class="space-y-2"></div>
                 </div>
 
                 <!-- Customer Details Form -->
                 <div class="pt-2 border-t border-stone-100 space-y-3">
-                    <span class="text-xs font-bold text-stone-500 block">{% if CURRENT_LANG == 'en' %}Customer Details:{% else %}بيانات العميل:{% endif %}</span>
+                    <span class="text-xs font-bold text-stone-500 block">{{ "بيانات العميل:"|t }}</span>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Full Name *{% else %}الاسم الكريم *{% endif %}</label>
-                            <input type="text" id="cust-name" placeholder="{% if CURRENT_LANG == 'en' %}John Doe{% else %}محمد السالم{% endif %}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{{ "الاسم الكريم *"|t }}</label>
+                            <input type="text" id="cust-name" placeholder='{{ "محمد السالم"|t }}' class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Mobile Number *{% else %}رقم الجوال *{% endif %}</label>
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{{ "رقم الجوال *"|t }}</label>
                             <input type="tel" id="cust-phone" placeholder="0501234567" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600 text-start" dir="ltr">
                         </div>
                     </div>
@@ -410,51 +412,51 @@
                     <!-- Delivery Specific Fields -->
                     <div id="delivery-fields" class="space-y-2.5 hidden">
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Delivery Area *{% else %}منطقة التوصيل *{% endif %}</label>
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{{ "منطقة التوصيل *"|t }}</label>
                             <select id="delivery-area-select" onchange="updateDeliveryFee()" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
-                                <option value="">{% if CURRENT_LANG == 'en' %}— Select your area or district —{% else %}— اختر منطقتك أو الكومبوند —{% endif %}</option>
+                                <option value="">{{ "— اختر منطقتك أو الكومبوند —"|t }}</option>
                                 {% for a in delivery_areas %}
                                     <option value="{{ a.id }}" data-fee="{{ a.fee }}">
-                                        {{ a.name }} ({% if CURRENT_LANG == 'en' %}Fee: {{ a.fee }} {{ branch_currency_symbol }} • {{ a.estimated_time }}{% else %}رسوم: {{ a.fee }} {{ branch_currency_symbol }} • {{ a.estimated_time }}{% endif %})
+                                        {{ a.name }} ({{ "رسوم:"|t }} {{ a.fee }} {{ branch_currency_symbol }} • {{ a.estimated_time }})
                                     </option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Detailed Address *{% else %}العنوان بالتفصيل *{% endif %}</label>
-                            <input type="text" id="cust-address" placeholder="{% if CURRENT_LANG == 'en' %}Street name, building number, apartment or landmark{% else %}اسم الشارع، رقم العمارة، رقم الشقة أو المعلم المميز{% endif %}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
+                            <label class="text-[11px] font-bold text-stone-700 block mb-1">{{ "العنوان بالتفصيل *"|t }}</label>
+                            <input type="text" id="cust-address" placeholder="{{ "اسم الشارع، رقم العمارة، رقم الشقة أو المعلم المميز"|t }}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600">
                         </div>
                     </div>
 
                     <!-- Notes -->
                     <div>
-                        <label class="text-[11px] font-bold text-stone-700 block mb-1">{% if CURRENT_LANG == 'en' %}Additional Order Notes (Optional){% else %}ملاحظات إضافية للطلب (اختياري){% endif %}</label>
-                        <textarea id="cust-notes" rows="2" placeholder="{% if CURRENT_LANG == 'en' %}Any special instructions for the kitchen or delivery courier...{% else %}أي تعليمات خاصة للمطبخ أو مندوب التوصيل...{% endif %}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600 resize-none"></textarea>
+                        <label class="text-[11px] font-bold text-stone-700 block mb-1">{{ "ملاحظات إضافية للطلب (اختياري)"|t }}</label>
+                        <textarea id="cust-notes" rows="2" placeholder="{{ "أي تعليمات خاصة للمطبخ أو مندوب التوصيل..."|t }}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-brand-600 resize-none"></textarea>
                     </div>
 
                     <!-- Payment Notice -->
                     <div class="rounded-xl bg-amber-50 border border-amber-200 p-2.5 flex items-center gap-2 text-amber-900 text-[11px] font-bold">
                         <span>💵</span>
-                        <span>{% if CURRENT_LANG == 'en' %}Payment method: Pay on delivery (Cash or Mada / Card POS).{% else %}طريقة الدفع: الدفع عند الاستلام (كاش أو شبكة مدى/فيزا).{% endif %}</span>
+                        <span>{{ "طريقة الدفع: الدفع عند الاستلام (كاش أو شبكة مدى/فيزا)."|t }}</span>
                     </div>
                 </div>
 
                 <!-- Price Summary -->
                 <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-1.5 text-xs">
                     <div class="flex justify-between text-stone-600">
-                        <span>{% if CURRENT_LANG == 'en' %}Subtotal:{% else %}المجموع الفرعي:{% endif %}</span>
+                        <span>{{ "المجموع الفرعي:"|t }}</span>
                         <span id="summary-subtotal" class="font-bold">0.00 {{ branch_currency_symbol }}</span>
                     </div>
                     <div id="summary-delivery-row" class="flex justify-between text-stone-600 hidden">
-                        <span>{% if CURRENT_LANG == 'en' %}Delivery Fee:{% else %}رسوم التوصيل:{% endif %}</span>
+                        <span>{{ "رسوم التوصيل:"|t }}</span>
                         <span id="summary-delivery-fee" class="font-bold">0.00 {{ branch_currency_symbol }}</span>
                     </div>
                     <div class="flex justify-between text-stone-500 text-[10px]">
-                        <span>{% if CURRENT_LANG == 'en' %}Value Added Tax (15%):{% else %}ضريبة القيمة المضافة (15%):{% endif %}</span>
-                        <span>{% if CURRENT_LANG == 'en' %}Included in prices{% else %}مشمولة بالأسعار{% endif %}</span>
+                        <span>{{ "ضريبة القيمة المضافة (15%):"|t }}</span>
+                        <span>{{ "مشمولة بالأسعار"|t }}</span>
                     </div>
                     <div class="pt-1.5 border-t border-stone-200 flex justify-between text-stone-900 font-semibold text-sm">
-                        <span>{% if CURRENT_LANG == 'en' %}Grand Total:{% else %}المجموع الإجمالي:{% endif %}</span>
+                        <span>{{ "المجموع الإجمالي:"|t }}</span>
                         <span id="summary-total" class="text-brand-600">0.00 {{ branch_currency_symbol }}</span>
                     </div>
                 </div>
@@ -463,7 +465,7 @@
                 <div id="min-delivery-alert" class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold hidden flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span>🛵</span>
-                        <span id="min-delivery-text">{% if CURRENT_LANG == 'en' %}Minimum delivery order: {{ min_delivery_order }} {{ branch_currency_symbol }}{% else %}الحد الأدنى لطلب التوصيل: {{ min_delivery_order }} {{ branch_currency_symbol }}{% endif %}</span>
+                        <span id="min-delivery-text">{{ "الحد الأدنى لطلب التوصيل:"|t }} {{ min_delivery_order }} {{ branch_currency_symbol }}</span>
                     </div>
                 </div>
             </div>
@@ -471,7 +473,7 @@
             <!-- Modal Footer -->
             <div class="p-4 border-t border-stone-200 bg-white">
                 <button type="button" onclick="submitOrder()" id="btn-submit-order" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-lg transition flex items-center justify-center gap-2">
-                    <span>{% if CURRENT_LANG == 'en' %}Send Order to Restaurant Now{% else %}إرسال الطلب للمطعم الآن{% endif %}</span>
+                    <span>{{ "إرسال الطلب للمطعم الآن"|t }}</span>
                     <span>✓</span>
                 </button>
             </div>
@@ -486,27 +488,27 @@
             <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl mb-4 font-bold">
                 ✓
             </div>
-            <h3 class="text-lg font-semibold text-stone-900">{% if CURRENT_LANG == 'en' %}Order Received Successfully!{% else %}تم استلام طلبك بنجاح!{% endif %}</h3>
-            <p class="text-xs text-stone-500 mt-1">{% if CURRENT_LANG == 'en' %}Your order has been sent to the branch kitchen and is being freshly prepared.{% else %}تم توجيه طلبك فوراً لمطبخ الفرع وجاري تجهيزه طازجاً.{% endif %}</p>
+            <h3 class="text-lg font-semibold text-stone-900">{{ "تم استلام طلبك بنجاح!"|t }}</h3>
+            <p class="text-xs text-stone-500 mt-1">{{ "تم توجيه طلبك فوراً لمطبخ الفرع وجاري تجهيزه طازجاً."|t }}</p>
 
             <div class="my-4 p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-1.5">
-                <span class="text-[11px] text-stone-500 font-bold block">{% if CURRENT_LANG == 'en' %}Order Number{% else %}رقم الطلب{% endif %}</span>
+                <span class="text-[11px] text-stone-500 font-bold block">{{ "رقم الطلب"|t }}</span>
                 <span id="success-order-number" class="text-xl font-bold font-mono text-brand-600 tracking-wider">QR-0000</span>
-                <span id="success-order-type" class="text-xs font-bold text-stone-700 block">{% if CURRENT_LANG == 'en' %}Takeaway Pickup{% else %}استلام سفري{% endif %}</span>
+                <span id="success-order-type" class="text-xs font-bold text-stone-700 block">{{ "استلام سفري"|t }}</span>
                 <div class="text-xs font-semibold text-stone-900 pt-1 border-t border-stone-200">
-                    {% if CURRENT_LANG == 'en' %}Total:{% else %}الإجمالي:{% endif %} <span id="success-order-total" class="text-emerald-700">0.00</span> {{ branch_currency_symbol }}
+                    {{ "الإجمالي:"|t }} <span id="success-order-total" class="text-emerald-700">0.00</span> {{ branch_currency_symbol }}
                 </div>
             </div>
 
             <div class="space-y-2">
                 {% if tenant.phone %}
                 <a id="success-whatsapp-link" href="#" target="_blank" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition flex items-center justify-center gap-2">
-                    <span>{% if CURRENT_LANG == 'en' %}Confirm via WhatsApp{% else %}تأكيد المتابعة عبر الواتساب{% endif %}</span>
+                    <span>{{ "تأكيد المتابعة عبر الواتساب"|t }}</span>
                     <span>💬</span>
                 </a>
                 {% endif %}
                 <button type="button" onclick="resetOrderAndClose()" class="w-full py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition">
-                    {% if CURRENT_LANG == 'en' %}Order More Items{% else %}طلب وجبات أخرى{% endif %}
+                    {{ "طلب وجبات أخرى"|t }}
                 </button>
             </div>
         </div>
@@ -517,6 +519,13 @@
     <!-- ========================================== -->
     <script>
         const CURRENT_LANG = "{{ CURRENT_LANG|default:'ar' }}";
+        const tJs = (key, fallback) => {
+            if (window.DiyafaI18n && typeof window.DiyafaI18n.translate === 'function') {
+                const res = window.DiyafaI18n.translate(key);
+                if (res && res !== key) return res;
+            }
+            return fallback || key;
+        };
         const TENANT_NAME = "{{ tenant.name|escapejs }}";
         const TENANT_SLUG = "{{ tenant.slug }}";
         const SELECTED_BRANCH_ID = {{ selected_branch.id|default:0 }};
@@ -527,30 +536,22 @@
 
         const i18n = {
             currency: "{{ branch_currency_symbol|default:'ر.س' }}",
-            branchClosedAlert: CURRENT_LANG === 'en' ? 'Sorry, this branch is currently closed for orders.' : 'عذراً، هذا الفرع مغلق حالياً لاستقبال الطلبات.',
-            addBtn: CURRENT_LANG === 'en' ? 'Add' : 'أضف',
-            emptyCart: CURRENT_LANG === 'en' ? 'Cart is currently empty' : 'السلة فارغة حالياً',
-            minDeliveryAlert: (min, cur) => CURRENT_LANG === 'en'
-                ? `Sorry, minimum delivery order for this branch is ${min} ${i18n.currency} (Current: ${cur} ${i18n.currency}). Please add more items.`
-                : `عذراً، الحد الأدنى لطلب التوصيل من هذا الفرع هو ${min} ${i18n.currency}. (المجموع الحالي: ${cur} ${i18n.currency}). يرجى إضافة وجبات أخرى.`,
-            minDeliveryBadgeRemaining: (min, diff) => CURRENT_LANG === 'en'
-                ? `<span>Minimum delivery order: <strong>${min} ${i18n.currency}</strong> (Remaining: ${diff} ${i18n.currency})</span>`
-                : `<span>الحد الأدنى للتوصيل: <strong>${min} ${i18n.currency}</strong> (متبقي: ${diff} ${i18n.currency})</span>`,
-            minDeliveryBadgeMet: (min) => CURRENT_LANG === 'en'
-                ? `<span>✓ Minimum delivery order reached (${min} ${i18n.currency})</span>`
-                : `<span>✓ تم استيفاء الحد الأدنى لطلب التوصيل (${min} ${i18n.currency})</span>`,
-            valName: CURRENT_LANG === 'en' ? 'Please enter your name correctly' : 'يرجى كتابة الاسم بشكل صحيح',
-            valPhone: CURRENT_LANG === 'en' ? 'Please enter a valid phone number' : 'يرجى إدخال رقم هاتف صالح للتواصل',
-            valArea: CURRENT_LANG === 'en' ? 'Please select your delivery area' : 'يرجى اختيار منطقة التوصيل من القائمة',
-            valAddress: CURRENT_LANG === 'en' ? 'Please enter your detailed address' : 'يرجى إدخال عنوان التوصيل المفصل',
-            valEmptyCart: CURRENT_LANG === 'en' ? 'Cart is empty!' : 'السلة فارغة!',
-            sendingOrder: CURRENT_LANG === 'en' ? 'Sending order to kitchen...' : 'جاري إرسال الطلب للمطبخ...',
-            sendOrderBtn: CURRENT_LANG === 'en' ? 'Send Order to Restaurant Now' : 'إرسال الطلب للمطعم الآن',
-            serverError: CURRENT_LANG === 'en' ? 'Connection error with server. Please try again.' : 'حدث خطأ في الاتصال بالخادم. يرجى المحاولة ثانية.',
-            branchPrefix: CURRENT_LANG === 'en' ? 'Branch' : 'فرع',
-            whatsappText: (name, ordNum) => CURRENT_LANG === 'en'
-                ? `Hello ${name}, I would like to confirm my order #${ordNum} placed via the Digital Menu.`
-                : `مرحباً ${name}، أود تأكيد طلبي رقم (${ordNum}) المسجل عبر المنيو الرقمي.`
+            branchClosedAlert: tJs('عذراً، هذا الفرع مغلق حالياً لاستقبال الطلبات.', 'عذراً، هذا الفرع مغلق حالياً لاستقبال الطلبات.'),
+            addBtn: tJs('أضف', 'أضف'),
+            emptyCart: tJs('السلة فارغة حالياً', 'السلة فارغة حالياً'),
+            minDeliveryAlert: (min, cur) => `${tJs('عذراً، الحد الأدنى لطلب التوصيل من هذا الفرع هو', 'Sorry, minimum delivery order for this branch is')} ${min} ${i18n.currency}. (${tJs('المجموع الحالي:', 'Current:')} ${cur} ${i18n.currency}). ${tJs('يرجى إضافة وجبات أخرى.', 'Please add more items.')}`,
+            minDeliveryBadgeRemaining: (min, diff) => `<span>${tJs('الحد الأدنى للتوصيل:', 'Minimum delivery order:')} <strong>${min} ${i18n.currency}</strong> (${tJs('متبقي:', 'Remaining:')} ${diff} ${i18n.currency})</span>`,
+            minDeliveryBadgeMet: (min) => `<span>✓ ${tJs('تم استيفاء الحد الأدنى لطلب التوصيل', 'Minimum delivery order reached')} (${min} ${i18n.currency})</span>`,
+            valName: tJs('يرجى كتابة الاسم بشكل صحيح', 'Please enter a valid name'),
+            valPhone: tJs('يرجى إدخال رقم هاتف صالح للتواصل', 'Please enter a valid phone number'),
+            valArea: tJs('يرجى اختيار منطقة التوصيل من القائمة', 'Please select a delivery zone from the list'),
+            valAddress: tJs('يرجى إدخال عنوان التوصيل المفصل', 'Please enter the detailed delivery address'),
+            valEmptyCart: tJs('السلة فارغة!', 'Cart is empty!'),
+            sendingOrder: tJs('جاري إرسال الطلب للمطبخ...', 'Sending order to kitchen...'),
+            sendOrderBtn: tJs('إرسال الطلب للمطعم الآن', 'Submit order now'),
+            serverError: tJs('حدث خطأ في الاتصال بالخادم. يرجى المحاولة ثانية.', 'Connection error. Please try again.'),
+            branchPrefix: tJs('فرع', 'Branch'),
+            whatsappText: (name, ordNum) => `${tJs('مرحباً', 'Hello')} ${name}، ${tJs('أود تأكيد طلبي رقم', 'I would like to confirm my order #')} (${ordNum}) ${tJs('المسجل عبر المنيو الرقمي.', 'placed via the Digital Menu.')}`
         };
 
         function setOrderType(type) {
@@ -926,7 +927,7 @@
 
         function showSuccessModal(data) {
             document.getElementById('success-order-number').textContent = data.order_number;
-            const orderTypeLabel = (currentOrderType === 'delivery' ? (CURRENT_LANG === 'en' ? 'Home Delivery' : 'توصيل منزلي') : (CURRENT_LANG === 'en' ? 'Takeaway Pickup' : 'استلام سفري'));
+            const orderTypeLabel = (currentOrderType === 'delivery' ? tJs('توصيل منزلي', 'Home Delivery') : tJs('استلام سفري', 'Takeaway Pickup'));
             const branchName = data.branch_name || "{{ selected_branch.display_name|default:''|escapejs }}";
             document.getElementById('success-order-type').textContent = `${orderTypeLabel} • ${i18n.branchPrefix} ${branchName}`;
             document.getElementById('success-order-total').textContent = (data.total || 0).toFixed(2);

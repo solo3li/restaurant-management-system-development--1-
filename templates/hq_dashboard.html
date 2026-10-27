@@ -27,17 +27,17 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <a href="{% url 'branches' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-700 hover:text-slate-900 transition shadow-xs cursor-pointer" title="إدارة عملة المنشأة والفروع">
+            <a href="{% url 'branches' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-700 hover:text-slate-900 transition shadow-xs cursor-pointer" title='{{ "إدارة عملة المنشأة والفروع"|t }}'>
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>العملة: {{ tenant.default_currency }} ({{ tenant.get_currency_symbol_ar }})</span>
+                <span>{{ "العملة"|t }}: {{ tenant.default_currency }} ({{ tenant.get_currency_symbol_ar }})</span>
             </a>
             <a href="{% url 'hq_orders' %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-700 hover:text-slate-900 transition shadow-xs cursor-pointer">
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span>{{ t.nav_orders }}</span>
             </a>
-            <a href="{% url 'restaurant_profile' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-700 hover:text-slate-900 transition shadow-xs cursor-pointer" title="هوية وبيانات المطعم">
+            <a href="{% url 'restaurant_profile' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-700 hover:text-slate-900 transition shadow-xs cursor-pointer" title='{{ "هوية وبيانات المطعم"|t }}'>
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <span>ملف المطعم</span>
+                <span>{{ "ملف المطعم"|t }}</span>
             </a>
             <a href="{% url 'branches' %}" class="inline-flex items-center gap-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white px-3.5 py-1.5 text-xs font-medium transition shadow-xs cursor-pointer">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -56,7 +56,7 @@
         <!-- 1. Chain Total Revenue Today -->
         <div class="bg-white rounded-xl border border-slate-200/70 p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">إجمالي مبيعات السلسلة اليوم</span>
+                <span class="text-xs font-medium text-slate-500">{{ "إجمالي مبيعات السلسلة اليوم"|t }}</span>
                 <span class="h-9 w-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </span>
@@ -66,9 +66,9 @@
                     {{ sales_today|floatformat:2 }} <span class="text-xs font-medium text-slate-400 font-sans">{{ tenant.get_currency_symbol_ar|default:t.currency }}</span>
                 </p>
                 <div class="mt-2 flex items-center justify-between text-xs">
-                    <span class="text-slate-500 font-normal">{{ orders_today }} طلباً محققاً اليوم</span>
+                    <span class="text-slate-500 font-normal">{{ orders_today }} {{ "طلباً محققاً اليوم"|t }}</span>
                     <span class="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md text-[11px]">
-                        <span>↑</span> نشط
+                        <span>↑</span> {{ "نشط"|t }}
                     </span>
                 </div>
             </div>
@@ -77,19 +77,19 @@
         <!-- 2. Total Orders Stream -->
         <div class="bg-white rounded-xl border border-slate-200/70 p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">الطلبات المسجلة اليوم</span>
+                <span class="text-xs font-medium text-slate-500">{{ "الطلبات المسجلة اليوم"|t }}</span>
                 <span class="h-9 w-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m-.01 4h.01"/></svg>
                 </span>
             </div>
             <div class="mt-3">
                 <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
-                    {{ orders_today }} <span class="text-xs font-medium text-slate-400 font-sans">طلب</span>
+                    {{ orders_today }} <span class="text-xs font-medium text-slate-400 font-sans">{{ "طلب"|t }}</span>
                 </p>
                 <div class="mt-2 flex items-center justify-between text-xs text-slate-500 font-normal">
-                    <span>كاشير: {{ cashier_orders_count|default:"0" }}</span>
+                    <span>{{ "كاشير"|t }}: {{ cashier_orders_count|default:"0" }}</span>
                     <span>•</span>
-                    <span>كول سنتر: {{ callcenter_orders_count|default:"0" }}</span>
+                    <span>{{ "كول سنتر"|t }}: {{ callcenter_orders_count|default:"0" }}</span>
                 </div>
             </div>
         </div>
@@ -97,18 +97,18 @@
         <!-- 3. Active Branches Matrix -->
         <div class="bg-white rounded-xl border border-slate-200/70 p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">الفروع النشطة العاملة</span>
+                <span class="text-xs font-medium text-slate-500">{{ "الفروع النشطة العاملة"|t }}</span>
                 <span class="h-9 w-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </span>
             </div>
             <div class="mt-3">
                 <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
-                    {{ active_branches_count|default:branch_matrix|length }} <span class="text-xs font-medium text-slate-400 font-sans">/ {{ total_branches_count|default:branch_matrix|length }} فرع</span>
+                    {{ active_branches_count|default:branch_matrix|length }} <span class="text-xs font-medium text-slate-400 font-sans">/ {{ total_branches_count|default:branch_matrix|length }} {{ "فرع"|t }}</span>
                 </p>
                 <div class="mt-2 flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span>جميع الفروع متصلة وتستقبل الطلبات</span>
+                    <span>{{ "جميع الفروع متصلة وتستقبل الطلبات"|t }}</span>
                 </div>
             </div>
         </div>
@@ -116,21 +116,21 @@
         <!-- 4. AI Call Center Volume -->
         <div class="bg-white rounded-xl border border-slate-200/70 p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">كول سنتر الذكاء الاصطناعي</span>
+                <span class="text-xs font-medium text-slate-500">{{ "كول سنتر الذكاء الاصطناعي"|t }}</span>
                 <span class="h-9 w-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
                 </span>
             </div>
             <div class="mt-3">
                 <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
-                    {{ callcenter_orders_count|default:"0" }} <span class="text-xs font-medium text-slate-400 font-sans">طلب ذكي</span>
+                    {{ callcenter_orders_count|default:"0" }} <span class="text-xs font-medium text-slate-400 font-sans">{{ "طلب ذكي"|t }}</span>
                 </p>
                 <div class="mt-2 flex items-center justify-between text-xs">
                     <span class="text-slate-500 font-normal inline-flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span>FastMCP جاهز 24/7</span>
+                        <span>{{ "FastMCP جاهز 24/7"|t }}</span>
                     </span>
-                    <a href="{% url 'call_center' %}" class="text-violet-700 font-semibold hover:underline">مراقبة ←</a>
+                    <a href="{% url 'call_center' %}" class="text-violet-700 font-semibold hover:underline">{{ "مراقبة"|t }} ←</a>
                 </div>
             </div>
         </div>
@@ -147,12 +147,12 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3 mb-4">
                     <div>
                         <h2 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                            <span>تحليلات حركة المبيعات لآخر 7 أيام</span>
+                            <span>{{ "تحليلات حركة المبيعات لآخر 7 أيام"|t }}</span>
                         </h2>
-                        <p class="text-xs text-slate-400 font-normal mt-0.5">مقارنة حركة الإيرادات اليومية وتوزيع الإقبال</p>
+                        <p class="text-xs text-slate-400 font-normal mt-0.5">{{ "مقارنة حركة الإيرادات اليومية وتوزيع الإقبال"|t }}</p>
                     </div>
                     <div class="text-left">
-                        <span class="text-xs text-slate-400 font-normal block">إجمالي مبيعات الأسبوع</span>
+                        <span class="text-xs text-slate-400 font-normal block">{{ "إجمالي مبيعات الأسبوع"|t }}</span>
                         <span class="text-base font-bold text-violet-700 font-mono">{{ week_total|floatformat:2 }} {{ tenant.get_currency_symbol_ar|default:t.currency }}</span>
                     </div>
                 </div>
@@ -188,10 +188,10 @@
 
             <div class="mt-4 pt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 font-normal border-t border-slate-100">
                 <div class="flex items-center gap-4">
-                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded bg-violet-600"></span> اليوم الحاضر</span>
-                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded bg-slate-200"></span> الأيام السابقة</span>
+                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded bg-violet-600"></span> {{ "اليوم الحاضر"|t }}</span>
+                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded bg-slate-200"></span> {{ "الأيام السابقة"|t }}</span>
                 </div>
-                <span class="text-xs text-slate-600">المعدل اليومي التقريبي: {{ week_total|floatformat:0|default:"0" }} {{ tenant.get_currency_symbol_ar|default:t.currency }} / أسبوع</span>
+                <span class="text-xs text-slate-600">{{ "المعدل اليومي التقريبي"|t }}: {{ week_total|floatformat:0|default:"0" }} {{ tenant.get_currency_symbol_ar|default:t.currency }} / {{ "أسبوع"|t }}</span>
             </div>
         </div>
 
@@ -201,12 +201,12 @@
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                     <div>
                         <h2 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                            <span>تصنيف الفروع الحية اليوم</span>
+                            <span>{{ "تصنيف الفروع الحية اليوم"|t }}</span>
                         </h2>
-                        <p class="text-xs text-slate-400 font-normal mt-0.5">مرتبة حسب حجم الإيراد والنشاط</p>
+                        <p class="text-xs text-slate-400 font-normal mt-0.5">{{ "مرتبة حسب حجم الإيراد والنشاط"|t }}</p>
                     </div>
                     <a href="{% url 'branches' %}" class="text-xs font-semibold text-violet-700 hover:underline">
-                        إدارة ←
+                        {{ "إدارة"|t }} ←
                     </a>
                 </div>
 
@@ -228,7 +228,7 @@
                                     {{ item.branch.name }}
                                 </h3>
                                 <p class="text-[11px] text-slate-400 font-normal mt-0.5">
-                                    {{ item.orders_today }} طلب • {{ item.branch.city|default:"الرياض" }}
+                                    {{ item.orders_today }} {{ "طلب"|t }} • {{ item.branch.city|default:"الرياض" }}
                                 </p>
                             </div>
                         </div>
@@ -238,14 +238,14 @@
                                 {{ item.sales_today|floatformat:0 }} {{ item.branch.get_currency_symbol_ar }}
                             </p>
                             <a href="{% url 'switch_branch' item.branch.id %}" class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 group-hover:text-violet-700 hover:underline mt-0.5">
-                                <span>دخول</span>
+                                <span>{{ "دخول"|t }}</span>
                                 <span>←</span>
                             </a>
                         </div>
                     </div>
                     {% empty %}
                     <div class="py-8 text-center text-xs text-slate-400 font-normal">
-                        لا توجد فروع مسجلة بعد
+                        {{ "لا توجد فروع مسجلة بعد"|t }}
                     </div>
                     {% endfor %}
                 </div>
@@ -253,7 +253,7 @@
 
             <div class="mt-4 pt-3 border-t border-slate-100 text-center">
                 <a href="{% url 'branches' %}" class="inline-flex items-center gap-1.5 text-xs font-medium text-violet-700 hover:text-violet-900 hover:underline">
-                    <span>+ إضافة وتوسيع شبكة الفروع</span>
+                    <span>+ {{ "إضافة وتوسيع شبكة الفروع"|t }}</span>
                 </a>
             </div>
         </div>
@@ -271,13 +271,13 @@
                     <div class="flex items-center gap-2.5">
                         <span class="flex h-2 w-2 rounded-full bg-violet-600 animate-pulse"></span>
                         <div>
-                            <h2 class="text-sm font-semibold text-slate-900">تدفق الطلبات الحية عبر كافة الفروع</h2>
-                            <p class="text-xs text-slate-400 font-normal mt-0.5">متابعة فورية ومباشرة لحالات أوامر التشغيل</p>
+                            <h2 class="text-sm font-semibold text-slate-900">{{ "تدفق الطلبات الحية عبر كافة الفروع"|t }}</h2>
+                            <p class="text-xs text-slate-400 font-normal mt-0.5">{{ "متابعة فورية ومباشرة لحالات أوامر التشغيل"|t }}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
                         <a href="{% url 'hq_orders' %}" class="text-xs font-semibold text-violet-700 hover:underline">
-                            عرض الأرشيف الشامل ←
+                            {{ "عرض الأرشيف الشامل"|t }} ←
                         </a>
                     </div>
                 </div>
@@ -286,12 +286,12 @@
                     <table class="w-full text-right text-xs">
                         <thead class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-medium">
                             <tr>
-                                <th class="p-3">رقم الطلب</th>
-                                <th class="p-3">الفرع</th>
-                                <th class="p-3">القناة / النوع</th>
-                                <th class="p-3">العميل</th>
-                                <th class="p-3">القيمة</th>
-                                <th class="p-3">الحالة التشغيلية</th>
+                                <th class="p-3">{{ "رقم الطلب"|t }}</th>
+                                <th class="p-3">{{ "الفرع"|t }}</th>
+                                <th class="p-3">{{ "القناة / النوع"|t }}</th>
+                                <th class="p-3">{{ "العميل"|t }}</th>
+                                <th class="p-3">{{ "القيمة"|t }}</th>
+                                <th class="p-3">{{ "الحالة التشغيلية"|t }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -308,9 +308,9 @@
                                     <span class="font-medium text-slate-800 block">{{ o.get_order_type_display }}</span>
                                     <span class="text-[11px] text-slate-500 inline-flex items-center gap-1 font-normal">
                                         {% if o.channel == 'call_center' %}
-                                            <span class="text-violet-700 font-medium">📞 كول سنتر</span>
+                                            <span class="text-violet-700 font-medium">📞 {{ "كول سنتر"|t }}</span>
                                         {% else %}
-                                            <span class="text-emerald-700 font-medium">🖥️ كاشير</span>
+                                            <span class="text-emerald-700 font-medium">🖥️ {{ "كاشير"|t }}</span>
                                         {% endif %}
                                     </span>
                                 </td>
@@ -336,7 +336,7 @@
                             {% empty %}
                             <tr>
                                 <td colspan="6" class="py-10 text-center text-xs text-slate-400 font-normal">
-                                    لا توجد طلبات مسجلة اليوم حتى الآن
+                                    {{ "لا توجد طلبات مسجلة اليوم حتى الآن"|t }}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -346,8 +346,8 @@
             </div>
 
             <div class="p-3.5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-normal">
-                <span>يتم تحديث الطلبات لحظياً عبر خادم FastMCP</span>
-                <a href="{% url 'hq_orders' %}" class="text-violet-700 font-medium hover:underline">الانتقال لسجل كافة الفواتير ←</a>
+                <span>{{ "يتم تحديث الطلبات لحظياً عبر خادم FastMCP"|t }}</span>
+                <a href="{% url 'hq_orders' %}" class="text-violet-700 font-medium hover:underline">{{ "الانتقال لسجل كافة الفواتير"|t }} ←</a>
             </div>
         </div>
 
@@ -358,9 +358,9 @@
                 <div class="mb-3 border-b border-slate-100 pb-2.5 flex items-center justify-between">
                     <div>
                         <h2 class="text-xs font-semibold text-slate-900 flex items-center gap-2">
-                            <span>أكثر الأطباق طلباً بالسلسلة</span>
+                            <span>{{ "أكثر الأطباق طلباً بالسلسلة"|t }}</span>
                         </h2>
-                        <p class="text-[11px] text-slate-400 font-normal mt-0.5">الأعلى إقبالاً في وجبات اليوم</p>
+                        <p class="text-[11px] text-slate-400 font-normal mt-0.5">{{ "الأعلى إقبالاً في وجبات اليوم"|t }}</p>
                     </div>
                 </div>
 
@@ -372,12 +372,12 @@
                         </span>
                         <div class="min-w-0 flex-1">
                             <p class="truncate text-xs font-medium text-slate-900">{{ it.name }}</p>
-                            <p class="text-[11px] text-slate-400 font-normal">{{ it.total_qty }} طبقاً تم إعداده</p>
+                            <p class="text-[11px] text-slate-400 font-normal">{{ it.total_qty }} {{ "طبقاً تم إعداده"|t }}</p>
                         </div>
                         <span class="text-xs font-bold text-slate-900 font-mono">{{ it.total_revenue|floatformat:0 }} {{ tenant.get_currency_symbol_ar|default:t.currency }}</span>
                     </div>
                     {% empty %}
-                    <p class="py-4 text-center text-xs text-slate-400 font-normal">لا توجد بيانات مبيعات أطباق بعد</p>
+                    <p class="py-4 text-center text-xs text-slate-400 font-normal">{{ "لا توجد بيانات مبيعات أطباق بعد"|t }}</p>
                     {% endfor %}
                 </div>
             </div>
@@ -387,11 +387,11 @@
                 <div class="mb-3 flex items-center justify-between border-b border-slate-100 pb-2.5">
                     <div>
                         <h2 class="text-xs font-semibold text-slate-900 flex items-center gap-2">
-                            <span>تنبيهات المخزون والتوريد</span>
+                            <span>{{ "تنبيهات المخزون والتوريد"|t }}</span>
                         </h2>
-                        <p class="text-[11px] text-slate-400 font-normal mt-0.5">مواد قاربت على النفاد بالفروع</p>
+                        <p class="text-[11px] text-slate-400 font-normal mt-0.5">{{ "مواد قاربت على النفاد بالفروع"|t }}</p>
                     </div>
-                    <a href="{% url 'inventory' %}" class="text-xs font-semibold text-violet-700 hover:underline">المستودعات</a>
+                    <a href="{% url 'inventory' %}" class="text-xs font-semibold text-violet-700 hover:underline">{{ "المستودعات"|t }}</a>
                 </div>
 
                 <div class="space-y-2">
@@ -402,13 +402,13 @@
                             <p class="text-[11px] text-slate-400 font-normal">{{ item.branch.name }}</p>
                         </div>
                         <span class="rounded-md px-2 py-0.5 text-[11px] font-medium {% if item.quantity == 0 %}bg-rose-50 text-rose-700 border border-rose-200/60{% else %}bg-amber-50 text-amber-700 border border-amber-200/60{% endif %}">
-                            {% if item.quantity == 0 %}نفد تماماً{% else %}{{ item.quantity|floatformat:0 }} {{ item.unit }}{% endif %}
+                            {% if item.quantity == 0 %}{{ "نفد تماماً"|t }}{% else %}{{ item.quantity|floatformat:0 }} {{ item.unit }}{% endif %}
                         </span>
                     </div>
                     {% empty %}
                     <div class="py-4 text-center text-xs text-emerald-700 font-medium flex items-center justify-center gap-1.5 bg-emerald-50/60 rounded-lg border border-emerald-200/60">
                         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>جميع المواد الخام بالمستودعات فوق الحد الآمن</span>
+                        <span>{{ "جميع المواد الخام بالمستودعات فوق الحد الآمن"|t }}</span>
                     </div>
                     {% endfor %}
                 </div>

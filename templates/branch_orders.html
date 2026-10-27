@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}سجل طلبات وفواتير الفرع — {% if branch %}{{ branch.name }}{% else %}{{ tenant.name }}{% endif %}{% endblock %}
+{% block title %}{{ "سجل طلبات وفواتير الفرع"|t }} — {% if branch %}{{ branch.name }}{% else %}{{ tenant.name }}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="space-y-2.5 font-sans">
@@ -10,18 +10,18 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div class="flex items-center gap-2">
                 <span class="rounded-md bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-xs font-bold text-violet-700">
-                    {% if branch %}فرع: {{ branch.name }}{% else %}كافة الفروع{% endif %}
+                    {% if branch %}{{ "فرع"|t }}: {{ branch.name }}{% else %}{{ "كافة الفروع"|t }}{% endif %}
                 </span>
-                <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">سجل طلبات وفواتير الفرع</h1>
+                <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">{{ "سجل طلبات وفواتير الفرع"|t }}</h1>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
                 <a href="{% url 'pos' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium h-7 px-3 text-xs font-bold transition cursor-pointer shadow-xs">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>+ فاتورة كاشير (POS)</span>
+                    <span>+ {{ "فاتورة كاشير (POS"|t }})</span>
                 </a>
                 <a href="{% url 'kitchen' %}" class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200/70 h-7 px-2.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition cursor-pointer shadow-xs">
                     <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    <span>شاشة المطبخ KDS</span>
+                    <span>{{ "شاشة المطبخ KDS"|t }}</span>
                 </a>
             </div>
         </div>
@@ -31,7 +31,7 @@
             <div class="flex items-center gap-3 flex-wrap">
                 <!-- Total Orders -->
                 <div class="flex items-center gap-1.5">
-                    <span class="text-slate-700 text-xs font-bold">الطلبات:</span>
+                    <span class="text-slate-700 text-xs font-bold">{{ "الطلبات"|t }}:</span>
                     <span class="font-bold text-slate-900 text-sm font-mono">{{ total_orders }}</span>
                 </div>
                 
@@ -39,7 +39,7 @@
 
                 <!-- Total Revenue -->
                 <div class="flex items-center gap-1.5">
-                    <span class="text-slate-700 text-xs font-bold">الإيرادات:</span>
+                    <span class="text-slate-700 text-xs font-bold">{{ "الإيرادات"|t }}:</span>
                     <span class="font-bold text-violet-700 text-sm font-mono">{{ total_revenue|floatformat:2 }}</span>
                     <span class="text-xs text-violet-700 font-bold">{{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
                 </div>
@@ -48,7 +48,7 @@
 
                 <!-- Pending Orders -->
                 <div class="flex items-center gap-1.5">
-                    <span class="text-slate-700 text-xs font-bold">قيد المعالجة:</span>
+                    <span class="text-slate-700 text-xs font-bold">{{ "قيد المعالجة"|t }}:</span>
                     <span class="font-bold text-amber-700 text-sm font-mono">{{ pending_orders }}</span>
                 </div>
 
@@ -56,7 +56,7 @@
 
                 <!-- Delivered Orders -->
                 <div class="flex items-center gap-1.5">
-                    <span class="text-slate-700 text-xs font-bold">مكتملة:</span>
+                    <span class="text-slate-700 text-xs font-bold">{{ "مكتملة"|t }}:</span>
                     <span class="font-semibold text-emerald-800 text-sm font-mono">{{ delivered_orders }}</span>
                 </div>
 
@@ -64,13 +64,13 @@
 
                 <!-- Cancelled Orders -->
                 <div class="flex items-center gap-1.5">
-                    <span class="text-slate-700 text-xs font-bold">ملغاة:</span>
+                    <span class="text-slate-700 text-xs font-bold">{{ "ملغاة"|t }}:</span>
                     <span class="font-semibold text-rose-800 text-sm font-mono">{{ cancelled_orders }}</span>
                 </div>
             </div>
 
             <div class="text-[11px] text-slate-600 font-bold hidden lg:block">
-                متابعة تشغيلية فورية للطلبات والمدفوعات
+                {{ "متابعة تشغيلية فورية للطلبات والمدفوعات"|t }}
             </div>
         </div>
 
@@ -92,14 +92,14 @@
                         type="text" 
                         name="q" 
                         value="{{ search_query }}" 
-                        placeholder="بحث برقم الطلب، العميل، الهاتف، أو الكاشير..." 
+                        placeholder='{{ "بحث برقم الطلب، العميل، الهاتف، أو الكاشير..."|t }}' 
                         class="w-full h-8 pr-8 pl-2 rounded-lg bg-white border border-slate-200/70 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-violet-600 transition"
                     >
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" class="h-8 px-3 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold transition cursor-pointer flex items-center gap-1 shrink-0 shadow-xs">
-                    <span>بحث</span>
+                    <span>{{ "بحث"|t }}</span>
                 </button>
 
                 <!-- Advanced Filters Trigger Button -->
@@ -107,10 +107,10 @@
                     type="button" 
                     onclick="openAdvancedFiltersModal()" 
                     class="h-8 px-2.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-violet-600 transition flex items-center gap-1.5 shrink-0 cursor-pointer shadow-xs"
-                    title="خيارات التصفية المتقدمة"
+                    title='{{ "خيارات التصفية المتقدمة"|t }}'
                 >
                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                    <span class="hidden sm:inline">تصفية</span>
+                    <span class="hidden sm:inline">{{ "تصفية"|t }}</span>
                     {% if type_filter != 'all' or pay_method_filter != 'all' or date_filter != 'all' %}
                     <span class="w-2 h-2 rounded-full bg-violet-600"></span>
                     {% endif %}
@@ -118,7 +118,7 @@
 
                 <!-- Reset Button (if any filter active) -->
                 {% if status_filter != 'all' or type_filter != 'all' or pay_method_filter != 'all' or date_filter != 'all' or search_query %}
-                <a href="{% url 'branch_orders' %}" class="h-8 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer" title="إلغاء الفلاتر">
+                <a href="{% url 'branch_orders' %}" class="h-8 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer" title='{{ "إلغاء الفلاتر"|t }}'>
                     ✕
                 </a>
                 {% endif %}
@@ -128,19 +128,19 @@
             <div class="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar text-xs">
                 <a href="?status=all&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" 
                    class="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition {% if status_filter == 'all' %}bg-violet-600 text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
-                    الكل ({{ total_orders }})
+                    {{ "الكل"|t }} ({{ total_orders }})
                 </a>
                 <a href="?status=pending&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" 
                    class="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition {% if status_filter == 'pending' %}bg-amber-600 text-white shadow-xs{% else %}bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/60{% endif %}">
-                    قيد المعالجة ({{ pending_orders }})
+                    {{ "قيد المعالجة"|t }} ({{ pending_orders }})
                 </a>
                 <a href="?status=delivered&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" 
                    class="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition {% if status_filter == 'delivered' %}bg-emerald-600 text-white shadow-xs{% else %}bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/60{% endif %}">
-                    مكتملة ({{ delivered_orders }})
+                    {{ "مكتملة"|t }} ({{ delivered_orders }})
                 </a>
                 <a href="?status=cancelled&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" 
                    class="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition {% if status_filter == 'cancelled' %}bg-rose-600 text-white shadow-xs{% else %}bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200/60{% endif %}">
-                    ملغاة ({{ cancelled_orders }})
+                    {{ "ملغاة"|t }} ({{ cancelled_orders }})
                 </a>
             </div>
         </form>
@@ -151,9 +151,9 @@
         <!-- Container Header + View Switcher -->
         <div class="flex items-center justify-between border-b border-slate-100 px-3.5 py-2 bg-slate-100/90">
             <div class="flex items-center gap-2">
-                <h2 class="text-xs font-bold text-slate-900 tracking-tight">سجل الطلبات</h2>
+                <h2 class="text-xs font-bold text-slate-900 tracking-tight">{{ "سجل الطلبات"|t }}</h2>
                 <span class="rounded-full bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-[10.5px] font-bold text-violet-700">
-                    {{ orders|length }} من {{ total_orders }} طلب
+                    {{ orders|length }} {{ "من"|t }} {{ total_orders }} {{ "طلب"|t }}
                 </span>
             </div>
 
@@ -164,18 +164,18 @@
                     id="btn-view-cards" 
                     onclick="switchOrdersView('cards')" 
                     class="px-2.5 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer"
-                    title="عرض البطاقات المدمجة (فائقة الكثافة للموبايل)"
+                    title='{{ "عرض البطاقات المدمجة (فائقة الكثافة للموبايل)"|t }}'
                 >
-                    ≡ بطاقات
+                    ≡ {{ "بطاقات"|t }}
                 </button>
                 <button 
                     type="button" 
                     id="btn-view-table" 
                     onclick="switchOrdersView('table')" 
                     class="px-2.5 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer"
-                    title="عرض الجدول الأفقي الكامل"
+                    title='{{ "عرض الجدول الأفقي الكامل"|t }}'
                 >
-                    ⊞ جدول
+                    ⊞ {{ "جدول"|t }}
                 </button>
             </div>
         </div>
@@ -189,11 +189,11 @@
                     <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-bold text-slate-900 text-xs font-mono">#{{ o.order_number }}</span>
                         {% if o.channel == 'call_center' %}
-                            <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-purple-100 text-purple-900 border border-purple-200">هاتف</span>
+                            <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-purple-100 text-purple-900 border border-purple-200">{{ "هاتف"|t }}</span>
                         {% elif o.channel == 'qr_menu' %}
                             <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60">QR</span>
                         {% else %}
-                            <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-700">كاشير</span>
+                            <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-700">{{ "كاشير"|t }}</span>
                         {% endif %}
                         <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold
                             {% if o.order_type == 'dine_in' %}bg-violet-50 text-violet-700 border border-violet-200/50
@@ -225,7 +225,7 @@
                         <span class="font-mono text-[10px] text-slate-500">{{ o.created_at|time:"H:i" }}</span>
                         <span class="text-slate-300">•</span>
                         <span class="text-[10px] font-semibold {% if o.paid %}text-emerald-700{% else %}text-rose-600{% endif %}">
-                            {{ o.get_pay_method_display }} {% if o.paid %}✓{% else %}معلق{% endif %}
+                            {{ o.get_pay_method_display }} {% if o.paid %}✓{% else %}{{ "معلق"|t }}{% endif %}
                         </span>
                         {% if o.driver %}
                         <span class="text-slate-300 hidden sm:inline">•</span>
@@ -235,17 +235,17 @@
 
                     <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
                         <button type="button" onclick="openOrderModal('order-{{ o.id }}')" class="px-2 py-0.5 rounded bg-violet-50 text-violet-700 text-[10.5px] font-bold hover:bg-violet-100 transition cursor-pointer">
-                            معاينة
+                            {{ "معاينة"|t }}
                         </button>
                         <div class="relative inline-block text-right">
                             <button type="button" onclick="toggleRowMenu(event, 'row-menu-card-{{ o.id }}')" class="row-menu-btn h-5 w-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold transition cursor-pointer">
                                 ⋮
                             </button>
                             <div id="row-menu-card-{{ o.id }}" class="row-dropdown-menu hidden absolute left-0 mt-1 w-32 rounded-lg bg-white border border-slate-200 shadow-xl py-1 z-30 text-xs text-right font-medium">
-                                <a href="{% url 'order_detail' o.id %}" class="flex items-center gap-1.5 px-2.5 py-1 text-slate-700 hover:bg-slate-50">تفاصيل</a>
-                                {% if can_edit %}<a href="{% url 'order_edit' o.id %}" class="flex items-center gap-1.5 px-2.5 py-1 text-violet-600 hover:bg-violet-50">تعديل</a>{% endif %}
-                                {% if can_cancel and o.status != 'cancelled' %}<button type="button" onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-amber-700 hover:bg-amber-50">إلغاء</button>{% endif %}
-                                {% if can_delete %}<button type="button" onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-rose-600 hover:bg-rose-50">حذف</button>{% endif %}
+                                <a href="{% url 'order_detail' o.id %}" class="flex items-center gap-1.5 px-2.5 py-1 text-slate-700 hover:bg-slate-50">{{ "تفاصيل"|t }}</a>
+                                {% if can_edit %}<a href="{% url 'order_edit' o.id %}" class="flex items-center gap-1.5 px-2.5 py-1 text-violet-600 hover:bg-violet-50">{{ "تعديل"|t }}</a>{% endif %}
+                                {% if can_cancel and o.status != 'cancelled' %}<button type="button" onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-amber-700 hover:bg-amber-50">{{ "إلغاء"|t }}</button>{% endif %}
+                                {% if can_delete %}<button type="button" onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full text-right px-2.5 py-1 text-rose-600 hover:bg-rose-50">{{ "حذف"|t }}</button>{% endif %}
                             </div>
                         </div>
                     </div>
@@ -253,8 +253,8 @@
             </div>
             {% empty %}
             <div class="py-12 text-center text-slate-500">
-                <p class="text-sm font-bold text-slate-800">لم يتم العثور على أي طلبات مطابقة</p>
-                <p class="text-xs text-slate-400 mt-1">جرّب تغيير خيارات التصفية أو البحث</p>
+                <p class="text-sm font-bold text-slate-800">{{ "لم يتم العثور على أي طلبات مطابقة"|t }}</p>
+                <p class="text-xs text-slate-400 mt-1">{{ "جرّب تغيير خيارات التصفية أو البحث"|t }}</p>
             </div>
             {% endfor %}
         </div>
@@ -264,15 +264,15 @@
             <table class="w-full text-right text-xs border-collapse">
                 <thead class="border-b border-slate-100 bg-slate-100/90 text-slate-900 font-semibold text-[11.5px]">
                     <tr>
-                        <th class="px-3 py-2 sticky right-0 bg-slate-100 z-10 shadow-xs">رقم الطلب / القناة</th>
-                        <th class="px-2 py-2">النوع</th>
-                        <th class="px-2.5 py-2">العميل</th>
-                        <th class="px-2 py-2">الكاشير / السائق</th>
-                        <th class="px-2 py-2">الدفع</th>
-                        <th class="px-2.5 py-2">الإجمالي</th>
-                        <th class="px-2 py-2">الحالة</th>
-                        <th class="px-2 py-2">التاريخ والوقت</th>
-                        <th class="px-2.5 py-2 text-center">الإجراءات</th>
+                        <th class="px-3 py-2 sticky right-0 bg-slate-100 z-10 shadow-xs">{{ "رقم الطلب / القناة"|t }}</th>
+                        <th class="px-2 py-2">{{ "النوع"|t }}</th>
+                        <th class="px-2.5 py-2">{{ "العميل"|t }}</th>
+                        <th class="px-2 py-2">{{ "الكاشير / السائق"|t }}</th>
+                        <th class="px-2 py-2">{{ "الدفع"|t }}</th>
+                        <th class="px-2.5 py-2">{{ "الإجمالي"|t }}</th>
+                        <th class="px-2 py-2">{{ "الحالة"|t }}</th>
+                        <th class="px-2 py-2">{{ "التاريخ والوقت"|t }}</th>
+                        <th class="px-2.5 py-2 text-center">{{ "الإجراءات"|t }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -283,11 +283,11 @@
                             <div class="flex items-center gap-1.5">
                                 <span class="font-bold text-slate-900 text-xs font-mono">#{{ o.order_number }}</span>
                                 {% if o.channel == 'call_center' %}
-                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">هاتف</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">{{ "هاتف"|t }}</span>
                                 {% elif o.channel == 'qr_menu' %}
                                     <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60">QR</span>
                                 {% else %}
-                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800">كاشير</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800">{{ "كاشير"|t }}</span>
                                 {% endif %}
                             </div>
                         </td>
@@ -314,7 +314,7 @@
                         <td class="px-2 py-1.5 text-xs font-semibold text-slate-700 whitespace-nowrap">
                             <span>{{ o.cashier|default:"—" }}</span>
                             {% if o.driver %}
-                            <span class="text-[11px] font-bold text-violet-600 mr-1" title="سائق التوصيل">🚴 {{ o.driver.name }}</span>
+                            <span class="text-[11px] font-bold text-violet-600 mr-1" title='{{ "سائق التوصيل"|t }}'>🚴 {{ o.driver.name }}</span>
                             {% endif %}
                         </td>
 
@@ -322,7 +322,7 @@
                         <td class="px-2 py-1.5 whitespace-nowrap text-xs">
                             <span class="font-bold text-slate-900">{{ o.get_pay_method_display }}</span>
                             <span class="text-xs mr-1 font-semibold {% if o.paid %}text-emerald-700{% else %}text-rose-700{% endif %}">
-                                {% if o.paid %}✓ مدفوع{% else %}معلق{% endif %}
+                                {% if o.paid %}✓ {{ "مدفوع"|t }}{% else %}{{ "معلق"|t }}{% endif %}
                             </span>
                         </td>
 
@@ -356,18 +356,18 @@
                                 <button 
                                     type="button" 
                                     onclick="openOrderModal('order-{{ o.id }}')"
-                                    title="معاينة سريعة للفاتورة"
+                                    title='{{ "معاينة سريعة للفاتورة"|t }}'
                                     class="inline-flex items-center gap-1 rounded-md bg-blue-50 hover:bg-violet-50 border border-violet-200/50 px-2 py-1 text-[11px] font-semibold text-violet-600 transition cursor-pointer"
                                 >
                                     <svg class="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    <span>معاينة</span>
+                                    <span>{{ "معاينة"|t }}</span>
                                 </button>
 
                                 <div class="relative inline-block text-right">
                                     <button 
                                         type="button" 
                                         onclick="toggleRowMenu(event, 'row-menu-table-{{ o.id }}')"
-                                        title="خيارات إضافية"
+                                        title='{{ "خيارات إضافية"|t }}'
                                         class="row-menu-btn h-6 w-6 rounded-md bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold transition cursor-pointer"
                                     >
                                         ⋮
@@ -378,12 +378,12 @@
                                     >
                                         <a href="{% url 'order_detail' o.id %}" class="flex items-center gap-2 px-3 py-1.5 text-slate-700 hover:bg-slate-50 transition">
                                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                            <span>تفاصيل كاملة</span>
+                                            <span>{{ "تفاصيل كاملة"|t }}</span>
                                         </a>
                                         {% if can_edit %}
                                         <a href="{% url 'order_edit' o.id %}" class="flex items-center gap-2 px-3 py-1.5 text-violet-600 hover:bg-blue-50 transition">
                                             <svg class="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                            <span>تعديل الطلب</span>
+                                            <span>{{ "تعديل الطلب"|t }}</span>
                                         </a>
                                         {% endif %}
                                         {% if can_cancel or can_delete %}
@@ -392,13 +392,13 @@
                                         {% if can_cancel and o.status != 'cancelled' %}
                                         <button type="button" onclick="quickCancelOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full flex items-center gap-2 px-3 py-1.5 text-amber-700 hover:bg-amber-50 transition text-right cursor-pointer">
                                             <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                            <span>إلغاء الطلب</span>
+                                            <span>{{ "إلغاء الطلب"|t }}</span>
                                         </button>
                                         {% endif %}
                                         {% if can_delete %}
                                         <button type="button" onclick="quickDeleteOrder({{ o.id }}, '{{ o.order_number }}')" class="w-full flex items-center gap-2 px-3 py-1.5 text-rose-600 hover:bg-rose-50 transition text-right cursor-pointer">
                                             <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>حذف نهائي</span>
+                                            <span>{{ "حذف نهائي"|t }}</span>
                                         </button>
                                         {% endif %}
                                     </div>
@@ -409,7 +409,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="9" class="py-12 text-center text-slate-500">
-                            <p class="text-sm font-bold text-slate-800">لم يتم العثور على أي طلبات مطابقة</p>
+                            <p class="text-sm font-bold text-slate-800">{{ "لم يتم العثور على أي طلبات مطابقة"|t }}</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -460,15 +460,15 @@
         {% if page_obj.paginator.num_pages > 1 %}
         <div class="flex items-center justify-between border-t border-slate-200 px-3.5 py-2 bg-slate-50/80 rounded-b-xl">
             <div class="text-xs text-slate-500 font-medium">
-                عرض الصفحة <span class="font-bold text-slate-900">{{ page_obj.number }}</span> من <span class="font-bold text-slate-900">{{ page_obj.paginator.num_pages }}</span> (إجمالي {{ total_orders }} طلب)
+                {{ "عرض الصفحة"|t }} <span class="font-bold text-slate-900">{{ page_obj.number }}</span> {{ "من"|t }} <span class="font-bold text-slate-900">{{ page_obj.paginator.num_pages }}</span> ({{ "إجمالي"|t }} {{ total_orders }} {{ "طلب"|t }})
             </div>
             <div class="flex items-center gap-1">
                 {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition">السابق</a>
+                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition">{{ "السابق"|t }}</a>
                 {% endif %}
                 <span class="px-2 py-1 text-xs font-bold text-slate-900">{{ page_obj.number }}</span>
                 {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition">التالي</a>
+                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}&pay_method={{ pay_method_filter }}&date={{ date_filter }}&q={{ search_query }}" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition">{{ "التالي"|t }}</a>
                 {% endif %}
             </div>
         </div>
@@ -481,7 +481,7 @@
     <div class="relative w-full max-w-md bg-white rounded-2xl border border-slate-200 p-5 shadow-2xl space-y-4" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span>⚙️ خيارات التصفية المتقدمة</span>
+                <span>⚙️ {{ "خيارات التصفية المتقدمة"|t }}</span>
             </h3>
             <button type="button" onclick="closeAdvancedFiltersModal()" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
                 ✕
@@ -494,18 +494,18 @@
 
             <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">نوع الطلب:</label>
+                    <label class="block font-bold text-slate-700 mb-1">{{ "نوع الطلب"|t }}:</label>
                     <select name="type" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-900 focus:outline-none focus:border-violet-600">
-                        <option value="all">كافة الأنواع</option>
+                        <option value="all">{{ "كافة الأنواع"|t }}</option>
                         {% for t_val, t_lbl in order_types %}
                         <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">طريقة الدفع:</label>
+                    <label class="block font-bold text-slate-700 mb-1">{{ "طريقة الدفع"|t }}:</label>
                     <select name="pay_method" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-900 focus:outline-none focus:border-violet-600">
-                        <option value="all">كافة الطرق</option>
+                        <option value="all">{{ "كافة الطرق"|t }}</option>
                         {% for p_val, p_lbl in pay_choices %}
                         <option value="{{ p_val }}" {% if pay_method_filter == p_val %}selected{% endif %}>{{ p_lbl }}</option>
                         {% endfor %}
@@ -514,22 +514,22 @@
             </div>
 
             <div>
-                <label class="block font-bold text-slate-700 mb-1">النطاق الزمني:</label>
+                <label class="block font-bold text-slate-700 mb-1">{{ "النطاق الزمني"|t }}:</label>
                 <select name="date" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-900 focus:outline-none focus:border-violet-600">
-                    <option value="all" {% if date_filter == 'all' %}selected{% endif %}>كافة التواريخ</option>
-                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>اليوم</option>
-                    <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>أمس</option>
-                    <option value="week" {% if date_filter == 'week' %}selected{% endif %}>آخر 7 أيام</option>
-                    <option value="month" {% if date_filter == 'month' %}selected{% endif %}>آخر 30 يوماً</option>
+                    <option value="all" {% if date_filter == 'all' %}selected{% endif %}>{{ "كافة التواريخ"|t }}</option>
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>{{ "اليوم"|t }}</option>
+                    <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>{{ "أمس"|t }}</option>
+                    <option value="week" {% if date_filter == 'week' %}selected{% endif %}>{{ "آخر 7 أيام"|t }}</option>
+                    <option value="month" {% if date_filter == 'month' %}selected{% endif %}>{{ "آخر 30 يوماً"|t }}</option>
                 </select>
             </div>
 
             <div class="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
                 <a href="{% url 'branch_orders' %}" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition text-center">
-                    إعادة ضبط
+                    {{ "إعادة ضبط"|t }}
                 </a>
                 <button type="submit" class="flex-1 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold text-xs transition shadow-xs">
-                    تطبيق التصفية
+                    {{ "تطبيق التصفية"|t }}
                 </button>
             </div>
         </form>
@@ -547,13 +547,13 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </span>
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900 tracking-tight" id="modal-order-number">طلب</h2>
-                    <p class="text-xs text-slate-500" id="modal-order-branch">الفرع</p>
+                    <h2 class="text-lg font-bold text-slate-900 tracking-tight" id="modal-order-number">{{ "طلب"|t }}</h2>
+                    <p class="text-xs text-slate-500" id="modal-order-branch">{{ "الفرع"|t }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <span id="modal-order-status" class="rounded-lg px-2.5 py-1 text-xs font-semibold bg-blue-50 text-violet-600 border border-violet-200/50/60">
-                    الحالة
+                    {{ "الحالة"|t }}
                 </span>
                 <button type="button" onclick="closeOrderModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -564,28 +564,28 @@
         <!-- Meta Info Grid -->
         <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
             <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
-                <span class="text-slate-500 text-[11px] block">نوع الطلب</span>
+                <span class="text-slate-500 text-[11px] block">{{ "نوع الطلب"|t }}</span>
                 <span id="modal-order-type" class="font-semibold text-slate-900 mt-0.5 block">—</span>
             </div>
             <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
-                <span class="text-slate-500 text-[11px] block">القناة</span>
+                <span class="text-slate-500 text-[11px] block">{{ "القناة"|t }}</span>
                 <span id="modal-order-channel" class="font-semibold text-slate-900 mt-0.5 block">—</span>
             </div>
             <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
-                <span class="text-slate-500 text-[11px] block">التاريخ والوقت</span>
+                <span class="text-slate-500 text-[11px] block">{{ "التاريخ والوقت"|t }}</span>
                 <span id="modal-order-date" class="font-semibold text-slate-900 mt-0.5 block font-mono">—</span>
             </div>
             <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
-                <span class="text-slate-500 text-[11px] block">العميل</span>
+                <span class="text-slate-500 text-[11px] block">{{ "العميل"|t }}</span>
                 <span id="modal-customer-name" class="font-semibold text-slate-900 mt-0.5 block">—</span>
                 <span id="modal-customer-phone" class="text-[10px] text-slate-400 font-mono block" dir="ltr"></span>
             </div>
             <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
-                <span class="text-slate-500 text-[11px] block">الكاشير</span>
+                <span class="text-slate-500 text-[11px] block">{{ "الكاشير"|t }}</span>
                 <span id="modal-order-cashier" class="font-semibold text-slate-900 mt-0.5 block">—</span>
             </div>
             <div class="rounded-lg bg-slate-50 p-3 border border-slate-200">
-                <span class="text-slate-500 text-[11px] block">طريقة الدفع</span>
+                <span class="text-slate-500 text-[11px] block">{{ "طريقة الدفع"|t }}</span>
                 <span id="modal-order-pay" class="font-semibold text-slate-900 mt-0.5 block">—</span>
             </div>
         </div>
@@ -594,27 +594,27 @@
         <div id="modal-address-box" class="mt-3 rounded-lg bg-blue-50 border border-violet-200/50 p-3 text-xs hidden">
             <p class="font-semibold text-violet-800 flex items-center gap-1">
                 <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span>عنوان التوصيل:</span>
+                <span>{{ "عنوان التوصيل"|t }}:</span>
             </p>
             <p id="modal-order-address" class="text-slate-800 mt-0.5"></p>
         </div>
         <div id="modal-notes-box" class="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs hidden">
-            <p class="font-semibold text-amber-900">ملاحظات الطلب:</p>
+            <p class="font-semibold text-amber-900">{{ "ملاحظات الطلب"|t }}:</p>
             <p id="modal-order-notes" class="text-slate-800 mt-0.5"></p>
         </div>
 
         <!-- Items Table -->
         <div class="mt-4 border border-slate-200 rounded-lg overflow-hidden">
             <div class="bg-slate-50 px-3.5 py-2 border-b border-slate-200 text-xs font-semibold text-slate-800">
-                أصناف الطلب
+                {{ "أصناف الطلب"|t }}
             </div>
             <table class="w-full text-right text-xs">
                 <thead class="bg-slate-50/60 border-b border-slate-200 text-slate-500 text-[11px]">
                     <tr>
-                        <th class="p-2.5 font-medium">الصنف</th>
-                        <th class="p-2.5 text-center font-medium">الكمية</th>
-                        <th class="p-2.5 text-left font-medium">السعر</th>
-                        <th class="p-2.5 text-left font-medium">الإجمالي</th>
+                        <th class="p-2.5 font-medium">{{ "الصنف"|t }}</th>
+                        <th class="p-2.5 text-center font-medium">{{ "الكمية"|t }}</th>
+                        <th class="p-2.5 text-left font-medium">{{ "السعر"|t }}</th>
+                        <th class="p-2.5 text-left font-medium">{{ "الإجمالي"|t }}</th>
                     </tr>
                 </thead>
                 <tbody id="modal-items-tbody" class="divide-y divide-slate-100">
@@ -626,19 +626,19 @@
         <!-- Financial Summary -->
         <div class="mt-4 rounded-lg bg-slate-50 p-3.5 text-xs space-y-1.5 border border-slate-200">
             <div class="flex justify-between text-slate-500">
-                <span>المجموع الفرعي:</span>
+                <span>{{ "المجموع الفرعي"|t }}:</span>
                 <span id="modal-subtotal" class="font-medium text-slate-900">0.00</span>
             </div>
             <div class="flex justify-between text-slate-500" id="modal-delivery-row">
-                <span>رسوم التوصيل:</span>
+                <span>{{ "رسوم التوصيل"|t }}:</span>
                 <span id="modal-delivery-fee" class="font-medium text-slate-900">0.00</span>
             </div>
             <div class="flex justify-between text-slate-500" id="modal-discount-row">
-                <span>الخصم:</span>
+                <span>{{ "الخصم"|t }}:</span>
                 <span id="modal-discount" class="font-medium text-rose-600">0.00</span>
             </div>
             <div class="border-t border-slate-200 pt-2 flex justify-between items-center text-sm font-bold">
-                <span class="text-slate-900">المبلغ الإجمالي النهائي:</span>
+                <span class="text-slate-900">{{ "المبلغ الإجمالي النهائي"|t }}:</span>
                 <span id="modal-total" class="text-violet-600 text-base font-bold font-mono">0.00</span>
             </div>
         </div>
@@ -648,22 +648,22 @@
             <div class="flex items-center gap-2 flex-wrap">
                 <a id="modal-view-link" href="#" class="rounded-lg bg-violet-600 px-3.5 py-2 text-xs font-medium text-white hover:bg-violet-700 transition flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    <span>صفحة التفاصيل</span>
+                    <span>{{ "صفحة التفاصيل"|t }}</span>
                 </a>
                 {% if can_edit %}
                 <a id="modal-edit-link" href="#" class="rounded-lg bg-white border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center gap-1 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    <span>تعديل</span>
+                    <span>{{ "تعديل"|t }}</span>
                 </a>
                 {% endif %}
                 {% if can_cancel %}
                 <button id="modal-cancel-btn" type="button" onclick="cancelFromModal()" class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100 transition cursor-pointer">
-                    إلغاء
+                    {{ "إلغاء"|t }}
                 </button>
                 {% endif %}
                 {% if can_delete %}
                 <button id="modal-delete-btn" type="button" onclick="deleteFromModal()" class="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer">
-                    حذف
+                    {{ "حذف"|t }}
                 </button>
                 {% endif %}
             </div>
@@ -674,14 +674,14 @@
                     class="rounded-lg bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
                 >
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>طباعة</span>
+                    <span>{{ "طباعة"|t }}</span>
                 </button>
                 <button 
                     type="button" 
                     onclick="closeOrderModal()" 
                     class="rounded-lg bg-white border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition cursor-pointer"
                 >
-                    إغلاق
+                    {{ "إغلاق"|t }}
                 </button>
             </div>
         </div>

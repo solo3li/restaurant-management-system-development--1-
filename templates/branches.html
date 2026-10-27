@@ -37,11 +37,11 @@
             <p class="text-xs text-xs text-slate-500 font-normal mt-0.5">{{ t.branch_subtitle }}</p>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="openChainCurrencyModal()" class="rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-900 px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs" title="تعديل العملة الافتراضية للمنشأة وتوحيدها">
+            <button onclick="openChainCurrencyModal()" class="rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-900 px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs" title='{{ "تعديل العملة الافتراضية للمنشأة وتوحيدها"|t }}'>
                 <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>عملة السلسلة:</span>
+                <span>{{ "عملة السلسلة"|t }}:</span>
                 <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 border border-violet-200/60 text-xs font-semibold">
                     {{ default_currency }} ({{ tenant.get_currency_symbol_ar }})
                 </span>
@@ -70,13 +70,13 @@
                         <button 
                             type="button" 
                             onclick="openBranchCurrencyModal({{ item.branch.id }}, '{{ item.branch.name|escapejs }}', '{{ item.branch.currency }}')"
-                            title="تغيير عملة هذا الفرع"
+                            title='{{ "تغيير عملة هذا الفرع"|t }}'
                             class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold border border-slate-200/70 bg-white hover:bg-violet-50 hover:border-violet-200/60 hover:text-violet-700 text-slate-800 transition cursor-pointer shadow-xs"
                         >
                             <span>{{ item.branch.currency }} ({{ item.branch.get_currency_symbol_ar }})</span>
                         </button>
                         <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold border {% if item.branch.status == 'active' %}bg-emerald-100 text-emerald-900 border-emerald-300{% else %}bg-slate-200 text-slate-900 border-slate-200/70{% endif %}">
-                            {% if item.branch.status == 'active' %}يعمل{% else %}مغلق مؤقتاً{% endif %}
+                            {% if item.branch.status == 'active' %}{{ "يعمل"|t }}{% else %}{{ "مغلق مؤقتاً"|t }}{% endif %}
                         </span>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
                     <div class="flex items-center justify-between text-slate-800 text-xs bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-200 gap-2">
                         {% if item.branch.address %}
                         <div class="flex items-center gap-1.5 truncate">
-                            <span class="text-slate-600 font-bold">العنوان:</span>
+                            <span class="text-slate-600 font-bold">{{ "العنوان"|t }}:</span>
                             <span class="truncate text-slate-900 font-bold">{{ item.branch.address }}</span>
                         </div>
                         {% endif %}
@@ -104,9 +104,9 @@
                     <div class="flex items-center justify-between gap-2 rounded-lg border border-slate-200/70 bg-slate-50 px-2.5 py-1.5 shadow-xs">
                         <div class="flex items-center gap-1.5 min-w-0">
                             <svg class="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span class="text-xs font-bold text-slate-900 truncate">نطاق التوصيل:</span>
+                            <span class="text-xs font-bold text-slate-900 truncate">{{ "نطاق التوصيل"|t }}:</span>
                             <span class="rounded bg-white text-slate-900 border border-slate-200/70 px-1.5 py-0.5 text-xs font-semibold shrink-0">
-                                {{ item.areas_count }} مناطق
+                                {{ item.areas_count }} {{ "مناطق"|t }}
                             </span>
                         </div>
                         <button 
@@ -114,7 +114,7 @@
                             class="shrink-0 flex items-center gap-1 rounded-md border border-slate-200/70 bg-white hover:bg-violet-50 hover:border-violet-200/60 hover:text-violet-700 text-slate-900 text-xs font-bold px-2 py-1 transition cursor-pointer shadow-xs"
                         >
                             <svg class="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                            <span>إدارة الخريطة</span>
+                            <span>{{ "إدارة الخريطة"|t }}</span>
                         </button>
                     </div>
 
@@ -122,15 +122,15 @@
                     <div class="grid grid-cols-3 divide-x divide-x-reverse divide-slate-100 rounded-lg bg-slate-50 border border-slate-200/70 text-center py-1.5 shadow-xs">
                         <div>
                             <p class="font-bold text-slate-900 text-xs font-mono">{{ item.employees_count }}</p>
-                            <p class="text-xs text-slate-700 font-bold">موظف</p>
+                            <p class="text-xs text-slate-700 font-bold">{{ "موظف"|t }}</p>
                         </div>
                         <div>
                             <p class="font-bold text-slate-900 text-xs font-mono">{{ item.orders_today }}</p>
-                            <p class="text-xs text-slate-700 font-bold">طلبات اليوم</p>
+                            <p class="text-xs text-slate-700 font-bold">{{ "طلبات اليوم"|t }}</p>
                         </div>
                         <div>
                             <p class="font-bold text-violet-700 text-xs font-mono">{{ item.sales_today|floatformat:0 }}</p>
-                            <p class="text-xs text-violet-700 font-bold">مبيعات {{ item.branch.get_currency_symbol_ar }}</p>
+                            <p class="text-xs text-violet-700 font-bold">{{ "مبيعات"|t }} {{ item.branch.get_currency_symbol_ar }}</p>
                         </div>
                     </div>
                 </div>
@@ -142,17 +142,17 @@
                     onclick="toggleBranchStatus({{ item.branch.id }})" 
                     class="rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-900 transition cursor-pointer shadow-xs"
                 >
-                    {% if item.branch.status == 'active' %}إغلاق مؤقت{% else %}تفعيل الفرع{% endif %}
+                    {% if item.branch.status == 'active' %}{{ "إغلاق مؤقت"|t }}{% else %}{{ "تفعيل الفرع"|t }}{% endif %}
                 </button>
                 <a href="{% url 'switch_branch' item.branch.id %}" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3 py-1 text-xs font-bold transition cursor-pointer shadow-xs">
-                    <span>لوحة الفرع</span>
+                    <span>{{ "لوحة الفرع"|t }}</span>
                     <span class="inline-block transition-transform group-hover:-translate-x-1">←</span>
                 </a>
             </div>
         </div>
         {% empty %}
         <div class="col-span-full rounded-xl border border-dashed border-slate-200/70 bg-white p-8 text-center text-xs text-slate-500">
-            لا توجد فروع مسجلة حتى الآن. اضغط على «افتتاح فرع وتحديد النطاق» للبدء.
+            {{ "لا توجد فروع مسجلة حتى الآن. اضغط على «افتتاح فرع وتحديد النطاق» للبدء"|t }}.
         </div>
         {% endfor %}
     </div>
@@ -167,9 +167,9 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
             <div>
                 <h3 class="text-base font-bold text-slate-900">
-                    افتتاح فرع جديد وتحديد زون التوصيل
+                    {{ "افتتاح فرع جديد وتحديد زون التوصيل"|t }}
                 </h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">حدد بيانات الفرع، موقعه على الخريطة، زون التغطية، والمناطق والكمبوندات التابعة</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">{{ "حدد بيانات الفرع، موقعه على الخريطة، زون التغطية، والمناطق والكمبوندات التابعة"|t }}</p>
             </div>
             <button onclick="closeAddBranchModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -183,33 +183,33 @@
             <!-- Section 1: Basic Information -->
             <div class="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-3">
                 <h4 class="font-bold text-slate-900 text-xs">
-                    1. البيانات الأساسية للفرع
+                    {{ "1. البيانات الأساسية للفرع"|t }}
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="mb-1 block font-medium text-slate-600">اسم الفرع *</label>
-                        <input type="text" id="branch-name-input" placeholder="مثال: فرع مدينة الشروق" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                        <label class="mb-1 block font-medium text-slate-600">{{ "اسم الفرع"|t }} *</label>
+                        <input type="text" id="branch-name-input" placeholder='{{ "مثال: فرع مدينة الشروق"|t }}' class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div>
-                        <label class="mb-1 block font-medium text-slate-600">المدينة *</label>
-                        <input type="text" id="branch-city-input" placeholder="مثال: الشروق أو الرياض" value="مدينة الشروق" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                        <label class="mb-1 block font-medium text-slate-600">{{ "المدينة"|t }} *</label>
+                        <input type="text" id="branch-city-input" placeholder='{{ "مثال: الشروق أو الرياض"|t }}' value="مدينة الشروق" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div>
-                        <label class="mb-1 block font-medium text-slate-600">العنوان التفصيلي</label>
-                        <input type="text" id="branch-address-input" placeholder="مثال: طريق الشباب، بجوار الجامعة البريطانية" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                        <label class="mb-1 block font-medium text-slate-600">{{ "العنوان التفصيلي"|t }}</label>
+                        <input type="text" id="branch-address-input" placeholder='{{ "مثال: طريق الشباب، بجوار الجامعة البريطانية"|t }}' class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div>
-                        <label class="mb-1 block font-medium text-slate-600">رقم هاتف الفرع</label>
+                        <label class="mb-1 block font-medium text-slate-600">{{ "رقم هاتف الفرع"|t }}</label>
                         <input type="text" id="branch-phone-input" placeholder="010xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="mb-1 block font-medium text-slate-600">العملة الرسمية للفرع *</label>
+                        <label class="mb-1 block font-medium text-slate-600">{{ "العملة الرسمية للفرع"|t }} *</label>
                         <select id="branch-currency-input" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                             {% for c in currencies_list %}
                             <option value="{{ c.code }}" {% if c.code == default_currency %}selected{% endif %}>{{ c.label }}</option>
                             {% endfor %}
                         </select>
-                        <p class="text-[10px] text-slate-500 mt-1">القيمة الافتراضية محددة حسب عملة المنشأة ({{ default_currency }}). يمكنك تخصيص عملة مختلفة لهذا الفرع إذا كان في دولة أخرى.</p>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ "القيمة الافتراضية محددة حسب عملة المنشأة"|t }} ({{ default_currency }}). {{ "يمكنك تخصيص عملة مختلفة لهذا الفرع إذا كان في دولة أخرى"|t }}.</p>
                     </div>
                 </div>
             </div>
@@ -218,11 +218,11 @@
             <div class="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <h4 class="font-bold text-slate-900 text-xs">
-                        2. موقع الفرع ومضلع زون التوصيل على الخريطة
+                        {{ "2. موقع الفرع ومضلع زون التوصيل على الخريطة"|t }}
                     </h4>
                     <div class="flex items-center gap-2 text-[11px]">
-                        <span id="add-map-mode-indicator" class="rounded bg-blue-50 text-violet-600 border border-violet-200/50 font-medium px-2.5 py-0.5">وضع: تحديد موقع الفرع</span>
-                        <span id="add-polygon-count" class="text-slate-500 font-medium">0 نقاط زون</span>
+                        <span id="add-map-mode-indicator" class="rounded bg-blue-50 text-violet-600 border border-violet-200/50 font-medium px-2.5 py-0.5">{{ "وضع: تحديد موقع الفرع"|t }}</span>
+                        <span id="add-polygon-count" class="text-slate-500 font-medium">{{ "0 نقاط زون"|t }}</span>
                     </div>
                 </div>
 
@@ -230,26 +230,26 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <button type="button" onclick="setAddMapMode('pin')" id="btn-mode-pin" class="rounded-lg bg-violet-600 text-white border border-violet-600 px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        تحديد موقع الفرع
+                        {{ "تحديد موقع الفرع"|t }}
                     </button>
                     <button type="button" onclick="setAddMapMode('polygon')" id="btn-mode-poly" class="rounded-lg border border-slate-200 bg-white text-slate-700 px-3 py-1.5 text-[11px] font-medium hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                        رسم حدود الزون (مضلع)
+                        {{ "رسم حدود الزون (مضلع"|t }})
                     </button>
                     <button type="button" onclick="undoAddPolygonPoint()" class="rounded-lg border border-slate-200 bg-white text-slate-600 px-3 py-1.5 text-[11px] font-medium hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a5 5 0 015 5v2m-15-7l4-4m-4 4l4 4"/></svg>
-                        تراجع عن نقطة
+                        {{ "تراجع عن نقطة"|t }}
                     </button>
                     <button type="button" onclick="clearAddPolygon()" class="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5 text-[11px] font-medium hover:bg-rose-100 flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        مسح المضلع
+                        {{ "مسح المضلع"|t }}
                     </button>
                 </div>
 
                 <!-- Leaflet Map Container -->
                 <div id="add-branch-map" class="custom-map-container border border-slate-200"></div>
                 <p class="text-[11px] text-slate-500">
-                    <strong class="text-slate-800">طريقة الاستخدام:</strong> انقر على الخريطة لوضع دبوس الفرع، ثم اضغط «رسم حدود الزون» وانقر على أطراف الأحياء والكمبوندات لتشكيل المضلع المحيط بنطاق التوصيل.
+                    <strong class="text-slate-800">{{ "طريقة الاستخدام"|t }}:</strong> {{ "انقر على الخريطة لوضع دبوس الفرع، ثم اضغط «رسم حدود الزون» وانقر على أطراف الأحياء والكمبوندات لتشكيل المضلع المحيط بنطاق التوصيل"|t }}.
                 </p>
             </div>
 
@@ -258,38 +258,38 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h4 class="font-bold text-slate-900 text-xs">
-                            3. المناطق والكمبوندات والأحياء التابعة لهذا النطاق
+                            {{ "3. المناطق والكمبوندات والأحياء التابعة لهذا النطاق"|t }}
                         </h4>
-                        <p class="text-[11px] text-slate-500 mt-0.5">حدد المناطق (مثلاً: 5 كمبوندات و 8 أحياء) وسعر وتوقيت التوصيل لكل منها</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">{{ "حدد المناطق (مثلاً: 5 كمبوندات و 8 أحياء) وسعر وتوقيت التوصيل لكل منها"|t }}</p>
                     </div>
-                    <span id="staged-areas-count" class="rounded-full bg-blue-50 text-violet-600 border border-violet-200/50 px-2.5 py-0.5 text-[11px] font-medium">0 مناطق مضافة</span>
+                    <span id="staged-areas-count" class="rounded-full bg-blue-50 text-violet-600 border border-violet-200/50 px-2.5 py-0.5 text-[11px] font-medium">{{ "0 مناطق مضافة"|t }}</span>
                 </div>
 
                 <!-- Quick Add Area Form -->
                 <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-white p-3 rounded-lg border border-slate-200">
                     <div class="sm:col-span-2">
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">اسم الحي / الكومبوند *</label>
-                        <input type="text" id="new-area-name" placeholder="مثال: كمبوند مدينتي أو الحي الأول" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "اسم الحي / الكومبوند"|t }} *</label>
+                        <input type="text" id="new-area-name" placeholder='{{ "مثال: كمبوند مدينتي أو الحي الأول"|t }}' class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">النوع</label>
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "النوع"|t }}</label>
                         <select id="new-area-type" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-violet-500">
-                            <option value="compound">كمبوند سكني</option>
-                            <option value="district" selected>حي سكني</option>
-                            <option value="zone">منطقة عامة</option>
-                            <option value="commercial">مجمع تجاري</option>
+                            <option value="compound">{{ "كمبوند سكني"|t }}</option>
+                            <option value="district" selected>{{ "حي سكني"|t }}</option>
+                            <option value="zone">{{ "منطقة عامة"|t }}</option>
+                            <option value="commercial">{{ "مجمع تجاري"|t }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">سعر التوصيل (ر.س)</label>
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "سعر التوصيل (ر.س"|t }})</label>
                         <input type="number" id="new-area-fee" step="0.5" value="10.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">وقت الوصول (دقيقة)</label>
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "وقت الوصول (دقيقة"|t }})</label>
                         <div class="flex gap-1">
                             <input type="number" id="new-area-time" value="35" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                             <button type="button" onclick="stageAddArea()" class="shrink-0 rounded-lg bg-violet-600 px-3 py-1 font-medium text-white hover:bg-violet-700 text-xs transition cursor-pointer">
-                                + إضافة
+                                + {{ "إضافة"|t }}
                             </button>
                         </div>
                     </div>
@@ -298,7 +298,7 @@
                 <!-- Staged Areas Table / List -->
                 <div id="staged-areas-container" class="max-h-44 overflow-y-auto divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
                     <p id="staged-areas-empty" class="text-center py-5 text-slate-500 text-[11px]">
-                        لم يتم إضافة مناطق بعد. استخدم النموذج أعلاه لإضافة الأحياء والكمبوندات التابعة للفرع.
+                        {{ "لم يتم إضافة مناطق بعد. استخدم النموذج أعلاه لإضافة الأحياء والكمبوندات التابعة للفرع"|t }}.
                     </p>
                 </div>
             </div>
@@ -306,13 +306,13 @@
 
         <!-- Modal Footer Actions -->
         <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between shrink-0">
-            <span class="text-[11px] text-slate-500">سيتم حفظ الزون الجغرافي وكافة الكمبوندات المسجلة فوراً</span>
+            <span class="text-[11px] text-slate-500">{{ "سيتم حفظ الزون الجغرافي وكافة الكمبوندات المسجلة فوراً"|t }}</span>
             <div class="flex items-center gap-2">
                 <button type="button" onclick="closeAddBranchModal()" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer">
-                    إلغاء
+                    {{ "إلغاء"|t }}
                 </button>
                 <button type="button" id="save-branch-btn" onclick="saveNewBranch()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-5 py-2 text-xs font-medium transition cursor-pointer">
-                    افتتاح الفرع وحفظ النطاق
+                    {{ "افتتاح الفرع وحفظ النطاق"|t }}
                 </button>
             </div>
         </div>
@@ -328,9 +328,9 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
             <div>
                 <h3 class="text-base font-bold text-slate-900">
-                    إدارة زون التوصيل ومناطق: <span id="zone-modal-branch-title" class="text-blue-600"></span>
+                    {{ "إدارة زون التوصيل ومناطق"|t }}: <span id="zone-modal-branch-title" class="text-blue-600"></span>
                 </h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">تعديل مضلع الزون الجغرافي على الخريطة، وإضافة أو حذف الكمبوندات والأحياء التابعة</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">{{ "تعديل مضلع الزون الجغرافي على الخريطة، وإضافة أو حذف الكمبوندات والأحياء التابعة"|t }}</p>
             </div>
             <button onclick="closeBranchZoneModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -345,22 +345,22 @@
             <div class="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <span class="font-bold text-slate-900 text-xs">
-                        مضلع الزون الجغرافي للفرع
+                        {{ "مضلع الزون الجغرافي للفرع"|t }}
                     </span>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="clearEditPolygon()" class="rounded-lg border border-slate-200 bg-white px-3 py-1 text-[11px] font-medium hover:bg-slate-50 text-slate-700 cursor-pointer">
-                            إعادة رسم الزون
+                            {{ "إعادة رسم الزون"|t }}
                         </button>
                         <button type="button" onclick="saveEditZoneMap()" id="btn-save-zone-poly" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-[11px] font-medium transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            حفظ تعديل نطاق الخريطة
+                            {{ "حفظ تعديل نطاق الخريطة"|t }}
                         </button>
                     </div>
                 </div>
 
                 <div id="edit-branch-map" class="custom-map-container border border-slate-200"></div>
                 <p class="text-[11px] text-slate-500">
-                    انقر على الخريطة لإعادة رسم مضلع الزون، ثم اضغط على «حفظ تعديل نطاق الخريطة».
+                    {{ "انقر على الخريطة لإعادة رسم مضلع الزون، ثم اضغط على «حفظ تعديل نطاق الخريطة"|t }}».
                 </p>
             </div>
 
@@ -369,42 +369,42 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div>
                         <h4 class="font-bold text-slate-900 text-xs">
-                            قواعد التسعير الديناميكي للعناوين غير المسجلة داخل الزون
+                            {{ "قواعد التسعير الديناميكي للعناوين غير المسجلة داخل الزون"|t }}
                         </h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5">تُطبق تلقائياً على أي عنوان أو شارع داخل المضلع في حال لم يذكر العميل اسم كمبوند محدد من الجدول أدناه.</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">{{ "تُطبق تلقائياً على أي عنوان أو شارع داخل المضلع في حال لم يذكر العميل اسم كمبوند محدد من الجدول أدناه"|t }}.</p>
                     </div>
                     <button type="button" onclick="saveBranchPricing()" id="btn-save-branch-pricing" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-3.5 py-1.5 text-xs font-medium transition cursor-pointer shrink-0">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        حفظ قواعد التسعير
+                        {{ "حفظ قواعد التسعير"|t }}
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                     <div class="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
                         <label class="block font-medium text-slate-900 text-[11px] mb-1">
-                            رسوم فتحة العداد (الحد الأدنى)
-                            <span class="text-[10px] text-blue-600 font-semibold" id="pricing-currency-label-1">(ج.م)</span>
+                            {{ "رسوم فتحة العداد (الحد الأدنى"|t }})
+                            <span class="text-[10px] text-blue-600 font-semibold" id="pricing-currency-label-1">({{ "ج.م"|t }})</span>
                         </label>
                         <input type="number" id="edit-branch-base-fee" step="0.5" min="0" value="15.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                        <span class="text-[10px] text-slate-400 block mt-1">الرسوم الأساسية لأول كيلومترات</span>
+                        <span class="text-[10px] text-slate-400 block mt-1">{{ "الرسوم الأساسية لأول كيلومترات"|t }}</span>
                     </div>
 
                     <div class="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
                         <label class="block font-medium text-slate-900 text-[11px] mb-1">
-                            المسافة الأساسية المغطاة
-                            <span class="text-[10px] text-blue-600 font-semibold">(كم)</span>
+                            {{ "المسافة الأساسية المغطاة"|t }}
+                            <span class="text-[10px] text-blue-600 font-semibold">({{ "كم"|t }})</span>
                         </label>
                         <input type="number" id="edit-branch-base-km" step="0.5" min="0.5" value="3.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                        <span class="text-[10px] text-slate-400 block mt-1">المسافة المشمولة بفتحة العداد</span>
+                        <span class="text-[10px] text-slate-400 block mt-1">{{ "المسافة المشمولة بفتحة العداد"|t }}</span>
                     </div>
 
                     <div class="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
                         <label class="block font-medium text-slate-900 text-[11px] mb-1">
-                            سعر الكيلومتر الإضافي
-                            <span class="text-[10px] text-blue-600 font-semibold" id="pricing-currency-label-2">(ج.م / كم)</span>
+                            {{ "سعر الكيلومتر الإضافي"|t }}
+                            <span class="text-[10px] text-blue-600 font-semibold" id="pricing-currency-label-2">({{ "ج.م / كم"|t }})</span>
                         </label>
                         <input type="number" id="edit-branch-per-km-fee" step="0.5" min="0" value="3.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                        <span class="text-[10px] text-slate-400 block mt-1">يُضاف لكل كم زائد عن المسافة الأساسية</span>
+                        <span class="text-[10px] text-slate-400 block mt-1">{{ "يُضاف لكل كم زائد عن المسافة الأساسية"|t }}</span>
                     </div>
                 </div>
 
@@ -413,46 +413,46 @@
                     <div class="mb-2">
                         <label class="block font-medium text-slate-900 text-xs flex items-center gap-1.5">
                             <span class="inline-block w-2 h-2 rounded-full bg-violet-600"></span>
-                            شرائح الحد الأدنى لقيمة الطلب حسب بُعد المسافة:
+                            {{ "شرائح الحد الأدنى لقيمة الطلب حسب بُعد المسافة"|t }}:
                         </label>
-                        <p class="text-[10px] text-slate-500">تحديد أقل قيمة مسموحة للطلب بناءً على بُعد العميل عن الفرع لمنع خسارة المشاوير البعيدة داخل المضلع.</p>
+                        <p class="text-[10px] text-slate-500">{{ "تحديد أقل قيمة مسموحة للطلب بناءً على بُعد العميل عن الفرع لمنع خسارة المشاوير البعيدة داخل المضلع"|t }}.</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div class="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
                             <label class="block font-medium text-slate-900 text-[11px] mb-1">
-                                الشريحة 1 (القريبة): حتى
-                                <span class="text-[10px] text-blue-600 font-semibold">(كم)</span>
+                                {{ "الشريحة 1 (القريبة): حتى"|t }}
+                                <span class="text-[10px] text-blue-600 font-semibold">({{ "كم"|t }})</span>
                             </label>
                             <div class="flex items-center gap-1.5">
                                 <input type="number" id="edit-branch-tier1-km" step="0.5" min="0.5" value="3.00" class="w-16 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                                <span class="text-[11px] text-slate-500">كم ➔</span>
+                                <span class="text-[11px] text-slate-500">{{ "كم"|t }} ➔</span>
                                 <input type="number" id="edit-branch-tier1-amount" step="1" min="0" value="50.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                                <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">ج.م</span>
+                                <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">{{ "ج.م"|t }}</span>
                             </div>
                         </div>
 
                         <div class="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
                             <label class="block font-medium text-slate-900 text-[11px] mb-1">
-                                الشريحة 2 (المتوسطة): حتى
-                                <span class="text-[10px] text-blue-600 font-semibold">(كم)</span>
+                                {{ "الشريحة 2 (المتوسطة): حتى"|t }}
+                                <span class="text-[10px] text-blue-600 font-semibold">({{ "كم"|t }})</span>
                             </label>
                             <div class="flex items-center gap-1.5">
                                 <input type="number" id="edit-branch-tier2-km" step="0.5" min="0.5" value="6.00" class="w-16 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                                <span class="text-[11px] text-slate-500">كم ➔</span>
+                                <span class="text-[11px] text-slate-500">{{ "كم"|t }} ➔</span>
                                 <input type="number" id="edit-branch-tier2-amount" step="1" min="0" value="100.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                                <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">ج.م</span>
+                                <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">{{ "ج.م"|t }}</span>
                             </div>
                         </div>
 
                         <div class="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
                             <label class="block font-medium text-slate-900 text-[11px] mb-1">
-                                الشريحة 3 (البعيدة): أكثر من ذلك
+                                {{ "الشريحة 3 (البعيدة): أكثر من ذلك"|t }}
                             </label>
                             <div class="flex items-center gap-1.5">
-                                <span class="text-[11px] text-slate-500">أقصى نطاق ➔</span>
+                                <span class="text-[11px] text-slate-500">{{ "أقصى نطاق"|t }} ➔</span>
                                 <input type="number" id="edit-branch-tier3-amount" step="1" min="0" value="150.00" class="flex-1 px-2 py-1.5 rounded border border-slate-200 text-xs bg-white font-bold text-slate-900 focus:outline-none focus:border-violet-500">
-                                <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">ج.م</span>
+                                <span class="text-[10px] text-blue-600 font-semibold tier-cur-symbol">{{ "ج.م"|t }}</span>
                             </div>
                         </div>
                     </div>
@@ -463,36 +463,36 @@
             <div class="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-3">
                 <div class="flex items-center justify-between">
                     <h4 class="font-bold text-slate-900 text-xs">
-                        الأحياء والكمبوندات التابعة للفرع
+                        {{ "الأحياء والكمبوندات التابعة للفرع"|t }}
                     </h4>
-                    <span id="zone-modal-areas-count" class="rounded-full bg-blue-50 text-violet-600 border border-violet-200/50 px-2.5 py-0.5 text-[11px] font-medium">0 مناطق</span>
+                    <span id="zone-modal-areas-count" class="rounded-full bg-blue-50 text-violet-600 border border-violet-200/50 px-2.5 py-0.5 text-[11px] font-medium">{{ "0 مناطق"|t }}</span>
                 </div>
 
                 <!-- Add New Area Inline Form -->
                 <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-white p-3 rounded-lg border border-slate-200">
                     <div class="sm:col-span-2">
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">اسم الحي / الكومبوند الجديد *</label>
-                        <input type="text" id="edit-area-name" placeholder="مثال: كمبوند ستيلا أو الحي الثالث" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "اسم الحي / الكومبوند الجديد"|t }} *</label>
+                        <input type="text" id="edit-area-name" placeholder='{{ "مثال: كمبوند ستيلا أو الحي الثالث"|t }}' class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">النوع</label>
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "النوع"|t }}</label>
                         <select id="edit-area-type" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-violet-500">
-                            <option value="compound">كمبوند سكني</option>
-                            <option value="district" selected>حي سكني</option>
-                            <option value="zone">منطقة عامة</option>
-                            <option value="commercial">مجمع تجاري</option>
+                            <option value="compound">{{ "كمبوند سكني"|t }}</option>
+                            <option value="district" selected>{{ "حي سكني"|t }}</option>
+                            <option value="zone">{{ "منطقة عامة"|t }}</option>
+                            <option value="commercial">{{ "مجمع تجاري"|t }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">سعر التوصيل (ر.س)</label>
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "سعر التوصيل (ر.س"|t }})</label>
                         <input type="number" id="edit-area-fee" step="0.5" value="10.00" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">وقت الوصول (دقيقة)</label>
+                        <label class="block font-medium text-slate-600 mb-1 text-[10px]">{{ "وقت الوصول (دقيقة"|t }})</label>
                         <div class="flex gap-1">
                             <input type="number" id="edit-area-time" value="35" class="w-full px-2.5 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-violet-500">
                             <button type="button" onclick="submitAddAreaToBranch()" class="shrink-0 rounded-lg bg-violet-600 px-3 py-1 font-medium text-white hover:bg-violet-700 text-xs transition cursor-pointer">
-                                + إضافة
+                                + {{ "إضافة"|t }}
                             </button>
                         </div>
                     </div>
@@ -503,11 +503,11 @@
                     <table class="w-full text-right text-xs">
                         <thead class="bg-slate-50 border-b border-slate-200 text-[11px] text-slate-600">
                             <tr>
-                                <th class="p-3 font-semibold">اسم المنطقة / الكومبوند</th>
-                                <th class="p-3 font-semibold">النوع</th>
-                                <th class="p-3 font-semibold">سعر التوصيل</th>
-                                <th class="p-3 font-semibold">وقت التوصيل التقديري</th>
-                                <th class="p-3 text-center font-semibold">إجراء</th>
+                                <th class="p-3 font-semibold">{{ "اسم المنطقة / الكومبوند"|t }}</th>
+                                <th class="p-3 font-semibold">{{ "النوع"|t }}</th>
+                                <th class="p-3 font-semibold">{{ "سعر التوصيل"|t }}</th>
+                                <th class="p-3 font-semibold">{{ "وقت التوصيل التقديري"|t }}</th>
+                                <th class="p-3 text-center font-semibold">{{ "إجراء"|t }}</th>
                             </tr>
                         </thead>
                         <tbody id="zone-modal-areas-tbody" class="divide-y divide-slate-100">
@@ -521,7 +521,7 @@
         <!-- Footer -->
         <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end shrink-0">
             <button type="button" onclick="closeBranchZoneModal()" class="rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-5 py-2 text-xs font-medium transition cursor-pointer">
-                إغلاق
+                {{ "إغلاق"|t }}
             </button>
         </div>
     </div>
@@ -536,9 +536,9 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
             <div>
                 <h3 class="text-base font-bold text-slate-900">
-                    العملة الافتراضية للمنشأة والسلسلة
+                    {{ "العملة الافتراضية للمنشأة والسلسلة"|t }}
                 </h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">تحديد العملة الأساسية للمطعم مع إمكانية تعميمها وتوحيدها على كافة الفروع</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">{{ "تحديد العملة الأساسية للمطعم مع إمكانية تعميمها وتوحيدها على كافة الفروع"|t }}</p>
             </div>
             <button onclick="closeChainCurrencyModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -551,16 +551,16 @@
         <div class="space-y-4 text-xs">
             <div class="p-3 bg-blue-50/50 border border-blue-100 rounded-lg space-y-1">
                 <p class="font-medium text-slate-900 flex items-center gap-1.5">
-                    العملة الحالية للمنشأة:
+                    {{ "العملة الحالية للمنشأة"|t }}:
                     <span class="text-violet-600 font-bold underline">{{ default_currency }} — {{ tenant.get_currency_name_ar }} ({{ tenant.get_currency_symbol_ar }})</span>
                 </p>
                 <p class="text-[11px] text-slate-500">
-                    هذه العملة هي الأساسية المعتمدة تلقائياً عند افتتاح أي فرع جديد، ومرجع التقارير الإجمالية في الإدارة العامة.
+                    {{ "هذه العملة هي الأساسية المعتمدة تلقائياً عند افتتاح أي فرع جديد، ومرجع التقارير الإجمالية في الإدارة العامة"|t }}.
                 </p>
             </div>
 
             <div>
-                <label class="block font-medium text-slate-700 mb-1.5">اختر العملة الجديدة للمنشأة والسلسلة *</label>
+                <label class="block font-medium text-slate-700 mb-1.5">{{ "اختر العملة الجديدة للمنشأة والسلسلة"|t }} *</label>
                 <select id="chain-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     {% for c in currencies_list %}
                     <option value="{{ c.code }}" {% if c.code == default_currency %}selected{% endif %}>
@@ -574,9 +574,9 @@
                 <label class="flex items-start gap-2.5 cursor-pointer">
                     <input type="checkbox" id="chain-currency-apply-all" class="mt-0.5 w-4 h-4 rounded border-slate-200/70 text-blue-600 focus:ring-violet-500">
                     <div class="text-xs">
-                        <span class="font-semibold text-slate-900 block">توحيد وتطبيق على كافة الفروع الحالية</span>
+                        <span class="font-semibold text-slate-900 block">{{ "توحيد وتطبيق على كافة الفروع الحالية"|t }}</span>
                         <span class="text-[11px] text-slate-500 block mt-0.5">
-                            عند تفعيل هذا الخيار، سيتم تعديل عملة جميع فروع السلسلة فوراً لتطابق هذه العملة وتحديث الأسعار والمبيعات وطلبات الهاتف.
+                            {{ "عند تفعيل هذا الخيار، سيتم تعديل عملة جميع فروع السلسلة فوراً لتطابق هذه العملة وتحديث الأسعار والمبيعات وطلبات الهاتف"|t }}.
                         </span>
                     </div>
                 </label>
@@ -586,10 +586,10 @@
         <!-- Footer -->
         <div class="mt-6 pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <button type="button" onclick="closeChainCurrencyModal()" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-medium transition cursor-pointer">
-                إلغاء
+                {{ "إلغاء"|t }}
             </button>
             <button type="button" id="save-chain-currency-btn" onclick="saveChainCurrency()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-5 py-2 text-xs font-medium transition cursor-pointer">
-                حفظ العملة
+                {{ "حفظ العملة"|t }}
             </button>
         </div>
     </div>
@@ -604,9 +604,9 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
             <div>
                 <h3 class="text-base font-bold text-slate-900">
-                    تعديل عملة الفرع
+                    {{ "تعديل عملة الفرع"|t }}
                 </h3>
-                <p id="branch-currency-modal-subtitle" class="text-[11px] text-slate-500 mt-0.5">تحديد العملة الرسمية الخاصة بالفرع</p>
+                <p id="branch-currency-modal-subtitle" class="text-[11px] text-slate-500 mt-0.5">{{ "تحديد العملة الرسمية الخاصة بالفرع"|t }}</p>
             </div>
             <button onclick="closeBranchCurrencyModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -620,14 +620,14 @@
             <input type="hidden" id="edit-branch-currency-id" value="">
 
             <div class="p-3 bg-blue-50/50 border border-blue-100 rounded-lg space-y-1">
-                <p class="font-medium text-slate-900">الفرع: <span id="branch-currency-target-name" class="font-bold text-violet-600"></span></p>
+                <p class="font-medium text-slate-900">{{ "الفرع"|t }}: <span id="branch-currency-target-name" class="font-bold text-violet-600"></span></p>
                 <p class="text-[11px] text-slate-500">
-                    ستظهر هذه العملة على فواتير الفرع، وشاشات نقاط البيع (POS)، وعند اتصال العملاء وطلب أوردر عبر كول سنتر الذكاء الاصطناعي لهذا الفرع.
+                    {{ "ستظهر هذه العملة على فواتير الفرع، وشاشات نقاط البيع (POS)، وعند اتصال العملاء وطلب أوردر عبر كول سنتر الذكاء الاصطناعي لهذا الفرع"|t }}.
                 </p>
             </div>
 
             <div>
-                <label class="block font-medium text-slate-700 mb-1.5">اختر عملة هذا الفرع *</label>
+                <label class="block font-medium text-slate-700 mb-1.5">{{ "اختر عملة هذا الفرع"|t }} *</label>
                 <select id="branch-currency-select" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                     {% for c in currencies_list %}
                     <option value="{{ c.code }}">{{ c.label }}</option>
@@ -639,10 +639,10 @@
         <!-- Footer -->
         <div class="mt-6 pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <button type="button" onclick="closeBranchCurrencyModal()" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-medium transition cursor-pointer">
-                إلغاء
+                {{ "إلغاء"|t }}
             </button>
             <button type="button" id="save-branch-currency-btn" onclick="saveBranchCurrency()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium px-5 py-2 text-xs font-medium transition cursor-pointer">
-                حفظ عملة الفرع
+                {{ "حفظ عملة الفرع"|t }}
             </button>
         </div>
     </div>

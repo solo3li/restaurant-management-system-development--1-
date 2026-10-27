@@ -499,7 +499,7 @@
                             {% endif %}
                         </div>
                         {% if plan.price_monthly > 0 %}
-                        <span class="text-[11px] text-violet-600 font-semibold block mt-1">{% if CURRENT_LANG == 'ar' %}أو ${{ plan.price_yearly|floatformat:0 }} دولار / سنوياً (خصم 20%){% else %}or ${{ plan.price_yearly|floatformat:0 }} USD / year (Save 20%){% endif %}</span>
+                        <span class="text-[11px] text-violet-600 font-semibold block mt-1">{% if CURRENT_LANG == 'ar' %}أو ${{ plan.price_yearly|floatformat:0 }} دولار / سنوياً (خصم 20%){% elif CURRENT_LANG == 'fr' %}ou ${{ plan.price_yearly|floatformat:0 }} USD / an (Économisez 20%){% elif CURRENT_LANG == 'tr' %}veya ${{ plan.price_yearly|floatformat:0 }} USD / yıl (%20 Tasarruf){% elif CURRENT_LANG == 'de' %}oder ${{ plan.price_yearly|floatformat:0 }} USD / Jahr (20% Rabatt){% else %}or ${{ plan.price_yearly|floatformat:0 }} USD / year (Save 20%){% endif %}</span>
                         {% else %}
                         <span class="text-[11px] text-emerald-600 font-semibold block mt-1">{{ t.landing_no_card }}</span>
                         {% endif %}

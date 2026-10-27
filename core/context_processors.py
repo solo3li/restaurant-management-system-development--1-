@@ -256,6 +256,7 @@ def i18n_context(request):
         lang = lang.split("-")[0]
     if lang not in supported_langs:
         lang = "ar"
+    translation.activate(lang)
 
     from .i18n_catalog import I18N_CATALOG, get_translation
 

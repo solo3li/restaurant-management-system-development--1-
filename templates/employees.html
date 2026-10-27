@@ -23,17 +23,17 @@
         <div class="flex items-center gap-2">
             <!-- Employees Tab Actions -->
             <div id="employees-header-actions" class="flex items-center gap-2">
-                <a href="{% url 'api_export_employees_csv' %}" class="rounded-lg border border-slate-200/70 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition flex items-center gap-1.5 shadow-xs cursor-pointer" title="تصدير كملف Excel / CSV">
+                <a href="{% url 'api_export_employees_csv' %}" class="rounded-lg border border-slate-200/70 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition flex items-center gap-1.5 shadow-xs cursor-pointer" title='{{ "تصدير كملف Excel / CSV"|t }}'>
                     <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    <span>تصدير CSV</span>
+                    <span>{{ "تصدير CSV"|t }}</span>
                 </a>
                 <button type="button" onclick="switchMainTab('roles')" class="rounded-lg border border-slate-200/70 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-100 transition flex items-center gap-1.5 shadow-xs cursor-pointer">
                     <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
-                    <span>الصلاحيات والمسميات</span>
+                    <span>{{ "الصلاحيات والمسميات"|t }}</span>
                 </button>
                 <button type="button" onclick="openAddEmpModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-semibold py-1.5 px-3.5 shadow-xs transition cursor-pointer">
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -48,7 +48,7 @@
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    + مسمى وظيفي جديد
+                    + {{ "مسمى وظيفي جديد"|t }}
                 </button>
             </div>
         </div>
@@ -60,14 +60,14 @@
             <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
             </svg>
-            <span>سجل الموظفين والورديات</span>
+            <span>{{ "سجل الموظفين والورديات"|t }}</span>
             <span class="text-[11px] text-slate-500 font-mono font-medium">({{ employees|length }})</span>
         </button>
         <button type="button" id="tab-btn-roles" onclick="switchMainTab('roles')" class="px-4 py-2.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50">
             <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
             </svg>
-            <span>المسميات الوظيفية ومصفوفة الصلاحيات</span>
+            <span>{{ "المسميات الوظيفية ومصفوفة الصلاحيات"|t }}</span>
             <span id="tab-roles-badge-count" class="text-[11px] text-slate-500 font-mono font-medium">({{ roles_stats.total|default:job_roles|length }})</span>
         </button>
     </div>
@@ -79,7 +79,7 @@
         <!-- Role & Scope Pills -->
         <div class="flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-2">
             <a href="?job_role=all&role=all&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold transition {% if job_role_filter == 'all' and role_filter == 'all' %}bg-violet-600 text-white shadow-xs{% else %}border border-slate-200/70 bg-white text-slate-800 hover:bg-slate-100 font-bold{% endif %}">
-                الكل ({{ roles_summary.all }})
+                {{ "الكل"|t }} ({{ roles_summary.all }})
             </a>
             {% for jr in job_roles %}
             <a href="?job_role={{ jr.id }}&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-lg px-2.5 py-1 text-xs font-bold transition {% if job_role_filter == jr.id|stringformat:'s' %}bg-violet-600 text-white font-semibold shadow-xs{% else %}border border-slate-200/70 bg-white text-slate-800 hover:bg-slate-100{% endif %}">
@@ -93,9 +93,9 @@
             <input type="hidden" name="job_role" value="{{ job_role_filter }}">
             <input type="hidden" name="role" value="{{ role_filter }}">
             <div class="flex items-center gap-1.5">
-                <span class="text-xs font-semibold text-slate-800">الفرع:</span>
+                <span class="text-xs font-semibold text-slate-800">{{ "الفرع"|t }}:</span>
                 <select name="branch" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900 focus:border-violet-500">
-                    <option value="all">كافة الفروع</option>
+                    <option value="all">{{ "كافة الفروع"|t }}</option>
                     {% for b in branches %}
                     <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:'s' or branch_filter == b.id %}selected{% endif %}>{{ b.name }}</option>
                     {% endfor %}
@@ -106,15 +106,15 @@
                     type="text" 
                     name="q" 
                     value="{{ search_query }}" 
-                    placeholder="بحث بالاسم، الجوال، أو الكود…" 
+                    placeholder='{{ "بحث بالاسم، الجوال، أو الكود…"|t }}' 
                     class="w-full px-2.5 py-1 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none"
                 >
             </div>
             <button type="submit" class="rounded-lg bg-white border border-slate-200/70 px-3 py-1 text-xs font-bold text-slate-900 hover:bg-slate-100 transition shadow-xs cursor-pointer">
-                بحث
+                {{ "بحث"|t }}
             </button>
             {% if search_query or branch_filter != 'all' or role_filter != 'all' or job_role_filter != 'all' %}
-            <a href="{% url 'employees' %}" class="text-xs font-bold text-rose-700 hover:underline">إلغاء</a>
+            <a href="{% url 'employees' %}" class="text-xs font-bold text-rose-700 hover:underline">{{ "إلغاء"|t }}</a>
             {% endif %}
         </form>
     </div>
@@ -125,14 +125,14 @@
             <table class="w-full text-right text-xs table-responsive-cards">
                 <thead class="border-b border-slate-100 bg-slate-100 text-slate-900 font-semibold">
                     <tr>
-                        <th class="py-2.5 px-3 font-bold text-slate-900">الموظف</th>
-                        <th class="py-2.5 px-3 font-bold text-slate-900">كود الدخول وPIN</th>
-                        <th class="py-2.5 px-3 font-bold text-slate-900">المسمى الوظيفي والصلاحيات</th>
-                        <th class="py-2.5 px-3 font-bold text-slate-900">نطاق العمل</th>
-                        <th class="py-2.5 px-3 font-bold text-slate-900">الفرع</th>
-                        <th class="py-2.5 px-3 font-bold text-slate-900">الراتب الأساسي</th>
-                        <th class="py-2.5 px-3 font-bold text-slate-900">الحالة</th>
-                        <th class="py-2.5 px-3 text-center font-bold text-slate-900">إجراءات</th>
+                        <th class="py-2.5 px-3 font-bold text-slate-900">{{ "الموظف"|t }}</th>
+                        <th class="py-2.5 px-3 font-bold text-slate-900">{{ "كود الدخول وPIN"|t }}</th>
+                        <th class="py-2.5 px-3 font-bold text-slate-900">{{ "المسمى الوظيفي والصلاحيات"|t }}</th>
+                        <th class="py-2.5 px-3 font-bold text-slate-900">{{ "نطاق العمل"|t }}</th>
+                        <th class="py-2.5 px-3 font-bold text-slate-900">{{ "الفرع"|t }}</th>
+                        <th class="py-2.5 px-3 font-bold text-slate-900">{{ "الراتب الأساسي"|t }}</th>
+                        <th class="py-2.5 px-3 font-bold text-slate-900">{{ "الحالة"|t }}</th>
+                        <th class="py-2.5 px-3 text-center font-bold text-slate-900">{{ "إجراءات"|t }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -148,9 +148,9 @@
                                     #{{ emp.employee_code|default:"—" }}
                                 </span>
                                 {% if emp.pin_code %}
-                                <span class="rounded bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">PIN مفعل</span>
+                                <span class="rounded bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">{{ "PIN مفعل"|t }}</span>
                                 {% else %}
-                                <span class="rounded bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-950">بدون PIN</span>
+                                <span class="rounded bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-950">{{ "بدون PIN"|t }}</span>
                                 {% endif %}
                             </div>
                         </td>
@@ -169,12 +169,12 @@
                         <td class="py-2 px-3" data-label="نطاق العمل">
                             {% if emp.job_role %}
                                 {% if emp.job_role.scope == 'hq' %}
-                                    <span class="rounded bg-purple-50 text-purple-700 border border-purple-200/60 px-2 py-0.5 text-[10px] font-bold">إدارة عامة (HQ)</span>
+                                    <span class="rounded bg-purple-50 text-purple-700 border border-purple-200/60 px-2 py-0.5 text-[10px] font-bold">{{ "إدارة عامة (HQ"|t }})</span>
                                 {% else %}
-                                    <span class="rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold">تشغيل فرع</span>
+                                    <span class="rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold">{{ "تشغيل فرع"|t }}</span>
                                 {% endif %}
                             {% else %}
-                                <span class="text-slate-700 text-[10px] font-bold">تشغيلي</span>
+                                <span class="text-slate-700 text-[10px] font-bold">{{ "تشغيلي"|t }}</span>
                             {% endif %}
                         </td>
                         <td class="py-2 px-3 text-slate-800 font-bold text-xs" data-label="الفرع">
@@ -182,9 +182,9 @@
                         </td>
                         <td class="py-2 px-3 font-mono font-bold text-slate-900 text-xs" data-label="الراتب الأساسي">
                             {% if can_manage_salaries or is_owner or 'hr_manage_salaries' in user_perms or 'manage_employees' in user_perms %}
-                                {{ emp.salary }} <span class="text-[10px] text-slate-700 font-sans font-bold">ر.س</span>
+                                {{ emp.salary }} <span class="text-[10px] text-slate-700 font-sans font-bold">{{ "ر.س"|t }}</span>
                             {% else %}
-                                <span class="text-xs font-mono text-slate-400 tracking-widest" title="محتوى محجوب — يتطلب صلاحية إدارة الرواتب">••••</span>
+                                <span class="text-xs font-mono text-slate-400 tracking-widest" title='{{ "محتوى محجوب — يتطلب صلاحية إدارة الرواتب"|t }}'>••••</span>
                             {% endif %}
                         </td>
                         <td class="py-2 px-3" data-label="الحالة">
@@ -197,7 +197,7 @@
                                 <button 
                                     type="button"
                                     onclick="viewEmployeeDetail({{ emp.id }})" 
-                                    title="عرض الملف الكامل والصلاحيات" 
+                                    title='{{ "عرض الملف الكامل والصلاحيات"|t }}' 
                                     class="rounded-md border border-slate-200/70 bg-white p-1 text-slate-700 hover:bg-blue-50 hover:text-violet-700 hover:border-violet-200/60 transition shadow-xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -205,7 +205,7 @@
                                 <button 
                                     type="button"
                                     onclick="openEditEmpModal({{ emp.id }})" 
-                                    title="تعديل الموظف ورمز PIN" 
+                                    title='{{ "تعديل الموظف ورمز PIN"|t }}' 
                                     class="rounded-md border border-slate-200/70 bg-white p-1 text-slate-700 hover:bg-slate-100 hover:border-violet-500 hover:text-violet-700 transition shadow-xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -225,7 +225,7 @@
                                 <button 
                                     type="button"
                                     onclick="openDeleteEmpModal({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.employee_code|default:'' }}')" 
-                                    title="حذف الموظف" 
+                                    title='{{ "حذف الموظف"|t }}' 
                                     class="rounded-md border border-rose-300 bg-rose-100 p-1 text-rose-950 hover:bg-rose-200 transition shadow-xs"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -235,7 +235,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="py-6 text-center text-xs font-bold text-slate-500">لا يوجد موظفون مطابقون للشروط</td>
+                        <td colspan="8" class="py-6 text-center text-xs font-bold text-slate-500">{{ "لا يوجد موظفون مطابقون للشروط"|t }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -252,9 +252,9 @@
             <!-- Total Roles -->
             <div class="bg-white rounded-xl border border-slate-200/70 p-3.5 shadow-xs flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">إجمالي المسميات الوظيفية</p>
+                    <p class="text-xs text-slate-500 font-medium">{{ "إجمالي المسميات الوظيفية"|t }}</p>
                     <p id="stat-total-roles" class="text-xl font-bold text-slate-900 mt-1">{{ roles_stats.total|default:job_roles|length }}</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">مسميات معتمدة بالنظام</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">{{ "مسميات معتمدة بالنظام"|t }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -266,9 +266,9 @@
             <!-- Branch Roles -->
             <div class="bg-white rounded-xl border border-slate-200/70 p-3.5 shadow-xs flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">مسميات تشغيل الفروع</p>
+                    <p class="text-xs text-slate-500 font-medium">{{ "مسميات تشغيل الفروع"|t }}</p>
                     <p id="stat-branch-roles" class="text-xl font-bold text-slate-900 mt-1">{{ roles_stats.branch|default:0 }}</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">نطاق الفروع والمطابخ</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">{{ "نطاق الفروع والمطابخ"|t }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -280,9 +280,9 @@
             <!-- HQ Roles -->
             <div class="bg-white rounded-xl border border-slate-200/70 p-3.5 shadow-xs flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">مسميات الإدارة العامة (HQ)</p>
+                    <p class="text-xs text-slate-500 font-medium">{{ "مسميات الإدارة العامة (HQ"|t }})</p>
                     <p id="stat-hq-roles" class="text-xl font-bold text-slate-900 mt-1">{{ roles_stats.hq|default:0 }}</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">سجل السلسلة والكول سنتر</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">{{ "سجل السلسلة والكول سنتر"|t }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -294,9 +294,9 @@
             <!-- Assigned Staff -->
             <div class="bg-white rounded-xl border border-slate-200/70 p-3.5 shadow-xs flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">الموظفون المسندون</p>
+                    <p class="text-xs text-slate-500 font-medium">{{ "الموظفون المسندون"|t }}</p>
                     <p id="stat-assigned-emp" class="text-xl font-bold text-slate-900 mt-1">{{ roles_stats.assigned_employees|default:0 }}</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">مرتبطون بالمسميات والصلاحيات</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">{{ "مرتبطون بالمسميات والصلاحيات"|t }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -309,21 +309,21 @@
         <!-- 2. Roles Action Toolbar -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
             <div>
-                <h2 class="text-sm font-bold text-slate-900">قائمة المسميات الوظيفية وهيكل الصلاحيات</h2>
-                <p class="text-xs text-slate-500 mt-0.5">تحكم في الصلاحيات الممنوحة لكل مسمى وظيفي بنطاق معزول بدقة</p>
+                <h2 class="text-sm font-bold text-slate-900">{{ "قائمة المسميات الوظيفية وهيكل الصلاحيات"|t }}</h2>
+                <p class="text-xs text-slate-500 mt-0.5">{{ "تحكم في الصلاحيات الممنوحة لكل مسمى وظيفي بنطاق معزول بدقة"|t }}</p>
             </div>
             <div class="flex items-center gap-2">
                 <button type="button" onclick="loadJobRoles(true)" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs cursor-pointer">
                     <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
-                    <span>تحديث</span>
+                    <span>{{ "تحديث"|t }}</span>
                 </button>
                 <button type="button" onclick="openCreateRoleModal()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer">
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    <span>مسمى وظيفي جديد</span>
+                    <span>{{ "مسمى وظيفي جديد"|t }}</span>
                 </button>
             </div>
         </div>
@@ -334,11 +334,11 @@
                 <table class="w-full text-right text-xs">
                     <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
                         <tr>
-                            <th class="py-3 px-4">المسمى الوظيفي والوصف</th>
-                            <th class="py-3 px-4">نطاق العمل</th>
-                            <th class="py-3 px-4 text-center">الموظفون المسندون</th>
-                            <th class="py-3 px-4">الصلاحيات المصرحة</th>
-                            <th class="py-3 px-4 text-center">إجراءات</th>
+                            <th class="py-3 px-4">{{ "المسمى الوظيفي والوصف"|t }}</th>
+                            <th class="py-3 px-4">{{ "نطاق العمل"|t }}</th>
+                            <th class="py-3 px-4 text-center">{{ "الموظفون المسندون"|t }}</th>
+                            <th class="py-3 px-4">{{ "الصلاحيات المصرحة"|t }}</th>
+                            <th class="py-3 px-4 text-center">{{ "إجراءات"|t }}</th>
                         </tr>
                     </thead>
                     <tbody id="job-roles-tbody" class="divide-y divide-slate-100">
@@ -350,35 +350,35 @@
                             </td>
                             <td class="py-3 px-4">
                                 {% if r.scope == 'hq' %}
-                                <span class="text-xs font-semibold text-purple-800 border-l-2 border-purple-600 pl-2">الإدارة العامة (HQ)</span>
+                                <span class="text-xs font-semibold text-purple-800 border-l-2 border-purple-600 pl-2">{{ "الإدارة العامة (HQ"|t }})</span>
                                 {% else %}
-                                <span class="text-xs font-semibold text-emerald-800 border-l-2 border-emerald-600 pl-2">تشغيل فرع محدد</span>
+                                <span class="text-xs font-semibold text-emerald-800 border-l-2 border-emerald-600 pl-2">{{ "تشغيل فرع محدد"|t }}</span>
                                 {% endif %}
                             </td>
                             <td class="py-3 px-4 text-center">
                                 <button type="button" onclick="openRoleEmployeesModal({{ r.id }}, '{{ r.name|escapejs }}')" class="font-bold text-xs text-violet-700 hover:text-violet-900 underline underline-offset-2 cursor-pointer transition">
-                                    {{ r.emp_count }} موظف
+                                    {{ r.emp_count }} {{ "موظف"|t }}
                                 </button>
                             </td>
                             <td class="py-3 px-4">
                                 <span class="text-xs font-medium text-slate-800">
-                                    {{ r.get_permissions_list|length }} صلاحيات
+                                    {{ r.get_permissions_list|length }} {{ "صلاحيات"|t }}
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
                                     <button type="button" onclick="openEditRoleModal({{ r.id }})" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
-                                        تعديل الصلاحيات
+                                        {{ "تعديل الصلاحيات"|t }}
                                     </button>
                                     <button type="button" onclick="deleteJobRole({{ r.id }}, '{{ r.name|escapejs }}', {{ r.emp_count }})" class="rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
-                                        حذف
+                                        {{ "حذف"|t }}
                                     </button>
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="py-8 text-center text-xs text-slate-500">لا توجد مسميات وظيفية مسجلة</td>
+                            <td colspan="5" class="py-8 text-center text-xs text-slate-500">{{ "لا توجد مسميات وظيفية مسجلة"|t }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -401,7 +401,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                     </svg>
                 </span>
-                إضافة موظف جديد
+                {{ "إضافة موظف جديد"|t }}
             </h3>
             <button onclick="closeAddEmpModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -410,31 +410,31 @@
 
         <div class="space-y-3.5 text-xs">
             <div>
-                <label class="mb-1 block font-bold text-slate-700">اسم الموظف *</label>
-                <input type="text" id="add-emp-name" placeholder="سلمان الدوسري" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                <label class="mb-1 block font-bold text-slate-700">{{ "اسم الموظف"|t }} *</label>
+                <input type="text" id="add-emp-name" placeholder='{{ "سلمان الدوسري"|t }}' class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
             </div>
 
             <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                    <label class="mb-1 block font-bold text-slate-700">رقم الجوال</label>
+                    <label class="mb-1 block font-bold text-slate-700">{{ "رقم الجوال"|t }}</label>
                     <input type="text" id="add-emp-phone" placeholder="05xxxxxxxx" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                 </div>
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block font-bold text-slate-700">المسمى الوظيفي *</label>
+                        <label class="block font-bold text-slate-700">{{ "المسمى الوظيفي"|t }} *</label>
                         <button type="button" onclick="openCreateRoleFromAddModal()" class="text-[11px] font-semibold text-violet-700 hover:text-violet-800 hover:underline flex items-center gap-0.5 cursor-pointer">
                             <svg class="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>مسمى جديد</span>
+                            <span>{{ "مسمى جديد"|t }}</span>
                         </button>
                     </div>
                     <select id="add-emp-role" onchange="syncEmpRoleScope('add-emp-role', 'add-emp-branch', 'add-emp-scope-notice')" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                         {% if job_roles %}
-                        <option value="" disabled selected>— اختر المسمى الوظيفي —</option>
+                        <option value="" disabled selected>— {{ "اختر المسمى الوظيفي"|t }} —</option>
                         {% for jr in job_roles %}
                         <option value="{{ jr.id }}" data-scope="{{ jr.scope }}">{{ jr.name }} ({{ jr.get_scope_display }})</option>
                         {% endfor %}
                         {% else %}
-                        <option value="" disabled selected>— لا توجد مسميات وظيفية بعد —</option>
+                        <option value="" disabled selected>— {{ "لا توجد مسميات وظيفية بعد"|t }} —</option>
                         {% endif %}
                     </select>
                 </div>
@@ -445,22 +445,22 @@
             {% if not job_roles %}
             <p id="add-emp-no-roles-warning" class="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/70 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                <span>لا توجد مسميات معرفة حالياً. اضغط على «مسمى جديد» أعلاه لإنشاء مسمى أولاً.</span>
+                <span>{{ "لا توجد مسميات معرفة حالياً. اضغط على «مسمى جديد» أعلاه لإنشاء مسمى أولاً"|t }}.</span>
             </p>
             {% endif %}
 
             <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                    <label class="mb-1 block font-bold text-slate-700">الفرع</label>
+                    <label class="mb-1 block font-bold text-slate-700">{{ "الفرع"|t }}</label>
                     <select id="add-emp-branch" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
-                        <option value="">— بدون فرع (إدارة عامة) —</option>
+                        <option value="">— {{ "بدون فرع (إدارة عامة)"|t }} —</option>
                         {% for b in branches %}
                         <option value="{{ b.id }}">{{ b.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-slate-700">الراتب الشهري (ر.س)</label>
+                    <label class="mb-1 block font-bold text-slate-700">{{ "الراتب الشهري (ر.س"|t }})</label>
                     <input type="number" id="add-emp-salary" placeholder="5000" value="5000" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                 </div>
             </div>
@@ -471,14 +471,14 @@
                     <span class="flex h-5 w-5 items-center justify-center rounded bg-violet-100/70 text-violet-700">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                     </span>
-                    بيانات تسجيل الدخول ورمز الـ PIN
+                    {{ "بيانات تسجيل الدخول ورمز الـ PIN"|t }}
                 </p>
 
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
                         <div class="flex items-center justify-between mb-1">
-                            <label class="block font-bold text-slate-600 text-[11px]">كود الموظف (ID) *</label>
-                            <button type="button" onclick="autoFillSuggestedCode()" class="text-[10px] text-violet-700 font-bold hover:underline cursor-pointer">تلقائي</button>
+                            <label class="block font-bold text-slate-600 text-[11px]">{{ "كود الموظف (ID)"|t }} *</label>
+                            <button type="button" onclick="autoFillSuggestedCode()" class="text-[10px] text-violet-700 font-bold hover:underline cursor-pointer">{{ "تلقائي"|t }}</button>
                         </div>
                         <input 
                             type="text" 
@@ -491,8 +491,8 @@
 
                     <div>
                         <div class="flex items-center justify-between mb-1">
-                            <label class="block font-bold text-slate-600 text-[11px]">رمز PIN (4 أرقام) *</label>
-                            <button type="button" onclick="randomizePin('add-emp-pin')" class="text-[10px] text-violet-700 font-bold hover:underline cursor-pointer">توليد عشوائي</button>
+                            <label class="block font-bold text-slate-600 text-[11px]">{{ "رمز PIN (4 أرقام)"|t }} *</label>
+                            <button type="button" onclick="randomizePin('add-emp-pin')" class="text-[10px] text-violet-700 font-bold hover:underline cursor-pointer">{{ "توليد عشوائي"|t }}</button>
                         </div>
                         <input 
                             type="password" 
@@ -504,13 +504,13 @@
                         >
                     </div>
                 </div>
-                <p class="text-[11px] text-slate-500">يستخدم الموظف هذا الكود ورمز PIN للدخول السريع للوردية وشاشات النظام.</p>
+                <p class="text-[11px] text-slate-500">{{ "يستخدم الموظف هذا الكود ورمز PIN للدخول السريع للوردية وشاشات النظام"|t }}.</p>
             </div>
         </div>
 
         <div class="mt-5 flex items-center justify-end gap-2 border-t border-slate-200 pt-3">
-            <button onclick="closeAddEmpModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer">إلغاء</button>
-            <button onclick="saveNewEmp()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold cursor-pointer px-5 py-2 text-xs shadow-sm transition-colors">حفظ الموظف</button>
+            <button onclick="closeAddEmpModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer">{{ "إلغاء"|t }}</button>
+            <button onclick="saveNewEmp()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold cursor-pointer px-5 py-2 text-xs shadow-sm transition-colors">{{ "حفظ الموظف"|t }}</button>
         </div>
     </div>
 </div>
@@ -528,7 +528,7 @@
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-sm font-bold tracking-tight text-slate-900">تعديل بيانات الموظف والصلاحيات</h3>
+                    <h3 class="text-sm font-bold tracking-tight text-slate-900">{{ "تعديل بيانات الموظف والصلاحيات"|t }}</h3>
                     <p id="edit-emp-title" class="text-xs font-bold text-violet-700 mt-0.5"></p>
                 </div>
             </div>
@@ -540,25 +540,25 @@
         <input type="hidden" id="edit-emp-id">
         <div class="space-y-3 text-xs">
             <div>
-                <label class="mb-1 block font-bold text-slate-700">اسم الموظف *</label>
+                <label class="mb-1 block font-bold text-slate-700">{{ "اسم الموظف"|t }} *</label>
                 <input type="text" id="edit-emp-name" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
             </div>
 
             <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                    <label class="mb-1 block font-bold text-slate-700">رقم الجوال</label>
+                    <label class="mb-1 block font-bold text-slate-700">{{ "رقم الجوال"|t }}</label>
                     <input type="text" id="edit-emp-phone" dir="ltr" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                 </div>
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block font-bold text-slate-700">المسمى الوظيفي *</label>
+                        <label class="block font-bold text-slate-700">{{ "المسمى الوظيفي"|t }} *</label>
                         <button type="button" onclick="closeEditEmpModal(); switchMainTab('roles');" class="text-[11px] font-semibold text-violet-700 hover:text-violet-800 hover:underline flex items-center gap-0.5 cursor-pointer">
-                            <span>إدارة المسميات</span>
+                            <span>{{ "إدارة المسميات"|t }}</span>
                             <svg class="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
                     <select id="edit-emp-job-role" onchange="syncEmpRoleScope('edit-emp-job-role', 'edit-emp-branch', 'edit-emp-scope-notice')" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
-                        <option value="" disabled>— اختر المسمى الوظيفي —</option>
+                        <option value="" disabled>— {{ "اختر المسمى الوظيفي"|t }} —</option>
                         {% for jr in job_roles %}
                         <option value="{{ jr.id }}" data-scope="{{ jr.scope }}">{{ jr.name }} ({{ jr.get_scope_display }})</option>
                         {% endfor %}
@@ -571,28 +571,28 @@
 
             <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                    <label class="mb-1 block font-bold text-slate-700">الفرع</label>
+                    <label class="mb-1 block font-bold text-slate-700">{{ "الفرع"|t }}</label>
                     <select id="edit-emp-branch" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
-                        <option value="">— بدون فرع (إدارة عامة) —</option>
+                        <option value="">— {{ "بدون فرع (إدارة عامة)"|t }} —</option>
                         {% for b in branches %}
                         <option value="{{ b.id }}">{{ b.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-slate-700">الحالة</label>
+                    <label class="mb-1 block font-bold text-slate-700">{{ "الحالة"|t }}</label>
                     <select id="edit-emp-status" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
-                        <option value="active">على رأس العمل</option>
-                        <option value="vacation">في إجازة</option>
-                        <option value="inactive">غير نشط</option>
+                        <option value="active">{{ "على رأس العمل"|t }}</option>
+                        <option value="vacation">{{ "في إجازة"|t }}</option>
+                        <option value="inactive">{{ "غير نشط"|t }}</option>
                     </select>
                 </div>
             </div>
 
             <div>
-                <label class="mb-1 block font-bold text-slate-700">الراتب (ر.س) *</label>
+                <label class="mb-1 block font-bold text-slate-700">{{ "الراتب (ر.س)"|t }} *</label>
                 {% if can_manage_salaries or is_owner or 'hr_manage_salaries' in user_perms or 'manage_employees' in user_perms %}
-                <input type="number" step="0.01" min="0" id="edit-emp-salary" autocomplete="off" placeholder="الراتب الأساسي بالريال (إلزامي)" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                <input type="number" step="0.01" min="0" id="edit-emp-salary" autocomplete="off" placeholder='{{ "الراتب الأساسي بالريال (إلزامي)"|t }}' class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                 {% else %}
                 <input type="text" id="edit-emp-salary" value="••••" readonly disabled class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-400 font-mono font-bold cursor-not-allowed text-xs">
                 {% endif %}
@@ -602,9 +602,9 @@
             <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200 space-y-2.5">
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block font-bold text-slate-700 text-[11px]">كود الموظف (ID الدخول)</label>
+                        <label class="block font-bold text-slate-700 text-[11px]">{{ "كود الموظف (ID الدخول"|t }})</label>
                         {% if not can_edit_id %}
-                        <span class="text-[10px] font-bold text-amber-800 bg-amber-100/70 border border-amber-200 px-2 py-0.5 rounded">خاص بالمالك</span>
+                        <span class="text-[10px] font-bold text-amber-800 bg-amber-100/70 border border-amber-200 px-2 py-0.5 rounded">{{ "خاص بالمالك"|t }}</span>
                         {% endif %}
                     </div>
                     <input 
@@ -617,39 +617,39 @@
 
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block font-bold text-slate-700 text-[11px]">تعيين رمز PIN جديد (4 أرقام)</label>
-                        <button type="button" onclick="randomizePin('edit-emp-pin')" class="text-[10px] text-violet-700 font-bold hover:underline cursor-pointer">توليد عشوائي</button>
+                        <label class="block font-bold text-slate-700 text-[11px]">{{ "تعيين رمز PIN جديد (4 أرقام"|t }})</label>
+                        <button type="button" onclick="randomizePin('edit-emp-pin')" class="text-[10px] text-violet-700 font-bold hover:underline cursor-pointer">{{ "توليد عشوائي"|t }}</button>
                     </div>
                     <input 
                         type="password" 
                         id="edit-emp-pin" 
                         maxlength="6" 
                         autocomplete="new-password"
-                        placeholder="اتركه فارغاً للإبقاء على الرمز الحالي" 
+                        placeholder='{{ "اتركه فارغاً للإبقاء على الرمز الحالي"|t }}' 
                         class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono tracking-widest text-center text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                     >
-                    <p class="text-[11px] text-slate-500 mt-1">اتركه فارغاً للإبقاء على الرمز الحالي، أو أدخل 4 أرقام جديدة لإعادة تعيين PIN الموظف.</p>
+                    <p class="text-[11px] text-slate-500 mt-1">{{ "اتركه فارغاً للإبقاء على الرمز الحالي، أو أدخل 4 أرقام جديدة لإعادة تعيين PIN الموظف"|t }}.</p>
                 </div>
 
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block font-bold text-slate-700 text-[11px]">كلمة مرور الدخول للوحة (اختياري)</label>
+                        <label class="block font-bold text-slate-700 text-[11px]">{{ "كلمة مرور الدخول للوحة (اختياري"|t }})</label>
                     </div>
                     <input 
                         type="password" 
                         id="edit-emp-password" 
                         autocomplete="new-password"
-                        placeholder="اتركها فارغة للإبقاء على كلمة المرور الحالية" 
+                        placeholder='{{ "اتركها فارغة للإبقاء على كلمة المرور الحالية"|t }}' 
                         class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                     >
-                    <p class="text-[11px] text-slate-500 mt-1">تُستخدم لتسجيل دخول الموظف باسم المستخدم وكلمة المرور عبر شاشة الدخول الرئيسية (6 خانات على الأقل).</p>
+                    <p class="text-[11px] text-slate-500 mt-1">{{ "تُستخدم لتسجيل دخول الموظف باسم المستخدم وكلمة المرور عبر شاشة الدخول الرئيسية (6 خانات على الأقل"|t }}).</p>
                 </div>
             </div>
         </div>
 
         <div class="mt-5 flex items-center justify-end gap-2 border-t border-slate-200 pt-3">
-            <button onclick="closeEditEmpModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer">إلغاء</button>
-            <button onclick="saveEditEmp()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold cursor-pointer px-5 py-2 text-xs shadow-sm transition-colors">حفظ التعديلات</button>
+            <button onclick="closeEditEmpModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer">{{ "إلغاء"|t }}</button>
+            <button onclick="saveEditEmp()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold cursor-pointer px-5 py-2 text-xs shadow-sm transition-colors">{{ "حفظ التعديلات"|t }}</button>
         </div>
     </div>
 </div>
@@ -663,15 +663,15 @@
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm" id="view-emp-avatar">
-                    م
+                    {{ "م"|t }}
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h3 class="text-base font-bold tracking-tight text-slate-900" id="view-emp-name">اسم الموظف</h3>
+                        <h3 class="text-base font-bold tracking-tight text-slate-900" id="view-emp-name">{{ "اسم الموظف"|t }}</h3>
                         <span id="view-emp-code-badge" class="font-mono text-[10px] font-bold bg-violet-50 text-violet-700 px-2 py-0.5 rounded border border-violet-200/60">#101</span>
-                        <span id="view-emp-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full border">نشط</span>
+                        <span id="view-emp-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full border">{{ "نشط"|t }}</span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5" id="view-emp-role-subtitle">كاشير صالة — تشغيل فرع</p>
+                    <p class="text-xs text-slate-500 mt-0.5" id="view-emp-role-subtitle">{{ "كاشير صالة — تشغيل فرع"|t }}</p>
                 </div>
             </div>
             <button onclick="closeViewEmpModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors cursor-pointer">
@@ -684,19 +684,19 @@
             <!-- Personal & Contract Info Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <div>
-                    <span class="block text-[10px] font-bold text-slate-500">رقم الجوال</span>
+                    <span class="block text-[10px] font-bold text-slate-500">{{ "رقم الجوال"|t }}</span>
                     <span class="font-bold text-slate-900 font-mono" id="view-emp-phone">—</span>
                 </div>
                 <div>
-                    <span class="block text-[10px] font-bold text-slate-500">الفرع التابع له</span>
+                    <span class="block text-[10px] font-bold text-slate-500">{{ "الفرع التابع له"|t }}</span>
                     <span class="font-semibold text-slate-900" id="view-emp-branch">—</span>
                 </div>
                 <div>
-                    <span class="block text-[10px] font-bold text-slate-500">الراتب الشهري</span>
-                    <span class="font-semibold text-slate-900 font-mono" id="view-emp-salary">0 ر.س</span>
+                    <span class="block text-[10px] font-bold text-slate-500">{{ "الراتب الشهري"|t }}</span>
+                    <span class="font-semibold text-slate-900 font-mono" id="view-emp-salary">{{ "0 ر.س"|t }}</span>
                 </div>
                 <div>
-                    <span class="block text-[10px] font-bold text-slate-500">تاريخ التعيين</span>
+                    <span class="block text-[10px] font-bold text-slate-500">{{ "تاريخ التعيين"|t }}</span>
                     <span class="font-bold text-slate-900" id="view-emp-hire-date">—</span>
                 </div>
             </div>
@@ -705,19 +705,19 @@
             <div class="rounded-xl border border-slate-200 p-3.5 bg-white space-y-2">
                 <h4 class="font-semibold text-slate-900 flex items-center gap-1.5 text-xs">
                     <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-                    بيانات حساب الدخول والأمان
+                    {{ "بيانات حساب الدخول والأمان"|t }}
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                     <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                        <span class="block text-[10px] text-slate-500">اسم مستخدم الدخول</span>
+                        <span class="block text-[10px] text-slate-500">{{ "اسم مستخدم الدخول"|t }}</span>
                         <span class="font-mono font-semibold text-slate-900 text-xs" id="view-emp-username">—</span>
                     </div>
                     <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                        <span class="block text-[10px] text-slate-500">رمز PIN السريع</span>
-                        <span class="font-bold text-xs" id="view-emp-pin-status">مفعّل (مشفر)</span>
+                        <span class="block text-[10px] text-slate-500">{{ "رمز PIN السريع"|t }}</span>
+                        <span class="font-bold text-xs" id="view-emp-pin-status">{{ "مفعّل (مشفر"|t }})</span>
                     </div>
                     <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                        <span class="block text-[10px] text-slate-500">آخر تسجيل دخول</span>
+                        <span class="block text-[10px] text-slate-500">{{ "آخر تسجيل دخول"|t }}</span>
                         <span class="font-bold text-slate-500 text-xs" id="view-emp-last-login">—</span>
                     </div>
                 </div>
@@ -728,9 +728,9 @@
                 <div class="flex items-center justify-between">
                     <h4 class="font-semibold text-slate-900 flex items-center gap-1.5 text-xs">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        الصلاحيات الممنوحة لهذا الموظف
+                        {{ "الصلاحيات الممنوحة لهذا الموظف"|t }}
                     </h4>
-                    <span id="view-emp-perms-count" class="text-[10px] font-bold bg-violet-600/10 text-slate-900 px-2 py-0.5 rounded-full border border-slate-200">0 صلاحية</span>
+                    <span id="view-emp-perms-count" class="text-[10px] font-bold bg-violet-600/10 text-slate-900 px-2 py-0.5 rounded-full border border-slate-200">{{ "0 صلاحية"|t }}</span>
                 </div>
                 <div id="view-emp-perms-container" class="flex flex-wrap gap-1.5 pt-1 max-h-48 overflow-y-auto">
                     <!-- Populated via JS -->
@@ -741,10 +741,10 @@
         <!-- Footer -->
         <div class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between shrink-0">
             <button type="button" id="view-emp-edit-btn" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium font-medium cursor-pointer px-4 py-1.5 text-xs font-bold shadow-xs">
-                تعديل بيانات الموظف
+                {{ "تعديل بيانات الموظف"|t }}
             </button>
             <button type="button" onclick="closeViewEmpModal()" class="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900">
-                إغلاق
+                {{ "إغلاق"|t }}
             </button>
         </div>
     </div>
@@ -760,29 +760,29 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-rose-900 tracking-tight">حذف الموظف</h3>
-                <p class="text-xs text-rose-700 mt-0.5" id="delete-emp-name-title">الموظف: —</p>
+                <h3 class="text-sm font-bold text-rose-900 tracking-tight">{{ "حذف الموظف"|t }}</h3>
+                <p class="text-xs text-rose-700 mt-0.5" id="delete-emp-name-title">{{ "الموظف:"|t }} —</p>
             </div>
         </div>
 
         <input type="hidden" id="delete-emp-id">
 
         <div class="space-y-3 text-xs text-slate-900">
-            <p>هل أنت متأكد من رغبتك في حذف هذا الموظف وسحب حق الدخول نهائياً؟</p>
+            <p>{{ "هل أنت متأكد من رغبتك في حذف هذا الموظف وسحب حق الدخول نهائياً؟"|t }}</p>
             
             <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-[11px] text-amber-900 space-y-1">
                 <p class="font-bold flex items-center gap-1">
                     <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    سياسة الحماية المالية الذكية:
+                    {{ "سياسة الحماية المالية الذكية"|t }}:
                 </p>
-                <p>إذا لم تكن للموظف أي فواتير أو طلبات سابقة سيتم حذفه وحسابه نهائياً من قاعدة البيانات. أما إذا كانت له مبيعات مسجلة فسيتم تجميد حسابه وسحب صلاحياته للحفاظ على قيود المحاسبة والضريبة.</p>
+                <p>{{ "إذا لم تكن للموظف أي فواتير أو طلبات سابقة سيتم حذفه وحسابه نهائياً من قاعدة البيانات. أما إذا كانت له مبيعات مسجلة فسيتم تجميد حسابه وسحب صلاحياته للحفاظ على قيود المحاسبة والضريبة"|t }}.</p>
             </div>
         </div>
 
         <div class="mt-5 flex items-center justify-end gap-2 border-t border-slate-200 pt-3">
-            <button type="button" onclick="closeDeleteEmpModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900">إلغاء</button>
+            <button type="button" onclick="closeDeleteEmpModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900">{{ "إلغاء"|t }}</button>
             <button type="button" onclick="confirmDeleteEmp()" id="delete-emp-confirm-btn" class="rounded-lg bg-rose-700 hover:bg-rose-800 text-white px-4 py-1.5 text-xs font-bold transition shadow-xs">
-                تأكيد الحذف
+                {{ "تأكيد الحذف"|t }}
             </button>
         </div>
     </div>
@@ -800,9 +800,9 @@
                     <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    الموظفون المسندون للمسمى: <span id="role-emp-modal-name" class="text-violet-700"></span>
+                    {{ "الموظفون المسندون للمسمى"|t }}: <span id="role-emp-modal-name" class="text-violet-700"></span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">قائمة الموظفين المرتبطين حالياً بهذا المسمى الوظيفي وصلاحياته</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ "قائمة الموظفين المرتبطين حالياً بهذا المسمى الوظيفي وصلاحياته"|t }}</p>
             </div>
             <button type="button" onclick="closeRoleEmployeesModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -815,7 +815,7 @@
         <!-- Footer -->
         <div class="mt-4 pt-3 border-t border-slate-200 flex justify-end">
             <button type="button" onclick="closeRoleEmployeesModal()" class="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
-                إغلاق
+                {{ "إغلاق"|t }}
             </button>
         </div>
     </div>
@@ -833,13 +833,13 @@
                 </svg>
             </div>
             <div class="flex-1">
-                <h3 class="text-sm font-bold text-slate-900">إعادة تعيين الموظفين قبل حذف المسمى</h3>
+                <h3 class="text-sm font-bold text-slate-900">{{ "إعادة تعيين الموظفين قبل حذف المسمى"|t }}</h3>
                 <p class="text-xs text-slate-600 mt-1">
-                    يوجد <span id="safe-delete-count" class="font-bold text-rose-700"></span> موظف مرتبطين بالمسمى «<span id="safe-delete-name" class="font-bold text-slate-900"></span>».
-                    اختر مسمى وظيفي بديل لنقلهم إليه أولاً:
+                    {{ "يوجد"|t }} <span id="safe-delete-count" class="font-bold text-rose-700"></span> {{ "موظف مرتبطين بالمسمى"|t }} «<span id="safe-delete-name" class="font-bold text-slate-900"></span>».
+                    {{ "اختر مسمى وظيفي بديل لنقلهم إليه أولاً"|t }}:
                 </p>
                 <div class="mt-3">
-                    <label class="block text-xs font-bold text-slate-700 mb-1">المسمى الوظيفي البديل *</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "المسمى الوظيفي البديل"|t }} *</label>
                     <select id="safe-delete-target-select" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-900 focus:border-violet-500">
                         <!-- Populated via JS -->
                     </select>
@@ -849,10 +849,10 @@
         <input type="hidden" id="safe-delete-role-id">
         <div class="mt-5 pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
             <button type="button" onclick="closeSafeDeleteModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
-                إلغاء
+                {{ "إلغاء"|t }}
             </button>
             <button type="button" id="safe-delete-confirm-btn" onclick="executeSafeRoleDelete()" class="rounded-lg bg-rose-700 hover:bg-rose-800 text-white px-4 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer">
-                نقل الموظفين وحذف المسمى
+                {{ "نقل الموظفين وحذف المسمى"|t }}
             </button>
         </div>
     </div>
@@ -863,17 +863,17 @@
 <!-- ======================================================== -->
 <div id="confirm-delete-role-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
     <div class="bg-white rounded-xl border border-slate-200 max-w-sm w-full p-5 shadow-xl">
-        <h3 class="text-sm font-bold text-slate-900">تأكيد حذف المسمى الوظيفي</h3>
+        <h3 class="text-sm font-bold text-slate-900">{{ "تأكيد حذف المسمى الوظيفي"|t }}</h3>
         <p class="text-xs text-slate-600 mt-2">
-            هل أنت متأكد من حذف المسمى الوظيفي «<span id="confirm-delete-name" class="font-bold text-slate-900"></span>» نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.
+            {{ "هل أنت متأكد من حذف المسمى الوظيفي"|t }} «<span id="confirm-delete-name" class="font-bold text-slate-900"></span>» {{ "نهائياً؟ هذا الإجراء لا يمكن التراجع عنه"|t }}.
         </p>
         <input type="hidden" id="confirm-delete-role-id">
         <div class="mt-5 pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
             <button type="button" onclick="closeConfirmDeleteRoleModal()" class="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
-                إلغاء
+                {{ "إلغاء"|t }}
             </button>
             <button type="button" id="confirm-delete-btn" onclick="executeRoleDelete()" class="rounded-lg bg-rose-700 hover:bg-rose-800 text-white px-4 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer">
-                تأكيد الحذف
+                {{ "تأكيد الحذف"|t }}
             </button>
         </div>
     </div>
@@ -891,9 +891,9 @@
                     <span class="w-7 h-7 rounded-lg bg-violet-50 text-violet-700 border border-violet-200/60 flex items-center justify-center">
                         <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </span>
-                    <span>إضافة مسمى وظيفي جديد ومصفوفة الصلاحيات</span>
+                    <span>{{ "إضافة مسمى وظيفي جديد ومصفوفة الصلاحيات"|t }}</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">تحديد نطاق العمل المعزول بدقة وتخصيص الصلاحيات الممنوحة</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ "تحديد نطاق العمل المعزول بدقة وتخصيص الصلاحيات الممنوحة"|t }}</p>
             </div>
             <button type="button" onclick="closeEditRoleModal()" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -908,8 +908,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
             <div class="flex-1">
-                <span class="font-bold">تنبيه تأثير فوري:</span>
-                هذا المسمى الوظيفي مسند حالياً إلى <span id="role-active-staff-count" class="font-bold font-mono">0</span> موظف نشط. أي تعديل في مصفوفة الصلاحيات سيُطبق فوراً على حساباتهم ومصادقاتهم داخل النظام.
+                <span class="font-bold">{{ "تنبيه تأثير فوري"|t }}:</span>
+                {{ "هذا المسمى الوظيفي مسند حالياً إلى"|t }} <span id="role-active-staff-count" class="font-bold font-mono">0</span> {{ "موظف نشط. أي تعديل في مصفوفة الصلاحيات سيُطبق فوراً على حساباتهم ومصادقاتهم داخل النظام"|t }}.
             </div>
         </div>
 
@@ -918,18 +918,18 @@
             <!-- Row 1: Basic Info -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/60 p-4 rounded-xl border border-slate-200">
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">اسم المسمى الوظيفي *</label>
-                    <input type="text" id="role-name-input" placeholder="مثال: مشرف صالة أو كاشير رئيسي" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-900 focus:border-violet-500">
+                    <label class="block font-bold text-slate-700 mb-1">{{ "اسم المسمى الوظيفي"|t }} *</label>
+                    <input type="text" id="role-name-input" placeholder='{{ "مثال: مشرف صالة أو كاشير رئيسي"|t }}' class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-900 focus:border-violet-500">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">الوصف العام للمهام</label>
-                    <input type="text" id="role-desc-input" placeholder="وصف موجز للمسؤوليات والمهام التشغيلية..." class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500">
+                    <label class="block font-bold text-slate-700 mb-1">{{ "الوصف العام للمهام"|t }}</label>
+                    <input type="text" id="role-desc-input" placeholder='{{ "وصف موجز للمسؤوليات والمهام التشغيلية..."|t }}' class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500">
                 </div>
             </div>
 
             <!-- Row 2: Scope Selector - Two Large Interactive Segmented Cards (Decision 2) -->
             <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-700">نطاق العمل المحدد *</label>
+                <label class="block text-xs font-bold text-slate-700">{{ "نطاق العمل المحدد"|t }} *</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <!-- Branch Scope Card -->
                     <div id="scope-card-branch" onclick="selectRoleScope('branch')" class="scope-card p-3.5 rounded-xl border-2 transition cursor-pointer flex items-start gap-3 border-violet-600 bg-violet-50/40 ring-1 ring-violet-500">
@@ -940,13 +940,13 @@
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center justify-between">
-                                <h4 class="text-xs font-bold text-slate-900">تشغيل فرع محدد (Branch)</h4>
+                                <h4 class="text-xs font-bold text-slate-900">{{ "تشغيل فرع محدد (Branch"|t }})</h4>
                                 <span id="scope-indicator-branch" class="w-4 h-4 rounded-full border-2 border-violet-600 bg-violet-600 flex items-center justify-center">
                                     <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                                 </span>
                             </div>
                             <p class="text-[11px] text-slate-500 mt-1 leading-normal">
-                                صلاحيات تشغيلية محصورة داخل الفرع الحالي فقط (الكاشير، المطبخ، المناديب، فواتير الفرع، منيو الفرع، وجرد الفرع).
+                                {{ "صلاحيات تشغيلية محصورة داخل الفرع الحالي فقط (الكاشير، المطبخ، المناديب، فواتير الفرع، منيو الفرع، وجرد الفرع"|t }}).
                             </p>
                         </div>
                     </div>
@@ -960,13 +960,13 @@
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center justify-between">
-                                <h4 class="text-xs font-bold text-slate-900">الإدارة العامة المركزية (HQ)</h4>
+                                <h4 class="text-xs font-bold text-slate-900">{{ "الإدارة العامة المركزية (HQ"|t }})</h4>
                                 <span id="scope-indicator-hq" class="w-4 h-4 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center">
                                     <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
                                 </span>
                             </div>
                             <p class="text-[11px] text-slate-500 mt-1 leading-normal">
-                                صلاحيات إدارية مركزية تغطي كافة فروع السلسلة مجمعة (سجل كافة طلبات السلسلة، مركز الاتصالات والكول سنتر).
+                                {{ "صلاحيات إدارية مركزية تغطي كافة فروع السلسلة مجمعة (سجل كافة طلبات السلسلة، مركز الاتصالات والكول سنتر"|t }}).
                             </p>
                         </div>
                     </div>
@@ -978,14 +978,14 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white p-3 rounded-lg border border-slate-200">
                 <span class="font-bold text-slate-900 text-xs flex items-center gap-2">
                     <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    مصفوفة الصلاحيات المتاحة للنطاق المختار:
+                    {{ "مصفوفة الصلاحيات المتاحة للنطاق المختار"|t }}:
                 </span>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="toggleAllRolePermissions(true)" class="rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1 text-xs font-bold cursor-pointer transition">
-                        تحديد كافة صلاحيات النطاق
+                        {{ "تحديد كافة صلاحيات النطاق"|t }}
                     </button>
                     <button type="button" onclick="toggleAllRolePermissions(false)" class="rounded-lg bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 px-3 py-1 text-xs font-semibold cursor-pointer transition">
-                        إلغاء تحديد الكل
+                        {{ "إلغاء تحديد الكل"|t }}
                     </button>
                 </div>
             </div>
@@ -1021,15 +1021,15 @@
                             <div>
                                 <h4 class="font-bold text-slate-900 text-xs flex items-center gap-2">
                                     {{ group.category }}
-                                    <span class="text-[11px] font-medium text-slate-500">[{% if group.scope == 'branch' %}نطاق فرع{% else %}نطاق HQ{% endif %}]</span>
+                                    <span class="text-[11px] font-medium text-slate-500">[{% if group.scope == 'branch' %}{{ "نطاق فرع"|t }}{% else %}{{ "نطاق HQ"|t }}{% endif %}]</span>
                                 </h4>
                             </div>
                         </div>
                         <div class="flex items-center gap-2.5">
-                            <span class="group-selected-count text-[11px] text-slate-500 font-mono font-medium">(0 من {{ group.permissions|length }})</span>
+                            <span class="group-selected-count text-[11px] text-slate-500 font-mono font-medium">({{ "0 من"|t }} {{ group.permissions|length }})</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="event.stopPropagation(); toggleGroupPerms(this, true);" class="text-[11px] font-bold text-violet-700 hover:text-violet-900 px-2 py-0.5 rounded border border-violet-200 bg-violet-50/60 cursor-pointer">الكل</button>
-                                <button type="button" onclick="event.stopPropagation(); toggleGroupPerms(this, false);" class="text-[11px] font-semibold text-slate-600 hover:text-slate-900 px-2 py-0.5 rounded border border-slate-200 bg-white cursor-pointer">إلغاء</button>
+                                <button type="button" onclick="event.stopPropagation(); toggleGroupPerms(this, true);" class="text-[11px] font-bold text-violet-700 hover:text-violet-900 px-2 py-0.5 rounded border border-violet-200 bg-violet-50/60 cursor-pointer">{{ "الكل"|t }}</button>
+                                <button type="button" onclick="event.stopPropagation(); toggleGroupPerms(this, false);" class="text-[11px] font-semibold text-slate-600 hover:text-slate-900 px-2 py-0.5 rounded border border-slate-200 bg-white cursor-pointer">{{ "إلغاء"|t }}</button>
                             </div>
                             <svg class="accordion-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -1046,7 +1046,7 @@
                                     <span class="font-bold text-slate-900 text-xs truncate">
                                         {{ p.label }}
                                         {% if p.key == 'branch_delete_orders' or p.key == 'hq_delete_orders' or p.key == 'delete_orders' %}
-                                        <span class="text-[11px] text-rose-700 font-bold ml-1.5">[حساس - حذف فواتير نهائي]</span>
+                                        <span class="text-[11px] text-rose-700 font-bold ml-1.5">[{{ "حساس - حذف فواتير نهائي"|t }}]</span>
                                         {% endif %}
                                     </span>
                                 </div>
@@ -1073,13 +1073,13 @@
 
         <!-- Sticky Footer Actions (Decision 11, 14) -->
         <div class="border-t border-slate-200 px-5 py-3.5 bg-slate-50 flex items-center justify-between shrink-0">
-            <span id="role-perm-selected-count" class="text-xs font-bold text-slate-700 font-mono">تم اختيار 0 صلاحيات</span>
+            <span id="role-perm-selected-count" class="text-xs font-bold text-slate-700 font-mono">{{ "تم اختيار 0 صلاحيات"|t }}</span>
             <div class="flex items-center gap-2">
                 <button type="button" onclick="closeEditRoleModal()" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer">
-                    إلغاء
+                    {{ "إلغاء"|t }}
                 </button>
                 <button type="button" id="save-role-btn" onclick="submitRoleForm()" class="rounded-lg bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 text-xs font-bold shadow-xs transition cursor-pointer">
-                    حفظ المسمى والصلاحيات
+                    {{ "حفظ المسمى والصلاحيات"|t }}
                 </button>
             </div>
         </div>

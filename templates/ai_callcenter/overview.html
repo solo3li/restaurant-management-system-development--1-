@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}نظرة عامة وإحصائيات الكول سنتر — {{ tenant.name }}{% endblock %}
+{% block title %}{{ "نظرة عامة وإحصائيات الكول سنتر"|t }} — {{ tenant.name }}{% endblock %}
 
 {% block content %}
 {% include "ai_callcenter/_nav_tabs.html" %}
@@ -13,41 +13,41 @@
             <!-- 1. Dedicated DID -->
             <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] font-medium text-slate-500 block">خط الهاتف المخصص (DID)</span>
+                    <span class="text-[10px] font-medium text-slate-500 block">{{ "خط الهاتف المخصص (DID)"|t }}</span>
                     <span class="font-mono text-xs font-bold text-slate-900 block mt-0.5" dir="ltr">{{ did_number }}</span>
                     <span class="text-emerald-700 font-bold flex items-center gap-1 text-[9px] mt-0.5">
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> جاهز للرنين
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> {{ "جاهز للرنين"|t }}
                     </span>
                 </div>
                 <button onclick="copyTextToClipboard('{{ did_number }}', 'تم نسخ رقم الهاتف');" class="text-[10px] font-semibold text-blue-600 hover:text-violet-700 bg-white border border-slate-200/70 px-1.5 py-0.5 rounded cursor-pointer shrink-0">
-                    نسخ
+                    {{ "نسخ"|t }}
                 </button>
             </div>
 
             <!-- 2. AI Orders & Revenue -->
             <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70">
-                <span class="text-[10px] font-medium text-slate-500 block">الطلبات المنفذة آلياً (AI)</span>
+                <span class="text-[10px] font-medium text-slate-500 block">{{ "الطلبات المنفذة آلياً (AI)"|t }}</span>
                 <div class="flex items-baseline gap-1 mt-0.5">
                     <span class="text-sm font-bold text-blue-600">{{ total_ai_orders }}</span>
-                    <span class="text-[10px] text-slate-500">طلب</span>
+                    <span class="text-[10px] text-slate-500">{{ "طلب"|t }}</span>
                 </div>
-                <span class="text-[10px] text-slate-500 block">مبيعات: <strong class="text-slate-900 font-semibold">{{ total_ai_revenue }} ر.س</strong></span>
+                <span class="text-[10px] text-slate-500 block">{{ "مبيعات"|t }}: <strong class="text-slate-900 font-semibold">{{ total_ai_revenue }} {{ "ر.س"|t }}</strong></span>
             </div>
 
             <!-- 3. Inbound Calls -->
             <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70">
-                <span class="text-[10px] font-medium text-slate-500 block">المكالمات المستلمة</span>
+                <span class="text-[10px] font-medium text-slate-500 block">{{ "المكالمات المستلمة"|t }}</span>
                 <div class="flex items-baseline gap-1 mt-0.5">
                     <span class="text-sm font-bold text-slate-900">{{ total_calls_count }}</span>
-                    <span class="text-[10px] text-slate-500">مكالمة</span>
+                    <span class="text-[10px] text-slate-500">{{ "مكالمة"|t }}</span>
                 </div>
-                <span class="text-[10px] text-slate-500 block">طلبات: <strong class="text-emerald-600">{{ orders_converted_count }}</strong> • استفسارات: <strong class="text-slate-700">{{ inquiries_count }}</strong></span>
+                <span class="text-[10px] text-slate-500 block">{{ "طلبات"|t }}: <strong class="text-emerald-600">{{ orders_converted_count }}</strong> • {{ "استفسارات"|t }}: <strong class="text-slate-700">{{ inquiries_count }}</strong></span>
             </div>
 
             <!-- 4. Persona & Voice -->
             <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70">
                 <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-medium text-slate-500">الشخصية والصوت</span>
+                    <span class="text-[10px] font-medium text-slate-500">{{ "الشخصية والصوت"|t }}</span>
                     <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-violet-50 text-violet-600">
                         {% if profile.dialect == 'saudi' %}SA{% elif profile.dialect == 'emirati' %}AE{% elif profile.dialect == 'kuwaiti' %}KW{% else %}EG{% endif %}
                     </span>
@@ -60,23 +60,23 @@
         <!-- Voice Quota Strip -->
         <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
             <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-[11px] font-bold text-slate-700">سقف الباقة الصوتية:</span>
+                <span class="text-[11px] font-bold text-slate-700">{{ "سقف الباقة الصوتية:"|t }}</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200/70">
                     {{ tenant.subscription_plan.name|default:tenant.get_plan_display }}
                 </span>
                 {% if client_usage.is_active != False %}
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-bold">نشط</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-bold">{{ "نشط"|t }}</span>
                 {% else %}
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60 font-bold">موقوف</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60 font-bold">{{ "موقوف"|t }}</span>
                 {% endif %}
                 <span class="text-[11px] text-slate-500">
-                    المستهلك: <strong class="text-slate-900">{{ client_usage.total_minutes|default:0 }}</strong> / <strong class="text-blue-600">{{ client_usage.minute_cap|default:plan_caps.minute_cap }} دقيقة</strong>
-                    • سقف الإنفاق: <strong class="text-slate-900">${{ client_usage.spending_cap|default:plan_caps.spending_cap }}</strong> (${{ client_usage.total_spent|default:"0.00" }})
+                    {{ "المستهلك:"|t }} <strong class="text-slate-900">{{ client_usage.total_minutes|default:0 }}</strong> / <strong class="text-blue-600">{{ client_usage.minute_cap|default:plan_caps.minute_cap }} {{ "دقيقة"|t }}</strong>
+                    • {{ "سقف الإنفاق:"|t }} <strong class="text-slate-900">${{ client_usage.spending_cap|default:plan_caps.spending_cap }}</strong> (${{ client_usage.total_spent|default:"0.00" }})
                 </span>
             </div>
             <button onclick="syncVoiceCaps()" id="sync-caps-btn" class="h-7 px-2.5 rounded-lg border border-slate-200/70 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1 cursor-pointer shrink-0">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>مزامنة الحصة</span>
+                <span>{{ "مزامنة الحصة"|t }}</span>
             </button>
         </div>
     </div>
@@ -88,9 +88,9 @@
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <h3 class="text-xs font-bold text-slate-900">أحدث المكالمات المستلمة</h3>
+                    <h3 class="text-xs font-bold text-slate-900">{{ "أحدث"|t }} {{ "المكالمات المستلمة"|t }}</h3>
                 </div>
-                <a href="{% url 'ai_callcenter_calls' %}" class="text-[11px] font-semibold text-blue-600 hover:underline">عرض الكل ({{ total_calls_count }}) ←</a>
+                <a href="{% url 'ai_callcenter_calls' %}" class="text-[11px] font-semibold text-blue-600 hover:underline">{{ "عرض الكل"|t }} ({{ total_calls_count }}) ←</a>
             </div>
 
             {% if calls %}
@@ -109,7 +109,7 @@
                     <div class="flex items-center gap-1.5 shrink-0">
                         <span class="font-mono text-[10px] text-slate-600 font-semibold">{{ c.duration_formatted|default:"00:00" }}</span>
                         {% if c.recording_url %}
-                        <button type="button" onclick="openCallDetailsModal('{{ c.call_id }}', '{{ c.caller_phone }}', '{{ c.duration_formatted|default:"00:00" }}', '{{ c.started_at|default:"" }}', '{{ c.summary|escapejs }}', '{{ c.recording_url }}', '{{ c.transcript|escapejs }}')" class="h-6 px-1.5 rounded-md bg-blue-50 hover:bg-violet-50 text-violet-600 font-bold transition cursor-pointer text-[10px] flex items-center gap-0.5" title="تشغيل التسجيل">
+                        <button type="button" onclick="openCallDetailsModal('{{ c.call_id }}', '{{ c.caller_phone }}', '{{ c.duration_formatted|default:"00:00" }}', '{{ c.started_at|default:"" }}', '{{ c.summary|escapejs }}', '{{ c.recording_url }}', '{{ c.transcript|escapejs }}')" class="h-6 px-1.5 rounded-md bg-blue-50 hover:bg-violet-50 text-violet-600 font-bold transition cursor-pointer text-[10px] flex items-center gap-0.5" title='{{ "تشغيل التسجيل"|t }}'>
                             <span>▶</span>
                         </button>
                         {% endif %}
@@ -119,7 +119,7 @@
             </div>
             {% else %}
             <div class="py-6 text-center text-slate-400 text-xs">
-                لا توجد مكالمات مسجلة بعد
+                {{ "لا توجد مكالمات مسجلة بعد"|t }}
             </div>
             {% endif %}
         </div>
@@ -129,9 +129,9 @@
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-violet-600"></span>
-                    <h3 class="text-xs font-bold text-slate-900">أحدث الطلبات المنفذة آلياً</h3>
+                    <h3 class="text-xs font-bold text-slate-900">{{ "أحدث الطلبات المنفذة آلياً"|t }}</h3>
                 </div>
-                <span class="text-[11px] font-semibold text-slate-500">{{ total_ai_orders }} طلب منفذ</span>
+                <span class="text-[11px] font-semibold text-slate-500">{{ total_ai_orders }} {{ "طلب منفذ"|t }}</span>
             </div>
 
             {% if call_orders %}
@@ -148,7 +148,7 @@
                         </div>
                     </div>
                     <div class="text-left shrink-0">
-                        <span class="font-bold text-slate-900 block text-xs">{{ o.total }} ر.س</span>
+                        <span class="font-bold text-slate-900 block text-xs">{{ o.total }} {{ "ر.س"|t }}</span>
                         <span class="text-[10px] text-slate-400">{{ o.created_at|date:"h:i A" }}</span>
                     </div>
                 </div>
@@ -156,7 +156,7 @@
             </div>
             {% else %}
             <div class="py-6 text-center text-slate-400 text-xs">
-                لم يتم تسجيل طلبات كول سنتر بعد
+                {{ "لم يتم تسجيل طلبات كول سنتر بعد"|t }}
             </div>
             {% endif %}
         </div>
@@ -168,26 +168,26 @@
     <div class="bg-white rounded-xl max-w-lg w-full p-5 border border-slate-200/70 shadow-2xl space-y-4 animate-toast" dir="{{ DIR|default:'rtl' }}">
         <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span>🎧</span> تفاصيل المكالمة والتسجيل
+                <span>🎧</span> {{ "تفاصيل المكالمة والتسجيل"|t }}
             </h3>
             <button onclick="closeCallDetailsModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/70 text-center">
-                <span class="text-[10px] text-slate-500 block">الرقم المرجعي</span>
+                <span class="text-[10px] text-slate-500 block">{{ "الرقم المرجعي"|t }}</span>
                 <span id="cd-modal-ref" class="font-mono font-bold text-blue-600 text-xs">—</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/70 text-center">
-                <span class="text-[10px] text-slate-500 block">هاتف المتصل</span>
+                <span class="text-[10px] text-slate-500 block">{{ "هاتف المتصل"|t }}</span>
                 <span id="cd-modal-phone" class="font-mono font-bold text-slate-900 text-xs">—</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/70 text-center">
-                <span class="text-[10px] text-slate-500 block">مدة المكالمة</span>
+                <span class="text-[10px] text-slate-500 block">{{ "مدة المكالمة"|t }}</span>
                 <span id="cd-modal-duration" class="font-mono font-bold text-emerald-700 text-xs">—</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/70 text-center">
-                <span class="text-[10px] text-slate-500 block">توقيت المكالمة</span>
+                <span class="text-[10px] text-slate-500 block">{{ "توقيت المكالمة"|t }}</span>
                 <span id="cd-modal-time" class="font-mono font-medium text-slate-600 text-[11px] truncate block">—</span>
             </div>
         </div>
@@ -195,34 +195,34 @@
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <span>▶</span> التسجيل الصوتي للمكالمة:
+                    <span>▶</span> {{ "التسجيل الصوتي للمكالمة:"|t }}
                 </span>
                 <a id="cd-modal-download" href="#" target="_blank" download="call_recording.mp3" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-violet-50 text-violet-600 text-xs font-semibold border border-violet-200/50 transition shadow-xs">
-                    تحميل MP3
+                    {{ "تحميل MP3"|t }}
                 </a>
             </div>
             <audio id="cd-modal-audio" controls class="w-full h-8 rounded-lg focus:outline-none bg-slate-100">
                 <source id="cd-modal-source" src="" type="audio/mpeg">
-                متصفحك لا يدعم تشغيل هذا الملف الصوتي.
+                {{ "متصفحك لا يدعم تشغيل هذا الملف الصوتي."|t }}
             </audio>
         </div>
 
         <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200 space-y-1.5">
             <span class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                <span>🤖</span> ملخص الذكاء الاصطناعي:
+                <span>🤖</span> {{ "ملخص الذكاء الاصطناعي:"|t }}
             </span>
             <p id="cd-modal-summary" class="text-xs text-amber-950 font-normal leading-relaxed"></p>
         </div>
 
         <div id="cd-modal-transcript-container" class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1.5 hidden">
             <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <span>💬</span> التفريغ الصوتي والنص الكامل للحوار:
+                <span>💬</span> {{ "التفريغ الصوتي والنص الكامل للحوار:"|t }}
             </span>
             <div id="cd-modal-transcript" class="text-xs text-slate-800 leading-relaxed max-h-40 overflow-y-auto whitespace-pre-line p-2.5 bg-white rounded-lg border border-slate-200/70"></div>
         </div>
 
         <div class="pt-2 border-t border-slate-100 flex justify-end">
-            <button type="button" onclick="closeCallDetailsModal()" class="px-4 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold cursor-pointer">إغلاق</button>
+            <button type="button" onclick="closeCallDetailsModal()" class="px-4 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-bold cursor-pointer">{{ "إغلاق"|t }}</button>
         </div>
     </div>
 </div>

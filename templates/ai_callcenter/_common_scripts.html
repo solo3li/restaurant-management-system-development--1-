@@ -1,4 +1,13 @@
 <script>
+    const CURRENT_LANG = "{{ CURRENT_LANG|default:'ar' }}";
+    function tJs(key, fallback) {
+        if (window.DiyafaI18n && typeof window.DiyafaI18n.translate === 'function') {
+            const res = window.DiyafaI18n.translate(key);
+            if (res && res !== key) return res;
+        }
+        return fallback !== undefined ? fallback : key;
+    }
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -34,13 +43,14 @@
         }, 3500);
     }
 
-    function copyTextToClipboard(text, successMsg = 'تم النسخ بنجاح') {
+    function copyTextToClipboard(text, successMsg = null) {
+        const msg = successMsg || tJs('تم النسخ بنجاح', 'Copied successfully');
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text).then(() => {
-                showNotification(successMsg);
-            }).catch(() => fallbackCopy(text, successMsg));
+                showNotification(msg);
+            }).catch(() => fallbackCopy(text, msg));
         } else {
-            fallbackCopy(text, successMsg);
+            fallbackCopy(text, msg);
         }
     }
 
@@ -56,7 +66,7 @@
             document.execCommand('copy');
             showNotification(successMsg);
         } catch (err) {
-            showNotification('تعذر النسخ التلقائي', true);
+            showNotification(tJs('تعذر النسخ التلقائي', 'Automatic copying failed'), true);
         }
         document.body.removeChild(textArea);
     }
@@ -84,19 +94,19 @@
                 if (newStatus) {
                     dot.className = 'h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse';
                     if (btn) btn.className = 'px-3.5 py-2 rounded-xl border text-xs font-semibold transition flex items-center gap-2 shadow-xs bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30';
-                    if (text) text.textContent = 'المساعد: مُفعّل ويستقبل المكالمات';
-                    showNotification('تم تفعيل استقبال المكالمات للمساعد الصوتي');
+                    if (text) text.textContent = tJs('المساعد: مُفعّل ويستقبل المكالمات', 'Assistant: Active and receiving calls');
+                    showNotification(tJs('تم تفعيل استقبال المكالمات للمساعد الصوتي', 'Voice assistant calls activated'));
                 } else {
                     dot.className = 'h-2.5 w-2.5 rounded-full bg-rose-400';
                     if (btn) btn.className = 'px-3.5 py-2 rounded-xl border text-xs font-semibold transition flex items-center gap-2 shadow-xs bg-rose-500/20 text-rose-300 border-rose-400/40 hover:bg-rose-500/30';
-                    if (text) text.textContent = 'المساعد: موقوف مؤقتاً';
-                    showNotification('تم إيقاف المساعد الصوتي مؤقتاً');
+                    if (text) text.textContent = tJs('المساعد: موقوف مؤقتاً', 'Assistant: Paused temporarily');
+                    showNotification(tJs('تم إيقاف المساعد الصوتي مؤقتاً', 'Voice assistant paused temporarily'));
                 }
             } else {
-                showNotification(data.message || 'حدث خطأ أثناء تعديل الحالة', true);
+                showNotification(data.message || tJs('حدث خطأ أثناء تعديل الحالة', 'Error modifying status'), true);
             }
         } catch (e) {
-            showNotification('تعذر الاتصال بالسيرفر', true);
+            showNotification(tJs('تعذر الاتصال بالسيرفر', 'Could not connect to server'), true);
         }
     }
 
@@ -104,9 +114,9 @@
         const btn = document.getElementById('sync-caps-btn');
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> <span>جاري المزامنة...</span>`;
+            btn.innerHTML = `<div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> <span>${tJs('جاري المزامنة...', 'Syncing...')}</span>`;
         }
-        showNotification('جاري مزامنة سقف الدقائق مع خادم الاتصالات...');
+        showNotification(tJs('جاري مزامنة سقف الدقائق مع خادم الاتصالات...', 'Syncing minutes limit with telephony server...'));
         try {
             const res = await fetch("{% url 'api_ai_callcenter_sync_caps' %}", {
                 method: "POST",
@@ -117,20 +127,20 @@
             });
             const data = await res.json();
             if (data.status === 'success') {
-                showNotification('تمت مزامنة حصة وسقف الدقائق بنجاح!');
+                showNotification(tJs('تمت مزامنة حصة وسقف الدقائق بنجاح!', 'Minutes quota synced successfully!'));
                 setTimeout(() => window.location.reload(), 1200);
             } else {
-                showNotification(data.message || 'تعذر المزامنة مع خادم الاتصالات', true);
+                showNotification(data.message || tJs('تعذر المزامنة مع خادم الاتصالات', 'Could not sync with telephony server'), true);
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>مزامنة الحصة الصوتية</span>`;
+                    btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>${tJs('مزامنة الحصة الصوتية', 'Sync Voice Quota')}</span>`;
                 }
             }
         } catch (e) {
-            showNotification('حدث خطأ في الاتصال أثناء المزامنة', true);
+            showNotification(tJs('حدث خطأ في الاتصال أثناء المزامنة', 'Connection error during sync'), true);
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>مزامنة الحصة الصوتية</span>`;
+                btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>${tJs('مزامنة الحصة الصوتية', 'Sync Voice Quota')}</span>`;
             }
         }
     }

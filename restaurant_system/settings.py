@@ -114,6 +114,9 @@ TEMPLATES = [
                 'core.context_processors.branch_context',
                 'core.context_processors.i18n_context',
             ],
+            'builtins': [
+                'core.templatetags.i18n_tags',
+            ],
         },
     },
 ]

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}هوية وبيانات المطعم — {{ tenant.name|default:"الإدارة العامة" }}{% endblock %}
+{% block title %}{{ "هوية وبيانات المطعم"|t }} — {{ tenant.name|default:"الإدارة العامة"|t }}{% endblock %}
 
 {% block content %}
 {% include "_admin_nav_tabs.html" %}
@@ -13,29 +13,29 @@
             <div class="flex items-center gap-2 mb-1">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">
                     <span class="h-1.5 w-1.5 rounded-full bg-violet-600"></span>
-                    <span>الإدارة العامة (HQ)</span>
+                    <span>{{ "الإدارة العامة (HQ)"|t }}</span>
                 </span>
                 <span class="text-xs text-slate-300">•</span>
-                <span class="text-xs text-slate-500 font-medium">الهوية البصرية والبيانات الرسمية</span>
+                <span class="text-xs text-slate-500 font-medium">{{ "الهوية البصرية والبيانات الرسمية"|t }}</span>
             </div>
             <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                هوية وبيانات المطعم
+                {{ "هوية وبيانات المطعم"|t }}
             </h1>
             <p class="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
-                إدارة اسم المنشأة، الشعار، صورة الغلاف، الألوان الأساسية، وبيانات التواصل الرسمية المعتمدة للمطعم.
+                {{ "إدارة اسم المنشأة، الشعار، صورة الغلاف، الألوان الأساسية، وبيانات التواصل الرسمية المعتمدة للمطعم."|t }}
             </p>
         </div>
 
         <!-- Slug & Quick Public Menu Link -->
         <div class="flex items-center gap-2 self-start sm:self-auto">
             <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs shadow-xs">
-                <span class="text-slate-500 font-medium">المعرّف (Slug):</span>
+                <span class="text-slate-500 font-medium">{{ "المعرّف (Slug):"|t }}</span>
                 <span class="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200" id="slugBadge">{{ tenant.slug }}</span>
             </div>
             {% if tenant.slug %}
-            <a href="{% url 'digital_menu' slug=tenant.slug %}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700 hover:text-violet-600 transition shadow-xs cursor-pointer" title="استعراض صفحة المنيو للعملاء">
+            <a href="{% url 'digital_menu' slug=tenant.slug %}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700 hover:text-violet-600 transition shadow-xs cursor-pointer" title="{{ "استعراض صفحة المنيو للعملاء"|t }}">
                 <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                <span>معاينة المنيو</span>
+                <span>{{ "معاينة المنيو"|t }}</span>
             </a>
             {% endif %}
         </div>
@@ -63,9 +63,9 @@
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                             <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                            <span>معاينة الهوية الحية</span>
+                            <span>{{ "معاينة الهوية الحية"|t }}</span>
                         </h2>
-                        <span class="text-[11px] font-medium text-slate-400">مباشر</span>
+                        <span class="text-[11px] font-medium text-slate-400">{{ "مباشر"|t }}</span>
                     </div>
 
                     <!-- Live Mobile Header Preview Container -->
@@ -75,7 +75,7 @@
                             <img id="coverPreviewImg" src="{% if tenant.cover_image %}{{ tenant.cover_image.url }}{% endif %}" alt="Cover" class="w-full h-full object-cover {% if not tenant.cover_image %}hidden{% endif %}">
                             <div id="coverPlaceholder" class="flex flex-col items-center justify-center text-slate-400 gap-1 text-[11px] {% if tenant.cover_image %}hidden{% endif %}">
                                 <svg class="w-6 h-6 text-slate-500 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span>صورة الغلاف (Banner)</span>
+                                <span>{{ "صورة الغلاف (Banner)"|t }}</span>
                             </div>
                             <!-- Color Accent Bar -->
                             <div id="liveColorBar" class="absolute bottom-0 left-0 right-0 h-1.5 transition-colors duration-200" style="background-color: {{ tenant.brand_color|default:'#6366F1' }};"></div>
@@ -95,10 +95,10 @@
 
                             <div class="space-y-1">
                                 <h3 id="liveNamePreview" class="text-base font-bold text-slate-900 tracking-tight">
-                                    {{ tenant.name|default:"اسم المطعم" }}
+                                    {{ tenant.name|default:"اسم المطعم"|t }}
                                 </h3>
                                 <p id="liveBioPreview" class="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                                    {{ tenant.bio|default:"نبذة عن المطعم وشعاره الترويجي تظهر هنا لرواد المنيو والزبائن." }}
+                                    {{ tenant.bio|default:"نبذة عن المطعم وشعاره الترويجي تظهر هنا لرواد المنيو والزبائن."|t }}
                                 </p>
                             </div>
 
@@ -120,13 +120,13 @@
                 <div class="card p-5 space-y-4">
                     <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
                         <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        <span>الوسائط والشعارات</span>
+                        <span>{{ "الوسائط والشعارات"|t }}</span>
                     </h2>
 
                     <!-- Logo Upload -->
                     <div class="space-y-2">
                         <label class="block text-xs font-bold text-slate-800">
-                            شعار المطعم (Logo)
+                            {{ "شعار المطعم (Logo)"|t }}
                         </label>
                         <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
                             <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
@@ -135,7 +135,7 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <input type="file" id="logoInput" name="logo_image" accept=".png,.jpg,.jpeg,.webp,.svg" onchange="previewLogoFile(this)" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer w-full">
-                                <p class="text-[10px] text-slate-500 mt-1">PNG, JPG, WEBP, SVG (حد أقصى 2 ميجابايت)</p>
+                                <p class="text-[10px] text-slate-500 mt-1">{{ "PNG, JPG, WEBP, SVG (حد أقصى 2 ميجابايت)"|t }}</p>
                             </div>
                         </div>
                     </div>
@@ -143,16 +143,16 @@
                     <!-- Cover Banner Upload -->
                     <div class="space-y-2">
                         <label class="block text-xs font-bold text-slate-800">
-                            صورة الغلاف والبانر (Cover Banner)
+                            {{ "صورة الغلاف والبانر (Cover Banner)"|t }}
                         </label>
                         <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
                             <div class="w-16 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
                                 <img id="coverThumbPreview" src="{% if tenant.cover_image %}{{ tenant.cover_image.url }}{% endif %}" alt="Thumb" class="w-full h-full object-cover {% if not tenant.cover_image %}hidden{% endif %}">
-                                <span id="coverThumbPlaceholder" class="text-[10px] font-bold text-slate-400 {% if tenant.cover_image %}hidden{% endif %}">لا يوجد</span>
+                                <span id="coverThumbPlaceholder" class="text-[10px] font-bold text-slate-400 {% if tenant.cover_image %}hidden{% endif %}">{{ "لا يوجد"|t }}</span>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <input type="file" id="coverInput" name="cover_image" accept=".png,.jpg,.jpeg,.webp,.svg" onchange="previewCoverFile(this)" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-700 text-slate-500 cursor-pointer w-full">
-                                <p class="text-[10px] text-slate-500 mt-1">PNG, JPG, WEBP, SVG (حد أقصى 5 ميجابايت)</p>
+                                <p class="text-[10px] text-slate-500 mt-1">{{ "PNG, JPG, WEBP, SVG (حد أقصى 5 ميجابايت)"|t }}</p>
                             </div>
                         </div>
                     </div>
@@ -162,7 +162,7 @@
                 <div class="card p-5 space-y-4">
                     <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
                         <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
-                        <span>اللون الأساسي للهوية (Brand Color)</span>
+                        <span>{{ "اللون الأساسي للهوية (Brand Color)"|t }}</span>
                     </h2>
 
                     <div class="space-y-3">
@@ -176,7 +176,7 @@
 
                         <!-- Quick Color Swatches -->
                         <div class="pt-2">
-                            <label class="block text-[11px] font-medium text-slate-500 mb-2">نماذج ألوان مقترحة:</label>
+                            <label class="block text-[11px] font-medium text-slate-500 mb-2">{{ "نماذج ألوان مقترحة:"|t }}</label>
                             <div class="flex items-center gap-2 flex-wrap">
                                 <button type="button" onclick="applyPresetColor('#6366F1')" class="w-6 h-6 rounded-lg bg-[#6366F1] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Indigo / Violet (#6366F1)"></button>
                                 <button type="button" onclick="applyPresetColor('#0E382A')" class="w-6 h-6 rounded-lg bg-[#0E382A] border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer" title="Forest (#0E382A)"></button>
@@ -200,28 +200,28 @@
                     <div class="border-b border-slate-100 pb-3">
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                             <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                            <span>البيانات الأساسية للمنشأة</span>
+                            <span>{{ "البيانات الأساسية للمنشأة"|t }}</span>
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">الاسم الرسمي والنبذة التعريفية المعتمدة للمطعم.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ "الاسم الرسمي والنبذة التعريفية المعتمدة للمطعم."|t }}</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Restaurant Name (Required) -->
                         <div class="sm:col-span-2 space-y-1.5">
                             <label for="id_name" class="block text-xs font-bold text-slate-900">
-                                اسم المطعم / المنشأة <span class="text-rose-500">*</span>
+                                {{ "اسم المطعم / المنشأة"|t }} <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" id="id_name" name="name" value="{{ tenant.name }}" required maxlength="255" oninput="updateLiveName(this.value)" class="input text-xs w-full py-2.5 px-3.5 font-medium" placeholder="مثال: مطعم شاورما وسحاب">
-                            <p class="text-[11px] text-slate-400">يظهر هذا الاسم في أعلى المنظومة، الفواتير، والمنيو الإلكتروني المعتمد.</p>
+                            <input type="text" id="id_name" name="name" value="{{ tenant.name }}" required maxlength="255" oninput="updateLiveName(this.value)" class="input text-xs w-full py-2.5 px-3.5 font-medium" placeholder="{{ "مثال: مطعم شاورما وسحاب"|t }}">
+                            <p class="text-[11px] text-slate-400">{{ "يظهر هذا الاسم في أعلى المنظومة، الفواتير، والمنيو الإلكتروني المعتمد."|t }}</p>
                         </div>
 
                         <!-- Bio / Description / Slogan -->
                         <div class="sm:col-span-2 space-y-1.5">
                             <label for="id_bio" class="block text-xs font-bold text-slate-900">
-                                النبذة التعريفية والشعار اللفظي (Bio / Slogan)
+                                {{ "النبذة التعريفية والشعار اللفظي (Bio / Slogan)"|t }}
                             </label>
-                            <textarea id="id_bio" name="bio" rows="3" maxlength="255" oninput="updateLiveBio(this.value)" class="input text-xs w-full py-2.5 px-3.5 font-normal leading-relaxed" placeholder="مثال: أشهى المأكولات والمشويات الطازجة بإتقان يومي وخدمة راقية تليق بضيوفنا.">{{ tenant.bio|default:"" }}</textarea>
-                            <p class="text-[11px] text-slate-400">شعار ترويجي موجز يظهر أسفل اسم المطعم في المنيو الرقمي (أقصى حد: 255 حرفاً).</p>
+                            <textarea id="id_bio" name="bio" rows="3" maxlength="255" oninput="updateLiveBio(this.value)" class="input text-xs w-full py-2.5 px-3.5 font-normal leading-relaxed" placeholder="{{ "مثال: أشهى المأكولات والمشويات الطازجة بإتقان يومي وخدمة راقية تليق بضيوفنا."|t }}">{{ tenant.bio|default:"" }}</textarea>
+                            <p class="text-[11px] text-slate-400">{{ "شعار ترويجي موجز يظهر أسفل اسم المطعم في المنيو الرقمي (أقصى حد: 255 حرفاً)."|t }}</p>
                         </div>
                     </div>
                 </div>
@@ -231,16 +231,16 @@
                     <div class="border-b border-slate-100 pb-3">
                         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                             <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                            <span>معلومات الاتصال والمقر الرئيسي</span>
+                            <span>{{ "معلومات الاتصال والمقر الرئيسي"|t }}</span>
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">القنوات المعتمدة للتواصل الرسمي مع إدارة المطعم وخدمة العملاء.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ "القنوات المعتمدة للتواصل الرسمي مع إدارة المطعم وخدمة العملاء."|t }}</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Official Phone -->
                         <div class="space-y-1.5">
                             <label for="id_phone" class="block text-xs font-bold text-slate-900">
-                                رقم الهاتف الموحد / خدمة العملاء
+                                {{ "رقم الهاتف الموحد / خدمة العملاء"|t }}
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -248,13 +248,13 @@
                                 </span>
                                 <input type="text" id="id_phone" name="phone" value="{{ tenant.phone|default:'' }}" maxlength="50" dir="ltr" oninput="updateLivePhone(this.value)" class="input text-xs w-full py-2.5 pl-10 pr-3.5 font-mono" placeholder="+966 50 000 0000">
                             </div>
-                            <p class="text-[11px] text-slate-400">يظهر في تذييل المنيو والفواتير.</p>
+                            <p class="text-[11px] text-slate-400">{{ "يظهر في تذييل المنيو والفواتير."|t }}</p>
                         </div>
 
                         <!-- Official Email -->
                         <div class="space-y-1.5">
                             <label for="id_email" class="block text-xs font-bold text-slate-900">
-                                البريد الإلكتروني الرسمي
+                                {{ "البريد الإلكتروني الرسمي"|t }}
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -262,16 +262,16 @@
                                 </span>
                                 <input type="email" id="id_email" name="email" value="{{ tenant.email|default:'' }}" maxlength="254" dir="ltr" oninput="updateLiveEmail(this.value)" class="input text-xs w-full py-2.5 pl-10 pr-3.5 font-mono" placeholder="contact@restaurant.com">
                             </div>
-                            <p class="text-[11px] text-slate-400">للمراسلات الرسمية وإشعارات الفوترة والتقارير.</p>
+                            <p class="text-[11px] text-slate-400">{{ "للمراسلات الرسمية وإشعارات الفوترة والتقارير."|t }}</p>
                         </div>
 
                         <!-- Physical HQ Address -->
                         <div class="sm:col-span-2 space-y-1.5">
                             <label for="id_address" class="block text-xs font-bold text-slate-900">
-                                عنوان المقر الرئيسي للمنشأة (HQ Address)
+                                {{ "عنوان المقر الرئيسي للمنشأة (HQ Address)"|t }}
                             </label>
-                            <input type="text" id="id_address" name="address" value="{{ tenant.address|default:'' }}" maxlength="255" class="input text-xs w-full py-2.5 px-3.5 font-medium" placeholder="مثال: الرياض - طريق الملك فهد - حي العليا">
-                            <p class="text-[11px] text-slate-400">يستخدم في البيانات القانونية، التراخيص، والترويسة الرسمية.</p>
+                            <input type="text" id="id_address" name="address" value="{{ tenant.address|default:'' }}" maxlength="255" class="input text-xs w-full py-2.5 px-3.5 font-medium" placeholder="{{ "مثال: الرياض - طريق الملك فهد - حي العليا"|t }}">
+                            <p class="text-[11px] text-slate-400">{{ "يستخدم في البيانات القانونية، التراخيص، والترويسة الرسمية."|t }}</p>
                         </div>
                     </div>
                 </div>
@@ -282,27 +282,27 @@
                         <div>
                             <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                                 <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                                <span>معرف الرابط والمنيو الإلكتروني</span>
+                                <span>{{ "معرف الرابط والمنيو الإلكتروني"|t }}</span>
                             </h2>
-                            <p class="text-xs text-slate-500 mt-0.5">معرف فريد ومحمي للنظام والروابط العامة.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">{{ "معرف فريد ومحمي للنظام والروابط العامة."|t }}</p>
                         </div>
                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
-                            <span>نشط ومحمي</span>
+                            <span>{{ "نشط ومحمي"|t }}</span>
                         </span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                         <div class="p-3 bg-white rounded-xl border border-slate-200">
-                            <span class="block text-slate-500 font-medium mb-1">المعرف اللاتيني الثابت (Slug):</span>
+                            <span class="block text-slate-500 font-medium mb-1">{{ "المعرف اللاتيني الثابت (Slug):"|t }}</span>
                             <span class="font-mono font-bold text-slate-800 text-sm">{{ tenant.slug }}</span>
-                            <span class="block text-[10px] text-slate-400 mt-1">لا يمكن تعديله برمجياً لتجنب كسر باركود الطاولات والمنيو المطبوع.</span>
+                            <span class="block text-[10px] text-slate-400 mt-1">{{ "لا يمكن تعديله برمجياً لتجنب كسر باركود الطاولات والمنيو المطبوع."|t }}</span>
                         </div>
                         <div class="p-3 bg-white rounded-xl border border-slate-200">
-                            <span class="block text-slate-500 font-medium mb-1">الرابط المباشر للعملاء:</span>
+                            <span class="block text-slate-500 font-medium mb-1">{{ "الرابط المباشر للعملاء:"|t }}</span>
                             <div class="flex items-center justify-between gap-2 mt-1">
                                 <span class="font-mono text-violet-700 font-medium truncate" dir="ltr">/m/{{ tenant.slug }}/</span>
-                                <button type="button" onclick="copyMenuUrl()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-[10px] transition cursor-pointer">نسخ</button>
+                                <button type="button" onclick="copyMenuUrl()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-[10px] transition cursor-pointer">{{ "نسخ"|t }}</button>
                             </div>
                         </div>
                     </div>
@@ -312,16 +312,16 @@
                 <div class="card p-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-slate-200 shadow-sm sticky bottom-4 z-20">
                     <div class="flex items-center gap-2 text-xs text-slate-500">
                         <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                        <span>تنعكس التغييرات فور حفظها على لوحة الإدارة والمنيو الرقمي.</span>
+                        <span>{{ "تنعكس التغييرات فور حفظها على لوحة الإدارة والمنيو الرقمي."|t }}</span>
                     </div>
 
                     <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                         <button type="reset" onclick="resetLivePreview()" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition cursor-pointer">
-                            إلغاء التعديلات
+                            {{ "إلغاء التعديلات"|t }}
                         </button>
                         <button type="submit" id="btnSaveProfile" class="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold px-6 py-2.5 text-xs font-semibold shadow-xs transition duration-150 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            <span id="btnSaveText">حفظ التغييرات</span>
+                            <span id="btnSaveText">{{ "حفظ التغييرات"|t }}</span>
                         </button>
                     </div>
                 </div>
@@ -334,6 +334,14 @@
 </div>
 
 <script>
+const tJs = (key, fallback) => {
+    if (window.DiyafaI18n && typeof window.DiyafaI18n.translate === 'function') {
+        const res = window.DiyafaI18n.translate(key);
+        if (res && res !== key) return res;
+    }
+    return fallback || key;
+};
+
 // Initial state cache for reset
 const initialBrandColor = "{{ tenant.brand_color|default:'#6366F1' }}";
 const initialName = "{{ tenant.name|escapejs }}";
@@ -361,14 +369,14 @@ function getCsrfToken() {
 function updateLiveName(val) {
     const preview = document.getElementById('liveNamePreview');
     if (preview) {
-        preview.textContent = val.trim() || 'اسم المطعم';
+        preview.textContent = val.trim() || tJs('اسم المطعم', 'اسم المطعم');
     }
 }
 
 function updateLiveBio(val) {
     const preview = document.getElementById('liveBioPreview');
     if (preview) {
-        preview.textContent = val.trim() || 'نبذة عن المطعم وشعاره الترويجي تظهر هنا لرواد المنيو والزبائن.';
+        preview.textContent = val.trim() || tJs('نبذة عن المطعم وشعاره الترويجي تظهر هنا لرواد المنيو والزبائن.', 'نبذة عن المطعم وشعاره الترويجي تظهر هنا لرواد المنيو والزبائن.');
     }
 }
 
@@ -427,9 +435,9 @@ function previewLogoFile(input) {
         const file = input.files[0];
         if (file.size > 2 * 1024 * 1024) {
             if (typeof showToast === 'function') {
-                showToast('حجم ملف الشعار يتجاوز 2 ميجابايت', 'error');
+                showToast(tJs('حجم ملف الشعار يتجاوز 2 ميجابايت', 'حجم ملف الشعار يتجاوز 2 ميجابايت'), 'error');
             } else {
-                alert('حجم ملف الشعار يتجاوز 2 ميجابايت');
+                alert(tJs('حجم ملف الشعار يتجاوز 2 ميجابايت', 'حجم ملف الشعار يتجاوز 2 ميجابايت'));
             }
             input.value = '';
             return;
@@ -460,9 +468,9 @@ function previewCoverFile(input) {
         const file = input.files[0];
         if (file.size > 5 * 1024 * 1024) {
             if (typeof showToast === 'function') {
-                showToast('حجم صورة الغلاف يتجاوز 5 ميجابايت', 'error');
+                showToast(tJs('حجم صورة الغلاف يتجاوز 5 ميجابايت', 'حجم صورة الغلاف يتجاوز 5 ميجابايت'), 'error');
             } else {
-                alert('حجم صورة الغلاف يتجاوز 5 ميجابايت');
+                alert(tJs('حجم صورة الغلاف يتجاوز 5 ميجابايت', 'حجم صورة الغلاف يتجاوز 5 ميجابايت'));
             }
             input.value = '';
             return;
@@ -501,12 +509,12 @@ function copyMenuUrl() {
     const path = window.location.origin + '/m/{{ tenant.slug }}/';
     navigator.clipboard.writeText(path).then(() => {
         if (typeof showToast === 'function') {
-            showToast('تم نسخ رابط المنيو إلى الحافظة بنجاح');
+            showToast(tJs('تم نسخ رابط المنيو إلى الحافظة بنجاح', 'تم نسخ رابط المنيو إلى الحافظة بنجاح'));
         } else {
-            alert('تم نسخ الرابط بنجاح');
+            alert(tJs('تم نسخ الرابط بنجاح', 'تم نسخ الرابط بنجاح'));
         }
     }).catch(() => {
-        prompt('رابط المنيو للنسخ:', path);
+        prompt(tJs('رابط المنيو للنسخ:', 'رابط المنيو للنسخ:'), path);
     });
 }
 
@@ -520,9 +528,9 @@ async function handleProfileSubmit(event) {
     const nameInput = document.getElementById('id_name');
     if (!nameInput || !nameInput.value.trim()) {
         if (typeof showToast === 'function') {
-            showToast('اسم المطعم مطلوب ولا يمكن تركه فارغاً', 'error');
+            showToast(tJs('اسم المطعم مطلوب ولا يمكن تركه فارغاً', 'اسم المطعم مطلوب ولا يمكن تركه فارغاً'), 'error');
         } else {
-            alert('اسم المطعم مطلوب');
+            alert(tJs('اسم المطعم مطلوب', 'اسم المطعم مطلوب'));
         }
         if (nameInput) nameInput.focus();
         return;
@@ -533,9 +541,9 @@ async function handleProfileSubmit(event) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(emailInput.value.trim())) {
             if (typeof showToast === 'function') {
-                showToast('صيغة البريد الإلكتروني غير صالحة', 'error');
+                showToast(tJs('صيغة البريد الإلكتروني غير صالحة', 'صيغة البريد الإلكتروني غير صالحة'), 'error');
             } else {
-                alert('صيغة البريد الإلكتروني غير صالحة');
+                alert(tJs('صيغة البريد الإلكتروني غير صالحة', 'صيغة البريد الإلكتروني غير صالحة'));
             }
             emailInput.focus();
             return;
@@ -547,9 +555,9 @@ async function handleProfileSubmit(event) {
         const hexRegex = /^#[0-9a-fA-F]{6}$/;
         if (!hexRegex.test(colorInput.value.trim())) {
             if (typeof showToast === 'function') {
-                showToast('صيغة كود اللون غير صحيحة، يجب أن تكون بتنسيق #RRGGBB', 'error');
+                showToast(tJs('صيغة كود اللون غير صحيحة، يجب أن تكون بتنسيق #RRGGBB', 'صيغة كود اللون غير صحيحة، يجب أن تكون بتنسيق #RRGGBB'), 'error');
             } else {
-                alert('صيغة كود اللون غير صحيحة');
+                alert(tJs('صيغة كود اللون غير صحيحة', 'صيغة كود اللون غير صحيحة'));
             }
             colorInput.focus();
             return;
@@ -560,7 +568,7 @@ async function handleProfileSubmit(event) {
 
     btn.disabled = true;
     const oldText = btnText.textContent;
-    btnText.textContent = 'جاري الحفظ…';
+    btnText.textContent = tJs('جاري الحفظ…', 'جاري الحفظ…');
 
     try {
         const response = await fetch("{% url 'api_restaurant_profile_update' %}", {
@@ -576,7 +584,7 @@ async function handleProfileSubmit(event) {
 
         if (response.ok && (data.success || data.status === 'success')) {
             if (typeof showToast === 'function') {
-                showToast(data.message || 'تم تحديث هوية وبيانات المطعم بنجاح', 'success');
+                showToast(data.message || tJs('تم تحديث هوية وبيانات المطعم بنجاح', 'تم تحديث هوية وبيانات المطعم بنجاح'), 'success');
             }
 
             if (data.tenant) {
@@ -617,7 +625,7 @@ async function handleProfileSubmit(event) {
                 }
             }
         } else {
-            const err = data.error || 'تعذر حفظ التغييرات';
+            const err = data.error || tJs('تعذر حفظ التغييرات', 'تعذر حفظ التغييرات');
             if (typeof showToast === 'function') {
                 showToast(err, 'error');
             } else {
@@ -627,7 +635,7 @@ async function handleProfileSubmit(event) {
     } catch(err) {
         console.error('Save failed:', err);
         if (typeof showToast === 'function') {
-            showToast('حدث خطأ أثناء الاتصال بالخادم، جاري إعادة المحاولة بالطريقة المباشرة...', 'error');
+            showToast(tJs('حدث خطأ أثناء الاتصال بالخادم، جاري إعادة المحاولة بالطريقة المباشرة...', 'حدث خطأ أثناء الاتصال بالخادم، جاري إعادة المحاولة بالطريقة المباشرة...'), 'error');
         }
         // Fallback to standard form submission
         form.submit();

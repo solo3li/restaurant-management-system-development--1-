@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{% if CURRENT_LANG == 'en' %}Kitchen Display System (KDS Live){% else %}شاشة المطبخ وإدارة المحطات (KDS Live){% endif %} — {{ tenant_name|default:t.app_title }}{% endblock %}
+{% block title %}{{ "شاشة المطبخ وإدارة المحطات (KDS Live)"|t }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
 {% block content %}
 <div class="font-sans flex flex-col flex-1 min-h-[calc(100vh-7.5rem)]">
@@ -18,7 +18,7 @@
                 <span class="flex h-6 w-6 items-center justify-center rounded-md bg-violet-50 border border-violet-200/60 text-violet-600">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 </span>
-                <span class="text-xs font-bold text-slate-900 tracking-tight">{% if CURRENT_LANG == 'en' %}Kitchen KDS{% else %}المطبخ KDS{% endif %}</span>
+                <span class="text-xs font-bold text-slate-900 tracking-tight">{{ "المطبخ KDS"|t }}</span>
                 <span id="header-total-badge" class="rounded-full bg-violet-50 border border-violet-200/60 px-2 py-0.5 text-xs font-bold text-violet-700">
                     <span id="total-pending-count">{{ total_pending }}</span>
                 </span>
@@ -26,7 +26,7 @@
                 <!-- SSE Connection Status Beacon -->
                 <div id="sse-status-pill" class="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-semibold text-emerald-900">
                     <span id="sse-status-dot" class="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span id="sse-status-text">{% if CURRENT_LANG == 'en' %}Live 0ms{% else %}مباشر 0ms{% endif %}</span>
+                    <span id="sse-status-text">{{ "مباشر 0ms"|t }}</span>
                 </div>
 
                 <!-- Branch Filter Dropdown -->
@@ -36,7 +36,7 @@
                     onchange="changeBranchFilter(this.value)" 
                     class="px-2 py-0.5 rounded-md bg-white border border-slate-200/70 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 >
-                    <option value="" {% if not target_branch_id %}selected{% endif %}>{% if CURRENT_LANG == 'en' %}All Branches{% else %}كل الفروع{% endif %}</option>
+                    <option value="" {% if not target_branch_id %}selected{% endif %}>{{ "كل الفروع"|t }}</option>
                     {% for b in branches %}
                     <option value="{{ b.id }}" {% if target_branch_id == b.id %}selected{% endif %}>{{ b.name }}</option>
                     {% endfor %}
@@ -52,7 +52,7 @@
                         type="text" 
                         id="kds-search-input" 
                         oninput="handleSearch(this.value)" 
-                        placeholder="{% if CURRENT_LANG == 'en' %}Search by order #...{% else %}بحث برقم الطلب...{% endif %}" 
+                        placeholder="{{ "بحث برقم الطلب..."|t }}" 
                         class="w-full {% if IS_RTL %}pl-2 pr-6{% else %}pr-2 pl-6{% endif %} py-1 rounded-lg bg-white border border-slate-200/70 text-xs font-semibold text-slate-900 placeholder-slate-500 focus:outline-none focus:border-violet-600 focus:bg-white transition"
                     >
                     <svg class="w-3.5 h-3.5 text-slate-500 absolute {% if IS_RTL %}right-1.5{% else %}left-1.5{% endif %} top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -64,10 +64,10 @@
                     id="toggle-completed-btn"
                     onclick="toggleShowCompleted()" 
                     class="h-7 px-2 rounded-md border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                    title="{% if CURRENT_LANG == 'en' %}Show / Hide Completed{% else %}إظهار / إخفاء المكتملة{% endif %}"
+                    title="{{ "إظهار / إخفاء المكتملة"|t }}"
                 >
                     <span id="toggle-completed-icon">👁️</span>
-                    <span class="hidden sm:inline" id="toggle-completed-text">{% if CURRENT_LANG == 'en' %}Completed{% else %}المكتملة{% endif %}</span>
+                    <span class="hidden sm:inline" id="toggle-completed-text">{{ "المكتملة"|t }}</span>
                 </button>
 
                 <!-- Sound toggle -->
@@ -76,7 +76,7 @@
                     type="button" 
                     onclick="toggleSound()" 
                     class="h-7 px-2 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-xs font-bold text-slate-800 transition flex items-center gap-1 cursor-pointer"
-                    title="{% if CURRENT_LANG == 'en' %}Toggle kitchen bell sound{% else %}تفعيل أو كتم جرس تنبيه المطبخ{% endif %}"
+                    title="{{ "تفعيل أو كتم جرس تنبيه المطبخ"|t }}"
                 >
                     <span id="sound-icon">🔔</span>
                 </button>
@@ -87,7 +87,7 @@
                     type="button" 
                     onclick="toggleFullscreen()" 
                     class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-700 transition flex items-center justify-center cursor-pointer"
-                    title="{% if CURRENT_LANG == 'en' %}Fullscreen{% else %}ملء الشاشة{% endif %}"
+                    title="{{ "ملء الشاشة"|t }}"
                 >
                     <svg id="fullscreen-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                 </button>
@@ -97,7 +97,7 @@
                     type="button" 
                     onclick="manualRefresh()" 
                     class="h-7 w-7 rounded-md bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-700 transition flex items-center justify-center cursor-pointer"
-                    title="{% if CURRENT_LANG == 'en' %}Instant Sync{% else %}مزامنة فورية{% endif %}"
+                    title="{{ "مزامنة فورية"|t }}"
                 >
                     <svg id="refresh-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </button>
@@ -112,7 +112,7 @@
                 id="station-pill-all" 
                 class="station-pill active px-2.5 py-1 text-violet-600 border-b-2 border-blue-700 font-semibold shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
             >
-                <span>🍽️ {% if CURRENT_LANG == 'en' %}All{% else %}الكل{% endif %}</span>
+                <span>🍽️ {{ "الكل"|t }}</span>
                 <span id="badge-station-all" class="px-2 py-0.5 rounded-full bg-violet-600 text-white text-[10.5px] font-semibold">{{ total_pending }}</span>
             </button>
             
@@ -123,7 +123,7 @@
                 id="station-pill-{{ cat.slug }}" 
                 class="station-pill px-2 py-1 text-slate-700 hover:text-slate-900 border-b-2 border-transparent font-bold shrink-0 flex items-center gap-1.5 transition text-xs cursor-pointer"
             >
-                <span>{% if CURRENT_LANG == 'en' %}{{ cat.name_en }}{% else %}{{ cat.name_ar }}{% endif %}</span>
+                <span>{% if CURRENT_LANG == 'ar' %}{{ cat.name_ar }}{% else %}{{ cat.name_en|default:cat.name_ar }}{% endif %}</span>
                 <span id="badge-station-{{ cat.slug }}" class="station-count-badge px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 text-[10.5px] font-semibold" style="display: none;">
                     0
                 </span>
@@ -156,7 +156,7 @@
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
                 <span id="standby-beacon-text">
-                    {% if CURRENT_LANG == 'en' %}Station Connected & Live • Awaiting Inbound Orders{% else %}المحطة متصلة وجاهزة • بانتظار الطلبات الفورية{% endif %}
+                    {{ "المحطة متصلة وجاهزة • بانتظار الطلبات الفورية"|t }}
                 </span>
             </div>
 
@@ -176,19 +176,19 @@
             <div class="flex flex-col items-center justify-center select-none mb-4">
                 <div class="flex items-baseline justify-center gap-1.5 sm:gap-2 font-mono tracking-tight font-black text-slate-900 dir-ltr" dir="ltr">
                     <span id="standby-clock-time" class="text-5xl sm:text-6xl md:text-7xl font-black tabular-nums tracking-tight drop-shadow-xs">{% now "h:i:s" %}</span>
-                    <span id="standby-clock-ampm" class="text-lg sm:text-xl md:text-2xl font-black text-emerald-600 uppercase">{% if CURRENT_LANG == 'en' %}{% now "A" %}{% else %}{% now "A" as initial_ampm %}{% if initial_ampm == "AM" %}ص{% else %}م{% endif %}{% endif %}</span>
+                    <span id="standby-clock-ampm" class="text-lg sm:text-xl md:text-2xl font-black text-emerald-600 uppercase">{% if CURRENT_LANG == 'ar' %}{% now "A" as initial_ampm %}{% if initial_ampm == "AM" %}ص{% else %}م{% endif %}{% else %}{% now "A" %}{% endif %}</span>
                 </div>
                 <div id="standby-clock-date" class="mt-2 text-xs sm:text-sm md:text-base font-bold text-slate-500 tracking-wider">
-                    {% if CURRENT_LANG == 'en' %}{% now "l, F j, Y" %}{% else %}{% now "l، j F Y" %}{% endif %}
+                    {% if CURRENT_LANG == 'ar' %}{% now "l، j F Y" %}{% else %}{% now "l, F j, Y" %}{% endif %}
                 </div>
             </div>
 
             <!-- 4. Standby Status Heading & Contextual Subtitle -->
             <h2 id="empty-state-title" class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-snug">
-                {% if CURRENT_LANG == 'en' %}Kitchen is Idle — All Orders Fulfilled{% else %}المطبخ هادئ الآن — جميع الطلبات منجزة{% endif %}
+                {{ "المطبخ هادئ الآن — جميع الطلبات منجزة"|t }}
             </h2>
             <p id="empty-state-desc" class="text-xs sm:text-sm text-slate-500 mt-2 max-w-md sm:max-w-lg mx-auto leading-relaxed">
-                {% if CURRENT_LANG == 'en' %}New order tickets from Cashier, Call Center, and Online delivery will appear here in real-time with instant audio alerts.{% else %}ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر أو تطبيقات التوصيل مصحوبة برنين التنبيه.{% endif %}
+                {{ "ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر أو تطبيقات التوصيل مصحوبة برنين التنبيه."|t }}
             </p>
 
         </div>
@@ -248,27 +248,36 @@
         return cookieValue;
     }
 
+    function tJs(key, fallback) {
+        if (CURRENT_LANG === 'ar') return key;
+        if (window.DiyafaI18n && window.DiyafaI18n.translate) {
+            const tr = window.DiyafaI18n.translate(key);
+            if (tr && tr !== key) return tr;
+        }
+        return fallback || key;
+    }
+
     // Helper: Category Translation Resolver
     function getStationDisplayName(catName) {
         if (!catName) return '';
-        if (CURRENT_LANG === 'en') {
-            return CATEGORY_TRANSLATIONS[catName] || catName;
+        if (CURRENT_LANG === 'ar') return catName;
+        if (window.DiyafaI18n && window.DiyafaI18n.translate) {
+            const tr = window.DiyafaI18n.translate(catName);
+            if (tr && tr !== catName) return tr;
         }
-        return catName;
+        return CATEGORY_TRANSLATIONS[catName] || catName;
     }
 
     // Helper: Order Type Translation Resolver
     function getOrderTypeDisplay(type, rawDisplay) {
-        if (CURRENT_LANG === 'en') {
-            const typeMap = {
-                'dine_in': 'Dine-In',
-                'takeaway': 'Takeaway',
-                'delivery': 'Delivery',
-                'call_center': 'Call Center',
-            };
-            return typeMap[type] || rawDisplay || type;
-        }
-        return rawDisplay || type;
+        const typeKeys = {
+            'dine_in': 'محلي',
+            'takeaway': 'سفري',
+            'delivery': 'توصيل',
+            'call_center': 'كول سنتر',
+        };
+        const arKey = typeKeys[type] || rawDisplay || type;
+        return tJs(arKey, rawDisplay || type);
     }
 
     // ----------------------------------------------------------------
@@ -295,30 +304,29 @@
                 timeEl.textContent = `${hoursStr}:${minutes}:${seconds}`;
             }
             if (ampmEl) {
-                if (CURRENT_LANG === 'en') {
-                    ampmEl.textContent = isPm ? 'PM' : 'AM';
-                } else {
+                if (CURRENT_LANG === 'ar') {
                     ampmEl.textContent = isPm ? 'م' : 'ص';
+                } else {
+                    ampmEl.textContent = isPm ? 'PM' : 'AM';
                 }
             }
 
             if (dateEl) {
                 try {
-                    if (CURRENT_LANG === 'en') {
-                        dateEl.textContent = now.toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        });
-                    } else {
-                        dateEl.textContent = now.toLocaleDateString('ar-u-nu-latn', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        });
-                    }
+                    const localeMap = {
+                        'ar': 'ar-u-nu-latn',
+                        'en': 'en-US',
+                        'fr': 'fr-FR',
+                        'tr': 'tr-TR',
+                        'de': 'de-DE'
+                    };
+                    const activeLocale = localeMap[CURRENT_LANG] || (CURRENT_LANG === 'ar' ? 'ar-u-nu-latn' : 'en-US');
+                    dateEl.textContent = now.toLocaleDateString(activeLocale, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
                 } catch (e) {
                     dateEl.textContent = now.toDateString();
                 }
@@ -388,9 +396,9 @@
         updateSoundUI();
         if (isSoundEnabled) {
             playKitchenBell();
-            showKdsToast(CURRENT_LANG === 'en' ? 'Kitchen alert bell enabled 🔔' : 'تم تفعيل جرس تنبيه المطبخ 🔔');
+            showKdsToast(tJs('تم تفعيل جرس تنبيه المطبخ 🔔', 'Kitchen alert bell enabled 🔔'));
         } else {
-            showKdsToast(CURRENT_LANG === 'en' ? 'Kitchen alert bell muted 🔕' : 'تم كتم صوت التنبيه 🔕');
+            showKdsToast(tJs('تم كتم صوت التنبيه 🔕', 'Kitchen alert bell muted 🔕'));
         }
     }
 
@@ -399,10 +407,10 @@
         const btn = document.getElementById('btn-sound-toggle');
         if (isSoundEnabled) {
             if (icon) icon.textContent = '🔔';
-            if (btn) btn.title = CURRENT_LANG === 'en' ? 'Kitchen alert bell: Active (Click to mute)' : 'جرس تنبيه المطبخ: مفعّل (انقر للكتم)';
+            if (btn) btn.title = tJs('جرس تنبيه المطبخ: مفعّل (انقر للكتم)', 'Kitchen alert bell: Active (Click to mute)');
         } else {
             if (icon) icon.textContent = '🔕';
-            if (btn) btn.title = CURRENT_LANG === 'en' ? 'Kitchen alert bell: Muted (Click to activate)' : 'جرس تنبيه المطبخ: مكتوم (انقر للتفعيل)';
+            if (btn) btn.title = tJs('جرس تنبيه المطبخ: مكتوم (انقر للتفعيل)', 'Kitchen alert bell: Muted (Click to activate)');
         }
     }
 
@@ -457,9 +465,7 @@
         sseEventSource.addEventListener('order_cancelled', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
-                const msg = CURRENT_LANG === 'en' 
-                    ? `Order #${orderData.order_number} was cancelled`
-                    : `تم إلغاء الطلب #${orderData.order_number}`;
+                const msg = getOrderActionMsg('cancelled', orderData.order_number);
                 handleOrderRemoved(orderData.id, msg);
             } catch (err) {
                 console.error("Failed to parse order_cancelled payload:", err);
@@ -469,6 +475,40 @@
         sseEventSource.onerror = (err) => {
             updateSSEStatus('disconnected');
         };
+    }
+
+    function getOrderActionMsg(type, orderNumber, count) {
+        if (type === 'cancelled') {
+            const map = {
+                ar: `تم إلغاء الطلب #${orderNumber}`,
+                en: `Order #${orderNumber} was cancelled`,
+                fr: `La commande #${orderNumber} a été annulée`,
+                tr: `Sipariş #${orderNumber} iptal edildi`,
+                de: `Bestellung #${orderNumber} wurde storniert`
+            };
+            return map[CURRENT_LANG] || map.en;
+        }
+        if (type === 'newOrder') {
+            const map = {
+                ar: `وصل طلب جديد #${orderNumber} (${count} أصناف) 🛎️`,
+                en: `New order #${orderNumber} received (${count} items) 🛎️`,
+                fr: `Nouvelle commande #${orderNumber} reçue (${count} articles) 🛎️`,
+                tr: `Yeni sipariş #${orderNumber} alındı (${count} ürün) 🛎️`,
+                de: `Neue Bestellung #${orderNumber} eingegangen (${count} Artikel) 🛎️`
+            };
+            return map[CURRENT_LANG] || map.en;
+        }
+        if (type === 'fulfilled') {
+            const map = {
+                ar: `تم إنجاز الطلب #${orderNumber}`,
+                en: `Order #${orderNumber} fulfilled`,
+                fr: `Commande #${orderNumber} terminée`,
+                tr: `Sipariş #${orderNumber} tamamlandı`,
+                de: `Bestellung #${orderNumber} abgeschlossen`
+            };
+            return map[CURRENT_LANG] || map.en;
+        }
+        return '';
     }
 
     function updateSSEStatus(status) {
@@ -481,7 +521,7 @@
         if (status === 'connected') {
             if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse';
             if (text) {
-                text.textContent = CURRENT_LANG === 'en' ? 'Live 0ms' : 'مباشر 0ms';
+                text.textContent = tJs('مباشر 0ms', 'Live 0ms');
                 text.className = 'text-emerald-900 font-bold';
             }
             if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300 text-[11px] font-semibold text-emerald-900 transition';
@@ -494,14 +534,14 @@
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     <span id="standby-beacon-text">
-                        ${CURRENT_LANG === 'en' ? 'Station Connected & Live • Awaiting Inbound Orders' : 'المحطة متصلة وجاهزة • بانتظار الطلبات الفورية'}
+                        ${tJs('المحطة متصلة وجاهزة • بانتظار الطلبات الفورية', 'Station Connected & Live • Awaiting Inbound Orders')}
                     </span>
                 `;
             }
         } else if (status === 'connecting') {
             if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse';
             if (text) {
-                text.textContent = CURRENT_LANG === 'en' ? 'Connecting...' : 'جاري الاتصال...';
+                text.textContent = tJs('جاري الاتصال...', 'Connecting...');
                 text.className = 'text-amber-900 font-bold';
             }
             if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-[11px] font-semibold text-amber-900 transition';
@@ -514,14 +554,14 @@
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                     </span>
                     <span id="standby-beacon-text">
-                        ${CURRENT_LANG === 'en' ? 'Connecting to Live Stream...' : 'جاري الاتصال بالبث المباشر...'}
+                        ${tJs('جاري الاتصال بالبث المباشر...', 'Connecting to Live Stream...')}
                     </span>
                 `;
             }
         } else {
             if (dot) dot.className = 'h-1.5 w-1.5 rounded-full bg-rose-500';
             if (text) {
-                text.textContent = CURRENT_LANG === 'en' ? 'Reconnecting...' : 'إعادة الربط...';
+                text.textContent = tJs('إعادة الربط...', 'Reconnecting...');
                 text.className = 'text-rose-900 font-bold';
             }
             if (pill) pill.className = 'flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-100 border border-rose-300 text-[11px] font-semibold text-rose-900 transition';
@@ -533,7 +573,7 @@
                         <span class="h-2 w-2 rounded-full bg-rose-500"></span>
                     </span>
                     <span id="standby-beacon-text">
-                        ${CURRENT_LANG === 'en' ? 'Reconnecting to Live Stream...' : 'جاري إعادة الربط بالبث المباشر...'}
+                        ${tJs('جاري إعادة الربط بالبث المباشر...', 'Reconnecting to Live Stream...')}
                     </span>
                 `;
             }
@@ -550,9 +590,7 @@
         } else {
             activeOrders.unshift(newOrder);
             playKitchenBell();
-            const toastMsg = CURRENT_LANG === 'en'
-                ? `New order #${newOrder.order_number} received (${newOrder.total_items_count} items) 🛎️`
-                : `وصل طلب جديد #${newOrder.order_number} (${newOrder.total_items_count} أصناف) 🛎️`;
+            const toastMsg = getOrderActionMsg('newOrder', newOrder.order_number, newOrder.total_items_count);
             showKdsToast(toastMsg, 'success');
         }
         recalculateStationCounts();
@@ -561,9 +599,7 @@
 
     function handleOrderStatusChanged(updatedOrder) {
         if (updatedOrder.status === 'ready' || updatedOrder.status === 'delivered' || updatedOrder.status === 'cancelled') {
-            const msg = CURRENT_LANG === 'en'
-                ? `Order #${updatedOrder.order_number} fulfilled`
-                : `تم إنجاز الطلب #${updatedOrder.order_number}`;
+            const msg = getOrderActionMsg('fulfilled', updatedOrder.order_number);
             handleOrderRemoved(updatedOrder.id, msg);
         } else {
             const idx = activeOrders.findIndex(o => o.id === updatedOrder.id);
@@ -656,15 +692,15 @@
                 btn.classList.add('bg-violet-600', 'text-white', 'border-violet-600');
                 btn.classList.remove('bg-white', 'text-slate-800', 'border-slate-200/70');
             }
-            if (txt) txt.textContent = CURRENT_LANG === 'en' ? 'Hide Completed' : 'إخفاء المكتملة';
-            showKdsToast(CURRENT_LANG === 'en' ? 'Showing completed station orders' : 'تم إظهار الطلبات المكتملة في هذا القسم');
+            if (txt) txt.textContent = tJs('إخفاء المكتملة', 'Hide Completed');
+            showKdsToast(tJs('تم إظهار الطلبات المكتملة في هذا القسم', 'Showing completed station orders'));
         } else {
             if (btn) {
                 btn.classList.remove('bg-violet-600', 'text-white', 'border-violet-600');
                 btn.classList.add('bg-white', 'text-slate-800', 'border-slate-200/70');
             }
-            if (txt) txt.textContent = CURRENT_LANG === 'en' ? 'Completed' : 'المكتملة';
-            showKdsToast(CURRENT_LANG === 'en' ? 'Hiding completed station orders' : 'تم إخفاء الطلبات المكتملة في هذا القسم');
+            if (txt) txt.textContent = tJs('المكتملة', 'Completed');
+            showKdsToast(tJs('تم إخفاء الطلبات المكتملة في هذا القسم', 'Hiding completed station orders'));
         }
         renderOrdersGrid();
     }
@@ -674,7 +710,7 @@
         activeOrders.forEach(o => {
             const catMap = {};
             (o.items || []).forEach(it => {
-                const cat = it.category || (CURRENT_LANG === 'en' ? 'General' : 'عام');
+                const cat = it.category || tJs('عام', 'General');
                 if (!catMap[cat]) catMap[cat] = [];
                 catMap[cat].push(it);
             });
@@ -770,38 +806,48 @@
                 emptyState.style.display = 'flex';
 
                 if (searchQuery) {
-                    if (emptyTitle) {
-                        emptyTitle.textContent = CURRENT_LANG === 'en'
-                            ? `No orders matching "${searchQuery}"`
-                            : `لا توجد طلبات مطابقة لـ "${searchQuery}"`;
-                    }
-                    if (emptyDesc) {
-                        emptyDesc.textContent = CURRENT_LANG === 'en'
-                            ? 'Please check the order number or customer name and try again.'
-                            : 'يرجى التحقق من رقم الطلب أو اسم العميل والمحاولة مجدداً.';
-                    }
+                    const noMatchMsg = {
+                        ar: `لا توجد طلبات مطابقة لـ "${searchQuery}"`,
+                        en: `No orders matching "${searchQuery}"`,
+                        fr: `Aucune commande correspondant à "${searchQuery}"`,
+                        tr: `"${searchQuery}" ile eşleşen sipariş yok`,
+                        de: `Keine passenden Bestellungen für "${searchQuery}"`
+                    };
+                    if (emptyTitle) emptyTitle.textContent = noMatchMsg[CURRENT_LANG] || noMatchMsg.en;
+
+                    const checkMsg = {
+                        ar: 'يرجى التحقق من رقم الطلب أو اسم العميل والمحاولة مجدداً.',
+                        en: 'Please check the order number or customer name and try again.',
+                        fr: 'Veuillez vérifier le numéro de commande ou le nom du client et réessayer.',
+                        tr: 'Lütfen sipariş numarasını veya müşteri adını kontrol edip tekrar deneyin.',
+                        de: 'Bitte überprüfen Sie die Bestellnummer oder den Kundennamen und versuchen Sie es erneut.'
+                    };
+                    if (emptyDesc) emptyDesc.textContent = checkMsg[CURRENT_LANG] || checkMsg.en;
                 } else if (activeStationFilter !== 'all') {
                     const stationNameDisplay = getStationDisplayName(activeStationFilter);
-                    if (emptyTitle) {
-                        emptyTitle.textContent = CURRENT_LANG === 'en'
-                            ? `${stationNameDisplay} Station is Idle — No Pending Orders`
-                            : `قسم (${activeStationFilter}) هادئ الآن — لا توجد طلبات قيد التحضير`;
-                    }
-                    if (emptyDesc) {
-                        emptyDesc.textContent = CURRENT_LANG === 'en'
-                            ? `Tickets for ${stationNameDisplay} items will appear here in real-time once placed by Cashier or Tables.`
-                            : `ستظهر تذاكر أصناف (${activeStationFilter}) هنا فورياً بمجرد طلبها من الكاشير أو الطاولات.`;
-                    }
+                    const stationIdleMsg = {
+                        ar: `قسم (${activeStationFilter}) هادئ الآن — لا توجد طلبات قيد التحضير`,
+                        en: `${stationNameDisplay} Station is Idle — No Pending Orders`,
+                        fr: `La section ${stationNameDisplay} est inactive — Aucune commande en attente`,
+                        tr: `${stationNameDisplay} İstasyonu Sakin — Bekleyen Sipariş Yok`,
+                        de: `Station ${stationNameDisplay} ist im Ruhezustand — Keine ausstehenden Bestellungen`
+                    };
+                    if (emptyTitle) emptyTitle.textContent = stationIdleMsg[CURRENT_LANG] || stationIdleMsg.en;
+
+                    const stationTicketsMsg = {
+                        ar: `ستظهر تذاكر أصناف (${activeStationFilter}) هنا فورياً بمجرد طلبها من الكاشير أو الطاولات.`,
+                        en: `Tickets for ${stationNameDisplay} items will appear here in real-time once placed by Cashier or Tables.`,
+                        fr: `Les tickets pour les articles ${stationNameDisplay} apparaîtront ici dès leur commande par la caisse ou les tables.`,
+                        tr: `${stationNameDisplay} ürünleri için biletler, Kasiyer veya Masalar tarafından sipariş edildiğinde anında burada görünecektir.`,
+                        de: `Tickets für ${stationNameDisplay}-Artikel erscheinen hier sofort, sobald sie von Kasse oder Tischen aufgegeben werden.`
+                    };
+                    if (emptyDesc) emptyDesc.textContent = stationTicketsMsg[CURRENT_LANG] || stationTicketsMsg.en;
                 } else {
                     if (emptyTitle) {
-                        emptyTitle.textContent = CURRENT_LANG === 'en'
-                            ? 'Kitchen is Idle — All Orders Fulfilled'
-                            : 'المطبخ هادئ الآن — جميع الطلبات منجزة';
+                        emptyTitle.textContent = tJs('المطبخ هادئ الآن — جميع الطلبات منجزة', 'Kitchen is Idle — All Orders Fulfilled');
                     }
                     if (emptyDesc) {
-                        emptyDesc.textContent = CURRENT_LANG === 'en'
-                            ? 'New order tickets from Cashier, Call Center, and Online delivery will appear here in real-time with instant audio alerts.'
-                            : 'ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر أو تطبيقات التوصيل مصحوبة برنين التنبيه.';
+                        emptyDesc.textContent = tJs('ستظهر تذاكر الطلبات الجديدة هنا فورياً بمجرد تسجيلها من الكاشير أو الكول سنتر أو تطبيقات التوصيل مصحوبة برنين التنبيه.', 'New order tickets from Cashier, Call Center, and Online delivery will appear here in real-time with instant audio alerts.');
                     }
                 }
             }
@@ -908,19 +954,26 @@
                     <div class="flex items-center gap-1.5">
                         <div class="flex-1 py-1.5 px-2 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-semibold text-center flex items-center justify-center gap-1">
                             <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>${CURRENT_LANG === 'en' ? 'Station Done ✓' : 'مكتمل بالقسم ✓'}</span>
+                            <span>${tJs('مكتمل بالقسم ✓', 'Station Done ✓')}</span>
                         </div>
                         <button 
                             type="button" 
                             onclick="undoStationCompletion(${order.id}, '${activeStationFilter}')" 
                             class="px-2 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200/70 text-slate-800 text-xs font-bold transition cursor-pointer"
-                            title="${CURRENT_LANG === 'en' ? 'Undo' : 'تراجع'}"
+                            title="${tJs('تراجع', 'Undo')}"
                         >
                             ↩
                         </button>
                     </div>
                 `;
             } else {
+                const readyLabel = CURRENT_LANG === 'ar' ? `جاهز (${activeStationFilter}) ✓` : (
+                    CURRENT_LANG === 'fr' ? `Prêt (${stationDisplayName}) ✓` : (
+                        CURRENT_LANG === 'tr' ? `Hazır (${stationDisplayName}) ✓` : (
+                            CURRENT_LANG === 'de' ? `Bereit (${stationDisplayName}) ✓` : `Ready (${stationDisplayName}) ✓`
+                        )
+                    )
+                );
                 actionBtnHtml = `
                     <button 
                         id="btn-station-${order.id}" 
@@ -929,7 +982,7 @@
                         class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        <span>${CURRENT_LANG === 'en' ? `Ready (${stationDisplayName}) ✓` : `جاهز (${activeStationFilter}) ✓`}</span>
+                        <span>${readyLabel}</span>
                     </button>
                 `;
             }
@@ -943,7 +996,7 @@
                         class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-                        <span>${CURRENT_LANG === 'en' ? 'Start Cooking' : 'بدء التحضير'}</span>
+                        <span>${tJs('بدء التحضير', 'Start Cooking')}</span>
                     </button>
                 `;
             } else if (order.status === 'preparing') {
@@ -955,20 +1008,19 @@
                         class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer active:scale-95"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>${CURRENT_LANG === 'en' ? 'Ready for Pickup 🚀' : 'جاهز للتسليم 🚀'}</span>
+                        <span>${tJs('جاهز للتسليم 🚀', 'Ready for Pickup 🚀')}</span>
                     </button>
                 `;
             }
         }
 
-        const customerDisplay = (order.customer_name === 'عميل نقدي' && CURRENT_LANG === 'en') 
-            ? 'Walk-in Customer' 
+        const customerDisplay = (order.customer_name === 'عميل نقدي') 
+            ? tJs('عميل نقدي', 'Walk-in Customer') 
             : (order.customer_name || '');
         const orderTypeBadge = getOrderTypeDisplay(order.order_type, order.order_type_display);
-        const timerSuffix = CURRENT_LANG === 'en' ? 'm' : 'د';
-        const itemsLabel = isStationMode
-            ? (CURRENT_LANG === 'en' ? `Items (${totalItemsInView}):` : `أصناف (${totalItemsInView}):`)
-            : (CURRENT_LANG === 'en' ? `Items (${totalItemsInView}):` : `الأصناف (${totalItemsInView}):`);
+        const timerSuffix = CURRENT_LANG === 'ar' ? 'د' : (CURRENT_LANG === 'tr' ? 'dk' : (CURRENT_LANG === 'fr' ? 'min' : 'm'));
+        const itemsPrefix = isStationMode ? tJs('أصناف', 'Items') : tJs('الأصناف', 'Items');
+        const itemsLabel = `${itemsPrefix} (${totalItemsInView}):`;
 
         return `
             <div id="order-card-${order.id}" class="rounded-xl bg-white border border-slate-200/70 overflow-hidden shadow-xs flex flex-col justify-between ${topBorderClass} ${glowClass}">
@@ -985,8 +1037,8 @@
                                 ${isStationAllDone ? '<span class="px-1 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">✓</span>' : ''}
                             ` : `
                                 ${isPreparing 
-                                    ? `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">${CURRENT_LANG === 'en' ? 'Cooking' : 'طهي'}</span>` 
-                                    : `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">${CURRENT_LANG === 'en' ? 'New' : 'جديد'}</span>`}
+                                    ? `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">${tJs('طهي', 'Cooking')}</span>` 
+                                    : `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">${tJs('جديد', 'New')}</span>`}
                             `}
                         </div>
                         <span class="block text-[11px] font-bold text-slate-700 truncate mt-0.5">
@@ -1101,9 +1153,14 @@
                 body: JSON.stringify({ status: 'ready' })
             }).catch(err => console.error("Error updating order to ready:", err));
 
-            const toastMsg = CURRENT_LANG === 'en'
-                ? `All stations completed for order #${order.order_number}! Ready for pickup 🚀`
-                : `تم اكتمال كافة أقسام الطلب #${order.order_number}! جاهز للتسليم 🚀`;
+            const allDoneMap = {
+                ar: `تم اكتمال كافة أقسام الطلب #${order.order_number}! جاهز للتسليم 🚀`,
+                en: `All stations completed for order #${order.order_number}! Ready for pickup 🚀`,
+                fr: `Toutes les sections sont terminées pour la commande #${order.order_number}! Prête à être récupérée 🚀`,
+                tr: `Sipariş #${order.order_number} için tüm istasyonlar tamamlandı! Teslime hazır 🚀`,
+                de: `Alle Stationen für Bestellung #${order.order_number} abgeschlossen! Abholbereit 🚀`
+            };
+            const toastMsg = allDoneMap[CURRENT_LANG] || allDoneMap.en;
             showKdsToast(toastMsg, 'success');
 
             setTimeout(() => {
@@ -1124,9 +1181,14 @@
                 }).catch(err => console.error("Error updating status to preparing:", err));
             }
 
-            const toastMsg = CURRENT_LANG === 'en'
-                ? `Station (${stationNameDisplay}) items completed for order #${order.order_number} ✓`
-                : `تم إنجاز أصناف قسم (${stationName}) للطلب #${order.order_number} بنجاح ✓`;
+            const stationDoneMap = {
+                ar: `تم إنجاز أصناف قسم (${stationName}) للطلب #${order.order_number} بنجاح ✓`,
+                en: `Station (${stationNameDisplay}) items completed for order #${order.order_number} ✓`,
+                fr: `Articles de la section (${stationNameDisplay}) complétés pour la commande #${order.order_number} ✓`,
+                tr: `Sipariş #${order.order_number} için (${stationNameDisplay}) istasyon ürünleri tamamlandı ✓`,
+                de: `Station (${stationNameDisplay}) Artikel für Bestellung #${order.order_number} abgeschlossen ✓`
+            };
+            const toastMsg = stationDoneMap[CURRENT_LANG] || stationDoneMap.en;
             showKdsToast(toastMsg, 'success');
 
             setTimeout(() => {
@@ -1147,16 +1209,21 @@
         recalculateStationCounts();
         renderOrdersGrid();
         const stationNameDisplay = getStationDisplayName(stationName);
-        const toastMsg = CURRENT_LANG === 'en'
-            ? `Restored (${stationNameDisplay}) items for order #${order.order_number}`
-            : `تم إعادة أصناف (${stationName}) للطلب #${order.order_number}`;
+        const restoreMap = {
+            ar: `تم إعادة أصناف (${stationName}) للطلب #${order.order_number}`,
+            en: `Restored (${stationNameDisplay}) items for order #${order.order_number}`,
+            fr: `Articles de (${stationNameDisplay}) restaurés pour la commande #${order.order_number}`,
+            tr: `Sipariş #${order.order_number} için (${stationNameDisplay}) ürünleri geri yüklendi`,
+            de: `Artikel von (${stationNameDisplay}) für Bestellung #${order.order_number} wiederhergestellt`
+        };
+        const toastMsg = restoreMap[CURRENT_LANG] || restoreMap.en;
         showKdsToast(toastMsg);
     }
 
     async function updateOrderStatusInPlace(orderId, nextStatus) {
         initAudio();
         const btn = document.getElementById(`btn-action-${orderId}`);
-        const processingText = CURRENT_LANG === 'en' ? 'Processing...' : 'جاري المعالجة...';
+        const processingText = tJs('جاري المعالجة...', 'Processing...');
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>${processingText}</span>`;
@@ -1174,9 +1241,7 @@
             const data = await res.json();
             if (data.ok) {
                 if (nextStatus === 'ready') {
-                    const readyMsg = CURRENT_LANG === 'en' 
-                        ? 'Meal prepared successfully! Ready for pickup 🚀' 
-                        : 'تم تجهيز الوجبة بنجاح! جاهزة للتسليم 🚀';
+                    const readyMsg = tJs('تم تجهيز الوجبة بنجاح! جاهزة للتسليم 🚀', 'Meal prepared successfully! Ready for pickup 🚀');
                     handleOrderRemoved(orderId, readyMsg);
                 } else {
                     const idx = activeOrders.findIndex(o => o.id === orderId);
@@ -1184,18 +1249,16 @@
                         activeOrders[idx].status = nextStatus;
                         renderOrdersGrid();
                     }
-                    const cookingMsg = CURRENT_LANG === 'en'
-                        ? 'Cooking started in kitchen 🔥'
-                        : 'بدء تجهيز الطلب في المطبخ 🔥';
+                    const cookingMsg = tJs('بدء تجهيز الطلب في المطبخ 🔥', 'Cooking started in kitchen 🔥');
                     showKdsToast(cookingMsg);
                 }
             } else {
-                showKdsToast(CURRENT_LANG === 'en' ? 'Failed to update order status' : 'تعذر تحديث حالة الطلب', 'error');
+                showKdsToast(tJs('تعذر تحديث حالة الطلب', 'Failed to update order status'), 'error');
                 if (btn) btn.disabled = false;
             }
         } catch (e) {
             console.error("Order status update failed:", e);
-            showKdsToast(CURRENT_LANG === 'en' ? 'Server connection error' : 'خطأ في الاتصال بالخادم', 'error');
+            showKdsToast(tJs('خطأ في الاتصال بالخادم', 'Server connection error'), 'error');
             if (btn) btn.disabled = false;
         }
     }
@@ -1231,8 +1294,8 @@
         const btn = document.getElementById('btn-fullscreen-toggle');
         if (btn) {
             btn.title = isFull 
-                ? (CURRENT_LANG === 'en' ? 'Exit Fullscreen' : 'خروج من ملء الشاشة')
-                : (CURRENT_LANG === 'en' ? 'Fullscreen' : 'ملء الشاشة');
+                ? tJs('خروج من ملء الشاشة', 'Exit Fullscreen')
+                : tJs('ملء الشاشة', 'Fullscreen');
         }
         if (icon) {
             if (isFull) {
@@ -1255,7 +1318,7 @@
                     activeOrders = data.orders;
                     recalculateStationCounts();
                     renderOrdersGrid();
-                    showKdsToast(CURRENT_LANG === 'en' ? 'Kitchen display refreshed successfully' : 'تم تحديث شاشة المطبخ بنجاح');
+                    showKdsToast(tJs('تم تحديث شاشة المطبخ بنجاح', 'Kitchen display refreshed successfully'));
                 }
             })
             .catch(err => console.error(err))

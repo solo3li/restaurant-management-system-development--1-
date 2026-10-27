@@ -27,8 +27,16 @@ def run_tests():
 
     # 2. I18N Catalog check
     print("\n>>> 2. I18N Catalog Data Structure & Backward Compatibility")
-    assert len(I18N_CATALOG) >= 1190, f"Catalog smaller than expected: {len(I18N_CATALOG)}"
+    assert len(I18N_CATALOG) >= 2700, f"Catalog smaller than expected: {len(I18N_CATALOG)}"
     
+    # Verify zero fake translations across all 2700+ entries
+    bad_fake_keys = [k for k, v in I18N_CATALOG.items() if v.translations.get('en') == k and any('\u0600' <= c <= '\u06FF' for c in k)]
+    assert len(bad_fake_keys) == 0, f"Found {len(bad_fake_keys)} fake translations where en == ar"
+
+    for lang in ['en', 'fr', 'tr', 'de']:
+        bad_residue = [k for k, v in I18N_CATALOG.items() if any('\u0600' <= c <= '\u06FF' for c in v.translations.get(lang, ''))]
+        assert len(bad_residue) == 0, f"Found {len(bad_residue)} Arabic residue strings in {lang} translations"
+
     # Test key backward compatibility: str equality with English
     sample_key = "المطبخ هادئ الآن — جميع الطلبات منجزة"
     assert sample_key in I18N_CATALOG, "Sample key missing in catalog"
@@ -47,7 +55,7 @@ def run_tests():
     assert get_translation(sample_key, 'fr') == "La cuisine est calme — Toutes les commandes sont prêtes"
     assert get_translation(sample_key, 'tr') == "Mutfak sakin — Tüm siparişler tamamlandı"
     assert get_translation(sample_key, 'de') == "Die Küche ist ruhig — Alle Bestellungen abgeschlossen"
-    print("  ✔ PASS: I18nCatalogDict provides backwards-compatible str equality and 5-language dictionary")
+    print(f"  ✔ PASS: I18nCatalogDict contains {len(I18N_CATALOG)} verified entries with 0 fake translations and 100% backward compatibility")
 
     # 3. Context Processor check
     print("\n>>> 3. Context Processor Resolution (i18n_context)")
@@ -191,24 +199,19 @@ def run_tests():
 
     # 6. Check Base Template Dropdowns
     print("\n>>> 6. Base Template Multi-Language Switchers")
-    User = get_user_model()
-    admin_user = User.objects.filter(is_superuser=True).first()
-    if admin_user:
-        client.force_login(admin_user)
-        res_base = client.get('/pos/?lang=fr')
-        if res_base.status_code == 200:
-            content_base = res_base.content.decode('utf-8')
-            assert '/set-language/fr/' in content_base
-            assert '/set-language/tr/' in content_base
-            assert '/set-language/de/' in content_base
-            assert 'sidebar-lang-dropdown' in content_base
-            assert 'mobile-lang-fab-dropdown' in content_base
-            assert 'desktop-topbar-lang-dropdown' in content_base, "Desktop topbar lang dropdown missing in base template"
-            print("  ✔ PASS: Base template sidebar, desktop topbar, and mobile FAB render 5-language switcher")
-        else:
-            print(f"  ⚠ NOTE: /pos/ returned {res_base.status_code}")
-    else:
-        print("  ⚠ NOTE: No superuser found to test base template directly, checked via static inspection")
+    auth_res = client.post('/login/', {'username': 'admin', 'password': 'admin123'})
+    assert auth_res.status_code == 302, f"Admin login failed: {auth_res.status_code}"
+    
+    res_base = client.get('/pos/?lang=fr')
+    assert res_base.status_code == 200, f"Expected 200 on /pos/?lang=fr, got {res_base.status_code}"
+    content_base = res_base.content.decode('utf-8')
+    assert '/set-language/fr/' in content_base
+    assert '/set-language/tr/' in content_base
+    assert '/set-language/de/' in content_base
+    assert 'sidebar-lang-dropdown' in content_base
+    assert 'mobile-lang-fab-dropdown' in content_base
+    assert 'desktop-topbar-lang-dropdown' in content_base, "Desktop topbar lang dropdown missing in base template"
+    print("  ✔ PASS: Base template sidebar, desktop topbar, and mobile FAB render 5-language switcher")
 
     # 7. Static Assets Validation
     print("\n>>> 7. Static Catalog and Client Engine Files")
@@ -216,7 +219,7 @@ def run_tests():
     assert os.path.exists(catalog_path), "diyafa_i18n_catalog.json missing"
     with open(catalog_path, 'r', encoding='utf-8') as f:
         json_data = json.load(f)
-    assert len(json_data) >= 1190, f"JSON catalog has only {len(json_data)} keys"
+    assert len(json_data) >= 2700, f"JSON catalog has only {len(json_data)} keys"
     first_item = next(iter(json_data.values()))
     for code in ['ar', 'en', 'fr', 'tr', 'de']:
         assert code in first_item, f"JSON catalog item missing '{code}' field"
@@ -229,6 +232,40 @@ def run_tests():
     assert "['en', 'fr', 'tr', 'de']" in engine_content
     assert "5-Language" in engine_content
     print("  ✔ PASS: diyafa_i18n_engine.js loaded with 5-language support")
+
+    # 8. Authenticated Internal Views Multi-Language Coverage
+    print("\n>>> 8. Authenticated Internal Views Multi-Language Coverage (ar, en, fr, tr, de)")
+    internal_views = [
+        '/pos/',
+        '/kitchen/',
+        '/delivery/',
+        '/call-center/',
+        '/inventory/',
+        '/branches/',
+        '/employees/',
+        '/dashboard/?view=tenant',
+        '/subscription/',
+    ]
+    
+    test_languages = [
+        ('ar', 'rtl'),
+        ('en', 'ltr'),
+        ('fr', 'ltr'),
+        ('tr', 'ltr'),
+        ('de', 'ltr'),
+    ]
+
+    for view_url in internal_views:
+        sep = '&' if '?' in view_url else '?'
+        for lang_code, expected_dir in test_languages:
+            target_url = f"{view_url}{sep}lang={lang_code}"
+            res = client.get(target_url)
+            assert res.status_code == 200, f"Failed {target_url}: status {res.status_code}"
+            page_content = res.content.decode('utf-8')
+            assert f'lang="{lang_code}"' in page_content, f"{target_url} missing lang=\"{lang_code}\""
+            assert f'dir="{expected_dir}"' in page_content, f"{target_url} missing dir=\"{expected_dir}\""
+
+    print(f"  ✔ PASS: All {len(internal_views)} internal views verified 100% functional across all 5 languages (ar, en, fr, tr, de)")
 
     print("\n" + "=" * 70)
     print("ALL 5-LANGUAGE TESTS PASSED SUCCESSFULLY! 100% VERIFIED.")

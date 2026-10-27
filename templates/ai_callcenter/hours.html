@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}مواعيد العمل والاعتذار — {{ tenant.name }}{% endblock %}
+{% block title %}{{ "مواعيد العمل والاعتذار"|t }} — {{ tenant.name }}{% endblock %}
 
 {% block content %}
 {% include "ai_callcenter/_nav_tabs.html" %}
@@ -23,22 +23,22 @@
             <div>
                 <div class="text-xs font-bold {% if not hours.is_enabled %}text-slate-800{% elif hours.is_open_now %}text-emerald-900{% else %}text-rose-900{% endif %}">
                     {% if not hours.is_enabled %}
-                    الرقابة على مواعيد العمل غير مفعلة (استقبال مكالمات 24/7)
+                    {{ "الرقابة على مواعيد العمل غير مفعلة (استقبال مكالمات 24/7"|t }})
                     {% elif hours.is_open_now %}
-                    المطعم مفتوح حالياً لاستقبال مكالمات العملاء والطلبات
+                    {{ "المطعم مفتوح حالياً لاستقبال مكالمات العملاء والطلبات"|t }}
                     {% else %}
-                    المطعم مغلق حالياً — يقوم المساعد الصوتي بالاعتذار تلقائياً وإنهاء المكالمة
+                    {{ "المطعم مغلق حالياً"|t }} — {{ "يقوم المساعد الصوتي بالاعتذار تلقائياً وإنهاء المكالمة"|t }}
                     {% endif %}
                 </div>
                 <div class="text-[10px] text-slate-500 mt-0.5">
-                    المنطقة الزمنية: <span class="font-mono text-blue-600 font-bold">{{ hours.timezone|default:"Africa/Cairo" }}</span>
+                    {{ "المنطقة الزمنية"|t }}: <span class="font-mono text-blue-600 font-bold">{{ hours.timezone|default:"Africa/Cairo" }}</span>
                 </div>
             </div>
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
             <span class="text-[11px] font-mono px-2 py-0.5 rounded-md border border-slate-200/70 bg-white shadow-xs">
-                {% if hours.is_enabled %}<strong class="text-blue-600">الجدول مفعل</strong>{% else %}<strong>24 ساعة</strong>{% endif %}
+                {% if hours.is_enabled %}<strong class="text-blue-600">{{ "الجدول مفعل"|t }}</strong>{% else %}<strong>{{ "24 ساعة"|t }}</strong>{% endif %}
             </span>
         </div>
     </div>
@@ -50,14 +50,14 @@
             <div>
                 <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-blue-600 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>جدول ساعات العمل والرد الذكي خارج الدوام</span>
+                    <span>{{ "جدول ساعات العمل والرد الذكي خارج الدوام"|t }}</span>
                 </h3>
             </div>
             
             <div class="flex items-center gap-2">
                 <label class="flex items-center gap-1.5 text-xs font-semibold text-violet-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-violet-200/50 cursor-pointer hover:bg-violet-50 transition">
                     <input type="checkbox" id="is_enabled_toggle" name="is_enabled" {% if hours.is_enabled %}checked{% endif %} onchange="toggleScheduleVisuals(this.checked)" class="rounded border-slate-200/70 text-blue-600 w-3.5 h-3.5 cursor-pointer">
-                    <span>تفعيل أوقات العمل</span>
+                    <span>{{ "تفعيل أوقات العمل"|t }}</span>
                 </label>
             </div>
         </div>
@@ -66,19 +66,19 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
             <!-- Timezone selector -->
             <div class="bg-slate-50 border border-slate-200/70 rounded-lg p-2.5 space-y-1.5">
-                <label class="block text-[11px] font-bold text-slate-900">المنطقة الزمنية (Timezone)</label>
+                <label class="block text-[11px] font-bold text-slate-900">{{ "المنطقة الزمنية (Timezone"|t }})</label>
                 <select id="hours_timezone" name="timezone" class="w-full h-7 px-2 text-xs rounded-lg bg-white border border-slate-200/70 font-medium">
-                    <option value="Africa/Cairo" {% if hours.timezone == 'Africa/Cairo' or not hours.timezone %}selected{% endif %}>🇪🇬 مصر / القاهرة (GMT+2)</option>
-                    <option value="Asia/Riyadh" {% if hours.timezone == 'Asia/Riyadh' %}selected{% endif %}>🇸🇦 السعودية / الرياض (GMT+3)</option>
-                    <option value="Asia/Dubai" {% if hours.timezone == 'Asia/Dubai' %}selected{% endif %}>🇦🇪 الإمارات / دبي (GMT+4)</option>
-                    <option value="Asia/Kuwait" {% if hours.timezone == 'Asia/Kuwait' %}selected{% endif %}>🇰🇼 الكويت (GMT+3)</option>
-                    <option value="UTC" {% if hours.timezone == 'UTC' %}selected{% endif %}>🌐 التوقيت العالمي (UTC)</option>
+                    <option value="Africa/Cairo" {% if hours.timezone == 'Africa/Cairo' or not hours.timezone %}selected{% endif %}>🇪🇬 {{ "مصر / القاهرة (GMT+2"|t }})</option>
+                    <option value="Asia/Riyadh" {% if hours.timezone == 'Asia/Riyadh' %}selected{% endif %}>🇸🇦 {{ "السعودية / الرياض (GMT+3"|t }})</option>
+                    <option value="Asia/Dubai" {% if hours.timezone == 'Asia/Dubai' %}selected{% endif %}>🇦🇪 {{ "الإمارات / دبي (GMT+4"|t }})</option>
+                    <option value="Asia/Kuwait" {% if hours.timezone == 'Asia/Kuwait' %}selected{% endif %}>🇰🇼 {{ "الكويت (GMT+3"|t }})</option>
+                    <option value="UTC" {% if hours.timezone == 'UTC' %}selected{% endif %}>🌐 {{ "التوقيت العالمي (UTC"|t }})</option>
                 </select>
             </div>
 
             <!-- Off-hours Audio Greeting Text -->
             <div class="lg:col-span-2 bg-amber-50/70 border border-amber-200 rounded-lg p-2.5 space-y-1">
-                <label class="block text-[11px] font-bold text-amber-950">رسالة الاعتذار الصوتية عند الإغلاق:</label>
+                <label class="block text-[11px] font-bold text-amber-950">{{ "رسالة الاعتذار الصوتية عند الإغلاق"|t }}:</label>
                 <textarea 
                     id="hours_ai_message" 
                     name="ai_message" 
@@ -92,10 +92,10 @@
         <div id="schedule-container" class="space-y-2 transition duration-200 {% if not hours.is_enabled %}opacity-60{% endif %}">
             <div class="flex items-center justify-between flex-wrap gap-2">
                 <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1">
-                    <span>📅</span> ساعات العمل الأسبوعية
+                    <span>📅</span> {{ "ساعات العمل الأسبوعية"|t }}
                 </h4>
-                <button type="button" onclick="copySaturdayToAll()" class="h-6 px-2 rounded-md bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-slate-700 text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer" title="تطبيق مواعيد السبت على كافة الأيام">
-                    <span>نسخ مواعيد السبت للكل</span>
+                <button type="button" onclick="copySaturdayToAll()" class="h-6 px-2 rounded-md bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-slate-700 text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer" title='{{ "تطبيق مواعيد السبت على كافة الأيام"|t }}'>
+                    <span>{{ "نسخ مواعيد السبت للكل"|t }}</span>
                 </button>
             </div>
 
@@ -104,20 +104,20 @@
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-slate-600 font-semibold text-[11px]">
-                            <th class="py-2 px-3">اليوم</th>
-                            <th class="py-2 px-2.5">حالة العمل</th>
-                            <th class="py-2 px-2.5">بداية الدوام</th>
-                            <th class="py-2 px-2.5">نهاية الدوام</th>
+                            <th class="py-2 px-3">{{ "اليوم"|t }}</th>
+                            <th class="py-2 px-2.5">{{ "حالة العمل"|t }}</th>
+                            <th class="py-2 px-2.5">{{ "بداية الدوام"|t }}</th>
+                            <th class="py-2 px-2.5">{{ "نهاية الدوام"|t }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         <!-- Saturday -->
                         <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">السبت</td>
+                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">{{ "السبت"|t }}</td>
                             <td class="py-1.5 px-2.5">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
                                     <input type="checkbox" id="sat_work" {% if hours.days_config.saturday.is_workday or hours.days_config.saturday is None %}checked{% endif %} class="rounded text-blue-600">
-                                    <span>يوم عمل</span>
+                                    <span>{{ "يوم عمل"|t }}</span>
                                 </label>
                             </td>
                             <td class="py-1.5 px-2.5"><input type="time" id="sat_start" value="{{ hours.days_config.saturday.start_time|default:'10:00' }}" class="h-7 py-0.5 px-2 w-28 text-xs font-mono font-bold rounded-md border border-slate-200/70 bg-slate-50"></td>
@@ -125,11 +125,11 @@
                         </tr>
                         <!-- Sunday -->
                         <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">الأحد</td>
+                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">{{ "الأحد"|t }}</td>
                             <td class="py-1.5 px-2.5">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
                                     <input type="checkbox" id="sun_work" {% if hours.days_config.sunday.is_workday or hours.days_config.sunday is None %}checked{% endif %} class="rounded text-blue-600">
-                                    <span>يوم عمل</span>
+                                    <span>{{ "يوم عمل"|t }}</span>
                                 </label>
                             </td>
                             <td class="py-1.5 px-2.5"><input type="time" id="sun_start" value="{{ hours.days_config.sunday.start_time|default:'10:00' }}" class="h-7 py-0.5 px-2 w-28 text-xs font-mono font-bold rounded-md border border-slate-200/70 bg-slate-50"></td>
@@ -137,11 +137,11 @@
                         </tr>
                         <!-- Monday -->
                         <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">الاثنين</td>
+                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">{{ "الاثنين"|t }}</td>
                             <td class="py-1.5 px-2.5">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
                                     <input type="checkbox" id="mon_work" {% if hours.days_config.monday.is_workday or hours.days_config.monday is None %}checked{% endif %} class="rounded text-blue-600">
-                                    <span>يوم عمل</span>
+                                    <span>{{ "يوم عمل"|t }}</span>
                                 </label>
                             </td>
                             <td class="py-1.5 px-2.5"><input type="time" id="mon_start" value="{{ hours.days_config.monday.start_time|default:'10:00' }}" class="h-7 py-0.5 px-2 w-28 text-xs font-mono font-bold rounded-md border border-slate-200/70 bg-slate-50"></td>
@@ -149,11 +149,11 @@
                         </tr>
                         <!-- Tuesday -->
                         <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">الثلاثاء</td>
+                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">{{ "الثلاثاء"|t }}</td>
                             <td class="py-1.5 px-2.5">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
                                     <input type="checkbox" id="tue_work" {% if hours.days_config.tuesday.is_workday or hours.days_config.tuesday is None %}checked{% endif %} class="rounded text-blue-600">
-                                    <span>يوم عمل</span>
+                                    <span>{{ "يوم عمل"|t }}</span>
                                 </label>
                             </td>
                             <td class="py-1.5 px-2.5"><input type="time" id="tue_start" value="{{ hours.days_config.tuesday.start_time|default:'10:00' }}" class="h-7 py-0.5 px-2 w-28 text-xs font-mono font-bold rounded-md border border-slate-200/70 bg-slate-50"></td>
@@ -161,11 +161,11 @@
                         </tr>
                         <!-- Wednesday -->
                         <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">الأربعاء</td>
+                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">{{ "الأربعاء"|t }}</td>
                             <td class="py-1.5 px-2.5">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
                                     <input type="checkbox" id="wed_work" {% if hours.days_config.wednesday.is_workday or hours.days_config.wednesday is None %}checked{% endif %} class="rounded text-blue-600">
-                                    <span>يوم عمل</span>
+                                    <span>{{ "يوم عمل"|t }}</span>
                                 </label>
                             </td>
                             <td class="py-1.5 px-2.5"><input type="time" id="wed_start" value="{{ hours.days_config.wednesday.start_time|default:'10:00' }}" class="h-7 py-0.5 px-2 w-28 text-xs font-mono font-bold rounded-md border border-slate-200/70 bg-slate-50"></td>
@@ -173,11 +173,11 @@
                         </tr>
                         <!-- Thursday -->
                         <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">الخميس</td>
+                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">{{ "الخميس"|t }}</td>
                             <td class="py-1.5 px-2.5">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
                                     <input type="checkbox" id="thu_work" {% if hours.days_config.thursday.is_workday or hours.days_config.thursday is None %}checked{% endif %} class="rounded text-blue-600">
-                                    <span>يوم عمل</span>
+                                    <span>{{ "يوم عمل"|t }}</span>
                                 </label>
                             </td>
                             <td class="py-1.5 px-2.5"><input type="time" id="thu_start" value="{{ hours.days_config.thursday.start_time|default:'10:00' }}" class="h-7 py-0.5 px-2 w-28 text-xs font-mono font-bold rounded-md border border-slate-200/70 bg-slate-50"></td>
@@ -185,11 +185,11 @@
                         </tr>
                         <!-- Friday -->
                         <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">الجمعة</td>
+                            <td class="py-1.5 px-3 font-bold text-slate-900 text-xs">{{ "الجمعة"|t }}</td>
                             <td class="py-1.5 px-2.5">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
                                     <input type="checkbox" id="fri_work" {% if hours.days_config.friday.is_workday %}checked{% elif hours.days_config.friday is None %}checked{% endif %} class="rounded text-blue-600">
-                                    <span>يوم عمل</span>
+                                    <span>{{ "يوم عمل"|t }}</span>
                                 </label>
                             </td>
                             <td class="py-1.5 px-2.5"><input type="time" id="fri_start" value="{{ hours.days_config.friday.start_time|default:'13:00' }}" class="h-7 py-0.5 px-2 w-28 text-xs font-mono font-bold rounded-md border border-slate-200/70 bg-slate-50"></td>
@@ -203,7 +203,7 @@
         <div class="pt-2.5 border-t border-slate-100 flex items-center justify-end">
             <button type="submit" id="btn-save-hours" class="h-8 px-4 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-xs">
                 <svg class="w-3.5 h-3.5 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> 
-                <span id="btn-save-text">حفظ المواعيد والاعتذار</span>
+                <span id="btn-save-text">{{ "حفظ المواعيد والاعتذار"|t }}</span>
             </button>
         </div>
     </form>

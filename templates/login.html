@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}تسجيل الدخول — منظومة مطاعم لإدارة سلاسل المطاعم{% endblock %}
+{% block title %}{{ "تسجيل الدخول"|t }} — منظومة مطاعم لإدارة سلاسل المطاعم{% endblock %}
 
 {% block unauth_content %}
 <div class="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8 selection:bg-violet-600 selection:text-white" dir="{{ DIR|default:'rtl' }}">
@@ -35,7 +35,7 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
-                    تسجيل الدخول
+                    {{ "تسجيل الدخول"|t }}
                 </h1>
                 <p class="text-xs font-semibold text-slate-500 mt-1">
                     أدخل بيانات الاعتماد أو استخدم كود الدخول السريع للوردية
@@ -80,7 +80,7 @@
                 <div class="space-y-4">
                     <div>
                         <label for="username" class="block text-xs font-bold text-slate-800 mb-1.5">
-                            اسم المستخدم أو البريد الإلكتروني
+                            {{ "اسم المستخدم أو البريد"|t }} الإلكتروني
                         </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 pointer-events-none">
@@ -100,10 +100,10 @@
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label for="password" class="block text-xs font-bold text-slate-800">
-                                كلمة المرور
+                                {{ "كلمة المرور"|t }}
                             </label>
                             <a href="javascript:void(0)" onclick="alert('يرجى التواصل مع مدير النظام أو استخدام أحد الحسابات التجريبية بالأسفل.')" class="text-[11px] font-semibold text-blue-600 hover:underline">
-                                نسيت كلمة المرور؟
+                                نسيت {{ "كلمة المرور"|t }}؟
                             </a>
                         </div>
                         <div class="relative">

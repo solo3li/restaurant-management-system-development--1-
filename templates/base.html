@@ -746,8 +746,7 @@
                         </span>
                         <div class="min-w-0 text-right sidebar-text">
                             <p class="text-xs font-semibold text-white truncate leading-tight">{{ user.first_name|default:user.username }}</p>
-                            <p class="text-[11px] font-normal text-slate-400 truncate mt-0.5">
-                                {% if is_owner %}{% if IS_RTL %}مالك المنشأة (HQ){% else %}Owner (HQ){% endif %}{% elif user_profile and user_profile.job_role %}{{ user_profile.job_role.name }}{% elif user_profile %}{{ user_profile.get_role_display }}{% else %}{% if IS_RTL %}مسؤول النظام{% else %}Administrator{% endif %}{% endif %}
+                                {% if is_owner %}{{ "مالك المنشأة (HQ)"|t }}{% elif user_profile and user_profile.job_role %}{{ user_profile.job_role.name }}{% elif user_profile %}{{ user_profile.get_role_display }}{% else %}{{ "مسؤول النظام"|t }}{% endif %}
                             </p>
                         </div>
                     </div>
@@ -922,7 +921,7 @@
                         </span>
                         <div>
                             <p class="font-bold text-sm">{{ t.sub_banner_expired_title }}</p>
-                            <p class="text-xs">{% if CURRENT_LANG == 'ar' %}باقتك الحالية «{{ tenant_subscription.plan_name }}» انتهت صلاحيتها. يرجى التواصل مع إدارة المنصة لتجديد الاشتراك واستعادة كافة الصلاحيات.{% else %}Your active plan «{{ tenant_subscription.plan_name_en|default:tenant_subscription.plan_name }}» has expired. Please contact platform administration to renew your subscription.{% endif %}</p>
+                            <p class="text-xs">{{ "باقتك الحالية انتهت صلاحيتها. يرجى التواصل مع إدارة المنصة لتجديد الاشتراك واستعادة كافة الصلاحيات."|t }} ({{ tenant_subscription.plan_name_en|default:tenant_subscription.plan_name }})</p>
                         </div>
                     </div>
                     <span class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white">{{ t.sub_banner_expired_badge }}</span>
@@ -935,7 +934,7 @@
                         </span>
                         <div>
                             <p class="font-bold text-xs">{{ t.sub_banner_expiring_title }}</p>
-                            <p class="text-[11px]">{% if CURRENT_LANG == 'ar' %}ينتهي اشتراك باقة «{{ tenant_subscription.plan_name }}» بتاريخ {{ tenant_subscription.end_date|date:"Y-m-d" }}. يرجى التجديد لضمان استمرارية التشغيل دون انقطاع.{% else %}Subscription for plan «{{ tenant_subscription.plan_name_en|default:tenant_subscription.plan_name }}» ends on {{ tenant_subscription.end_date|date:"Y-m-d" }}. Please renew to ensure uninterrupted operations.{% endif %}</p>
+                            <p class="text-[11px]">{{ "ينتهي اشتراك باقتك قريباً. يرجى التجديد لضمان استمرارية التشغيل دون انقطاع."|t }} ({{ tenant_subscription.plan_name_en|default:tenant_subscription.plan_name }} — {{ tenant_subscription.end_date|date:"Y-m-d" }})</p>
                         </div>
                     </div>
                     <span class="rounded-md bg-amber-600 px-2.5 py-1 text-[11px] font-medium text-white">{{ t.sub_banner_expiring_badge }}</span>
@@ -961,9 +960,8 @@
         </div>
         <!-- Sublinks container -->
         <div id="flyout-sublinks" class="space-y-1"></div>
-        <!-- Direct action button (for single pages) -->
         <a id="flyout-direct-link" href="#" class="hidden flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-medium bg-violet-600 text-white hover:bg-violet-500 transition mt-1 shadow-xs">
-            <span>{% if IS_RTL %}فتح الصفحة{% else %}Open Page{% endif %}</span>
+            <span>{{ "فتح الصفحة"|t }}</span>
             <span class="text-xs">{% if IS_RTL %}←{% else %}→{% endif %}</span>
         </a>
     </div>
@@ -1179,7 +1177,7 @@
                 mainContent.style.marginRight = '';
                 mainContent.style.marginLeft = '';
                 if (typeof showToast === 'function') {
-                    showToast('{% if CURRENT_LANG == "en" %}Sidebar restored to default width (288px){% else %}تمت استعادة العرض الافتراضي للشريط الجانبي (288px){% endif %}', 'info');
+                    showToast("{{ 'تمت استعادة العرض الافتراضي للشريط الجانبي (288px)'|t }}", 'info');
                 }
                 window.dispatchEvent(new Event('resize'));
             });
@@ -1452,8 +1450,13 @@
             }
         });
     </script>
-    <!-- Diyafa Master Bilingual Translation Engine (100% Arabic & English across all views) -->
+    <!-- Diyafa Master 5-Language Translation Engine (100% AR, EN, FR, TR, DE across all views) -->
     <script src="{% static 'js/diyafa_i18n_engine.js' %}"></script>
+    <script>
+        window.tJs = function(k, fallback) {
+            return (window.DiyafaI18n && typeof window.DiyafaI18n.translate === 'function') ? window.DiyafaI18n.translate(k) : (fallback || k);
+        };
+    </script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
