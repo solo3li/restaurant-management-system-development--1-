@@ -298,3 +298,163 @@ class LandingPersonaSyncTestSuite(TestCase):
         self.assertEqual(res_owner.status_code, 200)
         self.assertNotContains(res_owner, "btn-set-landing-132")
         self.assertNotContains(res_owner, "btn-set-landing-260")
+
+    @patch("core.partner_service.get_profile")
+    @patch("core.partner_service.activate_profile")
+    def test_08_superadmin_with_restaurant_profile_still_binds_platform_hq(self, mock_activate, mock_prof):
+        """
+        Verify that a superadmin whose user profile is associated with a restaurant
+        still resolves to Platform HQ (client 49) when managing landing persona.
+        """
+        # Superadmin user whose profile points to reg_tenant (e.g. seed 'admin' user)
+        admin_with_tenant = User.objects.create_superuser(
+            username="admin_with_tenant",
+            email="admin_tenant@motaem.local",
+            password="adminpassword123"
+        )
+        UserProfile.objects.create(
+            user=admin_with_tenant,
+            role="owner",
+            tenant=self.reg_tenant,
+            is_platform_admin=False,
+        )
+
+        mock_prof.side_effect = lambda cid: {
+            "status": "success",
+            "profiles": [
+                {
+                    "id": 260,
+                    "name": "مستشار المبيعات الرسمي",
+                    "voice_name": "Fenrir",
+                    "welcome_message": "مرحباً بكم في منصة كورا HQ.",
+                    "system_prompt": "أنت المستشار الرسمي للمبيعات.",
+                    "language": "arabic",
+                    "dialect": "saudi",
+                    "is_active": True,
+                }
+            ]
+        } if cid == 49 else {
+            "status": "success",
+            "profiles": [
+                {
+                    "id": 88,
+                    "name": "كاشير مطعم الشاورما",
+                    "voice_name": "Aoede",
+                    "welcome_message": "أهلاً بك في مطعم الشاورما.",
+                    "language": "arabic",
+                    "dialect": "saudi",
+                    "is_active": True,
+                }
+            ]
+        }
+        mock_activate.return_value = {"status": "success"}
+
+        self.client.force_login(admin_with_tenant)
+        response = self.client.post("/api/ai-callcenter/profiles/260/set-landing-persona/")
+        self.assertEqual(response.status_code, 200)
+
+        cfg = PlatformVoiceAssistantConfig.get_config()
+        # Must be Platform HQ client 49, NOT self.reg_tenant (102)
+        self.assertEqual(cfg.partner_client_id, "49")
+        self.assertEqual(cfg.landing_profile_id, 260)
+        self.assertEqual(cfg.assistant_name, "مستشار المبيعات الرسمي")
+
+    @patch("core.partner_service.get_profile")
+    @patch("core.partner_service.activate_profile")
+    def test_09_superadmin_switched_tenant_in_session_binds_switched_client(self, mock_activate, mock_prof):
+        """
+        Verify that when a superadmin explicitly switches tenant via active_tenant_id session,
+        they can approve a persona from that switched tenant.
+        """
+        mock_prof.return_value = {
+            "status": "success",
+            "profiles": [
+                {
+                    "id": 999,
+                    "name": "مساعد صوتي مخصص لفرع الشاورما",
+                    "voice_name": "Aoede",
+                    "welcome_message": "مرحباً بكم في شاورما الأصالة.",
+                    "system_prompt": "أنت كول سنتر الشاورما.",
+                    "language": "arabic",
+                    "dialect": "saudi",
+                    "is_active": True,
+                }
+            ]
+        }
+        mock_activate.return_value = {"status": "success"}
+
+        self.client.force_login(self.super_admin)
+        session = self.client.session
+        session["active_tenant_id"] = self.reg_tenant.id
+        session.save()
+
+        response = self.client.post("/api/ai-callcenter/profiles/999/set-landing-persona/")
+        self.assertEqual(response.status_code, 200)
+
+        cfg = PlatformVoiceAssistantConfig.get_config()
+        self.assertEqual(cfg.partner_client_id, str(self.reg_tenant.voice_client_id))
+        self.assertEqual(cfg.landing_profile_id, 999)
+
+    @patch("core.partner_service.get_profile")
+    @patch("core.partner_service.activate_profile")
+    def test_10_empty_welcome_or_prompt_fallback(self, mock_activate, mock_prof):
+        """Verify profile with empty welcome message preserves existing defaults."""
+        mock_prof.return_value = {
+            "status": "success",
+            "profiles": [
+                {
+                    "id": 260,
+                    "name": "مساعد صوتي باسم جديد",
+                    "voice_name": "Puck",
+                    "welcome_message": "",
+                    "system_prompt": "",
+                    "language": "arabic",
+                    "dialect": "saudi",
+                }
+            ]
+        }
+        mock_activate.return_value = {"status": "success"}
+
+        cfg_before = PlatformVoiceAssistantConfig.get_config()
+        default_welcome = cfg_before.welcome_message
+        default_prompt = cfg_before.system_prompt
+
+        self.client.force_login(self.super_admin)
+        res = self.client.post("/api/ai-callcenter/profiles/260/set-landing-persona/")
+        self.assertEqual(res.status_code, 200)
+
+        cfg_after = PlatformVoiceAssistantConfig.get_config()
+        self.assertEqual(cfg_after.assistant_name, "مساعد صوتي باسم جديد")
+        self.assertEqual(cfg_after.voice_name, "Puck")
+        self.assertEqual(cfg_after.welcome_message, default_welcome)
+        self.assertEqual(cfg_after.system_prompt, default_prompt)
+
+    @patch("core.partner_service.get_profile")
+    @patch("core.partner_service.get_studio_metadata")
+    def test_11_string_profile_id_template_badge(self, mock_studio, mock_prof):
+        """Verify template renders active badge properly even when profile id is returned as string."""
+        cfg = PlatformVoiceAssistantConfig.get_config()
+        cfg.landing_profile_id = 260
+        cfg.save()
+
+        # String ID returned by partner PBX
+        mock_prof.return_value = {
+            "status": "success",
+            "profiles": [
+                {
+                    "id": "260",
+                    "name": "بروفايل معتمد بمعرف نصي",
+                    "voice_name": "Fenrir",
+                    "is_active": True,
+                    "dialect": "saudi",
+                    "language": "arabic",
+                }
+            ]
+        }
+        mock_studio.return_value = {"status": "success"}
+
+        self.client.force_login(self.super_admin)
+        res = self.client.get("/ai-callcenter/persona/")
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "صوت صفحة الهبوط النشط")
+        self.assertContains(res, "معتمد لصفحة الهبوط")

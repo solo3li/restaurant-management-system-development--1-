@@ -1,3 +1,4 @@
+import sys
 import logging
 import threading
 from django.db.models.signals import post_save, post_delete
@@ -49,8 +50,8 @@ def trigger_voice_ai_context_sync(sender, instance, **kwargs):
         except Exception as ex:
             logger.warning(f"Error invalidating Redis menu matrix cache: {ex}")
 
-    # 2. Push live context to Voice AI partner service
-    if tenant and hasattr(tenant, "has_feature") and tenant.has_feature("call_center"):
+    # 2. Push live context to Voice AI partner service (skip during test executions to avoid SQLite table locks)
+    if "test" not in sys.argv and tenant and hasattr(tenant, "has_feature") and tenant.has_feature("call_center"):
         threading.Thread(target=_async_sync, args=(tenant,), daemon=True).start()
 
 

@@ -323,6 +323,28 @@ def api_delete_api_key(request, key_id):
 # AI Call Center Management (Owner Dashboard & Partner SaaS Integration)
 # ==============================================================================
 
+def _resolve_callcenter_tenant(request):
+    """
+    Resolve active tenant for Call Center management.
+    Platform admins & Superadmins default to Platform HQ tenant unless
+    an active_tenant_id session override is explicitly selected.
+    """
+    profile = getattr(request.user, "profile", None)
+    is_super = (
+        getattr(request.user, "is_superuser", False)
+        or getattr(request, "is_platform_admin", False)
+        or (profile and (profile.role == "platform_admin" or getattr(profile, "is_platform_admin", False)))
+    )
+    if is_super:
+        active_t_id = request.session.get("active_tenant_id") if hasattr(request, "session") else None
+        if not active_t_id:
+            from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
+            hq_tenant = get_or_create_platform_hq_tenant()
+            if hq_tenant:
+                return hq_tenant
+    return get_active_tenant(request)
+
+
 def _validate_callcenter_page_access(request):
     """
     Validate permissions and active tenant for AI Call Center pages.
@@ -333,15 +355,7 @@ def _validate_callcenter_page_access(request):
     if not is_owner:
         return None, HttpResponseForbidden("صفحة إدارة المساعد الصوتي والذكاء الاصطناعي مقتصرة حصرياً على مالك المنشأة")
 
-    tenant = get_active_tenant(request)
-    is_super = request.user.is_superuser or (profile and getattr(profile, "is_platform_admin", False))
-    if is_super:
-        active_t_id = request.session.get("active_tenant_id") if hasattr(request, "session") else None
-        if not active_t_id:
-            from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
-            hq_tenant = get_or_create_platform_hq_tenant()
-            if hq_tenant:
-                tenant = hq_tenant
+    tenant = _resolve_callcenter_tenant(request)
 
     if not tenant:
         return None, HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
@@ -561,6 +575,11 @@ def ai_callcenter_persona_view(request):
         matched_landing = next((p for p in profiles_data if p.get("name") == config.assistant_name or p.get("voice_name") == config.voice_name), None)
         if matched_landing:
             landing_profile_id = matched_landing.get("id")
+
+    for p in profiles_data:
+        if isinstance(p, dict):
+            p_id = p.get("id")
+            p["is_landing_persona"] = bool(landing_profile_id is not None and str(p_id) == str(landing_profile_id))
 
     user_profile = getattr(request.user, "profile", None)
     is_plat_admin = request.user.is_superuser or getattr(request, "is_platform_admin", False) or (user_profile and getattr(user_profile, "is_platform_admin", False))
@@ -812,7 +831,7 @@ def ai_callcenter_omnichannel_view(request):
 
 
 def _check_callcenter_admin(request):
-    tenant = get_active_tenant(request)
+    tenant = _resolve_callcenter_tenant(request)
     if tenant and not tenant.has_feature("call_center"):
         return JsonResponse({"status": "error", "message": "ميزة المساعد الصوتي والكول سنتر غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها."}, status=403)
     profile = getattr(request.user, "profile", None)
@@ -864,7 +883,7 @@ def api_ai_callcenter_create_profile(request):
     if err:
         return err
 
-    tenant = get_active_tenant(request)
+    tenant = _resolve_callcenter_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
 
@@ -917,7 +936,7 @@ def api_ai_callcenter_update_profile(request, profile_id=None):
     err = _check_callcenter_admin(request)
     if err:
         return err
-    tenant = get_active_tenant(request)
+    tenant = _resolve_callcenter_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
 
@@ -975,7 +994,7 @@ def api_ai_callcenter_activate_profile(request, profile_id):
     err = _check_callcenter_admin(request)
     if err:
         return err
-    tenant = get_active_tenant(request)
+    tenant = _resolve_callcenter_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
 
@@ -1001,7 +1020,11 @@ def api_ai_callcenter_set_landing_persona(request, profile_id):
         }, status=401)
 
     profile = getattr(request.user, "profile", None)
-    is_super = request.user.is_superuser or (profile and (profile.role == "platform_admin" or getattr(profile, "is_platform_admin", False)))
+    is_super = (
+        getattr(request.user, "is_superuser", False)
+        or getattr(request, "is_platform_admin", False)
+        or (profile and (profile.role == "platform_admin" or getattr(profile, "is_platform_admin", False)))
+    )
     if not is_super:
         return JsonResponse({
             "status": "error",
@@ -1009,7 +1032,7 @@ def api_ai_callcenter_set_landing_persona(request, profile_id):
             "message": "هذا الإجراء مقتصر حصرياً على المشرف العام للمنصة (Super Admin)."
         }, status=403)
 
-    tenant = get_active_tenant(request)
+    tenant = _resolve_callcenter_tenant(request)
     if not tenant:
         from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
         tenant = get_or_create_platform_hq_tenant()
@@ -1146,7 +1169,7 @@ def api_ai_callcenter_delete_profile(request, profile_id):
     err = _check_callcenter_admin(request)
     if err:
         return err
-    tenant = get_active_tenant(request)
+    tenant = _resolve_callcenter_tenant(request)
     from core import partner_service as ps
     client_id = ps.get_client_id_for_tenant(tenant)
 

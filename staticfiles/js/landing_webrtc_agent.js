@@ -341,7 +341,7 @@
             updateCallStatus('جاري الاتصال بالسيرفر والذكاء الاصطناعي...', 'connecting');
 
             // 2. Fetch LiveKit Credentials from Backend Proxy
-            const sessionResp = await fetch('/api/webrtc/session/', {
+            const sessionResp = await fetch('/api/landing/voice-session/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),

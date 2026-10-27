@@ -37,7 +37,7 @@
                     <div class="flex items-center justify-between gap-1.5">
                         <span class="text-xs font-bold text-slate-900 truncate">{{ p.name|default:"مساعد صوتي" }}</span>
                         <div class="flex items-center gap-1">
-                            {% if p.id == landing_profile_id %}
+                            {% if p.id == landing_profile_id or p.is_landing_persona %}
                             <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 flex items-center gap-1 shadow-2xs" title="{{ 'صوت صفحة الهبوط النشط'|t }}">
                                 <span class="relative flex h-1.5 w-1.5">
                                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -141,7 +141,7 @@
                         {% endif %}
 
                         {% if request.user.is_superuser or is_platform_admin or request.is_platform_admin %}
-                            {% if p.id == landing_profile_id %}
+                            {% if p.id == landing_profile_id or p.is_landing_persona %}
                             <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300 flex items-center gap-1">
                                 <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 {{ "معتمد لصفحة الهبوط"|t }}
