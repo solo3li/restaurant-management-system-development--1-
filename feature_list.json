@@ -127,6 +127,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "core/partner_service.py, apps/callcenter/views.py, apps/callcenter/urls.py, core/urls.py, core/views.py, templates/ai_callcenter/omnichannel.html. Verified via test_telephony_suite.py (10/10 PASS), manage.py check (0 issues), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), and live container motaem_web restart."
+    },
+    {
+      "id": "feat-landing-text-animations-and-counters",
+      "name": "Dynamic Landing Page Typewriter, Instant Hero Counters & Page-wide Text Reveals",
+      "description": "Empty initial #hero-typewriter content for immediate Typed.js typing with sr-only bilingual fallback, start numbers from 0 in HTML for latency, uptime, and stats counters, run hero counters instantly on page load without waiting for ScrollTrigger, add cache busting ?v query params on script tags, and apply progressive GSAP ScrollTrigger staggered text reveals to all section titles, subtitles, bento cards, pricing cards, and FAQ items.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "templates/landing.html, static/js/landing_animations.js, staticfiles/js/landing_animations.js. Verified via manage.py check (0 issues), test_landing_and_profile.py (100% PASS), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), ./init.sh (100% PASS), and verified on live container motaem_web at https://uggu.space/."
     }
   ]
 }

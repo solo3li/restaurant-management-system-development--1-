@@ -2448,9 +2448,9 @@
     "semantic_hash": ""
   },
   "templates/landing.html": {
-    "mtime": 1793010035.7807453,
-    "seen": 1793010234.5201359,
-    "ast_hash": "be8b9a56b3c762db17c0ef1deae2f03c",
+    "mtime": 1793060233.9690676,
+    "seen": 1793060396.7291193,
+    "ast_hash": "31acb90869d8d437d2ffa6976dbcd6c1",
     "semantic_hash": ""
   },
   "templates/login.html": {
@@ -3222,9 +3222,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793055773.302816,
-    "seen": 1793057363.9163418,
-    "ast_hash": "5853ef18784117f5e54253bf80ed1a9d",
+    "mtime": 1793057379.0926752,
+    "seen": 1793060396.7266893,
+    "ast_hash": "dd62987f68dd08b4c1a0a9406ab7149c",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3738,9 +3738,9 @@
     "semantic_hash": ""
   },
   "static/js/landing_webrtc_agent.js": {
-    "mtime": 1793009767.78761,
-    "seen": 1793010234.4980378,
-    "ast_hash": "a2e722a118752e3017f972f1a5f7f321",
+    "mtime": 1793058067.7292366,
+    "seen": 1793060396.706736,
+    "ast_hash": "22e233cf717efc6676e8d23db00d7ac0",
     "semantic_hash": ""
   },
   "static/js/vendor/livekit-client.umd.min.js": {
@@ -3750,9 +3750,9 @@
     "semantic_hash": ""
   },
   "staticfiles/js/landing_webrtc_agent.js": {
-    "mtime": 1793010049.4841614,
-    "seen": 1793010234.505693,
-    "ast_hash": "a2e722a118752e3017f972f1a5f7f321",
+    "mtime": 1793058131.4910922,
+    "seen": 1793060396.7136652,
+    "ast_hash": "22e233cf717efc6676e8d23db00d7ac0",
     "semantic_hash": ""
   },
   "staticfiles/js/vendor/livekit-client.umd.min.js": {
@@ -3783,6 +3783,54 @@
     "mtime": 1793057199.2131445,
     "seen": 1793057363.90293,
     "ast_hash": "55142217a8db5b868c02900b291966be",
+    "semantic_hash": ""
+  },
+  "static/js/landing_animations.js": {
+    "mtime": 1793060267.809076,
+    "seen": 1793060396.7067308,
+    "ast_hash": "1753e4507ad97d752298ed405473ab7e",
+    "semantic_hash": ""
+  },
+  "static/js/vendor/ScrollTrigger.min.js": {
+    "mtime": 1793058704.2960842,
+    "seen": 1793060396.7067394,
+    "ast_hash": "ba1fa78eb4bb49f8a0eeaf8e61708840",
+    "semantic_hash": ""
+  },
+  "static/js/vendor/gsap.min.js": {
+    "mtime": 1793058704.2120814,
+    "seen": 1793060396.706742,
+    "ast_hash": "47da594cbece0e34a656e6bf2490b7c3",
+    "semantic_hash": ""
+  },
+  "static/js/vendor/typed.umd.js": {
+    "mtime": 1793058704.1350791,
+    "seen": 1793060396.7068126,
+    "ast_hash": "3ba6a3f6e22122d8f5ed22c423299981",
+    "semantic_hash": ""
+  },
+  "staticfiles/js/landing_animations.js": {
+    "mtime": 1793060286.3936303,
+    "seen": 1793060396.7136614,
+    "ast_hash": "1753e4507ad97d752298ed405473ab7e",
+    "semantic_hash": ""
+  },
+  "staticfiles/js/vendor/ScrollTrigger.min.js": {
+    "mtime": 1793058961.1898117,
+    "seen": 1793060396.7136683,
+    "ast_hash": "ba1fa78eb4bb49f8a0eeaf8e61708840",
+    "semantic_hash": ""
+  },
+  "staticfiles/js/vendor/gsap.min.js": {
+    "mtime": 1793058961.1798115,
+    "seen": 1793060396.7136707,
+    "ast_hash": "47da594cbece0e34a656e6bf2490b7c3",
+    "semantic_hash": ""
+  },
+  "staticfiles/js/vendor/typed.umd.js": {
+    "mtime": 1793058961.1788113,
+    "seen": 1793060396.713726,
+    "ast_hash": "3ba6a3f6e22122d8f5ed22c423299981",
     "semantic_hash": ""
   }
 }

@@ -8,6 +8,25 @@
 
     // Respect reduced motion preference
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const elLatency = document.getElementById('metric-latency');
+        if (elLatency) elLatency.textContent = '0';
+        const elHrs = document.getElementById('metric-uptime-hrs');
+        if (elHrs) elHrs.textContent = '24';
+        const elPct = document.getElementById('metric-uptime-pct');
+        if (elPct) elPct.textContent = '99.9';
+        document.querySelectorAll('[data-counter-target]').forEach((el) => {
+            const targetVal = parseFloat(el.getAttribute('data-counter-target')) || 0;
+            const isFloat = el.getAttribute('data-counter-float') === 'true';
+            const hasComma = el.getAttribute('data-counter-comma') === 'true';
+            if (isFloat) el.textContent = targetVal.toFixed(1);
+            else if (hasComma) el.textContent = Math.round(targetVal).toLocaleString('en-US');
+            else el.textContent = Math.round(targetVal);
+        });
+        const typewriterEl = document.getElementById('hero-typewriter');
+        if (typewriterEl) {
+            const isEnglish = (document.documentElement.lang === 'en' || document.documentElement.dir === 'ltr');
+            typewriterEl.textContent = isEnglish ? 'Modern Restaurant Chains' : 'سلاسل المطاعم الحديثة';
+        }
         return;
     }
 
@@ -37,7 +56,7 @@
             typeSpeed: 55,
             backSpeed: 30,
             backDelay: 2200,
-            startDelay: 400,
+            startDelay: 100,
             loop: true,
             showCursor: true,
             cursorChar: '|',
@@ -72,36 +91,28 @@
         if (heroStaggerItems.length > 0) {
             window.gsap.from(heroStaggerItems, {
                 opacity: 0,
-                y: 20,
+                y: 22,
                 duration: 0.75,
-                stagger: 0.1,
+                stagger: 0.09,
                 ease: 'power2.out',
-                delay: 0.1
+                delay: 0.05
             });
         }
 
-        // 3. Hero Metrics Strip (0ms, 24/7, 99.9%)
-        const metricsStrip = document.querySelector('.hero-metrics-strip');
-        if (metricsStrip) {
-            const counterState = { latency: 120, hrs: 0, pct: 0 };
-            const elLatency = document.getElementById('metric-latency');
-            const elHrs = document.getElementById('metric-uptime-hrs');
-            const elPct = document.getElementById('metric-uptime-pct');
+        // 3. Hero Metrics Strip (0ms, 24/7, 99.9%) - Runs immediately on page load without ScrollTrigger
+        const elLatency = document.getElementById('metric-latency');
+        const elHrs = document.getElementById('metric-uptime-hrs');
+        const elPct = document.getElementById('metric-uptime-pct');
 
-            const triggerConfig = window.ScrollTrigger ? {
-                scrollTrigger: {
-                    trigger: metricsStrip,
-                    start: 'top 95%',
-                    once: true
-                }
-            } : {};
+        if (elLatency || elHrs || elPct) {
+            const counterState = { latency: 85, hrs: 0, pct: 0 };
 
             window.gsap.to(counterState, {
-                ...triggerConfig,
                 latency: 0,
                 hrs: 24,
                 pct: 99.9,
-                duration: 1.5,
+                duration: 1.6,
+                delay: 0.1,
                 ease: 'power2.out',
                 onUpdate: function () {
                     if (elLatency) elLatency.textContent = Math.round(counterState.latency);
@@ -111,7 +122,65 @@
             });
         }
 
-        // 4. Live Stats Counter Strip (Dark Section)
+        // 4. Section Headers Text Reveals (Titles, Subtitles & Badges)
+        const sectionHeaders = document.querySelectorAll('.section-header-reveal');
+        sectionHeaders.forEach((header) => {
+            const items = header.querySelectorAll('.reveal-item');
+            const targets = items.length > 0 ? items : header;
+            if (window.ScrollTrigger) {
+                window.gsap.from(targets, {
+                    scrollTrigger: {
+                        trigger: header,
+                        start: 'top 85%',
+                        once: true
+                    },
+                    opacity: 0,
+                    y: 24,
+                    duration: 0.7,
+                    stagger: 0.1,
+                    ease: 'power2.out'
+                });
+            }
+        });
+
+        // 5. Bento Grid Cards Staggered Scroll Reveal
+        const bentoGrid = document.querySelector('#features .grid');
+        const bentoCards = document.querySelectorAll('.bento-card');
+        if (bentoCards.length > 0 && window.ScrollTrigger) {
+            window.gsap.from(bentoCards, {
+                scrollTrigger: {
+                    trigger: bentoGrid || '#features',
+                    start: 'top 85%',
+                    once: true
+                },
+                opacity: 0,
+                y: 35,
+                duration: 0.65,
+                stagger: 0.1,
+                ease: 'power2.out'
+            });
+        }
+
+        // 6. Live Stats Counter Strip & Numbers (Dark Section) - Triggers on scroll
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection && window.ScrollTrigger) {
+            const statCards = statsSection.querySelectorAll('.stat-card');
+            if (statCards.length > 0) {
+                window.gsap.from(statCards, {
+                    scrollTrigger: {
+                        trigger: statsSection,
+                        start: 'top 90%',
+                        once: true
+                    },
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.65,
+                    stagger: 0.1,
+                    ease: 'power2.out'
+                });
+            }
+        }
+
         const statCounters = document.querySelectorAll('[data-counter-target]');
         if (statCounters.length > 0) {
             statCounters.forEach((el) => {
@@ -146,47 +215,31 @@
             });
         }
 
-        // 5. Bento Grid Cards Staggered Scroll Reveal
-        const bentoGrid = document.querySelector('#features .grid');
-        const bentoCards = document.querySelectorAll('.bento-card');
-        if (bentoCards.length > 0 && window.ScrollTrigger) {
-            window.gsap.from(bentoCards, {
-                scrollTrigger: {
-                    trigger: bentoGrid || '#features',
-                    start: 'top 85%',
-                    once: true
-                },
-                opacity: 0,
-                y: 35,
-                duration: 0.65,
-                stagger: 0.1,
-                ease: 'power2.out'
-            });
-        }
-
-        // 6. SaaS Pricing Cards Scroll Reveal
+        // 7. SaaS Pricing Cards Scroll Reveal
+        const pricingGrid = document.querySelector('#pricing .grid');
         const pricingCards = document.querySelectorAll('.pricing-card');
         if (pricingCards.length > 0 && window.ScrollTrigger) {
             window.gsap.from(pricingCards, {
                 scrollTrigger: {
-                    trigger: '#pricing',
+                    trigger: pricingGrid || '#pricing',
                     start: 'top 85%',
                     once: true
                 },
                 opacity: 0,
                 y: 30,
-                duration: 0.6,
+                duration: 0.65,
                 stagger: 0.12,
                 ease: 'power2.out'
             });
         }
 
-        // 7. FAQ Items Scroll Reveal
+        // 8. FAQ Items Scroll Reveal
+        const faqContainer = document.querySelector('#faq .space-y-3');
         const faqItems = document.querySelectorAll('.faq-item');
         if (faqItems.length > 0 && window.ScrollTrigger) {
             window.gsap.from(faqItems, {
                 scrollTrigger: {
-                    trigger: '#faq',
+                    trigger: faqContainer || '#faq',
                     start: 'top 85%',
                     once: true
                 },
@@ -198,7 +251,7 @@
             });
         }
 
-        // 8. Final Conversion Banner
+        // 9. Final Conversion Banner & Inner Texts Scroll Reveal
         const conversionBanner = document.querySelector('.conversion-banner');
         if (conversionBanner && window.ScrollTrigger) {
             window.gsap.from(conversionBanner, {
@@ -213,6 +266,23 @@
                 duration: 0.7,
                 ease: 'power2.out'
             });
+
+            const bannerItems = conversionBanner.querySelectorAll('.banner-item');
+            if (bannerItems.length > 0) {
+                window.gsap.from(bannerItems, {
+                    scrollTrigger: {
+                        trigger: conversionBanner,
+                        start: 'top 85%',
+                        once: true
+                    },
+                    opacity: 0,
+                    y: 18,
+                    duration: 0.6,
+                    stagger: 0.1,
+                    delay: 0.1,
+                    ease: 'power2.out'
+                });
+            }
         }
     }
 

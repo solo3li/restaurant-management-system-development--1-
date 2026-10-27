@@ -189,16 +189,16 @@
         <!-- Main Headline -->
         <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.25] min-h-[1.3em]">
             {% if CURRENT_LANG == 'en' %}
-            <span>The Unified Operating System for</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" id="hero-typewriter">Modern Restaurant Chains</span>
+            <span>The Unified Operating System for</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" id="hero-typewriter"></span>
             <span class="sr-only">The Unified Operating System for Modern Restaurant Chains</span>
             {% else %}
-            <span>منظومة التشغيل الموحدة لإدارة</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" id="hero-typewriter">سلاسل المطاعم الحديثة</span>
+            <span>منظومة التشغيل الموحدة لإدارة</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" id="hero-typewriter"></span>
             <span class="sr-only">منظومة التشغيل الموحدة لإدارة سلاسل المطاعم الحديثة</span>
             {% endif %}
         </h1>
 
         <!-- Subheadline -->
-        <p class="mt-5 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
+        <p class="mt-5 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto hero-anim-item">
             {% if CURRENT_LANG == 'en' %}An integrated cloud platform uniting ultra-fast POS, real-time Kitchen Displays (KDS Live 0ms), AI Phone Call Center, and multi-branch & fleet management in a sleek, high-speed interface.{% else %}منصة سحابية متكاملة تجمع كاشير الصالة السريع (POS)، شاشات المطبخ اللحظية (KDS Live 0ms)، كول سنتر الذكاء الاصطناعي لاستقبال المكالمات الهاتفية، وتتبع الفروع والأسطول في واجهة مينيماليست واحدة فائقة السرعة.{% endif %}
         </p>
 
@@ -239,11 +239,11 @@
                 <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-0.5">{% if CURRENT_LANG == 'en' %}Real-Time Kitchen Feed{% else %}بث المطبخ اللحظي{% endif %}</div>
             </div>
             <div class="p-3 sm:p-4 rounded-xl bg-white border border-slate-200/70 shadow-xs text-center">
-                <div class="text-xl sm:text-2xl font-bold text-violet-700 font-mono"><span id="metric-uptime-hrs">24</span>/<span id="metric-uptime-days">7</span></div>
+                <div class="text-xl sm:text-2xl font-bold text-violet-700 font-mono"><span id="metric-uptime-hrs">0</span>/<span id="metric-uptime-days">7</span></div>
                 <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-0.5">{% if CURRENT_LANG == 'en' %}AI Voice Call Center{% else %}كول سنتر AI صوتي{% endif %}</div>
             </div>
             <div class="p-3 sm:p-4 rounded-xl bg-white border border-slate-200/70 shadow-xs text-center">
-                <div class="text-xl sm:text-2xl font-bold text-emerald-700 font-mono"><span id="metric-uptime-pct">99.9</span>%</div>
+                <div class="text-xl sm:text-2xl font-bold text-emerald-700 font-mono"><span id="metric-uptime-pct">0</span>%</div>
                 <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-0.5">{% if CURRENT_LANG == 'en' %}Guaranteed Cloud Uptime{% else %}استقرار سحابي تام{% endif %}</div>
             </div>
         </div>
@@ -295,12 +295,12 @@
     <section id="features" class="py-20 bg-white border-y border-slate-200/80 px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto">
             
-            <div class="text-center max-w-2xl mx-auto mb-14">
-                <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider">{% if CURRENT_LANG == 'en' %}Unified Operational Capabilities{% else %}قدرات تشغيلية موحدة{% endif %}</span>
-                <h2 class="text-2xl sm:text-4xl font-bold text-slate-900 mt-2 tracking-tight">
+            <div class="text-center max-w-2xl mx-auto mb-14 section-header-reveal">
+                <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider reveal-item">{% if CURRENT_LANG == 'en' %}Unified Operational Capabilities{% else %}قدرات تشغيلية موحدة{% endif %}</span>
+                <h2 class="text-2xl sm:text-4xl font-bold text-slate-900 mt-2 tracking-tight reveal-item">
                     {% if CURRENT_LANG == 'en' %}Everything You Need to Manage & Scale Your Restaurants from One Place{% else %}كل ما تحتاجه لإدارة وتوسيع مطاعمك من مكان واحد{% endif %}
                 </h2>
-                <p class="text-xs sm:text-sm text-slate-500 mt-2">
+                <p class="text-xs sm:text-sm text-slate-500 mt-2 reveal-item">
                     {% if CURRENT_LANG == 'en' %}Engineered by Motaem to streamline the entire order journey—from the moment a customer calls to hot meal delivery with zero latency.{% else %}صممت منظومة «مطاعم» لتغطي رحلة الطلب بالكامل من لحظة اتصال العميل وحتى تسليم الوجبة بدقة ولحظية تامة.{% endif %}
                 </p>
             </div>
@@ -378,23 +378,23 @@
     <!-- ======================================================== -->
     <!-- 4. LIVE STATS COUNTER STRIP (Enterprise Dark Slate)      -->
     <!-- ======================================================== -->
-    <section class="py-14 bg-[#0F172A] text-white px-4 sm:px-6 lg:px-8 border-y border-slate-800">
+    <section class="py-14 bg-[#0F172A] text-white px-4 sm:px-6 lg:px-8 border-y border-slate-800 stats-section">
         <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight font-mono"><span data-counter-target="{{ stats.restaurants|default:'18' }}">{{ stats.restaurants|default:"18" }}</span>+</div>
-                <div class="text-xs text-slate-400 mt-1 font-semibold">{% if CURRENT_LANG == 'en' %}Leading Restaurant Chains{% else %}سلسلة مطاعم رائدة{% endif %}</div>
+            <div class="stat-card">
+                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight font-mono"><span data-counter-target="{{ stats.restaurants|default:'18' }}">0</span>+</div>
+                <div class="text-xs text-slate-400 mt-1 font-semibold stat-label">{% if CURRENT_LANG == 'en' %}Leading Restaurant Chains{% else %}سلسلة مطاعم رائدة{% endif %}</div>
             </div>
-            <div>
-                <div class="text-2xl sm:text-4xl font-bold text-violet-400 tracking-tight font-mono"><span data-counter-target="{{ stats.branches|default:'45' }}">{{ stats.branches|default:"45" }}</span>+</div>
-                <div class="text-xs text-slate-400 mt-1 font-semibold">{% if CURRENT_LANG == 'en' %}Active Operational Branches{% else %}فرع تشغيلي نشط{% endif %}</div>
+            <div class="stat-card">
+                <div class="text-2xl sm:text-4xl font-bold text-violet-400 tracking-tight font-mono"><span data-counter-target="{{ stats.branches|default:'45' }}">0</span>+</div>
+                <div class="text-xs text-slate-400 mt-1 font-semibold stat-label">{% if CURRENT_LANG == 'en' %}Active Operational Branches{% else %}فرع تشغيلي نشط{% endif %}</div>
             </div>
-            <div>
-                <div class="text-2xl sm:text-4xl font-bold text-emerald-400 tracking-tight font-mono"><span data-counter-target="15000" data-counter-comma="true">{{ stats.orders|default:"15,000" }}</span>+</div>
-                <div class="text-xs text-slate-400 mt-1 font-semibold">{% if CURRENT_LANG == 'en' %}Orders Handled Daily{% else %}طلب منفذ يومياً{% endif %}</div>
+            <div class="stat-card">
+                <div class="text-2xl sm:text-4xl font-bold text-emerald-400 tracking-tight font-mono"><span data-counter-target="15000" data-counter-comma="true">0</span>+</div>
+                <div class="text-xs text-slate-400 mt-1 font-semibold stat-label">{% if CURRENT_LANG == 'en' %}Orders Handled Daily{% else %}طلب منفذ يومياً{% endif %}</div>
             </div>
-            <div>
-                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight font-mono"><span data-counter-target="99.9" data-counter-float="true">99.9</span>%</div>
-                <div class="text-xs text-slate-400 mt-1 font-semibold">{% if CURRENT_LANG == 'en' %}Cloud Server Uptime{% else %}استقرار الخوادم السحابية{% endif %}</div>
+            <div class="stat-card">
+                <div class="text-2xl sm:text-4xl font-bold text-white tracking-tight font-mono"><span data-counter-target="99.9" data-counter-float="true">0</span>%</div>
+                <div class="text-xs text-slate-400 mt-1 font-semibold stat-label">{% if CURRENT_LANG == 'en' %}Cloud Server Uptime{% else %}استقرار الخوادم السحابية{% endif %}</div>
             </div>
         </div>
     </section>
@@ -403,12 +403,12 @@
     <!-- 5. SAAS PRICING PLANS (Clean Slate Polish Cards)         -->
     <!-- ======================================================== -->
     <section id="pricing" class="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-        <div class="text-center max-w-2xl mx-auto mb-14">
-            <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider">{% if CURRENT_LANG == 'en' %}Simple & Transparent Pricing{% else %}باقات واضحة وبسيطة{% endif %}</span>
-            <h2 class="text-2xl sm:text-4xl font-bold text-slate-900 mt-2 tracking-tight">
+        <div class="text-center max-w-2xl mx-auto mb-14 section-header-reveal">
+            <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider reveal-item">{% if CURRENT_LANG == 'en' %}Simple & Transparent Pricing{% else %}باقات واضحة وبسيطة{% endif %}</span>
+            <h2 class="text-2xl sm:text-4xl font-bold text-slate-900 mt-2 tracking-tight reveal-item">
                 {% if CURRENT_LANG == 'en' %}Choose the Perfect Plan for Your Restaurant Operations{% else %}اختر الخطة المناسبة لحجم ونشاط مطاعمك{% endif %}
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500 mt-2">
+            <p class="text-xs sm:text-sm text-slate-500 mt-2 reveal-item">
                 {% if CURRENT_LANG == 'en' %}All plans include a 14-day free trial with full access. No credit card required.{% else %}جميع الباقات تتضمن فترة تجريبية مجانية لمدة 14 يوماً بدون الحاجة لبطاقة ائتمان.{% endif %}
             </p>
         </div>
@@ -571,9 +571,9 @@
     <!-- ======================================================== -->
     <section id="faq" class="py-16 bg-white border-t border-slate-200/80 px-4 sm:px-6 lg:px-8">
         <div class="max-w-3xl mx-auto">
-            <div class="text-center mb-10">
-                <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider">{% if CURRENT_LANG == 'en' %}Clear Answers{% else %}إجابات واضحة{% endif %}</span>
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 tracking-tight">{% if CURRENT_LANG == 'en' %}Frequently Asked Questions{% else %}الأسئلة الشائعة{% endif %}</h2>
+            <div class="text-center mb-10 section-header-reveal">
+                <span class="text-xs font-semibold text-violet-600 uppercase tracking-wider reveal-item">{% if CURRENT_LANG == 'en' %}Clear Answers{% else %}إجابات واضحة{% endif %}</span>
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 tracking-tight reveal-item">{% if CURRENT_LANG == 'en' %}Frequently Asked Questions{% else %}الأسئلة الشائعة{% endif %}</h2>
             </div>
 
             <div class="space-y-3">
@@ -618,13 +618,13 @@
             <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-violet-600/20 blur-3xl pointer-events-none"></div>
 
             <div class="relative z-10 max-w-2xl mx-auto space-y-4">
-                <h2 class="text-2xl sm:text-4xl font-bold tracking-tight">
+                <h2 class="text-2xl sm:text-4xl font-bold tracking-tight banner-item">
                     {% if CURRENT_LANG == 'en' %}Ready to Elevate Your Restaurant Chain into the Future?{% else %}جاهز لنقل تشغيل مطاعمك وسلسلة فروعك إلى المستقبل؟{% endif %}
                 </h2>
-                <p class="text-xs sm:text-sm text-slate-400">
+                <p class="text-xs sm:text-sm text-slate-400 banner-item">
                     {% if CURRENT_LANG == 'en' %}Join thriving hospitality brands that rely on Motaem every day to accelerate kitchen workflows and boost profitability without complexity.{% else %}انضم الآن للمطاعم التي تعتمد على «مطاعم» يومياً لرفع سرعة المطبخ وزيادة أرباح الفروع بدون تعقيد.{% endif %}
                 </p>
-                <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 banner-item">
                     <a href="{% url 'register' %}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-xs sm:text-sm transition shadow-xs active:scale-95 cursor-pointer">
                         {% if CURRENT_LANG == 'en' %}Register Your Restaurant & Start Free 14-Day Trial →{% else %}سجل مطعمك وابدأ التجربة المجانية 14 يوماً ←{% endif %}
                     </a>
@@ -942,13 +942,13 @@
 </div>
 
 <!-- Voice Agent JavaScript Engine -->
-<script src="{% static 'js/landing_webrtc_agent.js' %}"></script>
+<script src="{% static 'js/landing_webrtc_agent.js' %}?v={% now 'U' %}"></script>
 
 <!-- Animation Libraries (Typed.js, GSAP & ScrollTrigger) with Local Fallback -->
-<script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/typed.umd.js' %}';"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/gsap.min.js' %}';"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/ScrollTrigger.min.js' %}';"></script>
-<script src="{% static 'js/landing_animations.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/typed.umd.js' %}?v={% now 'U' %}';"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/gsap.min.js' %}?v={% now 'U' %}';"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" onerror="this.onerror=null;this.src='{% static 'js/vendor/ScrollTrigger.min.js' %}?v={% now 'U' %}';"></script>
+<script src="{% static 'js/landing_animations.js' %}?v={% now 'U' %}"></script>
 
 <style>
     .typed-cursor {
