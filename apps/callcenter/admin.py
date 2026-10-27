@@ -48,6 +48,7 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
         ("الحالة وهوية المساعد (Identity & Activation)", {
             "fields": (
                 "is_active",
+                "landing_profile_id",
                 "assistant_name",
                 "welcome_message",
             ),

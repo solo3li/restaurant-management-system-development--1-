@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 06:50
-**Session ID:** Dynamic Menu Categories Integration for Call Center Screen
+**Last Updated:** 2026-10-27 10:45
+**Session ID:** Landing Voice Assistant Live Persona Synchronization & Platform HQ Tenant
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -20,10 +20,21 @@
 - `feat-official-5-language-multilingual` (Completed & Verified 100%)
 - `feat-zero-arabic-leakage-multilingual` (Completed & Verified 100%)
 - `feat-callcenter-dynamic-categories` (Completed & Verified 100%)
+- `feat-decoupled-public-voice-and-persona-studio` (Completed & Verified 100%)
+- `feat-landing-persona-live-sync` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
+
+- [x] **Landing Voice Assistant Live Persona Synchronization & Platform HQ Tenant (`feat-landing-persona-live-sync`)**
+  - **Platform HQ Dedicated Tenant**: Created `apps/callcenter/platform_hq.py` initializing "منظومة مطاعم HQ" (`platform-hq`), bound to Central PBX client 49 with enterprise capabilities, default headquarters branch, and sales & subscription knowledge base documents.
+  - **Super Admin Auto-Resolution**: Updated `apps/tenants/helpers.py`, `core/middleware.py`, and `_validate_callcenter_page_access` in `apps/callcenter/views.py` so Super Admins and Platform Admins browsing frontend AI Call Center seamlessly manage the Platform HQ tenant.
+  - **Persona Management UI (`templates/ai_callcenter/persona.html`)**: Added `[اعتماده لصفحة الهبوط]` button visible exclusively to Super Admins (`request.user.is_superuser` or `is_platform_admin`). Added animated green pulsing beacon badge ("صوت صفحة الهبوط النشط") on the approved persona profile card.
+  - **Restricted Super Admin API**: Implemented `POST /api/ai-callcenter/profiles/<int:profile_id>/set-landing-persona/` strictly restricted to Super Admins (enforcing 403 Forbidden for non-superadmins), updating `PlatformVoiceAssistantConfig` with all profile attributes (`assistant_name`, `voice_name`, `welcome_message`, `system_prompt`, `language`, `accent`, `partner_client_id`, `landing_profile_id`).
+  - **Immediate Live Reflection**: Verified public visitor endpoint `/api/landing/voice-session/` instantly speaks with the approved persona, voice, language, and welcome message.
+  - **Comprehensive Automated Test Suite**: Built `test_landing_persona_sync.py` with 7 automated integration tests verifying RBAC denials, Super Admin activation, live endpoint reflection, and UI rendering. Added to `init.sh`.
+  - **Verification**: Ran `manage.py check` (0 issues), `test_landing_persona_sync.py` (7/7 PASS), `test_decoupled_voice_and_studio.py` (7/7 PASS), and `./init.sh` (100% PASS).
 
 - [x] **Dynamic Menu Categories in Call Center Screen (`/call-center/`)**
   - **Replaced Static List**: Removed hardcoded fallback categories `["أطباق رئيسية", "مشويات", "ساندويتشات", "مشروبات"]` from `apps/callcenter/views.py`.

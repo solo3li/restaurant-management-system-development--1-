@@ -23,6 +23,10 @@ def get_active_tenant(request):
             return t
 
     if hasattr(request, "user") and (request.user.is_superuser or (profile and profile.is_platform_admin)):
+        from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
+        hq = get_or_create_platform_hq_tenant()
+        if hq:
+            return hq
         return Tenant.objects.filter(is_active=True).first()
 
     return None

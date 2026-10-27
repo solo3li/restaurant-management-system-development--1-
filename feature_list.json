@@ -175,6 +175,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "apps/callcenter/models.py (PlatformVoiceAssistantConfig singleton model), apps/callcenter/admin.py (PlatformVoiceAssistantConfigAdmin), apps/callcenter/views.py (api_landing_webrtc_session with IP rate limiting and api_ai_callcenter_initiate_webrtc with active persona profile), apps/callcenter/urls.py, core/urls.py, templates/landing.html, static/js/landing_webrtc_agent.js, templates/ai_callcenter/persona.html (interactive live WebRTC testing studio card with mic, timer, waveform, and mute/hangup controls), templates/call_center.html (empty menu state), test_decoupled_voice_and_studio.py (7/7 tests 100% PASS), and verified live on https://uggu.space/."
+    },
+    {
+      "id": "feat-landing-persona-live-sync",
+      "name": "Landing Voice Assistant Live Persona Synchronization & Platform HQ Tenant",
+      "description": "Live binding between landing page public voice assistant (/api/landing/voice-session/) and Super Admin approved persona profile in frontend studio (/ai-callcenter/persona/). Includes dedicated Platform HQ tenant ('منظومة مطاعم HQ'), official sales knowledge documents, restricted POST /api/ai-callcenter/profiles/<id>/set-landing-persona/ endpoint with 403 Forbidden enforcement for non-superadmins, instant PlatformVoiceAssistantConfig update, active badge indicator with green pulse, and immediate reflection on public sales advisor voice session.",
+      "dependencies": ["feat-decoupled-public-voice-and-persona-studio"],
+      "status": "completed",
+      "evidence": "apps/callcenter/platform_hq.py, apps/callcenter/models.py (landing_profile_id field), apps/callcenter/views.py (api_ai_callcenter_set_landing_persona, Platform HQ tenant resolution), apps/callcenter/urls.py, core/urls.py, templates/ai_callcenter/persona.html (Badge & Super Admin action button), test_landing_persona_sync.py (7/7 PASS), and ./init.sh (100% PASS)."
     }
   ]
 }

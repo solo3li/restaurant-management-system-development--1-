@@ -334,6 +334,15 @@ def _validate_callcenter_page_access(request):
         return None, HttpResponseForbidden("صفحة إدارة المساعد الصوتي والذكاء الاصطناعي مقتصرة حصرياً على مالك المنشأة")
 
     tenant = get_active_tenant(request)
+    is_super = request.user.is_superuser or (profile and getattr(profile, "is_platform_admin", False))
+    if is_super:
+        active_t_id = request.session.get("active_tenant_id") if hasattr(request, "session") else None
+        if not active_t_id:
+            from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
+            hq_tenant = get_or_create_platform_hq_tenant()
+            if hq_tenant:
+                tenant = hq_tenant
+
     if not tenant:
         return None, HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
 
@@ -521,6 +530,20 @@ def ai_callcenter_persona_view(request):
         except Exception:
             pass
 
+    for p in profiles_data:
+        if isinstance(p, dict):
+            p.setdefault("dialect", "saudi")
+            p.setdefault("language", "arabic")
+            p.setdefault("persona_role", "restaurant_orders")
+            p.setdefault("gender", "female")
+            p.setdefault("voice_name", "Aoede")
+    if isinstance(profile_data, dict):
+        profile_data.setdefault("dialect", "saudi")
+        profile_data.setdefault("language", "arabic")
+        profile_data.setdefault("persona_role", "restaurant_orders")
+        profile_data.setdefault("gender", "female")
+        profile_data.setdefault("voice_name", "Aoede")
+
     # Clean old placeholder restaurant names in welcome message
     rest_name = tenant.name if (tenant and tenant.name) else "المطعم"
     if profile_data and "مطاعم كورا" in str(profile_data.get("welcome_message", "")):
@@ -531,12 +554,26 @@ def ai_callcenter_persona_view(request):
     if not isinstance(studio_data, dict) or studio_data.get("status") != "success":
         studio_data = {}
 
+    from apps.callcenter.models import PlatformVoiceAssistantConfig
+    config = PlatformVoiceAssistantConfig.get_config()
+    landing_profile_id = getattr(config, "landing_profile_id", None)
+    if not landing_profile_id and profiles_data:
+        matched_landing = next((p for p in profiles_data if p.get("name") == config.assistant_name or p.get("voice_name") == config.voice_name), None)
+        if matched_landing:
+            landing_profile_id = matched_landing.get("id")
+
+    user_profile = getattr(request.user, "profile", None)
+    is_plat_admin = request.user.is_superuser or getattr(request, "is_platform_admin", False) or (user_profile and getattr(user_profile, "is_platform_admin", False))
+
     context = {
         "tenant": tenant,
         "profile": profile_data,
         "profiles": profiles_data,
         "studio": studio_data,
         "studio_json": json.dumps(studio_data),
+        "landing_profile_id": landing_profile_id,
+        "landing_config": config,
+        "is_platform_admin": is_plat_admin,
     }
     return render(request, "ai_callcenter/persona.html", context)
 
@@ -944,6 +981,162 @@ def api_ai_callcenter_activate_profile(request, profile_id):
 
     resp = ps.activate_profile(client_id, profile_id)
     return JsonResponse(resp)
+
+
+def api_ai_callcenter_set_landing_persona(request, profile_id):
+    """
+    Dedicated Super Admin API to approve and bind a voice profile as the
+    active sales advisor for the public landing page voice assistant.
+    Updates PlatformVoiceAssistantConfig instantly.
+    POST /api/ai-callcenter/profiles/<int:profile_id>/set-landing-persona/
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    if not request.user or not request.user.is_authenticated:
+        return JsonResponse({
+            "status": "error",
+            "code": "unauthorized",
+            "message": "يرجى تسجيل الدخول أولاً."
+        }, status=401)
+
+    profile = getattr(request.user, "profile", None)
+    is_super = request.user.is_superuser or (profile and (profile.role == "platform_admin" or getattr(profile, "is_platform_admin", False)))
+    if not is_super:
+        return JsonResponse({
+            "status": "error",
+            "code": "forbidden",
+            "message": "هذا الإجراء مقتصر حصرياً على المشرف العام للمنصة (Super Admin)."
+        }, status=403)
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
+        tenant = get_or_create_platform_hq_tenant()
+
+    from core import partner_service as ps
+    from apps.callcenter.models import PlatformVoiceAssistantConfig
+
+    client_id = ps.get_client_id_for_tenant(tenant)
+
+    # 1. Fetch profile details from partner service
+    prof_resp = ps.get_profile(client_id)
+    profiles_list = prof_resp.get("profiles") or []
+    target_prof = next((p for p in profiles_list if str(p.get("id")) == str(profile_id)), None)
+
+    # If not found on active tenant and active tenant is not 49, check client 49 (Platform HQ)
+    if not target_prof and client_id != 49:
+        prof_resp_49 = ps.get_profile(49)
+        profiles_list_49 = prof_resp_49.get("profiles") or []
+        target_prof = next((p for p in profiles_list_49 if str(p.get("id")) == str(profile_id)), None)
+        if target_prof:
+            client_id = 49
+
+    # If still not found, check single profile in prof_resp
+    if not target_prof and str((prof_resp.get("profile") or {}).get("id")) == str(profile_id):
+        target_prof = prof_resp.get("profile")
+
+    if not target_prof:
+        # Check if caller passed profile details in POST body as fallback
+        try:
+            body = json.loads(request.body.decode("utf-8")) if request.body else {}
+        except Exception:
+            body = {}
+        if body and (body.get("name") or body.get("assistant_name")):
+            target_prof = body
+
+    if not target_prof:
+        return JsonResponse({
+            "status": "error",
+            "code": "profile_not_found",
+            "message": f"تعذر العثور على بروفايل المساعد الصوتي رقم {profile_id}."
+        }, status=404)
+
+    # 2. Extract and map profile attributes
+    assistant_name = target_prof.get("name") or target_prof.get("assistant_name")
+    voice_name = target_prof.get("voice_name")
+    welcome_message = target_prof.get("welcome_message")
+    system_prompt = target_prof.get("system_prompt") or target_prof.get("custom_instructions")
+    raw_lang = target_prof.get("language") or "ar"
+    raw_accent = target_prof.get("dialect") or target_prof.get("accent") or "saudi"
+
+    # Map language to choices ('ar', 'en', 'fr', 'tr', 'de')
+    lang_map = {
+        "arabic": "ar", "ar": "ar",
+        "english": "en", "en": "en",
+        "french": "fr", "fr": "fr",
+        "turkish": "tr", "tr": "tr",
+        "german": "de", "de": "de",
+    }
+    language = lang_map.get(raw_lang.lower(), "ar")
+
+    # Map dialect to accent choices ('saudi', 'egyptian', 'levantine', 'gulf', 'modern_standard')
+    accent_map = {
+        "saudi": "saudi",
+        "egyptian": "egyptian",
+        "levantine": "levantine",
+        "jordanian_palestinian": "levantine",
+        "emirati": "gulf",
+        "kuwaiti": "gulf",
+        "gulf": "gulf",
+        "fusha": "modern_standard",
+        "modern_standard": "modern_standard",
+    }
+    accent = accent_map.get(raw_accent.lower(), raw_accent if raw_accent in ["saudi", "egyptian", "levantine", "gulf", "modern_standard"] else "saudi")
+
+    # 3. Update PlatformVoiceAssistantConfig instantly
+    config = PlatformVoiceAssistantConfig.get_config()
+    if assistant_name:
+        config.assistant_name = assistant_name
+    if voice_name:
+        config.voice_name = voice_name
+    if welcome_message and str(welcome_message).strip():
+        config.welcome_message = str(welcome_message).strip()
+    if system_prompt and str(system_prompt).strip():
+        config.system_prompt = str(system_prompt).strip()
+    config.language = language
+    config.accent = accent
+    config.partner_client_id = str(client_id)
+    config.landing_profile_id = int(profile_id)
+    config.is_active = True
+    config.save()
+
+    # 4. Activate profile on partner service for consistency
+    try:
+        ps.activate_profile(client_id, profile_id)
+    except Exception as ex:
+        logger.warning(f"Could not activate profile {profile_id} on partner service: {ex}")
+
+    # 5. Log audit trail
+    try:
+        log_audit_event(
+            tenant=tenant,
+            user=request.user,
+            action="set_landing_persona",
+            target_model="PlatformVoiceAssistantConfig",
+            target_id=config.pk,
+            description=f"اعتماد البروفايل «{config.assistant_name}» (ID: {profile_id}) كصوت ومستشار رسمي لصفحة الهبوط العامة",
+            ip_address=_get_client_ip(request),
+        )
+    except Exception:
+        pass
+
+    return JsonResponse({
+        "status": "success",
+        "message": f"تم اعتماد بروفايل «{config.assistant_name}» كصوت رسمي لصفحة الهبوط العامة بنجاح!",
+        "profile_id": int(profile_id),
+        "config": {
+            "assistant_name": config.assistant_name,
+            "voice_name": config.voice_name,
+            "welcome_message": config.welcome_message,
+            "system_prompt": config.system_prompt,
+            "language": config.language,
+            "accent": config.accent,
+            "partner_client_id": config.partner_client_id,
+            "landing_profile_id": config.landing_profile_id,
+            "is_active": config.is_active,
+        }
+    })
 
 
 @login_required
@@ -2306,6 +2499,7 @@ def api_landing_webrtc_session(request):
                     "name": config.assistant_name,
                     "voice": config.voice_name,
                     "language": config.language,
+                    "accent": config.accent,
                 },
                 "restaurant_name": "منصة كُـورَا لإدارة المطاعم",
                 "client_id": partner_client_id,

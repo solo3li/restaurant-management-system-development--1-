@@ -41,7 +41,8 @@ class TenantMiddleware:
                 elif profile and profile.tenant:
                     request.tenant = profile.tenant
                 else:
-                    request.tenant = Tenant.objects.filter(is_active=True).first()
+                    from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
+                    request.tenant = get_or_create_platform_hq_tenant()
             else:
                 # Tenant users (owners, managers, employees) are strictly bound to their tenant
                 if profile and profile.tenant:

@@ -153,6 +153,7 @@ from apps.callcenter.views import (
     api_ai_callcenter_create_profile,
     api_ai_callcenter_update_profile,
     api_ai_callcenter_activate_profile,
+    api_ai_callcenter_set_landing_persona,
     api_ai_callcenter_delete_profile,
     api_ai_callcenter_update_hours,
     api_ai_callcenter_add_doc,

@@ -90,6 +90,7 @@ urlpatterns = [
     path("api/ai-callcenter/profile/<int:profile_id>/", views.api_ai_callcenter_update_profile, name="api_ai_callcenter_update_profile_id"),
     path("api/ai-callcenter/profiles/create/", views.api_ai_callcenter_create_profile, name="api_ai_callcenter_create_profile"),
     path("api/ai-callcenter/profiles/<int:profile_id>/activate/", views.api_ai_callcenter_activate_profile, name="api_ai_callcenter_activate_profile"),
+    path("api/ai-callcenter/profiles/<int:profile_id>/set-landing-persona/", views.api_ai_callcenter_set_landing_persona, name="api_ai_callcenter_set_landing_persona"),
     path("api/ai-callcenter/profiles/<int:profile_id>/delete/", views.api_ai_callcenter_delete_profile, name="api_ai_callcenter_delete_profile"),
     path("api/ai-callcenter/hours/", views.api_ai_callcenter_update_hours, name="api_ai_callcenter_update_hours"),
     path("api/ai-callcenter/docs/add/", views.api_ai_callcenter_add_doc, name="api_ai_callcenter_add_doc"),

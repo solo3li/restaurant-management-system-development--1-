@@ -161,6 +161,12 @@ class PlatformVoiceAssistantConfig(models.Model):
         verbose_name="الحد اليومي للمكالمات لكل عنوان IP",
         help_text="الحد الأقصى لعدد المكالمات المسموح بها لكل IP يومياً لمنع استنزاف الرصيد."
     )
+    landing_profile_id = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="معرف بروفايل صفحة الهبوط المعتمد",
+        help_text="معرف البروفايل المعتمد حالياً في استوديو الكول سنتر لصفحة الهبوط."
+    )
     created_at = models.DateTimeField(default=timezone.now, verbose_name="تاريخ الإنشاء")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
 
