@@ -63,4 +63,5 @@ urlpatterns = [
     path("api/ai-callcenter/calls/webrtc/", views.api_ai_callcenter_initiate_webrtc, name="api_ai_callcenter_initiate_webrtc"),
     path("api/webrtc/session/", views.api_landing_webrtc_session, name="api_webrtc_session"),
     path("api/landing/voice-session/", views.api_landing_webrtc_session, name="api_landing_voice_session"),
+    path("api/landing/voice-session/end/", views.api_landing_voice_session_end, name="api_landing_voice_session_end"),
 ]

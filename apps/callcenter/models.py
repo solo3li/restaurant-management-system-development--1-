@@ -1,3 +1,4 @@
+import re
 import secrets
 from django.db import models
 from django.utils import timezone
@@ -187,4 +188,105 @@ class PlatformVoiceAssistantConfig(models.Model):
     def save(self, *args, **kwargs):
         self.pk = 1
         super().save(*args, **kwargs)
+
+
+class LandingVoiceLead(models.Model):
+    """
+    Landing Page Voice Call Leads & Customer Acquisition Tracker.
+    Captures visitor details (name, phone, international country code) before WebRTC calls.
+    Tracks technical call duration, status, and sales CRM pipeline follow-up.
+    """
+    CALL_STATUS_CHOICES = [
+        ("initiated", "قيد البدء"),
+        ("connected", "متصلة"),
+        ("completed", "مكتملة"),
+        ("missed", "لم تكتمل"),
+        ("failed", "فشلت"),
+    ]
+
+    LEAD_STATUS_CHOICES = [
+        ("new", "جديد"),
+        ("contacted", "تم التواصل"),
+        ("interested", "مهتم بالاشتراك"),
+        ("converted", "تم التعاقد"),
+        ("no_answer", "لم يرد"),
+        ("cancelled", "ملغي"),
+    ]
+
+    name = models.CharField(max_length=150, verbose_name="اسم الزائر")
+    phone = models.CharField(max_length=30, verbose_name="رقم الجوال")
+    country_code = models.CharField(max_length=10, default="+966", verbose_name="كود الدولة")
+    full_phone = models.CharField(max_length=40, db_index=True, verbose_name="الرقم الدولي الكامل")
+    call_status = models.CharField(
+        max_length=20,
+        choices=CALL_STATUS_CHOICES,
+        default="initiated",
+        db_index=True,
+        verbose_name="حالة المكالمة",
+    )
+    duration_seconds = models.PositiveIntegerField(default=0, verbose_name="مدة المكالمة (بالثواني)")
+    call_id = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True,
+        db_index=True,
+        verbose_name="معرف المكالمة (LiveKit/Partner)",
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="عنوان IP")
+    lead_status = models.CharField(
+        max_length=20,
+        choices=LEAD_STATUS_CHOICES,
+        default="new",
+        db_index=True,
+        verbose_name="حالة المتابعة",
+    )
+    notes = models.TextField(blank=True, default="", verbose_name="ملاحظات المبيعات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ ووقت الاتصال")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
+
+    class Meta:
+        app_label = "core"
+        verbose_name = "عميل مكالمات صفحة الهبوط"
+        verbose_name_plural = "عملاء مكالمات صفحة الهبوط (Landing Leads & Voice Calls)"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.full_phone}) - {self.get_lead_status_display()}"
+
+    @staticmethod
+    def format_full_phone(phone: str, country_code: str = "+966") -> str:
+        clean_cc = (country_code or "+966").strip()
+        if not clean_cc.startswith("+"):
+            clean_cc = "+" + clean_cc
+        clean_p = (phone or "").strip()
+        if clean_p.startswith("+"):
+            return clean_p
+        digits = re.sub(r"\D", "", clean_p)
+        if not digits:
+            return clean_p or "—"
+        cc_digits = clean_cc.lstrip("+")
+        if digits.startswith(cc_digits):
+            return f"+{digits}"
+        local_digits = digits.lstrip("0")
+        return f"{clean_cc}{local_digits}"
+
+    @property
+    def whatsapp_url(self) -> str:
+        digits = re.sub(r"\D", "", self.full_phone or self.phone or "")
+        if digits:
+            return f"https://wa.me/{digits}"
+        return ""
+
+    def formatted_duration(self) -> str:
+        mins = self.duration_seconds // 60
+        secs = self.duration_seconds % 60
+        return f"{mins:02d}:{secs:02d}"
+
+    def save(self, *args, **kwargs):
+        if self.phone and not self.full_phone:
+            self.full_phone = self.format_full_phone(self.phone, self.country_code)
+        elif self.phone and self.country_code and not self.full_phone.startswith("+"):
+            self.full_phone = self.format_full_phone(self.phone, self.country_code)
+        super().save(*args, **kwargs)
+
 

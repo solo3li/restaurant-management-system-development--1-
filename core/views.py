@@ -194,6 +194,7 @@ from apps.callcenter.views import (
     api_ai_callcenter_sync_caps,
     api_ai_callcenter_initiate_webrtc,
     api_landing_webrtc_session,
+    api_landing_voice_session_end,
 )
 
 from apps.audit.views import (

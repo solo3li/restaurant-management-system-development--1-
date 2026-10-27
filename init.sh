@@ -21,6 +21,9 @@ venv/bin/python test_multilingual_5lang.py
 echo "=== venv/bin/python manage.py test test_landing_persona_sync ==="
 venv/bin/python manage.py test test_landing_persona_sync
 
+echo "=== venv/bin/python manage.py test test_landing_voice_leads ==="
+venv/bin/python manage.py test test_landing_voice_leads
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 10:45
-**Session ID:** Landing Voice Assistant Live Persona Synchronization & Platform HQ Tenant
+**Last Updated:** 2026-10-27 12:40
+**Session ID:** Landing Page Voice Leads Capture, Global Phone Codes, Personalized Greeting & Admin CRM
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -22,10 +22,21 @@
 - `feat-callcenter-dynamic-categories` (Completed & Verified 100%)
 - `feat-decoupled-public-voice-and-persona-studio` (Completed & Verified 100%)
 - `feat-landing-persona-live-sync` (Completed & Verified 100%)
+- `feat-landing-voice-leads-crm` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
+
+- [x] **Landing Page Voice Leads Capture, Global Phone Codes, Personalized Greeting & Admin CRM (`feat-landing-voice-leads-crm`)**
+  - **Visitor Lead Capture Modal (`templates/landing.html`)**: Created `#landing-lead-modal` triggered whenever a visitor clicks to start a voice call. Prompts for Full Name and Phone Number with a comprehensive global country code dropdown (+966, +20, +971, +965, +974, +968, +973, +962, +1, +44, +90, +49, +33, etc.) and a custom international code input (`lead-custom-code-wrap`). Validates full name and phone number client-side before starting the call.
+  - **LandingVoiceLead Model (`apps/callcenter/models.py`)**: Created database model storing `name`, `phone`, `country_code`, `full_phone`, `call_status` (`initiated`, `connected`, `completed`, `missed`, `failed`), `duration_seconds`, `call_id`, `ip_address`, `lead_status` (`new`, `contacted`, `interested`, `converted`, `no_answer`, `cancelled`), `notes`, `created_at`, and `updated_at`. Implemented `format_full_phone` for international numbering and `whatsapp_url` property for instant WhatsApp links. Generated and applied migration `0032_landingvoicelead.py`.
+  - **Caller Name Pronunciation in Voice Greeting**: In `apps/callcenter/views.py` `api_landing_webrtc_session`, extracted visitor info, passed `caller_name` to `partner_service.initiate_webrtc_call`, and dynamically synthesized the first Gemini Live greeting to address the caller by name ("أهلاً بك يا [اسم المتصل]! أنا مستشار مبيعات منصة مطاعم، كيف أقدر أساعدك اليوم في إدارة وتطوير مطعمك؟").
+  - **Call End Telemetry Endpoint (`POST /api/landing/voice-session/end/`)**: Created and registered route in `apps/callcenter/urls.py`, `core/urls.py`, and `core/views.py`. Updates call duration and status by `lead_id` or `call_id`.
+  - **Client-Side LiveKit Telemetry (`static/js/landing_webrtc_agent.js` & `staticfiles/js/landing_webrtc_agent.js`)**: Updated WebRTC agent to store `currentLeadId` and `currentCallId`, report `sendEndSessionTelemetry` on call termination (`completed`) or error (`failed`) using `navigator.sendBeacon` with fetch fallback, and preserve caller info for instant reconnects (`restartDemoCall`).
+  - **Django Admin CRM Panel (`LandingVoiceLeadAdmin` in `apps/callcenter/admin.py`)**: Registered model with unified Slate theme under "عملاء مكالمات صفحة الهبوط (Landing Leads & Voice Calls)". Added interactive table with visitor name, direct WhatsApp button (`https://wa.me/...`), international phone, country code, styled call status badge, formatted duration (MM:SS), inline editable `lead_status` (`list_editable = ('lead_status',)`), date hierarchy, search, and filters. Added to Jazzmin icons and menu order.
+  - **Automated Test Suite (`test_landing_voice_leads.py`)**: 11 automated test cases verifying model methods, international phone normalization across world countries, personalized voice greetings, input validation rejections (HTTP 400), call end telemetry (HTTP 200/404), Django admin changelist rendering with WhatsApp button, inline lead status editing, and landing page template markup. Added to `./init.sh`.
+  - **Verification**: Ran `manage.py check` (0 issues), `test_landing_voice_leads.py` (11/11 PASS), `test_landing_persona_sync.py` (11/11 PASS), `test_decoupled_voice_and_studio.py` (7/7 PASS), `./init.sh` (100% PASS), and `graphify update .` (8,801 nodes, 18,767 edges, 472 communities).
 
 - [x] **Landing Voice Assistant Live Persona Synchronization & Platform HQ Tenant (`feat-landing-persona-live-sync`)**
   - **Platform HQ Dedicated Tenant**: Created `apps/callcenter/platform_hq.py` initializing "منظومة مطاعم HQ" (`platform-hq`), bound to Central PBX client 49 with enterprise capabilities, default headquarters branch, and sales & subscription knowledge base documents.

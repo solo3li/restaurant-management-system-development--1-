@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import logging
 from decimal import Decimal
@@ -2456,14 +2457,16 @@ def api_landing_webrtc_session(request):
     """
     Public in-browser WebRTC voice session for landing page visitors.
     No login required. Direct instant conversation with Motaem Platform Sales Advisor.
+    Captures visitor lead information (name, phone, international country code) and
+    personalizes the assistant greeting to speak the caller's name directly.
     Strictly rate limited by IP: max_daily_calls_per_ip (default 3 calls / day).
     Max duration: max_call_duration_seconds (default 180s = 3 minutes).
-    Managed via Django Admin (PlatformVoiceAssistantConfig).
+    Managed via Django Admin (PlatformVoiceAssistantConfig & LandingVoiceLead).
     """
     if request.method != "POST" and request.method != "GET":
         return HttpResponseBadRequest("POST or GET required")
 
-    from apps.callcenter.models import PlatformVoiceAssistantConfig
+    from apps.callcenter.models import PlatformVoiceAssistantConfig, LandingVoiceLead
     from core import partner_service as ps
 
     config = PlatformVoiceAssistantConfig.get_config()
@@ -2492,7 +2495,72 @@ def api_landing_webrtc_session(request):
             "message": f"عذراً، لقد استنفذت الحد اليومي للتجربة الصوتية المجانية ({max_calls} مكالمات). يرجى تسجيل حساب مجاني لمواصلة التجربة بدون أي قيود."
         }, status=429)
 
-    # 2. Call Partner Service WebRTC API
+    # 2. Parse Visitor Lead Information (Payload)
+    payload = {}
+    if request.body:
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            payload = request.POST.dict()
+    else:
+        payload = request.POST.dict()
+
+    visitor_name = (payload.get("name") or payload.get("caller_name") or "").strip()
+    visitor_phone = (payload.get("phone") or "").strip()
+    country_code = (payload.get("country_code") or "+966").strip()
+    if not country_code.startswith("+"):
+        country_code = f"+{country_code}"
+
+    lead = None
+    if visitor_name or visitor_phone:
+        if len(visitor_name) < 2:
+            return JsonResponse({
+                "status": "error",
+                "code": "invalid_name",
+                "message": "يرجى كتابة الاسم الكامل (حرفين على الأقل)."
+            }, status=400)
+
+        digits = re.sub(r"\D", "", visitor_phone)
+        if len(digits) < 5 or len(digits) > 16:
+            return JsonResponse({
+                "status": "error",
+                "code": "invalid_phone",
+                "message": "يرجى إدخال رقم جوال صحيح (يتكون من 5 إلى 16 رقماً)."
+            }, status=400)
+
+        caller_name = visitor_name
+        full_phone = LandingVoiceLead.format_full_phone(visitor_phone, country_code)
+        lead = LandingVoiceLead.objects.create(
+            name=visitor_name,
+            phone=visitor_phone,
+            country_code=country_code,
+            full_phone=full_phone,
+            call_status="initiated",
+            ip_address=client_ip,
+            lead_status="new",
+        )
+    else:
+        caller_name = "زائر المنصة التجريبي"
+        lead = LandingVoiceLead.objects.create(
+            name="زائر المنصة التجريبي",
+            phone="—",
+            country_code="+966",
+            full_phone="—",
+            call_status="initiated",
+            ip_address=client_ip,
+            lead_status="new",
+        )
+
+    # 3. Personalize Welcome Message (speak caller's name)
+    if visitor_name and visitor_name != "زائر المنصة التجريبي":
+        if "{name}" in config.welcome_message:
+            welcome_msg = config.welcome_message.replace("{name}", visitor_name)
+        else:
+            welcome_msg = f"أهلاً بك يا {visitor_name}! أنا مستشار مبيعات منصة مطاعم، كيف أقدر أساعدك اليوم في إدارة وتطوير مطعمك؟"
+    else:
+        welcome_msg = config.welcome_message
+
+    # 4. Call Partner Service WebRTC API
     partner_client_id = config.partner_client_id or "49"
     try:
         partner_client_id = int(partner_client_id)
@@ -2503,16 +2571,21 @@ def api_landing_webrtc_session(request):
         res = ps.initiate_webrtc_call(
             client_id=partner_client_id,
             max_duration_seconds=config.max_call_duration_seconds,
-            caller_name="زائر المنصة التجريبي",
-            welcome_message=config.welcome_message,
+            caller_name=caller_name,
+            welcome_message=welcome_msg,
         )
         if res.get("status") == "success" and res.get("livekit_url") and res.get("livekit_token"):
-            # Increment daily call count in cache
             cache.set(cache_key, current_calls + 1, timeout=86400)
+
+            call_id = res.get("call_id")
+            if lead:
+                lead.call_id = call_id
+                lead.save(update_fields=["call_id", "updated_at"])
 
             return JsonResponse({
                 "status": "success",
-                "call_id": res.get("call_id"),
+                "call_id": call_id,
+                "lead_id": lead.id if lead else None,
                 "room_name": res.get("room_name"),
                 "livekit_url": res.get("livekit_url"),
                 "livekit_token": res.get("livekit_token"),
@@ -2524,23 +2597,99 @@ def api_landing_webrtc_session(request):
                     "language": config.language,
                     "accent": config.accent,
                 },
+                "welcome_message": welcome_msg,
                 "restaurant_name": "منصة كُـورَا لإدارة المطاعم",
                 "client_id": partner_client_id,
                 "remaining_calls_today": max(0, max_calls - (current_calls + 1)),
             })
         else:
+            if lead:
+                lead.call_status = "failed"
+                lead.save(update_fields=["call_status", "updated_at"])
             return JsonResponse({
                 "status": "error",
                 "code": "upstream_error",
                 "message": res.get("message") or "تعذر بدء الجلسة الصوتية من خادم الاتصالات."
             }, status=502)
     except Exception as ex:
+        if lead:
+            lead.call_status = "failed"
+            lead.save(update_fields=["call_status", "updated_at"])
         logger.error(f"Error in api_landing_webrtc_session for IP {client_ip}: {ex}", exc_info=True)
         return JsonResponse({
             "status": "error",
             "code": "internal_error",
             "message": f"حدث خطأ غير متوقع: {str(ex)}"
         }, status=500)
+
+
+@csrf_exempt
+def api_landing_voice_session_end(request):
+    """
+    Update call duration and status when the landing voice session ends from the browser.
+    POST /api/landing/voice-session/end/
+    Accepts: {
+        "lead_id": 123,
+        "call_id": "call_abc",
+        "duration_seconds": 45,
+        "call_status": "completed"
+    }
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    from apps.callcenter.models import LandingVoiceLead
+
+    payload = {}
+    if request.body:
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            payload = request.POST.dict()
+    else:
+        payload = request.POST.dict()
+
+    lead_id = payload.get("lead_id")
+    call_id = payload.get("call_id")
+    duration_seconds = payload.get("duration_seconds", 0)
+    call_status = payload.get("call_status", "completed")
+
+    try:
+        duration_seconds = max(0, int(duration_seconds))
+    except (ValueError, TypeError):
+        duration_seconds = 0
+
+    lead = None
+    if lead_id:
+        try:
+            lead = LandingVoiceLead.objects.filter(id=int(lead_id)).first()
+        except (ValueError, TypeError):
+            pass
+
+    if not lead and call_id:
+        lead = LandingVoiceLead.objects.filter(call_id=str(call_id).strip()).first()
+
+    if not lead:
+        return JsonResponse({
+            "status": "error",
+            "code": "lead_not_found",
+            "message": "لم يتم العثور على سجل المكالمة المحدد."
+        }, status=404)
+
+    valid_statuses = dict(LandingVoiceLead.CALL_STATUS_CHOICES).keys()
+    if call_status not in valid_statuses:
+        call_status = "completed"
+
+    lead.duration_seconds = max(lead.duration_seconds, duration_seconds)
+    lead.call_status = call_status
+    lead.save(update_fields=["duration_seconds", "call_status", "updated_at"])
+
+    return JsonResponse({
+        "status": "success",
+        "lead_id": lead.id,
+        "call_status": lead.call_status,
+        "duration_seconds": lead.duration_seconds,
+    })
 
 
 @login_required

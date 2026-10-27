@@ -183,6 +183,14 @@
       "dependencies": ["feat-decoupled-public-voice-and-persona-studio"],
       "status": "completed",
       "evidence": "apps/callcenter/platform_hq.py, apps/callcenter/models.py (landing_profile_id field), apps/callcenter/views.py (_resolve_callcenter_tenant, api_ai_callcenter_set_landing_persona, Platform HQ tenant resolution), apps/callcenter/urls.py, core/urls.py, templates/ai_callcenter/persona.html (Badge & Super Admin action button), static/js/landing_webrtc_agent.js (/api/landing/voice-session/ endpoint), core/signals.py (test runner lock fix), test_landing_persona_sync.py (11/11 PASS), and ./init.sh (100% PASS)."
+    },
+    {
+      "id": "feat-landing-voice-leads-crm",
+      "name": "Landing Page Voice Leads Capture, Global Phone Codes, Personalized Greeting & Admin CRM",
+      "description": "Visitor contact capture modal on landing page before WebRTC voice call. Supports all countries globally (+966, +20, +971, +965, +974, +968, +973, +962, +1, +44, +90, +49, +33, etc.) with custom international code input. Model LandingVoiceLead in apps/callcenter/models.py tracking name, phone, country_code, full_phone, call_status, duration_seconds, call_id, ip_address, lead_status, notes, and created_at. Personalized voice greeting in partner_service.initiate_webrtc_call pronouncing the caller's name. POST /api/landing/voice-session/end/ call end telemetry endpoint. Django admin LandingVoiceLeadAdmin in unified Slate theme with direct WhatsApp link button, duration formatting, and list_editable lead_status.",
+      "dependencies": ["feat-landing-persona-live-sync"],
+      "status": "completed",
+      "evidence": "apps/callcenter/models.py (LandingVoiceLead model with format_full_phone and whatsapp_url), core/migrations/0032_landingvoicelead.py, apps/callcenter/admin.py (LandingVoiceLeadAdmin with WhatsApp button, status badge, formatted duration, list_editable), apps/callcenter/views.py (api_landing_webrtc_session with lead capture and name greeting, api_landing_voice_session_end), apps/callcenter/urls.py, core/urls.py, core/views.py, templates/landing.html (landing-lead-modal with global country code picker and custom code input), static/js/landing_webrtc_agent.js, staticfiles/js/landing_webrtc_agent.js, test_landing_voice_leads.py (11/11 PASS), and ./init.sh (100% PASS)."
     }
   ]
 }

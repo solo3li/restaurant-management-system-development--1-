@@ -18,6 +18,9 @@
     let callDurationSeconds = 0;
     let maxDurationSeconds = 300;
     let isMuted = false;
+    let currentLeadId = null;
+    let currentCallId = null;
+    let currentVisitorInfo = null;
 
     // Helper: Get CSRF Token
     function getCookie(name) {
@@ -70,10 +73,99 @@
     // MODAL VISIBILITY MANAGERS
     // ========================================================
 
-    window.openDemoVoiceFlow = function () {
-        // Direct instant access for landing page visitors (no login required)
+    window.openLandingLeadModal = function () {
+        const modal = document.getElementById('landing-lead-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            const errBox = document.getElementById('lead-modal-error');
+            if (errBox) errBox.classList.add('hidden');
+            setTimeout(() => {
+                const nameInput = document.getElementById('lead-visitor-name');
+                if (nameInput) nameInput.focus();
+            }, 100);
+        } else {
+            // Direct instant access fallback if lead modal is not present
+            openVoiceCallModal();
+            startWebRTCCall();
+        }
+    };
+
+    window.closeLandingLeadModal = function () {
+        const modal = document.getElementById('landing-lead-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    };
+
+    window.handleCountryCodeChange = function (selectEl) {
+        const customWrap = document.getElementById('lead-custom-code-wrap');
+        const customInput = document.getElementById('lead-custom-code-input');
+        if (selectEl && selectEl.value === 'custom') {
+            if (customWrap) customWrap.classList.remove('hidden');
+            if (customInput) customInput.focus();
+        } else {
+            if (customWrap) customWrap.classList.add('hidden');
+        }
+    };
+
+    window.handleLeadFormSubmit = function (e) {
+        if (e) e.preventDefault();
+        const nameInput = document.getElementById('lead-visitor-name');
+        const phoneInput = document.getElementById('lead-visitor-phone');
+        const codeSelect = document.getElementById('lead-country-code');
+        const customCodeInput = document.getElementById('lead-custom-code-input');
+        const errorBox = document.getElementById('lead-modal-error');
+        const errorText = document.getElementById('lead-modal-error-text');
+
+        const name = (nameInput?.value || '').trim();
+        const rawPhone = (phoneInput?.value || '').trim();
+        let countryCode = codeSelect?.value || '+966';
+
+        if (countryCode === 'custom') {
+            countryCode = (customCodeInput?.value || '').trim();
+            if (!countryCode.startsWith('+')) {
+                countryCode = '+' + countryCode.replace(/^\+*/, '');
+            }
+            if (countryCode.length < 2) {
+                countryCode = '+966';
+            }
+        }
+
+        // Validate name (min 2 chars)
+        if (name.length < 2) {
+            if (errorText) errorText.textContent = 'يرجى كتابة الاسم الكامل (حرفين على الأقل).';
+            if (errorBox) errorBox.classList.remove('hidden');
+            nameInput?.focus();
+            return;
+        }
+
+        // Validate phone (min 5 digits, max 16 digits)
+        const digits = rawPhone.replace(/\D/g, '');
+        if (digits.length < 5 || digits.length > 16) {
+            if (errorText) errorText.textContent = 'يرجى إدخال رقم جوال صحيح يتكون من 5 إلى 16 رقماً.';
+            if (errorBox) errorBox.classList.remove('hidden');
+            phoneInput?.focus();
+            return;
+        }
+
+        if (errorBox) errorBox.classList.add('hidden');
+
+        currentVisitorInfo = {
+            name: name,
+            phone: rawPhone,
+            country_code: countryCode
+        };
+
+        closeLandingLeadModal();
         openVoiceCallModal();
-        startWebRTCCall();
+        startWebRTCCall(currentVisitorInfo);
+    };
+
+    window.openDemoVoiceFlow = function () {
+        // Show visitor lead capture modal first
+        openLandingLeadModal();
     };
 
     window.openAuthStepperModal = function () {
@@ -327,12 +419,14 @@
     // WEBRTC LIVEKIT VOICE CALL ENGINE
     // ========================================================
 
-    async function startWebRTCCall() {
+    async function startWebRTCCall(visitorData) {
         updateCallStatus('جاري طلب إذن الميكروفون...', 'connecting');
         const restNameEl = document.getElementById('call-restaurant-name');
         if (restNameEl && document.body.dataset.restaurantName) {
             restNameEl.textContent = document.body.dataset.restaurantName;
         }
+
+        const payloadData = visitorData || currentVisitorInfo || {};
 
         try {
             // 1. Request Browser Mic
@@ -349,7 +443,7 @@
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({})
+                body: JSON.stringify(payloadData)
             });
 
             if (!sessionResp.ok) {
@@ -361,6 +455,9 @@
             if (sessionData.status !== 'success' || !sessionData.livekit_url || !sessionData.livekit_token) {
                 throw new Error(sessionData.message || 'بيانات اتصال السنترال غير مكتملة.');
             }
+
+            currentLeadId = sessionData.lead_id || null;
+            currentCallId = sessionData.call_id || null;
 
             if (sessionData.restaurant_name && restNameEl) {
                 if (sessionData.remaining_calls_today !== undefined) {
@@ -587,9 +684,38 @@
         handleCallTermination('انتهت المكالمة بنجاح.');
     };
 
+    function sendEndSessionTelemetry(status) {
+        if (!currentLeadId && !currentCallId) return;
+        const payload = {
+            lead_id: currentLeadId,
+            call_id: currentCallId,
+            duration_seconds: callDurationSeconds,
+            call_status: status || 'completed'
+        };
+        try {
+            if (navigator.sendBeacon) {
+                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                navigator.sendBeacon('/api/landing/voice-session/end/', blob);
+            } else {
+                fetch('/api/landing/voice-session/end/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify(payload),
+                    keepalive: true
+                }).catch(() => {});
+            }
+        } catch (e) {
+            console.warn('Could not report call telemetry:', e);
+        }
+    }
+
     function handleCallTermination(reason) {
         stopCallTimer();
         stopVisualizerLoop();
+        sendEndSessionTelemetry('completed');
 
         if (localAudioTrack) {
             try {
@@ -640,6 +766,7 @@
     function showCallError(msg) {
         stopCallTimer();
         stopVisualizerLoop();
+        sendEndSessionTelemetry('failed');
         document.getElementById('call-active-state')?.classList.add('hidden');
         document.getElementById('call-summary-state')?.classList.add('hidden');
         const errorState = document.getElementById('call-error-state');
@@ -655,7 +782,7 @@
         document.getElementById('call-summary-state')?.classList.add('hidden');
         document.getElementById('call-error-state')?.classList.add('hidden');
         document.getElementById('call-active-state')?.classList.remove('hidden');
-        startWebRTCCall();
+        startWebRTCCall(currentVisitorInfo);
     };
 
 })();
