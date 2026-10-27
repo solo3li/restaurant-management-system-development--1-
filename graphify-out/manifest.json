@@ -2448,9 +2448,9 @@
     "semantic_hash": ""
   },
   "templates/landing.html": {
-    "mtime": 1793062226.4965112,
-    "seen": 1793062465.6538467,
-    "ast_hash": "94792345fd8699de0d118444c0e1870b",
+    "mtime": 1793063114.5828538,
+    "seen": 1793063307.3633795,
+    "ast_hash": "167458fd180cd38ed769e0f608448f36",
     "semantic_hash": ""
   },
   "templates/login.html": {
@@ -3204,9 +3204,9 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793060442.4532933,
-    "seen": 1793061285.8557496,
-    "ast_hash": "8800758ab069b29fc0ba95170a0a57c6",
+    "mtime": 1793062488.3656383,
+    "seen": 1793063307.332448,
+    "ast_hash": "86011f4eb6991c30014b4fc606b198e7",
     "semantic_hash": ""
   },
   "init.sh": {
@@ -3222,9 +3222,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793061315.1425426,
-    "seen": 1793062465.6505675,
-    "ast_hash": "f0b0d418167fc461d426a35e86970cc1",
+    "mtime": 1793062499.0629685,
+    "seen": 1793063307.3601506,
+    "ast_hash": "a3f6da3aca7d22ee674f0caa889c4cf9",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3786,9 +3786,9 @@
     "semantic_hash": ""
   },
   "static/js/landing_animations.js": {
-    "mtime": 1793062262.4236314,
-    "seen": 1793062465.6258252,
-    "ast_hash": "e87b8c1df06557aabb19443dd62c707d",
+    "mtime": 1793063165.985424,
+    "seen": 1793063307.3355684,
+    "ast_hash": "9f00a3f8e59cbf64f5edb4cf4c8af397",
     "semantic_hash": ""
   },
   "static/js/vendor/ScrollTrigger.min.js": {
@@ -3810,9 +3810,9 @@
     "semantic_hash": ""
   },
   "staticfiles/js/landing_animations.js": {
-    "mtime": 1793062296.682698,
-    "seen": 1793062465.6339324,
-    "ast_hash": "e87b8c1df06557aabb19443dd62c707d",
+    "mtime": 1793063169.6415355,
+    "seen": 1793063307.3444664,
+    "ast_hash": "9f00a3f8e59cbf64f5edb4cf4c8af397",
     "semantic_hash": ""
   },
   "staticfiles/js/vendor/ScrollTrigger.min.js": {

@@ -17,6 +17,8 @@
         if (docLang === 'en' || docDir === 'ltr') return 'en';
 
         try {
+            const landingEl = document.getElementById('landing-page');
+            if (landingEl && landingEl.getAttribute('dir') === 'ltr') return 'en';
             const params = new URLSearchParams(window.location.search);
             if (params.get('lang') === 'en') return 'en';
         } catch (e) {}
@@ -27,7 +29,7 @@
     // Safety fallback helper to ensure text & numbers are never blank or zero
     function ensureFallbackValues() {
         const typewriterEl = document.getElementById('hero-typewriter');
-        if (typewriterEl && !typewriterEl.textContent.trim()) {
+        if (typewriterEl && (!typewriterEl.textContent.trim() || typewriterEl.textContent === '\u200B')) {
             typewriterEl.textContent = detectLanguage() === 'en'
                 ? 'Modern Restaurant Chains'
                 : 'سلاسل المطاعم الحديثة';
@@ -50,12 +52,26 @@
         });
     }
 
-    // Injects essential animation styles into document head as self-healing fallback
+    // Handle reduced motion preference early and cleanly
+    if (prefersReducedMotion) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', ensureFallbackValues);
+        } else {
+            ensureFallbackValues();
+        }
+        return;
+    }
+
+    // Self-healing fallback styles injection if CSS not yet present
     function injectStylesIfNeeded() {
         if (document.getElementById('motaem-anim-styles')) return;
         const style = document.createElement('style');
         style.id = 'motaem-anim-styles';
         style.textContent = `
+            @keyframes heroReveal {
+                0% { opacity: 0; transform: translateY(24px); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
             .native-typewriter-cursor, .typed-cursor {
                 display: inline-block;
                 color: #7C3AED;
@@ -70,7 +86,11 @@
                 50% { transform: translate(-50%, -50%) scale(1.18); opacity: 0.24; }
             }
             #hero-ambient-glow { animation: heroAmbientGlowPulse 4.5s ease-in-out infinite; }
-            .motaem-anim-active .hero-anim-item,
+            .motaem-anim-active .hero-anim-item {
+                opacity: 0;
+                transform: translateY(24px);
+                animation: heroReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+            }
             .motaem-anim-active .section-header-reveal .reveal-item,
             .motaem-anim-active .bento-card,
             .motaem-anim-active .stat-card,
@@ -109,16 +129,12 @@
                     opacity: 1 !important;
                     transform: none !important;
                     transition: none !important;
+                    animation: none !important;
                 }
                 #hero-ambient-glow { animation: none !important; }
             }
         `;
         document.head.appendChild(style);
-    }
-
-    if (prefersReducedMotion) {
-        ensureFallbackValues();
-        return;
     }
 
     // =========================================================================
@@ -143,7 +159,7 @@
                 'أسطول التوصيل وخدمات الضيافة'
               ];
 
-        // Find or create pulsing cursor element
+        // Find or create pulsing purple cursor element
         let cursorEl = typewriterEl.parentNode.querySelector('.native-typewriter-cursor');
         if (!cursorEl) {
             cursorEl = document.createElement('span');
@@ -169,7 +185,8 @@
 
             if (isDeleting) {
                 charIdx--;
-                typewriterEl.textContent = chars.slice(0, charIdx).join('');
+                // Zero-width space preserves line box height when text is fully backspaced
+                typewriterEl.textContent = chars.slice(0, charIdx).join('') || '\u200B';
 
                 if (charIdx === 0) {
                     isDeleting = false;
@@ -191,7 +208,8 @@
             }
         }
 
-        typewriterEl.textContent = '';
+        // Start with zero-width space to keep line height stable
+        typewriterEl.textContent = '\u200B';
         setTimeout(tick, INITIAL_DELAY);
     }
 
@@ -202,6 +220,14 @@
         if (!element) return;
         const isFloat = options.isFloat || false;
         const hasComma = options.hasComma || false;
+
+        // Set initial formatted value immediately to eliminate any frame-1 jump/flicker
+        if (isFloat) element.textContent = startVal.toFixed(1);
+        else if (hasComma) element.textContent = Math.round(startVal).toLocaleString('en-US');
+        else element.textContent = Math.round(startVal);
+
+        if (startVal === endVal) return;
+
         const startTime = performance.now();
 
         function update(currentTime) {
@@ -236,10 +262,19 @@
         const elHrs = document.getElementById('metric-uptime-hrs');
         const elPct = document.getElementById('metric-uptime-pct');
 
-        // Hero counters start immediately on page open without waiting for scroll
+        // Hero counters start immediately from zero on page open without waiting for scroll
         if (elHrs) animateCounter(elHrs, 0, 24, 1600);
         if (elPct) animateCounter(elPct, 0, 99.9, 1600, { isFloat: true });
-        if (elLatency) animateCounter(elLatency, 50, 0, 1400);
+        if (elLatency) animateCounter(elLatency, 0, 0, 1400);
+    }
+
+    function triggerCounterForElement(el) {
+        if (!el || el.dataset.counterStarted === 'true') return;
+        el.dataset.counterStarted = 'true';
+        const targetVal = parseFloat(el.getAttribute('data-counter-target')) || 0;
+        const isFloat = el.getAttribute('data-counter-float') === 'true';
+        const hasComma = el.getAttribute('data-counter-comma') === 'true';
+        animateCounter(el, 0, targetVal, 1800, { isFloat, hasComma });
     }
 
     function initStatsSectionCounters() {
@@ -250,27 +285,18 @@
             const observer = new IntersectionObserver((entries, obs) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        const el = entry.target;
-                        const targetVal = parseFloat(el.getAttribute('data-counter-target')) || 0;
-                        const isFloat = el.getAttribute('data-counter-float') === 'true';
-                        const hasComma = el.getAttribute('data-counter-comma') === 'true';
-                        animateCounter(el, 0, targetVal, 1800, { isFloat, hasComma });
-                        obs.unobserve(el);
+                        triggerCounterForElement(entry.target);
+                        obs.unobserve(entry.target);
                     }
                 });
             }, {
-                threshold: 0.15,
-                rootMargin: '0px 0px -40px 0px'
+                threshold: 0.08,
+                rootMargin: '0px 0px -20px 0px'
             });
 
             statCounters.forEach((el) => observer.observe(el));
         } else {
-            statCounters.forEach((el) => {
-                const targetVal = parseFloat(el.getAttribute('data-counter-target')) || 0;
-                const isFloat = el.getAttribute('data-counter-float') === 'true';
-                const hasComma = el.getAttribute('data-counter-comma') === 'true';
-                animateCounter(el, 0, targetVal, 1800, { isFloat, hasComma });
-            });
+            statCounters.forEach((el) => triggerCounterForElement(el));
         }
     }
 
@@ -290,22 +316,28 @@
         injectStylesIfNeeded();
         document.documentElement.classList.add('motaem-anim-active');
 
-        // 1. Hero elements: stagger in immediately on load
+        // 1. Hero elements: stagger waterfall immediately on load via keyframe delays
         const heroItems = document.querySelectorAll('.hero-anim-item');
         heroItems.forEach((item, idx) => {
-            revealElement(item, 50 + idx * 75);
+            const delay = 50 + idx * 75;
+            item.style.animationDelay = `${delay}ms`;
+            item.classList.add('is-revealed');
         });
 
         if (!('IntersectionObserver' in window)) {
             document.querySelectorAll(
                 '.section-header-reveal .reveal-item, .bento-card, .stat-card, .pricing-card, .faq-item, .conversion-banner, .banner-item, .footer-reveal'
-            ).forEach((el) => el.classList.add('is-revealed'));
+            ).forEach((el) => {
+                el.classList.add('is-revealed');
+                const counter = el.querySelector('[data-counter-target]');
+                if (counter) triggerCounterForElement(counter);
+            });
             return;
         }
 
         const observerOptions = {
-            threshold: 0.12,
-            rootMargin: '0px 0px -40px 0px'
+            threshold: 0.08,
+            rootMargin: '0px 0px -20px 0px'
         };
 
         const revealObserver = new IntersectionObserver((entries, obs) => {
@@ -327,6 +359,12 @@
                 } else {
                     // Stagger cards / items in the same viewport batch
                     revealElement(target, idx * 80);
+
+                    // If stat card, coordinate counter roll synchronously
+                    if (target.classList.contains('stat-card')) {
+                        const counter = target.querySelector('[data-counter-target]');
+                        if (counter) triggerCounterForElement(counter);
+                    }
                 }
 
                 obs.unobserve(target);
@@ -355,6 +393,21 @@
         // Observe Footer
         const footerEl = document.querySelector('.footer-reveal');
         if (footerEl) revealObserver.observe(footerEl);
+
+        // Safety fallback: reveal any remaining items if scrolled near bottom
+        window.addEventListener('scroll', function onScrollCheck() {
+            if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 80)) {
+                document.querySelectorAll(
+                    '.section-header-reveal .reveal-item, .bento-card, .stat-card, .pricing-card, .faq-item, .conversion-banner, .banner-item, .footer-reveal'
+                ).forEach((el) => {
+                    if (!el.classList.contains('is-revealed')) {
+                        revealElement(el, 0);
+                        const counter = el.querySelector('[data-counter-target]');
+                        if (counter) triggerCounterForElement(counter);
+                    }
+                });
+            }
+        }, { passive: true });
     }
 
     // =========================================================================

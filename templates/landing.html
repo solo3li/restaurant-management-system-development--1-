@@ -189,10 +189,10 @@
         <!-- Main Headline -->
         <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.25] min-h-[1.3em] hero-anim-item">
             {% if CURRENT_LANG == 'en' %}
-            <span>The Unified Operating System for</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" id="hero-typewriter"></span>
+            <span>The Unified Operating System for</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 inline-block" id="hero-typewriter"></span>
             <span class="sr-only">The Unified Operating System for Modern Restaurant Chains</span>
             {% else %}
-            <span>منظومة التشغيل الموحدة لإدارة</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600" id="hero-typewriter"></span>
+            <span>منظومة التشغيل الموحدة لإدارة</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 inline-block" id="hero-typewriter"></span>
             <span class="sr-only">منظومة التشغيل الموحدة لإدارة سلاسل المطاعم الحديثة</span>
             {% endif %}
         </h1>
@@ -978,8 +978,25 @@
         animation: heroAmbientGlowPulse 4.5s ease-in-out infinite;
     }
 
+    /* Hero Elements Waterfall Entrance */
+    @keyframes heroReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     /* Native Scroll Reveal Base Styles */
-    .motaem-anim-active .hero-anim-item,
+    .motaem-anim-active .hero-anim-item {
+        opacity: 0;
+        transform: translateY(24px);
+        animation: heroReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
     .motaem-anim-active .section-header-reveal .reveal-item,
     .motaem-anim-active .bento-card,
     .motaem-anim-active .stat-card,
@@ -1028,6 +1045,7 @@
             opacity: 1 !important;
             transform: none !important;
             transition: none !important;
+            animation: none !important;
         }
         #hero-ambient-glow {
             animation: none !important;
