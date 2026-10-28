@@ -2649,13 +2649,36 @@ async function startAdminTesterCall() {
     const endBtn = document.getElementById('btn-admin-tester-end');
     const muteBtn = document.getElementById('btn-admin-tester-mute');
 
+    const adminNamesByLang = {
+        ar: 'مشرف المنصة',
+        en: 'Platform Administrator',
+        fr: 'Administrateur',
+        es: 'Administrador',
+        de: 'Administrator',
+        it: 'Amministratore',
+        tr: 'Yönetici',
+        ru: 'Администратор',
+        ur: 'ایڈمنسٹریٹر',
+        hi: 'व्यवस्थापक',
+        zh: '平台管理员'
+    };
+    const adminName = adminNamesByLang[lang] || 'مشرف المنصة';
+
     setAdminTesterStatus(
-        '<span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-spinner fa-spin me-1"></i> جاري الاتصال...</span>',
-        'جاري حجز جلسة WebRTC مع خادم السنترال والذكاء الاصطناعي...'
+        '<span class="badge bg-info text-white px-3 py-2"><i class="fas fa-microphone me-1"></i> طلب الميكروفون...</span>',
+        'يرجى السماح بصلاحية الميكروفون للمتابعة في المكالمة...'
     );
 
     try {
-        // 1. Request WebRTC Session Credentials (Admin is exempt from daily IP limit)
+        // 1. Request Mic Stream first to avoid orphan sessions if mic is blocked
+        adminTesterMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // 2. Request WebRTC Session Credentials (Admin is exempt from daily IP limit)
+        setAdminTesterStatus(
+            '<span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-spinner fa-spin me-1"></i> جاري الاتصال...</span>',
+            'جاري حجز جلسة WebRTC مع خادم السنترال والذكاء الاصطناعي...'
+        );
+
         const resp = await fetch('/api/landing/voice-session/', {
             method: 'POST',
             headers: {
@@ -2663,7 +2686,7 @@ async function startAdminTesterCall() {
                 'X-CSRFToken': getCsrfToken()
             },
             body: JSON.stringify({
-                name: 'مشرف المنصة (Admin Studio Tester)',
+                name: adminName,
                 phone: '0500000000',
                 country_code: '+966',
                 language: lang,
@@ -2681,13 +2704,6 @@ async function startAdminTesterCall() {
         if (data.status !== 'success' || !data.livekit_url || !data.livekit_token) {
             throw new Error(data.message || 'بيانات اتصال السنترال غير مكتملة.');
         }
-
-        // 2. Request Mic Stream
-        setAdminTesterStatus(
-            '<span class="badge bg-info text-white px-3 py-2"><i class="fas fa-microphone me-1"></i> طلب الميكروفون...</span>',
-            'يرجى السماح بصلاحية الميكروفون للمتابعة في المكالمة...'
-        );
-        adminTesterMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
         // 3. Load LiveKit SDK
         const LK = await ensureAdminLiveKitLoaded();

@@ -894,7 +894,12 @@ def initiate_webrtc_call(
     if welcome_message:
         payload["welcome_message"] = welcome_message
     if language:
-        payload["language"] = language
+        iso_to_partner = {
+            "ar": "arabic", "en": "english", "fr": "french", "es": "spanish",
+            "de": "german", "it": "italian", "tr": "turkish", "ru": "russian",
+            "ur": "urdu", "hi": "hindi", "zh": "chinese"
+        }
+        payload["language"] = iso_to_partner.get(str(language).lower(), language)
     if accent:
         payload["accent"] = accent
         payload["dialect"] = accent

@@ -2858,7 +2858,7 @@ def api_landing_webrtc_session(request):
             welcome_msg = "خوش آمدید! مطعم کلاؤڈ ریسٹورنٹ او ایس میں خوش آمدید۔ آج میں آپ کی کیا مدد کر سکتا ہوں؟"
     elif visitor_language == "hi":
         if has_name:
-            welcome_msg = f"नमस्ते {visitor_name}! मैं मोताएम प्लेटफ़ॉर्म का बिक्री सलाहकार हूँ। आज मैं आपके रेस्तरां کے लिए क्या मदद कर सकता हूँ?"
+            welcome_msg = f"नमस्ते {visitor_name}! मैं मोताएम प्लेटफ़ॉर्म का बिक्री सलाहकार हूँ। आज मैं आपके रेस्तरां के लिए क्या मदद कर सकता हूँ?"
         else:
             welcome_msg = "नमस्ते! मोताएम क्लाउड रेस्टोरेंट ओएस में आपका स्वागत है। आज मैं आपकी क्या मदद कर सकता हूँ?"
     elif visitor_language == "zh":
@@ -2932,8 +2932,17 @@ def api_landing_webrtc_session(request):
 
             call_id = res.get("call_id") or res.get("room_name")
             room_name = res.get("room_name") or call_id
+            # When telephony partner provides room_name (e.g. room_webrtc_... or numeric call_id),
+            # store room_name in lead.call_id so recording proxy matches partner PBX room listings directly.
+            if res.get("room_name") and (str(call_id).isdigit() or str(res.get("room_name")).startswith("room_webrtc_")):
+                lead_call_id = res.get("room_name")
+            elif str(call_id).startswith("call_") and res.get("call_id"):
+                lead_call_id = res.get("call_id")
+            else:
+                lead_call_id = res.get("room_name") or call_id
+
             if lead:
-                lead.call_id = call_id
+                lead.call_id = lead_call_id
                 lead.save(update_fields=["call_id", "updated_at"])
 
             return JsonResponse({

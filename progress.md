@@ -48,7 +48,7 @@
     - Extended `core/partner_service.py` to pass custom instruction fields directly to upstream Partner PBX.
   - **3. Call Recording Audio Playback & 404 Prevention**:
     - Added `get_call_detail(client_id, call_id)` in `core/partner_service.py` (`GET /clients/{cid}/calls/{call_id}/`).
-    - Updated `api_landing_webrtc_session` to store `res.get("call_id") or res.get("room_name")` in `lead.call_id`.
+    - Fixed `api_landing_webrtc_session` to store real PBX room names (`res.get("room_name")`) in `lead.call_id` whenever room_name is present and numeric/webrtc session ID returned, while preserving legacy test invariants.
     - Hardened `api_ai_callcenter_call_recording_proxy`: prioritizes `ps.get_calls` across candidate clients (tenant, platform 662, demo 49) with fallback to `ps.get_call_detail`, resolving existing calls (e.g. integer 645) as well as LiveKit room names without 404.
   - **4. In-Admin Live WebRTC Studio Tester (Tab 1)**:
     - Embedded Live WebRTC Studio Tester card `#admin-webrtc-studio-card` in Tab 1 (`change_form.html`) between Persona cards grid and Identity settings.
@@ -56,13 +56,14 @@
     - Added LiveKit audio sink `<audio id="admin-tester-audio">`, animated wave bars (`.sound-bar-admin`), live call timer, and mute toggle.
     - Upgraded `#modal-add-profile` and `#modal-edit-profile` with 11 languages, 29 dialects, and 30 voices.
     - Built client-side WebRTC testing engine with `ensureAdminLiveKitLoaded()`, `startAdminTesterCall()`, `hangupAdminTesterCall()`, and Web Audio API analyser loop.
+    - Hardened `startAdminTesterCall()`: requests mic permission before dispatching session to server (prevents orphaned sessions/leads), and uses language-aware clean admin caller names avoiding robotic symbols.
     - Exempted authenticated staff/superusers from visitor IP daily quota limits.
   - **5. Comprehensive Automated Verification**:
-    - `test_landing_voice_customization.py`: 16/16 tests PASS.
+    - `test_landing_voice_customization.py`: 20/20 tests PASS (added tests for all 11 languages, room_name lead storage, in-admin studio tester DOM, and partner language mapping).
     - `test_landing_voice_leads.py`: 14/14 tests PASS.
     - `test_landing_assistant_admin_tabs.py`: 11/11 tests PASS.
     - `./init.sh`: 100% full repo verification PASS.
-    - `graphify update .`: AST update complete (8,946 nodes, 19,171 edges, 460 communities).
+    - `graphify update .`: AST update complete (8,954 nodes, 19,184 edges, 473 communities).
 
 - [x] **Landing Voice Assistant Persona Studio, Audio Recording Player & Custom Redis Live Memory (`feat-landing-assistant-studio-audio-custom-redis`)**
   - **Tab 6: Blank/Clean Default Memory & Free Manual Live Context Editor**:

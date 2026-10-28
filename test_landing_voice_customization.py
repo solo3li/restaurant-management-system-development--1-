@@ -544,3 +544,146 @@ class LandingVoiceCustomizationTestSuite(TestCase):
         cfg.refresh_from_db()
         self.assertEqual(cfg.partner_client_id, "662")
 
+    @patch("core.partner_service.initiate_webrtc_call")
+    def test_17_all_11_languages_localized_greeting_and_strict_directive(self, mock_initiate):
+        """Verify all 11 languages generate localized greeting with name and inject strict language directive."""
+        lang_cases = [
+            ("ar", "saudi", "Aoede", "فهد", "فهد", "Arabic (العربية)"),
+            ("en", "english_us", "Puck", "Alex", "Alex", "English"),
+            ("fr", "french_fr", "Kore", "Pierre", "Pierre", "French (Français)"),
+            ("es", "spanish_es", "Galatea", "Carlos", "Carlos", "Spanish (Español)"),
+            ("de", "german_de", "Fenrir", "Hans", "Hans", "German (Deutsch)"),
+            ("it", "italian_it", "Despina", "Marco", "Marco", "Italian (Italiano)"),
+            ("tr", "turkish_tr", "Zephyr", "Emre", "Emre", "Turkish (Türkçe)"),
+            ("ru", "russian_ru", "Orus", "Ivan", "Ivan", "Russian (Русский)"),
+            ("ur", "urdu_pk", "Sadachbia", "Tariq", "Tariq", "Urdu (اردو)"),
+            ("hi", "hindi_in", "Kore", "Aarav", "Aarav", "Hindi (हिन्दी)"),
+            ("zh", "chinese_zh", "Aoede", "Wei", "Wei", "Mandarin Chinese (中文)"),
+        ]
+
+        for idx, (lang, dialect, voice, name, expected_in_greeting, expected_lang_title) in enumerate(lang_cases):
+            mock_initiate.reset_mock()
+            mock_initiate.return_value = {
+                "status": "success",
+                "call_id": f"call_11lang_{idx}",
+                "room_name": f"room_11lang_{idx}",
+                "livekit_url": "wss://test.livekit.local",
+                "livekit_token": f"token_11lang_{idx}",
+            }
+
+            payload = {
+                "name": name,
+                "phone": f"05000000{idx:02d}",
+                "country_code": "+966",
+                "language": lang,
+                "dialect": dialect,
+                "voice_name": voice,
+            }
+            resp = self.client.post(
+                "/api/landing/voice-session/",
+                data=json.dumps(payload),
+                content_type="application/json",
+                REMOTE_ADDR=f"198.51.100.{10+idx}",
+            )
+            self.assertEqual(resp.status_code, 200, f"Failed for language {lang}")
+            data = resp.json()
+
+            # 1. Check greeting contains name
+            self.assertIn(expected_in_greeting, data["welcome_message"], f"Name missing in {lang} welcome message")
+
+            # 2. Check strict directive passed to partner service
+            mock_initiate.assert_called_once()
+            _, kwargs = mock_initiate.call_args
+            instructions = kwargs.get("custom_instructions") or kwargs.get("instructions") or ""
+            self.assertIn("CRITICAL LANGUAGE DIRECTIVE", instructions)
+            self.assertIn(expected_lang_title, instructions)
+
+            # 3. Check DB record
+            lead = LandingVoiceLead.objects.get(call_id=f"call_11lang_{idx}")
+            self.assertEqual(lead.language, lang)
+            self.assertEqual(lead.dialect, dialect)
+            self.assertEqual(lead.voice_name, voice)
+
+    @patch("core.partner_service.initiate_webrtc_call")
+    def test_18_partner_pbx_room_name_stored_in_lead_call_id(self, mock_initiate):
+        """Verify real Partner PBX integer call_id and room_name results in room_name stored in lead.call_id."""
+        mock_initiate.return_value = {
+            "status": "success",
+            "call_id": 645,
+            "room_name": "room_webrtc_prt_10_662_a7dad4d5",
+            "livekit_url": "wss://test.livekit.local",
+            "livekit_token": "token_rec_test",
+        }
+
+        payload = {
+            "name": "حامد العلي",
+            "phone": "0549998888",
+            "country_code": "+966",
+            "language": "ar",
+            "dialect": "saudi",
+            "voice_name": "Aoede",
+        }
+        resp = self.client.post(
+            "/api/landing/voice-session/",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 200)
+
+        # Requirement 3: lead.call_id must store the room_name so recording proxy matches PBX room listing
+        lead = LandingVoiceLead.objects.get(name="حامد العلي")
+        self.assertEqual(lead.call_id, "room_webrtc_prt_10_662_a7dad4d5")
+
+    def test_19_admin_tab1_live_webrtc_studio_tester_dom(self):
+        """Verify interactive Live WebRTC Studio Tester card is properly embedded in Admin Tab 1."""
+        self.client.force_login(self.admin_user)
+        resp = self.client.get(f"/admin/core/platformvoiceassistantconfig/{self.config.pk}/change/")
+        self.assertEqual(resp.status_code, 200)
+        html = resp.content.decode("utf-8")
+
+        # Studio Card in Tab 1
+        self.assertIn('id="admin-webrtc-studio-card"', html)
+        self.assertIn("استوديو الاختبار الصوتي الحي", html)
+
+        # Control selectors
+        self.assertIn('id="admin-tester-language"', html)
+        self.assertIn('id="admin-tester-dialect"', html)
+        self.assertIn('id="admin-tester-voice"', html)
+
+        # Timer, status badge, wave bars, and buttons
+        self.assertIn('id="admin-tester-timer"', html)
+        self.assertIn('id="admin-tester-status-badge"', html)
+        self.assertIn('id="admin-tester-wave-container"', html)
+        self.assertIn('id="btn-admin-tester-start"', html)
+        self.assertIn('id="btn-admin-tester-mute"', html)
+        self.assertIn('id="btn-admin-tester-end"', html)
+
+        # Verify all 11 languages rendered in select
+        for lang_code in ("ar", "en", "fr", "es", "de", "it", "tr", "ru", "ur", "hi", "zh"):
+            self.assertIn(f'value="{lang_code}"', html)
+
+        # Verify 30 voices rendered in select
+        self.assertIn('value="Aoede"', html)
+        self.assertIn('value="Puck"', html)
+        self.assertIn('value="Galatea"', html)
+        self.assertIn('value="Despina"', html)
+        self.assertIn('value="Sadachbia"', html)
+        self.assertIn('value="Sao"', html)
+
+    @patch("core.partner_service._request")
+    def test_20_partner_service_initiate_webrtc_call_language_mapping(self, mock_request):
+        """Verify initiate_webrtc_call canonicalizes ISO language codes to Partner PBX language IDs."""
+        from core import partner_service as ps
+        mock_request.return_value = {"status": "success", "room_name": "room_test_1", "livekit_url": "wss://test"}
+
+        # Case A: 'ar' mapped to canonical 'arabic'
+        ps.initiate_webrtc_call(client_id=662, language="ar")
+        _, kwargs_a = mock_request.call_args
+        self.assertEqual(kwargs_a["data"]["language"], "arabic")
+
+        # Case B: 'es' mapped to canonical 'spanish'
+        ps.initiate_webrtc_call(client_id=662, language="es")
+        _, kwargs_b = mock_request.call_args
+        self.assertEqual(kwargs_b["data"]["language"], "spanish")
+
+
