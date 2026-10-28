@@ -215,6 +215,14 @@
       "dependencies": ["feat-landing-voice-customization-and-lock"],
       "status": "completed",
       "evidence": "apps/callcenter/models.py (custom_live_context field), core/migrations/0035_platformvoiceassistantconfig_custom_live_context.py, apps/callcenter/landing_assistant_service.py (push_live_context, clear_landing_assistant_live_context, clean default memory), apps/callcenter/admin.py (hidden landing_profile_id, persona profiles context, custom change_view), apps/callcenter/views.py & core/views.py (api_landing_assistant_redis_clear, create_profile, activate_profile, update_profile, audio recording proxy support for platform admin), templates/admin/core/platformvoiceassistantconfig/change_form.html (Persona Studio cards, Audio Modal, custom live context editor & inspection cards), test_landing_assistant_admin_tabs.py (11/11 PASS), and ./init.sh (100% PASS)."
+    },
+    {
+      "id": "feat-live-webrtc-studio-11lang-30voices",
+      "name": "Live WebRTC Studio Tester, 11 Languages, 29 Dialects & 30 Gemini Live Voices",
+      "description": "Comprehensive upgrade of Platform Voice Assistant: (1) Support all 11 Languages, 29 Dialects, and 30 Gemini Live Studio Voices upstream from Partner PBX metadata (client 662) across Django models, admin, landing page modal, dynamic JS dialect mapping, and admin templates; (2) Strict language constraint enforcement and localized personalized welcome messages across all 11 languages (Arabic, English, French, Spanish, German, Italian, Turkish, Russian, Urdu, Hindi, Chinese); (3) Call recording proxy audio playback in Tab 5 supporting room_name, integer call_id (645), and get_call_detail without 404; (4) Interactive In-Admin Live WebRTC Studio Tester card embedded directly in Tab 1 with real mic input, LiveKit audio track subscription, animated wave bars, mute toggle, call timer, and staff quota exemption.",
+      "dependencies": ["feat-landing-assistant-studio-audio-custom-redis"],
+      "status": "completed",
+      "evidence": "apps/callcenter/models.py (ASSISTANT_LANGUAGE_CHOICES, ASSISTANT_DIALECT_CHOICES, ASSISTANT_VOICE_CHOICES applied to models), core/migrations/0036_alter_landingvoicelead_dialect_and_more.py, core/partner_service.py (get_call_detail, instruction forwarding), apps/callcenter/views.py (11-language mapping, localized greetings, call recording lookup priority), templates/landing.html (all 11 languages & 30 voices), static/js/landing_webrtc_agent.js (11-language dynamic DIALECT_MAP), templates/admin/core/platformvoiceassistantconfig/change_form.html (Live WebRTC Studio Tester card in Tab 1, upgraded 30-voice/29-dialect modals, WebRTC JS engine), test_landing_voice_customization.py (16/16 PASS), test_landing_voice_leads.py (14/14 PASS), test_landing_assistant_admin_tabs.py (11/11 PASS), ./init.sh (100% PASS), and graphify update ."
     }
   ]
 }

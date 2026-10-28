@@ -467,6 +467,11 @@ def get_calls(client_id: int) -> Dict[str, Any]:
     return _request(f"/clients/{client_id}/calls/")
 
 
+def get_call_detail(client_id: int, call_id: Any) -> Dict[str, Any]:
+    """Fetch call details, recordings, and transcript by integer ID or room_name."""
+    return _request(f"/clients/{client_id}/calls/{call_id}/")
+
+
 def get_wallet() -> Dict[str, Any]:
     return _request("/wallet/")
 
@@ -902,6 +907,12 @@ def initiate_webrtc_call(
     elif extra_kwargs.get("voice"):
         payload["voice_name"] = extra_kwargs["voice"]
         payload["voice"] = extra_kwargs["voice"]
+
+    # Forward strict session instructions, prompt, and context
+    for key in ("instructions", "custom_instructions", "system_prompt", "session_instructions", "context", "metadata"):
+        if key in extra_kwargs and extra_kwargs[key] is not None:
+            payload[key] = extra_kwargs[key]
+
     return _request(f"/clients/{client_id}/calls/webrtc/", method="POST", data=payload)
 
 

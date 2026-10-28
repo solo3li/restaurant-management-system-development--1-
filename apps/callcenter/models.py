@@ -74,6 +74,105 @@ class TenantApiKey(models.Model):
                 self.last_used_at = now
 
 
+ASSISTANT_LANGUAGE_CHOICES = [
+    ("ar", "العربية (Arabic)"),
+    ("en", "English"),
+    ("fr", "Français (French)"),
+    ("es", "Español (Spanish)"),
+    ("de", "Deutsch (German)"),
+    ("it", "Italiano (Italian)"),
+    ("tr", "Türkçe (Turkish)"),
+    ("ru", "Русский (Russian)"),
+    ("ur", "اردو (Urdu)"),
+    ("hi", "हिन्दी (Hindi)"),
+    ("zh", "中文 (Mandarin Chinese)"),
+]
+
+ASSISTANT_DIALECT_CHOICES = [
+    # Arabic (13 dialects)
+    ("saudi", "🇸🇦 لهجة سعودية / نجدية وحجازية (السعودية)"),
+    ("egyptian", "🇪🇬 لهجة مصرية عامية (مصر)"),
+    ("emirati", "🇦🇪 لهجة إماراتية / خليجية (الإمارات)"),
+    ("kuwaiti", "🇰🇼 لهجة كويتية (الكويت)"),
+    ("levantine", "🇱🇧 لهجة شامية (سوريا ولبنان)"),
+    ("jordanian_palestinian", "🇯🇴 لهجة أردنية وفلسطينية (الأردن وفلسطين)"),
+    ("moroccan", "🇲🇦 لهجة مغربية / دارجة (المغرب)"),
+    ("algerian", "🇩🇿 لهجة جزائرية (الجزائر)"),
+    ("tunisian", "🇹🇳 لهجة تونسية (تونس)"),
+    ("iraqi", "🇮🇶 لهجة عراقية (العراق)"),
+    ("sudanese", "🇸🇩 لهجة سودانية (السودان)"),
+    ("yemeni", "🇾🇪 لهجة يمنية (اليمن)"),
+    ("fusha", "🌐 عربية فصحى معاصرة (رسمية)"),
+    # English (5 dialects)
+    ("english_us", "🇺🇸 American English (US)"),
+    ("english_uk", "🇬🇧 British English (UK)"),
+    ("english_aus", "🇦🇺 Australian English (Australia)"),
+    ("english_ind", "🇮🇳 Indian English (India)"),
+    ("english", "🌐 General English"),
+    # French (2 dialects)
+    ("french_fr", "🇫🇷 Français Métropolitain (France)"),
+    ("french_ca", "🇨🇦 Français Canadien (Canada)"),
+    # Spanish (2 dialects)
+    ("spanish_es", "🇪🇸 Español de España (Spain)"),
+    ("spanish_latam", "🌎 Español Latinoamericano"),
+    # German (1 dialect)
+    ("german_de", "🇩🇪 Standarddeutsch (Germany & Austria)"),
+    # Italian (1 dialect)
+    ("italian_it", "🇮🇹 Italiano Standard (Italy)"),
+    # Turkish (1 dialect)
+    ("turkish_tr", "🇹🇷 Türkçe (Turkey)"),
+    # Russian (1 dialect)
+    ("russian_ru", "🇷🇺 Русский язык (Russia)"),
+    # Urdu (1 dialect)
+    ("urdu_pk", "🇵🇰 اردو (Pakistan & India)"),
+    # Hindi (1 dialect)
+    ("hindi_in", "🇮🇳 हिन्दी (India)"),
+    # Chinese (1 dialect)
+    ("chinese_zh", "🇨🇳 普通话 (Mandarin Chinese)"),
+    # Backward-compatibility aliases
+    ("gulf", "🇦🇪 خليجية عامة (قديم)"),
+    ("modern_standard", "🌐 فصحى مبسطة (قديم)"),
+    ("us", "🇺🇸 أمريكية US (قديم)"),
+    ("uk", "🇬🇧 بريطانية UK (قديم)"),
+    ("standard", "🌐 قياسية عامة (قديم)"),
+]
+
+ASSISTANT_VOICE_CHOICES = [
+    # Female Voices (15)
+    ("Aoede", "👩 Aoede (نشيطة وسريعة - افتراضي)"),
+    ("Kore", "👩 Kore (واثقة وحازمة - رسمي)"),
+    ("Leda", "👩 Leda (شابة وودودة - ودود)"),
+    ("Callisto", "👩 Callisto (دافئة ومريحة - دافئ)"),
+    ("Sulafat", "👩 Sulafat (رقيقة وواضحة - رقيق)"),
+    ("Autonoe", "👩 Autonoe (مشرقة ومتحمسة - حيوي)"),
+    ("Achernar", "👩 Achernar (ناعمة ومطمئنة - هادئ)"),
+    ("Erinome", "👩 Erinome (رنانة ومتمكنة - رسمي)"),
+    ("Laomedeia", "👩 Laomedeia (تعبيرية وتفاعلية - تفاعلي)"),
+    ("Gacrux", "👩 Gacrux (مرحبة ومضيافة - مضياف)"),
+    ("Vindemiatrix", "👩 Vindemiatrix (أنيقة وراقية - فاخر)"),
+    ("Despina", "👩 Despina (واضحة ومباشرة - مباشر)"),
+    ("Galatea", "👩 Galatea (نقية وأنيقة - أنيق)"),
+    ("Larissa", "👩 Larissa (مبهجة ولطيفة - لطيف)"),
+    ("Naiad", "👩 Naiad (سلسة وعفوية - طبيعي)"),
+    # Male Voices (15)
+    ("Puck", "👨 Puck (مرح وحيوي - موصى به)"),
+    ("Charon", "👨 Charon (هادئ ووقور - وقور ورسمي)"),
+    ("Fenrir", "👨 Fenrir (عميق وجهوري - رسمي وواثق)"),
+    ("Zephyr", "👨 Zephyr (منعش ومشرق - منعش)"),
+    ("Orus", "👨 Orus (حازم ومباشر - حازم)"),
+    ("Umbriel", "👨 Umbriel (تلقائي وعفوي - تلقائي)"),
+    ("Schedar", "👨 Schedar (واضح ورصين - رصين)"),
+    ("Achird", "👨 Achird (عملي وسريع - عملي)"),
+    ("Sadachbia", "👨 Sadachbia (متفاعل وحيوي - حيوي)"),
+    ("Zubenelgenubi", "👨 Zubenelgenubi (واقعي وبسيط - واقعي)"),
+    ("Thalassa", "👨 Thalassa (مطمئن ومتزن - مطمئن)"),
+    ("Proteus", "👨 Proteus (ديناميكي ومتمكن - متمكن)"),
+    ("Neso", "👨 Neso (شاب وتقني - تقني)"),
+    ("Halimede", "👨 Halimede (مهذب وسلس - مهذب)"),
+    ("Sao", "👨 Sao (مختصر وموجز - موجز)"),
+]
+
+
 class PlatformVoiceAssistantConfig(models.Model):
     """
     إعدادات المساعد الصوتي العام لمبيعات المنصة وصفحة الهبوط (Singleton):
@@ -120,38 +219,22 @@ class PlatformVoiceAssistantConfig(models.Model):
         max_length=50,
         default="Puck",
         verbose_name="خامة الصوت (Gemini Live Voice)",
-        choices=[
-            ("Puck", "Puck (طبيعي ومرن - موصى به)"),
-            ("Charon", "Charon (وقور وعميق)"),
-            ("Aoede", "Aoede (أنثوي هادئ وواضح)"),
-            ("Fenrir", "Fenrir (حماسي وواثق)"),
-            ("Kore", "Kore (أنثوي لطيف واحترافي)"),
-        ],
-        help_text="نبرة وخامة الصوت المعتمدة من Google Gemini Live."
+        choices=ASSISTANT_VOICE_CHOICES,
+        help_text="نبرة وخامة الصوت المعتمدة من Google Gemini Live (30 خامة صوتية)."
     )
     language = models.CharField(
         max_length=20,
         default="ar",
         verbose_name="اللغة الأساسية",
-        choices=[
-            ("ar", "العربية (Arabic)"),
-            ("en", "الإنجليزية (English)"),
-            ("fr", "الفرنسية (French)"),
-            ("tr", "التركية (Turkish)"),
-            ("de", "الألمانية (German)"),
-        ],
+        choices=ASSISTANT_LANGUAGE_CHOICES,
+        help_text="اللغة المعتمدة للمساعد الصوتي (11 لغة عالمية)."
     )
     accent = models.CharField(
         max_length=50,
         default="saudi",
         verbose_name="اللهجة الافتراضية",
-        choices=[
-            ("saudi", "سعودية (نجدية / حجازية)"),
-            ("egyptian", "مصرية"),
-            ("levantine", "شامية"),
-            ("gulf", "خليجية عامة"),
-            ("modern_standard", "فصحى مبسطة"),
-        ],
+        choices=ASSISTANT_DIALECT_CHOICES,
+        help_text="اللهجة المعتمدة للمساعد الصوتي (29 لهجة معتمدة)."
     )
     max_call_duration_seconds = models.PositiveIntegerField(
         default=180,
@@ -220,33 +303,9 @@ class LandingVoiceLead(models.Model):
         ("cancelled", "ملغي"),
     ]
 
-    LANGUAGE_CHOICES = [
-        ("ar", "العربية (Arabic)"),
-        ("en", "الإنجليزية (English)"),
-        ("fr", "الفرنسية (French)"),
-        ("tr", "التركية (Turkish)"),
-        ("de", "الألمانية (German)"),
-    ]
-
-    DIALECT_CHOICES = [
-        ("saudi", "🇸🇦 سعودية (افتراضي)"),
-        ("egyptian", "🇪🇬 مصرية"),
-        ("gulf", "🇦🇪 إماراتية وخليجية"),
-        ("moroccan", "🇲🇦 مغربية"),
-        ("levantine", "🇱🇧 شامية"),
-        ("modern_standard", "🌐 فصحى معاصرة"),
-        ("us", "🇺🇸 أمريكية (US)"),
-        ("uk", "🇬🇧 بريطانية (UK)"),
-        ("standard", "🌐 لهجة قياسية (Standard)"),
-    ]
-
-    VOICE_CHOICES = [
-        ("Aoede", "👩 سارة (Aoede) - نبرة أنثوية هادئة واحترافية"),
-        ("Puck", "👨 أحمد (Puck) - نبرة رجالية مرنة وحيوية"),
-        ("Fenrir", "👨 عمر (Fenrir) - نبرة رجالية رخيمة وواثقة"),
-        ("Kore", "👩 مريم (Kore) - نبرة نسائية دافئة وواضحة"),
-        ("Charon", "👨 خالد (Charon) - نبرة رجالية متزنة ورسمية"),
-    ]
+    LANGUAGE_CHOICES = ASSISTANT_LANGUAGE_CHOICES
+    DIALECT_CHOICES = ASSISTANT_DIALECT_CHOICES
+    VOICE_CHOICES = ASSISTANT_VOICE_CHOICES
 
     name = models.CharField(max_length=150, verbose_name="اسم الزائر")
     phone = models.CharField(max_length=30, verbose_name="رقم الجوال")

@@ -2,7 +2,15 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.urls import path
-from .models import TenantApiKey, PlatformVoiceAssistantConfig, LandingVoiceLead, LandingKnowledgeDocument
+from .models import (
+    TenantApiKey,
+    PlatformVoiceAssistantConfig,
+    LandingVoiceLead,
+    LandingKnowledgeDocument,
+    ASSISTANT_LANGUAGE_CHOICES,
+    ASSISTANT_DIALECT_CHOICES,
+    ASSISTANT_VOICE_CHOICES,
+)
 from apps.callcenter import views as cc_views
 from apps.callcenter.landing_assistant_service import (
     ensure_landing_sales_client,
@@ -203,6 +211,27 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
             extra_context["profiles"] = profiles
             extra_context["landing_profile_id"] = obj.landing_profile_id
 
+            # 6. Studio Customization Options (Languages, Dialects, Voices)
+            studio_meta = {}
+            try:
+                studio_meta = ps.get_studio_metadata(cid)
+            except Exception:
+                pass
+            extra_context["studio_metadata"] = studio_meta
+            extra_context["all_languages"] = ASSISTANT_LANGUAGE_CHOICES
+            extra_context["all_dialects"] = ASSISTANT_DIALECT_CHOICES
+            extra_context["all_voices"] = studio_meta.get("google_voices") or [
+                {
+                    "name": v[0],
+                    "style": v[1],
+                    "gender": "female" if v[0] in (
+                        "Aoede", "Kore", "Leda", "Callisto", "Sulafat", "Autonoe", "Achernar",
+                        "Erinome", "Laomedeia", "Gacrux", "Vindemiatrix", "Despina", "Galatea", "Larissa", "Naiad"
+                    ) else "male"
+                }
+                for v in ASSISTANT_VOICE_CHOICES
+            ]
+
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
@@ -343,10 +372,27 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
             return "—"
         flags = {
             "ar": "🇸🇦 العربية",
+            "arabic": "🇸🇦 العربية",
             "en": "🇬🇧 English",
+            "english": "🇬🇧 English",
             "fr": "🇫🇷 Français",
-            "tr": "🇹🇷 Türkçe",
+            "french": "🇫🇷 Français",
+            "es": "🇪🇸 Español",
+            "spanish": "🇪🇸 Español",
             "de": "🇩🇪 Deutsch",
+            "german": "🇩🇪 Deutsch",
+            "it": "🇮🇹 Italiano",
+            "italian": "🇮🇹 Italiano",
+            "tr": "🇹🇷 Türkçe",
+            "turkish": "🇹🇷 Türkçe",
+            "ru": "🇷🇺 Русский",
+            "russian": "🇷🇺 Русский",
+            "ur": "🇵🇰 اردو",
+            "urdu": "🇵🇰 اردو",
+            "hi": "🇮🇳 हिन्दी",
+            "hindi": "🇮🇳 हिन्दी",
+            "zh": "🇨🇳 中文",
+            "chinese": "🇨🇳 中文",
         }
         val = flags.get(obj.language, obj.get_language_display() or obj.language)
         return format_html('<span style="font-weight:600;color:#f8fafc;">{}</span>', val)
@@ -368,7 +414,15 @@ class LandingVoiceLeadAdmin(admin.ModelAdmin):
             "Kore": "👩 مريم (Kore)",
             "Charon": "👨 خالد (Charon)",
         }
-        val = voices.get(obj.voice_name, obj.voice_name)
+        val = voices.get(obj.voice_name)
+        if not val:
+            female_voices = {
+                "Aoede", "Kore", "Leda", "Callisto", "Sulafat", "Autonoe", "Achernar",
+                "Erinome", "Laomedeia", "Gacrux", "Vindemiatrix", "Despina", "Galatea", "Larissa", "Naiad"
+            }
+            v_name = obj.voice_name
+            icon = "👩" if v_name in female_voices else "👨"
+            val = f"{icon} {v_name}"
         return format_html('<span style="font-weight:600;color:#a7f3d0;">{}</span>', val)
 
     @admin.display(description="محادثة واتساب")

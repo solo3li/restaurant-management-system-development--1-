@@ -108,25 +108,55 @@
 
     const DIALECT_MAP = {
         ar: [
-            { value: 'saudi', label: '🇸🇦 سعودية (افتراضي)', selected: true },
-            { value: 'egyptian', label: '🇪🇬 مصرية' },
-            { value: 'gulf', label: '🇦🇪 إماراتية وخليجية' },
-            { value: 'moroccan', label: '🇲🇦 مغربية' },
-            { value: 'levantine', label: '🇱🇧 شامية' },
-            { value: 'modern_standard', label: '🌐 فصحى معاصرة' }
+            { value: 'saudi', label: '🇸🇦 لهجة سعودية / نجدية وحجازية (افتراضي)', selected: true },
+            { value: 'egyptian', label: '🇪🇬 لهجة مصرية عامية' },
+            { value: 'emirati', label: '🇦🇪 لهجة إماراتية وخليجية' },
+            { value: 'kuwaiti', label: '🇰🇼 لهجة كويتية' },
+            { value: 'levantine', label: '🇱🇧 لهجة شامية' },
+            { value: 'jordanian_palestinian', label: '🇯🇴 لهجة أردنية وفلسطينية' },
+            { value: 'moroccan', label: '🇲🇦 لهجة مغربية / دارجة' },
+            { value: 'algerian', label: '🇩🇿 لهجة جزائرية' },
+            { value: 'tunisian', label: '🇹🇳 لهجة تونسية' },
+            { value: 'iraqi', label: '🇮🇶 لهجة عراقية' },
+            { value: 'sudanese', label: '🇸🇩 لهجة سودانية' },
+            { value: 'yemeni', label: '🇾🇪 لهجة يمنية' },
+            { value: 'fusha', label: '🌐 عربية فصحى معاصرة' }
         ],
         en: [
-            { value: 'us', label: '🇺🇸 أمريكية (US)', selected: true },
-            { value: 'uk', label: '🇬🇧 بريطانية (UK)' }
+            { value: 'english_us', label: '🇺🇸 American English (US)', selected: true },
+            { value: 'english_uk', label: '🇬🇧 British English (UK)' },
+            { value: 'english_aus', label: '🇦🇺 Australian English' },
+            { value: 'english_ind', label: '🇮🇳 Indian English' },
+            { value: 'english', label: '🌐 General English' }
         ],
         fr: [
-            { value: 'standard', label: '🌐 Français Standard', selected: true }
+            { value: 'french_fr', label: '🇫🇷 Français Métropolitain (France)', selected: true },
+            { value: 'french_ca', label: '🇨🇦 Français Canadien (Canada)' }
         ],
-        tr: [
-            { value: 'standard', label: '🌐 Standart Türkçe', selected: true }
+        es: [
+            { value: 'spanish_es', label: '🇪🇸 Español de España', selected: true },
+            { value: 'spanish_latam', label: '🌎 Español Latinoamericano' }
         ],
         de: [
-            { value: 'standard', label: '🌐 Standarddeutsch', selected: true }
+            { value: 'german_de', label: '🇩🇪 Standarddeutsch (Germany & Austria)', selected: true }
+        ],
+        it: [
+            { value: 'italian_it', label: '🇮🇹 Italiano Standard (Italy)', selected: true }
+        ],
+        tr: [
+            { value: 'turkish_tr', label: '🇹🇷 Türkçe (Turkey)', selected: true }
+        ],
+        ru: [
+            { value: 'russian_ru', label: '🇷🇺 Русский язык (Russia)', selected: true }
+        ],
+        ur: [
+            { value: 'urdu_pk', label: '🇵🇰 اردو (Pakistan & India)', selected: true }
+        ],
+        hi: [
+            { value: 'hindi_in', label: '🇮🇳 हिन्दी (India)', selected: true }
+        ],
+        zh: [
+            { value: 'chinese_zh', label: '🇨🇳 普通话 (Mandarin Chinese)', selected: true }
         ]
     };
 

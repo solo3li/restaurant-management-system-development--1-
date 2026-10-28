@@ -413,6 +413,149 @@
                     {% endfor %}
                 </div>
 
+                <!-- ==============================================================================
+                     IN-ADMIN LIVE WEBRTC STUDIO TESTER (Live Audio & Persona Sandbox)
+                     ============================================================================== -->
+                <div class="slate-subcard mb-4 mt-2" id="admin-webrtc-studio-card" style="background: linear-gradient(145deg, #1e2227 0%, #272b30 100%); border: 1px solid #38bdf850; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.35);">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-info text-white shadow-sm" style="width: 38px; height: 38px;">
+                                <i class="fas fa-headset fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="m-0 text-white font-weight-bold">
+                                    استوديو الاختبار الصوتي الحي (Live WebRTC Studio Tester)
+                                </h5>
+                                <p class="text-muted small mt-1 mb-0">
+                                    اختبار تجريبي فوري ومباشر للمساعد الصوتي بالميكروفون الحي وسماع الصوت دون مغادرة لوحة التحكم.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span id="admin-tester-timer" class="badge bg-dark font-monospace text-warning px-3 py-2 border border-secondary" style="display: none; font-size: 0.95rem;">
+                                <i class="fas fa-stopwatch me-1"></i> <span id="admin-tester-timer-val">00:00</span>
+                            </span>
+                            <span id="admin-tester-status-badge" class="badge bg-secondary px-3 py-2">
+                                <i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i> جاهز للاختبار
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Selectors Row: Language, Dialect, Voice -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-light small font-weight-bold">
+                                <i class="fas fa-language text-info me-1"></i> لغة التحدث (11 لغة مدعومة):
+                            </label>
+                            <select id="admin-tester-language" class="slate-select" onchange="handleAdminTesterLanguageChange(this.value);">
+                                <option value="ar" selected>🇸🇦 العربية (Arabic)</option>
+                                <option value="en">🇺🇸 English</option>
+                                <option value="fr">🇫🇷 Français (French)</option>
+                                <option value="es">🇪🇸 Español (Spanish)</option>
+                                <option value="de">🇩🇪 Deutsch (German)</option>
+                                <option value="it">🇮🇹 Italiano (Italian)</option>
+                                <option value="tr">🇹🇷 Türkçe (Turkish)</option>
+                                <option value="ru">🇷🇺 Русский (Russian)</option>
+                                <option value="ur">🇵🇰 اردو (Urdu)</option>
+                                <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                                <option value="zh">🇨🇳 中文 (Mandarin)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-light small font-weight-bold">
+                                <i class="fas fa-globe text-success me-1"></i> اللهجة المختارة (29 لهجة):
+                            </label>
+                            <select id="admin-tester-dialect" class="slate-select">
+                                <!-- Populated dynamically by JS -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-light small font-weight-bold">
+                                <i class="fas fa-microphone-alt text-warning me-1"></i> خامة الصوت (30 صوت Gemini Live):
+                            </label>
+                            <select id="admin-tester-voice" class="slate-select">
+                                <optgroup label="خامات أصوات أنثوية (Female Voices)">
+                                    <option value="Aoede" selected>👩 سارة (Aoede - نشيطة وسريعة)</option>
+                                    <option value="Kore">👩 مريم (Kore - واثقة وحازمة)</option>
+                                    <option value="Leda">👩 ليدا (Leda - شابة وودودة)</option>
+                                    <option value="Callisto">👩 كاليستو (Callisto - هادئة وناعمة)</option>
+                                    <option value="Sulafat">👩 سلافات (Sulafat - دافئة ومتعاطفة)</option>
+                                    <option value="Autonoe">👩 أوتونوي (Autonoe - مشرقة ومرحة)</option>
+                                    <option value="Achernar">👩 آخر النهر (Achernar - ناعمة ومريحة)</option>
+                                    <option value="Erinome">👩 إيرينومي (Erinome - متزنة ومطمئنة)</option>
+                                    <option value="Laomedeia">👩 لاوميديا (Laomedeia - حيوية ومتحمسة)</option>
+                                    <option value="Gacrux">👩 جاكروكس (Gacrux - ناضجة وواثقة)</option>
+                                    <option value="Vindemiatrix">👩 فينديمياتريكس (Vindemiatrix - مهذبة ومدروسة)</option>
+                                    <option value="Despina">👩 ديسبينا (Despina - ودودة ومرنة)</option>
+                                    <option value="Galatea">👩 جالاتيا (Galatea - احترافية ومصقولة)</option>
+                                    <option value="Larissa">👩 لاريسا (Larissa - واضحة وجذابة)</option>
+                                    <option value="Naiad">👩 ناياد (Naiad - حالمة وهادئة)</option>
+                                </optgroup>
+                                <optgroup label="خامات أصوات ذكورية (Male Voices)">
+                                    <option value="Puck">👨 أحمد (Puck - مرن وعفوي)</option>
+                                    <option value="Charon">👨 خالد (Charon - عميق ورسمي)</option>
+                                    <option value="Fenrir">👨 عمر (Fenrir - قوي وواثق)</option>
+                                    <option value="Zephyr">👨 زفير (Zephyr - سريع وذكي)</option>
+                                    <option value="Orus">👨 أوروس (Orus - حازم ومباشر)</option>
+                                    <option value="Schedar">👨 شيدار (Schedar - شاب وديناميكي)</option>
+                                    <option value="Achird">👨 أخيرد (Achird - ودود ولطيف)</option>
+                                    <option value="Sadachbia">👨 سعد الأخبية (Sadachbia - هادئ وصبور)</option>
+                                    <option value="Zubenelgenubi">👨 الزبان الجنوبي (Zubenelgenubi - موزون ومقنع)</option>
+                                    <option value="Thalassa">👨 ثالاسا (Thalassa - صافٍ ومريح)</option>
+                                    <option value="Proteus">👨 بروتيوس (Proteus - متنوع ومتفاعل)</option>
+                                    <option value="Neso">👨 نيسو (Neso - نبرة إذاعية عميقة)</option>
+                                    <option value="Halimede">👨 هاليد (Halimede - مرح ومتفائل)</option>
+                                    <option value="Sao">👨 ساو (Sao - متوازن وواضح)</option>
+                                    <option value="Umbriel">👨 أومبريل (Umbriel - رخيم ومهيب)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Audio Visualizer Wave Bars & Status Row -->
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded mb-3" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06);">
+                        <div class="d-flex align-items-center gap-1" id="admin-tester-wave-container" style="height: 36px; min-width: 140px;">
+                            <div class="sound-bar-admin" style="height: 6px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 12px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 18px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 24px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 30px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 24px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 18px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 12px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 6px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 14px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 22px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                            <div class="sound-bar-admin" style="height: 10px; width: 4px; background: #64748b; border-radius: 2px; transition: height 0.08s ease;"></div>
+                        </div>
+
+                        <div class="text-truncate px-3 flex-grow-1" id="admin-tester-status-text" style="color: #94a3b8; font-size: 0.85rem;">
+                            المساعد الصوتي في وضع الاستعداد. اختر اللغة واللهجة وخامة الصوت ثم اضغط "بدء الاتصال الصوتي الحي".
+                        </div>
+
+                        <!-- Remote audio sink for LiveKit audio track -->
+                        <audio id="admin-tester-audio" autoplay playsinline style="display: none;"></audio>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-2 border-top border-secondary">
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" id="btn-admin-tester-start" class="btn btn-success px-4 py-2" onclick="startAdminTesterCall();">
+                                <i class="fas fa-phone-alt me-2"></i> بدء الاتصال الصوتي الحي
+                            </button>
+                            <button type="button" id="btn-admin-tester-mute" class="btn btn-outline-warning px-3 py-2" style="display: none;" onclick="toggleAdminTesterMute();">
+                                <i class="fas fa-microphone me-2" id="admin-tester-mute-icon"></i> <span id="admin-tester-mute-label">كتم الميكروفون</span>
+                            </button>
+                            <button type="button" id="btn-admin-tester-end" class="btn btn-danger px-4 py-2" style="display: none;" onclick="hangupAdminTesterCall();">
+                                <i class="fas fa-phone-slash me-2"></i> إنهاء المكالمة
+                            </button>
+                        </div>
+                        <div class="text-muted small">
+                            <i class="fas fa-shield-alt text-success me-1"></i> جلسات المشرفين معفاة تماماً من حدود الاستهلاك اليومي للزوار.
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Editable Identity Details Form -->
                 <div class="mt-4 pt-3 border-top border-secondary">
                     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -1076,7 +1219,7 @@
      MODAL FOR TAB 1: إضافة بروفايل جديد (Add Persona Profile)
      ============================================================================== -->
 <div class="modal fade" id="modal-add-profile" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content slate-modal">
             <div class="modal-header">
                 <h5 class="modal-title text-white font-weight-bold">
@@ -1091,24 +1234,65 @@
                         <input type="text" id="add-profile-name" class="slate-input" placeholder="مثال: ريان - مستشار مبيعات كُـورَا" required>
                     </div>
                     <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label text-light font-weight-bold">خامة الصوت (Gemini Voice):</label>
-                            <select id="add-profile-voice" class="slate-select">
-                                <option value="Puck">👨 أحمد (Puck - مرن وحيوي)</option>
-                                <option value="Aoede">👩 سارة (Aoede - هادئ واحترافي)</option>
-                                <option value="Fenrir">👨 عمر (Fenrir - رخيم وواثق)</option>
-                                <option value="Kore">👩 مريم (Kore - لطيف ودافئ)</option>
-                                <option value="Charon">👨 خالد (Charon - عميق ورسمي)</option>
+                        <div class="col-md-4">
+                            <label class="form-label text-light font-weight-bold">لغة التحدث (11 لغة):</label>
+                            <select id="add-profile-language" class="slate-select" onchange="updateDialectsSelect('add-profile-language', 'add-profile-dialect');">
+                                <option value="arabic" selected>🇸🇦 العربية (Arabic)</option>
+                                <option value="english">🇺🇸 English</option>
+                                <option value="french">🇫🇷 Français (French)</option>
+                                <option value="spanish">🇪🇸 Español (Spanish)</option>
+                                <option value="german">🇩🇪 Deutsch (German)</option>
+                                <option value="italian">🇮🇹 Italiano (Italian)</option>
+                                <option value="turkish">🇹🇷 Türkçe (Turkish)</option>
+                                <option value="russian">🇷🇺 Русский (Russian)</option>
+                                <option value="urdu">🇵🇰 اردو (Urdu)</option>
+                                <option value="hindi">🇮🇳 हिन्दी (Hindi)</option>
+                                <option value="chinese">🇨🇳 中文 (Mandarin)</option>
                             </select>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label text-light font-weight-bold">اللهجة الأساسية:</label>
+                        <div class="col-md-4">
+                            <label class="form-label text-light font-weight-bold">اللهجة الأساسية (29 لهجة):</label>
                             <select id="add-profile-dialect" class="slate-select">
-                                <option value="saudi">🇸🇦 سعودية (نجدية / حجازية)</option>
-                                <option value="egyptian">🇪🇬 مصرية</option>
-                                <option value="gulf">🇦🇪 خليجية عامة</option>
-                                <option value="levantine">🇱🇧 شامية</option>
-                                <option value="modern_standard">🌐 فصحى مبسطة</option>
+                                <!-- Populated dynamically by JS -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-light font-weight-bold">خامة الصوت (30 صوت Gemini):</label>
+                            <select id="add-profile-voice" class="slate-select">
+                                <optgroup label="خامات أصوات أنثوية (Female Voices)">
+                                    <option value="Aoede" selected>👩 سارة (Aoede)</option>
+                                    <option value="Kore">👩 مريم (Kore)</option>
+                                    <option value="Leda">👩 ليدا (Leda)</option>
+                                    <option value="Callisto">👩 كاليستو (Callisto)</option>
+                                    <option value="Sulafat">👩 سلافات (Sulafat)</option>
+                                    <option value="Autonoe">👩 أوتونوي (Autonoe)</option>
+                                    <option value="Achernar">👩 آخر النهر (Achernar)</option>
+                                    <option value="Erinome">👩 إيرينومي (Erinome)</option>
+                                    <option value="Laomedeia">👩 لاوميديا (Laomedeia)</option>
+                                    <option value="Gacrux">👩 جاكروكس (Gacrux)</option>
+                                    <option value="Vindemiatrix">👩 فينديمياتريكس (Vindemiatrix)</option>
+                                    <option value="Despina">👩 ديسبينا (Despina)</option>
+                                    <option value="Galatea">👩 جالاتيا (Galatea)</option>
+                                    <option value="Larissa">👩 لاريسا (Larissa)</option>
+                                    <option value="Naiad">👩 ناياد (Naiad)</option>
+                                </optgroup>
+                                <optgroup label="خامات أصوات ذكورية (Male Voices)">
+                                    <option value="Puck">👨 أحمد (Puck)</option>
+                                    <option value="Charon">👨 خالد (Charon)</option>
+                                    <option value="Fenrir">👨 عمر (Fenrir)</option>
+                                    <option value="Zephyr">👨 زفير (Zephyr)</option>
+                                    <option value="Orus">👨 أوروس (Orus)</option>
+                                    <option value="Schedar">👨 شيدار (Schedar)</option>
+                                    <option value="Achird">👨 أخيرد (Achird)</option>
+                                    <option value="Sadachbia">👨 سعد الأخبية (Sadachbia)</option>
+                                    <option value="Zubenelgenubi">👨 الزبان الجنوبي (Zubenelgenubi)</option>
+                                    <option value="Thalassa">👨 ثالاسا (Thalassa)</option>
+                                    <option value="Proteus">👨 بروتيوس (Proteus)</option>
+                                    <option value="Neso">👨 نيسو (Neso)</option>
+                                    <option value="Halimede">👨 هاليد (Halimede)</option>
+                                    <option value="Sao">👨 ساو (Sao)</option>
+                                    <option value="Umbriel">👨 أومبريل (Umbriel)</option>
+                                </optgroup>
                             </select>
                         </div>
                     </div>
@@ -1136,7 +1320,7 @@
      MODAL FOR TAB 1: تعديل بروفايل المساعد (Edit Persona Profile)
      ============================================================================== -->
 <div class="modal fade" id="modal-edit-profile" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content slate-modal">
             <div class="modal-header">
                 <h5 class="modal-title text-white font-weight-bold">
@@ -1152,24 +1336,65 @@
                         <input type="text" id="edit-profile-name" class="slate-input" required>
                     </div>
                     <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label text-light font-weight-bold">خامة الصوت:</label>
-                            <select id="edit-profile-voice" class="slate-select">
-                                <option value="Puck">👨 أحمد (Puck)</option>
-                                <option value="Aoede">👩 سارة (Aoede)</option>
-                                <option value="Fenrir">👨 عمر (Fenrir)</option>
-                                <option value="Kore">👩 مريم (Kore)</option>
-                                <option value="Charon">👨 خالد (Charon)</option>
+                        <div class="col-md-4">
+                            <label class="form-label text-light font-weight-bold">لغة التحدث (11 لغة):</label>
+                            <select id="edit-profile-language" class="slate-select" onchange="updateDialectsSelect('edit-profile-language', 'edit-profile-dialect');">
+                                <option value="arabic" selected>🇸🇦 العربية (Arabic)</option>
+                                <option value="english">🇺🇸 English</option>
+                                <option value="french">🇫🇷 Français (French)</option>
+                                <option value="spanish">🇪🇸 Español (Spanish)</option>
+                                <option value="german">🇩🇪 Deutsch (German)</option>
+                                <option value="italian">🇮🇹 Italiano (Italian)</option>
+                                <option value="turkish">🇹🇷 Türkçe (Turkish)</option>
+                                <option value="russian">🇷🇺 Русский (Russian)</option>
+                                <option value="urdu">🇵🇰 اردو (Urdu)</option>
+                                <option value="hindi">🇮🇳 हिन्दी (Hindi)</option>
+                                <option value="chinese">🇨🇳 中文 (Mandarin)</option>
                             </select>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label text-light font-weight-bold">اللهجة الأساسية:</label>
+                        <div class="col-md-4">
+                            <label class="form-label text-light font-weight-bold">اللهجة الأساسية (29 لهجة):</label>
                             <select id="edit-profile-dialect" class="slate-select">
-                                <option value="saudi">🇸🇦 سعودية</option>
-                                <option value="egyptian">🇪🇬 مصرية</option>
-                                <option value="gulf">🇦🇪 خليجية</option>
-                                <option value="levantine">🇱🇧 شامية</option>
-                                <option value="modern_standard">🌐 فصحى مبسطة</option>
+                                <!-- Populated dynamically by JS -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-light font-weight-bold">خامة الصوت (30 صوت Gemini):</label>
+                            <select id="edit-profile-voice" class="slate-select">
+                                <optgroup label="خامات أصوات أنثوية (Female Voices)">
+                                    <option value="Aoede" selected>👩 سارة (Aoede)</option>
+                                    <option value="Kore">👩 مريم (Kore)</option>
+                                    <option value="Leda">👩 ليدا (Leda)</option>
+                                    <option value="Callisto">👩 كاليستو (Callisto)</option>
+                                    <option value="Sulafat">👩 سلافات (Sulafat)</option>
+                                    <option value="Autonoe">👩 أوتونوي (Autonoe)</option>
+                                    <option value="Achernar">👩 آخر النهر (Achernar)</option>
+                                    <option value="Erinome">👩 إيرينومي (Erinome)</option>
+                                    <option value="Laomedeia">👩 لاوميديا (Laomedeia)</option>
+                                    <option value="Gacrux">👩 جاكروكس (Gacrux)</option>
+                                    <option value="Vindemiatrix">👩 فينديمياتريكس (Vindemiatrix)</option>
+                                    <option value="Despina">👩 ديسبينا (Despina)</option>
+                                    <option value="Galatea">👩 جالاتيا (Galatea)</option>
+                                    <option value="Larissa">👩 لاريسا (Larissa)</option>
+                                    <option value="Naiad">👩 ناياد (Naiad)</option>
+                                </optgroup>
+                                <optgroup label="خامات أصوات ذكورية (Male Voices)">
+                                    <option value="Puck">👨 أحمد (Puck)</option>
+                                    <option value="Charon">👨 خالد (Charon)</option>
+                                    <option value="Fenrir">👨 عمر (Fenrir)</option>
+                                    <option value="Zephyr">👨 زفير (Zephyr)</option>
+                                    <option value="Orus">👨 أوروس (Orus)</option>
+                                    <option value="Schedar">👨 شيدار (Schedar)</option>
+                                    <option value="Achird">👨 أخيرد (Achird)</option>
+                                    <option value="Sadachbia">👨 سعد الأخبية (Sadachbia)</option>
+                                    <option value="Zubenelgenubi">👨 الزبان الجنوبي (Zubenelgenubi)</option>
+                                    <option value="Thalassa">👨 ثالاسا (Thalassa)</option>
+                                    <option value="Proteus">👨 بروتيوس (Proteus)</option>
+                                    <option value="Neso">👨 نيسو (Neso)</option>
+                                    <option value="Halimede">👨 هاليد (Halimede)</option>
+                                    <option value="Sao">👨 ساو (Sao)</option>
+                                    <option value="Umbriel">👨 أومبريل (Umbriel)</option>
+                                </optgroup>
                             </select>
                         </div>
                     </div>
@@ -1768,6 +1993,7 @@ function activatePersonaProfile(profileId, btn) {
 function openAddProfileModal() {
     const form = document.getElementById('form-add-profile');
     if (form) form.reset();
+    updateDialectsSelect('add-profile-language', 'add-profile-dialect', 'saudi');
     const modalEl = document.getElementById('modal-add-profile');
     if (window.bootstrap && bootstrap.Modal) {
         const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
@@ -1779,6 +2005,7 @@ function openAddProfileModal() {
 
 function submitAddProfile() {
     const name = document.getElementById('add-profile-name').value.trim();
+    const language = document.getElementById('add-profile-language')?.value || 'arabic';
     const voice_name = document.getElementById('add-profile-voice').value;
     const dialect = document.getElementById('add-profile-dialect').value;
     const welcome_message = document.getElementById('add-profile-welcome').value.trim();
@@ -1799,6 +2026,7 @@ function submitAddProfile() {
         },
         body: JSON.stringify({
             name,
+            language,
             voice_name,
             dialect,
             welcome_message,
@@ -1835,13 +2063,17 @@ function openEditProfileModal(btn) {
     const name = btn.getAttribute('data-name') || '';
     const voice = btn.getAttribute('data-voice') || 'Aoede';
     const dialect = btn.getAttribute('data-dialect') || 'saudi';
+    const language = btn.getAttribute('data-language') || 'arabic';
     const welcome = btn.getAttribute('data-welcome') || '';
     const prompt = btn.getAttribute('data-prompt') || '';
 
     document.getElementById('edit-profile-id').value = id;
     document.getElementById('edit-profile-name').value = name;
+    if (document.getElementById('edit-profile-language')) {
+        document.getElementById('edit-profile-language').value = language;
+    }
+    updateDialectsSelect('edit-profile-language', 'edit-profile-dialect', dialect);
     document.getElementById('edit-profile-voice').value = voice;
-    document.getElementById('edit-profile-dialect').value = dialect;
     document.getElementById('edit-profile-welcome').value = welcome;
     document.getElementById('edit-profile-prompt').value = prompt;
 
@@ -1857,6 +2089,7 @@ function openEditProfileModal(btn) {
 function submitEditProfile() {
     const id = document.getElementById('edit-profile-id').value;
     const name = document.getElementById('edit-profile-name').value.trim();
+    const language = document.getElementById('edit-profile-language')?.value || 'arabic';
     const voice_name = document.getElementById('edit-profile-voice').value;
     const dialect = document.getElementById('edit-profile-dialect').value;
     const welcome_message = document.getElementById('edit-profile-welcome').value.trim();
@@ -1877,6 +2110,7 @@ function submitEditProfile() {
         },
         body: JSON.stringify({
             name,
+            language,
             voice_name,
             dialect,
             welcome_message,
@@ -2121,5 +2355,486 @@ function copyLiveContextEditor() {
         .then(() => showToast('تم نسخ محتوى المحرر إلى الحافظة بنجاح ✓'))
         .catch(() => showToast('تعذر النسخ إلى الحافظة', true));
 }
+
+// =============================================================================
+// IN-ADMIN LIVE WEBRTC STUDIO TESTER JAVASCRIPT ENGINE
+// =============================================================================
+const STUDIO_DIALECTS_MAP = {
+    ar: [
+        { id: 'saudi', label: '🇸🇦 لهجة سعودية (نجدية وحجازية)' },
+        { id: 'egyptian', label: '🇪🇬 لهجة مصرية عامية' },
+        { id: 'emirati', label: '🇦🇪 لهجة إماراتية' },
+        { id: 'kuwaiti', label: '🇰🇼 لهجة كويتية' },
+        { id: 'gulf', label: '🌴 لهجة خليجية عامة' },
+        { id: 'levantine', label: '🇱🇧 لهجة شامية (سوريا ولبنان)' },
+        { id: 'jordanian_palestinian', label: '🇯🇴 لهجة أردنية وفلسطينية' },
+        { id: 'moroccan', label: '🇲🇦 لهجة مغربية / دارجة' },
+        { id: 'algerian', label: '🇩🇿 لهجة جزائرية' },
+        { id: 'tunisian', label: '🇹🇳 لهجة تونسية' },
+        { id: 'iraqi', label: '🇮🇶 لهجة عراقية' },
+        { id: 'sudanese', label: '🇸🇩 لهجة سودانية' },
+        { id: 'yemeni', label: '🇾🇪 لهجة يمنية' },
+        { id: 'fusha', label: '🌐 عربية فصحى معاصرة (رسمية)' }
+    ],
+    arabic: [
+        { id: 'saudi', label: '🇸🇦 لهجة سعودية (نجدية وحجازية)' },
+        { id: 'egyptian', label: '🇪🇬 لهجة مصرية عامية' },
+        { id: 'emirati', label: '🇦🇪 لهجة إماراتية' },
+        { id: 'kuwaiti', label: '🇰🇼 لهجة كويتية' },
+        { id: 'gulf', label: '🌴 لهجة خليجية عامة' },
+        { id: 'levantine', label: '🇱🇧 لهجة شامية (سوريا ولبنان)' },
+        { id: 'jordanian_palestinian', label: '🇯🇴 لهجة أردنية وفلسطينية' },
+        { id: 'moroccan', label: '🇲🇦 لهجة مغربية / دارجة' },
+        { id: 'algerian', label: '🇩🇿 لهجة جزائرية' },
+        { id: 'tunisian', label: '🇹🇳 لهجة تونسية' },
+        { id: 'iraqi', label: '🇮🇶 لهجة عراقية' },
+        { id: 'sudanese', label: '🇸🇩 لهجة سودانية' },
+        { id: 'yemeni', label: '🇾🇪 لهجة يمنية' },
+        { id: 'fusha', label: '🌐 عربية فصحى معاصرة (رسمية)' }
+    ],
+    en: [
+        { id: 'english_us', label: '🇺🇸 American English (US)' },
+        { id: 'english_uk', label: '🇬🇧 British English (UK)' },
+        { id: 'english_aus', label: '🇦🇺 Australian English' },
+        { id: 'english_ind', label: '🇮🇳 Indian English' },
+        { id: 'english', label: '🌐 General English' },
+        { id: 'us', label: '🇺🇸 US English (Alias)' },
+        { id: 'uk', label: '🇬🇧 UK English (Alias)' }
+    ],
+    english: [
+        { id: 'english_us', label: '🇺🇸 American English (US)' },
+        { id: 'english_uk', label: '🇬🇧 British English (UK)' },
+        { id: 'english_aus', label: '🇦🇺 Australian English' },
+        { id: 'english_ind', label: '🇮🇳 Indian English' },
+        { id: 'english', label: '🌐 General English' },
+        { id: 'us', label: '🇺🇸 US English (Alias)' },
+        { id: 'uk', label: '🇬🇧 UK English (Alias)' }
+    ],
+    fr: [
+        { id: 'french_fr', label: '🇫🇷 Français Métropolitain (France)' },
+        { id: 'french_ca', label: '🇨🇦 Français Canadien (Canada)' },
+        { id: 'standard', label: '🌐 Français Standard' }
+    ],
+    french: [
+        { id: 'french_fr', label: '🇫🇷 Français Métropolitain (France)' },
+        { id: 'french_ca', label: '🇨🇦 Français Canadien (Canada)' },
+        { id: 'standard', label: '🌐 Français Standard' }
+    ],
+    es: [
+        { id: 'spanish_es', label: '🇪🇸 Español de España' },
+        { id: 'spanish_latam', label: '🌎 Español Latinoamericano' },
+        { id: 'standard', label: '🌐 Español Standard' }
+    ],
+    spanish: [
+        { id: 'spanish_es', label: '🇪🇸 Español de España' },
+        { id: 'spanish_latam', label: '🌎 Español Latinoamericano' },
+        { id: 'standard', label: '🌐 Español Standard' }
+    ],
+    de: [
+        { id: 'german_de', label: '🇩🇪 Standarddeutsch (Germany & Austria)' },
+        { id: 'standard', label: '🌐 German Standard' }
+    ],
+    german: [
+        { id: 'german_de', label: '🇩🇪 Standarddeutsch (Germany & Austria)' },
+        { id: 'standard', label: '🌐 German Standard' }
+    ],
+    it: [
+        { id: 'italian_it', label: '🇮🇹 Italiano Standard' },
+        { id: 'standard', label: '🌐 Italian Standard' }
+    ],
+    italian: [
+        { id: 'italian_it', label: '🇮🇹 Italiano Standard' },
+        { id: 'standard', label: '🌐 Italian Standard' }
+    ],
+    tr: [
+        { id: 'turkish_tr', label: '🇹🇷 Türkçe (Turkey)' },
+        { id: 'standard', label: '🌐 Turkish Standard' }
+    ],
+    turkish: [
+        { id: 'turkish_tr', label: '🇹🇷 Türkçe (Turkey)' },
+        { id: 'standard', label: '🌐 Turkish Standard' }
+    ],
+    ru: [
+        { id: 'russian_ru', label: '🇷🇺 Русский язык (Russia)' },
+        { id: 'standard', label: '🌐 Russian Standard' }
+    ],
+    russian: [
+        { id: 'russian_ru', label: '🇷🇺 Русский язык (Russia)' },
+        { id: 'standard', label: '🌐 Russian Standard' }
+    ],
+    ur: [
+        { id: 'urdu_pk', label: '🇵🇰 اردو (Pakistan & India)' },
+        { id: 'standard', label: '🌐 Urdu Standard' }
+    ],
+    urdu: [
+        { id: 'urdu_pk', label: '🇵🇰 اردو (Pakistan & India)' },
+        { id: 'standard', label: '🌐 Urdu Standard' }
+    ],
+    hi: [
+        { id: 'hindi_in', label: '🇮🇳 हिन्दी (India)' },
+        { id: 'standard', label: '🌐 Hindi Standard' }
+    ],
+    hindi: [
+        { id: 'hindi_in', label: '🇮🇳 हिन्दी (India)' },
+        { id: 'standard', label: '🌐 Hindi Standard' }
+    ],
+    zh: [
+        { id: 'chinese_zh', label: '🇨🇳 普通话 (Mandarin Chinese)' },
+        { id: 'standard', label: '🌐 Chinese Standard' }
+    ],
+    chinese: [
+        { id: 'chinese_zh', label: '🇨🇳 普通话 (Mandarin Chinese)' },
+        { id: 'standard', label: '🌐 Chinese Standard' }
+    ]
+};
+
+function updateDialectsSelect(langSelectId, dialectSelectId, selectedDialect = '') {
+    const langSelect = document.getElementById(langSelectId);
+    const dialectSelect = document.getElementById(dialectSelectId);
+    if (!langSelect || !dialectSelect) return;
+
+    const lang = (langSelect.value || 'ar').toLowerCase();
+    const list = STUDIO_DIALECTS_MAP[lang] || STUDIO_DIALECTS_MAP['ar'] || [];
+
+    dialectSelect.innerHTML = '';
+    list.forEach((item, idx) => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.label;
+        if (selectedDialect && (item.id === selectedDialect || item.id.toLowerCase() === selectedDialect.toLowerCase())) {
+            opt.selected = true;
+        } else if (!selectedDialect && idx === 0) {
+            opt.selected = true;
+        }
+        dialectSelect.appendChild(opt);
+    });
+}
+
+function handleAdminTesterLanguageChange(lang) {
+    updateDialectsSelect('admin-tester-language', 'admin-tester-dialect');
+}
+
+let adminLiveKitPromise = null;
+function ensureAdminLiveKitLoaded() {
+    if (window.LivekitClient || window.livekit) {
+        return Promise.resolve(window.LivekitClient || window.livekit);
+    }
+    if (adminLiveKitPromise) return adminLiveKitPromise;
+
+    adminLiveKitPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '/static/js/vendor/livekit-client.umd.min.js';
+        script.onload = () => resolve(window.LivekitClient || window.livekit);
+        script.onerror = () => {
+            const cdnScript = document.createElement('script');
+            cdnScript.src = 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js';
+            cdnScript.onload = () => resolve(window.LivekitClient || window.livekit);
+            cdnScript.onerror = () => reject(new Error('تعذر تحميل مشغل LiveKit الصوتي'));
+            document.head.appendChild(cdnScript);
+        };
+        document.head.appendChild(script);
+    });
+    return adminLiveKitPromise;
+}
+
+// Admin Tester State
+let adminTesterRoom = null;
+let adminTesterAudioTrack = null;
+let adminTesterMediaStream = null;
+let adminTesterTimerInterval = null;
+let adminTesterTimerSeconds = 0;
+let adminTesterAudioCtx = null;
+let adminTesterAnalyser = null;
+let adminTesterAnimId = null;
+
+function setAdminTesterStatus(badgeHtml, textStr) {
+    const badgeEl = document.getElementById('admin-tester-status-badge');
+    const textEl = document.getElementById('admin-tester-status-text');
+    if (badgeEl && badgeHtml) badgeEl.innerHTML = badgeHtml;
+    if (textEl && textStr) textEl.textContent = textStr;
+}
+
+function formatAdminTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function startAdminTimer() {
+    adminTesterTimerSeconds = 0;
+    const timerBox = document.getElementById('admin-tester-timer');
+    const timerVal = document.getElementById('admin-tester-timer-val');
+    if (timerBox) timerBox.style.display = 'inline-flex';
+    if (timerVal) timerVal.textContent = '00:00';
+
+    if (adminTesterTimerInterval) clearInterval(adminTesterTimerInterval);
+    adminTesterTimerInterval = setInterval(() => {
+        adminTesterTimerSeconds++;
+        if (timerVal) timerVal.textContent = formatAdminTime(adminTesterTimerSeconds);
+    }, 1000);
+}
+
+function stopAdminTimer() {
+    if (adminTesterTimerInterval) {
+        clearInterval(adminTesterTimerInterval);
+        adminTesterTimerInterval = null;
+    }
+    const timerBox = document.getElementById('admin-tester-timer');
+    if (timerBox) timerBox.style.display = 'none';
+}
+
+function startAdminVisualizer(stream) {
+    try {
+        if (!adminTesterAudioCtx) {
+            adminTesterAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (adminTesterAudioCtx.state === 'suspended') {
+            adminTesterAudioCtx.resume();
+        }
+        adminTesterAnalyser = adminTesterAudioCtx.createAnalyser();
+        adminTesterAnalyser.fftSize = 64;
+        const src = adminTesterAudioCtx.createMediaStreamSource(stream);
+        src.connect(adminTesterAnalyser);
+
+        const bars = document.querySelectorAll('.sound-bar-admin');
+        const dataArr = new Uint8Array(32);
+
+        function drawBars() {
+            if (adminTesterAnalyser && bars.length > 0) {
+                adminTesterAnalyser.getByteFrequencyData(dataArr);
+                let avg = 0;
+                for (let i = 0; i < 12; i++) {
+                    avg += dataArr[i];
+                }
+                avg = avg / 12;
+
+                bars.forEach((bar, idx) => {
+                    const val = dataArr[idx % 12] || 10;
+                    const h = Math.max(6, Math.min(32, (val / 255) * 30 + 4));
+                    bar.style.height = `${h}px`;
+                    if (avg > 25) {
+                        bar.style.background = '#38bdf8';
+                    } else {
+                        bar.style.background = '#64748b';
+                    }
+                });
+            }
+            adminTesterAnimId = requestAnimationFrame(drawBars);
+        }
+        drawBars();
+    } catch (e) {
+        console.warn('Admin visualizer setup skipped:', e);
+    }
+}
+
+function stopAdminVisualizer() {
+    if (adminTesterAnimId) {
+        cancelAnimationFrame(adminTesterAnimId);
+        adminTesterAnimId = null;
+    }
+    const bars = document.querySelectorAll('.sound-bar-admin');
+    bars.forEach((bar, idx) => {
+        const defaultHeights = [6, 12, 18, 24, 30, 24, 18, 12, 6, 14, 22, 10];
+        bar.style.height = `${defaultHeights[idx % defaultHeights.length]}px`;
+        bar.style.background = '#64748b';
+    });
+}
+
+async function startAdminTesterCall() {
+    const lang = document.getElementById('admin-tester-language')?.value || 'ar';
+    const dialect = document.getElementById('admin-tester-dialect')?.value || 'saudi';
+    const voice = document.getElementById('admin-tester-voice')?.value || 'Aoede';
+
+    const startBtn = document.getElementById('btn-admin-tester-start');
+    const endBtn = document.getElementById('btn-admin-tester-end');
+    const muteBtn = document.getElementById('btn-admin-tester-mute');
+
+    setAdminTesterStatus(
+        '<span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-spinner fa-spin me-1"></i> جاري الاتصال...</span>',
+        'جاري حجز جلسة WebRTC مع خادم السنترال والذكاء الاصطناعي...'
+    );
+
+    try {
+        // 1. Request WebRTC Session Credentials (Admin is exempt from daily IP limit)
+        const resp = await fetch('/api/landing/voice-session/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                name: 'مشرف المنصة (Admin Studio Tester)',
+                phone: '0500000000',
+                country_code: '+966',
+                language: lang,
+                dialect: dialect,
+                voice_name: voice,
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.message || 'تعذر بدء جلسة الاتصال التجريبية من السيرفر.');
+        }
+
+        const data = await resp.json();
+        if (data.status !== 'success' || !data.livekit_url || !data.livekit_token) {
+            throw new Error(data.message || 'بيانات اتصال السنترال غير مكتملة.');
+        }
+
+        // 2. Request Mic Stream
+        setAdminTesterStatus(
+            '<span class="badge bg-info text-white px-3 py-2"><i class="fas fa-microphone me-1"></i> طلب الميكروفون...</span>',
+            'يرجى السماح بصلاحية الميكروفون للمتابعة في المكالمة...'
+        );
+        adminTesterMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // 3. Load LiveKit SDK
+        const LK = await ensureAdminLiveKitLoaded();
+        const { Room, RoomEvent, createLocalAudioTrack } = LK;
+
+        adminTesterRoom = new Room({
+            adaptiveStream: true,
+            dynacast: true,
+            audioCaptureDefaults: {
+                autoGainControl: true,
+                echoCancellation: true,
+                noiseSuppression: true,
+            }
+        });
+
+        // 4. Room Events
+        adminTesterRoom.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+            if (track.kind === 'audio') {
+                const audioEl = document.getElementById('admin-tester-audio');
+                if (audioEl) {
+                    track.attach(audioEl);
+                    audioEl.play().catch(() => {});
+                }
+                setAdminTesterStatus(
+                    '<span class="badge bg-success px-3 py-2 shadow-sm"><span class="persona-pulse-dot me-1"></span> متصل حي</span>',
+                    'المساعد الصوتي متصل ويستمع إليك الآن — تحدث مباشرة عبر الميكروفون.'
+                );
+            }
+        });
+
+        adminTesterRoom.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+            const isAgentSpeaking = speakers.some(s => !s.isLocal);
+            const isUserSpeaking = speakers.some(s => s.isLocal);
+            if (isAgentSpeaking) {
+                setAdminTesterStatus(
+                    '<span class="badge bg-primary text-white px-3 py-2 shadow-sm"><i class="fas fa-volume-up me-1"></i> المساعد يتحدث...</span>',
+                    'المساعد الصوتي يتحدث الآن ويجيبك بصوته الحي...'
+                );
+            } else if (isUserSpeaking) {
+                setAdminTesterStatus(
+                    '<span class="badge bg-info text-white px-3 py-2 shadow-sm"><i class="fas fa-microphone-alt me-1"></i> المشرف يتحدث...</span>',
+                    'أنت تتحدث الآن عبر الميكروفون — المساعد يستمع لك باهتمام...'
+                );
+            } else {
+                setAdminTesterStatus(
+                    '<span class="badge bg-success px-3 py-2 shadow-sm"><span class="persona-pulse-dot me-1"></span> متصل حي</span>',
+                    'المساعد جاهز ويستمع — تفضل بطرح أسئلتك أو طلب ما ترغب به.'
+                );
+            }
+        });
+
+        adminTesterRoom.on(RoomEvent.Disconnected, () => {
+            hangupAdminTesterCall('تم قطع الاتصال من المساعد الصوتي.');
+        });
+
+        // 5. Connect Room
+        await adminTesterRoom.connect(data.livekit_url, data.livekit_token);
+
+        // 6. Publish Local Track
+        adminTesterAudioTrack = await createLocalAudioTrack({
+            echoCancellation: true,
+            noiseSuppression: true,
+        });
+        await adminTesterRoom.localParticipant.publishTrack(adminTesterAudioTrack);
+
+        // 7. Visualizer & Timer
+        startAdminVisualizer(adminTesterMediaStream);
+        startAdminTimer();
+
+        // 8. Update UI Buttons
+        if (startBtn) startBtn.style.display = 'none';
+        if (endBtn) endBtn.style.display = 'inline-flex';
+        if (muteBtn) muteBtn.style.display = 'inline-flex';
+
+        setAdminTesterStatus(
+            '<span class="badge bg-success px-3 py-2 shadow-sm"><span class="persona-pulse-dot me-1"></span> متصل حي</span>',
+            'تم الاتصال بنجاح! تحدث مع المساعد باللغة واللهجة المختارة.'
+        );
+        showToast('تم الاتصال بالمساعد الصوتي بنجاح ✓');
+
+    } catch (err) {
+        console.error('Admin LiveKit Tester Error:', err);
+        hangupAdminTesterCall(err.message || 'حدث خطأ أثناء محاولة الاتصال بالمساعد الصوتي.');
+        showToast(err.message || 'فشل الاتصال بالمساعد الصوتي', true);
+    }
+}
+
+function hangupAdminTesterCall(msg = '') {
+    if (adminTesterRoom) {
+        try { adminTesterRoom.disconnect(); } catch (e) {}
+        adminTesterRoom = null;
+    }
+    if (adminTesterAudioTrack) {
+        try { adminTesterAudioTrack.stop(); } catch (e) {}
+        adminTesterAudioTrack = null;
+    }
+    if (adminTesterMediaStream) {
+        try { adminTesterMediaStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        adminTesterMediaStream = null;
+    }
+
+    stopAdminTimer();
+    stopAdminVisualizer();
+
+    const startBtn = document.getElementById('btn-admin-tester-start');
+    const endBtn = document.getElementById('btn-admin-tester-end');
+    const muteBtn = document.getElementById('btn-admin-tester-mute');
+
+    if (startBtn) startBtn.style.display = 'inline-flex';
+    if (endBtn) endBtn.style.display = 'none';
+    if (muteBtn) {
+        muteBtn.style.display = 'none';
+        const lbl = document.getElementById('admin-tester-mute-label');
+        const ico = document.getElementById('admin-tester-mute-icon');
+        if (lbl) lbl.textContent = 'كتم الميكروفون';
+        if (ico) ico.className = 'fas fa-microphone me-2';
+    }
+
+    setAdminTesterStatus(
+        '<span class="badge bg-secondary px-3 py-2"><i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i> جاهز للاختبار</span>',
+        msg || 'المساعد الصوتي في وضع الاستعداد. اختر اللغة واللهجة وخامة الصوت ثم اضغط "بدء الاتصال الصوتي الحي".'
+    );
+}
+
+function toggleAdminTesterMute() {
+    if (!adminTesterAudioTrack) return;
+    const lbl = document.getElementById('admin-tester-mute-label');
+    const ico = document.getElementById('admin-tester-mute-icon');
+
+    if (adminTesterAudioTrack.isMuted) {
+        adminTesterAudioTrack.unmute();
+        if (lbl) lbl.textContent = 'كتم الميكروفون';
+        if (ico) ico.className = 'fas fa-microphone me-2';
+        showToast('تم تشغيل الميكروفون');
+    } else {
+        adminTesterAudioTrack.mute();
+        if (lbl) lbl.textContent = 'تشغيل الميكروفون';
+        if (ico) ico.className = 'fas fa-microphone-slash me-2';
+        showToast('تم كتم الميكروفون');
+    }
+}
+
+// Initial sync on page ready
+document.addEventListener('DOMContentLoaded', function () {
+    handleAdminTesterLanguageChange('ar');
+    updateDialectsSelect('add-profile-language', 'add-profile-dialect', 'saudi');
+    updateDialectsSelect('edit-profile-language', 'edit-profile-dialect', 'saudi');
+});
 </script>
 {% endblock %}

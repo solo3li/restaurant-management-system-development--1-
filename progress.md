@@ -26,10 +26,43 @@
 - `feat-landing-assistant-admin-tabs` (Completed & Verified 100%)
 - `feat-landing-voice-customization-and-lock` (Completed & Verified 100%)
 - `feat-landing-assistant-studio-audio-custom-redis` (Completed & Verified 100%)
+- `feat-live-webrtc-studio-11lang-30voices` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
+
+- [x] **Live WebRTC Studio Tester, 11 Languages, 29 Dialects & 30 Gemini Live Voices (`feat-live-webrtc-studio-11lang-30voices`)**
+  - **1. Upstream Metadata & Choice Models (11 Languages, 29 Dialects, 30 Voices)**:
+    - Sourced upstream metadata from Partner PBX `get_studio_metadata(client_id=662)`: 11 languages, 29 dialects, and 30 Gemini Live Studio voices.
+    - Added `ASSISTANT_LANGUAGE_CHOICES`, `ASSISTANT_DIALECT_CHOICES`, and `ASSISTANT_VOICE_CHOICES` in `apps/callcenter/models.py`.
+    - Applied choices to `PlatformVoiceAssistantConfig` (`voice_name`, `language`, `accent`) and `LandingVoiceLead` (`language`, `dialect`, `voice_name`).
+    - Generated and executed migration `core/migrations/0036_alter_landingvoicelead_dialect_and_more.py`.
+    - Updated `LandingVoiceLeadAdmin.language_display` and `voice_display` in `apps/callcenter/admin.py` to format all 11 languages and 30 voices while preserving backward compatibility with legacy tests.
+    - Updated landing page `#lead-visitor-language` and `#lead-visitor-voice` in `templates/landing.html`.
+    - Updated `static/js/landing_webrtc_agent.js` and `staticfiles/js/landing_webrtc_agent.js` with complete 11-language `DIALECT_MAP`.
+  - **2. Language Bug Fix & Localized Welcome Messages**:
+    - In `api_landing_webrtc_session` (`apps/callcenter/views.py`), mapped visitors selecting any of 11 languages to canonical Partner PBX language IDs.
+    - Implemented personalized, localized first-message greetings pronouncing visitor names in all 11 languages (Arabic, English, French, Spanish, German, Italian, Turkish, Russian, Urdu, Hindi, Chinese).
+    - Injected strict language directives into upstream payload (`instructions`, `custom_instructions`, `system_prompt`, `session_instructions`, `context`) ensuring AI responds exclusively in the visitor's selected language.
+    - Extended `core/partner_service.py` to pass custom instruction fields directly to upstream Partner PBX.
+  - **3. Call Recording Audio Playback & 404 Prevention**:
+    - Added `get_call_detail(client_id, call_id)` in `core/partner_service.py` (`GET /clients/{cid}/calls/{call_id}/`).
+    - Updated `api_landing_webrtc_session` to store `res.get("call_id") or res.get("room_name")` in `lead.call_id`.
+    - Hardened `api_ai_callcenter_call_recording_proxy`: prioritizes `ps.get_calls` across candidate clients (tenant, platform 662, demo 49) with fallback to `ps.get_call_detail`, resolving existing calls (e.g. integer 645) as well as LiveKit room names without 404.
+  - **4. In-Admin Live WebRTC Studio Tester (Tab 1)**:
+    - Embedded Live WebRTC Studio Tester card `#admin-webrtc-studio-card` in Tab 1 (`change_form.html`) between Persona cards grid and Identity settings.
+    - Added selectors for 11 languages, dynamically updated 29 dialects, and 30 Gemini Live voices (grouped female ♀ / male ♂).
+    - Added LiveKit audio sink `<audio id="admin-tester-audio">`, animated wave bars (`.sound-bar-admin`), live call timer, and mute toggle.
+    - Upgraded `#modal-add-profile` and `#modal-edit-profile` with 11 languages, 29 dialects, and 30 voices.
+    - Built client-side WebRTC testing engine with `ensureAdminLiveKitLoaded()`, `startAdminTesterCall()`, `hangupAdminTesterCall()`, and Web Audio API analyser loop.
+    - Exempted authenticated staff/superusers from visitor IP daily quota limits.
+  - **5. Comprehensive Automated Verification**:
+    - `test_landing_voice_customization.py`: 16/16 tests PASS.
+    - `test_landing_voice_leads.py`: 14/14 tests PASS.
+    - `test_landing_assistant_admin_tabs.py`: 11/11 tests PASS.
+    - `./init.sh`: 100% full repo verification PASS.
+    - `graphify update .`: AST update complete (8,946 nodes, 19,171 edges, 460 communities).
 
 - [x] **Landing Voice Assistant Persona Studio, Audio Recording Player & Custom Redis Live Memory (`feat-landing-assistant-studio-audio-custom-redis`)**
   - **Tab 6: Blank/Clean Default Memory & Free Manual Live Context Editor**:

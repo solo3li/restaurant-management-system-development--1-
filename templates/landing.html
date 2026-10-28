@@ -951,9 +951,15 @@
                                     class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 text-xs font-semibold text-slate-800 transition cursor-pointer">
                                 <option value="ar" selected>🇸🇦 العربية (Arabic)</option>
                                 <option value="en">🇬🇧 English</option>
-                                <option value="fr">🇫🇷 Français</option>
-                                <option value="tr">🇹🇷 Türkçe</option>
-                                <option value="de">🇩🇪 Deutsch</option>
+                                <option value="fr">🇫🇷 Français (French)</option>
+                                <option value="es">🇪🇸 Español (Spanish)</option>
+                                <option value="de">🇩🇪 Deutsch (German)</option>
+                                <option value="it">🇮🇹 Italiano (Italian)</option>
+                                <option value="tr">🇹🇷 Türkçe (Turkish)</option>
+                                <option value="ru">🇷🇺 Русский (Russian)</option>
+                                <option value="ur">🇵🇰 اردو (Urdu)</option>
+                                <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                                <option value="zh">🇨🇳 中文 (Mandarin Chinese)</option>
                             </select>
                         </div>
 
@@ -966,10 +972,17 @@
                                     class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 text-xs font-semibold text-slate-800 transition cursor-pointer">
                                 <option value="saudi" selected>🇸🇦 سعودية (افتراضي)</option>
                                 <option value="egyptian">🇪🇬 مصرية</option>
-                                <option value="gulf">🇦🇪 إماراتية وخليجية</option>
-                                <option value="moroccan">🇲🇦 مغربية</option>
+                                <option value="emirati">🇦🇪 إماراتية وخليجية</option>
+                                <option value="kuwaiti">🇰🇼 كويتية</option>
                                 <option value="levantine">🇱🇧 شامية</option>
-                                <option value="modern_standard">🌐 فصحى معاصرة</option>
+                                <option value="jordanian_palestinian">🇯🇴 أردنية وفلسطينية</option>
+                                <option value="moroccan">🇲🇦 مغربية</option>
+                                <option value="algerian">🇩🇿 جزائرية</option>
+                                <option value="tunisian">🇹🇳 تونسية</option>
+                                <option value="iraqi">🇮🇶 عراقية</option>
+                                <option value="sudanese">🇸🇩 سودانية</option>
+                                <option value="yemeni">🇾🇪 يمنية</option>
+                                <option value="fusha">🌐 فصحى معاصرة</option>
                             </select>
                         </div>
                     </div>
@@ -977,15 +990,44 @@
                     <!-- Voice Profile / Tone Field -->
                     <div>
                         <label for="lead-visitor-voice" class="block text-[11px] font-bold text-slate-700 mb-1">
-                            {% if CURRENT_LANG == 'en' %}Voice Tone Profile{% elif CURRENT_LANG == 'fr' %}Profil Vocal{% elif CURRENT_LANG == 'tr' %}Ses Tonu Profili{% elif CURRENT_LANG == 'de' %}Sprachprofil{% else %}بروفايل ونبرة الصوت{% endif %}
+                            {% if CURRENT_LANG == 'en' %}Voice Tone Profile (30 Gemini Live Voices){% elif CURRENT_LANG == 'fr' %}Profil Vocal (30 Voix Gemini Live){% elif CURRENT_LANG == 'tr' %}Ses Tonu Profili (30 Gemini Live Sesi){% elif CURRENT_LANG == 'de' %}Sprachprofil (30 Gemini Live Stimmen){% else %}بروفايل ونبرة الصوت (30 خامة صوتية من Gemini Live){% endif %}
                         </label>
                         <select id="lead-visitor-voice" name="voice_name"
                                 class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 text-xs font-semibold text-slate-800 transition cursor-pointer">
-                            <option value="Aoede" selected>👩 سارة (Aoede) - نبرة أنثوية هادئة واحترافية</option>
-                            <option value="Puck">👨 أحمد (Puck) - نبرة رجالية مرنة وحيوية</option>
-                            <option value="Fenrir">👨 عمر (Fenrir) - نبرة رجالية رخيمة وواثقة</option>
-                            <option value="Kore">👩 مريم (Kore) - نبرة نسائية دافئة وواضحة</option>
-                            <option value="Charon">👨 خالد (Charon) - نبرة رجالية متزنة ورسمية</option>
+                            <optgroup label="خامات صوتية نسائية (Female Voices)">
+                                <option value="Aoede" selected>👩 Aoede (سارة - نشيطة وسريعة - افتراضي)</option>
+                                <option value="Kore">👩 Kore (مريم - واثقة وحازمة)</option>
+                                <option value="Leda">👩 Leda (شابة وودودة)</option>
+                                <option value="Callisto">👩 Callisto (دافئة ومريحة)</option>
+                                <option value="Sulafat">👩 Sulafat (رقيقة وواضحة)</option>
+                                <option value="Autonoe">👩 Autonoe (مشرقة ومتحمسة)</option>
+                                <option value="Achernar">👩 Achernar (ناعمة ومطمئنة)</option>
+                                <option value="Erinome">👩 Erinome (رنانة ومتمكنة)</option>
+                                <option value="Laomedeia">👩 Laomedeia (تعبيرية وتفاعلية)</option>
+                                <option value="Gacrux">👩 Gacrux (مرحبة ومضيافة)</option>
+                                <option value="Vindemiatrix">👩 Vindemiatrix (أنيقة وراقية)</option>
+                                <option value="Despina">👩 Despina (واضحة ومباشرة)</option>
+                                <option value="Galatea">👩 Galatea (نقية وأنيقة)</option>
+                                <option value="Larissa">👩 Larissa (مبهجة ولطيفة)</option>
+                                <option value="Naiad">👩 Naiad (سلسة وعفوية)</option>
+                            </optgroup>
+                            <optgroup label="خامات صوتية رجالية (Male Voices)">
+                                <option value="Puck">👨 Puck (أحمد - مرح وحيوي - موصى به)</option>
+                                <option value="Charon">👨 Charon (خالد - هادئ ووقور)</option>
+                                <option value="Fenrir">👨 Fenrir (عمر - عميق وجهوري)</option>
+                                <option value="Zephyr">👨 Zephyr (منعش ومشرق)</option>
+                                <option value="Orus">👨 Orus (حازم ومباشر)</option>
+                                <option value="Umbriel">👨 Umbriel (تلقائي وعفوي)</option>
+                                <option value="Schedar">👨 Schedar (واضح ورصين)</option>
+                                <option value="Achird">👨 Achird (عملي وسريع)</option>
+                                <option value="Sadachbia">👨 Sadachbia (متفاعل وحيوي)</option>
+                                <option value="Zubenelgenubi">👨 Zubenelgenubi (واقعي وبسيط)</option>
+                                <option value="Thalassa">👨 Thalassa (مطمئن ومتزن)</option>
+                                <option value="Proteus">👨 Proteus (ديناميكي ومتمكن)</option>
+                                <option value="Neso">👨 Neso (شاب وتقني)</option>
+                                <option value="Halimede">👨 Halimede (مهذب وسلس)</option>
+                                <option value="Sao">👨 Sao (مختصر وموجز)</option>
+                            </optgroup>
                         </select>
                     </div>
                 </div>
