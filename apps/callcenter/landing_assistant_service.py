@@ -190,6 +190,15 @@ def build_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
     if config is None:
         config = PlatformVoiceAssistantConfig.get_config()
 
+    # If custom live context is present and is valid JSON, return parsed dict
+    if getattr(config, "custom_live_context", None):
+        try:
+            parsed = json.loads(config.custom_live_context)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+
     # 1. Documents & FAQs
     docs = []
     for d in config.knowledge_documents.all():
@@ -225,7 +234,6 @@ def build_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
     connected_calls = LandingVoiceLead.objects.filter(call_status__in=["connected", "completed"]).count()
 
     context_payload = {
-        "platform_name": "منظومة كُـورَا (KURA Cloud Restaurant OS)",
         "assistant": {
             "name": config.assistant_name,
             "is_active": config.is_active,
@@ -249,7 +257,136 @@ def build_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
     return context_payload
 
 
-def sync_landing_assistant_live_context(config: Optional[PlatformVoiceAssistantConfig] = None) -> Dict[str, Any]:
+def push_live_context(config: Optional[PlatformVoiceAssistantConfig] = None, content: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Directly and atomically push manual live context to:
+    1. PlatformVoiceAssistantConfig.custom_live_context in Database
+    2. Redis Cache (landing_assistant:live_context)
+    3. Django In-Memory / DB Cache
+    4. Central Partner Telephony Service (if JSON payload)
+    """
+    if config is None:
+        config = PlatformVoiceAssistantConfig.get_config()
+
+    if content is not None:
+        config.custom_live_context = content
+        config.save(update_fields=["custom_live_context", "updated_at"])
+    else:
+        content = config.custom_live_context or ""
+
+    now_iso = timezone.now().isoformat()
+    payload_str = content
+    payload_bytes = len(payload_str.encode("utf-8"))
+
+    # Try parsing as JSON dict for partner service sync
+    parsed_dict = None
+    try:
+        parsed = json.loads(payload_str)
+        if isinstance(parsed, dict):
+            parsed_dict = parsed
+    except Exception:
+        pass
+
+    # 1. Direct Redis Sync
+    r = get_redis_client()
+    redis_keys_count = 1 if payload_bytes > 0 else 0
+    redis_connected = False
+    if r:
+        try:
+            r.set(REDIS_LIVE_CONTEXT_KEY, payload_str)
+            r.set(REDIS_LAST_SYNCED_KEY, now_iso)
+            r.set(f"{REDIS_LIVE_CONTEXT_KEY}:size_bytes", payload_bytes)
+            redis_keys = r.keys("landing_assistant:*")
+            redis_keys_count = len(redis_keys) if redis_keys else (1 if payload_bytes > 0 else 0)
+            redis_connected = True
+        except Exception as e:
+            logger.warning(f"Direct Redis set error: {e}")
+
+    # 2. Django Cache Sync
+    cache.set(REDIS_LIVE_CONTEXT_KEY, payload_str, timeout=None)
+    cache.set(REDIS_LAST_SYNCED_KEY, now_iso, timeout=None)
+    cache.set(f"{REDIS_LIVE_CONTEXT_KEY}:size_bytes", payload_bytes, timeout=None)
+    cache.set(f"{REDIS_LIVE_CONTEXT_KEY}:keys_count", redis_keys_count, timeout=None)
+
+    # 3. Central Partner Service Sync (only if dict)
+    partner_resp = {}
+    if parsed_dict is not None:
+        try:
+            cid = int(config.partner_client_id or 49)
+            partner_resp = ps.update_client_live_context(cid, parsed_dict)
+        except Exception as e:
+            logger.warning(f"Partner context sync error: {e}")
+            partner_resp = {"status": "error", "message": str(e)}
+
+    size_formatted = f"{payload_bytes / 1024:.2f} KB" if payload_bytes >= 1024 else f"{payload_bytes} B"
+
+    return {
+        "status": "success",
+        "redis_connected": redis_connected,
+        "synced_at": now_iso,
+        "size_bytes": payload_bytes,
+        "size_formatted": size_formatted,
+        "keys_count": redis_keys_count,
+        "context": parsed_dict if parsed_dict is not None else ({"custom_live_context": payload_str} if payload_str else {}),
+        "raw_json": payload_str,
+        "partner_sync": partner_resp,
+    }
+
+
+def clear_landing_assistant_live_context(config: Optional[PlatformVoiceAssistantConfig] = None) -> Dict[str, Any]:
+    """
+    Wipe and completely clear live context from Database, Redis Cache, and Django Cache.
+    Ensures memory is 100% blank and clean.
+    """
+    if config is None:
+        config = PlatformVoiceAssistantConfig.get_config()
+
+    config.custom_live_context = ""
+    config.save(update_fields=["custom_live_context", "updated_at"])
+
+    # 1. Clear direct Redis
+    r = get_redis_client()
+    redis_connected = False
+    if r:
+        try:
+            keys = r.keys("landing_assistant:*")
+            if keys:
+                r.delete(*keys)
+            r.delete(REDIS_LIVE_CONTEXT_KEY)
+            r.delete(REDIS_LAST_SYNCED_KEY)
+            r.delete(f"{REDIS_LIVE_CONTEXT_KEY}:size_bytes")
+            r.delete(f"{REDIS_LIVE_CONTEXT_KEY}:keys_count")
+            redis_connected = True
+        except Exception as e:
+            logger.warning(f"Direct Redis delete error: {e}")
+
+    # 2. Clear Django Cache
+    cache.delete(REDIS_LIVE_CONTEXT_KEY)
+    cache.delete(REDIS_LAST_SYNCED_KEY)
+    cache.delete(f"{REDIS_LIVE_CONTEXT_KEY}:size_bytes")
+    cache.delete(f"{REDIS_LIVE_CONTEXT_KEY}:keys_count")
+
+    # 3. Clear partner service context
+    try:
+        cid = int(config.partner_client_id or 49)
+        ps.update_client_live_context(cid, {})
+    except Exception:
+        pass
+
+    return {
+        "status": "success",
+        "message": "تم تفريغ ومسح الذاكرة بالكامل بنجاح",
+        "redis_connected": redis_connected,
+        "synced_at": "تم التفريغ ومسح الذاكرة (الذاكرة بيضاء ونظيفة)",
+        "size_bytes": 0,
+        "size_formatted": "0 B",
+        "keys_count": 0,
+        "context": {},
+        "raw_json": "",
+    }
+
+
+def sync_landing_assistant_live_context(config: Optional[PlatformVoiceAssistantConfig] = None, content: Optional[str] = None) -> Dict[str, Any]:
     """
     Compile and atomically push smart live context into:
     1. Redis Cache
@@ -259,57 +396,21 @@ def sync_landing_assistant_live_context(config: Optional[PlatformVoiceAssistantC
     if config is None:
         config = PlatformVoiceAssistantConfig.get_config()
 
+    if content is not None:
+        return push_live_context(config, content)
+    elif getattr(config, "custom_live_context", None):
+        return push_live_context(config, config.custom_live_context)
+
+    # Fallback to structured compilation
     context_payload = build_landing_assistant_live_context(config)
-    now_iso = context_payload["synced_at"]
     payload_json = json.dumps(context_payload, ensure_ascii=False, indent=2)
-    payload_bytes = len(payload_json.encode("utf-8"))
-
-    # 1. Direct Redis Sync
-    r = get_redis_client()
-    redis_keys_count = 1
-    redis_connected = False
-    if r:
-        try:
-            r.set(REDIS_LIVE_CONTEXT_KEY, payload_json)
-            r.set(REDIS_LAST_SYNCED_KEY, now_iso)
-            r.set(f"{REDIS_LIVE_CONTEXT_KEY}:size_bytes", payload_bytes)
-            # Count keys matching landing_assistant:*
-            redis_keys = r.keys("landing_assistant:*")
-            redis_keys_count = len(redis_keys) if redis_keys else 1
-            redis_connected = True
-        except Exception as e:
-            logger.warning(f"Direct Redis set error: {e}")
-
-    # 2. Django Cache Sync (Always fallback safe)
-    cache.set(REDIS_LIVE_CONTEXT_KEY, payload_json, timeout=None)
-    cache.set(REDIS_LAST_SYNCED_KEY, now_iso, timeout=None)
-    cache.set(f"{REDIS_LIVE_CONTEXT_KEY}:size_bytes", payload_bytes, timeout=None)
-    cache.set(f"{REDIS_LIVE_CONTEXT_KEY}:keys_count", redis_keys_count, timeout=None)
-
-    # 3. Central Partner Service Sync
-    partner_resp = {}
-    try:
-        cid = int(config.partner_client_id or 49)
-        partner_resp = ps.update_client_live_context(cid, context_payload)
-    except Exception as e:
-        logger.warning(f"Partner context sync error: {e}")
-        partner_resp = {"status": "error", "message": str(e)}
-
-    return {
-        "status": "success",
-        "redis_connected": redis_connected,
-        "synced_at": now_iso,
-        "size_bytes": payload_bytes,
-        "size_formatted": f"{payload_bytes / 1024:.2f} KB" if payload_bytes >= 1024 else f"{payload_bytes} B",
-        "keys_count": redis_keys_count,
-        "context": context_payload,
-        "partner_sync": partner_resp,
-    }
+    return push_live_context(config, payload_json)
 
 
 def get_landing_assistant_redis_status(config: Optional[PlatformVoiceAssistantConfig] = None) -> Dict[str, Any]:
     """
     Inspect live memory cache metrics and content from Redis / Django Cache.
+    Memory is clean and white by default if never synced or emptied.
     """
     if config is None:
         config = PlatformVoiceAssistantConfig.get_config()
@@ -325,10 +426,10 @@ def get_landing_assistant_redis_status(config: Optional[PlatformVoiceAssistantCo
     if r:
         try:
             val = r.get(REDIS_LIVE_CONTEXT_KEY)
-            if val:
+            if val is not None:
                 raw_json = val.decode("utf-8") if isinstance(val, bytes) else str(val)
             ls = r.get(REDIS_LAST_SYNCED_KEY)
-            if ls:
+            if ls is not None:
                 last_synced = ls.decode("utf-8") if isinstance(ls, bytes) else str(ls)
             keys = r.keys("landing_assistant:*")
             keys_count = len(keys) if keys else 0
@@ -338,27 +439,33 @@ def get_landing_assistant_redis_status(config: Optional[PlatformVoiceAssistantCo
             logger.debug(f"Redis get error: {e}")
 
     # Fallback to Django Cache
-    if not raw_json:
+    if raw_json is None:
         raw_json = cache.get(REDIS_LIVE_CONTEXT_KEY)
-    if not last_synced:
+    if last_synced is None:
         last_synced = cache.get(REDIS_LAST_SYNCED_KEY)
     if not keys_count:
         keys_count = cache.get(f"{REDIS_LIVE_CONTEXT_KEY}:keys_count") or (1 if raw_json else 0)
     if not size_bytes and raw_json:
         size_bytes = len(raw_json.encode("utf-8"))
 
-    # If never synced yet, auto-generate default
-    if not raw_json:
-        ctx = build_landing_assistant_live_context(config)
-        raw_json = json.dumps(ctx, ensure_ascii=False, indent=2)
+    # Fallback to config.custom_live_context if cached val is None but DB has saved context
+    if raw_json is None and getattr(config, "custom_live_context", None):
+        raw_json = config.custom_live_context
         size_bytes = len(raw_json.encode("utf-8"))
-        last_synced = "لم تتم المزامنة بعد"
         keys_count = 1
+
+    # If completely empty / never set, keep memory clean & white
+    if not raw_json:
+        raw_json = ""
+        size_bytes = 0
+        last_synced = last_synced or "لم تتم المزامنة بعد (الذاكرة بيضاء ونظيفة)"
+        keys_count = 0
+        ctx = {}
     else:
         try:
             ctx = json.loads(raw_json)
         except Exception:
-            ctx = {}
+            ctx = {"raw_text": raw_json}
 
     size_formatted = f"{size_bytes / 1024:.2f} KB" if size_bytes >= 1024 else f"{size_bytes} B"
 
@@ -369,7 +476,7 @@ def get_landing_assistant_redis_status(config: Optional[PlatformVoiceAssistantCo
         "size_bytes": size_bytes,
         "size_formatted": size_formatted,
         "keys_count": keys_count,
-        "last_synced_at": last_synced or "لم تتم المزامنة بعد",
+        "last_synced_at": last_synced,
         "context": ctx,
         "raw_json": raw_json,
     }

@@ -59,7 +59,6 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
         ("هوية المساعد والشخصية (Identity & Brain)", {
             "fields": (
                 "is_active",
-                "landing_profile_id",
                 "assistant_name",
                 "system_prompt",
                 "welcome_message",
@@ -137,6 +136,72 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
             # 4. Partner Account Check
             extra_context["partner_client_info"] = ensure_landing_sales_client(obj)
             extra_context["lead_status_choices"] = LandingVoiceLead.LEAD_STATUS_CHOICES
+
+            # 5. Persona Profiles for Persona Studio (Tab 1)
+            from core import partner_service as ps
+            profiles = []
+            try:
+                cid = 49
+                if obj.partner_client_id and str(obj.partner_client_id).isdigit():
+                    cid = int(obj.partner_client_id)
+                prof_resp = ps.get_profile(cid)
+                profiles = prof_resp.get("profiles") or []
+                if not profiles and cid != 49:
+                    prof_resp_49 = ps.get_profile(49)
+                    profiles = prof_resp_49.get("profiles") or []
+                if not profiles and prof_resp.get("profile"):
+                    profiles = [prof_resp.get("profile")]
+            except Exception:
+                profiles = []
+
+            # Smart default Persona profiles if partner empty or offline
+            if not profiles:
+                profiles = [
+                    {
+                        "id": 1,
+                        "name": "مستشار مبيعات كُـورَا السحابي",
+                        "voice_name": "Puck",
+                        "language": "arabic",
+                        "dialect": "saudi",
+                        "gender": "male",
+                        "persona_role": "sales_advisor",
+                        "welcome_message": "أهلاً بك في منصة كُـورَا لإدارة المطاعم ونقاط البيع السحابية. كيف يمكنني مساعدتك في تطوير وتشغيل مطعمك اليوم؟",
+                        "system_prompt": obj.system_prompt,
+                    },
+                    {
+                        "id": 2,
+                        "name": "سارة - استشارية الباقات والتسجيل",
+                        "voice_name": "Aoede",
+                        "language": "arabic",
+                        "dialect": "saudi",
+                        "gender": "female",
+                        "persona_role": "sales_advisor",
+                        "welcome_message": "مرحباً بك في كُـورَا! يسعدني إرشادك لأفضل باقة تناسب حجم وطبيعة عمل مطعمك ومساعدتك في التسجيل فورياً.",
+                        "system_prompt": "أنتِ سارة، مستشارة اشتراكات وباقات ذكية ولطيفة لمنصة كُـورَا.",
+                    },
+                    {
+                        "id": 3,
+                        "name": "عمر - استشاري الحلول السحابية ونقاط البيع",
+                        "voice_name": "Fenrir",
+                        "language": "arabic",
+                        "dialect": "gulf",
+                        "gender": "male",
+                        "persona_role": "sales_advisor",
+                        "welcome_message": "يا هلا والله! أنا عمر من كُـورَا، جاهز للإجابة على كل استفساراتك التقنية حول أجهزة نقاط البيع وشاشات المطبخ.",
+                        "system_prompt": "أنت عمر، مهندس حلول تقنية ومبيعات لسلاسل المطاعم.",
+                    },
+                ]
+
+            landing_pid = obj.landing_profile_id
+            for p in profiles:
+                p_id = p.get("id")
+                p["is_landing_active"] = bool(landing_pid is not None and str(p_id) == str(landing_pid))
+                if landing_pid is None and (p.get("name") == obj.assistant_name or p.get("voice_name") == obj.voice_name):
+                    p["is_landing_active"] = True
+
+            extra_context["profiles"] = profiles
+            extra_context["landing_profile_id"] = obj.landing_profile_id
+
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
@@ -164,6 +229,10 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
             path("leads/<int:lead_id>/status/", self.admin_site.admin_view(cc_views.api_landing_assistant_lead_status), name="core_platformvoiceassistantconfig_lead_status"),
             path("redis/status/", self.admin_site.admin_view(cc_views.api_landing_assistant_redis_status), name="core_platformvoiceassistantconfig_redis_status"),
             path("redis/sync/", self.admin_site.admin_view(cc_views.api_landing_assistant_redis_sync), name="core_platformvoiceassistantconfig_redis_sync"),
+            path("redis/clear/", self.admin_site.admin_view(cc_views.api_landing_assistant_redis_clear), name="core_platformvoiceassistantconfig_redis_clear"),
+            path("profiles/create/", self.admin_site.admin_view(cc_views.api_landing_assistant_create_profile), name="core_platformvoiceassistantconfig_create_profile"),
+            path("profiles/<int:profile_id>/activate/", self.admin_site.admin_view(cc_views.api_landing_assistant_activate_profile), name="core_platformvoiceassistantconfig_activate_profile"),
+            path("profiles/<int:profile_id>/update/", self.admin_site.admin_view(cc_views.api_landing_assistant_update_profile), name="core_platformvoiceassistantconfig_update_profile"),
             path("partner-client/ensure/", self.admin_site.admin_view(cc_views.api_landing_assistant_ensure_partner_client), name="core_platformvoiceassistantconfig_ensure_partner_client"),
         ]
         return custom_urls + urls

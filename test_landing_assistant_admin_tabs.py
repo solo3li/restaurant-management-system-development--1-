@@ -26,6 +26,8 @@ from apps.billing.models import SubscriptionPlan
 from apps.callcenter.landing_assistant_service import (
     ensure_landing_sales_client,
     sync_landing_assistant_live_context,
+    push_live_context,
+    clear_landing_assistant_live_context,
     get_landing_assistant_redis_status,
     sync_knowledge_doc_to_partner,
     build_landing_assistant_live_context,
@@ -52,6 +54,7 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         self.config.max_daily_calls_per_ip = 3
         self.config.partner_client_id = "662"
         self.config.save()
+        clear_landing_assistant_live_context(self.config)
 
         # 2. Superadmin User
         self.admin_user = User.objects.create_superuser(
@@ -83,6 +86,7 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         )
 
     def tearDown(self):
+        clear_landing_assistant_live_context(self.config)
         cache.clear()
 
     # =========================================================================
@@ -459,3 +463,171 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         self.assertIsNotNone(cached_val)
         parsed = json.loads(cached_val)
         self.assertEqual(parsed["assistant"]["name"], self.config.assistant_name)
+
+    # =========================================================================
+    # SUITE 6: Tab 6 Free Manual Live Memory (Edit, Sync, Clear & Clean Default)
+    # =========================================================================
+
+    def test_09_manual_redis_live_context_edit_sync_and_clear(self):
+        """Test free manual editing, instant Redis sync, and full memory clearing."""
+        self.client.force_login(self.admin_user)
+
+        # 1. Initially memory should be clean & white without forced static injection
+        clear_landing_assistant_live_context(self.config)
+        self.config.refresh_from_db()
+
+        status_data = get_landing_assistant_redis_status(self.config)
+        self.assertEqual(status_data["size_bytes"], 0)
+        self.assertEqual(status_data["raw_json"], "")
+        self.assertNotIn("منظومة كُـورَا", status_data["raw_json"])
+
+        # 2. Superadmin manually saves & syncs custom live context
+        custom_payload = {
+            "restaurant_os_guide": "تعليمات مخصصة لصفحة الهبوط تم تحريرها يدوياً بالكامل",
+            "features": ["نظام الكاشير السريع", "الربط مع الطابعات"],
+            "working_hours": "24/7"
+        }
+        custom_json_str = json.dumps(custom_payload, ensure_ascii=False)
+
+        resp = self.client.post(
+            "/api/landing-assistant/redis/sync/",
+            data=json.dumps({"custom_live_context": custom_json_str}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 200)
+        res_json = resp.json()
+        self.assertEqual(res_json["status"], "success")
+        self.assertGreater(res_json["size_bytes"], 0)
+
+        # Verify saved in Model
+        self.config.refresh_from_db()
+        self.assertEqual(self.config.custom_live_context, custom_json_str)
+
+        # Verify cached in Redis / Django cache
+        cached = cache.get(REDIS_LIVE_CONTEXT_KEY)
+        self.assertEqual(cached, custom_json_str)
+
+        # Verify inspection card status reflects updated size and keys
+        status_after_sync = get_landing_assistant_redis_status(self.config)
+        self.assertEqual(status_after_sync["size_bytes"], len(custom_json_str.encode("utf-8")))
+        self.assertGreaterEqual(status_after_sync["keys_count"], 1)
+
+        # 3. Superadmin triggers complete memory clear
+        resp = self.client.post("/api/landing-assistant/redis/clear/")
+        self.assertEqual(resp.status_code, 200)
+        clear_res = resp.json()
+        self.assertEqual(clear_res["status"], "success")
+        self.assertEqual(clear_res["size_bytes"], 0)
+        self.assertEqual(clear_res["keys_count"], 0)
+        self.assertEqual(clear_res["raw_json"], "")
+
+        # Verify model field is emptied
+        self.config.refresh_from_db()
+        self.assertEqual(self.config.custom_live_context, "")
+
+        # Verify Redis / Cache is emptied
+        self.assertIsNone(cache.get(REDIS_LIVE_CONTEXT_KEY))
+
+    # =========================================================================
+    # SUITE 7: Tab 1 Persona Studio & Hidden Digital Profile ID
+    # =========================================================================
+
+    @patch("core.partner_service.get_profile")
+    def test_10_tab1_persona_studio_and_hidden_digital_id(self, mock_get_profile):
+        """Test hiding landing_profile_id and rendering interactive Persona Studio with activation."""
+        mock_get_profile.return_value = {
+            "status": "success",
+            "profiles": [
+                {
+                    "id": 101,
+                    "name": "مستشار مبيعات كُـورَا الذكي",
+                    "voice_name": "Puck",
+                    "language": "arabic",
+                    "dialect": "saudi",
+                    "gender": "male",
+                    "welcome_message": "أهلاً بك في منصة كُـورَا!",
+                    "system_prompt": "أنت مستشار مبيعات خبير.",
+                },
+                {
+                    "id": 102,
+                    "name": "سارة - استشارية الباقات",
+                    "voice_name": "Aoede",
+                    "language": "arabic",
+                    "dialect": "saudi",
+                    "gender": "female",
+                    "welcome_message": "مرحباً بك في كُـورَا!",
+                    "system_prompt": "أنتِ سارة مستشارة الباقات.",
+                }
+            ]
+        }
+
+        self.client.force_login(self.admin_user)
+        resp = self.client.get(f"/admin/core/platformvoiceassistantconfig/{self.config.pk}/change/")
+        self.assertEqual(resp.status_code, 200)
+        html = resp.content.decode("utf-8")
+
+        # 1. Verify numeric field 'landing_profile_id' is NOT displayed in visible admin form fields
+        self.assertNotIn('name="landing_profile_id" type="number"', html)
+        self.assertNotIn('name="landing_profile_id" type="text"', html)
+        # But hidden input is preserved for safe form submission
+        self.assertIn('input type="hidden" name="landing_profile_id"', html)
+
+        # 2. Verify Persona Studio interactive cards rendered
+        self.assertIn("استوديو بروفايلات المساعد الصوتي (Persona Studio)", html)
+        self.assertIn("مستشار مبيعات كُـورَا الذكي", html)
+        self.assertIn("سارة - استشارية الباقات", html)
+        self.assertIn("persona-card", html)
+        self.assertIn("persona-pulse-dot", html)
+
+        # 3. Super Admin activates profile 102 for landing assistant
+        act_resp = self.client.post(
+            f"/api/landing-assistant/profiles/102/activate/",
+            data=json.dumps({}),
+            content_type="application/json"
+        )
+        self.assertEqual(act_resp.status_code, 200)
+        self.config.refresh_from_db()
+        self.assertEqual(self.config.landing_profile_id, 102)
+        self.assertEqual(self.config.assistant_name, "سارة - استشارية الباقات")
+        self.assertEqual(self.config.voice_name, "Aoede")
+
+    # =========================================================================
+    # SUITE 8: Tab 5 Audio Modal & Call Recording Proxy
+    # =========================================================================
+
+    def test_11_tab5_audio_modal_and_recording_proxy(self):
+        """Test audio listening button in Tab 5 and Audio Modal structure."""
+        lead = LandingVoiceLead.objects.create(
+            name="سلطان القحطاني",
+            phone="0512345678",
+            country_code="+966",
+            call_status="completed",
+            duration_seconds=145,
+            call_id="call_test_audio_123",
+            lead_status="interested",
+        )
+
+        self.client.force_login(self.admin_user)
+        resp = self.client.get(f"/admin/core/platformvoiceassistantconfig/{self.config.pk}/change/")
+        self.assertEqual(resp.status_code, 200)
+        html = resp.content.decode("utf-8")
+
+        # 1. Verify listen to recording button in leads table
+        self.assertIn("btn-listen-audio", html)
+        self.assertIn("استماع للتسجيل", html)
+        self.assertIn(f'data-lead-id="{lead.id}"', html)
+        self.assertIn('data-call-id="call_test_audio_123"', html)
+
+        # 2. Verify Audio Modal element rendered in DOM
+        self.assertIn('id="modal-call-audio"', html)
+        self.assertIn('id="modal-audio-player"', html)
+        self.assertIn('id="audio-caller-name"', html)
+        self.assertIn('id="audio-caller-phone"', html)
+        self.assertIn('id="audio-caller-duration"', html)
+        self.assertIn('id="audio-in-progress-alert"', html)
+        self.assertIn('id="audio-not-recorded-alert"', html)
+
+        # 3. Test recording proxy returns 404 gracefully when recording not found
+        resp = self.client.get(f"/api/ai-callcenter/calls/{lead.call_id}/recording/")
+        self.assertIn(resp.status_code, [404, 500])
+

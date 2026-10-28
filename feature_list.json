@@ -207,6 +207,14 @@
       "dependencies": ["feat-landing-assistant-admin-tabs"],
       "status": "completed",
       "evidence": "apps/callcenter/models.py, core/migrations/0034_landingvoicelead_dialect_landingvoicelead_language_and_more.py, apps/callcenter/views.py, apps/callcenter/admin.py, core/partner_service.py, templates/landing.html, static/js/landing_webrtc_agent.js, templates/admin/core/platformvoiceassistantconfig/change_form.html, test_landing_voice_customization.py (12/12 PASS 100%), and ./init.sh (100% PASS)."
+    },
+    {
+      "id": "feat-landing-assistant-studio-audio-custom-redis",
+      "name": "Landing Voice Assistant Persona Studio, Audio Recording Player & Custom Redis Live Memory",
+      "description": "Admin enhancements for PlatformVoiceAssistantConfig: Tab 1 transformed into interactive Persona Studio (hidden numeric profile ID, profile cards with active pulse badge, instant activation, create/edit modals), Tab 5 visitor calls table equipped with call recording playback modal with HTML5 Audio Player via /api/ai-callcenter/calls/<id>/recording/ proxy, and Tab 6 Redis Live Memory transformed to clean/white default with free manual JSON/text editor, instant save/sync button, and complete wipe/clear memory button with real-time inspection cards.",
+      "dependencies": ["feat-landing-voice-customization-and-lock"],
+      "status": "completed",
+      "evidence": "apps/callcenter/models.py (custom_live_context field), core/migrations/0035_platformvoiceassistantconfig_custom_live_context.py, apps/callcenter/landing_assistant_service.py (push_live_context, clear_landing_assistant_live_context, clean default memory), apps/callcenter/admin.py (hidden landing_profile_id, persona profiles context, custom change_view), apps/callcenter/views.py & core/views.py (api_landing_assistant_redis_clear, create_profile, activate_profile, update_profile, audio recording proxy support for platform admin), templates/admin/core/platformvoiceassistantconfig/change_form.html (Persona Studio cards, Audio Modal, custom live context editor & inspection cards), test_landing_assistant_admin_tabs.py (11/11 PASS), and ./init.sh (100% PASS)."
     }
   ]
 }

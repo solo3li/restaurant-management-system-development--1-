@@ -74,5 +74,9 @@ urlpatterns = [
     path("api/landing-assistant/leads/<int:lead_id>/status/", views.api_landing_assistant_lead_status, name="api_landing_assistant_lead_status"),
     path("api/landing-assistant/redis/status/", views.api_landing_assistant_redis_status, name="api_landing_assistant_redis_status"),
     path("api/landing-assistant/redis/sync/", views.api_landing_assistant_redis_sync, name="api_landing_assistant_redis_sync"),
+    path("api/landing-assistant/redis/clear/", views.api_landing_assistant_redis_clear, name="api_landing_assistant_redis_clear"),
+    path("api/landing-assistant/profiles/create/", views.api_landing_assistant_create_profile, name="api_landing_assistant_create_profile"),
+    path("api/landing-assistant/profiles/<int:profile_id>/activate/", views.api_landing_assistant_activate_profile, name="api_landing_assistant_activate_profile"),
+    path("api/landing-assistant/profiles/<int:profile_id>/update/", views.api_landing_assistant_update_profile, name="api_landing_assistant_update_profile"),
     path("api/landing-assistant/partner-client/ensure/", views.api_landing_assistant_ensure_partner_client, name="api_landing_assistant_ensure_partner_client"),
 ]

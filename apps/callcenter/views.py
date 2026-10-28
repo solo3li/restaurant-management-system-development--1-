@@ -1813,6 +1813,9 @@ def api_ai_callcenter_dial_customer(request):
 def api_ai_callcenter_call_recording_proxy(request, call_id):
     """Secure white-labeled streaming proxy for call audio recordings."""
     tenant = get_active_tenant(request)
+    if not tenant and request.user.is_authenticated and (request.user.is_superuser or request.user.is_staff):
+        from apps.callcenter.platform_hq import get_or_create_platform_hq_tenant
+        tenant = get_or_create_platform_hq_tenant()
     if not tenant:
         return HttpResponseForbidden("لم يتم العثور على منشأة نشطة")
     from core import partner_service as ps
@@ -1824,6 +1827,18 @@ def api_ai_callcenter_call_recording_proxy(request, call_id):
         demo_resp = ps.get_calls(49)
         calls_demo = demo_resp.get("calls") or []
         target_call = next((c for c in calls_demo if c.get("call_id") == call_id), None)
+    if not target_call:
+        try:
+            from apps.callcenter.models import PlatformVoiceAssistantConfig
+            pcfg = PlatformVoiceAssistantConfig.get_config()
+            if pcfg and pcfg.partner_client_id:
+                plat_cid = int(pcfg.partner_client_id)
+                if plat_cid not in (client_id, 49):
+                    plat_resp = ps.get_calls(plat_cid)
+                    calls_plat = plat_resp.get("calls") or []
+                    target_call = next((c for c in calls_plat if c.get("call_id") == call_id), None)
+        except Exception:
+            pass
 
     if not target_call or not target_call.get("recording_url"):
         return HttpResponseNotFound("التسجيل غير متاح")
@@ -3135,15 +3150,126 @@ def api_landing_assistant_redis_status(request):
 
 @login_required
 def api_landing_assistant_redis_sync(request):
-    """Trigger immediate live memory compilation and Redis / Partner Service sync."""
+    """Trigger live memory save and Redis / Partner Service sync (custom content or compiled)."""
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "POST required"}, status=405)
     if not (request.user.is_superuser or request.user.is_staff):
         return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
 
-    from apps.callcenter.landing_assistant_service import sync_landing_assistant_live_context
-    result = sync_landing_assistant_live_context()
+    from apps.callcenter.landing_assistant_service import sync_landing_assistant_live_context, push_live_context
+    from apps.callcenter.models import PlatformVoiceAssistantConfig
+    config = PlatformVoiceAssistantConfig.get_config()
+
+    custom_content = None
+    if request.body:
+        try:
+            body = json.loads(request.body.decode("utf-8"))
+            if isinstance(body, dict):
+                custom_content = body.get("custom_live_context")
+                if custom_content is None:
+                    custom_content = body.get("content")
+        except Exception:
+            pass
+
+    if custom_content is None and "custom_live_context" in request.POST:
+        custom_content = request.POST.get("custom_live_context")
+
+    if custom_content is not None:
+        result = push_live_context(config, custom_content)
+    else:
+        result = sync_landing_assistant_live_context(config)
+
     return JsonResponse(result)
+
+
+@login_required
+def api_landing_assistant_redis_clear(request):
+    """Completely wipe live memory from Database and Redis cache."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+
+    from apps.callcenter.landing_assistant_service import clear_landing_assistant_live_context
+    result = clear_landing_assistant_live_context()
+    return JsonResponse(result)
+
+
+@login_required
+def api_landing_assistant_activate_profile(request, profile_id):
+    """Admin endpoint to activate a persona profile for landing page assistant."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+    return api_ai_callcenter_set_landing_persona(request, profile_id)
+
+
+@login_required
+def api_landing_assistant_create_profile(request):
+    """Admin endpoint to create a new voice assistant profile for landing page assistant."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+    from core import partner_service as ps
+    from apps.callcenter.models import PlatformVoiceAssistantConfig
+    config = PlatformVoiceAssistantConfig.get_config()
+    client_id = 49
+    try:
+        if config.partner_client_id and str(config.partner_client_id).isdigit():
+            client_id = int(config.partner_client_id)
+    except Exception:
+        pass
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        data = request.POST.dict()
+
+    res = ps.create_profile(client_id, data)
+    return JsonResponse(res)
+
+
+@login_required
+def api_landing_assistant_update_profile(request, profile_id):
+    """Admin endpoint to update an existing voice assistant profile."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({"status": "error", "message": "Super Admin access required"}, status=403)
+    from core import partner_service as ps
+    from apps.callcenter.models import PlatformVoiceAssistantConfig
+    config = PlatformVoiceAssistantConfig.get_config()
+    client_id = 49
+    try:
+        if config.partner_client_id and str(config.partner_client_id).isdigit():
+            client_id = int(config.partner_client_id)
+    except Exception:
+        pass
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        data = request.POST.dict()
+
+    res = ps.update_profile(client_id, profile_id, data)
+    # Also if this profile is the current landing_profile_id, sync attributes to config
+    if config.landing_profile_id and str(config.landing_profile_id) == str(profile_id):
+        updated = False
+        if data.get("name"):
+            config.assistant_name = data["name"]
+            updated = True
+        if data.get("welcome_message"):
+            config.welcome_message = data["welcome_message"]
+            updated = True
+        if data.get("voice_name"):
+            config.voice_name = data["voice_name"]
+            updated = True
+        if data.get("dialect"):
+            config.accent = data["dialect"]
+            updated = True
+        if updated:
+            config.save()
+    return JsonResponse(res)
 
 
 @login_required
@@ -3157,6 +3283,7 @@ def api_landing_assistant_ensure_partner_client(request):
     from apps.callcenter.landing_assistant_service import ensure_landing_sales_client
     result = ensure_landing_sales_client()
     return JsonResponse(result)
+
 
 
 

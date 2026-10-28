@@ -231,6 +231,41 @@
     min-width: 300px;
     display: none;
 }
+
+/* Persona Studio Cards & Pulsing Badges */
+.persona-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10b981;
+    display: inline-block;
+    position: relative;
+    animation: persona-pulse 1.8s infinite;
+}
+@keyframes persona-pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.persona-card {
+    background-color: #272b30 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
+    padding: 16px !important;
+    transition: all 0.2s ease-in-out !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+.persona-card:hover {
+    border-color: rgba(2, 132, 199, 0.45) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+}
+.persona-card.active-persona {
+    border: 2px solid #10b981 !important;
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%) !important;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.22) !important;
+}
 </style>
 {% endblock %}
 
@@ -270,25 +305,129 @@
     <div class="tab-content" id="landingAssistantTabsContent">
 
         <!-- ================================================================
-             TAB 1: هوية المساعد والشخصية (Identity & Brain)
+             TAB 1: هوية المساعد والشخصية (Persona Studio)
              ================================================================ -->
         <div class="tab-pane active" id="tab-identity" role="tabpanel">
             <div class="tab-pane-card">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary flex-wrap gap-2">
                     <div>
                         <h4 class="m-0 text-white font-weight-bold">
-                            <i class="fas fa-brain text-info me-2"></i> هوية المساعد وتوجيهات الذكاء (Identity & Brain)
+                            <i class="fas fa-brain text-info me-2"></i> استوديو بروفايلات المساعد الصوتي (Persona Studio)
                         </h4>
-                        <p class="text-muted small mt-1 mb-0">تحديد اسم المساعد الصوتي، رسالته الترحيبية للزوار، ونظام التوجيه الذكي (System Prompt).</p>
+                        <p class="text-muted small mt-1 mb-0">استوديو بروفايلات تفاعلي لاختيار وتخصيص هوية وشخصية وخامة صوت المساعد الصوتي لصفحة الهبوط.</p>
                     </div>
-                    <span class="badge bg-info px-3 py-2" style="font-size: 0.85rem;">التبويب 1 من 6</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-info px-3 py-2" id="persona-count-badge" style="font-size: 0.85rem;">{{ profiles|length }} بروفايل متاح</span>
+                        <button type="button" class="btn-slate-primary" onclick="openAddProfileModal();">
+                            <i class="fas fa-plus"></i> إضافة بروفايل جديد
+                        </button>
+                    </div>
                 </div>
 
-                {% for fieldset in adminform %}
-                    {% if forloop.counter == 1 %}
-                        {% include "admin/includes/fieldset.html" with card=False %}
-                    {% endif %}
-                {% endfor %}
+                <!-- Hidden Input for landing_profile_id to prevent raw numerical ID display while saving safely -->
+                <input type="hidden" name="landing_profile_id" id="id_landing_profile_id" value="{{ original.landing_profile_id|default:'' }}">
+
+                <!-- Persona Studio Cards Grid -->
+                <div class="row g-3 mb-4" id="persona-profiles-grid">
+                    {% for p in profiles %}
+                    <div class="col-md-6 col-lg-4" id="persona-card-col-{{ p.id }}">
+                        <div class="persona-card h-100 {% if p.is_landing_active %}active-persona{% endif %}" id="persona-card-{{ p.id }}">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h5 class="text-white font-weight-bold m-0 text-truncate persona-title-{{ p.id }}" title="{{ p.name }}">
+                                        {{ p.name }}
+                                    </h5>
+                                    <span class="badge bg-secondary font-monospace">#{{ p.id }}</span>
+                                </div>
+
+                                <!-- Status Badge (Pulsing Green if active) -->
+                                <div class="mb-2" id="persona-badge-box-{{ p.id }}">
+                                    {% if p.is_landing_active %}
+                                        <span class="badge bg-success text-white px-2 py-1 d-inline-flex align-items-center gap-1 active-landing-badge shadow-sm" style="border: 1px solid #34d399;">
+                                            <span class="persona-pulse-dot"></span>
+                                            <span>بروفايل صفحة الهبوط المعتمد حالياً</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-dark text-muted px-2 py-1 inactive-landing-badge">
+                                            بروفايل غير نشط بالهبوط
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Voice & Dialect Tags -->
+                                <div class="d-flex flex-wrap gap-1 mb-3">
+                                    <span class="badge persona-voice-badge-{{ p.id }}" style="background: #1e293b; color: #38bdf8; border: 1px solid #38bdf840;">
+                                        <i class="fas fa-volume-up me-1"></i> {{ p.voice_name|default:'Aoede' }}
+                                    </span>
+                                    <span class="badge persona-dialect-badge-{{ p.id }}" style="background: #1e293b; color: #a7f3d0; border: 1px solid #10b98140;">
+                                        <i class="fas fa-globe-americas me-1"></i>
+                                        {% if p.dialect == 'saudi' %}🇸🇦 سعودية
+                                        {% elif p.dialect == 'egyptian' %}🇪🇬 مصرية
+                                        {% elif p.dialect == 'gulf' or p.dialect == 'emirati' or p.dialect == 'kuwaiti' %}🇦🇪 خليجية
+                                        {% elif p.dialect == 'levantine' %}🇱🇧 شامية
+                                        {% elif p.dialect == 'modern_standard' or p.dialect == 'fusha' %}🌐 فصحى
+                                        {% else %}{{ p.dialect|default:'سعودية' }}{% endif %}
+                                    </span>
+                                    <span class="badge" style="background: #1e293b; color: #fde047; border: 1px solid #eab30840;">
+                                        {% if p.gender == 'male' %}♂ ذكوري{% else %}♀ أنثوي{% endif %}
+                                    </span>
+                                </div>
+
+                                <!-- Welcome Message Snippet -->
+                                <div class="slate-subcard p-2 mb-3" style="background: #1e2227; font-size: 0.8rem;">
+                                    <div class="text-muted small mb-1"><i class="fas fa-comment-dots text-info me-1"></i> رسالة الترحيب الأولى:</div>
+                                    <div class="text-light text-truncate persona-welcome-{{ p.id }}" title="{{ p.welcome_message|default:'أهلاً بك...' }}">
+                                        {{ p.welcome_message|default:'أهلاً بك في منصة كُـورَا...' }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-light btn-edit-persona"
+                                        data-id="{{ p.id }}"
+                                        data-name="{{ p.name }}"
+                                        data-voice="{{ p.voice_name|default:'Aoede' }}"
+                                        data-dialect="{{ p.dialect|default:'saudi' }}"
+                                        data-welcome="{{ p.welcome_message|default:'' }}"
+                                        data-prompt="{{ p.system_prompt|default:'' }}"
+                                        onclick="openEditProfileModal(this);">
+                                    <i class="fas fa-edit me-1"></i> تعديل
+                                </button>
+
+                                <div class="action-activate-container" id="activate-box-{{ p.id }}">
+                                    {% if p.is_landing_active %}
+                                        <button type="button" class="btn btn-sm btn-success disabled" style="opacity: 0.95;">
+                                            <i class="fas fa-check-circle me-1"></i> معتمد ومفعل ✓
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-success btn-activate-persona"
+                                                onclick="activatePersonaProfile({{ p.id }}, this);">
+                                            <i class="fas fa-check me-1"></i> اعتماد وتفعيل لصفحة الهبوط
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Editable Identity Details Form -->
+                <div class="mt-4 pt-3 border-top border-secondary">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="text-white font-weight-bold m-0">
+                            <i class="fas fa-sliders-h text-primary me-2"></i> إعدادات الهوية والتوجيهات المعتمدة (قابلة للتعديل والتخصيص الحر)
+                        </h5>
+                        <span class="text-muted small">تعديل اسم المساعد، تفعيله، وتوجيهاته العامة</span>
+                    </div>
+
+                    {% for fieldset in adminform %}
+                        {% if forloop.counter == 1 %}
+                            {% include "admin/includes/fieldset.html" with card=False %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
@@ -548,14 +687,15 @@
                     <table class="slate-table" id="leads-table">
                         <thead>
                             <tr>
-                                <th style="width: 15%;">اسم الزائر</th>
-                                <th style="width: 14%;">رقم الجوال</th>
-                                <th style="width: 8%;">واتساب</th>
-                                <th style="width: 16%;">تفضيلات المكالمة</th>
-                                <th style="width: 12%;">حالة المكالمة</th>
-                                <th style="width: 8%;">المدة</th>
-                                <th style="width: 12%;">تاريخ الاتصال</th>
-                                <th style="width: 15%;">حالة المتابعة</th>
+                                <th style="width: 14%;">اسم الزائر</th>
+                                <th style="width: 13%;">رقم الجوال</th>
+                                <th style="width: 7%;">واتساب</th>
+                                <th style="width: 14%;">تفضيلات المكالمة</th>
+                                <th style="width: 10%;">حالة المكالمة</th>
+                                <th style="width: 7%;">المدة</th>
+                                <th style="width: 11%;">تاريخ الاتصال</th>
+                                <th style="width: 12%; text-align: center;">التسجيل الصوتي</th>
+                                <th style="width: 12%;">حالة المتابعة</th>
                             </tr>
                         </thead>
                         <tbody id="leads-tbody">
@@ -605,6 +745,19 @@
                                         <code class="text-info font-weight-bold">{{ lead.formatted_duration }}</code>
                                     </td>
                                     <td class="small text-muted">{{ lead.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-outline-info btn-listen-audio"
+                                                data-lead-id="{{ lead.id }}"
+                                                data-call-id="{{ lead.call_id|default:'' }}"
+                                                data-name="{{ lead.name }}"
+                                                data-phone="{{ lead.full_phone|default:lead.phone }}"
+                                                data-duration="{{ lead.formatted_duration }}"
+                                                data-date="{{ lead.created_at|date:'Y-m-d H:i' }}"
+                                                data-status="{{ lead.call_status }}"
+                                                onclick="openCallAudioModal(this);">
+                                            <i class="fas fa-headphones me-1"></i> استماع للتسجيل
+                                        </button>
+                                    </td>
                                     <td>
                                         <select class="slate-select form-select-sm" data-lead-id="{{ lead.id }}" onchange="updateLeadStatus({{ lead.id }}, this.value);" style="padding: 4px 8px; font-size: 12px;">
                                             {% for opt_val, opt_lbl in lead_status_choices %}
@@ -618,7 +771,7 @@
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td colspan="8" class="text-center py-4 text-muted">
+                                    <td colspan="9" class="text-center py-4 text-muted">
                                         <i class="fas fa-headset fa-2x mb-2 d-block text-secondary"></i>
                                         لم يتم تسجيل أي مكالمات من زوار صفحة الهبوط بعد.
                                     </td>
@@ -631,25 +784,31 @@
         </div>
 
         <!-- ================================================================
-             TAB 6: الذاكرة المنظمة الحية (Redis Live Context)
+             TAB 6: الذاكرة المنظمة الحية لكاش Redis (كتابة وتحرير يدوي كامل)
              ================================================================ -->
         <div class="tab-pane" id="tab-redis" role="tabpanel" style="display: none;">
             <div class="tab-pane-card">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary flex-wrap gap-2">
                     <div>
                         <h4 class="m-0 text-white font-weight-bold">
-                            <i class="fas fa-bolt text-warning me-2"></i> الذاكرة المنظمة الحية لكاش Redis لمساعد الهبوط
+                            <i class="fas fa-bolt text-warning me-2"></i> الذاكرة المنظمة الحية لكاش Redis لمساعد الهبوط (تحرير يدوي كامل)
                         </h4>
-                        <p class="text-muted small mt-1 mb-0">فحص محتوى وحجم الذاكرة الحية الذكية لمساعد الهبوط ومزامنتها فورياً بضغطة زر واحدة.</p>
+                        <p class="text-muted small mt-1 mb-0">تحرير وكتابة محتوى الذاكرة الحية بحرية تامة (JSON أو نصوص)، وحفظها في قاعدة البيانات ومزامنتها فورياً مع Redis.</p>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn-slate-success" id="btn-redis-sync-now" onclick="syncRedisLiveContext();">
-                            <i class="fas fa-bolt"></i> ⚡ مزامنة الذاكرة الحية إلى Redis الآن
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-danger btn-sm" id="btn-redis-clear-all" onclick="clearRedisLiveContext();">
+                            <i class="fas fa-trash-alt me-1"></i> 🗑️ تفريغ ومسح الذاكرة بالكامل
+                        </button>
+                        <button type="button" class="btn-slate-primary btn-sm" id="btn-format-json" onclick="formatEditorJson();">
+                            <i class="fas fa-magic me-1"></i> 🪄 تنسيق JSON
+                        </button>
+                        <button type="button" class="btn-slate-success" id="btn-redis-save-sync" onclick="saveAndSyncLiveContext();">
+                            <i class="fas fa-save me-1"></i> 💾 حفظ ومزامنة فورية لكاش Redis
                         </button>
                     </div>
                 </div>
 
-                <!-- Redis Status Cards -->
+                <!-- Redis Real-Time Status Cards -->
                 <div class="row g-3 mb-4">
                     <div class="col-6 col-md-3">
                         <div class="metric-pill-card">
@@ -665,7 +824,7 @@
                         <div class="metric-pill-card">
                             <div>
                                 <div class="metric-lbl">حجم الذاكرة</div>
-                                <div class="metric-val text-info" id="redis-size-badge">{{ redis_status.size_formatted }}</div>
+                                <div class="metric-val text-info" id="redis-size-badge">{{ redis_status.size_formatted|default:"0 B" }}</div>
                             </div>
                             <i class="fas fa-memory text-info fa-2x opacity-50"></i>
                         </div>
@@ -674,7 +833,7 @@
                         <div class="metric-pill-card">
                             <div>
                                 <div class="metric-lbl">عدد المفاتيح</div>
-                                <div class="metric-val text-warning" id="redis-keys-badge">{{ redis_status.keys_count }}</div>
+                                <div class="metric-val text-warning" id="redis-keys-badge">{{ redis_status.keys_count|default:"0" }}</div>
                             </div>
                             <i class="fas fa-key text-warning fa-2x opacity-50"></i>
                         </div>
@@ -684,7 +843,7 @@
                             <div>
                                 <div class="metric-lbl">آخر مزامنة</div>
                                 <div class="metric-val text-light" id="redis-synced-badge" style="font-size: 0.85rem; word-break: break-all;">
-                                    {{ redis_status.last_synced_at }}
+                                    {{ redis_status.last_synced_at|default:"لم تتم المزامنة بعد" }}
                                 </div>
                             </div>
                             <i class="fas fa-clock text-light fa-2x opacity-50"></i>
@@ -692,18 +851,32 @@
                     </div>
                 </div>
 
-                <!-- Live JSON Explorer Toolbar -->
+                <!-- Free Manual Editor Toolbar -->
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-white font-weight-bold small">
-                        <i class="fas fa-code me-1 text-info"></i> مستعرض الذاكرة المنظمة الحية (Live Working Memory JSON):
+                    <span class="text-white font-weight-bold small d-flex align-items-center gap-2">
+                        <i class="fas fa-edit text-info"></i>
+                        <span>محرر الذاكرة الحية اليدوي الحر (JSON / Text Editor):</span>
+                        <span class="badge bg-secondary" id="editor-status-indicator">محرر حر نشط</span>
                     </span>
-                    <button type="button" class="btn btn-sm btn-outline-light" onclick="copyLiveContextJson();">
-                        <i class="fas fa-copy me-1"></i> نسخ محتوى الـ JSON
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-light" onclick="copyLiveContextEditor();">
+                            <i class="fas fa-copy me-1"></i> 📋 نسخ المحتوى
+                        </button>
+                    </div>
                 </div>
 
-                <!-- JSON Code Viewer -->
-                <pre class="json-viewer-box" id="live-context-pre"><code id="live-context-json">{{ redis_status.raw_json }}</code></pre>
+                <!-- Textarea Editor -->
+                <div class="mb-3">
+                    <textarea id="custom-live-context-editor"
+                              class="slate-input font-monospace"
+                              rows="14"
+                              style="font-size: 0.88rem; line-height: 1.5; background: #1e2227; color: #f8fafc; border: 1px solid #475569;"
+                              placeholder="اكتب أو الصق هنا محتوى الذاكرة الحية بصيغة JSON أو نص حر... (اتركها فارغة لتكون بيضاء ونظيفة بالكامل)">{{ original.custom_live_context|default:redis_status.raw_json }}</textarea>
+                </div>
+                <div class="text-muted small">
+                    <i class="fas fa-lightbulb text-warning me-1"></i>
+                    ملاحظة: تتيح لك هذه اللوحة كتابة وتعديل الذاكرة الحية لمساعد المبيعات بحرية تامة دون أي نصوص مفروضة. عند الضغط على <strong>[ 💾 حفظ ومزامنة فورية لكاش Redis ]</strong>، يُحفظ المحتوى في قاعدة البيانات ويُدفع فوراً لكاش Redis والسنترال.
+                </div>
             </div>
         </div>
 
@@ -810,6 +983,206 @@
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
                         <button type="button" class="btn-slate-primary" id="btn-save-edit-doc" onclick="submitEditDoc();">
+                            <i class="fas fa-save"></i> حفظ التعديلات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==============================================================================
+     MODAL FOR TAB 5: مشغل تسجيل المكالمة الصوتية (Audio Modal)
+     ============================================================================== -->
+<div class="modal fade" id="modal-call-audio" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content slate-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white font-weight-bold d-flex align-items-center gap-2">
+                    <i class="fas fa-headphones text-info"></i>
+                    <span>مشغل تسجيل المكالمة الصوتية</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopAudioPlayback();"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Caller Details Card -->
+                <div class="slate-subcard mb-3 p-3">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <span class="text-muted small d-block">اسم المتصل:</span>
+                            <strong class="text-white" id="audio-caller-name">—</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted small d-block">رقم الجوال:</span>
+                            <span class="font-monospace text-info" id="audio-caller-phone">—</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted small d-block">تاريخ المكالمة:</span>
+                            <span class="text-light small" id="audio-caller-date">—</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted small d-block">مدة المكالمة:</span>
+                            <span class="badge bg-secondary font-monospace" id="audio-caller-duration">00:00</span>
+                        </div>
+                        <div class="col-12 mt-1">
+                            <span class="text-muted small d-block">حالة المكالمة:</span>
+                            <span id="audio-caller-status-badge">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In-Progress Alert -->
+                <div class="alert alert-warning d-none mb-3" id="audio-in-progress-alert" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fde68a;">
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    <strong>المكالمة جارية حالياً:</strong> لم يكتمل تسجيلها الصوتي بعد. يرجى الانتظار حتى انتهاء المكالمة.
+                </div>
+
+                <!-- Not Recorded Info Alert -->
+                <div class="alert alert-secondary d-none mb-3" id="audio-not-recorded-alert" style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.25); color: #cbd5e1;">
+                    <i class="fas fa-info-circle me-2 text-info"></i>
+                    <strong>عفواً:</strong> لا يتوفر تسجيل صوتي لهذه المكالمة (المكالمة لم تكتمل أو لم يتم تسجيلها).
+                </div>
+
+                <!-- Streaming Error Alert -->
+                <div class="alert alert-danger d-none mb-3" id="audio-error-alert" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>تنبيه:</strong> التسجيل الصوتي غير متاح حالياً أو تعذر تحميله من خادم الاتصالات.
+                </div>
+
+                <!-- Active Audio Player Container -->
+                <div id="audio-player-container" class="slate-subcard p-3 text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                        <i class="fas fa-wave-square text-info fa-lg"></i>
+                        <span class="text-white small font-weight-bold">بث التسجيل الصوتي المباشر (HTML5 Audio):</span>
+                    </div>
+                    <audio id="modal-audio-player" controls preload="metadata" class="w-100" style="outline: none; border-radius: 8px;">
+                        المتصفح لا يدعم مشغل الصوت المدمج.
+                    </audio>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="stopAudioPlayback();">
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==============================================================================
+     MODAL FOR TAB 1: إضافة بروفايل جديد (Add Persona Profile)
+     ============================================================================== -->
+<div class="modal fade" id="modal-add-profile" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content slate-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white font-weight-bold">
+                    <i class="fas fa-user-plus text-info me-2"></i> إضافة بروفايل مساعد صوتي جديد
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-profile" onsubmit="event.preventDefault(); submitAddProfile();">
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">اسم البروفايل أو المساعد:</label>
+                        <input type="text" id="add-profile-name" class="slate-input" placeholder="مثال: ريان - مستشار مبيعات كُـورَا" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-light font-weight-bold">خامة الصوت (Gemini Voice):</label>
+                            <select id="add-profile-voice" class="slate-select">
+                                <option value="Puck">👨 أحمد (Puck - مرن وحيوي)</option>
+                                <option value="Aoede">👩 سارة (Aoede - هادئ واحترافي)</option>
+                                <option value="Fenrir">👨 عمر (Fenrir - رخيم وواثق)</option>
+                                <option value="Kore">👩 مريم (Kore - لطيف ودافئ)</option>
+                                <option value="Charon">👨 خالد (Charon - عميق ورسمي)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-light font-weight-bold">اللهجة الأساسية:</label>
+                            <select id="add-profile-dialect" class="slate-select">
+                                <option value="saudi">🇸🇦 سعودية (نجدية / حجازية)</option>
+                                <option value="egyptian">🇪🇬 مصرية</option>
+                                <option value="gulf">🇦🇪 خليجية عامة</option>
+                                <option value="levantine">🇱🇧 شامية</option>
+                                <option value="modern_standard">🌐 فصحى مبسطة</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">الرسالة الترحيبية الصوتية الأولى:</label>
+                        <textarea id="add-profile-welcome" class="slate-input" rows="2" placeholder="أهلاً بك في منصة كُـورَا! كيف أقدر أساعدك اليوم في تشغيل مطعمك؟" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">توجيهات وشخصية المساعد (System Prompt):</label>
+                        <textarea id="add-profile-prompt" class="slate-input" rows="4" placeholder="أنت مستشار مبيعات خبير لمنصة كُـورَا..."></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="button" class="btn-slate-primary" id="btn-save-new-profile" onclick="submitAddProfile();">
+                            <i class="fas fa-check"></i> حفظ وإضافة البروفايل
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==============================================================================
+     MODAL FOR TAB 1: تعديل بروفايل المساعد (Edit Persona Profile)
+     ============================================================================== -->
+<div class="modal fade" id="modal-edit-profile" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content slate-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white font-weight-bold">
+                    <i class="fas fa-user-edit text-info me-2"></i> تعديل بروفايل المساعد الصوتي
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edit-profile" onsubmit="event.preventDefault(); submitEditProfile();">
+                    <input type="hidden" id="edit-profile-id">
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">اسم البروفايل أو المساعد:</label>
+                        <input type="text" id="edit-profile-name" class="slate-input" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-light font-weight-bold">خامة الصوت:</label>
+                            <select id="edit-profile-voice" class="slate-select">
+                                <option value="Puck">👨 أحمد (Puck)</option>
+                                <option value="Aoede">👩 سارة (Aoede)</option>
+                                <option value="Fenrir">👨 عمر (Fenrir)</option>
+                                <option value="Kore">👩 مريم (Kore)</option>
+                                <option value="Charon">👨 خالد (Charon)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-light font-weight-bold">اللهجة الأساسية:</label>
+                            <select id="edit-profile-dialect" class="slate-select">
+                                <option value="saudi">🇸🇦 سعودية</option>
+                                <option value="egyptian">🇪🇬 مصرية</option>
+                                <option value="gulf">🇦🇪 خليجية</option>
+                                <option value="levantine">🇱🇧 شامية</option>
+                                <option value="modern_standard">🌐 فصحى مبسطة</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">الرسالة الترحيبية الصوتية الأولى:</label>
+                        <textarea id="edit-profile-welcome" class="slate-input" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light font-weight-bold">توجيهات وشخصية المساعد (System Prompt):</label>
+                        <textarea id="edit-profile-prompt" class="slate-input" rows="4"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="button" class="btn-slate-primary" id="btn-save-edit-profile" onclick="submitEditProfile();">
                             <i class="fas fa-save"></i> حفظ التعديلات
                         </button>
                     </div>
@@ -1304,40 +1677,398 @@ function filterLeadsTable() {
     });
 }
 
-// Sync Redis Live Context
+// Sync Redis Live Context (Backward compatibility)
 function syncRedisLiveContext() {
-    const btn = document.getElementById('btn-redis-sync-now');
-    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري التجميع والمزامنة...';
+    saveAndSyncLiveContext();
+}
 
-    fetch('/api/landing-assistant/redis/sync/', {
+// Copy Live Context JSON (Backward compatibility)
+function copyLiveContextJson() {
+    copyLiveContextEditor();
+}
+
+// =============================================================================
+// TAB 1: PERSONA STUDIO JAVASCRIPT
+// =============================================================================
+function activatePersonaProfile(profileId, btn) {
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري التفعيل...';
+
+    fetch(`/api/landing-assistant/profiles/${profileId}/activate/`, {
         method: 'POST',
-        headers: { 'X-CSRFToken': getCsrfToken() }
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        }
     })
     .then(r => r.json())
     .then(data => {
-        if (btn) btn.innerHTML = '<i class="fas fa-bolt"></i> ⚡ مزامنة الذاكرة الحية إلى Redis الآن';
-        if (data.status === 'success') {
-            showToast('تمت مزامنة وتجميع الذاكرة الحية في Redis والسنترال بنجاح!');
-            document.getElementById('redis-size-badge').innerText = data.size_formatted;
-            document.getElementById('redis-keys-badge').innerText = data.keys_count;
-            document.getElementById('redis-synced-badge').innerText = data.synced_at;
-            document.getElementById('live-context-json').innerText = JSON.stringify(data.context, null, 2);
+        if (data.status === 'success' || data.landing_profile_id || data.profile_id) {
+            showToast('تم اعتماد وتفعيل البروفايل لصفحة الهبوط بنجاح ✓');
+            const hiddenInput = document.getElementById('id_landing_profile_id');
+            if (hiddenInput) hiddenInput.value = profileId;
+
+            if (data.assistant_name) {
+                const nameInput = document.getElementById('id_assistant_name');
+                if (nameInput) nameInput.value = data.assistant_name;
+            }
+            if (data.welcome_message) {
+                const welcomeInput = document.getElementById('id_welcome_message');
+                if (welcomeInput) welcomeInput.value = data.welcome_message;
+            }
+            if (data.system_prompt) {
+                const promptInput = document.getElementById('id_system_prompt');
+                if (promptInput) promptInput.value = data.system_prompt;
+            }
+
+            // Update cards styling
+            document.querySelectorAll('.persona-card').forEach(card => {
+                card.classList.remove('active-persona');
+            });
+            document.querySelectorAll('.active-landing-badge').forEach(badge => {
+                badge.outerHTML = '<span class="badge bg-dark text-muted px-2 py-1 inactive-landing-badge">بروفايل غير نشط بالهبوط</span>';
+            });
+            document.querySelectorAll('.action-activate-container').forEach(box => {
+                const pid = box.id.replace('activate-box-', '');
+                box.innerHTML = `<button type="button" class="btn btn-sm btn-outline-success btn-activate-persona" onclick="activatePersonaProfile(${pid}, this);"><i class="fas fa-check me-1"></i> اعتماد وتفعيل لصفحة الهبوط</button>`;
+            });
+
+            const activeCard = document.getElementById(`persona-card-${profileId}`);
+            if (activeCard) activeCard.classList.add('active-persona');
+
+            const badgeBox = document.getElementById(`persona-badge-box-${profileId}`);
+            if (badgeBox) {
+                badgeBox.innerHTML = `
+                    <span class="badge bg-success text-white px-2 py-1 d-inline-flex align-items-center gap-1 active-landing-badge shadow-sm" style="border: 1px solid #34d399;">
+                        <span class="persona-pulse-dot"></span>
+                        <span>بروفايل صفحة الهبوط المعتمد حالياً</span>
+                    </span>
+                `;
+            }
+
+            const activateBox = document.getElementById(`activate-box-${profileId}`);
+            if (activateBox) {
+                activateBox.innerHTML = `
+                    <button type="button" class="btn btn-sm btn-success disabled" style="opacity: 0.95;">
+                        <i class="fas fa-check-circle me-1"></i> معتمد ومفعل ✓
+                    </button>
+                `;
+            }
         } else {
-            showToast(data.message || 'فشلت مزامنة الذاكرة', true);
+            if (btn) btn.innerHTML = '<i class="fas fa-check me-1"></i> اعتماد وتفعيل لصفحة الهبوط';
+            showToast(data.message || 'فشل اعتماد البروفايل', true);
         }
     })
     .catch(err => {
-        if (btn) btn.innerHTML = '<i class="fas fa-bolt"></i> ⚡ مزامنة الذاكرة الحية إلى Redis الآن';
+        if (btn) btn.innerHTML = '<i class="fas fa-check me-1"></i> اعتماد وتفعيل لصفحة الهبوط';
         showToast('خطأ في الاتصال بالخادم', true);
     });
 }
 
-// Copy Live Context JSON
-function copyLiveContextJson() {
-    const codeEl = document.getElementById('live-context-json');
-    if (!codeEl) return;
-    navigator.clipboard.writeText(codeEl.innerText)
-        .then(() => showToast('تم نسخ محتوى الذاكرة JSON إلى الحافظة بنجاح ✓'))
+function openAddProfileModal() {
+    const form = document.getElementById('form-add-profile');
+    if (form) form.reset();
+    const modalEl = document.getElementById('modal-add-profile');
+    if (window.bootstrap && bootstrap.Modal) {
+        const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        inst.show();
+    } else {
+        $(modalEl).modal('show');
+    }
+}
+
+function submitAddProfile() {
+    const name = document.getElementById('add-profile-name').value.trim();
+    const voice_name = document.getElementById('add-profile-voice').value;
+    const dialect = document.getElementById('add-profile-dialect').value;
+    const welcome_message = document.getElementById('add-profile-welcome').value.trim();
+    const system_prompt = document.getElementById('add-profile-prompt').value.trim();
+    const btn = document.getElementById('btn-save-new-profile');
+
+    if (!name || !welcome_message) {
+        showToast('يرجى ملء الاسم ورسالة الترحيب الأولى', true);
+        return;
+    }
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+
+    fetch('/api/landing-assistant/profiles/create/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+            name,
+            voice_name,
+            dialect,
+            welcome_message,
+            custom_instructions: system_prompt,
+            persona_role: 'sales_advisor',
+            is_active: true
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (btn) btn.innerHTML = '<i class="fas fa-check"></i> حفظ وإضافة البروفايل';
+        if (data.status === 'success' || data.profile || data.id) {
+            showToast('تمت إضافة البروفايل الجديد بنجاح ✓');
+            const modalEl = document.getElementById('modal-add-profile');
+            if (window.bootstrap && bootstrap.Modal) {
+                const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                inst.hide();
+            } else {
+                $(modalEl).modal('hide');
+            }
+            setTimeout(() => { window.location.reload(); }, 600);
+        } else {
+            showToast(data.message || 'فشلت إضافة البروفايل', true);
+        }
+    })
+    .catch(err => {
+        if (btn) btn.innerHTML = '<i class="fas fa-check"></i> حفظ وإضافة البروفايل';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+function openEditProfileModal(btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name') || '';
+    const voice = btn.getAttribute('data-voice') || 'Aoede';
+    const dialect = btn.getAttribute('data-dialect') || 'saudi';
+    const welcome = btn.getAttribute('data-welcome') || '';
+    const prompt = btn.getAttribute('data-prompt') || '';
+
+    document.getElementById('edit-profile-id').value = id;
+    document.getElementById('edit-profile-name').value = name;
+    document.getElementById('edit-profile-voice').value = voice;
+    document.getElementById('edit-profile-dialect').value = dialect;
+    document.getElementById('edit-profile-welcome').value = welcome;
+    document.getElementById('edit-profile-prompt').value = prompt;
+
+    const modalEl = document.getElementById('modal-edit-profile');
+    if (window.bootstrap && bootstrap.Modal) {
+        const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        inst.show();
+    } else {
+        $(modalEl).modal('show');
+    }
+}
+
+function submitEditProfile() {
+    const id = document.getElementById('edit-profile-id').value;
+    const name = document.getElementById('edit-profile-name').value.trim();
+    const voice_name = document.getElementById('edit-profile-voice').value;
+    const dialect = document.getElementById('edit-profile-dialect').value;
+    const welcome_message = document.getElementById('edit-profile-welcome').value.trim();
+    const system_prompt = document.getElementById('edit-profile-prompt').value.trim();
+    const btn = document.getElementById('btn-save-edit-profile');
+
+    if (!name || !welcome_message) {
+        showToast('يرجى ملء الاسم ورسالة الترحيب', true);
+        return;
+    }
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+
+    fetch(`/api/landing-assistant/profiles/${id}/update/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+            name,
+            voice_name,
+            dialect,
+            welcome_message,
+            custom_instructions: system_prompt
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (btn) btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+        if (data.status === 'success' || data.profile) {
+            showToast('تم تحديث البروفايل بنجاح ✓');
+            const titleEl = document.querySelector(`.persona-title-${id}`);
+            if (titleEl) titleEl.innerText = name;
+            const welcomeEl = document.querySelector(`.persona-welcome-${id}`);
+            if (welcomeEl) welcomeEl.innerText = welcome_message;
+
+            const modalEl = document.getElementById('modal-edit-profile');
+            if (window.bootstrap && bootstrap.Modal) {
+                const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                inst.hide();
+            } else {
+                $(modalEl).modal('hide');
+            }
+        } else {
+            showToast(data.message || 'فشل تحديث البروفايل', true);
+        }
+    })
+    .catch(err => {
+        if (btn) btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+// =============================================================================
+// TAB 5: AUDIO MODAL JAVASCRIPT
+// =============================================================================
+function openCallAudioModal(btn) {
+    const leadId = btn.getAttribute('data-lead-id');
+    const callId = btn.getAttribute('data-call-id') || '';
+    const name = btn.getAttribute('data-name') || 'زائر';
+    const phone = btn.getAttribute('data-phone') || '—';
+    const duration = btn.getAttribute('data-duration') || '00:00';
+    const date = btn.getAttribute('data-date') || '—';
+    const status = btn.getAttribute('data-status') || 'initiated';
+
+    document.getElementById('audio-caller-name').innerText = name;
+    document.getElementById('audio-caller-phone').innerText = phone;
+    document.getElementById('audio-caller-date').innerText = date;
+    document.getElementById('audio-caller-duration').innerText = duration;
+
+    const badgeEl = document.getElementById('audio-caller-status-badge');
+    const statusMap = {
+        'connected': '<span class="badge bg-success">متصلة 🎧</span>',
+        'completed': '<span class="badge bg-primary">مكتملة ✓</span>',
+        'initiated': '<span class="badge bg-warning text-dark">قيد البدء ⏳</span>',
+        'missed': '<span class="badge bg-danger">لم تكتمل ✕</span>',
+        'failed': '<span class="badge bg-danger">فشلت ✕</span>'
+    };
+    badgeEl.innerHTML = statusMap[status] || `<span class="badge bg-secondary">${escapeHtml(status)}</span>`;
+
+    const inProgressAlert = document.getElementById('audio-in-progress-alert');
+    const notRecordedAlert = document.getElementById('audio-not-recorded-alert');
+    const errorAlert = document.getElementById('audio-error-alert');
+    const playerContainer = document.getElementById('audio-player-container');
+    const audioEl = document.getElementById('modal-audio-player');
+
+    inProgressAlert.classList.add('d-none');
+    notRecordedAlert.classList.add('d-none');
+    errorAlert.classList.add('d-none');
+    playerContainer.classList.add('d-none');
+    audioEl.pause();
+    audioEl.removeAttribute('src');
+
+    if (status === 'initiated' || status === 'connected') {
+        inProgressAlert.classList.remove('d-none');
+    } else if (!callId || status === 'missed' || status === 'failed' || duration === '00:00') {
+        notRecordedAlert.classList.remove('d-none');
+    } else {
+        playerContainer.classList.remove('d-none');
+        const recordingProxyUrl = `/api/ai-callcenter/calls/${encodeURIComponent(callId)}/recording/`;
+        audioEl.src = recordingProxyUrl;
+        audioEl.onerror = function() {
+            errorAlert.classList.remove('d-none');
+            playerContainer.classList.add('d-none');
+        };
+        audioEl.load();
+    }
+
+    const modalEl = document.getElementById('modal-call-audio');
+    if (window.bootstrap && bootstrap.Modal) {
+        const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        inst.show();
+    } else {
+        $(modalEl).modal('show');
+    }
+}
+
+function stopAudioPlayback() {
+    const audioEl = document.getElementById('modal-audio-player');
+    if (audioEl) {
+        audioEl.pause();
+        audioEl.currentTime = 0;
+    }
+}
+
+// =============================================================================
+// TAB 6: REDIS LIVE CONTEXT MANUAL EDITOR JAVASCRIPT
+// =============================================================================
+function saveAndSyncLiveContext() {
+    const editor = document.getElementById('custom-live-context-editor');
+    const content = editor ? editor.value : '';
+    const btn = document.getElementById('btn-redis-save-sync');
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ والمزامنة...';
+
+    fetch('/api/landing-assistant/redis/sync/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({ custom_live_context: content })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (btn) btn.innerHTML = '<i class="fas fa-save me-1"></i> 💾 حفظ ومزامنة فورية لكاش Redis';
+        if (data.status === 'success') {
+            showToast('تم حفظ ومزامنة الذاكرة الحية إلى كاش Redis والسنترال بنجاح ✓');
+            document.getElementById('redis-size-badge').innerText = data.size_formatted;
+            document.getElementById('redis-keys-badge').innerText = data.keys_count;
+            document.getElementById('redis-synced-badge').innerText = data.synced_at;
+        } else {
+            showToast(data.message || 'فشلت المزامنة', true);
+        }
+    })
+    .catch(err => {
+        if (btn) btn.innerHTML = '<i class="fas fa-save me-1"></i> 💾 حفظ ومزامنة فورية لكاش Redis';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+function clearRedisLiveContext() {
+    if (!confirm('هل أنت متأكد تماماً من رغبتك في تفريغ ومسح الذاكرة الحية بالكامل من قاعدة البيانات وكاش Redis؟')) {
+        return;
+    }
+    const btn = document.getElementById('btn-redis-clear-all');
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري المسح...';
+
+    fetch('/api/landing-assistant/redis/clear/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (btn) btn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> 🗑️ تفريغ ومسح الذاكرة بالكامل';
+        if (data.status === 'success') {
+            showToast('تم تفريغ ومسح الذاكرة بالكامل بنجاح ✓');
+            const editor = document.getElementById('custom-live-context-editor');
+            if (editor) editor.value = '';
+            document.getElementById('redis-size-badge').innerText = '0 B';
+            document.getElementById('redis-keys-badge').innerText = '0';
+            document.getElementById('redis-synced-badge').innerText = 'تم التفريغ ومسح الذاكرة';
+        } else {
+            showToast(data.message || 'فشل مسح الذاكرة', true);
+        }
+    })
+    .catch(err => {
+        if (btn) btn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> 🗑️ تفريغ ومسح الذاكرة بالكامل';
+        showToast('خطأ في الاتصال بالخادم', true);
+    });
+}
+
+function formatEditorJson() {
+    const editor = document.getElementById('custom-live-context-editor');
+    if (!editor || !editor.value.trim()) {
+        showToast('المحرر فارغ حالياً', true);
+        return;
+    }
+    try {
+        const parsed = JSON.parse(editor.value);
+        editor.value = JSON.stringify(parsed, null, 2);
+        showToast('تم تنسيق محتوى JSON بنجاح ✓');
+    } catch (e) {
+        showToast('المحتوى الحالي ليس بصيغة JSON صالحة (يُعامل كنص حر)', true);
+    }
+}
+
+function copyLiveContextEditor() {
+    const editor = document.getElementById('custom-live-context-editor');
+    if (!editor) return;
+    navigator.clipboard.writeText(editor.value)
+        .then(() => showToast('تم نسخ محتوى المحرر إلى الحافظة بنجاح ✓'))
         .catch(() => showToast('تعذر النسخ إلى الحافظة', true));
 }
 </script>

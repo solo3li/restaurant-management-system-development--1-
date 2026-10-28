@@ -169,6 +169,12 @@ class PlatformVoiceAssistantConfig(models.Model):
         verbose_name="معرف بروفايل صفحة الهبوط المعتمد",
         help_text="معرف البروفايل المعتمد حالياً في استوديو الكول سنتر لصفحة الهبوط."
     )
+    custom_live_context = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="الذاكرة المنظمة الحية اليدوية (Custom Live Context)",
+        help_text="محتوى الذاكرة الحية المكتوب يدوياً بصيغة JSON أو نص حر والذي يُحقن في كاش Redis مباشرة."
+    )
     created_at = models.DateTimeField(default=timezone.now, verbose_name="تاريخ الإنشاء")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
 

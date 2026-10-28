@@ -203,6 +203,10 @@ from apps.callcenter.views import (
     api_landing_assistant_lead_status,
     api_landing_assistant_redis_status,
     api_landing_assistant_redis_sync,
+    api_landing_assistant_redis_clear,
+    api_landing_assistant_create_profile,
+    api_landing_assistant_activate_profile,
+    api_landing_assistant_update_profile,
     api_landing_assistant_ensure_partner_client,
 )
 
