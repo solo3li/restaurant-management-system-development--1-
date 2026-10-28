@@ -7,6 +7,7 @@ from apps.callcenter import views as cc_views
 from apps.callcenter.landing_assistant_service import (
     ensure_landing_sales_client,
     sync_landing_assistant_live_context,
+    push_live_context,
     get_landing_assistant_redis_status,
 )
 
@@ -211,10 +212,23 @@ class PlatformVoiceAssistantConfigAdmin(admin.ModelAdmin):
                 obj.partner_client_id = orig
         elif not obj.partner_client_id:
             obj.partner_client_id = "662"
+
+        # Capture landing_profile_id from hidden form field if present
+        if request and request.POST.get("landing_profile_id"):
+            val = request.POST.get("landing_profile_id").strip()
+            if val.isdigit():
+                obj.landing_profile_id = int(val)
+
+        # Capture custom_live_context from form textarea if submitted
+        if request and "custom_live_context" in request.POST:
+            obj.custom_live_context = request.POST.get("custom_live_context", "")
+
         super().save_model(request, obj, form, change)
         try:
             ensure_landing_sales_client(obj)
-            sync_landing_assistant_live_context(obj)
+            # Only sync custom live context if populated; never force auto-generated context into clean memory
+            if obj.custom_live_context:
+                push_live_context(obj, obj.custom_live_context, save_to_db=False)
         except Exception as e:
             pass
 

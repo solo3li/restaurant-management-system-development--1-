@@ -36,24 +36,26 @@
     - Removed hardcoded static text ("منظومة كُـورَا...") from `build_landing_assistant_live_context` and `get_landing_assistant_redis_status`.
     - Added `custom_live_context = models.TextField(blank=True, default="", ...)` to `PlatformVoiceAssistantConfig` in `apps/callcenter/models.py`.
     - Generated and applied migration `core/migrations/0035_platformvoiceassistantconfig_custom_live_context.py`.
-    - Implemented `push_live_context(config, content)`: atomically saves content to DB, sets Redis `landing_assistant:live_context`, sets Django cache, and syncs payload to central partner service if valid JSON.
-    - Implemented `clear_landing_assistant_live_context(config)`: wipes custom context from DB, purges all `landing_assistant:*` keys from direct Redis, clears Django cache keys, and resets live context metrics.
-    - Added endpoint `POST /api/landing-assistant/redis/clear/` with superadmin RBAC.
-    - In Tab 6 UI (`change_form.html`): added clean manual editor textarea `#custom-live-context-editor`, JSON prettifier `[ 🪄 تنسيق JSON ]`, instant sync button `[ 💾 حفظ ومزامنة فورية لكاش Redis ]`, complete wipe button `[ 🗑️ تفريغ ومسح الذاكرة بالكامل ]`, and live metric inspection cards (Memory Size, Keys Count, Last Synced Timestamp).
+    - Fixed memory clearing pollution bug: `PlatformVoiceAssistantConfigAdmin.save_model` no longer auto-generates or re-injects fallback structured JSON when memory was cleared (`custom_live_context == ""`).
+    - Added `save_to_db` flag to `push_live_context`: fallback compilation no longer silently overwrites user's DB field.
+    - Added support for free plain-text instructions in `push_live_context` and `build_landing_assistant_live_context`, wrapping plain text as `{"notes": payload_str}` so partner PBX context sync succeeds.
+    - Implemented `clear_landing_assistant_live_context(config)`: wipes custom context from DB, purges all `landing_assistant:*` keys from direct Redis, clears Django cache keys, and calls `ps.clear_client_live_context`.
+    - In Tab 6 UI (`change_form.html`): added `name="custom_live_context"` to `#custom-live-context-editor`, JSON prettifier `[ 🪄 تنسيق JSON ]`, instant sync button `[ 💾 حفظ ومزامنة فورية لكاش Redis ]`, complete wipe button `[ 🗑️ تفريغ ومسح الذاكرة بالكامل ]`, and live metric inspection cards.
   - **Tab 1: Interactive Persona Studio & Hidden Digital Profile ID**:
     - Converted `landing_profile_id` field from visible fieldsets into a hidden input field (`<input type="hidden">`), keeping the digital ID hidden from superadmin view while preserving form functionality.
+    - Updated `save_model` to safely extract and save `landing_profile_id` and `custom_live_context` from standard POST submissions.
     - Built responsive Slate-themed Persona Studio in Tab 1 with visual persona cards (`.persona-card`, `.persona-pulse-dot` active beacon, voice name, dialect, welcome message preview, and system prompt).
-    - Added instant activation button `[ اعتماد وتفعيل لصفحة الهبوط ]` (`POST /api/landing-assistant/profiles/<id>/activate/`), switching active persona live with green pulsing badge.
-    - Added Add Profile modal (`#modal-add-profile`) and Edit Profile modal (`#modal-edit-profile`) with voice selector, language, dialect, and prompt editors.
+    - Fixed UI state desynchronization in `submitEditProfile`: edit button `data-*` attributes, cards, badges, and active form inputs update immediately without requiring page reload.
+    - Fixed `api_ai_callcenter_set_landing_persona`, `api_landing_assistant_create_profile`, and `api_landing_assistant_update_profile` with fallback profile resolution so offline PBX never blocks admin actions.
   - **Tab 5: Call Audio Recording Playback Modal**:
     - Added `[ 🎧 استماع للتسجيل ]` button to each visitor call row in Tab 5.
     - Built interactive Audio Modal (`#modal-call-audio`) in Slate theme featuring caller name, phone number, call status, formatted duration, call ID, and HTML5 `<audio>` player.
-    - Player streams audio via `/api/ai-callcenter/calls/<call_id>/recording/` proxy, enhanced to authorize superadmin and platform HQ playback.
-    - Added visual alert banners for calls still in progress or unrecorded calls.
+    - Fixed Fatal Functional Bug in `api_ai_callcenter_call_recording_proxy`: imported missing `StreamingHttpResponse` from `django.http`, replaced async generator with synchronous streaming iterator, and handled HTTP 404 cleanly.
+    - Added modal dismissal hook (`hidden.bs.modal`) ensuring audio playback immediately stops upon modal close.
   - **Automated Verification**:
-    - Added 3 new test cases (`test_09`, `test_10`, `test_11`) in `test_landing_assistant_admin_tabs.py` (total 11/11 tests PASS).
+    - Updated `test_landing_assistant_admin_tabs.py` (`test_09`, `test_10`, `test_11`) with strict assertions (HTTP 200 real streaming bytes, strict 404 for missing recordings, profile creation/update, and post-clear admin save regression checks).
     - Executed `./init.sh` passing 100% of the entire repository test suite (unit, integration, and E2E RBAC).
-    - Updated knowledge graph via `graphify update .` (8,941 nodes, 19,152 edges, 468 communities).
+    - Updated knowledge graph via `graphify update .` (8,942 nodes, 19,157 edges, 478 communities).
 
 - [x] **Landing Visitor Voice Customization (Language/Dialect/Voice) & Admin Telephony Client Lock (`feat-landing-voice-customization-and-lock`)**
   - **Locking `partner_client_id` in Admin**:

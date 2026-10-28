@@ -190,7 +190,7 @@ def build_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
     if config is None:
         config = PlatformVoiceAssistantConfig.get_config()
 
-    # If custom live context is present and is valid JSON, return parsed dict
+    # If custom live context is present, return parsed dict or text payload
     if getattr(config, "custom_live_context", None):
         try:
             parsed = json.loads(config.custom_live_context)
@@ -198,6 +198,7 @@ def build_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
                 return parsed
         except Exception:
             pass
+        return {"custom_live_context": config.custom_live_context}
 
     # 1. Documents & FAQs
     docs = []
@@ -257,20 +258,21 @@ def build_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
     return context_payload
 
 
-def push_live_context(config: Optional[PlatformVoiceAssistantConfig] = None, content: Optional[str] = None) -> Dict[str, Any]:
+def push_live_context(config: Optional[PlatformVoiceAssistantConfig] = None, content: Optional[str] = None, save_to_db: bool = True) -> Dict[str, Any]:
     """
     Directly and atomically push manual live context to:
-    1. PlatformVoiceAssistantConfig.custom_live_context in Database
+    1. PlatformVoiceAssistantConfig.custom_live_context in Database (if save_to_db=True)
     2. Redis Cache (landing_assistant:live_context)
     3. Django In-Memory / DB Cache
-    4. Central Partner Telephony Service (if JSON payload)
+    4. Central Partner Telephony Service (if JSON payload or plain text wrapped in dict)
     """
     if config is None:
         config = PlatformVoiceAssistantConfig.get_config()
 
     if content is not None:
-        config.custom_live_context = content
-        config.save(update_fields=["custom_live_context", "updated_at"])
+        if save_to_db:
+            config.custom_live_context = content
+            config.save(update_fields=["custom_live_context", "updated_at"])
     else:
         content = config.custom_live_context or ""
 
@@ -278,7 +280,7 @@ def push_live_context(config: Optional[PlatformVoiceAssistantConfig] = None, con
     payload_str = content
     payload_bytes = len(payload_str.encode("utf-8"))
 
-    # Try parsing as JSON dict for partner service sync
+    # Try parsing as JSON dict for partner service sync, or wrap plain text in dict
     parsed_dict = None
     try:
         parsed = json.loads(payload_str)
@@ -286,6 +288,9 @@ def push_live_context(config: Optional[PlatformVoiceAssistantConfig] = None, con
             parsed_dict = parsed
     except Exception:
         pass
+
+    if parsed_dict is None and payload_str.strip():
+        parsed_dict = {"notes": payload_str}
 
     # 1. Direct Redis Sync
     r = get_redis_client()
@@ -308,7 +313,7 @@ def push_live_context(config: Optional[PlatformVoiceAssistantConfig] = None, con
     cache.set(f"{REDIS_LIVE_CONTEXT_KEY}:size_bytes", payload_bytes, timeout=None)
     cache.set(f"{REDIS_LIVE_CONTEXT_KEY}:keys_count", redis_keys_count, timeout=None)
 
-    # 3. Central Partner Service Sync (only if dict)
+    # 3. Central Partner Service Sync (dict payload or wrapped notes)
     partner_resp = {}
     if parsed_dict is not None:
         try:
@@ -369,7 +374,10 @@ def clear_landing_assistant_live_context(config: Optional[PlatformVoiceAssistant
     # 3. Clear partner service context
     try:
         cid = int(config.partner_client_id or 49)
-        ps.update_client_live_context(cid, {})
+        if hasattr(ps, "clear_client_live_context"):
+            ps.clear_client_live_context(cid)
+        else:
+            ps.update_client_live_context(cid, {})
     except Exception:
         pass
 
@@ -397,14 +405,14 @@ def sync_landing_assistant_live_context(config: Optional[PlatformVoiceAssistantC
         config = PlatformVoiceAssistantConfig.get_config()
 
     if content is not None:
-        return push_live_context(config, content)
+        return push_live_context(config, content, save_to_db=True)
     elif getattr(config, "custom_live_context", None):
-        return push_live_context(config, config.custom_live_context)
+        return push_live_context(config, config.custom_live_context, save_to_db=False)
 
-    # Fallback to structured compilation
+    # Fallback to structured compilation without polluting DB custom_live_context
     context_payload = build_landing_assistant_live_context(config)
     payload_json = json.dumps(context_payload, ensure_ascii=False, indent=2)
-    return push_live_context(config, payload_json)
+    return push_live_context(config, payload_json, save_to_db=False)
 
 
 def get_landing_assistant_redis_status(config: Optional[PlatformVoiceAssistantConfig] = None) -> Dict[str, Any]:

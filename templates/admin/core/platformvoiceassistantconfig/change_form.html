@@ -868,6 +868,7 @@
                 <!-- Textarea Editor -->
                 <div class="mb-3">
                     <textarea id="custom-live-context-editor"
+                              name="custom_live_context"
                               class="slate-input font-monospace"
                               rows="14"
                               style="font-size: 0.88rem; line-height: 1.5; background: #1e2227; color: #f8fafc; border: 1px solid #475569;"
@@ -1888,9 +1889,49 @@ function submitEditProfile() {
         if (data.status === 'success' || data.profile) {
             showToast('تم تحديث البروفايل بنجاح ✓');
             const titleEl = document.querySelector(`.persona-title-${id}`);
-            if (titleEl) titleEl.innerText = name;
+            if (titleEl) {
+                titleEl.innerText = name;
+                titleEl.setAttribute('title', name);
+            }
             const welcomeEl = document.querySelector(`.persona-welcome-${id}`);
-            if (welcomeEl) welcomeEl.innerText = welcome_message;
+            if (welcomeEl) {
+                welcomeEl.innerText = welcome_message;
+                welcomeEl.setAttribute('title', welcome_message);
+            }
+
+            // Sync data attributes on edit button so next edit opens with new values
+            const editBtn = document.querySelector(`.btn-edit-persona[data-id="${id}"]`);
+            if (editBtn) {
+                editBtn.setAttribute('data-name', name);
+                editBtn.setAttribute('data-voice', voice_name);
+                editBtn.setAttribute('data-dialect', dialect);
+                editBtn.setAttribute('data-welcome', welcome_message);
+                editBtn.setAttribute('data-prompt', system_prompt);
+            }
+
+            // Update card badges
+            const voiceBadge = document.querySelector(`.persona-voice-badge-${id}`);
+            if (voiceBadge) voiceBadge.innerHTML = `<i class="fas fa-volume-up me-1"></i> ${voice_name}`;
+            const dialectBadge = document.querySelector(`.persona-dialect-badge-${id}`);
+            const dialectMap = {
+                'saudi': '🇸🇦 سعودية',
+                'egyptian': '🇪🇬 مصرية',
+                'gulf': '🇦🇪 خليجية',
+                'levantine': '🇱🇧 شامية',
+                'modern_standard': '🌐 فصحى'
+            };
+            if (dialectBadge) dialectBadge.innerHTML = `<i class="fas fa-globe-americas me-1"></i> ${dialectMap[dialect] || dialect}`;
+
+            // If this is currently active profile, sync identity inputs in adminform below
+            const currentActiveId = document.getElementById('id_landing_profile_id')?.value;
+            if (currentActiveId && String(currentActiveId) === String(id)) {
+                const nameInput = document.getElementById('id_assistant_name');
+                if (nameInput) nameInput.value = name;
+                const welcomeInput = document.getElementById('id_welcome_message');
+                if (welcomeInput) welcomeInput.value = welcome_message;
+                const promptInput = document.getElementById('id_system_prompt');
+                if (promptInput) promptInput.value = system_prompt;
+            }
 
             const modalEl = document.getElementById('modal-edit-profile');
             if (window.bootstrap && bootstrap.Modal) {
@@ -1978,8 +2019,17 @@ function stopAudioPlayback() {
     if (audioEl) {
         audioEl.pause();
         audioEl.currentTime = 0;
+        audioEl.removeAttribute('src');
     }
 }
+
+// Hook modal dismissal to stop audio playback
+document.addEventListener('DOMContentLoaded', function() {
+    const audioModalEl = document.getElementById('modal-call-audio');
+    if (audioModalEl) {
+        audioModalEl.addEventListener('hidden.bs.modal', stopAudioPlayback);
+    }
+});
 
 // =============================================================================
 // TAB 6: REDIS LIVE CONTEXT MANUAL EDITOR JAVASCRIPT

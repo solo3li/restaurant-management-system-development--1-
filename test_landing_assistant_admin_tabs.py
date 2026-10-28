@@ -528,13 +528,51 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         # Verify Redis / Cache is emptied
         self.assertIsNone(cache.get(REDIS_LIVE_CONTEXT_KEY))
 
+        # 4. Critical Regression Check: Saving standard admin form after clearing memory
+        # MUST NEVER auto-generate or re-pollute the memory with unsolicited static payloads
+        admin_post = {
+            "is_active": "on",
+            "assistant_name": "مساعد مبيعات المنصة بعد المسح",
+            "system_prompt": "توجيهات مخصصة نظيفة.",
+            "welcome_message": "مرحباً بكم!",
+            "voice_name": "Aoede",
+            "language": "ar",
+            "accent": "saudi",
+            "max_call_duration_seconds": 180,
+            "max_daily_calls_per_ip": 3,
+            "_save": "حفظ",
+        }
+        resp = self.client.post(
+            f"/admin/core/platformvoiceassistantconfig/{self.config.pk}/change/",
+            data=admin_post,
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.config.refresh_from_db()
+        self.assertEqual(self.config.custom_live_context, "")
+        cleared_status = get_landing_assistant_redis_status(self.config)
+        self.assertEqual(cleared_status["size_bytes"], 0)
+        self.assertEqual(cleared_status["raw_json"], "")
+
+        # 5. Free-form plain text manual input (non-JSON) sync
+        plain_text = "تعليمات خاصة للمساعد: رحب بالعميل بالاسم واعرض عليه خصم 20% على الباقة المتقدمة."
+        resp = self.client.post(
+            "/api/landing-assistant/redis/sync/",
+            data=json.dumps({"custom_live_context": plain_text}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.config.refresh_from_db()
+        self.assertEqual(self.config.custom_live_context, plain_text)
+        text_status = get_landing_assistant_redis_status(self.config)
+        self.assertEqual(text_status["size_bytes"], len(plain_text.encode("utf-8")))
+
     # =========================================================================
     # SUITE 7: Tab 1 Persona Studio & Hidden Digital Profile ID
     # =========================================================================
 
     @patch("core.partner_service.get_profile")
     def test_10_tab1_persona_studio_and_hidden_digital_id(self, mock_get_profile):
-        """Test hiding landing_profile_id and rendering interactive Persona Studio with activation."""
+        """Test hiding landing_profile_id and rendering interactive Persona Studio with activation, creation and update."""
         mock_get_profile.return_value = {
             "status": "success",
             "profiles": [
@@ -591,12 +629,72 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         self.assertEqual(self.config.assistant_name, "سارة - استشارية الباقات")
         self.assertEqual(self.config.voice_name, "Aoede")
 
+        # 4. Super Admin creates a new profile in Persona Studio
+        with patch("core.partner_service.create_profile") as mock_create_prof:
+            mock_create_prof.return_value = {
+                "status": "success",
+                "profile": {
+                    "id": 105,
+                    "name": "ريان - أخصائي الدعم الفني والمبيعات",
+                    "voice_name": "Fenrir",
+                    "dialect": "gulf",
+                    "welcome_message": "يا هلا والله! أنا ريان جاهز لخدمتكم.",
+                }
+            }
+            create_payload = {
+                "name": "ريان - أخصائي الدعم الفني والمبيعات",
+                "voice_name": "Fenrir",
+                "dialect": "gulf",
+                "welcome_message": "يا هلا والله! أنا ريان جاهز لخدمتكم.",
+                "system_prompt": "أنت ريان خبير مبيعات ودعم.",
+            }
+            create_resp = self.client.post(
+                "/api/landing-assistant/profiles/create/",
+                data=json.dumps(create_payload),
+                content_type="application/json",
+            )
+            self.assertEqual(create_resp.status_code, 200)
+            create_data = create_resp.json()
+            self.assertEqual(create_data["status"], "success")
+            self.assertEqual(create_data["profile"]["name"], "ريان - أخصائي الدعم الفني والمبيعات")
+
+        # 5. Super Admin updates an existing profile
+        with patch("core.partner_service.update_profile") as mock_update_prof:
+            mock_update_prof.return_value = {
+                "status": "success",
+                "profile": {
+                    "id": 102,
+                    "name": "سارة - كبيرة مستشاري المبيعات",
+                    "voice_name": "Aoede",
+                    "dialect": "saudi",
+                    "welcome_message": "مرحباً بكم في منصة كُـورَا المحدثة!",
+                }
+            }
+            update_payload = {
+                "name": "سارة - كبيرة مستشاري المبيعات",
+                "voice_name": "Aoede",
+                "dialect": "saudi",
+                "welcome_message": "مرحباً بكم في منصة كُـورَا المحدثة!",
+            }
+            update_resp = self.client.post(
+                "/api/landing-assistant/profiles/102/update/",
+                data=json.dumps(update_payload),
+                content_type="application/json",
+            )
+            self.assertEqual(update_resp.status_code, 200)
+            self.assertEqual(update_resp.json()["status"], "success")
+
+            # Since 102 is the active landing profile, config should automatically update
+            self.config.refresh_from_db()
+            self.assertEqual(self.config.assistant_name, "سارة - كبيرة مستشاري المبيعات")
+            self.assertEqual(self.config.welcome_message, "مرحباً بكم في منصة كُـورَا المحدثة!")
+
     # =========================================================================
     # SUITE 8: Tab 5 Audio Modal & Call Recording Proxy
     # =========================================================================
 
     def test_11_tab5_audio_modal_and_recording_proxy(self):
-        """Test audio listening button in Tab 5 and Audio Modal structure."""
+        """Test audio listening button in Tab 5, Audio Modal structure, and real streaming proxy."""
         lead = LandingVoiceLead.objects.create(
             name="سلطان القحطاني",
             phone="0512345678",
@@ -627,7 +725,34 @@ class PlatformVoiceAssistantAdminTabsTestSuite(TestCase):
         self.assertIn('id="audio-in-progress-alert"', html)
         self.assertIn('id="audio-not-recorded-alert"', html)
 
-        # 3. Test recording proxy returns 404 gracefully when recording not found
-        resp = self.client.get(f"/api/ai-callcenter/calls/{lead.call_id}/recording/")
-        self.assertIn(resp.status_code, [404, 500])
+        # 3. Test recording proxy returns STRICT 404 (NOT 500) when recording not found
+        with patch("core.partner_service.get_calls") as mock_empty_calls:
+            mock_empty_calls.return_value = {"calls": []}
+            resp_404 = self.client.get(f"/api/ai-callcenter/calls/{lead.call_id}/recording/")
+            self.assertEqual(resp_404.status_code, 404)
+
+        # 4. Test recording proxy returns HTTP 200 StreamingHttpResponse when recording exists
+        with patch("core.partner_service.get_calls") as mock_calls, \
+             patch("urllib.request.urlopen") as mock_urlopen:
+            mock_calls.return_value = {
+                "calls": [
+                    {
+                        "call_id": "call_test_audio_123",
+                        "recording_url": "https://storage.googleapis.com/voice-recordings/test_rec.mp3",
+                    }
+                ]
+            }
+            fake_stream = MagicMock()
+            fake_stream.read.side_effect = [b"ID3\x03\x00\x00\x00TESTAUDIOCHUNKS", b""]
+            fake_stream.headers.get_content_type.return_value = "audio/mpeg"
+            mock_urlopen.return_value = fake_stream
+
+            stream_resp = self.client.get(f"/api/ai-callcenter/calls/{lead.call_id}/recording/")
+            self.assertEqual(stream_resp.status_code, 200)
+            self.assertEqual(stream_resp["Content-Type"], "audio/mpeg")
+            self.assertEqual(stream_resp["Accept-Ranges"], "bytes")
+            # Consume stream to verify synchronous iterator works without crashing
+            chunks = list(stream_resp.streaming_content)
+            self.assertEqual(len(chunks), 1)
+            self.assertIn(b"TESTAUDIOCHUNKS", chunks[0])
 
