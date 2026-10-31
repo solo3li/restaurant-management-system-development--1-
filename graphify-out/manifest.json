@@ -2196,9 +2196,9 @@
     "semantic_hash": ""
   },
   "templates/ai_callcenter/omnichannel.html": {
-    "mtime": 1793431484.6501741,
-    "seen": 1793431752.163868,
-    "ast_hash": "054fe3d9170fbcdd4f8267a94bd077d8",
+    "mtime": 1793441197.0205512,
+    "seen": 1793441506.33989,
+    "ast_hash": "27310340d97ce7b807cab77ada046dd9",
     "semantic_hash": ""
   },
   "templates/ai_callcenter/overview.html": {
@@ -2220,9 +2220,9 @@
     "semantic_hash": ""
   },
   "templates/base.html": {
-    "mtime": 1793433728.0499308,
-    "seen": 1793434193.2577517,
-    "ast_hash": "e68f347ef7502dabcdecb8b64f2d12bc",
+    "mtime": 1793440903.455596,
+    "seen": 1793441506.3401713,
+    "ast_hash": "6853d46501020764133df62c91b0f595",
     "semantic_hash": ""
   },
   "templates/branch_dashboard.html": {
@@ -3060,15 +3060,15 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793434119.3952763,
-    "seen": 1793434193.232799,
-    "ast_hash": "ed1bbbd13e6d0b3329e0a7bede8d7f86",
+    "mtime": 1793441425.7020113,
+    "seen": 1793441506.3074965,
+    "ast_hash": "6bc0a37ec8ac7d9464e29579e317cbe2",
     "semantic_hash": ""
   },
   "init.sh": {
-    "mtime": 1793430766.736487,
-    "seen": 1793430849.5940216,
-    "ast_hash": "dafa078a7e2487bec312abd9c1a27af2",
+    "mtime": 1793441403.6813822,
+    "seen": 1793441506.3075025,
+    "ast_hash": "e5f9fe28a13f1829bfb3d5fda920abd8",
     "semantic_hash": ""
   },
   "harness-assessment.html": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793434142.3409004,
-    "seen": 1793434193.255855,
-    "ast_hash": "50256069b26e0c27f3be25799235434b",
+    "mtime": 1793441445.22057,
+    "seen": 1793441506.3384144,
+    "ast_hash": "605a9dba92331f5d48949d0054596755",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3624,9 +3624,9 @@
     "semantic_hash": ""
   },
   "test_telephony_suite.py": {
-    "mtime": 1793057199.2131445,
-    "seen": 1793057363.90293,
-    "ast_hash": "55142217a8db5b868c02900b291966be",
+    "mtime": 1793440925.216168,
+    "seen": 1793441506.3243165,
+    "ast_hash": "8f5fa220a10d9bdc2ad80e87f19f6656",
     "semantic_hash": ""
   },
   "static/js/landing_animations.js": {

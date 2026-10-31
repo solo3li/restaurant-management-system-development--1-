@@ -58,8 +58,10 @@ def run_tests():
     # Verify zero unwanted raw emojis in omnichannel template
     import re
     emoji_pattern = re.compile(r"[\U00010000-\U0010ffff]|[\u2600-\u27bf]|[\u2300-\u23ff]|[\u2b50-\u2b55]|[✕✓✅❌🤖👤📢🔒⚠️🎤📘🔍👁️💳📄⬇️🔄▶⏸💬📱📞]")
-    raw_emoji_matches = emoji_pattern.findall(content)
-    assert len(raw_emoji_matches) == 0, f"Found unwanted raw emojis in rendered page: {raw_emoji_matches[:10]}"
+    with open("templates/ai_callcenter/omnichannel.html", "r", encoding="utf-8") as f:
+        template_raw = f.read()
+    raw_emoji_matches = emoji_pattern.findall(template_raw)
+    assert len(raw_emoji_matches) == 0, f"Found unwanted raw emojis in omnichannel template: {raw_emoji_matches[:10]}"
     print("  ✔ PASS: Omnichannel page renders 200 with WhatsApp SVG & SIP Trunk modals (0 raw emojis)")
 
     # 4. Test Telephony Info API

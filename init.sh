@@ -33,6 +33,9 @@ venv/bin/python manage.py test test_landing_voice_customization
 echo "=== venv/bin/python test_embed_callcenter_and_chathub.py ==="
 venv/bin/python test_embed_callcenter_and_chathub.py
 
+echo "=== venv/bin/python test_telephony_suite.py ==="
+venv/bin/python test_telephony_suite.py
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

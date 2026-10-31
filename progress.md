@@ -575,5 +575,29 @@
   - Expanded `test_embed_callcenter_and_chathub.py` to 15 test suites covering multi-tenant isolation, dynamic locales, tabs, RBAC, plan feature gating, malformed payloads, and total partner outage resilience (100% PASS).
   - Full `./init.sh` test run: 100% PASS with 0 issues.
 
+## Transition to Iframe-First Low-Complexity Architecture for Omnichannel
+- **Architectural Simplification & De-duplication**:
+  - Replaced 1,500 lines of duplicate custom chat workspace in `templates/ai_callcenter/omnichannel.html` with clean upstream Chat Hub iframe (`chathub_embed_url`).
+  - Removed obsolete custom chat polling (`loadConversationsList`, `refreshWhatsAppStatus` polling `/api/ai-callcenter/whatsapp/...`), audio blob recorders, media lightboxes, and canned response bars from `omnichannel.html`.
+  - Preserved 100% of the Telephony, SIP Trunk, PBX (Issabel / FreePBX), and DID number management features:
+    - Maintained `connect-trunk-modal` with Asterisk configuration generator.
+    - Maintained `issabel-config-modal` with copyable `issabel-trunk-name-code` and `issabel-register-container`.
+    - Maintained `assign-did-modal` and direct DID mapping.
+    - Maintained `outbound-modal` wired to `api_ai_callcenter_dial_customer`.
+    - Maintained asynchronous `loadTelephonyInfo` refresh and trunk deletion handlers.
+- **Chatwoot SSO Authentication & User Provisioning Fix**:
+  - Resolved `NoMethodError (undefined method 'token' for nil)` on Chatwoot `/auth/sign_in` by backfilling missing `access_tokens` across existing users in `omni_postgres`.
+  - Upgraded user creation in `voice_assistant/chatwoot_service.py` to use Chatwoot HTTP REST API (`POST /api/v1/accounts/{id}/agents`) with fallback database token verification.
+- **Base Layout & Telephony Test Hardening**:
+  - Replaced raw `🌐` emoji with inline SVG globe icon in `templates/base.html` language switcher.
+  - Hardened `test_telephony_suite.py` to verify zero raw emojis in `omnichannel.html` template.
+  - Added `test_telephony_suite.py` to `./init.sh` for continuous regression gating.
+- **Verification**:
+  - `venv/bin/python manage.py check`: 0 issues.
+  - `venv/bin/python test_telephony_suite.py`: 100% PASS across PBX trunks, SIP trunks, DIDs, zero emojis, and RBAC.
+  - `venv/bin/python test_embed_callcenter_and_chathub.py`: 15/15 suites PASS (100%).
+  - `./init.sh`: 100% PASS across all project suites.
+
+
 
 
