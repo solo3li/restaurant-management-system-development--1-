@@ -253,7 +253,15 @@ def run_tests():
     assert "m3-active bg-emerald-600/20 text-emerald-300" in html_hub or "m3-active" in html_hub, "Missing active state on WhatsApp Chat Hub sidebar item"
     # Verify sidebar AI Call Center item links to call_center_embedded
     assert reverse("call_center_embedded") in html_hub or "/call-center/embedded/" in html_hub, "Sidebar AI Call Center must link to /call-center/embedded/"
+    # Verify strict mutually exclusive active states between Call Center Orders and AI Call Center
+    res_orders = client.get(reverse("call_center"))
+    html_orders = res_orders.content.decode("utf-8")
+    assert f'href="{reverse("call_center")}"' in html_orders
+    assert f'href="{reverse("call_center_embedded")}"' in html_orders
+    assert f'<a href="{reverse("call_center")}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group m3-active' in html_orders
+    assert f'<a href="{reverse("call_center_embedded")}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group m3-active' not in html_orders, "AI Call Center must NOT be active when on /call-center/"
     print("  ✔ PASS: Sidebar includes dedicated WhatsApp Chat Hub item and AI Call Center links directly to /call-center/embedded/")
+    print("  ✔ PASS: Mutually exclusive active state strictly maintained between Branch Orders and AI Call Center")
 
     # 11. Overview Route Redirection to Embedded Call Center
     print("\n>>> 11. Overview Route Redirection to Embedded Call Center")

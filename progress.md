@@ -676,3 +676,9 @@
 - Disassociated `call_center` route from AI Call Center active state
 - Verified E2E RBAC and Call Center tests (100% pass)
 - Container restarted and site live (HTTP 200)
+
+## 2026-10-31 — Fix Dual Active Sidebar Highlight on /call-center/
+- Root cause: Template used string substring matching (`request.resolver_match.url_name in 'call_center_embedded,...'`), matching `'call_center'` as a substring.
+- Solution: Switched to strict comparison `request.resolver_match.url_name == 'call_center_embedded' or 'ai_callcenter' in request.resolver_match.url_name`.
+- Added regression test asserting mutually exclusive active states in `test_embed_callcenter_and_chathub.py`.
+- Verified 100% test pass and container operational.
