@@ -651,3 +651,16 @@
 
 
 
+
+## 2026-10-31 — Sidebar AI Call Center → Embedded Redirect
+- Sidebar "كول سنتر الذكاء الاصطناعي" now points to `/call-center/embedded/`
+- `/ai-callcenter/overview/` returns 302 redirect to `/call-center/embedded/`
+- Suite 15 test updated to expect 302 instead of 200
+- All tests pass (init.sh 100%)
+- Committed: f3116a9
+
+## 2026-10-31 — Remove Top Nav Tabs from Dedicated Chat Hub Page
+- Removed `{% include "ai_callcenter/_nav_tabs.html" %}` from `templates/ai_callcenter/chat_hub_page.html`
+- Chat Hub page now renders cleanly without redundant top tabs bar (صندوق الواتساب / السنترال المباشر)
+- Full verification passed (`./init.sh` 100%)
+- Service restarted and operational (HTTP 200)
