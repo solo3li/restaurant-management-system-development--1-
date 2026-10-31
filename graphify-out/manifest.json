@@ -2166,9 +2166,9 @@
     "semantic_hash": ""
   },
   "templates/ai_callcenter/_nav_tabs.html": {
-    "mtime": 1793433739.6212263,
-    "seen": 1793434193.2570152,
-    "ast_hash": "7420646fab0c534694c7b0e23f9b1ffe",
+    "mtime": 1793449141.9267895,
+    "seen": 1793449481.5166667,
+    "ast_hash": "7cbab9cd9516577a4dc3491d9a14f8a0",
     "semantic_hash": ""
   },
   "templates/ai_callcenter/calls.html": {

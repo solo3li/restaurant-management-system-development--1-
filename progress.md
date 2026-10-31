@@ -34,6 +34,23 @@
 
 ### What's Done
 
+- [x] **Top Bar Navigation Ribbon Simplification (`feat-ai-callcenter-nav-tabs-streamline`)**
+  - **1. Streamlined Navigation Ribbon (`templates/ai_callcenter/_nav_tabs.html`)**:
+    - Removed 8 redundant custom Django management tabs (`overview`, `persona`, `hours`, `knowledge`, `queues`, `calls`, `capabilities`, `omnichannel`) in line with iframe-first architecture.
+    - Retained strictly the two live embedded suites:
+      1. **السنترال المباشر** (`call_center_embedded`, `/call-center/embedded/`) with violet "Live" status badge.
+      2. **صندوق الواتساب** (`chat_hub_page`, `/chat-hub/`) with `data-chat-hub-embedded` and emerald "Hub" badge.
+    - Ensured full active state styling across routes and backward compatibility with automated test assertions.
+  - **2. Upstream Embedded Suite Errors & Console Warnings Resolution**:
+    - Fixed `SyntaxError: Identifier 'currentCategory' has already been declared` in `templates/call_center.html`.
+    - Fixed Centrifugo/LiveKit DOM null pointer (`cfStatusBadge`, `lkStatusBadge`) on disconnect in `room.html`.
+    - Fixed Chatwoot 429 rate limit via Rack::Attack safelist in `/root/omnichannel-stack/patches/limits_patch.rb`.
+    - Fixed upstream 401 & HTML `<!DOCTYPE` JSON parse errors on telephony endpoints.
+  - **3. Verification & Deployment**:
+    - Full test suite `./init.sh` passed 100% without errors.
+    - Restarted `motaem_web` container; verified 200 OK on production endpoints.
+    - Updated codebase knowledge graph via `graphify update .`.
+
 - [x] **Standalone WhatsApp Chat Hub Page, Main Sidebar Integration & Call Center Overview 500 Fix (`feat-standalone-chathub-page-and-overview-fix`)**
   - **1. Diagnosis & Fix of 500 Error on `/ai-callcenter/overview/`**:
     - Identified root cause in `docker logs motaem_web`: `django.urls.exceptions.NoReverseMatch: Reverse for 'call_center_embedded' not found` due to container running stale pre-migration in-memory urlconf without restart, coupled with unprotected external partner service calls.
