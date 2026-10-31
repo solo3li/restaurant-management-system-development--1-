@@ -745,3 +745,23 @@
   3. صندوق محادثات الواتساب
   4. سجل كافة الطلبات والفواتير
 - Tests passing 100%, container restarted (HTTP 200).
+
+## 2026-10-31 — Brevo Transactional Email & Support Ticket System Implementation
+- Built `apps/communication/`:
+  - `BrevoConfiguration` singleton with Brevo API key, sender name/email, inbound webhook secret, activation toggles, and admin test connection button.
+  - `VerificationCode`: 6-character alphanumeric uppercase codes (`K7B9X2`), 1-hour expiration, hashed storage, used/attempt tracking.
+  - `EmailLog`: logs all outgoing Brevo transactional emails with status, message ID, recipient, subject, error details.
+  - `InboundEmailLog` & webhook handler (`/api/brevo/webhook/inbound/`): processes incoming webhook emails, validates secret, decodes base64 attachments, and links replies to matching support tickets `[TCK-YYYYMM-XXXX]`.
+  - Zero-dependency HTTP client shim (`_RequestsShim`) with standard library `urllib.request` fallback ensuring zero runtime failures when `requests` is absent in Docker.
+- Built `apps/support/`:
+  - Dedicated full-page Support Ticket System in General Administration tabs (`_admin_nav_tabs.html` tab 6).
+  - Rich multimedia attachments: voice notes (with browser `MediaRecorder` audio recording and player), images with lightbox modal, videos with inline player, documents (up to 25MB).
+  - Ticket messaging thread with internal note support for staff/admin.
+- Password Reset Flow:
+  - Added "نسيت كلمة المرور؟" link to login page.
+  - 3-step wizard in `templates/forgot_password.html`: Email entry -> 6-character alphanumeric code entry -> New password creation.
+- Added `email` field to `Customer` model with migration `0038_customer_email.py`.
+- Automated Verification:
+  - 19 new tests in `test_support_and_brevo.py` covering codes, expiration, Brevo API integration, webhooks, attachments, and support tickets.
+  - Full `./init.sh` test suite: 100% PASS across all 12 test suites.
+  - Verified live endpoints on production container: `https://uggu.space/login/` (200), `https://uggu.space/forgot-password/` (200).
