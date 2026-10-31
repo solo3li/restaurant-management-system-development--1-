@@ -1,5 +1,56 @@
 import logging
-import requests
+from typing import Optional, Dict, Any
+
+try:
+    import requests
+except ImportError:
+    import urllib.request
+    import urllib.error
+    import json
+
+    class _MockResponse:
+        def __init__(self, status_code, content, headers=None):
+            self.status_code = status_code
+            self.content = content
+            self.text = content.decode("utf-8", errors="ignore")
+            self.headers = headers or {}
+
+        def json(self):
+            return json.loads(self.text)
+
+    class _RequestsShim:
+        @staticmethod
+        def post(url, data=None, json=None, headers=None, timeout=12):
+            headers = headers or {}
+            body = None
+            if json is not None:
+                headers["Content-Type"] = "application/json"
+                body = __import__("json").dumps(json).encode("utf-8")
+            elif data is not None:
+                body = data if isinstance(data, bytes) else str(data).encode("utf-8")
+
+            req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    return _MockResponse(resp.getcode(), resp.read(), dict(resp.headers))
+            except urllib.error.HTTPError as he:
+                return _MockResponse(he.code, he.read(), dict(he.headers))
+            except Exception as e:
+                raise e
+
+        @staticmethod
+        def get(url, headers=None, timeout=8):
+            headers = headers or {}
+            req = urllib.request.Request(url, headers=headers, method="GET")
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    return _MockResponse(resp.getcode(), resp.read(), dict(resp.headers))
+            except urllib.error.HTTPError as he:
+                return _MockResponse(he.code, he.read(), dict(he.headers))
+            except Exception as e:
+                raise e
+
+    requests = _RequestsShim()
 from typing import Optional, Dict, Any
 from django.db import models
 from django.utils.html import strip_tags

@@ -72,3 +72,4 @@ websockets==17.1
 psycopg2-binary>=2.9.9
 whitenoise>=6.7.0
 django-jazzmin==3.0.5
+requests>=2.31.0

@@ -102,7 +102,7 @@ def forgot_password_view(request):
             "step": "verify",
         })
 
-    return render(request, "forgot_password.html", {"step": "request"})
+    return render(request, "forgot_password.html", {"step": "request", "email": "", "masked_email": ""})
 
 
 def verify_code_view(request):

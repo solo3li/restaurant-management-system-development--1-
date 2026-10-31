@@ -1,5 +1,5 @@
 import urllib.parse
-import requests
+from apps.communication.brevo_service import requests
 from django.contrib import admin, messages
 from django.urls import path, reverse
 from django.shortcuts import redirect, render
