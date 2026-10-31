@@ -676,6 +676,42 @@
 .accordion-header-btn:hover {
     color: #f8fafc;
 }
+
+/* Seamless Jazzmin Actions Bar on Support Ticket Change Form */
+.app-core.model-supportticket .col-12.col-lg-3:has(#jazzy-actions),
+.support-chat-workspace ~ .col-12.col-lg-3 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-top: 18px;
+}
+.app-core.model-supportticket #jazzy-actions {
+    background: #272b30;
+    border: 1px solid var(--chat-border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    direction: rtl;
+    width: 100%;
+}
+.app-core.model-supportticket #jazzy-actions .d-flex {
+    justify-content: flex-start;
+    gap: 10px;
+}
+.status-dropdown-select {
+    background: #1e2227;
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+.status-dropdown-select:focus {
+    background: #272b30;
+    color: #fff;
+    border-color: #38bdf8;
+    outline: none;
+}
 </style>
 {% endblock %}
 
@@ -706,6 +742,12 @@
                 <button type="button" class="status-btn {% if original.status == 'closed' %}active{% endif %}" onclick="updateTicketStatus('closed')">
                     <i class="fas fa-lock text-secondary me-1"></i> مغلقة
                 </button>
+                <select id="quick-status-dropdown" class="status-dropdown-select ms-2 d-none d-sm-inline-block" onchange="updateTicketStatus(this.value)" title="تغيير سريع لحالة التذكرة عبر القائمة">
+                    <option value="open" {% if original.status == 'open' %}selected{% endif %}>مفتوحة</option>
+                    <option value="in_progress" {% if original.status == 'in_progress' %}selected{% endif %}>قيد المعالجة</option>
+                    <option value="resolved" {% if original.status == 'resolved' %}selected{% endif %}>تم الحل</option>
+                    <option value="closed" {% if original.status == 'closed' %}selected{% endif %}>مغلقة</option>
+                </select>
             </div>
         </div>
 
@@ -834,7 +876,9 @@
                         <span>{{ msg.created_at|date:"Y-m-d H:i" }}</span>
                     </div>
 
+                    {% if msg.message %}
                     <div class="bubble-text">{{ msg.message }}</div>
+                    {% endif %}
 
                     <!-- Attachments -->
                     {% if msg.attachments.all %}
@@ -1116,7 +1160,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-/* Update Ticket Status via Quick Buttons */
+/* Update Ticket Status via Quick Buttons & Dropdown */
 function updateTicketStatus(newStatus) {
     {% if original %}
     const ticketId = {{ original.id }};
@@ -1139,10 +1183,15 @@ function updateTicketStatus(newStatus) {
             // Update status buttons active state
             document.querySelectorAll('.status-changer-bar .status-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.getAttribute('onclick').includes(newStatus)) {
+                const onclickVal = btn.getAttribute('onclick') || '';
+                if (onclickVal.includes(`'${newStatus}'`)) {
                     btn.classList.add('active');
                 }
             });
+
+            // Update dropdown if present
+            const dropdown = document.getElementById('quick-status-dropdown');
+            if (dropdown) dropdown.value = newStatus;
 
             // Update top bar badge
             const badge = document.getElementById('topbar-status-badge');
@@ -1160,13 +1209,26 @@ function updateTicketStatus(newStatus) {
     {% endif %}
 }
 
-/* Delete Message Action */
+/* Delete Message Action with Safe Modal Lifecycle */
 function confirmDeleteMessage(msgId) {
-    document.getElementById('pending-delete-message-id').value = msgId;
+    const input = document.getElementById('pending-delete-message-id');
+    if (input) input.value = msgId;
+
     const modalEl = document.getElementById('modal-delete-msg-confirm');
+    if (!modalEl) {
+        if (confirm('هل أنت متأكد من حذف هذه الرسالة ومرفقاتها نهائياً؟')) {
+            executeDeleteMessage(msgId);
+        }
+        return;
+    }
+
     if (window.bootstrap && window.bootstrap.Modal) {
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = (window.bootstrap.Modal.getOrCreateInstance) 
+            ? window.bootstrap.Modal.getOrCreateInstance(modalEl) 
+            : new window.bootstrap.Modal(modalEl);
         modal.show();
+    } else if (window.jQuery && window.jQuery(modalEl).modal) {
+        window.jQuery(modalEl).modal('show');
     } else {
         if (confirm('هل أنت متأكد من حذف هذه الرسالة ومرفقاتها نهائياً؟')) {
             executeDeleteMessage(msgId);
@@ -1175,24 +1237,37 @@ function confirmDeleteMessage(msgId) {
 }
 
 function executeDeleteMessage(manualId) {
-    const msgId = manualId || document.getElementById('pending-delete-message-id').value;
+    const msgId = manualId || (document.getElementById('pending-delete-message-id') ? document.getElementById('pending-delete-message-id').value : null);
     if (!msgId) return;
+
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', getCsrfToken());
 
     fetch(`/api/support/messages/${msgId}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCsrfToken()
-        }
+        },
+        body: fd
     })
     .then(r => r.json())
     .then(data => {
-        if (data.status === 'success') {
-            const modalEl = document.getElementById('modal-delete-msg-confirm');
+        const modalEl = document.getElementById('modal-delete-msg-confirm');
+        if (modalEl) {
             if (window.bootstrap && window.bootstrap.Modal) {
-                const modal = bootstrap.Modal.getInstance(modalEl);
+                const modal = (window.bootstrap.Modal.getInstance) ? window.bootstrap.Modal.getInstance(modalEl) : null;
                 if (modal) modal.hide();
+            } else if (window.jQuery && window.jQuery(modalEl).modal) {
+                window.jQuery(modalEl).modal('hide');
             }
+            // Cleanup any stray modal backdrops from DOM
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('padding-right');
+            document.body.style.removeProperty('overflow');
+        }
 
+        if (data.status === 'success') {
             const row = document.getElementById(`msg-row-${msgId}`);
             if (row) {
                 row.style.opacity = '0';
@@ -1267,16 +1342,22 @@ function submitAdminReply(closeTicket = false) {
 
             appendMessageToStream(data);
 
-            if (closeTicket || data.ticket_status === 'closed') {
+            // Sync status badge and quick buttons whenever reply updates status
+            if (data.ticket_status) {
                 const badge = document.getElementById('topbar-status-badge');
                 if (badge) {
-                    badge.className = 'badge-status badge-status-closed';
-                    badge.textContent = 'مغلقة';
+                    badge.className = `badge-status badge-status-${data.ticket_status}`;
+                    badge.textContent = data.ticket_status_display || data.ticket_status;
                 }
                 document.querySelectorAll('.status-changer-bar .status-btn').forEach(btn => {
                     btn.classList.remove('active');
-                    if (btn.getAttribute('onclick').includes('closed')) btn.classList.add('active');
+                    const onclickVal = btn.getAttribute('onclick') || '';
+                    if (onclickVal.includes(`'${data.ticket_status}'`)) {
+                        btn.classList.add('active');
+                    }
                 });
+                const dropdown = document.getElementById('quick-status-dropdown');
+                if (dropdown) dropdown.value = data.ticket_status;
             }
 
             const notice = data.is_internal ? 'تم حفظ الملاحظة الداخلية بنجاح.' : (data.email_sent ? 'تم إرسال الرد وإشعار العميل عبر Brevo بنجاح.' : 'تم إرسال الرد بنجاح.');
@@ -1341,6 +1422,8 @@ function appendMessageToStream(data) {
         ? '<span class="badge bg-warning text-dark font-weight-bold"><i class="fas fa-lock"></i> ملاحظة داخلية (فريق الدعم فقط)</span>'
         : '<span class="badge bg-primary"><i class="fas fa-headset"></i> فريق الدعم الفني</span>';
 
+    const messageHtml = data.message ? `<div class="bubble-text">${escapeHtml(data.message)}</div>` : '';
+
     row.innerHTML = `
         <div class="chat-bubble">
             <div class="bubble-meta">
@@ -1350,7 +1433,7 @@ function appendMessageToStream(data) {
                 </span>
                 <span>${data.created_at}</span>
             </div>
-            <div class="bubble-text">${escapeHtml(data.message)}</div>
+            ${messageHtml}
             ${attachmentsHtml}
             <div class="bubble-footer">
                 <span>معرّف الرسالة: #${data.message_id}</span>

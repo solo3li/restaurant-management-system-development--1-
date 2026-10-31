@@ -1110,6 +1110,76 @@ class BrevoAndSupportTicketsTestSuite(TestCase):
         self.assertIn("إرسال إشعار بريدي عبر", content)
         self.assertIn("ملاحظة داخلية", content)
         self.assertIn("إرسال وإغلاق التذكرة", content)
+        self.assertIn("quick-status-dropdown", content)
+
+    # =========================================================================
+    # SUITE 20: Admin Live Chat Edge Cases & Method Guards
+    # =========================================================================
+    @patch("apps.communication.brevo_service.requests.post")
+    def test_admin_ticket_reply_attachment_only_fallback_and_guards(self, mock_post):
+        """Verifies attachment-only admin reply sets proper Arabic fallback message and HTTP 405 guards."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 201
+        mock_resp.json.return_value = {"messageId": "<brevo-fallback-test@smtp.brevo.com>"}
+        mock_post.return_value = mock_resp
+
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-FALLBACK1",
+            creator=self.owner1,
+            subject="استفسار عن مرفق الرد",
+            description="طلب توضيح",
+            status="open"
+        )
+
+        self.client.force_login(self.superadmin)
+
+        # 1. Reply with file ONLY (empty message text)
+        pdf_file = SimpleUploadedFile("guide.pdf", b"%PDF-1.4fakecontent", content_type="application/pdf")
+        reply_resp = self.client.post(
+            reverse("api_admin_ticket_reply", args=[ticket.id]),
+            data={
+                "message": "",
+                "notify_customer": "true",
+                "attachments": [pdf_file]
+            }
+        )
+        self.assertEqual(reply_resp.status_code, 200)
+        data = reply_resp.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["message"], "📎 مرفقات من فريق الدعم الفني")
+        self.assertEqual(data["ticket_status"], "in_progress")
+        self.assertEqual(len(data["attachments"]), 1)
+        self.assertEqual(data["attachments"][0]["file_name"], "guide.pdf")
+
+        # Verify Brevo notification body contains the fallback message
+        self.assertTrue(mock_post.called)
+        sent_html = mock_post.call_args[1]["json"]["htmlContent"]
+        self.assertIn("📎 مرفقات من فريق الدعم الفني", sent_html)
+
+        # 2. HTTP GET on api_admin_ticket_reply strictly returns 405 Method Not Allowed JSON
+        get_reply_resp = self.client.get(reverse("api_admin_ticket_reply", args=[ticket.id]))
+        self.assertEqual(get_reply_resp.status_code, 405)
+        self.assertEqual(get_reply_resp.json()["status"], "error")
+
+        # 3. HTTP GET on api_admin_delete_message strictly returns 405 Method Not Allowed JSON
+        msg_id = data["message_id"]
+        get_del_resp = self.client.get(reverse("api_admin_delete_message", args=[msg_id]))
+        self.assertEqual(get_del_resp.status_code, 405)
+        self.assertEqual(get_del_resp.json()["status"], "error")
+
+        # 4. Deletion of non-existent message returns 404
+        non_existent_del = self.client.post(reverse("api_admin_delete_message", args=[9999999]))
+        self.assertEqual(non_existent_del.status_code, 404)
+
+        # 5. Status update with invalid status returns 400
+        invalid_status_resp = self.client.post(
+            reverse("api_ticket_update_status", args=[ticket.id]),
+            data=json.dumps({"status": "invalid_status_xyz"}),
+            content_type="application/json"
+        )
+        self.assertEqual(invalid_status_resp.status_code, 400)
+
 
 
 

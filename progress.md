@@ -53,11 +53,17 @@
     - Enhanced `api_ticket_update_status` and `api_ticket_reply` with `request.user.is_staff` authorization.
     - Filtered out internal notes from customer-facing `support_ticket_detail_view` for non-staff users.
     - Configured `change_form_template` and `changeform_view` context in `SupportTicketAdmin` (`apps/support/admin.py`).
-  - **3. Verification & Server Reload**:
-    - Added 5 new automated test suites (Suites 15–19) in `test_support_and_brevo.py`.
-    - Ran `test_support_and_brevo.py` (24/24 PASS 100%).
-    - Ran `./init.sh` across all 11 test suites (100% PASS).
-    - Reloaded and verified live `motaem_web` container serving HTTPS requests.
+  - **3. Verification, Adversarial Hardening & Server Reload**:
+    - Performed adversarial review identifying 4 critical defects:
+      1. UI Status Desync: Admin reply to an `open` ticket moved ticket status to `in_progress` in backend, but frontend only checked for `closed`, leaving badge and buttons desynced.
+      2. Attachment-only Replies: Sending files without message text created blank `TicketMessage` records and empty Brevo notification bodies.
+      3. Modal Lifecycle & Backdrop Leaks: Modal creation using `new bootstrap.Modal` caused duplicate backdrop elements blocking the UI.
+      4. Method Guards & Transactions: Non-POST requests returned plain HTML 400 instead of JSON 405, and DB writes lacked atomic transactions.
+    - Added Arabic fallback message (`📎 مرفقات من فريق الدعم الفني`), wrapped DB operations in `transaction.atomic()`, enforced HTTP 405 JSON responses, added safe `getOrCreateInstance` modal lifecycle with backdrop cleanup, and added responsive quick status dropdown.
+    - Added automated Suite 20 in `test_support_and_brevo.py` (25/25 tests pass 100%).
+    - Ran `./init.sh` across all 11 suites (100% PASS).
+    - Rebuilt AST graph with `graphify update .`.
+    - Reloaded and verified live `motaem_web` container serving HTTPS requests (HTTP/2 200 OK).
 
 - [x] **Brevo Transactional Email Provider & 6-Character Alphanumeric Password Reset (`feat-brevo-email-verification`)**
   - **1. Singleton Configuration & Brevo Service (`apps/communication/`)**:

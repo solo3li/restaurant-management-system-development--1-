@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbid
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Q
+from django.db import transaction
 
 from apps.tenants.helpers import get_active_tenant
 from apps.accounts.helpers import user_has_perm
@@ -255,6 +256,8 @@ def api_ticket_reply(request, ticket_id):
 
     if not message_text and audio_note:
         message_text = "🎙️ تسجيل صوتي مرسل"
+    elif not message_text and uploaded_files:
+        message_text = "📎 مرفقات مرسلة"
 
     msg = TicketMessage.objects.create(
         ticket=ticket,
@@ -384,7 +387,7 @@ def api_admin_ticket_reply(request, ticket_id):
     - Returns JSON response with serialized message and attachments for live DOM injection.
     """
     if request.method != "POST":
-        return HttpResponseBadRequest("Only POST method allowed.")
+        return JsonResponse({"status": "error", "message": "Only POST method allowed."}, status=405)
 
     is_staff_admin = (
         request.user.is_staff
@@ -432,79 +435,82 @@ def api_admin_ticket_reply(request, ticket_id):
 
     if not message_text and audio_note:
         message_text = "🎙️ تسجيل صوتي من فريق الدعم"
+    elif not message_text and uploaded_files:
+        message_text = "📎 مرفقات من فريق الدعم الفني"
 
-    msg = TicketMessage.objects.create(
-        ticket=ticket,
-        sender=request.user,
-        sender_type="support",
-        is_internal=is_internal,
-        message=message_text,
-    )
-
-    created_attachments = []
-    # Save attachments
-    for f in uploaded_files:
-        ftype = TicketAttachment.detect_file_type(f.name, getattr(f, "content_type", ""))
-        att = TicketAttachment.objects.create(
+    with transaction.atomic():
+        msg = TicketMessage.objects.create(
             ticket=ticket,
-            message=msg,
-            file=f,
-            file_type=ftype,
-            file_name=f.name,
-            file_size=f.size,
+            sender=request.user,
+            sender_type="support",
+            is_internal=is_internal,
+            message=message_text,
         )
-        created_attachments.append({
-            "id": att.id,
-            "file_name": att.file_name,
-            "file_type": att.file_type,
-            "file_size": att.formatted_size,
-            "url": att.file.url,
-        })
 
-    # Save audio note if present
-    if audio_note:
-        raw_duration = post_data.get("audio_duration", "0")
-        try:
-            duration_sec = int(float(raw_duration))
-        except Exception:
-            duration_sec = 0
+        created_attachments = []
+        # Save attachments
+        for f in uploaded_files:
+            ftype = TicketAttachment.detect_file_type(f.name, getattr(f, "content_type", ""))
+            att = TicketAttachment.objects.create(
+                ticket=ticket,
+                message=msg,
+                file=f,
+                file_type=ftype,
+                file_name=f.name,
+                file_size=f.size,
+            )
+            created_attachments.append({
+                "id": att.id,
+                "file_name": att.file_name,
+                "file_type": att.file_type,
+                "file_size": att.formatted_size,
+                "url": att.file.url,
+            })
 
-        att = TicketAttachment.objects.create(
-            ticket=ticket,
-            message=msg,
-            file=audio_note,
-            file_type="audio",
-            file_name=audio_note.name or "voice_reply.webm",
-            file_size=audio_note.size,
-            duration_seconds=duration_sec,
-        )
-        created_attachments.append({
-            "id": att.id,
-            "file_name": att.file_name,
-            "file_type": att.file_type,
-            "file_size": att.formatted_size,
-            "url": att.file.url,
-            "duration_seconds": duration_sec,
-        })
+        # Save audio note if present
+        if audio_note:
+            raw_duration = post_data.get("audio_duration", "0")
+            try:
+                duration_sec = int(float(raw_duration))
+            except Exception:
+                duration_sec = 0
 
-    # Status transitions
-    if close_ticket:
-        ticket.status = "closed"
-        ticket.closed_at = timezone.now()
-    elif new_status in [s[0] for s in SupportTicket.STATUS_CHOICES]:
-        ticket.status = new_status
-        if new_status == "resolved":
-            ticket.resolved_at = timezone.now()
-        elif new_status == "closed":
+            att = TicketAttachment.objects.create(
+                ticket=ticket,
+                message=msg,
+                file=audio_note,
+                file_type="audio",
+                file_name=audio_note.name or "voice_reply.webm",
+                file_size=audio_note.size,
+                duration_seconds=duration_sec,
+            )
+            created_attachments.append({
+                "id": att.id,
+                "file_name": att.file_name,
+                "file_type": att.file_type,
+                "file_size": att.formatted_size,
+                "url": att.file.url,
+                "duration_seconds": duration_sec,
+            })
+
+        # Status transitions
+        if close_ticket:
+            ticket.status = "closed"
             ticket.closed_at = timezone.now()
-        elif new_status in ("open", "in_progress"):
-            ticket.resolved_at = None
-            ticket.closed_at = None
-    elif ticket.status == "open":
-        ticket.status = "in_progress"
+        elif new_status in [s[0] for s in SupportTicket.STATUS_CHOICES]:
+            ticket.status = new_status
+            if new_status == "resolved":
+                ticket.resolved_at = timezone.now()
+            elif new_status == "closed":
+                ticket.closed_at = timezone.now()
+            elif new_status in ("open", "in_progress"):
+                ticket.resolved_at = None
+                ticket.closed_at = None
+        elif ticket.status == "open":
+            ticket.status = "in_progress"
 
-    ticket.updated_at = timezone.now()
-    ticket.save()
+        ticket.updated_at = timezone.now()
+        ticket.save()
 
     # Brevo notification
     email_sent = False
@@ -540,7 +546,7 @@ def api_admin_delete_message(request, message_id):
     - Deletes TicketMessage record.
     """
     if request.method != "POST":
-        return HttpResponseBadRequest("Only POST method allowed.")
+        return JsonResponse({"status": "error", "message": "Only POST method allowed."}, status=405)
 
     is_staff_admin = (
         request.user.is_staff
@@ -553,20 +559,21 @@ def api_admin_delete_message(request, message_id):
     msg = get_object_or_404(TicketMessage, pk=message_id)
     ticket = msg.ticket
 
-    # Delete physical media files associated with this message
-    for att in msg.attachments.all():
-        try:
-            if att.file:
-                att.file.delete(save=False)
-        except Exception as ex:
-            logger.warning(f"Could not delete physical attachment file {att.id}: {ex}")
-        att.delete()
+    with transaction.atomic():
+        # Delete physical media files associated with this message
+        for att in msg.attachments.all():
+            try:
+                if att.file:
+                    att.file.delete(save=False)
+            except Exception as ex:
+                logger.warning(f"Could not delete physical attachment file {att.id}: {ex}")
+            att.delete()
 
-    msg_id = msg.id
-    msg.delete()
+        msg_id = msg.id
+        msg.delete()
 
-    ticket.updated_at = timezone.now()
-    ticket.save(update_fields=["updated_at"])
+        ticket.updated_at = timezone.now()
+        ticket.save(update_fields=["updated_at"])
 
     return JsonResponse({
         "status": "success",
