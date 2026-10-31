@@ -1,7 +1,7 @@
 # Graph Report - motaem  (2026-10-31)
 
 ## Corpus Check
-- 503 files · ~1,535,886 words
+- 503 files · ~1,536,127 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 102 file(s) not represented in the graph (top: .css 48, .map 31, (none) 5)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cbc9e93a`
+- Built from commit: `be9c3f24`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1538,7 +1538,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `xregexp.js` be split into smaller, more focused modules?**
   _Cohesion score 0.012048192771084338 - nodes in this community are weakly interconnected._
 - **Why does `tr()` connect `modern-screenshot.umd.js` to `PlatformVoiceAssistantConfig`?**
-  _High betweenness centrality (0.227) - this node is a cross-community bridge._
+  _High betweenness centrality (0.226) - this node is a cross-community bridge._
 - **Are the 8 inferred relationships involving `user_has_perm()` (e.g. with `2.2 Permissions Engine & Native Django Integration` and `3.2 Test Suites Breakdown`) actually correct?**
   _`user_has_perm()` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **Should `live-browser.js` be split into smaller, more focused modules?**

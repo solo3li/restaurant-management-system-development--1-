@@ -144,6 +144,23 @@
     - `./init.sh`: 100% full repo verification PASS.
     - `graphify update .`: AST update complete (8,954 nodes, 19,184 edges, 473 communities).
 
+- [x] **Embedded Suite & Voice AI Runtime Stability: Fix Console Errors, 401s, Centrifugo Null Pointer, and Chatwoot 429 (`fix-embed-suite-runtime-console-errors`)**
+  - **1. Duplicate JS Declaration Fix**:
+    - Removed duplicate `let currentCategory = 'all';` declaration at line 632 in `templates/call_center.html`.
+  - **2. Chatwoot SSO 429 Rate-Limiting Fix**:
+    - Added Rack::Attack safelist in `/root/omnichannel-stack/patches/limits_patch.rb` exempting SSO sign-in requests (`/auth/sign_in` with `sso_auth_token`).
+    - Purged rate-limiting cache in `omni_redis` and restarted `omni_chatwoot_rails` (HTTP 200 OK verified).
+  - **3. Centrifugo / LiveKit Null Pointer Crash Fix**:
+    - Added safe DOM null guards (`if (cfStatusBadge)`, `if (lkStatusBadge)`) in `/root/voice-ai-telephony/test-calll-ai/django_app/voice_assistant/templates/voice_assistant/room.html` lines 4158-4168, 4194, and 4251, preventing disconnects when badges are omitted in embed mode.
+  - **4. Upstream API 401 & HTML-Instead-of-JSON Resolution**:
+    - In `voice_assistant/views.py`, updated `embed_call_center_view` and `embed_chat_hub_view` to log in the resolved user session (`login(request, user)`), saving `embed_token` and `embed_client_id` in session and context.
+    - Updated `config/token_auth_middleware.py`: authenticates session/bearer tokens and ensures `/api/` endpoints return JSON 401 instead of 302 HTML login redirects.
+    - In `django_app/static/js/common.js` and `django_app/staticfiles/js/common.js`, installed global fetch interceptor that automatically attaches `token`, `client_id`, `Authorization: Bearer <token>`, and `X-Client-ID` to all internal `/api/` fetch calls.
+    - Updated `call_center/views.py` (`api_list_employees`, `list_call_queues`) to support embed token authentication and ignore JWT format check on live API keys.
+    - Verified all 12 upstream endpoints (`employees`, `queues`, `customers`, `campaigns`, `mcp`, `documents`, `profiles`, `gateways`, `trunk`, `pbx-trunks`, `business-hours`, `calls`) return HTTP 200 JSON.
+  - **5. Motaem Verification**:
+    - Ran `./init.sh` passing 100% (Django check, RBAC suite, multilingual tests, persona sync, embedded suite, telephony suite).
+
 - [x] **Landing Voice Assistant Persona Studio, Audio Recording Player & Custom Redis Live Memory (`feat-landing-assistant-studio-audio-custom-redis`)**
   - **Tab 6: Blank/Clean Default Memory & Free Manual Live Context Editor**:
     - Removed hardcoded static text ("منظومة كُـورَا...") from `build_landing_assistant_live_context` and `get_landing_assistant_redis_status`.
