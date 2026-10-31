@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "صندوق محادثات الواتساب (Chat Hub)"|t }} — {{ tenant.name }}{% endblock %}
+
+{% block content %}
+{% include "ai_callcenter/_nav_tabs.html" %}
+
+<div class="space-y-3 font-sans pb-8" dir="{{ DIR|default:'rtl' }}">
+    <!-- Top Command Toolbar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 bg-white rounded-xl border border-slate-200/70 p-3 shadow-xs">
+        <div class="flex items-center gap-3">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 shadow-xs">
+                <svg class="w-6 h-6 fill-[#25D366]" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.101-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.201-.3.301-.501.101-.2.051-.376-.025-.527-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519-.176-.01-.376-.01-.577-.01-.201 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.229 3.111c.15.201 2.123 3.242 5.143 4.547.718.311 1.279.497 1.716.636.721.23 1.377.198 1.896.12.578-.088 1.78-.727 2.031-1.429.251-.702.251-1.304.176-1.429-.076-.125-.276-.201-.577-.351z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.98-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.167c-1.57 0-3.04-.45-4.29-1.233l-.307-.19-2.96.831.849-2.883-.2-.317A8.13 8.13 0 013.833 12c0-4.502 3.665-8.167 8.167-8.167s8.167 3.665 8.167 8.167-3.665 8.167-8.167 8.167z"/>
+                </svg>
+            </span>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                        {{ "صندوق محادثات الواتساب (Chat Hub)"|t }}
+                    </h1>
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        {{ "متصل بخادم المحادثات"|t }}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    {{ "إدارة الرسائل الفورية ومحادثات العملاء عبر الواتساب في نافذة مخصصة"|t }}
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Multi-tenant isolated client badge -->
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-xs text-slate-600 font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>{{ "العميل المعزول"|t }}:</span>
+                <strong class="text-slate-900 font-mono">#{{ partner_client_id|default:49 }}</strong>
+            </span>
+
+            <!-- Reload Iframe Button -->
+            <button 
+                type="button" 
+                onclick="reloadStandaloneChatHub()" 
+                id="btn-reload-chathub"
+                class="px-2.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                title="{{ "إعادة تحميل الصندوق"|t }}"
+            >
+                <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>{{ "إعادة تحميل الصندوق"|t }}</span>
+            </button>
+
+            <!-- Open in Full Window -->
+            <a 
+                href="{% if chathub_embed_url %}{{ chathub_embed_url }}{% else %}https://app.169.58.32.179.nip.io/embed/chat-hub/?token={{ partner_embed_token|default:'sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA' }}&locale={{ embed_locale|default:'ar' }}&client_id={{ partner_client_id|default:49 }}{% endif %}" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="px-2.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                title="{{ "فتح في نافذة كاملة منفصلة"|t }}"
+            >
+                <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span class="hidden sm:inline">{{ "نافذة كاملة"|t }}</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Responsive Standalone WhatsApp Chat Hub Iframe Container -->
+    <div class="relative w-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs min-h-[750px]">
+        <iframe 
+            id="standalone-chathub-iframe"
+            src="{% if chathub_embed_url %}{{ chathub_embed_url }}{% else %}https://app.169.58.32.179.nip.io/embed/chat-hub/?token={{ partner_embed_token|default:'sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA' }}&locale={{ embed_locale|default:request.LANGUAGE_CODE|default:'ar' }}&client_id={{ partner_client_id|default:49 }}{% endif %}" 
+            width="100%" 
+            height="750" 
+            frameborder="0" 
+            allow="camera; microphone; clipboard-read; clipboard-write;" 
+            style="border-radius: 16px; border: 1px solid #e2e8f0; width: 100%; min-height: 750px;"
+            class="w-full min-h-[750px] border-0 rounded-2xl"
+        ></iframe>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function reloadStandaloneChatHub() {
+        const frame = document.getElementById('standalone-chathub-iframe');
+        if (frame) {
+            const originalSrc = frame.src;
+            frame.src = 'about:blank';
+            setTimeout(() => { frame.src = originalSrc; }, 100);
+        }
+    }
+
+    function adjustChatHubHeight() {
+        const frame = document.getElementById('standalone-chathub-iframe');
+        if (!frame) return;
+        const availableHeight = window.innerHeight - 200;
+        const targetHeight = Math.max(720, availableHeight);
+        frame.style.height = targetHeight + 'px';
+        frame.style.minHeight = targetHeight + 'px';
+        if (frame.parentElement) {
+            frame.parentElement.style.minHeight = targetHeight + 'px';
+        }
+    }
+
+    window.addEventListener('resize', adjustChatHubHeight);
+    document.addEventListener('DOMContentLoaded', adjustChatHubHeight);
+    adjustChatHubHeight();
+</script>
+{% endblock %}

@@ -328,6 +328,7 @@ def i18n_context(request):
         "nav_kitchen": pick_lang("شاشات المطبخ (KDS)", "Kitchen Displays (KDS)", "Écrans de cuisine (KDS)", "Mutfak Ekranları (KDS)", "Küchenanzeigen (KDS)"),
         "nav_ai_callcenter": pick_lang("كول سنتر الذكاء الاصطناعي", "AI Call Center", "Centre d'appels IA", "Yapay Zeka Çağrı Merkezi", "KI-Call-Center"),
         "nav_callcenter_live": pick_lang("مركز الاتصالات المباشر", "Live Call Center", "Centre d'appels en direct", "Canlı Çağrı Merkezi", "Live-Call-Center"),
+        "nav_whatsapp_chathub": pick_lang("صندوق محادثات الواتساب", "WhatsApp Chat Hub", "Hub de discussion WhatsApp", "WhatsApp Sohbet Merkezi", "WhatsApp-Chat-Hub"),
         "nav_callcenter_mgmt": pick_lang("إعدادات المساعد الصوتي", "AI Voice Assistant Settings", "Paramètres de l'assistant vocal IA", "Yapay Zeka Sesli Asistan Ayarları", "KI-Sprachassistent-Einstellungen"),
         "nav_callcenter_overview": pick_lang("نظرة عامة وإحصائيات", "Overview & Stats", "Aperçu et statistiques", "Genel Bakış ve İstatistikler", "Übersicht & Statistiken"),
         "nav_callcenter_persona": pick_lang("شخصية المساعد واللهجة", "Persona & Voice", "Personnalité et voix", "Kişilik ve Ses", "Persönlichkeit & Stimme"),

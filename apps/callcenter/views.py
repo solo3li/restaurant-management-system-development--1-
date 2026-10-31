@@ -34,7 +34,7 @@ from apps.accounts.models import Employee
 
 logger = logging.getLogger(__name__)
 
-def call_center_view(request):
+def call_center_view(request, tab=None):
     tenant = get_active_tenant(request)
     if tenant and not tenant.has_feature("call_center"):
         return HttpResponseForbidden("ميزة الكول سنتر غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
@@ -42,11 +42,18 @@ def call_center_view(request):
     if not user_has_perm(request.user, "call_center_access"):
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى الكول سنتر")
 
-    lang = getattr(request, "LANGUAGE_CODE", None) or translation.get_language() or "ar"
-    if "-" in lang:
-        lang = lang.split("-")[0]
-    if lang not in ["ar", "en"]:
-        lang = "ar"
+    raw_lang = (
+        request.GET.get("lang")
+        or getattr(request, "LANGUAGE_CODE", None)
+        or (request.session.get("django_language") if hasattr(request, "session") else None)
+        or translation.get_language()
+        or "ar"
+    )
+    embed_locale = str(raw_lang).split("-")[0].lower() if "-" in str(raw_lang) else str(raw_lang).lower()
+    if embed_locale not in ["ar", "en", "fr", "tr", "de"]:
+        embed_locale = "ar"
+
+    lang = embed_locale if embed_locale in ["ar", "en"] else "ar"
 
     branches = Branch.objects.filter(tenant=tenant, status="active").prefetch_related("delivery_areas").order_by("name")
     recent_orders = Order.objects.filter(tenant=tenant, channel="call_center").order_by("-id")[:10] if tenant else []
@@ -188,6 +195,18 @@ def call_center_view(request):
 
     currency_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
 
+    from core import partner_service as ps
+    embed_info = ps.get_embed_urls_for_tenant(tenant, locale=embed_locale)
+
+    active_tab = tab or request.GET.get("tab") or "pos"
+    active_tab = str(active_tab).strip().lower()
+    if active_tab in ["callcenter", "call-center", "ai-callcenter"]:
+        active_tab = "call-center"
+    elif active_tab in ["chathub", "chat-hub", "whatsapp"]:
+        active_tab = "chat-hub"
+    else:
+        active_tab = "pos"
+
     context = {
         "tenant": tenant,
         "branches": branches,
@@ -197,8 +216,61 @@ def call_center_view(request):
         "recent_orders": recent_orders,
         "tenant_currency_symbol": currency_sym,
         "branch_currency_symbol": currency_sym,
+        "active_tab": active_tab,
+        "callcenter_embed_url": embed_info["call_center_url"],
+        "chathub_embed_url": embed_info["chat_hub_url"],
+        "partner_client_id": embed_info["client_id"],
+        "embed_locale": embed_info["locale"],
+        "partner_embed_token": embed_info["token"],
     }
     return render(request, "call_center.html", context)
+
+
+@login_required
+def chat_hub_page_view(request):
+    """
+    Dedicated Standalone Page: Upstream WhatsApp Chat Hub Embedded Suite.
+    Renders responsive, full-width WhatsApp Chat Hub iframe with tenant client_id,
+    dynamic locale propagation across 5 languages, reload and external window controls.
+    """
+    tenant = get_active_tenant(request)
+    if not tenant:
+        tenant = _resolve_callcenter_tenant(request)
+    if not tenant:
+        return HttpResponseBadRequest("لم يتم العثور على منشأة نشطة مرتبطة بحسابك")
+
+    if not tenant.has_feature("call_center"):
+        return HttpResponseForbidden("ميزة الكول سنتر والواتساب غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
+
+    profile = getattr(request.user, "profile", None)
+    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    has_perm = user_has_perm(request.user, "call_center_access") or user_has_perm(request.user, "call_center_manage_ai")
+    if not is_owner and not has_perm:
+        return HttpResponseForbidden("غير مصرح لك بالوصول إلى صندوق محادثات الواتساب")
+
+    raw_lang = (
+        request.GET.get("lang")
+        or getattr(request, "LANGUAGE_CODE", None)
+        or (request.session.get("django_language") if hasattr(request, "session") else None)
+        or translation.get_language()
+        or "ar"
+    )
+    embed_locale = str(raw_lang).split("-")[0].lower() if "-" in str(raw_lang) else str(raw_lang).lower()
+    if embed_locale not in ["ar", "en", "fr", "tr", "de"]:
+        embed_locale = "ar"
+
+    from core import partner_service as ps
+    embed_info = ps.get_embed_urls_for_tenant(tenant, locale=embed_locale)
+
+    context = {
+        "tenant": tenant,
+        "chathub_embed_url": embed_info["chat_hub_url"],
+        "callcenter_embed_url": embed_info["call_center_url"],
+        "partner_client_id": embed_info["client_id"],
+        "embed_locale": embed_info["locale"],
+        "partner_embed_token": embed_info["token"],
+    }
+    return render(request, "ai_callcenter/chat_hub_page.html", context)
 
 
 
@@ -376,9 +448,16 @@ def _validate_callcenter_page_access(request):
 
 def _get_callcenter_client_info(tenant):
     from core import partner_service as ps
-    reg_info = ps.ensure_tenant_registered(tenant, password=tenant.voice_password or "Diyafa@2026!")
-    client_id = reg_info.get("client_id") or ps.get_client_id_for_tenant(tenant)
-    return client_id, reg_info
+    try:
+        reg_info = ps.ensure_tenant_registered(tenant, password=tenant.voice_password or "Diyafa@2026!")
+        client_id = reg_info.get("client_id") if isinstance(reg_info, dict) else None
+        if not client_id:
+            client_id = ps.get_client_id_for_tenant(tenant)
+        return client_id, reg_info
+    except Exception as e:
+        logger.warning(f"Could not register or resolve partner client_id for tenant {getattr(tenant, 'name', '')}: {e}")
+        cid = getattr(tenant, "voice_client_id", None) or 49
+        return cid, {"client_id": cid}
 
 
 def _norm_phone(p):
@@ -391,13 +470,26 @@ def _norm_phone(p):
 
 def _fetch_enriched_calls(tenant, client_id):
     from core import partner_service as ps
-    calls_resp = ps.get_calls(client_id)
-    calls_data = calls_resp.get("calls") or []
+    calls_data = []
+    try:
+        calls_resp = ps.get_calls(client_id)
+        if isinstance(calls_resp, dict):
+            calls_data = calls_resp.get("calls") or []
+        elif isinstance(calls_resp, list):
+            calls_data = calls_resp
+    except Exception as e:
+        logger.warning(f"Error fetching calls for client {client_id}: {e}")
 
     # Fallback to demo calls (user 49) if current tenant has no call sessions yet
-    if not calls_data:
-        demo_resp = ps.get_calls(49)
-        calls_data = demo_resp.get("calls") or []
+    if not calls_data and client_id != 49:
+        try:
+            demo_resp = ps.get_calls(49)
+            if isinstance(demo_resp, dict):
+                calls_data = demo_resp.get("calls") or []
+            elif isinstance(demo_resp, list):
+                calls_data = demo_resp
+        except Exception as e:
+            logger.warning(f"Error fetching demo calls for client 49: {e}")
 
     tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
 
@@ -486,32 +578,64 @@ def ai_callcenter_overview_view(request):
         return err_resp
 
     from core import partner_service as ps
-    client_id, _ = _get_callcenter_client_info(tenant)
+    try:
+        client_id, _ = _get_callcenter_client_info(tenant)
+    except Exception as e:
+        logger.warning(f"Could not resolve callcenter client info: {e}")
+        client_id = getattr(tenant, "voice_client_id", None) or 49
 
-    calls_data, total_calls_count, orders_converted_count, inquiries_count = _fetch_enriched_calls(tenant, client_id)
+    try:
+        calls_data, total_calls_count, orders_converted_count, inquiries_count = _fetch_enriched_calls(tenant, client_id)
+    except Exception as e:
+        logger.warning(f"Could not fetch enriched calls: {e}")
+        calls_data, total_calls_count, orders_converted_count, inquiries_count = [], 0, 0, 0
 
     tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
     call_orders = [o for o in tenant_orders if o.channel == "call_center"][:15]
     total_ai_orders = Order.objects.filter(tenant=tenant, channel="call_center").count()
     total_ai_revenue = Order.objects.filter(tenant=tenant, channel="call_center").aggregate(Sum("total"))["total__sum"] or Decimal("0.00")
 
-    telephony_resp = ps.get_telephony_numbers(client_id)
-    raw_nums = telephony_resp if isinstance(telephony_resp, list) else (telephony_resp.get("numbers") or [])
     primary_did = ""
-    if raw_nums and len(raw_nums) > 0:
-        first_num = raw_nums[0]
-        if isinstance(first_num, dict):
-            primary_did = first_num.get("phone_number") or first_num.get("number") or first_num.get("did") or ""
-        elif isinstance(first_num, str):
-            primary_did = first_num
+    try:
+        telephony_resp = ps.get_telephony_numbers(client_id)
+        raw_nums = telephony_resp if isinstance(telephony_resp, list) else (telephony_resp.get("numbers") if isinstance(telephony_resp, dict) else [])
+        if raw_nums and len(raw_nums) > 0:
+            first_num = raw_nums[0]
+            if isinstance(first_num, dict):
+                primary_did = first_num.get("phone_number") or first_num.get("number") or first_num.get("did") or ""
+            elif isinstance(first_num, str):
+                primary_did = first_num
+    except Exception as e:
+        logger.warning(f"Could not get telephony numbers: {e}")
+
     if not primary_did:
         primary_did = "لا يوجد خط هاتف مخصص بعد"
 
-    usage_info = ps.get_client_usage(client_id).get("client") or {}
-    plan_caps = ps.get_plan_voice_caps(tenant)
+    usage_info = {}
+    try:
+        u_resp = ps.get_client_usage(client_id)
+        if isinstance(u_resp, dict):
+            usage_info = u_resp.get("client") or {}
+    except Exception as e:
+        logger.warning(f"Could not get client usage: {e}")
+
+    try:
+        plan_caps = ps.get_plan_voice_caps(tenant)
+    except Exception as e:
+        logger.warning(f"Could not get plan voice caps: {e}")
+        plan_caps = {"minute_cap": 150, "spending_cap": 15.0}
+
+    profile_data = {}
+    try:
+        prof_resp = ps.get_profile(client_id)
+        if isinstance(prof_resp, dict):
+            profile_data = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
+    except Exception as e:
+        logger.warning(f"Could not get voice profile in overview: {e}")
 
     context = {
         "tenant": tenant,
+        "profile": profile_data,
         "calls": calls_data[:10],
         "total_calls_count": total_calls_count,
         "orders_converted_count": orders_converted_count,
@@ -826,6 +950,18 @@ def ai_callcenter_omnichannel_view(request):
     sip_resp = ps.get_telephony_trunks(client_id)
     sip_trunks = (sip_resp.get("outbound_trunks", []) + sip_resp.get("inbound_trunks", [])) if isinstance(sip_resp, dict) else []
 
+    raw_lang = (
+        request.GET.get("lang")
+        or getattr(request, "LANGUAGE_CODE", None)
+        or (request.session.get("django_language") if hasattr(request, "session") else None)
+        or translation.get_language()
+        or "ar"
+    )
+    embed_locale = str(raw_lang).split("-")[0].lower() if "-" in str(raw_lang) else str(raw_lang).lower()
+    if embed_locale not in ["ar", "en", "fr", "tr", "de"]:
+        embed_locale = "ar"
+    embed_info = ps.get_embed_urls_for_tenant(tenant, locale=embed_locale)
+
     context = {
         "tenant": tenant,
         "did_number": primary_did,
@@ -833,6 +969,10 @@ def ai_callcenter_omnichannel_view(request):
         "did_numbers": raw_nums,
         "pbx_trunks": pbx_trunks,
         "sip_trunks": sip_trunks,
+        "chathub_embed_url": embed_info["chat_hub_url"],
+        "callcenter_embed_url": embed_info["call_center_url"],
+        "partner_client_id": embed_info["client_id"],
+        "embed_locale": embed_info["locale"],
     }
     return render(request, "ai_callcenter/omnichannel.html", context)
 

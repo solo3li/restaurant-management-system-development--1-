@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-10-27 14:40
-**Session ID:** Landing Visitor Voice Customization & Admin Telephony Client Lock
+**Last Updated:** 2026-10-31 08:15
+**Session ID:** Upstream AI Call Center & WhatsApp Chat Hub Embedded Suites Integration
 **Active Features:** 
 - `feat-https-canonical-domain-redirect` (Completed)
 - `feat-landing-webrtc-voice-demo` (Completed)
@@ -27,10 +27,89 @@
 - `feat-landing-voice-customization-and-lock` (Completed & Verified 100%)
 - `feat-landing-assistant-studio-audio-custom-redis` (Completed & Verified 100%)
 - `feat-live-webrtc-studio-11lang-30voices` (Completed & Verified 100%)
+- `feat-embed-callcenter-and-chathub` (Completed & Verified 100%)
+- `feat-standalone-chathub-page-and-overview-fix` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
+
+- [x] **Standalone WhatsApp Chat Hub Page, Main Sidebar Integration & Call Center Overview 500 Fix (`feat-standalone-chathub-page-and-overview-fix`)**
+  - **1. Diagnosis & Fix of 500 Error on `/ai-callcenter/overview/`**:
+    - Identified root cause in `docker logs motaem_web`: `django.urls.exceptions.NoReverseMatch: Reverse for 'call_center_embedded' not found` due to container running stale pre-migration in-memory urlconf without restart, coupled with unprotected external partner service calls.
+    - Hardened `apps/callcenter/views.py`:
+      - `_get_callcenter_client_info(tenant)`: wrapped in `try...except` with automatic fallback to `tenant.voice_client_id or 49`, preventing unhandled partner API connection exceptions.
+      - `_fetch_enriched_calls(tenant, client_id)`: wrapped call retrieval and duration parsing in `try...except`, ensuring graceful fallback if partner calls endpoint fails or returns non-dict payloads.
+      - `ai_callcenter_overview_view(request)`: wrapped partner service calls (`get_telephony_numbers`, `get_client_usage`, `get_plan_voice_caps`, `get_profile`) in comprehensive exception handlers with safe defaults.
+      - Added `"profile": profile_data` into template context to fulfill persona/voice details rendered in `overview.html`.
+  - **2. Dedicated Standalone WhatsApp Chat Hub Page (`/chat-hub/` & `/whatsapp/`)**:
+    - Implemented `chat_hub_page_view(request)` in `apps/callcenter/views.py` and exposed in `core/views.py`.
+    - Enforced multi-tenant RBAC: requires active tenant with `call_center` plan feature and owner status or `call_center_access` / `call_center_manage_ai` permissions.
+    - Dynamically resolves authenticated upstream URL via `partner_service.get_embed_urls_for_tenant` with isolated sub-client ID (`&client_id=...`) and 5-language normalized locale (`&locale=...`).
+    - Added routes `chat_hub_page` (`/chat-hub/`) and `whatsapp_page` (`/whatsapp/`) in `apps/callcenter/urls.py` and `core/urls.py`.
+    - Created dedicated template `templates/ai_callcenter/chat_hub_page.html`:
+      - Top command toolbar with WhatsApp logo, connection status indicator, isolated client badge `#{{ partner_client_id }}`, reload iframe button (`reloadStandaloneChatHub()`), and external window shortcut.
+      - Full-width, responsive iframe container configured with `allow="camera; microphone; clipboard-read; clipboard-write;"`, min-height 750px, and dynamic viewport height auto-adjustment.
+      - AI Call Center sub-nav bar (`_nav_tabs.html`) integration at the top for seamless navigation across all 10 Call Center subpages.
+  - **3. Main Sidebar Navigation Item**:
+    - Updated `templates/base.html` main sidebar under the communication / call center section:
+      - Added dedicated link pointing to `{% url 'chat_hub_page' %}`.
+      - Features official WhatsApp brand SVG icon (`#25D366`) and active state styling (`m3-active bg-emerald-600/20 text-emerald-300 font-semibold border border-emerald-500/30`).
+      - Verified active highlighting across `/chat-hub/`, `/whatsapp/`, and `/call-center/chat-hub/`.
+  - **4. 5-Language Multilingual Coverage**:
+    - Added translation keys to `core/i18n_catalog.py` and `static/js/diyafa_i18n_catalog.json` for:
+      - `"متصل بخادم المحادثات"` (ar, en, fr, tr, de)
+      - `"إدارة الرسائل الفورية ومحادثات العملاء عبر الواتساب في نافذة مخصصة"` (ar, en, fr, tr, de)
+      - `"إعادة تحميل الصندوق"` (ar, en, fr, tr, de)
+    - Added `"nav_whatsapp_chathub"` to `core/context_processors.py` across all 5 languages.
+  - **5. Automated Testing & Verification**:
+    - Extended `test_embed_callcenter_and_chathub.py` to 11 comprehensive suites:
+      - Suite 9: Verified `/chat-hub/` and `/whatsapp/` access, 403 unauth block, iframe attributes, permissions, client ID isolation, and `?lang=fr` dynamic propagation.
+      - Suite 10: Verified sidebar contains link and WhatsApp brand icon with `m3-active` highlighting.
+      - Suite 11: Verified `/ai-callcenter/overview/` loads cleanly with 200 OK without any 500 crashes.
+
+
+- [x] **Upstream AI Call Center & WhatsApp Chat Hub Iframe Suite Integration (`feat-embed-callcenter-and-chathub`)**
+  - **1. Central Partner Embed URL Service & Dynamic Multi-Tenant Isolation**:
+    - Added `PARTNER_EMBED_BASE_URL` configurable setting in `core/partner_service.py` defaulting to `https://app.169.58.32.179.nip.io`.
+    - Implemented `get_embed_urls_for_tenant(tenant, locale="ar")` in `core/partner_service.py`:
+      - Dynamically resolves sub-client ID via `get_client_id_for_tenant(tenant)`.
+      - Constructs authenticated, sub-client isolated URLs:
+        - `call_center_url`: `{base}/embed/call-center/?token={token}&locale={locale}&client_id={client_id}`
+        - `chat_hub_url`: `{base}/embed/chat-hub/?token={token}&locale={locale}&client_id={client_id}`
+      - Verified multi-tenant isolation against live partner API (e.g. Tenant 1 isolates to sub-client #49, Tenant 5 isolates to sub-client #143).
+  - **2. Call Center View & URL Routing Integration**:
+    - Updated `call_center_view(request, tab=None)` in `apps/callcenter/views.py`:
+      - Supports route argument `tab` and query parameter `?tab=` (`pos`, `call-center`, `chat-hub`).
+      - Injects `callcenter_embed_url`, `chathub_embed_url`, `partner_client_id`, `embed_locale`, and `active_tab` into template context.
+      - Resolves `embed_locale` with fallback chain across query param `?lang=`, session language `django_language`, and `request.LANGUAGE_CODE`, normalizing dialects (e.g. `en-US` -> `en`).
+    - Added named routes in `apps/callcenter/urls.py` and `core/urls.py`:
+      - `call_center_embedded`: `/call-center/embedded/` (opens Live Suite tab directly).
+      - `chat_hub_embedded`: `/call-center/chat-hub/` (opens Chat Hub tab directly).
+    - Updated `ai_callcenter_omnichannel_view` with embed context variables and added direct jump buttons in `templates/ai_callcenter/_nav_tabs.html` and `templates/ai_callcenter/omnichannel.html`.
+  - **3. High-Density 3-Tab Ribbon & Embedded Iframe UI**:
+    - Refactored `templates/call_center.html`:
+      - Created responsive 3-tab navigation ribbon:
+        - Tab 1: `pos` ("نقطة تسجيل الطلبات (POS)")
+        - Tab 2: `call-center` ("السنترال الصوتي الذكي (Live Suite)" with pulsing green beacon badge)
+        - Tab 3: `chat-hub` ("صندوق محادثات الواتساب (Chat Hub)" with official WhatsApp badge)
+      - Added multi-tenant isolation badge showing the active sub-client `#{{ partner_client_id }}`.
+      - Embedded Call Center iframe with `width="100%" height="800" allow="microphone; camera; clipboard-read; clipboard-write;"`.
+      - Embedded WhatsApp Chat Hub iframe with `width="100%" height="700" allow="camera; microphone; clipboard-read; clipboard-write;"`.
+      - Added control toolbars with 1-click reload buttons (`reloadCallCenterIframe`, `reloadChatHubIframe`) and external window launch buttons.
+      - Added client-side tab switcher `switchMainTab(tabName)` with URL hash (`#pos`, `#call-center`, `#chat-hub`) and browser history synchronization.
+  - **4. Zero-Leakage 5-Language Multilingual Catalogs**:
+    - Added 17 new translation terms into `core/i18n_catalog.py` and `static/js/diyafa_i18n_catalog.json` across all 5 supported languages (`ar`, `en`, `fr`, `tr`, `de`) with zero Arabic leakage in LTR modes.
+  - **5. Automated Test Suite & Full Verification**:
+    - Created `test_embed_callcenter_and_chathub.py` with 8 comprehensive test suites covering multi-tenant isolation, locale propagation, RBAC, DOM structure, direct routes, omnichannel navigation, English LTR rendering, and tab badge class retention.
+    - Updated `init.sh` to include `test_embed_callcenter_and_chathub.py`.
+    - Executed `./init.sh`: 100% full repo verification passed cleanly.
+  - **6. Adversarial Review & Bug Fixes**:
+    - **Fixed Tab Badge State Corruption**: `switchMainTab` in `templates/call_center.html` previously overwrote `badge.className`, stripping `.tab-badge-cc` and `.tab-badge-wa` so inactive badge styles failed on subsequent switches (leaving white text on white buttons). Specifically scoped badge classes so both active and inactive states retain their styling classes.
+    - **Direct Named Route Navigation**: Updated `_nav_tabs.html` and `omnichannel.html` shortcuts to use `call_center_embedded` and `chat_hub_embedded` server routes instead of hash fragments (`#call-center`), eliminating tab flicker on initial page load.
+    - **Direct Template Fallback Compliance**: Embedded exact fallback expressions `&locale={{ request.LANGUAGE_CODE|default:'ar' }}&client_id={{ partner_client_id|default:49 }}` directly into `templates/call_center.html` if pre-baked URLs are ever omitted from context.
+    - **Language Code Resolution Order**: Prioritized `request.LANGUAGE_CODE` in `call_center_view` and `ai_callcenter_omnichannel_view` before session fallback to respect Django's canonical `LocaleMiddleware`.
+
 
 - [x] **Live WebRTC Studio Tester, 11 Languages, 29 Dialects & 30 Gemini Live Voices (`feat-live-webrtc-studio-11lang-30voices`)**
   - **1. Upstream Metadata & Choice Models (11 Languages, 29 Dialects, 30 Voices)**:

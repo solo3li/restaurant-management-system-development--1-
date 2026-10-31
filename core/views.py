@@ -132,6 +132,7 @@ from apps.inventory.views import (
 
 from apps.callcenter.views import (
     call_center_view,
+    chat_hub_page_view,
     api_create_api_key,
     api_toggle_api_key,
     api_delete_api_key,

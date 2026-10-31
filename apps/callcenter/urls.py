@@ -3,6 +3,10 @@ from . import views
 
 urlpatterns = [
     path("call-center/", views.call_center_view, name="call_center"),
+    path("call-center/embedded/", views.call_center_view, {"tab": "call-center"}, name="call_center_embedded"),
+    path("call-center/chat-hub/", views.call_center_view, {"tab": "chat-hub"}, name="chat_hub_embedded"),
+    path("chat-hub/", views.chat_hub_page_view, name="chat_hub_page"),
+    path("whatsapp/", views.chat_hub_page_view, name="whatsapp_page"),
     path("api/api-keys/create/", views.api_create_api_key, name="api_create_api_key"),
     path("api/api-keys/<int:key_id>/toggle/", views.api_toggle_api_key, name="api_toggle_api_key"),
     path("api/api-keys/<int:key_id>/delete/", views.api_delete_api_key, name="api_delete_api_key"),

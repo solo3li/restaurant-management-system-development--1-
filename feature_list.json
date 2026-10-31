@@ -223,6 +223,22 @@
       "dependencies": ["feat-landing-assistant-studio-audio-custom-redis"],
       "status": "completed",
       "evidence": "apps/callcenter/models.py (ASSISTANT_LANGUAGE_CHOICES, ASSISTANT_DIALECT_CHOICES, ASSISTANT_VOICE_CHOICES applied to models), core/migrations/0036_alter_landingvoicelead_dialect_and_more.py, core/partner_service.py (get_call_detail, instruction forwarding, language mapping), apps/callcenter/views.py (11-language mapping, localized greetings, call recording lookup priority, room_name lead storage), templates/landing.html (all 11 languages & 30 voices), static/js/landing_webrtc_agent.js (11-language dynamic DIALECT_MAP), templates/admin/core/platformvoiceassistantconfig/change_form.html (Live WebRTC Studio Tester card in Tab 1, upgraded 30-voice/29-dialect modals, WebRTC JS engine), test_landing_voice_customization.py (20/20 PASS), test_landing_voice_leads.py (14/14 PASS), test_landing_assistant_admin_tabs.py (11/11 PASS), ./init.sh (100% PASS), and graphify update ."
+    },
+    {
+      "id": "feat-embed-callcenter-and-chathub",
+      "name": "Upstream AI Call Center & WhatsApp Chat Hub Iframe Suite Integration",
+      "description": "Seamless integration of upstream AI Call Center (/embed/call-center/) and WhatsApp Chat Hub (/embed/chat-hub/) embedded suites into Motaem. Includes dynamic multi-tenant sub-client isolation (&client_id=...), dynamic locale propagation across 5 languages (&locale=...), unified 3-tab navigation ribbon (POS, Call Center Live Suite, WhatsApp Chat Hub) on /call-center/, direct tab URLs (/call-center/embedded/ and /call-center/chat-hub/), hash/URL routing, full-width responsive iframe containers with camera/microphone/clipboard permissions, reload and external window controls, navigation shortcuts from omnichannel overview, and zero-leakage 5-language translation catalogs.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "core/partner_service.py (get_embed_urls_for_tenant), apps/callcenter/views.py (call_center_view tab support, request.LANGUAGE_CODE resolution, and embed context injection, ai_callcenter_omnichannel_view context), apps/callcenter/urls.py and core/urls.py (call_center_embedded, chat_hub_embedded named routes), templates/call_center.html (3-tab ribbon, POS/Live Suite/Chat Hub containers, iframe permissions, toolbar, JS tab switching with badge class preservation, request.LANGUAGE_CODE fallback), templates/ai_callcenter/_nav_tabs.html and templates/ai_callcenter/omnichannel.html (direct embedded routes), core/i18n_catalog.py & static/js/diyafa_i18n_catalog.json (17 new terms across 5 languages), test_embed_callcenter_and_chathub.py (8/8 test suites 100% PASS), and ./init.sh (100% PASS)."
+    },
+    {
+      "id": "feat-standalone-chathub-page-and-overview-fix",
+      "name": "Standalone WhatsApp Chat Hub Page, Main Sidebar Integration & Call Center Overview 500 Fix",
+      "description": "Dedicated standalone full-width page for WhatsApp Chat Hub at /chat-hub/ (and alias /whatsapp/) with dynamic sub-client isolation (&client_id=...), 5-language dynamic locale propagation, top toolbar with reload, full-window, and connection status, new prominent main sidebar navigation item in templates/base.html with WhatsApp emblem, active highlight and RBAC permissions check, and complete resolution of 500 error on /ai-callcenter/overview/ with hardened partner service exception handling, fallback values, and full template context injection.",
+      "dependencies": ["feat-embed-callcenter-and-chathub"],
+      "status": "completed",
+      "evidence": "apps/callcenter/views.py (chat_hub_page_view, hardened _get_callcenter_client_info, _fetch_enriched_calls, ai_callcenter_overview_view with profile context), apps/callcenter/urls.py and core/urls.py (chat_hub_page, whatsapp_page routes), core/views.py (chat_hub_page_view import), core/context_processors.py (nav_whatsapp_chathub across 5 languages), templates/ai_callcenter/chat_hub_page.html (dedicated standalone responsive layout with toolbar, reload, fullscreen, and iframe permissions), templates/base.html (dedicated WhatsApp Chat Hub sidebar navigation item with #25D366 brand icon and active states), templates/ai_callcenter/_nav_tabs.html (tab 10 link to chat_hub_page), core/i18n_catalog.py & static/js/diyafa_i18n_catalog.json (3 new 5-language translation entries), test_embed_callcenter_and_chathub.py (11 suites 100% PASS), manage.py check (0 issues), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), and ./init.sh (100% PASS)."
     }
   ]
 }

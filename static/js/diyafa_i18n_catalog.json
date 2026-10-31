@@ -19997,5 +19997,145 @@
     "fr": "autorisations disponibles pour cette portée",
     "tr": "bu kapsam için kullanılabilir yetki",
     "de": "Berechtigungen für diesen Bereich verfügbar"
+  },
+  "نقطة تسجيل الطلبات (POS)": {
+    "ar": "نقطة تسجيل الطلبات (POS)",
+    "en": "Order Entry Point (POS)",
+    "fr": "Prise de commande (POS)",
+    "tr": "Sipariş Kayıt Noktası (POS)",
+    "de": "Bestellannahme (POS)"
+  },
+  "السنترال الصوتي الذكي (Live Suite)": {
+    "ar": "السنترال الصوتي الذكي (Live Suite)",
+    "en": "Smart AI Call Center (Live Suite)",
+    "fr": "Centre d'appels IA (Live Suite)",
+    "tr": "Yapay Zeka Çağrı Merkezi (Live Suite)",
+    "de": "KI-Callcenter (Live Suite)"
+  },
+  "صندوق محادثات الواتساب (Chat Hub)": {
+    "ar": "صندوق محادثات الواتساب (Chat Hub)",
+    "en": "WhatsApp Inbox (Chat Hub)",
+    "fr": "Boîte WhatsApp (Chat Hub)",
+    "tr": "WhatsApp Gelen Kutusu (Chat Hub)",
+    "de": "WhatsApp-Posteingang (Chat Hub)"
+  },
+  "السنترال الصوتي السحابي الذكي": {
+    "ar": "السنترال الصوتي السحابي الذكي",
+    "en": "Smart Cloud Voice Call Center",
+    "fr": "Centre d'appels vocal cloud intelligent",
+    "tr": "Akıllı Bulut Sesli Çağrı Merkezi",
+    "de": "Intelligentes Cloud-Voice-Callcenter"
+  },
+  "صندوق محادثات الواتساب الموحد (Chat Hub)": {
+    "ar": "صندوق محادثات الواتساب الموحد (Chat Hub)",
+    "en": "Unified WhatsApp Chat Hub",
+    "fr": "Boîte de réception unifiée WhatsApp (Chat Hub)",
+    "tr": "Birleşik WhatsApp Sohbet Merkezi (Chat Hub)",
+    "de": "Einheitlicher WhatsApp Chat Hub"
+  },
+  "العميل المعزول": {
+    "ar": "العميل المعزول",
+    "en": "Isolated Client",
+    "fr": "Client isolé",
+    "tr": "İzole Müşteri",
+    "de": "Isolierter Mandant"
+  },
+  "مربوط بالذكاء الاصطناعي": {
+    "ar": "مربوط بالذكاء الاصطناعي",
+    "en": "AI Connected",
+    "fr": "Connecté à l'IA",
+    "tr": "Yapay Zeka Bağlantılı",
+    "de": "KI-verbunden"
+  },
+  "متعدد القنوات": {
+    "ar": "متعدد القنوات",
+    "en": "Omnichannel",
+    "fr": "Omnicanal",
+    "tr": "Çok Kanallı",
+    "de": "Omnichannel"
+  },
+  "استقبال المكالمات الصوتية المباشرة، فحص الطوابير، ومراقبة المحادثات الهاتفية السحابية": {
+    "ar": "استقبال المكالمات الصوتية المباشرة، فحص الطوابير، ومراقبة المحادثات الهاتفية السحابية",
+    "en": "Receive live voice calls, monitor queues, and inspect cloud telephony sessions",
+    "fr": "Recevez les appels en direct, surveillez les files d'attente et inspectez la téléphonie cloud",
+    "tr": "Canlı sesli aramaları yanıtlayın, kuyrukları izleyin ve bulut telefon görüşmelerini denetleyin",
+    "de": "Live-Sprachanrufe annehmen, Warteschlangen überwachen und Cloud-Telefonie prüfen"
+  },
+  "إدارة رسائل ومحادثات العملاء، مراقبة ردود الذكاء الاصطناعي، والرد البشري المباشر": {
+    "ar": "إدارة رسائل ومحادثات العملاء، مراقبة ردود الذكاء الاصطناعي، والرد البشري المباشر",
+    "en": "Manage customer chats, monitor AI responses, and take over with direct human replies",
+    "fr": "Gérez les discussions clients, surveillez les réponses IA et répondez directement",
+    "tr": "Müşteri sohbetlerini yönetin, yapay zeka yanıtlarını izleyin ve doğrudan insan yanıtı verin",
+    "de": "Kunden-Chats verwalten, KI-Antworten überwachen und direkt manuell antworten"
+  },
+  "إعادة تحميل الإطار": {
+    "ar": "إعادة تحميل الإطار",
+    "en": "Reload Frame",
+    "fr": "Recharger le cadre",
+    "tr": "Çerçeveyi Yenile",
+    "de": "Frame neu laden"
+  },
+  "تحديث الإطار": {
+    "ar": "تحديث الإطار",
+    "en": "Refresh Frame",
+    "fr": "Actualiser le cadre",
+    "tr": "Çerçeveyi Güncelle",
+    "de": "Frame aktualisieren"
+  },
+  "فتح في نافذة كاملة منفصلة": {
+    "ar": "فتح في نافذة كاملة منفصلة",
+    "en": "Open in separate full window",
+    "fr": "Ouvrir dans une fenêtre séparée",
+    "tr": "Ayrı tam pencerede aç",
+    "de": "In separatem Vollfenster öffnen"
+  },
+  "نافذة كاملة": {
+    "ar": "نافذة كاملة",
+    "en": "Full Window",
+    "fr": "Plein écran",
+    "tr": "Tam Pencere",
+    "de": "Vollbild"
+  },
+  "السنترال المباشر": {
+    "ar": "السنترال المباشر",
+    "en": "Live Call Center",
+    "fr": "Centre d'appels direct",
+    "tr": "Canlı Santral",
+    "de": "Live-Zentrale"
+  },
+  "صندوق الواتساب": {
+    "ar": "صندوق الواتساب",
+    "en": "WhatsApp Inbox",
+    "fr": "Boîte WhatsApp",
+    "tr": "WhatsApp Kutusu",
+    "de": "WhatsApp-Postfach"
+  },
+  "شات الويب الكامل (Chat Hub)": {
+    "ar": "شات الويب الكامل (Chat Hub)",
+    "en": "Full Web Chat Hub",
+    "fr": "Chat Hub Web Complet",
+    "tr": "Tam Web Sohbet Merkezi (Chat Hub)",
+    "de": "Vollständiger Web Chat Hub"
+  },
+  "متصل بخادم المحادثات": {
+    "ar": "متصل بخادم المحادثات",
+    "en": "Connected to Chat Server",
+    "fr": "Connecté au serveur de messagerie",
+    "tr": "Sohbet Sunucusuna Bağlı",
+    "de": "Mit Chat-Server verbunden"
+  },
+  "إدارة الرسائل الفورية ومحادثات العملاء عبر الواتساب في نافذة مخصصة": {
+    "ar": "إدارة الرسائل الفورية ومحادثات العملاء عبر الواتساب في نافذة مخصصة",
+    "en": "Manage instant messaging and customer conversations via WhatsApp in a dedicated view",
+    "fr": "Gérer la messagerie instantanée et les conversations clients via WhatsApp dans une vue dédiée",
+    "tr": "Özel bir görünümde WhatsApp aracılığıyla anlık mesajlaşmayı ve müşteri görüşmelerini yönetin",
+    "de": "Verwalten Sie Instant Messaging und Kundengespräche über WhatsApp in einer dedizierten Ansicht"
+  },
+  "إعادة تحميل الصندوق": {
+    "ar": "إعادة تحميل الصندوق",
+    "en": "Reload Inbox",
+    "fr": "Recharger la boîte de réception",
+    "tr": "Gelen Kutusunu Yenile",
+    "de": "Posteingang neu laden"
   }
 }

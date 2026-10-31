@@ -21,6 +21,10 @@ urlpatterns = [
 
     path("pos/", views.pos_view, name="pos"),
     path("call-center/", views.call_center_view, name="call_center"),
+    path("call-center/embedded/", views.call_center_view, {"tab": "call-center"}, name="call_center_embedded"),
+    path("call-center/chat-hub/", views.call_center_view, {"tab": "chat-hub"}, name="chat_hub_embedded"),
+    path("chat-hub/", views.chat_hub_page_view, name="chat_hub_page"),
+    path("whatsapp/", views.chat_hub_page_view, name="whatsapp_page"),
     path("delivery/", views.delivery_view, name="delivery"),
     path("api/delivery/stream/", views.delivery_stream_view, name="delivery_stream"),
     path("api/delivery/live/", views.api_delivery_live, name="api_delivery_live"),
