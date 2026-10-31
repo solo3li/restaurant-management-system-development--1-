@@ -24,7 +24,10 @@ admin.site.site_header = "لوحة السوبر أدمن"
 admin.site.site_title = "لوحة السوبر أدمن"
 admin.site.index_title = "لوحة السوبر أدمن"
 
+from apps.communication import views as comm_views
+
 urlpatterns = [
+    path('admin/brevo/send-email/', comm_views.admin_send_direct_email_view, name='admin_brevo_send_email'),
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
 ]

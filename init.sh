@@ -36,6 +36,9 @@ venv/bin/python test_embed_callcenter_and_chathub.py
 echo "=== venv/bin/python test_telephony_suite.py ==="
 venv/bin/python test_telephony_suite.py
 
+echo "=== venv/bin/python manage.py test test_support_and_brevo ==="
+venv/bin/python manage.py test test_support_and_brevo
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

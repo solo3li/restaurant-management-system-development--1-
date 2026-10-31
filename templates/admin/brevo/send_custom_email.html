@@ -1,0 +1,153 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}إرسال بريد إلكتروني مخصص عبر Brevo | {{ site_title|default:"لوحة الإدارة" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">الرئيسية</a>
+    &rsaquo; <a href="{% url 'admin:core_brevoconfiguration_changelist' %}">إعدادات Brevo</a>
+    &rsaquo; إرسال بريد مخصص
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main" style="max-width: 860px; margin: 0 auto; padding: 20px 0;">
+
+    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); color: #f8fafc;">
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 16px; margin-bottom: 24px;">
+            <div>
+                <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #f8fafc;">✉️ إرسال بريد إلكتروني مخصص عبر Brevo</h1>
+                <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">
+                    إرسال رسالة مباشرة إلى عميل أو مستخدم محدد مع دعم التنسيق وقوالب مطاعم الرسمية.
+                </p>
+            </div>
+            <div style="text-align: left;">
+                <span style="display: inline-block; padding: 4px 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 6px; font-size: 11px; font-weight: bold; color: #34d399;">
+                    المرسل: {{ config.sender_email }}
+                </span>
+            </div>
+        </div>
+
+        {% if feedback %}
+        <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; {% if feedback.type == 'success' %}background: #064e3b; border: 1px solid #059669; color: #a7f3d0;{% else %}background: #7f1d1d; border: 1px solid #dc2626; color: #fecaca;{% endif %}">
+            {{ feedback.message }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="">
+            {% csrf_token %}
+
+            <!-- Quick Recipient Selector -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #cbd5e1;">
+                    اختيار مستخدم مسجل (سريع):
+                </label>
+                <select id="userSelector" onchange="applyUserRecipient(this)" style="width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 13px;">
+                    <option value="">-- أو اختر من قائمة المستخدمين النشطين --</option>
+                    {% for u in users %}
+                    <option value="{{ u.email }}" data-name="{{ u.get_full_name|default:u.username }}">
+                        {{ u.username }} ({{ u.email }}) {% if u.get_full_name %}- {{ u.get_full_name }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Recipient Email -->
+            <div style="margin-bottom: 20px;">
+                <label for="recipient_email" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #cbd5e1;">
+                    البريد الإلكتروني للمستلم <span style="color: #ef4444;">*</span>:
+                </label>
+                <input 
+                    type="email" 
+                    id="recipient_email" 
+                    name="recipient_email" 
+                    required 
+                    value="{{ initial_email|default:'' }}"
+                    placeholder="customer@example.com"
+                    style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 14px; box-sizing: border-box;"
+                >
+            </div>
+
+            <!-- Recipient Name -->
+            <div style="margin-bottom: 20px;">
+                <label for="recipient_name" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #cbd5e1;">
+                    اسم المستلم (اختياري):
+                </label>
+                <input 
+                    type="text" 
+                    id="recipient_name" 
+                    name="recipient_name" 
+                    value="{{ initial_name|default:'' }}"
+                    placeholder="مثال: أحمد محمد أو إدارة مطعم الشواية"
+                    style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 14px; box-sizing: border-box;"
+                >
+            </div>
+
+            <!-- Subject -->
+            <div style="margin-bottom: 20px;">
+                <label for="subject" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #cbd5e1;">
+                    موضوع الرسالة <span style="color: #ef4444;">*</span>:
+                </label>
+                <input 
+                    type="text" 
+                    id="subject" 
+                    name="subject" 
+                    required 
+                    placeholder="تحديث مهم بشأن حسابك في منظومة مطاعم"
+                    style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 14px; box-sizing: border-box;"
+                >
+            </div>
+
+            <!-- Body Content -->
+            <div style="margin-bottom: 24px;">
+                <label for="body_content" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #cbd5e1;">
+                    نص ومحتوى الرسالة (يدعم النص المنسق والفقرات أو HTML) <span style="color: #ef4444;">*</span>:
+                </label>
+                <textarea 
+                    id="body_content" 
+                    name="body_content" 
+                    rows="8" 
+                    required 
+                    placeholder="مرحباً بك،&#10;&#10;نود إحاطتك علماً بأنه تم ترقية باقة اشتراككم وتفعيل ميزة كول سنتر الذكاء الاصطناعي...&#10;&#10;مع تحيات إدارة منظومة مطاعم."
+                    style="width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 14px; line-height: 1.6; box-sizing: border-box; font-family: inherit;"
+                ></textarea>
+                <small style="color: #94a3b8; display: block; margin-top: 6px;">
+                    💡 سيتم تغليف المحتوى تلقائياً في قالب البريد الرسمي الأنيق الخاص بمنظومة مطاعم قبل الإرسال عبر Brevo.
+                </small>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button 
+                    type="submit" 
+                    style="background: #8b5cf6; color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;"
+                >
+                    <span>🚀 إرسال الرسالة الآن عبر Brevo</span>
+                </button>
+                <a href="{% url 'admin:core_brevoconfiguration_changelist' %}" style="color: #94a3b8; text-decoration: none; font-size: 13px; padding: 10px 16px;">
+                    إلغاء والعودة
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+function applyUserRecipient(select) {
+    const val = select.value;
+    if (val) {
+        document.getElementById('recipient_email').value = val;
+        const opt = select.options[select.selectedIndex];
+        const name = opt.getAttribute('data-name');
+        if (name) {
+            document.getElementById('recipient_name').value = name;
+        }
+    }
+}
+</script>
+{% endblock %}

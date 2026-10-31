@@ -66,6 +66,17 @@ from apps.audit.models import (
     log_audit_event,
     KnowledgeDocument,
 )
+from apps.communication.models import (
+    BrevoConfiguration,
+    VerificationCode,
+    EmailLog,
+    InboundEmailLog,
+)
+from apps.support.models import (
+    SupportTicket,
+    TicketMessage,
+    TicketAttachment,
+)
 
 __all__ = [
     # Tenants
@@ -111,4 +122,14 @@ __all__ = [
     "AuditLog",
     "log_audit_event",
     "KnowledgeDocument",
+    # Communication & Brevo
+    "BrevoConfiguration",
+    "VerificationCode",
+    "EmailLog",
+    "InboundEmailLog",
+    # Support Tickets
+    "SupportTicket",
+    "TicketMessage",
+    "TicketAttachment",
 ]
+

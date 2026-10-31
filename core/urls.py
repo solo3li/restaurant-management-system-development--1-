@@ -35,7 +35,27 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("register/", views.register_view, name="register"),
     path("logout/", views.logout_view, name="logout"),
+    path("forgot-password/", views.forgot_password_view, name="forgot_password"),
+    path("verify-code/", views.verify_code_view, name="verify_code"),
+    path("reset-password/", views.reset_password_view, name="reset_password"),
+    path("api/auth/forgot-password/", views.forgot_password_view, name="api_forgot_password"),
+    path("api/auth/verify-code/", views.verify_code_view, name="api_verify_code"),
+    path("api/auth/reset-password/", views.reset_password_view, name="api_reset_password"),
+
+    # Brevo Webhooks
+    path("api/brevo/webhook/inbound/", views.brevo_inbound_webhook_view, name="brevo_inbound_webhook"),
+    path("api/brevo/webhook/events/", views.brevo_inbound_webhook_view, name="brevo_events_webhook"),
+
+    # Support Tickets System (Full Page in General Administration Tabs)
+    path("support/", views.support_tickets_view, name="support_tickets"),
+    path("support/tickets/", views.support_tickets_view, name="support_tickets_list"),
+    path("support/tickets/<int:ticket_id>/", views.support_ticket_detail_view, name="support_ticket_detail"),
+    path("api/support/tickets/create/", views.api_create_ticket, name="api_create_ticket"),
+    path("api/support/tickets/<int:ticket_id>/reply/", views.api_ticket_reply, name="api_ticket_reply"),
+    path("api/support/tickets/<int:ticket_id>/status/", views.api_ticket_update_status, name="api_ticket_update_status"),
+
     path("set-language/<str:lang_code>/", views.set_language_view, name="set_language"),
+
     
     path("orders/<int:order_id>/", views.order_detail_view, name="order_detail"),
     path("orders/<int:order_id>/edit/", views.order_edit_view, name="order_edit"),

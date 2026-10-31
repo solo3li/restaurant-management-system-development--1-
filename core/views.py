@@ -214,6 +214,22 @@ from apps.callcenter.views import (
 from apps.audit.views import (
     api_audit_logs,
 )
+
+from apps.communication.views import (
+    forgot_password_view,
+    verify_code_view,
+    reset_password_view,
+    brevo_inbound_webhook_view,
+    admin_send_direct_email_view,
+)
+
+from apps.support.views import (
+    support_tickets_view,
+    support_ticket_detail_view,
+    api_create_ticket,
+    api_ticket_reply,
+    api_ticket_update_status,
+)
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 

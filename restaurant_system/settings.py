@@ -82,7 +82,10 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.callcenter',
     'apps.audit',
+    'apps.communication',
+    'apps.support',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -320,6 +323,13 @@ JAZZMIN_SETTINGS = {
         "core.LandingKnowledgeDocument",
         "core.LandingVoiceLead",
         "core.PlatformConfiguration",
+        "core.BrevoConfiguration",
+        "core.EmailLog",
+        "core.InboundEmailLog",
+        "core.VerificationCode",
+        "core.SupportTicket",
+        "core.TicketMessage",
+        "core.TicketAttachment",
         "auth.User",
         "auth.Group",
     ],
@@ -347,7 +357,15 @@ JAZZMIN_SETTINGS = {
         "core.LandingKnowledgeDocument": "fas fa-book-open",
         "core.LandingVoiceLead": "fas fa-headset",
         "core.PlatformConfiguration": "fas fa-sliders-h",
+        "core.BrevoConfiguration": "fas fa-envelope-open-text",
+        "core.EmailLog": "fas fa-paper-plane",
+        "core.InboundEmailLog": "fas fa-inbox",
+        "core.VerificationCode": "fas fa-shield-alt",
+        "core.SupportTicket": "fas fa-life-ring",
+        "core.TicketMessage": "fas fa-comments",
+        "core.TicketAttachment": "fas fa-paperclip",
     },
+
     "default_icon_parents": "fas fa-folder",
     "default_icon_children": "fas fa-circle",
     "related_modal_active": True,

@@ -20144,5 +20144,166 @@
     "fr": "Rechargement du hub de discussion...",
     "tr": "Sohbet merkezi yeniden yükleniyor...",
     "de": "Chat-Hub wird neu geladen..."
+  },
+  "الدعم الفني والتذاكر": {
+    "ar": "الدعم الفني والتذاكر",
+    "en": "Support & Tickets",
+    "fr": "Support et tickets",
+    "tr": "Destek ve Talepler",
+    "de": "Support und Tickets"
+  },
+  "مركز المساعدة والتواصل": {
+    "ar": "مركز المساعدة والتواصل",
+    "en": "Help Center & Communication",
+    "fr": "Centre d'aide et communication",
+    "tr": "Yardım Merkezi ve İletişim",
+    "de": "Hilfezentrum und Kommunikation"
+  },
+  "متابعة وإدارة تذاكر الدعم الفني، الاستفسارات، والتواصل المباشر مع إدارة النظام مع دعم الوسائط الغنية والتسجيلات الصوتية.": {
+    "ar": "متابعة وإدارة تذاكر الدعم الفني، الاستفسارات، والتواصل المباشر مع إدارة النظام مع دعم الوسائط الغنية والتسجيلات الصوتية.",
+    "en": "Track and manage support tickets, inquiries, and direct communication with system administration with rich media and voice notes support.",
+    "fr": "Suivez et gérez les tickets d'assistance, les demandes de renseignements et la communication directe avec l'administration du système avec prise en charge des médias riches et des notes vocales.",
+    "tr": "Zengin medya ve sesli not desteği ile destek taleplerini, soruları ve sistem yönetimi ile doğrudan iletişimi takip edin ve yönetin.",
+    "de": "Verfolgen und verwalten Sie Support-Tickets, Anfragen und die direkte Kommunikation mit der Systemadministration mit Unterstützung für Rich Media und Sprachnotizen."
+  },
+  "فتح تذكرة جديدة": {
+    "ar": "فتح تذكرة جديدة",
+    "en": "Open New Ticket",
+    "fr": "Ouvrir un nouveau ticket",
+    "tr": "Yeni Talep Aç",
+    "de": "Neues Ticket öffnen"
+  },
+  "فتح تذكرة جديدة الآن": {
+    "ar": "فتح تذكرة جديدة الآن",
+    "en": "Open New Ticket Now",
+    "fr": "Ouvrir un nouveau ticket maintenant",
+    "tr": "Şimdi Yeni Talep Aç",
+    "de": "Jetzt neues Ticket öffnen"
+  },
+  "تذاكر مفتوحة": {
+    "ar": "تذاكر مفتوحة",
+    "en": "Open Tickets",
+    "fr": "Tickets ouverts",
+    "tr": "Açık Talepler",
+    "de": "Offene Tickets"
+  },
+  "مغلقة / أرشيف": {
+    "ar": "مغلقة / أرشيف",
+    "en": "Closed / Archive",
+    "fr": "Fermé / Archives",
+    "tr": "Kapalı / Arşiv",
+    "de": "Geschlossen / Archiv"
+  },
+  "لا توجد تذاكر دعم حالياً": {
+    "ar": "لا توجد تذاكر دعم حالياً",
+    "en": "No Support Tickets Currently",
+    "fr": "Aucun ticket de support pour le moment",
+    "tr": "Şu anda destek talebi yok",
+    "de": "Derzeit keine Support-Tickets"
+  },
+  "فريق الدعم الفني جاهز دائماً لمساعدتك في أي استفسار أو مشكلة تقنية تواجهها.": {
+    "ar": "فريق الدعم الفني جاهز دائماً لمساعدتك في أي استفسار أو مشكلة تقنية تواجهها.",
+    "en": "The technical support team is always ready to assist you with any questions or technical issues you encounter.",
+    "fr": "L'équipe de support technique est toujours prête à vous aider pour toute question ou problème technique.",
+    "tr": "Teknik destek ekibi, karşılaştığınız her türlü soru veya teknik sorunda size yardımcı olmaya her zaman hazırdır.",
+    "de": "Das technische Support-Team ist immer bereit, Ihnen bei allen Fragen oder technischen Problemen zu helfen."
+  },
+  "رقم التذكرة": {
+    "ar": "رقم التذكرة",
+    "en": "Ticket Number",
+    "fr": "Numéro de ticket",
+    "tr": "Talep Numarası",
+    "de": "Ticketnummer"
+  },
+  "الموضوع والمشكلة": {
+    "ar": "الموضوع والمشكلة",
+    "en": "Subject & Issue",
+    "fr": "Objet et problème",
+    "tr": "Konu ve Sorun",
+    "de": "Betreff und Problem"
+  },
+  "المرفقات والوسائط": {
+    "ar": "المرفقات والوسائط",
+    "en": "Attachments & Media",
+    "fr": "Pièces jointes et médias",
+    "tr": "Ekler ve Medya",
+    "de": "Anhänge und Medien"
+  },
+  "تسجيل صوتي": {
+    "ar": "تسجيل صوتي",
+    "en": "Voice Note",
+    "fr": "Note vocale",
+    "tr": "Sesli Not",
+    "de": "Sprachnotiz"
+  },
+  "تسجيل صوتي (Voice Note)": {
+    "ar": "تسجيل صوتي (Voice Note)",
+    "en": "Voice Note",
+    "fr": "Note vocale",
+    "tr": "Sesli Not",
+    "de": "Sprachnotiz"
+  },
+  "تسجيل صوتي للمشكلة": {
+    "ar": "تسجيل صوتي للمشكلة",
+    "en": "Record Voice Note",
+    "fr": "Enregistrer une note vocale",
+    "tr": "Sorun için sesli not kaydet",
+    "de": "Sprachnotiz für Problem aufnehmen"
+  },
+  "استعادة كلمة المرور": {
+    "ar": "استعادة كلمة المرور",
+    "en": "Reset Password",
+    "fr": "Réinitialiser le mot de passe",
+    "tr": "Şifre Sıfırlama",
+    "de": "Passwort zurücksetzen"
+  },
+  "رمز التحقق": {
+    "ar": "رمز التحقق",
+    "en": "Verification Code",
+    "fr": "Code de vérification",
+    "tr": "Doğrulama Kodu",
+    "de": "Bestätigungscode"
+  },
+  "فريق الدعم الفني": {
+    "ar": "فريق الدعم الفني",
+    "en": "Technical Support Team",
+    "fr": "Équipe de support technique",
+    "tr": "Teknik Destek Ekibi",
+    "de": "Technisches Support-Team"
+  },
+  "العميل / المنشأة": {
+    "ar": "العميل / المنشأة",
+    "en": "Client / Tenant",
+    "fr": "Client / Établissement",
+    "tr": "Müşteri / İşletme",
+    "de": "Kunde / Betrieb"
+  },
+  "إضافة رد جديد على التذكرة": {
+    "ar": "إضافة رد جديد على التذكرة",
+    "en": "Add New Reply to Ticket",
+    "fr": "Ajouter une nouvelle réponse au ticket",
+    "tr": "Talebe Yeni Yanıt Ekle",
+    "de": "Neue Antwort zum Ticket hinzufügen"
+  },
+  "إرسال الرد": {
+    "ar": "إرسال الرد",
+    "en": "Send Reply",
+    "fr": "Envoyer la réponse",
+    "tr": "Yanıtı Gönder",
+    "de": "Antwort senden"
+  },
+  "العودة إلى التذاكر": {
+    "ar": "العودة إلى التذاكر",
+    "en": "Back to Tickets",
+    "fr": "Retour aux tickets",
+    "tr": "Taleplere Geri Dön",
+    "de": "Zurück zu Tickets"
+  },
+  "المحادثة والردود": {
+    "ar": "المحادثة والردود",
+    "en": "Conversation & Replies",
+    "fr": "Conversation et réponses",
+    "tr": "Konuşma ve Yanıtlar",
+    "de": "Konversation und Antworten"
   }
 }

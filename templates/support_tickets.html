@@ -1,0 +1,607 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ "الدعم الفني والتذاكر"|t }} — {{ tenant.name|default:"الإدارة العامة"|t }}{% endblock %}
+
+{% block content %}
+{% include "_admin_nav_tabs.html" %}
+
+<div class="space-y-6 font-sans" dir="{{ DIR|default:'rtl' }}">
+
+    <!-- Top Header & Breadcrumb -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5">
+        <div>
+            <div class="flex items-center gap-2 mb-1.5">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200/60">
+                    <span class="h-1.5 w-1.5 rounded-full bg-cyan-600 animate-pulse"></span>
+                    <span>{{ "الإدارة العامة (HQ)"|t }}</span>
+                </span>
+                <span class="text-xs text-slate-300">•</span>
+                <span class="text-xs text-slate-500 font-medium">{{ "مركز المساعدة والتواصل"|t }}</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>{{ "الدعم الفني والتذاكر"|t }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80">
+                    {{ stats.total }}
+                </span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                {{ "متابعة وإدارة تذاكر الدعم الفني، الاستفسارات، والتواصل المباشر مع إدارة النظام مع دعم الوسائط الغنية والتسجيلات الصوتية."|t }}
+            </p>
+        </div>
+
+        <!-- Action: Open New Ticket -->
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button 
+                type="button" 
+                onclick="openNewTicketModal()"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 active:scale-95 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+            >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>{{ "فتح تذكرة جديدة"|t }}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards (4 Metrics) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Open Tickets -->
+        <div class="card p-4 rounded-2xl bg-white border border-slate-200/70 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{{ "تذاكر مفتوحة"|t }}</span>
+                <div class="text-2xl font-black text-blue-600">{{ stats.open }}</div>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+        </div>
+
+        <!-- 2. In Progress -->
+        <div class="card p-4 rounded-2xl bg-white border border-slate-200/70 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{{ "قيد المعالجة"|t }}</span>
+                <div class="text-2xl font-black text-violet-600">{{ stats.in_progress }}</div>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+        </div>
+
+        <!-- 3. Resolved -->
+        <div class="card p-4 rounded-2xl bg-white border border-slate-200/70 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{{ "تم الحل"|t }}</span>
+                <div class="text-2xl font-black text-emerald-600">{{ stats.resolved }}</div>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+        </div>
+
+        <!-- 4. Closed / Total -->
+        <div class="card p-4 rounded-2xl bg-white border border-slate-200/70 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{{ "مغلقة / أرشيف"|t }}</span>
+                <div class="text-2xl font-black text-slate-600">{{ stats.closed }}</div>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search Toolbar -->
+    <div class="card p-4 rounded-2xl bg-white border border-slate-200/70 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Status Filter Tabs -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+            <a href="?status=all{% if category_filter %}&category={{ category_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {% if status_filter == 'all' %}bg-slate-900 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                {{ "الكل"|t }} ({{ stats.total }})
+            </a>
+            <a href="?status=open{% if category_filter %}&category={{ category_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {% if status_filter == 'open' %}bg-blue-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                {{ "مفتوحة"|t }} ({{ stats.open }})
+            </a>
+            <a href="?status=in_progress{% if category_filter %}&category={{ category_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {% if status_filter == 'in_progress' %}bg-violet-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                {{ "قيد المعالجة"|t }} ({{ stats.in_progress }})
+            </a>
+            <a href="?status=resolved{% if category_filter %}&category={{ category_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {% if status_filter == 'resolved' %}bg-emerald-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                {{ "تم الحل"|t }} ({{ stats.resolved }})
+            </a>
+            <a href="?status=closed{% if category_filter %}&category={{ category_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {% if status_filter == 'closed' %}bg-slate-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+                {{ "مغلقة"|t }} ({{ stats.closed }})
+            </a>
+        </div>
+
+        <!-- Search & Category Filters -->
+        <form method="GET" action="" class="flex items-center gap-2">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            
+            <select name="category" onchange="this.form.submit()" class="py-1.5 px-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700 focus:outline-none focus:border-violet-600">
+                <option value="">{{ "جميع التصنيفات"|t }}</option>
+                {% for code, label in category_choices %}
+                <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label|t }}</option>
+                {% endfor %}
+            </select>
+
+            <div class="relative">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}" 
+                    placeholder="{{ "بحث برقم التذكرة أو الموضوع..."|t }}" 
+                    class="pr-8 pl-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-violet-600"
+                >
+                <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
+            </div>
+            
+            {% if search_query or category_filter %}
+            <a href="{% url 'support_tickets' %}" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-500 hover:text-slate-900" title="{{ "إلغاء الفلتر"|t }}">✕</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Tickets Table / List -->
+    <div class="card rounded-2xl bg-white border border-slate-200/70 shadow-xs overflow-hidden">
+        {% if tickets %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200/70 text-slate-600 font-bold">
+                    <tr>
+                        <th class="py-3.5 px-4">{{ "رقم التذكرة"|t }}</th>
+                        <th class="py-3.5 px-4">{{ "الموضوع والمشكلة"|t }}</th>
+                        <th class="py-3.5 px-4">{{ "التصنيف"|t }}</th>
+                        <th class="py-3.5 px-4">{{ "الأولوية"|t }}</th>
+                        <th class="py-3.5 px-4">{{ "الحالة"|t }}</th>
+                        <th class="py-3.5 px-4">{{ "المنشئ"|t }}</th>
+                        <th class="py-3.5 px-4">{{ "المرفقات والوسائط"|t }}</th>
+                        <th class="py-3.5 px-4">{{ "آخر تحديث"|t }}</th>
+                        <th class="py-3.5 px-4 text-center">{{ "إجراء"|t }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for t in tickets %}
+                    <tr class="hover:bg-slate-50/70 transition cursor-pointer" onclick="window.location.href='{% url 'support_ticket_detail' ticket_id=t.id %}'">
+                        <!-- Ticket Number -->
+                        <td class="py-3.5 px-4 font-mono font-bold text-violet-700 whitespace-nowrap">
+                            <span class="px-2 py-0.5 rounded-md bg-violet-50 border border-violet-200/60">
+                                {{ t.ticket_number }}
+                            </span>
+                        </td>
+
+                        <!-- Subject -->
+                        <td class="py-3.5 px-4">
+                            <div class="font-bold text-slate-900 max-w-xs truncate">{{ t.subject }}</div>
+                            <div class="text-[11px] text-slate-400 max-w-xs truncate mt-0.5">{{ t.description|truncatechars:60 }}</div>
+                        </td>
+
+                        <!-- Category -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <span class="text-slate-700 font-semibold">{{ t.get_category_display|t }}</span>
+                        </td>
+
+                        <!-- Priority -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            {% if t.priority == 'urgent' %}
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                🔥 {{ t.get_priority_display|t }}
+                            </span>
+                            {% elif t.priority == 'high' %}
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                ⚠️ {{ t.get_priority_display|t }}
+                            </span>
+                            {% elif t.priority == 'medium' %}
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                {{ t.get_priority_display|t }}
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                {{ t.get_priority_display|t }}
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Status -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            {% if t.status == 'open' %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60 inline-flex items-center gap-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                                <span>{{ t.get_status_display|t }}</span>
+                            </span>
+                            {% elif t.status == 'in_progress' %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60 inline-flex items-center gap-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-violet-600 animate-pulse"></span>
+                                <span>{{ t.get_status_display|t }}</span>
+                            </span>
+                            {% elif t.status == 'resolved' %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 inline-flex items-center gap-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+                                <span>{{ t.get_status_display|t }}</span>
+                            </span>
+                            {% else %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60 inline-flex items-center gap-1">
+                                <span>{{ t.get_status_display|t }}</span>
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Creator -->
+                        <td class="py-3.5 px-4 whitespace-nowrap text-slate-600 font-medium">
+                            {{ t.creator.get_full_name|default:t.creator.username }}
+                        </td>
+
+                        <!-- Attachments indicators -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <div class="flex items-center gap-1.5 text-slate-500">
+                                {% with attach_count=t.attachments.count msg_count=t.messages.count %}
+                                {% if attach_count > 0 %}
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-700">
+                                    <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                    <span>{{ attach_count }}</span>
+                                </span>
+                                {% endif %}
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-700">
+                                    <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                    <span>{{ msg_count }}</span>
+                                </span>
+                                {% endwith %}
+                            </div>
+                        </td>
+
+                        <!-- Last Updated -->
+                        <td class="py-3.5 px-4 whitespace-nowrap text-slate-500 font-medium">
+                            {{ t.updated_at|date:"Y-m-d H:i" }}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="py-3.5 px-4 whitespace-nowrap text-center" onclick="event.stopPropagation()">
+                            <a href="{% url 'support_ticket_detail' ticket_id=t.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-violet-50 hover:text-violet-700 text-slate-700 font-bold transition">
+                                <span>{{ "استعراض"|t }}</span>
+                                <span>←</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="py-16 px-4 text-center">
+            <div class="h-16 w-16 rounded-3xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-1">
+                {{ "لا توجد تذاكر دعم حالياً"|t }}
+            </h3>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto mb-5">
+                {{ "فريق الدعم الفني جاهز دائماً لمساعدتك في أي استفسار أو مشكلة تقنية تواجهها."|t }}
+            </p>
+            <button 
+                type="button" 
+                onclick="openNewTicketModal()"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+            >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>{{ "فتح تذكرة جديدة الآن"|t }}</span>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- NEW TICKET MODAL -->
+<div id="newTicketModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 relative animate-in fade-in zoom-in-95 duration-150">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+            <div class="flex items-center gap-2.5">
+                <div class="h-9 w-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 leading-tight">{{ "فتح تذكرة دعم فني جديدة"|t }}</h2>
+                    <p class="text-[11px] text-slate-500">{{ "أرسل تفاصيل المشكلة وسيقوم فريق الدعم الفني بمتابعتها"|t }}</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeNewTicketModal()" class="text-slate-400 hover:text-slate-700 text-lg leading-none p-1 cursor-pointer">✕</button>
+        </div>
+
+        <!-- Feedback Alert -->
+        <div id="modalAlert" class="hidden mb-4 p-3 rounded-xl text-xs font-bold"></div>
+
+        <!-- Ticket Form -->
+        <form id="createTicketForm" onsubmit="handleCreateTicket(event)" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label for="ticketSubject" class="block text-xs font-bold text-slate-800 mb-1">
+                    {{ "عنوان التذكرة / المشكلة"|t }} <span class="text-rose-500">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="ticketSubject" 
+                    name="subject" 
+                    required 
+                    placeholder="{{ "مثال: مشكلة في طباعة الفواتير أو ربط الكاشير"|t }}"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-violet-600 focus:bg-white transition"
+                >
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="ticketCategory" class="block text-xs font-bold text-slate-800 mb-1">
+                        {{ "تصنيف المشكلة"|t }}
+                    </label>
+                    <select id="ticketCategory" name="category" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-800 focus:outline-none focus:border-violet-600">
+                        {% for code, label in category_choices %}
+                        <option value="{{ code }}">{{ label|t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="ticketPriority" class="block text-xs font-bold text-slate-800 mb-1">
+                        {{ "مستوى الأولوية"|t }}
+                    </label>
+                    <select id="ticketPriority" name="priority" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-800 focus:outline-none focus:border-violet-600">
+                        {% for code, label in priority_choices %}
+                        <option value="{{ code }}" {% if code == 'medium' %}selected{% endif %}>{{ label|t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="ticketDescription" class="block text-xs font-bold text-slate-800 mb-1">
+                    {{ "تفاصيل المشكلة والخطوات"|t }} <span class="text-rose-500">*</span>
+                </label>
+                <textarea 
+                    id="ticketDescription" 
+                    name="description" 
+                    required 
+                    rows="4" 
+                    placeholder="{{ "اشرح ما حدث بالتفصيل وكيف يمكننا مساعدتك..."|t }}"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-violet-600 focus:bg-white transition"
+                ></textarea>
+            </div>
+
+            <!-- Voice Recording Component (Browser Audio Recorder) -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                        <span>{{ "تسجيل صوتي (Voice Note)"|t }}</span>
+                    </span>
+                    <span id="recordingTimer" class="hidden text-xs font-mono font-bold text-rose-600 items-center gap-1">
+                        <span class="h-2 w-2 rounded-full bg-rose-600 animate-ping"></span>
+                        <span id="timerText">00:00</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button 
+                        type="button" 
+                        id="btnRecordVoice" 
+                        onclick="toggleVoiceRecording()" 
+                        class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-violet-600 flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+                    >
+                        <span id="recordIcon">🎙️</span>
+                        <span id="recordBtnText">{{ "تسجيل صوتي للمشكلة"|t }}</span>
+                    </button>
+
+                    <div id="audioPreviewWrapper" class="hidden flex-1 items-center gap-2">
+                        <audio id="audioPreview" controls class="h-8 max-w-[200px]"></audio>
+                        <button type="button" onclick="discardVoiceRecording()" class="text-xs text-rose-500 hover:text-rose-700 font-bold p-1 cursor-pointer" title="{{ "حذف التسجيل"|t }}">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media File Upload (Images, Videos, Docs <= 25MB) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1">
+                    {{ "مرفقات الوسائط (صور / فيديو / مستندات)"|t }}
+                </label>
+                <div class="relative border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:bg-slate-50 transition cursor-pointer" onclick="document.getElementById('fileAttachments').click()">
+                    <input 
+                        type="file" 
+                        id="fileAttachments" 
+                        name="attachments" 
+                        multiple 
+                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                        onchange="handleFileSelect(this)" 
+                        class="hidden"
+                    >
+                    <svg class="w-8 h-8 mx-auto text-slate-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    <div class="text-xs font-bold text-slate-700">{{ "اسحب وأفلت الملفات هنا أو انقر للاختيار"|t }}</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">{{ "صور، فيديو، تسجيلات صوتية، ومستندات (بحد أقصى 25 ميجابايت للملف)"|t }}</div>
+                </div>
+                <div id="fileListPreview" class="mt-2 space-y-1"></div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button 
+                    type="button" 
+                    onclick="closeNewTicketModal()" 
+                    class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                    {{ "إلغاء"|t }}
+                </button>
+                <button 
+                    type="submit" 
+                    id="btnSubmitTicket"
+                    class="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 active:scale-95 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                    <span>{{ "إرسال التذكرة"|t }}</span>
+                    <span>←</span>
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+let mediaRecorder = null;
+let audioChunks = [];
+let recordedAudioBlob = null;
+let recordingInterval = null;
+let recordSeconds = 0;
+
+function openNewTicketModal() {
+    document.getElementById('newTicketModal').classList.remove('hidden');
+    document.getElementById('ticketSubject').focus();
+}
+
+function closeNewTicketModal() {
+    document.getElementById('newTicketModal').classList.add('hidden');
+    discardVoiceRecording();
+    document.getElementById('modalAlert').classList.add('hidden');
+}
+
+function handleFileSelect(input) {
+    const list = document.getElementById('fileListPreview');
+    list.innerHTML = '';
+    const files = input.files;
+    const maxSize = 25 * 1024 * 1024; // 25MB
+
+    for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        if (f.size > maxSize) {
+            alert(`الملف ${f.name} يتجاوز الحد الأقصى (25 ميجابايت) ولن يتم رفعه.`);
+            continue;
+        }
+        const sizeMb = (f.size / (1024 * 1024)).toFixed(1);
+        const item = document.createElement('div');
+        item.className = 'text-[11px] font-semibold text-slate-700 flex items-center justify-between p-1.5 rounded-lg bg-slate-100';
+        item.innerHTML = `<span>📎 ${f.name}</span><span class="text-slate-400 font-mono text-[10px]">${sizeMb} MB</span>`;
+        list.appendChild(item);
+    }
+}
+
+async function toggleVoiceRecording() {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        // Start recording
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                const audioEl = document.getElementById('audioPreview');
+                audioEl.src = audioUrl;
+                document.getElementById('audioPreviewWrapper').classList.remove('hidden');
+                document.getElementById('audioPreviewWrapper').classList.add('flex');
+            };
+
+            mediaRecorder.start();
+            recordSeconds = 0;
+            document.getElementById('recordingTimer').classList.remove('hidden');
+            document.getElementById('recordingTimer').classList.add('inline-flex');
+            document.getElementById('recordBtnText').textContent = "إيقاف التسجيل";
+            document.getElementById('recordIcon').textContent = "⏹️";
+
+            recordingInterval = setInterval(() => {
+                recordSeconds++;
+                const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                const secs = String(recordSeconds % 60).padStart(2, '0');
+                document.getElementById('timerText').textContent = `${mins}:${secs}`;
+            }, 1000);
+
+        } catch (err) {
+            alert("يرجى السماح بالوصول إلى الميكروفون لتسجيل الرسائل الصوتية.");
+        }
+    } else if (mediaRecorder.state === 'recording') {
+        // Stop recording
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        clearInterval(recordingInterval);
+        document.getElementById('recordingTimer').classList.add('hidden');
+        document.getElementById('recordingTimer').classList.remove('inline-flex');
+        document.getElementById('recordBtnText').textContent = "إعادة التسجيل";
+        document.getElementById('recordIcon').textContent = "🎙️";
+    }
+}
+
+function discardVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+    clearInterval(recordingInterval);
+    recordedAudioBlob = null;
+    audioChunks = [];
+    recordSeconds = 0;
+    document.getElementById('audioPreviewWrapper').classList.add('hidden');
+    document.getElementById('audioPreviewWrapper').classList.remove('flex');
+    document.getElementById('recordingTimer').classList.add('hidden');
+    document.getElementById('recordingTimer').classList.remove('inline-flex');
+    document.getElementById('recordBtnText').textContent = "تسجيل صوتي للمشكلة";
+    document.getElementById('recordIcon').textContent = "🎙️";
+    document.getElementById('audioPreview').src = '';
+}
+
+async function handleCreateTicket(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitTicket');
+    const alertBox = document.getElementById('modalAlert');
+    alertBox.classList.add('hidden');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>جارٍ إرسال التذكرة والمرفقات...</span>';
+
+    const formData = new FormData(document.getElementById('createTicketForm'));
+
+    // Attach recorded voice note if exists
+    if (recordedAudioBlob) {
+        formData.append('audio_note', recordedAudioBlob, 'voice_note.webm');
+        formData.append('audio_duration', recordSeconds);
+    }
+
+    try {
+        const resp = await fetch("{% url 'api_create_ticket' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        const data = await resp.json();
+        if (resp.ok && data.status === 'success') {
+            alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700';
+            alertBox.textContent = data.message || 'تم فتح التذكرة بنجاح!';
+            alertBox.classList.remove('hidden');
+            setTimeout(() => {
+                window.location.href = data.redirect_url || "{% url 'support_tickets' %}";
+            }, 800);
+        } else {
+            alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700';
+            alertBox.textContent = data.message || 'حدث خطأ أثناء إرسال التذكرة.';
+            alertBox.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = '<span>إرسال التذكرة</span><span>←</span>';
+        }
+    } catch (err) {
+        alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700';
+        alertBox.textContent = 'حدث خطأ في الاتصال بالخادم.';
+        alertBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<span>إرسال التذكرة</span><span>←</span>';
+    }
+}
+</script>
+{% endblock %}
