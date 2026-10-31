@@ -564,7 +564,7 @@ def ai_callcenter_management_view(request):
     """
     tab = request.GET.get("tab", "").lower()
     tab_to_url = {
-        "overview": "ai_callcenter_overview",
+        "overview": "call_center_embedded",
         "persona": "ai_callcenter_persona",
         "hours": "ai_callcenter_hours",
         "knowledge": "ai_callcenter_knowledge",
@@ -575,7 +575,7 @@ def ai_callcenter_management_view(request):
         "capabilities": "ai_callcenter_capabilities",
         "omnichannel": "ai_callcenter_omnichannel",
     }
-    target_route = tab_to_url.get(tab, "ai_callcenter_overview")
+    target_route = tab_to_url.get(tab, "call_center_embedded")
 
     q_params = request.GET.copy()
     q_params.pop("tab", None)
@@ -589,82 +589,10 @@ def ai_callcenter_management_view(request):
 def ai_callcenter_overview_view(request):
     """
     Dedicated Subpage 1: High-Level Overview, KPIs, Usage Quotas & Activity.
+    Deprecated and removed per user specification.
+    Redirects immediately to /call-center/embedded/.
     """
-    tenant, err_resp = _validate_callcenter_page_access(request)
-    if err_resp:
-        return err_resp
-
-    from core import partner_service as ps
-    try:
-        client_id, _ = _get_callcenter_client_info(tenant)
-    except Exception as e:
-        logger.warning(f"Could not resolve callcenter client info: {e}")
-        client_id = getattr(tenant, "voice_client_id", None) or 49
-
-    try:
-        calls_data, total_calls_count, orders_converted_count, inquiries_count = _fetch_enriched_calls(tenant, client_id)
-    except Exception as e:
-        logger.warning(f"Could not fetch enriched calls: {e}")
-        calls_data, total_calls_count, orders_converted_count, inquiries_count = [], 0, 0, 0
-
-    tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
-    call_orders = [o for o in tenant_orders if o.channel == "call_center"][:15]
-    total_ai_orders = Order.objects.filter(tenant=tenant, channel="call_center").count()
-    total_ai_revenue = Order.objects.filter(tenant=tenant, channel="call_center").aggregate(Sum("total"))["total__sum"] or Decimal("0.00")
-
-    primary_did = ""
-    try:
-        telephony_resp = ps.get_telephony_numbers(client_id)
-        raw_nums = telephony_resp if isinstance(telephony_resp, list) else (telephony_resp.get("numbers") if isinstance(telephony_resp, dict) else [])
-        if raw_nums and len(raw_nums) > 0:
-            first_num = raw_nums[0]
-            if isinstance(first_num, dict):
-                primary_did = first_num.get("phone_number") or first_num.get("number") or first_num.get("did") or ""
-            elif isinstance(first_num, str):
-                primary_did = first_num
-    except Exception as e:
-        logger.warning(f"Could not get telephony numbers: {e}")
-
-    if not primary_did:
-        primary_did = "لا يوجد خط هاتف مخصص بعد"
-
-    usage_info = {}
-    try:
-        u_resp = ps.get_client_usage(client_id)
-        if isinstance(u_resp, dict):
-            usage_info = u_resp.get("client") or {}
-    except Exception as e:
-        logger.warning(f"Could not get client usage: {e}")
-
-    try:
-        plan_caps = ps.get_plan_voice_caps(tenant)
-    except Exception as e:
-        logger.warning(f"Could not get plan voice caps: {e}")
-        plan_caps = {"minute_cap": 150, "spending_cap": 15.0}
-
-    profile_data = {}
-    try:
-        prof_resp = ps.get_profile(client_id)
-        if isinstance(prof_resp, dict):
-            profile_data = prof_resp.get("profile") or prof_resp.get("active_profile") or {}
-    except Exception as e:
-        logger.warning(f"Could not get voice profile in overview: {e}")
-
-    context = {
-        "tenant": tenant,
-        "profile": profile_data,
-        "calls": calls_data[:10],
-        "total_calls_count": total_calls_count,
-        "orders_converted_count": orders_converted_count,
-        "inquiries_count": inquiries_count,
-        "call_orders": call_orders,
-        "total_ai_orders": total_ai_orders,
-        "total_ai_revenue": total_ai_revenue,
-        "did_number": primary_did,
-        "client_usage": usage_info,
-        "plan_caps": plan_caps,
-    }
-    return render(request, "ai_callcenter/overview.html", context)
+    return redirect("call_center_embedded")
 
 
 @login_required

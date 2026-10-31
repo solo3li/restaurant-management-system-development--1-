@@ -251,16 +251,20 @@ def run_tests():
     assert "#25D366" in html_hub, "Sidebar missing WhatsApp brand colored icon"
     # When requesting /chat-hub/, its link must have m3-active
     assert "m3-active bg-emerald-600/20 text-emerald-300" in html_hub or "m3-active" in html_hub, "Missing active state on WhatsApp Chat Hub sidebar item"
-    print("  ✔ PASS: Sidebar includes dedicated WhatsApp Chat Hub item with active highlighting")
+    # Verify sidebar AI Call Center item links to call_center_embedded
+    assert reverse("call_center_embedded") in html_hub or "/call-center/embedded/" in html_hub, "Sidebar AI Call Center must link to /call-center/embedded/"
+    print("  ✔ PASS: Sidebar includes dedicated WhatsApp Chat Hub item and AI Call Center links directly to /call-center/embedded/")
 
-    # 11. Overview Subpage Resiliency & 500 Fix Verification
-    print("\n>>> 11. Overview Subpage Resiliency & 500 Fix Verification")
+    # 11. Overview Route Redirection to Embedded Call Center
+    print("\n>>> 11. Overview Route Redirection to Embedded Call Center")
     res_overview = client.get(reverse("ai_callcenter_overview"))
-    assert res_overview.status_code == 200, f"Expected 200 OK for overview, got {res_overview.status_code}"
-    html_ov = res_overview.content.decode("utf-8")
-    assert "did_number" in html_ov or "جاهز للرنين" in html_ov or "خط الهاتف المخصص" in html_ov
-    assert "total_calls_count" in html_ov or "المكالمات المستلمة" in html_ov
-    print("  ✔ PASS: /ai-callcenter/overview/ loads cleanly with 200 OK, KPI cards, and DID strip")
+    assert res_overview.status_code == 302, f"Expected 302 redirect for overview, got {res_overview.status_code}"
+    assert res_overview.url == reverse("call_center_embedded")
+    res_followed = client.get(reverse("ai_callcenter_overview"), follow=True)
+    assert res_followed.status_code == 200
+    assert "tab-content-callcenter" in res_followed.content.decode("utf-8")
+    assert "callcenter-iframe" in res_followed.content.decode("utf-8")
+    print("  ✔ PASS: /ai-callcenter/overview/ cleanly redirects 302 to /call-center/embedded/ rendering live suite")
 
     # 12. Granular RBAC Verification on /chat-hub/ & /whatsapp/
     print("\n>>> 12. Granular RBAC Enforcement on Standalone Pages & Sidebar")
@@ -365,8 +369,8 @@ def run_tests():
         assert total == 3
         print("  ✔ PASS: _fetch_enriched_calls safely parsed malformed duration and non-dict records")
 
-    # 15. Upstream Outage Resiliency: Overview & Calls Never Return 500
-    print("\n>>> 15. Upstream Partner Outage Resiliency (Overview & Calls 200 OK)")
+    # 15. Upstream Outage Resiliency: Overview redirects, Calls return 200
+    print("\n>>> 15. Upstream Partner Outage Resiliency (Overview redirects 302, Calls 200 OK)")
     with patch("core.partner_service.get_telephony_numbers", side_effect=Exception("Partner down")):
         with patch("core.partner_service.get_client_usage", side_effect=Exception("Timeout")):
             with patch("core.partner_service.get_profile", side_effect=Exception("ConnectionRefused")):
@@ -374,10 +378,11 @@ def run_tests():
                     client.force_login(owner)
                     client.get(f"/switch-tenant/{tenant1.id}/")
                     res_ov_outage = client.get(reverse("ai_callcenter_overview"))
-                    assert res_ov_outage.status_code == 200, f"Expected 200 during partner outage on overview, got {res_ov_outage.status_code}"
+                    assert res_ov_outage.status_code == 302, f"Expected 302 redirect on overview, got {res_ov_outage.status_code}"
+                    assert res_ov_outage.url == reverse("call_center_embedded"), f"Expected redirect to call_center_embedded, got {res_ov_outage.url}"
                     res_calls_outage = client.get(reverse("ai_callcenter_calls"))
                     assert res_calls_outage.status_code == 200, f"Expected 200 during partner outage on calls, got {res_calls_outage.status_code}"
-                    print("  ✔ PASS: Overview and Calls return 200 OK gracefully even during total partner API outage")
+                    print("  ✔ PASS: Overview redirects 302 to embedded, Calls return 200 OK even during total partner API outage")
 
     # Cleanup temporary test objects
     cashier_user.delete()
