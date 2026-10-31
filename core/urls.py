@@ -38,7 +38,9 @@ urlpatterns = [
     path("forgot-password/", views.forgot_password_view, name="forgot_password"),
     path("verify-code/", views.verify_code_view, name="verify_code"),
     path("reset-password/", views.reset_password_view, name="reset_password"),
+    path("verify-email/", views.send_verification_code_view, name="verify_email"),
     path("api/auth/forgot-password/", views.forgot_password_view, name="api_forgot_password"),
+    path("api/auth/send-verification-code/", views.send_verification_code_view, name="api_send_verification_code"),
     path("api/auth/verify-code/", views.verify_code_view, name="api_verify_code"),
     path("api/auth/reset-password/", views.reset_password_view, name="api_reset_password"),
 

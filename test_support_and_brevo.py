@@ -1,9 +1,11 @@
 import io
 import json
+import base64
 from datetime import timedelta
 from unittest.mock import patch, MagicMock
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory
+from django.contrib import admin
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -11,8 +13,10 @@ from django.urls import reverse
 
 from apps.tenants.models import Tenant, Branch
 from apps.accounts.models import UserProfile
+from apps.orders.models import Customer
 from apps.communication.models import BrevoConfiguration, VerificationCode, EmailLog, InboundEmailLog
 from apps.communication import brevo_service
+from apps.communication.admin import send_custom_brevo_email_to_users, send_custom_brevo_email_to_customers
 from apps.support.models import SupportTicket, TicketMessage, TicketAttachment
 
 
@@ -625,4 +629,237 @@ class BrevoAndSupportTicketsTestSuite(TestCase):
             user=self.owner1
         )
         self.assertEqual(res["status"], "success")
+
+    # =========================================================================
+    # SUITE 10: Django Admin User & Customer Direct Email Actions
+    # =========================================================================
+    def test_user_and_customer_admin_direct_email_actions(self):
+        """Verifies direct Brevo email actions are properly registered on User and Customer admin models."""
+        rf = RequestFactory()
+        req = rf.get("/admin/")
+        req.user = self.superadmin
+
+        # 1. User Admin Actions
+        user_admin = admin.site._registry.get(User)
+        self.assertIsNotNone(user_admin)
+        user_actions = user_admin.get_actions(req)
+        self.assertIn("send_custom_brevo_email_to_users", user_actions)
+
+        # Trigger action on user
+        user_qs = User.objects.filter(pk=self.owner1.pk)
+        redir_user = send_custom_brevo_email_to_users(user_admin, req, user_qs)
+        self.assertEqual(redir_user.status_code, 302)
+        self.assertIn("email=owner%40grillhouse.com", redir_user.url)
+
+        # 2. Customer Admin Actions
+        customer = Customer.objects.create(
+            tenant=self.tenant1,
+            name="سعد الشهري",
+            phone="+966555112233",
+            email="saad.customer@example.com"
+        )
+        customer_admin = admin.site._registry.get(Customer)
+        self.assertIsNotNone(customer_admin)
+        customer_actions = customer_admin.get_actions(req)
+        self.assertIn("send_custom_brevo_email_to_customers", customer_actions)
+
+        # Trigger action on customer
+        cust_qs = Customer.objects.filter(pk=customer.pk)
+        redir_cust = send_custom_brevo_email_to_customers(customer_admin, req, cust_qs)
+        self.assertEqual(redir_cust.status_code, 302)
+        self.assertIn("email=saad.customer%40example.com", redir_cust.url)
+
+    # =========================================================================
+    # SUITE 11: Webhook Inbound Base64 Attachments & HTML Ticket Extraction
+    # =========================================================================
+    def test_brevo_inbound_webhook_with_attachments_and_html_matching(self):
+        """Verifies inbound email webhook extracts ticket ID from HTML body and ingests attachments."""
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-7788",
+            creator=self.owner1,
+            subject="عطل في الطابعة الشبكية",
+            description="الشبكة غير متصلة",
+            status="open"
+        )
+
+        fake_png_bytes = b"\x89PNG\r\n\x1a\nfakeimagebytes123"
+        fake_b64 = base64.b64encode(fake_png_bytes).decode("ascii")
+
+        inbound_payload = {
+            "items": [
+                {
+                    "MessageId": "<inbound-attach-test-01@customer.com>",
+                    "From": {"Address": "owner@grillhouse.com", "Name": "أحمد الغامدي"},
+                    "To": [{"Address": "support@motaem.com"}],
+                    "Subject": "Re: استفسار عن الشبكة",  # Ticket ID intentionally omitted from Subject!
+                    "RawTextBody": "أرفق لكم صورة من رسالة الخطأ الظاهرة على الشاشة.",
+                    "RawHtmlBody": "<div><p>أرفق لكم صورة من رسالة الخطأ الظاهرة على الشاشة.</p><footer>تذكرة الدعم: [TCK-202611-7788]</footer></div>",
+                    "Attachments": [
+                        {
+                            "Name": "error_screen.png",
+                            "ContentType": "image/png",
+                            "ContentLength": len(fake_png_bytes),
+                            "Content": fake_b64
+                        }
+                    ]
+                }
+            ]
+        }
+
+        resp = self.client.post(
+            reverse("brevo_inbound_webhook"),
+            data=json.dumps(inbound_payload),
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "success")
+
+        # Verify message created on the ticket
+        msg = ticket.messages.first()
+        self.assertIsNotNone(msg)
+        self.assertEqual(msg.sender_type, "tenant")
+        self.assertIn("أرفق لكم صورة", msg.message)
+
+        # Verify attachment was decoded and saved
+        attachment = msg.attachments.first()
+        self.assertIsNotNone(attachment)
+        self.assertEqual(attachment.file_name, "error_screen.png")
+        self.assertEqual(attachment.file_type, "image")
+        self.assertEqual(attachment.file_size, len(fake_png_bytes))
+
+    # =========================================================================
+    # SUITE 12: Brevo Inbound Webhook Secret Authentication
+    # =========================================================================
+    def test_brevo_inbound_webhook_secret_enforcement(self):
+        """Verifies webhook_secret enforces 403 when configured and invalid."""
+        config = BrevoConfiguration.get_config()
+        config.webhook_secret = "Secr3tToken-123456"
+        config.save()
+
+        payload = {"items": [{"Subject": "Hello", "RawTextBody": "Test without ticket"}]}
+
+        # 1. No secret provided -> 403 Forbidden
+        fail_resp = self.client.post(
+            reverse("brevo_inbound_webhook"),
+            data=json.dumps(payload),
+            content_type="application/json"
+        )
+        self.assertEqual(fail_resp.status_code, 403)
+
+        # 2. Invalid secret provided -> 403 Forbidden
+        bad_token_resp = self.client.post(
+            reverse("brevo_inbound_webhook") + "?token=wrong-token",
+            data=json.dumps(payload),
+            content_type="application/json"
+        )
+        self.assertEqual(bad_token_resp.status_code, 403)
+
+        # 3. Valid secret via query parameter ?secret= -> 200 OK
+        ok_param_resp = self.client.post(
+            reverse("brevo_inbound_webhook") + "?secret=Secr3tToken-123456",
+            data=json.dumps(payload),
+            content_type="application/json"
+        )
+        self.assertEqual(ok_param_resp.status_code, 200)
+
+        # 4. Valid secret via X-Webhook-Secret header -> 200 OK
+        ok_hdr_resp = self.client.post(
+            reverse("brevo_inbound_webhook"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_X_WEBHOOK_SECRET="Secr3tToken-123456"
+        )
+        self.assertEqual(ok_hdr_resp.status_code, 200)
+
+        # Reset secret
+        config.webhook_secret = ""
+        config.save()
+
+    # =========================================================================
+    # SUITE 13: Dedicated Send Verification Code API & Verification Workflow
+    # =========================================================================
+    @patch("apps.communication.brevo_service.requests.post")
+    def test_send_verification_code_api_and_email_verification_flow(self, mock_post):
+        """Verifies end-to-end API dispatch of email verification code and marking code used."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 201
+        mock_resp.json.return_value = {"messageId": "<brevo-email-vcode-99@smtp.brevo.com>"}
+        mock_post.return_value = mock_resp
+
+        # Step 1: Send verification code via API
+        send_resp = self.client.post(
+            reverse("api_send_verification_code"),
+            data=json.dumps({
+                "email": "verify-user@example.com",
+                "purpose": "email_verification"
+            }),
+            content_type="application/json",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        self.assertEqual(send_resp.status_code, 200)
+        send_data = send_resp.json()
+        self.assertEqual(send_data["status"], "success")
+
+        # Check DB code object
+        code_obj = VerificationCode.objects.filter(email="verify-user@example.com", purpose="email_verification").first()
+        self.assertIsNotNone(code_obj)
+        self.assertEqual(len(code_obj.code), 6)
+        self.assertTrue(code_obj.is_valid)
+
+        # Step 2: Verify code with purpose=email_verification
+        verify_resp = self.client.post(
+            reverse("api_verify_code"),
+            data=json.dumps({
+                "email": "verify-user@example.com",
+                "code": code_obj.code,
+                "purpose": "email_verification"
+            }),
+            content_type="application/json",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        self.assertEqual(verify_resp.status_code, 200)
+        verify_data = verify_resp.json()
+        self.assertEqual(verify_data["status"], "success")
+        self.assertTrue(verify_data.get("verified"))
+
+        # Step 3: Verify code was marked is_used in DB
+        code_obj.refresh_from_db()
+        self.assertTrue(code_obj.is_used)
+        self.assertFalse(code_obj.is_valid)
+
+    # =========================================================================
+    # SUITE 14: Support Reply Status Transition
+    # =========================================================================
+    @patch("apps.communication.brevo_service.requests.post")
+    def test_support_reply_transitions_open_ticket_to_in_progress(self, mock_post):
+        """Verifies that when support staff replies to an open ticket, its status transitions to in_progress."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 201
+        mock_resp.json.return_value = {"messageId": "<brevo-supp-reply-1@smtp.brevo.com>"}
+        mock_post.return_value = mock_resp
+
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-STATUS1",
+            creator=self.owner1,
+            subject="استفسار مفتوح",
+            description="ننتظر رد الدعم",
+            status="open"
+        )
+
+        # Superadmin / Support agent login
+        self.client.force_login(self.superadmin)
+        reply_resp = self.client.post(
+            reverse("api_ticket_reply", args=[ticket.id]),
+            data={"message": "أهلاً بك، نحن نعمل على حل المشكلة وسنوافيك بالرد."}
+        )
+        self.assertEqual(reply_resp.status_code, 200)
+        data = reply_resp.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["sender_type"], "support")
+
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.status, "in_progress")
+
 

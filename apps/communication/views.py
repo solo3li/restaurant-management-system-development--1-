@@ -1,5 +1,6 @@
 import re
 import json
+import base64
 import logging
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -9,6 +10,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.core.files.base import ContentFile
 
 from apps.communication.models import BrevoConfiguration, VerificationCode, EmailLog, InboundEmailLog
 from apps.communication.brevo_service import (
@@ -17,7 +19,7 @@ from apps.communication.brevo_service import (
     send_email_verification_code,
     send_direct_custom_email,
 )
-from apps.support.models import SupportTicket, TicketMessage
+from apps.support.models import SupportTicket, TicketMessage, TicketAttachment
 
 logger = logging.getLogger(__name__)
 
@@ -155,6 +157,27 @@ def verify_code_view(request):
                 return JsonResponse({"status": "error", "message": err_msg}, status=400)
             return render(request, "forgot_password.html", {"error": err_msg, "email": email, "step": "verify"})
 
+        # If purpose is email verification, mark code as used immediately and complete workflow
+        if purpose == "email_verification":
+            code_obj.is_used = True
+            code_obj.save(update_fields=["is_used"])
+            success_msg = "تم تأكيد وتوثيق البريد الإلكتروني بنجاح!"
+            if is_json:
+                return JsonResponse({
+                    "status": "success",
+                    "message": success_msg,
+                    "email": email,
+                    "code": code,
+                    "verified": True,
+                })
+            return render(request, "forgot_password.html", {
+                "success": True,
+                "success_message": success_msg,
+                "email": email,
+                "verified": True,
+                "step": "done"
+            })
+
         if is_json:
             return JsonResponse({
                 "status": "success",
@@ -172,6 +195,77 @@ def verify_code_view(request):
 
     email = request.GET.get("email", "")
     return render(request, "forgot_password.html", {"email": email, "step": "verify"})
+
+
+def send_verification_code_view(request):
+    """
+    Generates and dispatches a 6-character alphanumeric verification code via Brevo.
+    Supports email_verification and account_security purposes with strict 1-hour expiration.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("Only POST method allowed.")
+
+    is_json = (
+        request.headers.get("x-requested-with") == "XMLHttpRequest"
+        or "application/json" in request.headers.get("accept", "")
+        or "application/json" in (request.content_type or "")
+    )
+    post_data = request.POST
+    if "application/json" in (request.content_type or "") and request.body:
+        try:
+            post_data = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            post_data = request.POST
+
+    target_email = post_data.get("email", "").strip().lower()
+    purpose = post_data.get("purpose", "email_verification").strip()
+
+    target_user = None
+    if request.user.is_authenticated:
+        target_user = request.user
+        if not target_email and request.user.email:
+            target_email = request.user.email.strip().lower()
+
+    if not target_email and target_user:
+        target_email = target_user.email.strip().lower() if target_user.email else ""
+
+    if not target_email:
+        target_username = post_data.get("username", "").strip()
+        if target_username:
+            u = User.objects.filter(username__iexact=target_username).first()
+            if u and u.email:
+                target_user = u
+                target_email = u.email.strip().lower()
+
+    if not target_email or "@" not in target_email:
+        err_msg = "يرجى تحديد عنوان بريد إلكتروني صالح لاستلام رمز التحقق."
+        if is_json:
+            return JsonResponse({"status": "error", "message": err_msg}, status=400)
+        return HttpResponseBadRequest(err_msg)
+
+    # Generate 6-char alphanumeric code with 1-hour expiration
+    code_obj = VerificationCode.generate_code(
+        email=target_email,
+        user=target_user,
+        purpose=purpose,
+        expiry_hours=1
+    )
+
+    if purpose == "email_verification":
+        send_res = send_email_verification_code(email=target_email, code=code_obj.code, user=target_user)
+    else:
+        send_res = send_password_reset_code(email=target_email, code=code_obj.code, user=target_user)
+
+    msg = f"تم إرسال رمز التحقق الأبجدي الرقمي المكون من 6 خانات إلى البريد ({target_email}). الرمز صالح لمدة ساعة واحدة."
+    return JsonResponse({
+        "status": "success",
+        "message": msg,
+        "email": target_email,
+        "purpose": purpose,
+        "code_id": code_obj.id,
+        "brevo_status": send_res.get("status")
+    })
+
 
 
 def reset_password_view(request):
@@ -265,9 +359,24 @@ def brevo_inbound_webhook_view(request):
     Receives and processes inbound email webhooks and transaction events from Brevo.
     Parses sender, recipient, subject, body text, body html, and links incoming reply emails
     to the corresponding SupportTicket if a ticket reference is found.
+    Supports validating optional webhook_secret and extracting binary attachments up to 25MB.
     """
     if request.method != "POST":
         return HttpResponseBadRequest("Only POST method allowed.")
+
+    config = BrevoConfiguration.get_config()
+    # Webhook secret protection if configured
+    if config.webhook_secret:
+        incoming_secret = (
+            request.GET.get("secret")
+            or request.GET.get("token")
+            or request.headers.get("X-Webhook-Secret")
+            or request.headers.get("X-Brevo-Token")
+            or request.headers.get("Authorization", "").replace("Bearer ", "").strip()
+        )
+        if incoming_secret != config.webhook_secret:
+            logger.warning("Brevo inbound webhook rejected: invalid secret or token")
+            return HttpResponseForbidden("Invalid webhook secret.")
 
     payload = {}
     content_type = request.content_type or ""
@@ -336,8 +445,12 @@ def brevo_inbound_webhook_view(request):
             is_processed=False
         )
 
-        # Inspect subject and body for ticket reference pattern: TCK-YYYYMM-XXXX
-        ticket_match = re.search(r'TCK-\d{6}-\d+', subject) or re.search(r'TCK-\d{6}-\d+', body_text)
+        # Inspect subject, body text, and body HTML for ticket reference: TCK-YYYYMM-XXXX
+        ticket_match = (
+            re.search(r'TCK-\d{6}-[A-Za-z0-9]+', subject)
+            or re.search(r'TCK-\d{6}-[A-Za-z0-9]+', body_text)
+            or re.search(r'TCK-\d{6}-[A-Za-z0-9]+', body_html)
+        )
         if ticket_match:
             ticket_num = ticket_match.group(0)
             ticket = SupportTicket.objects.filter(ticket_number=ticket_num).first()
@@ -360,18 +473,51 @@ def brevo_inbound_webhook_view(request):
                 if not reply_text and body_html:
                     reply_text = strip_tags(body_html).strip()
 
-                if reply_text:
-                    TicketMessage.objects.create(
+                if reply_text or item.get("Attachments") or item.get("attachments"):
+                    msg_content = reply_text if reply_text else "مرفقات واردة عبر البريد الإلكتروني"
+                    ticket_msg = TicketMessage.objects.create(
                         ticket=ticket,
                         sender=sender_user,
                         sender_type=sender_type,
-                        message=reply_text
+                        message=msg_content
                     )
 
-                    # Update ticket status if closed/resolved
-                    if ticket.status in ("resolved", "closed"):
+                    # Ingest attachments from Brevo Inbound payload if present
+                    attachments_list = item.get("Attachments") or item.get("attachments") or []
+                    if isinstance(attachments_list, list):
+                        for att_dict in attachments_list:
+                            if not isinstance(att_dict, dict):
+                                continue
+                            att_name = att_dict.get("Name") or att_dict.get("name") or "attachment"
+                            att_content_b64 = att_dict.get("Content") or att_dict.get("content") or ""
+                            att_content_type = att_dict.get("ContentType") or att_dict.get("contentType") or ""
+                            if att_content_b64:
+                                try:
+                                    raw_bytes = base64.b64decode(att_content_b64)
+                                    if len(raw_bytes) <= TicketAttachment.MAX_FILE_SIZE_BYTES:
+                                        cfile = ContentFile(raw_bytes, name=att_name)
+                                        ftype = TicketAttachment.detect_file_type(att_name, att_content_type)
+                                        TicketAttachment.objects.create(
+                                            ticket=ticket,
+                                            message=ticket_msg,
+                                            file=cfile,
+                                            file_type=ftype,
+                                            file_name=att_name,
+                                            file_size=len(raw_bytes),
+                                        )
+                                except Exception as att_ex:
+                                    logger.warning(f"Failed to process inbound attachment {att_name}: {att_ex}")
+
+                    # Update ticket status if closed/resolved or if support replied to open ticket
+                    if sender_type == "tenant" and ticket.status in ("resolved", "closed"):
                         ticket.status = "in_progress"
                         ticket.save(update_fields=["status", "updated_at"])
+                    elif sender_type == "support" and ticket.status == "open":
+                        ticket.status = "in_progress"
+                        ticket.save(update_fields=["status", "updated_at"])
+                    else:
+                        ticket.updated_at = timezone.now()
+                        ticket.save(update_fields=["updated_at"])
 
                     log_entry.is_processed = True
                     log_entry.save(update_fields=["ticket", "is_processed"])
@@ -384,6 +530,7 @@ def brevo_inbound_webhook_view(request):
         "processed_count": len(processed_logs),
         "log_ids": processed_logs
     })
+
 
 
 @staff_member_required

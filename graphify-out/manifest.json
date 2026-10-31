@@ -450,9 +450,9 @@
     "semantic_hash": ""
   },
   "apps/orders/admin.py": {
-    "mtime": 1792736197.071264,
-    "seen": 1792755068.7958286,
-    "ast_hash": "034a83a3f04ee2a82d3965d46ffef9dd",
+    "mtime": 1793482576.695819,
+    "seen": 1793483185.9816272,
+    "ast_hash": "3cf6731b64fc0537e97e14c95c64cd00",
     "semantic_hash": ""
   },
   "apps/orders/apps.py": {
@@ -468,9 +468,9 @@
     "semantic_hash": ""
   },
   "apps/orders/models.py": {
-    "mtime": 1792735961.5550463,
-    "seen": 1792755068.795835,
-    "ast_hash": "0745449fc3da6c7d594b5e7638de2f42",
+    "mtime": 1793482572.3726852,
+    "seen": 1793483185.9817646,
+    "ast_hash": "5f4c1883804fb2904d4582b496d4e43e",
     "semantic_hash": ""
   },
   "apps/orders/urls.py": {
@@ -864,15 +864,15 @@
     "semantic_hash": ""
   },
   "core/urls.py": {
-    "mtime": 1793481313.8757713,
-    "seen": 1793481664.355046,
-    "ast_hash": "601717acda949896903fdfbd75cf8873",
+    "mtime": 1793482336.8913977,
+    "seen": 1793483185.987637,
+    "ast_hash": "0d035e24236542d7a49bb10b2b51b120",
     "semantic_hash": ""
   },
   "core/views.py": {
-    "mtime": 1793480582.1504123,
-    "seen": 1793481664.355049,
-    "ast_hash": "00d6683d162532bd2f41962af6b6e288",
+    "mtime": 1793482328.6111412,
+    "seen": 1793483185.987641,
+    "ast_hash": "45c76e1e140c7331f32b35e942a32ce3",
     "semantic_hash": ""
   },
   "data_dump.json": {
@@ -3060,9 +3060,9 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793441425.7020113,
-    "seen": 1793441506.3074965,
-    "ast_hash": "6bc0a37ec8ac7d9464e29579e317cbe2",
+    "mtime": 1793481688.430269,
+    "seen": 1793483185.9877434,
+    "ast_hash": "4ebadeb42277b70488bf3e49025a56a3",
     "semantic_hash": ""
   },
   "init.sh": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793460153.335708,
-    "seen": 1793481664.3962162,
-    "ast_hash": "9fa46f0a1134587b7930ef384cf5aa66",
+    "mtime": 1793481717.073149,
+    "seen": 1793483186.0292234,
+    "ast_hash": "3db40dd4a3d2cadfe1ede78fb7368dd1",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3984,9 +3984,9 @@
     "semantic_hash": ""
   },
   "apps/communication/admin.py": {
-    "mtime": 1793481194.5111117,
-    "seen": 1793481664.3468983,
-    "ast_hash": "6366e52773bb985b99ba0b6125f39c55",
+    "mtime": 1793482471.1305537,
+    "seen": 1793483185.9799106,
+    "ast_hash": "e5c1e33ef51407f2f23bab24d720d539",
     "semantic_hash": ""
   },
   "apps/communication/apps.py": {
@@ -4008,15 +4008,15 @@
     "semantic_hash": ""
   },
   "apps/communication/urls.py": {
-    "mtime": 1793480559.8617356,
-    "seen": 1793481664.346919,
-    "ast_hash": "93cfe051cf4b0608f85fe5a6389e1244",
+    "mtime": 1793482306.1214445,
+    "seen": 1793483185.9801452,
+    "ast_hash": "f39a434318f1e36b38eb6c21caf720de",
     "semantic_hash": ""
   },
   "apps/communication/views.py": {
-    "mtime": 1793480483.9294329,
-    "seen": 1793481664.3469224,
-    "ast_hash": "89fc64c575fa0156b780bef0fabdce45",
+    "mtime": 1793482293.1470423,
+    "seen": 1793483185.98015,
+    "ast_hash": "6a875a8aea7e9f081f16302393413b8c",
     "semantic_hash": ""
   },
   "apps/support/__init__.py": {
@@ -4050,9 +4050,9 @@
     "semantic_hash": ""
   },
   "apps/support/views.py": {
-    "mtime": 1793480554.217564,
-    "seen": 1793481664.3489354,
-    "ast_hash": "2cbbe221670554997598e29669a8ca09",
+    "mtime": 1793482347.5037265,
+    "seen": 1793483185.9823256,
+    "ast_hash": "49a3aa080f486b8dfbfa30bc9e107366",
     "semantic_hash": ""
   },
   "core/migrations/0037_brevoconfiguration_emaillog_supportticket_and_more.py": {
@@ -4062,9 +4062,9 @@
     "semantic_hash": ""
   },
   "test_support_and_brevo.py": {
-    "mtime": 1793481025.531937,
-    "seen": 1793481664.3736255,
-    "ast_hash": "fae0a055f734a714b07c8811cc14b1fb",
+    "mtime": 1793482386.140923,
+    "seen": 1793483186.00343,
+    "ast_hash": "d51e4b7c17bf7b504c0c7a7858d918bf",
     "semantic_hash": ""
   },
   "templates/admin/brevo/send_custom_email.html": {
@@ -4083,6 +4083,12 @@
     "mtime": 1793480756.4897182,
     "seen": 1793481664.4000747,
     "ast_hash": "64c18dbeeec7df7e8788210984f3d795",
+    "semantic_hash": ""
+  },
+  "core/migrations/0038_customer_email.py": {
+    "mtime": 1793482581.4639664,
+    "seen": 1793483185.987078,
+    "ast_hash": "639e4bbea6eae2ea9a26a5ad4a6112be",
     "semantic_hash": ""
   }
 }

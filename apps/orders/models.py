@@ -13,6 +13,7 @@ class Customer(models.Model):
     )
     name = models.CharField(max_length=255, verbose_name="اسم العميل")
     phone = models.CharField(max_length=50, db_index=True, verbose_name="رقم الهاتف")
+    email = models.EmailField(max_length=254, blank=True, default="", verbose_name="البريد الإلكتروني")
     address = models.CharField(max_length=255, default="", blank=True, verbose_name="العنوان")
     notes = models.TextField(default="", blank=True, verbose_name="ملاحظات")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التسجيل")

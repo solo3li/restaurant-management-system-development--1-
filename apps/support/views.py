@@ -290,8 +290,13 @@ def api_ticket_reply(request, ticket_id):
             duration_seconds=duration_sec,
         )
 
-    # If ticket was resolved or closed and tenant replies, reopen to in_progress
+    # Status transitions:
+    # 1. Tenant reply on resolved/closed ticket reopens it to in_progress
+    # 2. Support staff reply on open ticket moves it to in_progress
     if sender_type == "tenant" and ticket.status in ("resolved", "closed"):
+        ticket.status = "in_progress"
+        ticket.save(update_fields=["status", "updated_at"])
+    elif sender_type == "support" and ticket.status == "open":
         ticket.status = "in_progress"
         ticket.save(update_fields=["status", "updated_at"])
     else:

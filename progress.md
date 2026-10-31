@@ -75,9 +75,18 @@
     - Automatic reopening of resolved/closed tickets to `in_progress` when a customer replies or sends an inbound email.
     - Django Admin integration with `SupportTicketAdmin` and message/attachment inlines.
   - **5. Comprehensive Automated Testing & Verification**:
-    - Created `test_support_and_brevo.py` containing 14 comprehensive test suites (100% PASS).
+    - Created and expanded `test_support_and_brevo.py` containing 19 comprehensive test suites (100% PASS).
     - Integrated `test_support_and_brevo` into `./init.sh` verification harness (all 12 test suites passing 100%).
     - Codebase knowledge graph updated via `graphify update .`.
+  - **6. Adversarial Review & Bug Fixes**:
+    - **Django Admin Actions Registration**: Fixed `ModelAdmin.actions` tuple appending crash in `apps/communication/admin.py` for User and Customer models by safely converting `actions` to a list in `_register_brevo_admin_actions()`.
+    - **URL Encoding for Direct Email Redirect**: Used `urllib.parse.urlencode` to format email queries in admin actions to prevent formatting bugs.
+    - **Webhook Secret Authentication**: Added header/query secret validation (`webhook_secret`, `X-Webhook-Secret`, `X-Brevo-Token`, `Bearer`) to `brevo_inbound_webhook_view` preventing unauthorized webhook forge attempts.
+    - **Inbound Ticket Pattern Matching**: Broadened regex to scan `subject`, `body_text`, and `body_html` for `TCK-\d{6}-[A-Za-z0-9]+` references so ticket association works even if email clients strip subject prefixes.
+    - **Inbound Binary Attachments**: Ingested base64 attachments from Brevo inbound webhooks into `TicketAttachment` records with <= 25MB validation.
+    - **Ticket Status Lifecycle**: Automatically transitioned tickets from `open` to `in_progress` on support replies.
+    - **Customer Email Field**: Added `email` to `Customer` model with migration `0038_customer_email.py`.
+    - **Dedicated Email Verification Endpoint**: Added `send_verification_code_view` and updated `verify_code_view` for `purpose="email_verification"`.
 
 - [x] **Call Center Page Streamlining & Element Elimination (`feat-callcenter-embedded-clean-slate`)**
   - **1. Elimination of Redundant Ribbon & Card Elements (`templates/call_center.html`)**:

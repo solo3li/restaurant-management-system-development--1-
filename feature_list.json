@@ -254,7 +254,7 @@
       "description": "Full Brevo (Sendinblue) API integration with singleton BrevoConfiguration model, connection test in Django Admin, direct custom email composer for users/customers with branded HTML templates, 6-character uppercase alphanumeric verification codes (e.g. K7B9X2) with strict 1-hour expiration and replay protection, and inbound Brevo webhook handler with automatic ticket reference parsing.",
       "dependencies": [],
       "status": "completed",
-      "evidence": "apps/communication/ (models, brevo_service, views, admin, urls), core/migrations/0037_brevoconfiguration_emaillog_supportticket_and_more.py, templates/forgot_password.html, templates/admin/brevo/send_custom_email.html, test_support_and_brevo.py (14/14 PASS), ./init.sh (100% PASS)."
+      "evidence": "apps/communication/ (models, brevo_service, views, admin, urls), core/migrations/0037_brevoconfiguration_emaillog_supportticket_and_more.py, core/migrations/0038_customer_email.py, templates/forgot_password.html, templates/admin/brevo/send_custom_email.html, test_support_and_brevo.py (19/19 PASS), ./init.sh (100% PASS)."
     },
     {
       "id": "feat-support-tickets-rich-media",
@@ -262,7 +262,7 @@
       "description": "Dedicated full page in General Administration tabs (_admin_nav_tabs.html tab 6) alongside Branches, Menu, Inventory, Employees, and Subscription. Features conversation threads between tenants and administration, status tracking (Open, In Progress, Resolved, Closed), rich media support (audio/voice notes with live browser MediaRecorder and inline player, image attachments with lightbox viewer, video attachments with inline player, and documents <= 25MB per file enforced on frontend and backend), Brevo outbound email alerts with ticket tag [TCK-YYYYMM-XXXX], and inbound email reply auto-appending to thread.",
       "dependencies": ["feat-brevo-email-verification"],
       "status": "completed",
-      "evidence": "apps/support/ (models, views, admin, urls), templates/_admin_nav_tabs.html, templates/base.html, templates/support_tickets.html, templates/support_ticket_detail.html, core/i18n_catalog.py (5-language support), test_support_and_brevo.py (14/14 PASS), ./init.sh (100% PASS)."
+      "evidence": "apps/support/ (models, views, admin, urls), templates/_admin_nav_tabs.html, templates/base.html, templates/support_tickets.html, templates/support_ticket_detail.html, core/i18n_catalog.py (5-language support), test_support_and_brevo.py (19/19 PASS), ./init.sh (100% PASS)."
     }
   ]
 }

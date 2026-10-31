@@ -218,6 +218,7 @@ from apps.audit.views import (
 from apps.communication.views import (
     forgot_password_view,
     verify_code_view,
+    send_verification_code_view,
     reset_password_view,
     brevo_inbound_webhook_view,
     admin_send_direct_email_view,

@@ -1,3 +1,4 @@
+import urllib.parse
 import requests
 from django.contrib import admin, messages
 from django.urls import path, reverse
@@ -201,12 +202,9 @@ def send_custom_brevo_email_to_users(modeladmin, request, queryset):
         modeladmin.message_user(request, "المستخدمون المختارون ليس لديهم عناوين بريد إلكتروني صالحة.", level=messages.WARNING)
         return
     first_email = emails[0]
-    return redirect(f"{reverse('admin:admin_brevo_send_email')}?email={first_email}")
+    query = urllib.parse.urlencode({"email": first_email})
+    return redirect(f"{reverse('admin:admin_brevo_send_email')}?{query}")
 
-try:
-    admin.site._registry[User].actions.append(send_custom_brevo_email_to_users)
-except Exception:
-    pass
 
 # Add Admin action to Customer model
 @admin.action(description="✉️ إرسال بريد إلكتروني مخصص للعميل عبر Brevo")
@@ -216,10 +214,25 @@ def send_custom_brevo_email_to_customers(modeladmin, request, queryset):
         modeladmin.message_user(request, "العملاء المختارون ليس لديهم عناوين بريد إلكتروني صالحة.", level=messages.WARNING)
         return
     first_email = emails[0]
-    return redirect(f"{reverse('admin:admin_brevo_send_email')}?email={first_email}")
+    query = urllib.parse.urlencode({"email": first_email})
+    return redirect(f"{reverse('admin:admin_brevo_send_email')}?{query}")
 
 
-try:
-    admin.site._registry[Customer].actions.append(send_custom_brevo_email_to_customers)
-except Exception:
-    pass
+def _register_brevo_admin_actions():
+    targets = [
+        (User, send_custom_brevo_email_to_users),
+        (Customer, send_custom_brevo_email_to_customers),
+    ]
+    for model_cls, action_fn in targets:
+        ma = admin.site._registry.get(model_cls)
+        if ma:
+            if ma.actions is None or isinstance(ma.actions, tuple):
+                ma.actions = list(ma.actions or [])
+            elif not isinstance(ma.actions, list):
+                ma.actions = [ma.actions]
+            if action_fn not in ma.actions:
+                ma.actions.append(action_fn)
+
+_register_brevo_admin_actions()
+
+
