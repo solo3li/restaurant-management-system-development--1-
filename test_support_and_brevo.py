@@ -862,4 +862,254 @@ class BrevoAndSupportTicketsTestSuite(TestCase):
         ticket.refresh_from_db()
         self.assertEqual(ticket.status, "in_progress")
 
+    # =========================================================================
+    # SUITE 15: Admin Live Chat Reply API with Brevo Outbound Notification & Media
+    # =========================================================================
+    @patch("apps.communication.brevo_service.requests.post")
+    def test_admin_ticket_reply_with_brevo_and_media(self, mock_post):
+        """Verifies staff admin reply with Brevo notification and media attachment."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 201
+        mock_resp.json.return_value = {"messageId": "<brevo-admin-reply-1001@smtp.brevo.com>"}
+        mock_post.return_value = mock_resp
+
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-ADMIN01",
+            creator=self.owner1,
+            subject="مشكلة في استيراد قائمة الطعام",
+            description="ملف الإكسيل لا يتم رفعه بشكل صحيح",
+            status="open"
+        )
+
+        # 1. Non-staff user strictly blocked with 403 Forbidden
+        self.client.force_login(self.owner1)
+        forbidden_resp = self.client.post(
+            reverse("api_admin_ticket_reply", args=[ticket.id]),
+            data={"message": "محاولة رد غير مصرح بها"}
+        )
+        self.assertEqual(forbidden_resp.status_code, 403)
+
+        # 2. Staff user successfully replies with attachment and dispatches Brevo alert
+        self.client.force_login(self.superadmin)
+        valid_img = SimpleUploadedFile("solution_guide.png", b"\x89PNG\r\n\x1a\nsolutionpngbytes", content_type="image/png")
+
+        reply_resp = self.client.post(
+            reverse("api_admin_ticket_reply", args=[ticket.id]),
+            data={
+                "message": "مرحباً، تم فحص الملف وإصلاح صيغة الأعمدة المرفقة.",
+                "notify_customer": "true",
+                "is_internal": "false",
+                "attachments": [valid_img]
+            }
+        )
+        self.assertEqual(reply_resp.status_code, 200)
+        data = reply_resp.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["sender_type"], "support")
+        self.assertFalse(data["is_internal"])
+        self.assertTrue(data["email_sent"])
+        self.assertEqual(len(data["attachments"]), 1)
+        self.assertEqual(data["attachments"][0]["file_name"], "solution_guide.png")
+
+        # Verify DB TicketMessage and attachment
+        msg = ticket.messages.first()
+        self.assertIsNotNone(msg)
+        self.assertEqual(msg.sender, self.superadmin)
+        self.assertFalse(msg.is_internal)
+        self.assertEqual(msg.attachments.count(), 1)
+        self.assertEqual(msg.attachments.first().file_type, "image")
+
+        # Verify ticket status moved to in_progress
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.status, "in_progress")
+
+        # Verify Brevo API was called with ticket subject and reference
+        self.assertTrue(mock_post.called)
+        sent_payload = mock_post.call_args[1]["json"]
+        self.assertIn("TCK-202611-ADMIN01", sent_payload["subject"])
+        self.assertEqual(sent_payload["to"][0]["email"], "owner@grillhouse.com")
+
+        # 3. Oversized file (> 25MB) strictly rejected with 400
+        oversized = SimpleUploadedFile("big.bin", b"0" * (25 * 1024 * 1024 + 1024), content_type="application/octet-stream")
+        oversized_resp = self.client.post(
+            reverse("api_admin_ticket_reply", args=[ticket.id]),
+            data={"message": "رد بملف ضخم", "attachments": [oversized]}
+        )
+        self.assertEqual(oversized_resp.status_code, 400)
+        self.assertIn("25 ميجابايت", oversized_resp.json()["message"])
+
+    # =========================================================================
+    # SUITE 16: Admin Internal Notes Isolation & Brevo Suppression
+    # =========================================================================
+    @patch("apps.communication.brevo_service.requests.post")
+    def test_admin_internal_note_suppresses_email_and_hides_from_customer(self, mock_post):
+        """Verifies internal notes never trigger email to customer and are hidden from customer view."""
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-INTERNAL1",
+            creator=self.owner1,
+            subject="فحص داخلي لنظام الفواتير",
+            description="العميل يطلب تعديل رقم السجل الضريبي",
+            status="in_progress"
+        )
+
+        self.client.force_login(self.superadmin)
+        note_resp = self.client.post(
+            reverse("api_admin_ticket_reply", args=[ticket.id]),
+            data={
+                "message": "ملاحظة لفريق الحسابات: يرجى التحقق من شهادة ضريبة القيمة المضافة أولاً قبل الاعتماد.",
+                "is_internal": "true",
+                "notify_customer": "true"  # Should be strictly ignored when is_internal=true
+            }
+        )
+        self.assertEqual(note_resp.status_code, 200)
+        data = note_resp.json()
+        self.assertTrue(data["is_internal"])
+        self.assertFalse(data["email_sent"])
+
+        # Verify no Brevo HTTP call was dispatched
+        mock_post.assert_not_called()
+
+        # Verify message created with is_internal=True
+        msg = ticket.messages.first()
+        self.assertIsNotNone(msg)
+        self.assertTrue(msg.is_internal)
+
+        # Verify customer (owner1) accessing ticket detail view CANNOT see the internal note
+        self.client.force_login(self.owner1)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant1.id
+        session.save()
+
+        detail_resp = self.client.get(reverse("support_ticket_detail", args=[ticket.id]))
+        self.assertEqual(detail_resp.status_code, 200)
+        self.assertNotIn("شهادة ضريبة القيمة المضافة", detail_resp.content.decode("utf-8"))
+
+        # Verify staff user CAN see the internal note in ticket detail
+        self.client.force_login(self.superadmin)
+        staff_detail_resp = self.client.get(reverse("support_ticket_detail", args=[ticket.id]))
+        self.assertEqual(staff_detail_resp.status_code, 200)
+        self.assertIn("شهادة ضريبة القيمة المضافة", staff_detail_resp.content.decode("utf-8"))
+
+    # =========================================================================
+    # SUITE 17: Admin Send & Close Ticket Action
+    # =========================================================================
+    @patch("apps.communication.brevo_service.requests.post")
+    def test_admin_reply_and_close_ticket(self, mock_post):
+        """Verifies close_ticket=true immediately transitions status to closed."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 201
+        mock_resp.json.return_value = {"messageId": "<brevo-close-msg-99@smtp.brevo.com>"}
+        mock_post.return_value = mock_resp
+
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-CLOSE1",
+            creator=self.owner1,
+            subject="طلب إغلاق حساب تجريبي",
+            description="نود إنهاء التجربة",
+            status="open"
+        )
+
+        self.client.force_login(self.superadmin)
+        close_resp = self.client.post(
+            reverse("api_admin_ticket_reply", args=[ticket.id]),
+            data={
+                "message": "تم تنفيذ طلبكم بنجاح وتم إغلاق التذكرة نهائياً.",
+                "close_ticket": "true"
+            }
+        )
+        self.assertEqual(close_resp.status_code, 200)
+        data = close_resp.json()
+        self.assertEqual(data["ticket_status"], "closed")
+
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.status, "closed")
+        self.assertIsNotNone(ticket.closed_at)
+
+    # =========================================================================
+    # SUITE 18: Message Deletion & Media Purge Endpoint
+    # =========================================================================
+    def test_admin_delete_ticket_message_and_attachments(self):
+        """Verifies staff can delete a message and purge its attachments from storage."""
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-DEL01",
+            creator=self.owner1,
+            subject="تذكرة لاختبار الحذف",
+            description="وصف التذكرة"
+        )
+        msg = TicketMessage.objects.create(
+            ticket=ticket,
+            sender=self.superadmin,
+            sender_type="support",
+            message="رسالة سيتم حذفها"
+        )
+        dummy_file = SimpleUploadedFile("to_delete.png", b"\x89PNG\r\nfake", content_type="image/png")
+        att = TicketAttachment.objects.create(
+            ticket=ticket,
+            message=msg,
+            file=dummy_file,
+            file_name="to_delete.png",
+            file_type="image",
+            file_size=10
+        )
+
+        # 1. Non-staff receives 403
+        self.client.force_login(self.owner1)
+        fail_del = self.client.post(reverse("api_admin_delete_message", args=[msg.id]))
+        self.assertEqual(fail_del.status_code, 403)
+        self.assertTrue(TicketMessage.objects.filter(pk=msg.id).exists())
+
+        # 2. Staff user successfully deletes message and attachments
+        self.client.force_login(self.superadmin)
+        ok_del = self.client.post(reverse("api_admin_delete_message", args=[msg.id]))
+        self.assertEqual(ok_del.status_code, 200)
+        self.assertEqual(ok_del.json()["status"], "success")
+
+        # Verify records removed from DB
+        self.assertFalse(TicketMessage.objects.filter(pk=msg.id).exists())
+        self.assertFalse(TicketAttachment.objects.filter(pk=att.id).exists())
+
+    # =========================================================================
+    # SUITE 19: Django Admin SupportTicket Change View Rendering
+    # =========================================================================
+    def test_support_ticket_django_admin_change_view_workspace(self):
+        """Verifies Django admin change_form renders live chat workspace with ticket metadata."""
+        ticket = SupportTicket.objects.create(
+            tenant=self.tenant1,
+            ticket_number="TCK-202611-ADMINVIEW",
+            creator=self.owner1,
+            subject="عطل في الطابعة اللاسلكية",
+            description="الشبكة تقطع باستمرار",
+            priority="high",
+            status="open"
+        )
+        TicketMessage.objects.create(
+            ticket=ticket,
+            sender=self.owner1,
+            sender_type="tenant",
+            message="الرجاء حل المشكلة على وجه السرعة."
+        )
+
+        self.client.force_login(self.superadmin)
+        admin_url = reverse("admin:core_supportticket_change", args=[ticket.id])
+        resp = self.client.get(admin_url)
+        self.assertEqual(resp.status_code, 200)
+
+        content = resp.content.decode("utf-8")
+        # Top bar elements
+        self.assertIn("TCK-202611-ADMINVIEW", content)
+        self.assertIn("عطل في الطابعة اللاسلكية", content)
+        self.assertIn("مطعم المشويات الأصيل", content)
+        # Chat workspace elements
+        self.assertIn("محادثة الدعم الفني الحية والتفاعلية", content)
+        self.assertIn("الرجاء حل المشكلة على وجه السرعة.", content)
+        self.assertIn("حذف الرسالة", content)
+        self.assertIn("إرسال إشعار بريدي عبر", content)
+        self.assertIn("ملاحظة داخلية", content)
+        self.assertIn("إرسال وإغلاق التذكرة", content)
+
+
 

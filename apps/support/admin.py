@@ -25,19 +25,37 @@ class TicketAttachmentInline(admin.TabularInline):
 
 class TicketMessageInline(admin.StackedInline):
     model = TicketMessage
-    extra = 1
+    extra = 0
     readonly_fields = ["created_at"]
-    fields = ["sender", "sender_type", "message", "created_at"]
+    fields = ["sender", "sender_type", "is_internal", "message", "created_at"]
 
 
 @admin.register(SupportTicket)
 class SupportTicketAdmin(admin.ModelAdmin):
+    change_form_template = "admin/core/supportticket/change_form.html"
     list_display = ["ticket_number", "tenant", "subject", "category", "priority_badge", "status_badge", "creator", "created_at"]
     list_filter = ["status", "priority", "category", "created_at"]
     search_fields = ["ticket_number", "subject", "description", "tenant__name"]
     readonly_fields = ["ticket_number", "created_at", "updated_at", "resolved_at", "closed_at"]
     inlines = [TicketMessageInline, TicketAttachmentInline]
     actions = ["action_mark_in_progress", "action_mark_resolved", "action_mark_closed", "action_reopen"]
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        if object_id:
+            ticket = self.get_object(request, object_id)
+            if ticket:
+                extra_context["ticket_messages"] = (
+                    ticket.messages.select_related("sender")
+                    .prefetch_related("attachments")
+                    .order_by("created_at")
+                )
+                extra_context["ticket_attachments"] = (
+                    ticket.attachments.filter(message__isnull=True).order_by("created_at")
+                )
+                extra_context["ticket_obj"] = ticket
+                extra_context["status_choices"] = SupportTicket.STATUS_CHOICES
+        return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
 
     fieldsets = (
         ("بيانات التذكرة الأساسية", {
@@ -105,8 +123,8 @@ class SupportTicketAdmin(admin.ModelAdmin):
 
 @admin.register(TicketMessage)
 class TicketMessageAdmin(admin.ModelAdmin):
-    list_display = ["ticket", "sender", "sender_type", "message_preview", "created_at"]
-    list_filter = ["sender_type", "created_at"]
+    list_display = ["ticket", "sender", "sender_type", "is_internal", "message_preview", "created_at"]
+    list_filter = ["sender_type", "is_internal", "created_at"]
     search_fields = ["ticket__ticket_number", "sender__username", "message"]
     readonly_fields = ["created_at"]
 

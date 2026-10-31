@@ -229,6 +229,8 @@ from apps.support.views import (
     support_ticket_detail_view,
     api_create_ticket,
     api_ticket_reply,
+    api_admin_ticket_reply,
+    api_admin_delete_message,
     api_ticket_update_status,
 )
 from django.views.decorators.csrf import ensure_csrf_cookie

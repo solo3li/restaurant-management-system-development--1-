@@ -98,7 +98,10 @@ def support_ticket_detail_view(request, ticket_id):
     if not is_platform_admin and ticket.tenant != active_tenant:
         return HttpResponseForbidden("غير مصرح لك باستعراض هذه التذكرة.")
 
-    messages = ticket.messages.select_related("sender").prefetch_related("attachments").order_by("created_at")
+    messages = ticket.messages.select_related("sender").prefetch_related("attachments")
+    if not (request.user.is_staff or is_platform_admin):
+        messages = messages.filter(is_internal=False)
+    messages = messages.order_by("created_at")
     ticket_attachments = ticket.attachments.filter(message__isnull=True).order_by("created_at")
 
     open_count = SupportTicket.objects.filter(tenant=ticket.tenant, status="open").count()
@@ -220,7 +223,7 @@ def api_ticket_reply(request, ticket_id):
         return HttpResponseBadRequest("Only POST method allowed.")
 
     active_tenant = get_active_tenant(request)
-    is_platform_admin = request.user.is_superuser or getattr(getattr(request.user, "profile", None), "is_platform_admin", False)
+    is_platform_admin = request.user.is_superuser or request.user.is_staff or getattr(getattr(request.user, "profile", None), "is_platform_admin", False)
 
     ticket = get_object_or_404(SupportTicket, pk=ticket_id)
     if not is_platform_admin and ticket.tenant != active_tenant:
@@ -329,7 +332,7 @@ def api_ticket_update_status(request, ticket_id):
         return HttpResponseBadRequest("Only POST method allowed.")
 
     active_tenant = get_active_tenant(request)
-    is_platform_admin = request.user.is_superuser or getattr(getattr(request.user, "profile", None), "is_platform_admin", False)
+    is_platform_admin = request.user.is_superuser or request.user.is_staff or getattr(getattr(request.user, "profile", None), "is_platform_admin", False)
 
     ticket = get_object_or_404(SupportTicket, pk=ticket_id)
     if not is_platform_admin and ticket.tenant != active_tenant:
@@ -364,3 +367,211 @@ def api_ticket_update_status(request, ticket_id):
         "new_status": ticket.status,
         "new_status_display": ticket.get_status_display(),
     })
+
+
+@login_required
+def api_admin_ticket_reply(request, ticket_id):
+    """
+    Dedicated Django Admin Live Chat reply endpoint for staff members:
+    - Verifies request.user.is_staff or superuser.
+    - Supports text response and multiple file attachments (each <= 25MB).
+    - Supports audio recording attachment.
+    - Checkbox: notify_customer (Brevo email alert, default True).
+    - Checkbox: is_internal (Internal staff note, default False).
+    - Optional: close_ticket (transitions status to closed).
+    - Optional: status (updates status to open/in_progress/resolved/closed).
+    - Dispatches Brevo email notification only when notify_customer is True and is_internal is False.
+    - Returns JSON response with serialized message and attachments for live DOM injection.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("Only POST method allowed.")
+
+    is_staff_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or getattr(getattr(request.user, "profile", None), "is_platform_admin", False)
+    )
+    if not is_staff_admin:
+        return JsonResponse({"status": "error", "message": "غير مصرح لك بالرد عبر لوحة الإدارة."}, status=403)
+
+    ticket = get_object_or_404(SupportTicket, pk=ticket_id)
+
+    post_data = request.POST
+    message_text = post_data.get("message", "").strip()
+
+    uploaded_files = request.FILES.getlist("attachments")
+    audio_note = request.FILES.get("audio_note")
+
+    if not message_text and not uploaded_files and not audio_note:
+        return JsonResponse({"status": "error", "message": "يرجى كتابة نص الرد أو إرفاق ملف."}, status=400)
+
+    # Size validation
+    max_size = TicketAttachment.MAX_FILE_SIZE_BYTES
+    all_incoming_files = list(uploaded_files)
+    if audio_note:
+        all_incoming_files.append(audio_note)
+
+    for f in all_incoming_files:
+        if f.size > max_size:
+            return JsonResponse({
+                "status": "error",
+                "message": f"الملف '{f.name}' يتجاوز الحد الأقصى المسموح به (25 ميجابايت)."
+            }, status=400)
+
+    # Checkboxes
+    raw_internal = str(post_data.get("is_internal", "false")).lower()
+    is_internal = raw_internal in ("true", "1", "on", "yes")
+
+    raw_notify = str(post_data.get("notify_customer", "true")).lower()
+    notify_customer = raw_notify in ("true", "1", "on", "yes")
+
+    raw_close = str(post_data.get("close_ticket", "false")).lower()
+    close_ticket = raw_close in ("true", "1", "on", "yes")
+
+    new_status = post_data.get("status", "").strip().lower()
+
+    if not message_text and audio_note:
+        message_text = "🎙️ تسجيل صوتي من فريق الدعم"
+
+    msg = TicketMessage.objects.create(
+        ticket=ticket,
+        sender=request.user,
+        sender_type="support",
+        is_internal=is_internal,
+        message=message_text,
+    )
+
+    created_attachments = []
+    # Save attachments
+    for f in uploaded_files:
+        ftype = TicketAttachment.detect_file_type(f.name, getattr(f, "content_type", ""))
+        att = TicketAttachment.objects.create(
+            ticket=ticket,
+            message=msg,
+            file=f,
+            file_type=ftype,
+            file_name=f.name,
+            file_size=f.size,
+        )
+        created_attachments.append({
+            "id": att.id,
+            "file_name": att.file_name,
+            "file_type": att.file_type,
+            "file_size": att.formatted_size,
+            "url": att.file.url,
+        })
+
+    # Save audio note if present
+    if audio_note:
+        raw_duration = post_data.get("audio_duration", "0")
+        try:
+            duration_sec = int(float(raw_duration))
+        except Exception:
+            duration_sec = 0
+
+        att = TicketAttachment.objects.create(
+            ticket=ticket,
+            message=msg,
+            file=audio_note,
+            file_type="audio",
+            file_name=audio_note.name or "voice_reply.webm",
+            file_size=audio_note.size,
+            duration_seconds=duration_sec,
+        )
+        created_attachments.append({
+            "id": att.id,
+            "file_name": att.file_name,
+            "file_type": att.file_type,
+            "file_size": att.formatted_size,
+            "url": att.file.url,
+            "duration_seconds": duration_sec,
+        })
+
+    # Status transitions
+    if close_ticket:
+        ticket.status = "closed"
+        ticket.closed_at = timezone.now()
+    elif new_status in [s[0] for s in SupportTicket.STATUS_CHOICES]:
+        ticket.status = new_status
+        if new_status == "resolved":
+            ticket.resolved_at = timezone.now()
+        elif new_status == "closed":
+            ticket.closed_at = timezone.now()
+        elif new_status in ("open", "in_progress"):
+            ticket.resolved_at = None
+            ticket.closed_at = None
+    elif ticket.status == "open":
+        ticket.status = "in_progress"
+
+    ticket.updated_at = timezone.now()
+    ticket.save()
+
+    # Brevo notification
+    email_sent = False
+    if notify_customer and not is_internal:
+        try:
+            send_res = send_ticket_notification(ticket, event_type="new_reply", message_obj=msg)
+            email_sent = send_res.get("status") == "success"
+        except Exception as ex:
+            logger.warning(f"Failed to dispatch Brevo ticket reply notification: {ex}")
+
+    return JsonResponse({
+        "status": "success",
+        "message_id": msg.id,
+        "sender_name": request.user.get_full_name() or request.user.username,
+        "sender_type": msg.sender_type,
+        "is_internal": msg.is_internal,
+        "message": msg.message,
+        "created_at": msg.created_at.strftime("%Y-%m-%d %H:%M"),
+        "created_at_human": timezone.localtime(msg.created_at).strftime("%Y-%m-%d %H:%M"),
+        "ticket_status": ticket.status,
+        "ticket_status_display": ticket.get_status_display(),
+        "attachments": created_attachments,
+        "email_sent": email_sent,
+    })
+
+
+@login_required
+def api_admin_delete_message(request, message_id):
+    """
+    Dedicated endpoint to delete a ticket message and its physical attachments:
+    - Requires request.user.is_staff or superuser.
+    - Removes associated attachment files from media storage.
+    - Deletes TicketMessage record.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("Only POST method allowed.")
+
+    is_staff_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or getattr(getattr(request.user, "profile", None), "is_platform_admin", False)
+    )
+    if not is_staff_admin:
+        return JsonResponse({"status": "error", "message": "غير مصرح لك بحذف الرسائل."}, status=403)
+
+    msg = get_object_or_404(TicketMessage, pk=message_id)
+    ticket = msg.ticket
+
+    # Delete physical media files associated with this message
+    for att in msg.attachments.all():
+        try:
+            if att.file:
+                att.file.delete(save=False)
+        except Exception as ex:
+            logger.warning(f"Could not delete physical attachment file {att.id}: {ex}")
+        att.delete()
+
+    msg_id = msg.id
+    msg.delete()
+
+    ticket.updated_at = timezone.now()
+    ticket.save(update_fields=["updated_at"])
+
+    return JsonResponse({
+        "status": "success",
+        "message": "تم حذف الرسالة والمرفقات المرتبطة بها بنجاح.",
+        "message_id": msg_id,
+        "ticket_id": ticket.id,
+    })
+

@@ -1,0 +1,1393 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static jazzmin %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* ==============================================================================
+   SUPPORT TICKET INTERACTIVE LIVE CHAT WORKSPACE (JAZZMIN SLATE/CARBON THEME)
+   ============================================================================== */
+:root {
+    --chat-slate-bg: #272b30;
+    --chat-panel-bg: #32383e;
+    --chat-dark-bg: #1e2227;
+    --chat-border: rgba(255, 255, 255, 0.08);
+    --chat-blue: #0284c7;
+    --chat-blue-light: #38bdf8;
+    --chat-emerald: #10b981;
+    --chat-amber: #f59e0b;
+    --chat-rose: #ef4444;
+}
+
+/* Chat Workspace Wrapper */
+.support-chat-workspace {
+    direction: rtl;
+    text-align: right;
+    font-family: inherit;
+    margin-bottom: 24px;
+}
+
+/* Top Bar Card */
+.support-topbar-card {
+    background: linear-gradient(145deg, #272b30 0%, #1e2227 100%);
+    border: 1px solid var(--chat-border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.support-topbar-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+}
+
+.support-topbar-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ticket-number-pill {
+    background: #0f172a;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 5px 12px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ticket-subject-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0;
+}
+
+/* Badges & Meta Info */
+.support-topbar-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.86rem;
+    color: #94a3b8;
+}
+
+.meta-item-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 5px 12px;
+    border-radius: 6px;
+}
+
+.badge-priority {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+.badge-priority-urgent { background: #dc2626; color: #fff; }
+.badge-priority-high { background: #ea580c; color: #fff; }
+.badge-priority-medium { background: #ca8a04; color: #fff; }
+.badge-priority-low { background: #475569; color: #fff; }
+
+.badge-status {
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.badge-status-open { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; }
+.badge-status-in_progress { background: #4c1d95; color: #c4b5fd; border: 1px solid #8b5cf6; }
+.badge-status-resolved { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+.badge-status-closed { background: #334155; color: #cbd5e1; border: 1px solid #64748b; }
+
+/* Status Quick Changer */
+.status-changer-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.status-btn {
+    background: #272b30;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.status-btn:hover {
+    background: #3a3f44;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.status-btn.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #fff;
+}
+
+/* Chat Container Card */
+.support-chat-container {
+    background-color: var(--chat-panel-bg);
+    border: 1px solid var(--chat-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    margin-bottom: 22px;
+}
+
+.chat-card-header {
+    background-color: var(--chat-slate-bg);
+    border-bottom: 1px solid var(--chat-border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-card-header h4 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Chat Stream Area */
+.chat-stream {
+    padding: 20px;
+    max-height: 600px;
+    overflow-y: auto;
+    background: #1e2227;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+}
+
+/* Initial Ticket Box */
+.initial-ticket-box {
+    background: #272b30;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-right: 4px solid #38bdf8;
+    border-radius: 10px;
+    padding: 16px 20px;
+    color: #f1f5f9;
+}
+
+.initial-ticket-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.82rem;
+    color: #94a3b8;
+}
+
+.initial-ticket-body {
+    font-size: 0.94rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: #e2e8f0;
+}
+
+/* Message Bubbles */
+.chat-message-row {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Tenant Bubble (aligned right) */
+.chat-message-row.sender-tenant {
+    align-self: flex-start;
+}
+
+.chat-message-row.sender-tenant .chat-bubble {
+    background: #242930;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-right: 4px solid #10b981;
+    border-radius: 12px 12px 2px 12px;
+}
+
+/* Support/Admin Bubble (aligned left) */
+.chat-message-row.sender-support {
+    align-self: flex-end;
+}
+
+.chat-message-row.sender-support .chat-bubble {
+    background: #1e293b;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-left: 4px solid #0284c7;
+    border-radius: 12px 12px 12px 2px;
+}
+
+/* Internal Staff Note Bubble */
+.chat-message-row.is-internal .chat-bubble {
+    background: #272215 !important;
+    border: 1px dashed #f59e0b !important;
+    border-right: 4px solid #f59e0b !important;
+    border-radius: 12px !important;
+}
+
+.chat-bubble {
+    padding: 14px 18px;
+    color: #f8fafc;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.bubble-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    gap: 12px;
+}
+
+.bubble-sender {
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bubble-text {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #e2e8f0;
+}
+
+.bubble-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.btn-delete-msg {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.76rem;
+}
+.btn-delete-msg:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+/* Multimedia Attachments in Bubbles */
+.chat-attachments-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.att-thumb-img {
+    position: relative;
+    width: 140px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #0f172a;
+}
+.att-thumb-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+.att-thumb-img:hover img {
+    transform: scale(1.05);
+}
+.att-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    transition: opacity 0.15s ease;
+}
+.att-thumb-img:hover .att-thumb-overlay {
+    opacity: 1;
+}
+
+.att-audio-player {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 6px;
+    border-radius: 20px;
+}
+
+.att-video-player {
+    max-width: 340px;
+    border-radius: 8px;
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.att-doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #38bdf8;
+    text-decoration: none !important;
+    font-size: 0.82rem;
+    transition: background 0.15s ease;
+}
+.att-doc-link:hover {
+    background: #1e293b;
+    color: #7dd3fc;
+    border-color: #38bdf8;
+}
+
+/* Reply Composer Area */
+.chat-composer {
+    background: #272b30;
+    border-top: 1px solid var(--chat-border);
+    padding: 18px 22px;
+}
+
+.composer-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.composer-textarea {
+    width: 100%;
+    background: #1e2227;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    color: #f8fafc;
+    padding: 12px 14px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.composer-textarea:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+}
+
+/* File Upload Chips & Dropzone */
+.composer-files-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-upload-trigger {
+    background: #32383e;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    color: #cbd5e1;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+.btn-upload-trigger:hover {
+    background: #3a3f44;
+    color: #fff;
+    border-color: #38bdf8;
+}
+
+.file-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.file-chip {
+    background: #1e293b;
+    border: 1px solid #38bdf8;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.file-chip-remove {
+    cursor: pointer;
+    color: #f87171;
+    font-weight: bold;
+}
+.file-chip-remove:hover {
+    color: #ef4444;
+}
+
+/* Options & Checkboxes */
+.composer-options-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.checkboxes-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.custom-chk-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.84rem;
+    color: #cbd5e1;
+    cursor: pointer;
+    user-select: none;
+}
+.custom-chk-label input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: #0284c7;
+    cursor: pointer;
+}
+
+.composer-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-chat-send {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+}
+.btn-chat-send:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.5);
+}
+.btn-chat-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-chat-close {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+.btn-chat-close:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+}
+.btn-chat-close:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Lightbox Modal */
+.chat-lightbox-modal {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.chat-lightbox-modal.active {
+    display: flex;
+}
+.lightbox-content-box {
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+.lightbox-img-element {
+    max-width: 100%;
+    max-height: 82vh;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.lightbox-close-btn {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.lightbox-close-btn:hover {
+    background: #ef4444;
+}
+
+/* Toast alert notification */
+.chat-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 99999;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+}
+.chat-toast.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+.chat-toast-success { background: #059669; border: 1px solid #10b981; }
+.chat-toast-error { background: #dc2626; border: 1px solid #ef4444; }
+
+/* Collapsible Settings Accordion */
+.admin-fields-accordion {
+    background-color: var(--chat-panel-bg);
+    border: 1px solid var(--chat-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+.accordion-header-btn {
+    width: 100%;
+    background-color: var(--chat-slate-bg);
+    border: none;
+    padding: 14px 20px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: right;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.accordion-header-btn:hover {
+    color: #f8fafc;
+}
+</style>
+{% endblock %}
+
+{% block field_sets %}
+{% if change and original %}
+<div class="col-12 col-lg-12 support-chat-workspace">
+
+    <!-- 1. TOP BAR -->
+    <div class="support-topbar-card">
+        <div class="support-topbar-header">
+            <div class="support-topbar-title-wrap">
+                <span class="ticket-number-pill">
+                    <i class="fas fa-ticket-alt"></i> {{ original.ticket_number }}
+                </span>
+                <h2 class="ticket-subject-text">{{ original.subject }}</h2>
+            </div>
+            <div class="status-changer-bar">
+                <span class="text-muted text-sm me-2">حالة التذكرة السريعة:</span>
+                <button type="button" class="status-btn {% if original.status == 'open' %}active{% endif %}" onclick="updateTicketStatus('open')">
+                    <i class="fas fa-folder-open text-primary me-1"></i> مفتوحة
+                </button>
+                <button type="button" class="status-btn {% if original.status == 'in_progress' %}active{% endif %}" onclick="updateTicketStatus('in_progress')">
+                    <i class="fas fa-spinner fa-spin text-purple me-1"></i> قيد المعالجة
+                </button>
+                <button type="button" class="status-btn {% if original.status == 'resolved' %}active{% endif %}" onclick="updateTicketStatus('resolved')">
+                    <i class="fas fa-check-circle text-success me-1"></i> تم الحل
+                </button>
+                <button type="button" class="status-btn {% if original.status == 'closed' %}active{% endif %}" onclick="updateTicketStatus('closed')">
+                    <i class="fas fa-lock text-secondary me-1"></i> مغلقة
+                </button>
+            </div>
+        </div>
+
+        <div class="support-topbar-meta">
+            <div class="meta-item-box">
+                <i class="fas fa-store text-info"></i>
+                <span>المنشأة:</span>
+                <strong class="text-white">{{ original.tenant.name }} (#{{ original.tenant.id }})</strong>
+            </div>
+
+            <div class="meta-item-box">
+                <i class="fas fa-user text-warning"></i>
+                <span>المرسل:</span>
+                <strong class="text-white">{{ original.creator.get_full_name|default:original.creator.username }}</strong>
+                {% if original.creator.email %}
+                <span class="text-muted">({{ original.creator.email }})</span>
+                {% endif %}
+            </div>
+
+            <div class="meta-item-box">
+                <i class="fas fa-tags text-primary"></i>
+                <span>التصنيف:</span>
+                <span class="text-white font-weight-bold">{{ original.get_category_display }}</span>
+            </div>
+
+            <div class="meta-item-box">
+                <span>الأولوية:</span>
+                <span class="badge-priority badge-priority-{{ original.priority }}">
+                    {{ original.get_priority_display }}
+                </span>
+            </div>
+
+            <div class="meta-item-box">
+                <span>الحالة الحالية:</span>
+                <span id="topbar-status-badge" class="badge-status badge-status-{{ original.status }}">
+                    {{ original.get_status_display }}
+                </span>
+            </div>
+
+            <div class="meta-item-box">
+                <i class="far fa-clock text-muted"></i>
+                <span>تاريخ الإنشاء:</span>
+                <span class="text-muted">{{ original.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. INTERACTIVE CHAT WORKSPACE -->
+    <div class="support-chat-container">
+        <div class="chat-card-header">
+            <h4>
+                <i class="fas fa-comments text-info"></i>
+                محادثة الدعم الفني الحية والتفاعلية
+                <span class="badge bg-secondary ms-2" id="chat-messages-count">{{ ticket_messages|length }} ردود</span>
+            </h4>
+            <div class="text-sm text-muted">
+                <i class="fas fa-shield-alt text-success me-1"></i> جلسة إدارة آمنة
+            </div>
+        </div>
+
+        <!-- Chat Stream -->
+        <div class="chat-stream" id="chat-messages-stream">
+
+            <!-- Initial Ticket Description Card -->
+            <div class="initial-ticket-box">
+                <div class="initial-ticket-header">
+                    <span>
+                        <i class="fas fa-user-circle me-1"></i>
+                        <strong>{{ original.creator.get_full_name|default:original.creator.username }}</strong> (منشئ التذكرة)
+                    </span>
+                    <span>
+                        <i class="far fa-clock me-1"></i> {{ original.created_at|date:"Y-m-d H:i" }}
+                    </span>
+                </div>
+                <div class="initial-ticket-body">{{ original.description }}</div>
+
+                {% if ticket_attachments %}
+                <div class="chat-attachments-grid mt-3">
+                    {% for att in ticket_attachments %}
+                        {% if att.file_type == 'image' %}
+                        <div class="att-thumb-img" onclick="openLightbox('{{ att.file.url }}', '{{ att.file_name }}')">
+                            <img src="{{ att.file.url }}" alt="{{ att.file_name }}">
+                            <div class="att-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+                        </div>
+                        {% elif att.file_type == 'audio' %}
+                        <audio controls class="att-audio-player">
+                            <source src="{{ att.file.url }}">
+                        </audio>
+                        {% elif att.file_type == 'video' %}
+                        <video controls class="att-video-player">
+                            <source src="{{ att.file.url }}">
+                        </video>
+                        {% else %}
+                        <a href="{{ att.file.url }}" target="_blank" class="att-doc-link">
+                            <i class="fas fa-file-download"></i>
+                            <span>{{ att.file_name }}</span>
+                            <small class="text-muted">({{ att.formatted_size }})</small>
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Messages Thread -->
+            {% for msg in ticket_messages %}
+            <div class="chat-message-row sender-{{ msg.sender_type }} {% if msg.is_internal %}is-internal{% endif %}" id="msg-row-{{ msg.id }}">
+                <div class="chat-bubble">
+                    <div class="bubble-meta">
+                        <span class="bubble-sender">
+                            {% if msg.is_internal %}
+                            <span class="badge bg-warning text-dark font-weight-bold">
+                                <i class="fas fa-lock"></i> ملاحظة داخلية (فريق الدعم فقط)
+                            </span>
+                            {% elif msg.sender_type == 'support' %}
+                            <span class="badge bg-primary">
+                                <i class="fas fa-headset"></i> فريق الدعم الفني
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-user"></i> العميل ({{ original.tenant.name }})
+                            </span>
+                            {% endif %}
+                            <strong class="text-white ms-1">{{ msg.sender.get_full_name|default:msg.sender.username }}</strong>
+                        </span>
+                        <span>{{ msg.created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+
+                    <div class="bubble-text">{{ msg.message }}</div>
+
+                    <!-- Attachments -->
+                    {% if msg.attachments.all %}
+                    <div class="chat-attachments-grid">
+                        {% for att in msg.attachments.all %}
+                            {% if att.file_type == 'image' %}
+                            <div class="att-thumb-img" onclick="openLightbox('{{ att.file.url }}', '{{ att.file_name }}')">
+                                <img src="{{ att.file.url }}" alt="{{ att.file_name }}">
+                                <div class="att-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+                            </div>
+                            {% elif att.file_type == 'audio' %}
+                            <audio controls class="att-audio-player">
+                                <source src="{{ att.file.url }}">
+                            </audio>
+                            {% elif att.file_type == 'video' %}
+                            <video controls class="att-video-player">
+                                <source src="{{ att.file.url }}">
+                            </video>
+                            {% else %}
+                            <a href="{{ att.file.url }}" target="_blank" class="att-doc-link">
+                                <i class="fas fa-file-download"></i>
+                                <span>{{ att.file_name }}</span>
+                                <small class="text-muted">({{ att.formatted_size }})</small>
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="bubble-footer">
+                        <span>معرّف الرسالة: #{{ msg.id }}</span>
+                        <button type="button" class="btn-delete-msg" onclick="confirmDeleteMessage({{ msg.id }})" title="حذف هذه الرسالة ومرفقاتها نهائياً">
+                            <i class="fas fa-trash-alt"></i> حذف الرسالة
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- 3. ADMIN REPLY COMPOSER -->
+        <div class="chat-composer" id="admin-reply-box">
+            <div class="composer-title">
+                <i class="fas fa-reply text-primary"></i> كتابة رد كمسؤول / تسجيل ملاحظة:
+            </div>
+
+            <textarea id="admin-reply-text" class="composer-textarea" placeholder="اكتب ردك الموجه للعميل هنا أو سجل تفاصيل المعالجة الداخلية..."></textarea>
+
+            <!-- File Upload & Chips -->
+            <div class="composer-files-row">
+                <label class="btn-upload-trigger">
+                    <i class="fas fa-paperclip text-info"></i>
+                    إرفاق ملفات أو تسجيلات (حتى 25MB)
+                    <input type="file" id="admin-chat-file-input" multiple style="display: none;" onchange="handleAdminFilesSelected(this)">
+                </label>
+                <div class="file-chips-container" id="admin-chat-file-chips"></div>
+            </div>
+
+            <!-- Checkboxes & Buttons -->
+            <div class="composer-options-row">
+                <div class="checkboxes-group">
+                    <label class="custom-chk-label" id="label-notify-brevo">
+                        <input type="checkbox" id="chk-notify-brevo" checked>
+                        <span><i class="fas fa-envelope text-info me-1"></i> إرسال إشعار بريدي عبر <strong>Brevo</strong> للعميل</span>
+                    </label>
+
+                    <label class="custom-chk-label">
+                        <input type="checkbox" id="chk-is-internal" onchange="toggleInternalNoteMode(this)">
+                        <span><i class="fas fa-lock text-warning me-1"></i> تسجيل كـ <strong>ملاحظة داخلية</strong> (للمشرفين فقط - لا تظهر للعميل)</span>
+                    </label>
+                </div>
+
+                <div class="composer-actions-group">
+                    <button type="button" class="btn-chat-close" id="btn-reply-and-close" onclick="submitAdminReply(true)">
+                        <i class="fas fa-check-double"></i> إرسال وإغلاق التذكرة
+                    </button>
+                    <button type="button" class="btn-chat-send" id="btn-reply-send" onclick="submitAdminReply(false)">
+                        <i class="fas fa-paper-plane"></i> إرسال الرد
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. STANDARD DJANGO ADMIN FIELDS (Collapsible Accordion) -->
+    <div class="admin-fields-accordion">
+        <button type="button" class="accordion-header-btn" onclick="toggleAdminFieldsAccordion()">
+            <span><i class="fas fa-sliders-h text-info me-2"></i> إعدادات وتفاصيل الحقول الإدارية (الفئة، العضو المعين، السجل والتاريخ)</span>
+            <i class="fas fa-chevron-down" id="accordion-icon"></i>
+        </button>
+        <div id="admin-fields-body" style="display: none; padding: 20px;">
+            <div class="card bg-dark border-0">
+                <div class="card-body p-0">
+                    {% get_changeform_template adminform as changeform_template %}
+                    {% include changeform_template %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% else %}
+<!-- Standard Create / Add Ticket View -->
+<div class="col-12 col-lg-9">
+    <div class="card">
+        <div class="card-body">
+            {% get_changeform_template adminform as changeform_template %}
+            {% include changeform_template %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+
+{% block content %}
+{{ block.super }}
+
+<!-- Lightbox Modal -->
+<div class="chat-lightbox-modal" id="chat-lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox-content-box">
+        <button type="button" class="lightbox-close-btn" onclick="closeLightbox(event)">✕</button>
+        <img src="" id="lightbox-img" class="lightbox-img-element" alt="Preview">
+        <div id="lightbox-caption" class="text-white text-center mt-2 font-weight-bold"></div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="modal-delete-msg-confirm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #272b30; color: #f8fafc; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title font-weight-bold text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i> تأكيد حذف الرسالة
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-2">هل أنت متأكد تماماً من حذف هذه الرسالة من سلسلة تذكرة الدعم؟</p>
+                <p class="text-muted text-sm mb-0">⚠️ سيتم حذف نص الرسالة وجميع ملفاتها المرفقة نهائياً من قاعدة البيانات والتخزين السحابي.</p>
+                <input type="hidden" id="pending-delete-message-id" value="">
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger font-weight-bold" onclick="executeDeleteMessage()">
+                    <i class="fas fa-trash-alt me-1"></i> نعم، حذف نهائي
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Toast -->
+<div class="chat-toast" id="chat-toast-alert"></div>
+{% endblock %}
+
+
+{% block extrajs %}
+{{ block.super }}
+<script>
+/* ==============================================================================
+   SUPPORT TICKET LIVE CHAT WORKSPACE JS CONTROLLER
+   ============================================================================== */
+let selectedFilesList = [];
+
+function getCsrfToken() {
+    const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+    return cookie ? cookie.split('=')[1] : '';
+}
+
+function showChatToast(msg, isSuccess = true) {
+    const toast = document.getElementById('chat-toast-alert');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.className = 'chat-toast active ' + (isSuccess ? 'chat-toast-success' : 'chat-toast-error');
+    setTimeout(() => {
+        toast.className = 'chat-toast';
+    }, 4000);
+}
+
+function toggleAdminFieldsAccordion() {
+    const body = document.getElementById('admin-fields-body');
+    const icon = document.getElementById('accordion-icon');
+    if (!body) return;
+    if (body.style.display === 'none' || !body.style.display) {
+        body.style.display = 'block';
+        if (icon) icon.className = 'fas fa-chevron-up';
+    } else {
+        body.style.display = 'none';
+        if (icon) icon.className = 'fas fa-chevron-down';
+    }
+}
+
+function toggleInternalNoteMode(chk) {
+    const notifyBrevoChk = document.getElementById('chk-notify-brevo');
+    const labelBrevo = document.getElementById('label-notify-brevo');
+    if (chk.checked) {
+        if (notifyBrevoChk) {
+            notifyBrevoChk.checked = false;
+            notifyBrevoChk.disabled = true;
+        }
+        if (labelBrevo) {
+            labelBrevo.style.opacity = '0.4';
+            labelBrevo.title = 'الملاحظات الداخلية لا ترسل إشعارات بريدية للعميل.';
+        }
+    } else {
+        if (notifyBrevoChk) {
+            notifyBrevoChk.checked = true;
+            notifyBrevoChk.disabled = false;
+        }
+        if (labelBrevo) {
+            labelBrevo.style.opacity = '1';
+            labelBrevo.title = '';
+        }
+    }
+}
+
+function handleAdminFilesSelected(input) {
+    if (!input.files || input.files.length === 0) return;
+    const maxSize = 25 * 1024 * 1024; // 25MB
+    for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        if (file.size > maxSize) {
+            alert(`الملف "${file.name}" يتجاوز الحد الأقصى 25 ميجابايت.`);
+            continue;
+        }
+        selectedFilesList.push(file);
+    }
+    input.value = '';
+    renderFileChips();
+}
+
+function removeSelectedFile(index) {
+    selectedFilesList.splice(index, 1);
+    renderFileChips();
+}
+
+function renderFileChips() {
+    const container = document.getElementById('admin-chat-file-chips');
+    if (!container) return;
+    container.innerHTML = '';
+    selectedFilesList.forEach((file, idx) => {
+        const sizeStr = file.size > 1024*1024 ? (file.size/(1024*1024)).toFixed(1) + ' MB' : Math.round(file.size/1024) + ' KB';
+        const chip = document.createElement('div');
+        chip.className = 'file-chip';
+        chip.innerHTML = `
+            <span><i class="fas fa-file me-1"></i> ${escapeHtml(file.name)} (${sizeStr})</span>
+            <span class="file-chip-remove" onclick="removeSelectedFile(${idx})" title="إلغاء">&times;</span>
+        `;
+        container.appendChild(chip);
+    });
+}
+
+function openLightbox(url, name) {
+    const modal = document.getElementById('chat-lightbox');
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    if (!modal || !img) return;
+    img.src = url;
+    if (cap) cap.textContent = name || '';
+    modal.classList.add('active');
+}
+
+function closeLightbox(e) {
+    if (e.target.id === 'chat-lightbox' || e.target.classList.contains('lightbox-close-btn')) {
+        const modal = document.getElementById('chat-lightbox');
+        if (modal) modal.classList.remove('active');
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('chat-lightbox');
+        if (modal && modal.classList.contains('active')) modal.classList.remove('active');
+    }
+});
+
+/* Update Ticket Status via Quick Buttons */
+function updateTicketStatus(newStatus) {
+    {% if original %}
+    const ticketId = {{ original.id }};
+    const fd = new FormData();
+    fd.append('status', newStatus);
+    fd.append('csrfmiddlewaretoken', getCsrfToken());
+
+    fetch(`/api/support/tickets/${ticketId}/status/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showChatToast(`تم تحديث حالة التذكرة إلى: ${data.new_status_display}`, true);
+
+            // Update status buttons active state
+            document.querySelectorAll('.status-changer-bar .status-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick').includes(newStatus)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update top bar badge
+            const badge = document.getElementById('topbar-status-badge');
+            if (badge) {
+                badge.className = `badge-status badge-status-${newStatus}`;
+                badge.textContent = data.new_status_display;
+            }
+        } else {
+            showChatToast(data.message || 'حدث خطأ أثناء تحديث الحالة.', false);
+        }
+    })
+    .catch(err => {
+        showChatToast('خطأ في الاتصال بالخادم.', false);
+    });
+    {% endif %}
+}
+
+/* Delete Message Action */
+function confirmDeleteMessage(msgId) {
+    document.getElementById('pending-delete-message-id').value = msgId;
+    const modalEl = document.getElementById('modal-delete-msg-confirm');
+    if (window.bootstrap && window.bootstrap.Modal) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    } else {
+        if (confirm('هل أنت متأكد من حذف هذه الرسالة ومرفقاتها نهائياً؟')) {
+            executeDeleteMessage(msgId);
+        }
+    }
+}
+
+function executeDeleteMessage(manualId) {
+    const msgId = manualId || document.getElementById('pending-delete-message-id').value;
+    if (!msgId) return;
+
+    fetch(`/api/support/messages/${msgId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const modalEl = document.getElementById('modal-delete-msg-confirm');
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+
+            const row = document.getElementById(`msg-row-${msgId}`);
+            if (row) {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(-10px)';
+                setTimeout(() => row.remove(), 250);
+            }
+
+            showChatToast('تم حذف الرسالة بنجاح.', true);
+
+            // Update count
+            const countEl = document.getElementById('chat-messages-count');
+            if (countEl) {
+                const currentCount = document.querySelectorAll('.chat-message-row').length - 1;
+                countEl.textContent = `${Math.max(0, currentCount)} ردود`;
+            }
+        } else {
+            showChatToast(data.message || 'فشل حذف الرسالة.', false);
+        }
+    })
+    .catch(err => {
+        showChatToast('خطأ في الاتصال أثناء الحذف.', false);
+    });
+}
+
+/* Submit Admin Reply */
+function submitAdminReply(closeTicket = false) {
+    {% if original %}
+    const ticketId = {{ original.id }};
+    const textarea = document.getElementById('admin-reply-text');
+    const msgText = textarea.value.trim();
+
+    if (!msgText && selectedFilesList.length === 0) {
+        alert('يرجى كتابة نص الرد أو إرفاق ملف للرد.');
+        return;
+    }
+
+    const isInternal = document.getElementById('chk-is-internal').checked;
+    const notifyBrevo = document.getElementById('chk-notify-brevo').checked;
+
+    const btnSend = document.getElementById('btn-reply-send');
+    const btnClose = document.getElementById('btn-reply-and-close');
+    btnSend.disabled = true;
+    btnClose.disabled = true;
+
+    const fd = new FormData();
+    fd.append('message', msgText);
+    fd.append('is_internal', isInternal ? 'true' : 'false');
+    fd.append('notify_customer', notifyBrevo ? 'true' : 'false');
+    fd.append('close_ticket', closeTicket ? 'true' : 'false');
+    fd.append('csrfmiddlewaretoken', getCsrfToken());
+
+    selectedFilesList.forEach(file => {
+        fd.append('attachments', file);
+    });
+
+    fetch(`/api/support/tickets/${ticketId}/admin-reply/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        btnSend.disabled = false;
+        btnClose.disabled = false;
+
+        if (data.status === 'success') {
+            textarea.value = '';
+            selectedFilesList = [];
+            renderFileChips();
+
+            appendMessageToStream(data);
+
+            if (closeTicket || data.ticket_status === 'closed') {
+                const badge = document.getElementById('topbar-status-badge');
+                if (badge) {
+                    badge.className = 'badge-status badge-status-closed';
+                    badge.textContent = 'مغلقة';
+                }
+                document.querySelectorAll('.status-changer-bar .status-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('onclick').includes('closed')) btn.classList.add('active');
+                });
+            }
+
+            const notice = data.is_internal ? 'تم حفظ الملاحظة الداخلية بنجاح.' : (data.email_sent ? 'تم إرسال الرد وإشعار العميل عبر Brevo بنجاح.' : 'تم إرسال الرد بنجاح.');
+            showChatToast(notice, true);
+        } else {
+            showChatToast(data.message || 'فشل إرسال الرد.', false);
+        }
+    })
+    .catch(err => {
+        btnSend.disabled = false;
+        btnClose.disabled = false;
+        showChatToast('خطأ أثناء إرسال الرد.', false);
+    });
+    {% endif %}
+}
+
+function appendMessageToStream(data) {
+    const stream = document.getElementById('chat-messages-stream');
+    if (!stream) return;
+
+    const row = document.createElement('div');
+    row.id = `msg-row-${data.message_id}`;
+    row.className = `chat-message-row sender-support ${data.is_internal ? 'is-internal' : ''}`;
+
+    let attachmentsHtml = '';
+    if (data.attachments && data.attachments.length > 0) {
+        attachmentsHtml = '<div class="chat-attachments-grid">';
+        data.attachments.forEach(att => {
+            if (att.file_type === 'image') {
+                attachmentsHtml += `
+                    <div class="att-thumb-img" onclick="openLightbox('${att.url}', '${escapeHtml(att.file_name)}')">
+                        <img src="${att.url}" alt="${escapeHtml(att.file_name)}">
+                        <div class="att-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+                    </div>
+                `;
+            } else if (att.file_type === 'audio') {
+                attachmentsHtml += `
+                    <audio controls class="att-audio-player">
+                        <source src="${att.url}">
+                    </audio>
+                `;
+            } else if (att.file_type === 'video') {
+                attachmentsHtml += `
+                    <video controls class="att-video-player">
+                        <source src="${att.url}">
+                    </video>
+                `;
+            } else {
+                attachmentsHtml += `
+                    <a href="${att.url}" target="_blank" class="att-doc-link">
+                        <i class="fas fa-file-download"></i>
+                        <span>${escapeHtml(att.file_name)}</span>
+                        <small class="text-muted">(${att.file_size})</small>
+                    </a>
+                `;
+            }
+        });
+        attachmentsHtml += '</div>';
+    }
+
+    const badgeHtml = data.is_internal
+        ? '<span class="badge bg-warning text-dark font-weight-bold"><i class="fas fa-lock"></i> ملاحظة داخلية (فريق الدعم فقط)</span>'
+        : '<span class="badge bg-primary"><i class="fas fa-headset"></i> فريق الدعم الفني</span>';
+
+    row.innerHTML = `
+        <div class="chat-bubble">
+            <div class="bubble-meta">
+                <span class="bubble-sender">
+                    ${badgeHtml}
+                    <strong class="text-white ms-1">${escapeHtml(data.sender_name)}</strong>
+                </span>
+                <span>${data.created_at}</span>
+            </div>
+            <div class="bubble-text">${escapeHtml(data.message)}</div>
+            ${attachmentsHtml}
+            <div class="bubble-footer">
+                <span>معرّف الرسالة: #${data.message_id}</span>
+                <button type="button" class="btn-delete-msg" onclick="confirmDeleteMessage(${data.message_id})" title="حذف هذه الرسالة ومرفقاتها نهائياً">
+                    <i class="fas fa-trash-alt"></i> حذف الرسالة
+                </button>
+            </div>
+        </div>
+    `;
+
+    stream.appendChild(row);
+    stream.scrollTop = stream.scrollHeight;
+
+    // Update count badge
+    const countEl = document.getElementById('chat-messages-count');
+    if (countEl) {
+        const currentCount = document.querySelectorAll('.chat-message-row').length;
+        countEl.textContent = `${currentCount} ردود`;
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Auto-scroll chat stream to bottom on load
+document.addEventListener('DOMContentLoaded', function() {
+    const stream = document.getElementById('chat-messages-stream');
+    if (stream) {
+        stream.scrollTop = stream.scrollHeight;
+    }
+});
+</script>
+{% endblock %}

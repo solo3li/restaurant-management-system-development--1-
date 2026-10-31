@@ -135,6 +135,10 @@ class TicketMessage(models.Model):
         verbose_name="نوع المرسل"
     )
     message = models.TextField(verbose_name="نص الرسالة أو الرد")
+    is_internal = models.BooleanField(
+        default=False,
+        verbose_name="ملاحظة داخلية للمشرفين فقط"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ ووقت الإرسال")
 
     class Meta:

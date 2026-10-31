@@ -9,5 +9,8 @@ urlpatterns = [
     # Support APIs
     path("api/support/tickets/create/", views.api_create_ticket, name="api_create_ticket"),
     path("api/support/tickets/<int:ticket_id>/reply/", views.api_ticket_reply, name="api_ticket_reply"),
+    path("api/support/tickets/<int:ticket_id>/admin-reply/", views.api_admin_ticket_reply, name="api_admin_ticket_reply"),
+    path("api/support/messages/<int:message_id>/delete/", views.api_admin_delete_message, name="api_admin_delete_message"),
     path("api/support/tickets/<int:ticket_id>/status/", views.api_ticket_update_status, name="api_ticket_update_status"),
 ]
+
