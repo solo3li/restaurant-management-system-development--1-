@@ -682,3 +682,12 @@
 - Solution: Switched to strict comparison `request.resolver_match.url_name == 'call_center_embedded' or 'ai_callcenter' in request.resolver_match.url_name`.
 - Added regression test asserting mutually exclusive active states in `test_embed_callcenter_and_chathub.py`.
 - Verified 100% test pass and container operational.
+
+## 2026-10-31 — Reorder Sidebar: WhatsApp Chat Hub above AI Call Center
+- Moved "صندوق محادثات الواتساب" to be immediately above "كول سنتر الذكاء الاصطناعي".
+- Order from bottom to top is now:
+  1. الإدارة العامة
+  2. كول سنتر الذكاء الاصطناعي
+  3. صندوق محادثات الواتساب
+  4. سجل كافة الطلبات والفواتير
+- Tests passing 100%, container restarted (HTTP 200).

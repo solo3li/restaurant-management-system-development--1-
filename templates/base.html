@@ -669,23 +669,6 @@
             </div>
             {% endif %}
 
-            <!-- 4b. Standalone WhatsApp Chat Hub -->
-            {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
-            <div class="nav-item-wrapper relative">
-                <a href="{% url 'chat_hub_page' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name in 'chat_hub_page,whatsapp_page,chat_hub_embedded' %}m3-active bg-emerald-600/20 text-emerald-300 font-semibold border border-emerald-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
-                    <div class="flex items-center gap-3">
-                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'chat_hub_page,whatsapp_page,chat_hub_embedded' %}text-emerald-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
-                            <svg class="w-4 h-4 fill-current text-[#25D366]" viewBox="0 0 24 24">
-                                <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.101-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.201-.3.301-.501.101-.2.051-.376-.025-.527-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519-.176-.01-.376-.01-.577-.01-.201 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.229 3.111c.15.201 2.123 3.242 5.143 4.547.718.311 1.279.497 1.716.636.721.23 1.377.198 1.896.12.578-.088 1.78-.727 2.031-1.429.251-.702.251-1.304.176-1.429-.076-.125-.276-.201-.577-.351z"/>
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.98-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.167c-1.57 0-3.04-.45-4.29-1.233l-.307-.19-2.96.831.849-2.883-.2-.317A8.13 8.13 0 013.833 12c0-4.502 3.665-8.167 8.167-8.167s8.167 3.665 8.167 8.167-3.665 8.167-8.167 8.167z"/>
-                            </svg>
-                        </span>
-                        <span class="sidebar-text tracking-tight">{{ t.nav_whatsapp_chathub|default:"صندوق محادثات الواتساب" }}</span>
-                    </div>
-                </a>
-            </div>
-            {% endif %}
-
             <!-- 5. Delivery & Dispatch -->
             {% if 'delivery_access' in user_perms %}
             <div class="nav-item-wrapper relative">
@@ -722,6 +705,23 @@
                     </div>
                 </a>
                 {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- 7. Standalone WhatsApp Chat Hub -->
+            {% if 'call_center_access' in user_perms or 'call_center_manage_ai' in user_perms %}
+            <div class="nav-item-wrapper relative">
+                <a href="{% url 'chat_hub_page' %}" class="m3-nav-item flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group {% if request.resolver_match.url_name in 'chat_hub_page,whatsapp_page,chat_hub_embedded' %}m3-active bg-emerald-600/20 text-emerald-300 font-semibold border border-emerald-500/30 shadow-xs{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium border border-transparent{% endif %}">
+                    <div class="flex items-center gap-3">
+                        <span class="nav-indicator w-5 h-5 flex items-center justify-center shrink-0 {% if request.resolver_match.url_name in 'chat_hub_page,whatsapp_page,chat_hub_embedded' %}text-emerald-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}">
+                            <svg class="w-4 h-4 fill-current text-[#25D366]" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.101-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.201-.3.301-.501.101-.2.051-.376-.025-.527-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519-.176-.01-.376-.01-.577-.01-.201 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.229 3.111c.15.201 2.123 3.242 5.143 4.547.718.311 1.279.497 1.716.636.721.23 1.377.198 1.896.12.578-.088 1.78-.727 2.031-1.429.251-.702.251-1.304.176-1.429-.076-.125-.276-.201-.577-.351z"/>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.98-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.167c-1.57 0-3.04-.45-4.29-1.233l-.307-.19-2.96.831.849-2.883-.2-.317A8.13 8.13 0 013.833 12c0-4.502 3.665-8.167 8.167-8.167s8.167 3.665 8.167 8.167-3.665 8.167-8.167 8.167z"/>
+                            </svg>
+                        </span>
+                        <span class="sidebar-text tracking-tight">{{ t.nav_whatsapp_chathub|default:"صندوق محادثات الواتساب" }}</span>
+                    </div>
+                </a>
             </div>
             {% endif %}
 
