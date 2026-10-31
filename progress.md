@@ -669,3 +669,10 @@
 - Removed "مركز الاتصالات المباشر" (`nav_callcenter_live` / `{% url 'call_center' %}`) from the sidebar in `templates/base.html`
 - Verified RBAC and embedded call center suites pass 100%
 - Container restarted and site verified (HTTP 200)
+
+## 2026-10-31 — Add "استقبال طلبات الفروع" (Call Center POS) to Sidebar
+- Re-added dedicated sidebar item "استقبال طلبات الفروع" pointing to `/call-center/`
+- Set default `active_tab` for `/call-center/` to `"pos"`, displaying the multi-branch order entry screen cleanly
+- Disassociated `call_center` route from AI Call Center active state
+- Verified E2E RBAC and Call Center tests (100% pass)
+- Container restarted and site live (HTTP 200)

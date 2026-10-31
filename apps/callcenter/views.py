@@ -198,7 +198,7 @@ def call_center_view(request, tab=None):
     from core import partner_service as ps
     embed_info = ps.get_embed_urls_for_tenant(tenant, locale=embed_locale)
 
-    active_tab = tab or request.GET.get("tab") or "call-center"
+    active_tab = tab or request.GET.get("tab") or "pos"
     active_tab = str(active_tab).strip().lower()
     if active_tab in ["callcenter", "call-center", "ai-callcenter"]:
         active_tab = "call-center"
@@ -207,7 +207,7 @@ def call_center_view(request, tab=None):
     elif active_tab == "pos":
         active_tab = "pos"
     else:
-        active_tab = "call-center"
+        active_tab = "pos"
 
     context = {
         "tenant": tenant,
