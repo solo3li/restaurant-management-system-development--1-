@@ -93,50 +93,49 @@ def run_tests():
     owner = User.objects.filter(is_superuser=True).first()
     client.force_login(owner)
 
-    # 4. Tabbed Call Center Page Rendering
-    print("\n>>> 4. Call Center Tabbed View & Iframe Suite Structure")
+    # 4. Streamlined Call Center View & Iframe Suite Structure
+    print("\n>>> 4. Call Center Streamlined View & Iframe Suite Structure")
     res = client.get("/call-center/")
     assert res.status_code == 200, f"Expected 200 OK, got {res.status_code}"
     html = res.content.decode("utf-8")
 
-    # Check tab ribbon buttons
-    assert "main-tab-pos" in html, "Missing POS tab button"
-    assert "main-tab-callcenter" in html, "Missing AI Call Center tab button"
-    assert "main-tab-chathub" in html, "Missing WhatsApp Chat Hub tab button"
-    print("  ✔ PASS: All 3 Navigation tabs (POS, Live Suite, Chat Hub) rendered in command toolbar")
+    # Verify redundant tabs and badges are cleanly removed from top bar
+    assert "main-tab-pos" not in html, "POS tab button should be removed"
+    assert "main-tab-callcenter" not in html, "Call Center tab button should be removed"
+    assert "main-tab-chathub" not in html, "Chat Hub tab button should be removed"
+    print("  ✔ PASS: Redundant top ribbon buttons cleanly removed for distraction-free view")
 
     # Check Tab contents
     assert "id=\"tab-content-pos\"" in html, "Missing tab-content-pos container"
     assert "id=\"tab-content-callcenter\"" in html, "Missing tab-content-callcenter container"
     assert "id=\"tab-content-chathub\"" in html, "Missing tab-content-chathub container"
-    print("  ✔ PASS: All 3 Tab content containers present in DOM")
+    print("  ✔ PASS: Tab content containers present in DOM")
 
     # Check Call Center Iframe and exact required permissions
     assert "id=\"callcenter-iframe\"" in html, "Missing callcenter-iframe"
     assert "/embed/call-center/" in html, "Missing /embed/call-center/ URL"
     assert "client_id=" in html, "Missing client_id in embed URL"
     assert "allow=\"microphone; camera; clipboard-read; clipboard-write;\"" in html or "allow=\"camera; microphone; clipboard-read; clipboard-write;\"" in html
-    assert "min-height: 800px" in html
+    assert "min-height: 800px" in html or "min-height: 850px" in html
     print("  ✔ PASS: Call Center iframe configured with microphone, camera, and clipboard access")
 
     # Check WhatsApp Chat Hub Iframe and exact required permissions
     assert "id=\"chathub-iframe\"" in html, "Missing chathub-iframe"
     assert "/embed/chat-hub/" in html, "Missing /embed/chat-hub/ URL"
-    assert "min-height: 700px" in html
+    assert "min-height: 700px" in html or "min-height: 750px" in html
     print("  ✔ PASS: WhatsApp Chat Hub iframe configured with camera, microphone, and clipboard access")
 
-    # Check Client ID isolation badge
-    assert f"#{embed1_ar['client_id']}" in html or f"{embed1_ar['client_id']}" in html
-    print(f"  ✔ PASS: Isolated client indicator #{embed1_ar['client_id']} rendered on screen")
+    # Verify client ID is passed cleanly in authenticated iframe URL
+    assert "client_id=" in html
+    print("  ✔ PASS: Isolated client ID properly targeted in iframe URL")
 
     # 5. Direct URL Routes & Parameterized Tab Selection
-    print("\n>>> 5. Direct Tab Routes & Parameterized URL Selection")
+    print("\n>>> 5. Direct Tab Routes & Parameterized Tab Selection")
     # Query parameter ?tab=call-center
     res_cc = client.get("/call-center/?tab=call-center")
     assert res_cc.status_code == 200
     html_cc = res_cc.content.decode("utf-8")
     assert "tab-content-callcenter" in html_cc
-    assert "bg-violet-600 text-white" in html_cc
 
     # Direct route /call-center/embedded/
     res_emb = client.get(reverse("call_center_embedded"))
@@ -178,14 +177,8 @@ def run_tests():
     # Restore Arabic
     client.get("/set-language/ar/")
 
-    # 8. Tab Badge Class Preservation & Template Fallback Robustness
-    print("\n>>> 8. Tab Badge Class Preservation & Direct Template Fallback")
-    # Verify DOM contains the specific persistent badge classes
-    assert "tab-badge-cc" in html, "Missing tab-badge-cc class in Call Center tab"
-    assert "tab-badge-wa" in html, "Missing tab-badge-wa class in WhatsApp tab"
-    # Verify JS tab switcher specifically references and preserves ccBadge and waBadge
-    assert "ccBadge.className" in html, "JS switcher must preserve ccBadge class"
-    assert "waBadge.className" in html, "JS switcher must preserve waBadge class"
+    # 8. Template Fallback Robustness
+    print("\n>>> 8. Dynamic Template Fallback Robustness")
 
     # Test direct template fallback when context URLs are omitted
     from django.template.loader import render_to_string

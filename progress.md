@@ -34,6 +34,22 @@
 
 ### What's Done
 
+- [x] **Call Center Page Streamlining & Element Elimination (`feat-callcenter-embedded-clean-slate`)**
+  - **1. Elimination of Redundant Ribbon & Card Elements (`templates/call_center.html`)**:
+    - Removed the 3 tab navigation buttons from the top bar:
+      1. `نقطة تسجيل الطلبات (POS)` (`#main-tab-pos`)
+      2. `السنترال الصوتي الذكي (Live Suite)` (`#main-tab-callcenter`)
+      3. `صندوق محادثات الواتساب (Chat Hub)` (`#main-tab-chathub`)
+    - Removed the isolated client indicator badge (`العميل المعزول #69`).
+    - Removed the redundant card banner `السنترال الصوتي السحابي الذكي مربوط بالذكاء الاصطناعي` and its buttons (`تحديث الإطار`, `نافذة كاملة`).
+    - Iframe now renders directly below the top header, maximizing vertical screen real estate for the upstream studio.
+  - **2. Route Default Alignment (`apps/callcenter/views.py`)**:
+    - Set default `active_tab = "call-center"` so `/call-center/` and `/call-center/embedded/` immediately load the Live Call Center Suite.
+  - **3. Verification & Deployment**:
+    - Updated `test_embed_callcenter_and_chathub.py` to assert the absence of redundant buttons and verify proper iframe rendering.
+    - Verified `./init.sh` 100% passing across all suites.
+    - Restarted `motaem_web` container to serve changes live.
+
 - [x] **Top Bar Navigation Ribbon Simplification (`feat-ai-callcenter-nav-tabs-streamline`)**
   - **1. Streamlined Navigation Ribbon (`templates/ai_callcenter/_nav_tabs.html`)**:
     - Removed 8 redundant custom Django management tabs (`overview`, `persona`, `hours`, `knowledge`, `queues`, `calls`, `capabilities`, `omnichannel`) in line with iframe-first architecture.

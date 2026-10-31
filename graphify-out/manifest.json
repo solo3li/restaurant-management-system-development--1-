@@ -336,9 +336,9 @@
     "semantic_hash": ""
   },
   "apps/callcenter/views.py": {
-    "mtime": 1793433721.5487652,
-    "seen": 1793434193.2262225,
-    "ast_hash": "a198affd3d10021df6ca8fd20c547c47",
+    "mtime": 1793450611.6273425,
+    "seen": 1793450904.8287227,
+    "ast_hash": "eaa9c02264fa49b19b2e6a5b2c29f420",
     "semantic_hash": ""
   },
   "apps/inventory/__init__.py": {
@@ -2250,9 +2250,9 @@
     "semantic_hash": ""
   },
   "templates/call_center.html": {
-    "mtime": 1793442464.4765275,
-    "seen": 1793443633.2387657,
-    "ast_hash": "599e258f0a150c5e636ff54e941bcd3d",
+    "mtime": 1793450675.725234,
+    "seen": 1793450904.8638,
+    "ast_hash": "42a19dd97dc1edc74c649aca743c02ba",
     "semantic_hash": ""
   },
   "templates/dashboard.html": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793443581.9735215,
-    "seen": 1793443633.2369297,
-    "ast_hash": "512435813892992202a66f102aeeb873",
+    "mtime": 1793449504.2129939,
+    "seen": 1793450904.8616064,
+    "ast_hash": "7a12e7f89cbe22586d08bead6ca1166c",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -3966,9 +3966,9 @@
     "semantic_hash": ""
   },
   "test_embed_callcenter_and_chathub.py": {
-    "mtime": 1793433885.3750107,
-    "seen": 1793434193.2436051,
-    "ast_hash": "42f146fdd2f66c2fe8b7c65ab4f8ab13",
+    "mtime": 1793450813.6043057,
+    "seen": 1793450904.8465397,
+    "ast_hash": "7fad471197db188de69683280acbde88",
     "semantic_hash": ""
   },
   "templates/ai_callcenter/chat_hub_page.html": {

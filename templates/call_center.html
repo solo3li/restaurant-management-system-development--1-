@@ -32,66 +32,6 @@
         </div>
     </div>
 
-    <!-- Tab Navigation Ribbon (POS, AI Call Center Suite, WhatsApp Chat Hub) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200/70 pb-2.5 mb-3">
-        <div class="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
-            <!-- Tab 1: Manual POS Order Entry -->
-            <button 
-                type="button" 
-                id="main-tab-pos" 
-                onclick="switchMainTab('pos')"
-                class="main-tab-btn inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer {% if active_tab == 'pos' %}bg-violet-600 text-white shadow-xs{% else %}bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70{% endif %}"
-            >
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                <span>{{ "نقطة تسجيل الطلبات (POS)"|t }}</span>
-            </button>
-
-            <!-- Tab 2: AI Call Center Suite (Upstream Embedded) -->
-            <button 
-                type="button" 
-                id="main-tab-callcenter" 
-                onclick="switchMainTab('call-center')"
-                class="main-tab-btn inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer {% if active_tab == 'call-center' %}bg-violet-600 text-white shadow-xs{% else %}bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70{% endif %}"
-            >
-                <svg class="w-4 h-4 shrink-0 tab-icon-cc {% if active_tab == 'call-center' %}text-white{% else %}text-violet-500{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                </svg>
-                <span>{{ "السنترال الصوتي الذكي (Live Suite)"|t }}</span>
-                <span class="tab-badge tab-badge-cc inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold {% if active_tab == 'call-center' %}bg-white/20 text-white{% else %}bg-violet-100 text-violet-800 border border-violet-200{% endif %}">
-                    Live
-                </span>
-            </button>
-
-            <!-- Tab 3: WhatsApp Chat Hub (Upstream Embedded) -->
-            <button 
-                type="button" 
-                id="main-tab-chathub" 
-                onclick="switchMainTab('chat-hub')"
-                class="main-tab-btn inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer {% if active_tab == 'chat-hub' %}bg-violet-600 text-white shadow-xs{% else %}bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70{% endif %}"
-            >
-                <svg class="w-4 h-4 shrink-0 tab-icon-wa {% if active_tab == 'chat-hub' %}fill-white{% else %}fill-[#25D366]{% endif %}" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.101-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.201-.3.301-.501.101-.2.051-.376-.025-.527-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519-.176-.01-.376-.01-.577-.01-.201 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.229 3.111c.15.201 2.123 3.242 5.143 4.547.718.311 1.279.497 1.716.636.721.23 1.377.198 1.896.12.578-.088 1.78-.727 2.031-1.429.251-.702.251-1.304.176-1.429-.076-.125-.276-.201-.577-.351z"/>
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.98-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.167c-1.57 0-3.04-.45-4.29-1.233l-.307-.19-2.96.831.849-2.883-.2-.317A8.13 8.13 0 013.833 12c0-4.502 3.665-8.167 8.167-8.167s8.167 3.665 8.167 8.167-3.665 8.167-8.167 8.167z"/>
-                </svg>
-                <span>{{ "صندوق محادثات الواتساب (Chat Hub)"|t }}</span>
-                <span class="tab-badge tab-badge-wa inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold {% if active_tab == 'chat-hub' %}bg-white/20 text-white{% else %}bg-emerald-100 text-emerald-800 border border-emerald-200{% endif %}">
-                    WhatsApp
-                </span>
-            </button>
-        </div>
-
-        <!-- Multi-tenant isolated client indicator badge -->
-        <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>{{ "العميل المعزول"|t }}:</span>
-                <strong class="text-slate-800 font-mono">#{{ partner_client_id }}</strong>
-            </span>
-        </div>
-    </div>
-
     <!-- Tab 1: POS Order Entry Content -->
     <div id="tab-content-pos" class="{% if active_tab != 'pos' %}hidden {% endif %}space-y-3">
         <!-- Main POS Layout: Menu Left + Invoice Right -->
@@ -451,114 +391,35 @@
 
     <!-- Tab 2: Embedded Live Call Center Suite -->
     <div id="tab-content-callcenter" class="{% if active_tab != 'call-center' %}hidden {% endif %}space-y-2.5">
-        <div class="bg-white rounded-xl border border-slate-200/70 p-2.5 sm:p-3 shadow-xs flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-50 text-violet-700 border border-violet-200/60 shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
-                </span>
-                <div>
-                    <h2 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>{{ "السنترال الصوتي السحابي الذكي"|t }}</span>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200">
-                            {{ "مربوط بالذكاء الاصطناعي"|t }}
-                        </span>
-                    </h2>
-                    <p class="text-[11px] text-slate-500 font-normal mt-0.5">
-                        {{ "استقبال المكالمات الصوتية المباشرة، فحص الطوابير، ومراقبة المحادثات الهاتفية السحابية"|t }}
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <button 
-                    type="button" 
-                    onclick="reloadCallCenterIframe()"
-                    class="px-2.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    title="{{ "إعادة تحميل الإطار"|t }}"
-                >
-                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span class="hidden sm:inline">{{ "تحديث الإطار"|t }}</span>
-                </button>
-                <a 
-                    href="{% if callcenter_embed_url %}{{ callcenter_embed_url }}{% else %}https://app.169.58.32.179.nip.io/embed/call-center/?token={{ partner_embed_token|default:'sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA' }}&locale={{ request.LANGUAGE_CODE|default:'ar' }}&client_id={{ partner_client_id|default:49 }}{% endif %}" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    class="px-2.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    title="{{ "فتح في نافذة كاملة منفصلة"|t }}"
-                >
-                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    <span class="hidden sm:inline">{{ "نافذة كاملة"|t }}</span>
-                </a>
-            </div>
-        </div>
-
-        <div class="relative w-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs min-h-[800px]">
+        <div class="relative w-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs min-h-[850px]">
             <iframe 
                 id="callcenter-iframe"
                 src="{% if callcenter_embed_url %}{{ callcenter_embed_url }}{% else %}https://app.169.58.32.179.nip.io/embed/call-center/?token={{ partner_embed_token|default:'sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA' }}&locale={{ request.LANGUAGE_CODE|default:'ar' }}&client_id={{ partner_client_id|default:49 }}{% endif %}" 
                 width="100%" 
-                height="800" 
+                height="850" 
                 frameborder="0" 
                 allow="microphone; camera; clipboard-read; clipboard-write;" 
-                style="border-radius: 16px; border: 1px solid #e2e8f0; width: 100%; min-height: 800px;"
-                class="w-full min-h-[800px] border-0 rounded-2xl"
+                style="border-radius: 16px; border: 1px solid #e2e8f0; width: 100%; min-height: 850px;"
+                class="w-full min-h-[850px] border-0 rounded-2xl"
             ></iframe>
         </div>
     </div>
 
     <!-- Tab 3: Embedded WhatsApp Chat Hub Inbox -->
     <div id="tab-content-chathub" class="{% if active_tab != 'chat-hub' %}hidden {% endif %}space-y-2.5">
-        <div class="bg-white rounded-xl border border-slate-200/70 p-2.5 sm:p-3 shadow-xs flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 flex items-center justify-center shrink-0 shadow-xs">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.101-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.201-.3.301-.501.101-.2.051-.376-.025-.527-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519-.176-.01-.376-.01-.577-.01-.201 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.229 3.111c.15.201 2.123 3.242 5.143 4.547.718.311 1.279.497 1.716.636.721.23 1.377.198 1.896.12.578-.088 1.78-.727 2.031-1.429.251-.702.251-1.304.176-1.429-.076-.125-.276-.201-.577-.351z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.98-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.167c-1.57 0-3.04-.45-4.29-1.233l-.307-.19-2.96.831.849-2.883-.2-.317A8.13 8.13 0 013.833 12c0-4.502 3.665-8.167 8.167-8.167s8.167 3.665 8.167 8.167-3.665 8.167-8.167 8.167z"/></svg>
-                </div>
-                <div>
-                    <h2 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>{{ "صندوق محادثات الواتساب الموحد (Chat Hub)"|t }}</span>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {{ "متعدد القنوات"|t }}
-                        </span>
-                    </h2>
-                    <p class="text-[11px] text-slate-500 font-normal mt-0.5">
-                        {{ "إدارة رسائل ومحادثات العملاء، مراقبة ردود الذكاء الاصطناعي، والرد البشري المباشر"|t }}
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <button 
-                    type="button" 
-                    onclick="reloadChatHubIframe()"
-                    class="px-2.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    title="{{ "إعادة تحميل الإطار"|t }}"
-                >
-                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span class="hidden sm:inline">{{ "تحديث الإطار"|t }}</span>
-                </button>
-                <a 
-                    href="{% if chathub_embed_url %}{{ chathub_embed_url }}{% else %}https://app.169.58.32.179.nip.io/embed/chat-hub/?token={{ partner_embed_token|default:'sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA' }}&locale={{ request.LANGUAGE_CODE|default:'ar' }}&client_id={{ partner_client_id|default:49 }}{% endif %}" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    class="px-2.5 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    title="{{ "فتح في نافذة كاملة منفصلة"|t }}"
-                >
-                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    <span class="hidden sm:inline">{{ "نافذة كاملة"|t }}</span>
-                </a>
-            </div>
-        </div>
-
-        <div class="relative w-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs min-h-[700px]">
+        <div class="relative w-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs min-h-[750px]">
             <iframe 
                 id="chathub-iframe"
                 src="{% if chathub_embed_url %}{{ chathub_embed_url }}{% else %}https://app.169.58.32.179.nip.io/embed/chat-hub/?token={{ partner_embed_token|default:'sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA' }}&locale={{ request.LANGUAGE_CODE|default:'ar' }}&client_id={{ partner_client_id|default:49 }}{% endif %}" 
                 width="100%" 
-                height="700" 
+                height="750" 
                 frameborder="0" 
                 allow="camera; microphone; clipboard-read; clipboard-write;" 
-                style="border-radius: 16px; border: 1px solid #e2e8f0; width: 100%; min-height: 700px;"
-                class="w-full min-h-[700px] border-0 rounded-2xl"
+                style="border-radius: 16px; border: 1px solid #e2e8f0; width: 100%; min-height: 750px;"
+                class="w-full min-h-[750px] border-0 rounded-2xl"
             ></iframe>
         </div>
+    </div>
     </div>
 
 <!-- Success Modal -->
@@ -984,7 +845,7 @@
 
     function switchMainTab(tabName) {
         const tabs = ['pos', 'call-center', 'chat-hub'];
-        if (!tabs.includes(tabName)) tabName = 'pos';
+        if (!tabs.includes(tabName)) tabName = 'call-center';
 
         const posEl = document.getElementById('tab-content-pos');
         const ccEl = document.getElementById('tab-content-callcenter');
@@ -993,39 +854,6 @@
         if (posEl) posEl.classList.toggle('hidden', tabName !== 'pos');
         if (ccEl) ccEl.classList.toggle('hidden', tabName !== 'call-center');
         if (chEl) chEl.classList.toggle('hidden', tabName !== 'chat-hub');
-
-        const tabBtns = {
-            'pos': document.getElementById('main-tab-pos'),
-            'call-center': document.getElementById('main-tab-callcenter'),
-            'chat-hub': document.getElementById('main-tab-chathub'),
-        };
-
-        const activeClasses = ['bg-violet-600', 'text-white', 'shadow-xs'];
-        const inactiveClasses = ['bg-white', 'text-slate-700', 'hover:text-slate-900', 'hover:bg-slate-100', 'border', 'border-slate-200/70'];
-
-        for (const [key, btn] of Object.entries(tabBtns)) {
-            if (!btn) continue;
-            const ccIcon = btn.querySelector('.tab-icon-cc');
-            const waIcon = btn.querySelector('.tab-icon-wa');
-            const ccBadge = btn.querySelector('.tab-badge-cc');
-            const waBadge = btn.querySelector('.tab-badge-wa');
-
-            if (key === tabName) {
-                btn.classList.add(...activeClasses);
-                btn.classList.remove(...inactiveClasses);
-                if (ccIcon) { ccIcon.classList.remove('text-violet-500'); ccIcon.classList.add('text-white'); }
-                if (waIcon) { waIcon.classList.remove('fill-[#25D366]'); waIcon.classList.add('fill-white'); }
-                if (ccBadge) { ccBadge.className = 'tab-badge tab-badge-cc inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-white/20 text-white'; }
-                if (waBadge) { waBadge.className = 'tab-badge tab-badge-wa inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-white/20 text-white'; }
-            } else {
-                btn.classList.remove(...activeClasses);
-                btn.classList.add(...inactiveClasses);
-                if (ccIcon) { ccIcon.classList.remove('text-white'); ccIcon.classList.add('text-violet-500'); }
-                if (waIcon) { waIcon.classList.remove('fill-white'); waIcon.classList.add('fill-[#25D366]'); }
-                if (ccBadge) { ccBadge.className = 'tab-badge tab-badge-cc inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-violet-100 text-violet-800 border border-violet-200'; }
-                if (waBadge) { waBadge.className = 'tab-badge tab-badge-wa inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200'; }
-            }
-        }
 
         try {
             history.replaceState(null, '', '#' + tabName);
