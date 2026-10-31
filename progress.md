@@ -664,3 +664,8 @@
 - Chat Hub page now renders cleanly without redundant top tabs bar (صندوق الواتساب / السنترال المباشر)
 - Full verification passed (`./init.sh` 100%)
 - Service restarted and operational (HTTP 200)
+
+## 2026-10-31 — Remove Live Call Center item from Sidebar
+- Removed "مركز الاتصالات المباشر" (`nav_callcenter_live` / `{% url 'call_center' %}`) from the sidebar in `templates/base.html`
+- Verified RBAC and embedded call center suites pass 100%
+- Container restarted and site verified (HTTP 200)
