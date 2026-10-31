@@ -554,6 +554,26 @@
   - Created `static/js/jazzmin_custom.js` to ensure `data-bs-theme="dark"` is enforced and stored in `localStorage`.
   - Updated `static/css/jazzmin_custom.css` with unified `#272b30` Slate palette covering `html`, `body`, `.bg-body-tertiary`, `.app-wrapper`, `.app-main`, `.app-content-header`, `.app-content`, `.content-wrapper`, and `.content-header`.
   - Added high-contrast breadcrumb and heading styling (`#f8fafc`).
-  - Ran `collectstatic`, restarted `motaem_web` container, and verified `./init.sh` passes 100%.
+## Standalone WhatsApp Chat Hub Dedicated Page & Call Center Overview 500 Fix
+- **Dedicated Standalone WhatsApp Chat Hub Page (`/chat-hub/` & `/whatsapp/`)**:
+  - Implemented `chat_hub_page_view` in `apps/callcenter/views.py` with multi-tenant sub-client resolution (`&client_id=...`), dynamic locale propagation across 5 languages (`&locale=...`), and token authentication.
+  - Implemented responsive full-width standalone layout `templates/ai_callcenter/chat_hub_page.html` with top command toolbar, WhatsApp badge, connection status, sub-client ID indicator, reload button with toast feedback, and full-window external link.
+  - Configured complete iframe hardware permissions (`camera; microphone; clipboard-read; clipboard-write;`).
+  - Added dedicated WhatsApp Chat Hub item in the main sidebar (`templates/base.html`) under communication section with WhatsApp brand icon (`#25D366`), active state styling, and plan-filtered RBAC enforcement.
+  - Added shortcut tabs in `templates/ai_callcenter/_nav_tabs.html` with active state highlighting for both embedded Call Center and Chat Hub.
+- **Root Cause & Resolution of 500 Error on `/ai-callcenter/overview/`**:
+  - Unprotected upstream partner API network requests (`get_telephony_numbers`, `get_client_usage`, `get_plan_voice_caps`, `get_profile`, `get_calls`) resulted in unhandled exceptions and 500 server crashes when the partner API had network hiccups or returned non-dict payloads.
+  - Wrapped all partner API calls in comprehensive try-except blocks with default fallbacks.
+  - Injected `profile` into template context to satisfy overview template bindings.
+  - Hardened `_fetch_enriched_calls` against non-dict items, invalid float duration strings (e.g. `"45.7"`), and eliminated bug where calls without caller phone matched any customer with an empty phone.
+  - Wrapped `_fetch_enriched_calls` in `ai_callcenter_calls_view` in try-except fallback.
+- **Fixed Prior Attempt Flaws & Missing Commits**:
+  - Fixed uncommitted `core/partner_service.py` (`get_embed_urls_for_tenant`) and `templates/call_center.html`.
+  - Fixed subscription plan feature leak in `templates/base.html` (removed `or is_owner` on line 671 so plans without `call_center` do not expose Chat Hub to owners).
+  - Added 5-language translation catalog entries for reload toasts.
+- **Verification & Automated Testing**:
+  - Expanded `test_embed_callcenter_and_chathub.py` to 15 test suites covering multi-tenant isolation, dynamic locales, tabs, RBAC, plan feature gating, malformed payloads, and total partner outage resilience (100% PASS).
+  - Full `./init.sh` test run: 100% PASS with 0 issues.
+
 
 

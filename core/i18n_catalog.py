@@ -20186,6 +20186,13 @@ _RAW_CATALOG = {
         "fr": "Recharger la boîte de réception",
         "tr": "Gelen Kutusunu Yenile",
         "de": "Posteingang neu laden"
+    },
+    "جاري تحديث صندوق المحادثات...": {
+        "ar": "جاري تحديث صندوق المحادثات...",
+        "en": "Reloading chat hub...",
+        "fr": "Rechargement du hub de discussion...",
+        "tr": "Sohbet merkezi yeniden yükleniyor...",
+        "de": "Chat-Hub wird neu geladen..."
     }
 }
 I18N_CATALOG = I18nCatalogDict(_RAW_CATALOG)

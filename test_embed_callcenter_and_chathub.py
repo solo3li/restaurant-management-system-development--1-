@@ -269,6 +269,132 @@ def run_tests():
     assert "total_calls_count" in html_ov or "المكالمات المستلمة" in html_ov
     print("  ✔ PASS: /ai-callcenter/overview/ loads cleanly with 200 OK, KPI cards, and DID strip")
 
+    # 12. Granular RBAC Verification on /chat-hub/ & /whatsapp/
+    print("\n>>> 12. Granular RBAC Enforcement on Standalone Pages & Sidebar")
+    from apps.accounts.models import JobRole, UserProfile
+    from apps.billing.models import SubscriptionPlan
+
+    # Create restricted role: Cashier without call_center_access
+    cashier_role, _ = JobRole.objects.get_or_create(tenant=tenant1, name="Test Chat Hub Cashier", defaults={"scope": "branch"})
+    cashier_role.sync_with_django_group()
+    cashier_role.set_permissions(["pos_access", "pos_create_order"])
+
+    cashier_user, _ = User.objects.get_or_create(username="test_chathub_cashier")
+    cashier_user.groups.set([cashier_role.group])
+    UserProfile.objects.update_or_create(user=cashier_user, defaults={"tenant": tenant1, "job_role": cashier_role, "role": "cashier"})
+
+    # Create permitted role: Call Center Agent with call_center_access
+    agent_role, _ = JobRole.objects.get_or_create(tenant=tenant1, name="Test Chat Hub Agent", defaults={"scope": "hq"})
+    agent_role.sync_with_django_group()
+    agent_role.set_permissions(["call_center_access", "call_center_create_order"])
+
+    agent_user, _ = User.objects.get_or_create(username="test_chathub_agent")
+    agent_user.groups.set([agent_role.group])
+    UserProfile.objects.update_or_create(user=agent_user, defaults={"tenant": tenant1, "job_role": agent_role, "role": "call_center"})
+
+    # Test Cashier: strictly blocked 403 on /chat-hub/ and /whatsapp/
+    cashier_client = Client()
+    cashier_client.force_login(cashier_user)
+    c_session = cashier_client.session
+    c_session["active_tenant_id"] = tenant1.id
+    c_session.save()
+
+    res_c_hub = cashier_client.get(reverse("chat_hub_page"))
+    assert res_c_hub.status_code == 403, f"Expected 403 for cashier on /chat-hub/, got {res_c_hub.status_code}"
+    res_c_wa = cashier_client.get(reverse("whatsapp_page"))
+    assert res_c_wa.status_code == 403, f"Expected 403 for cashier on /whatsapp/, got {res_c_wa.status_code}"
+
+    # Cashier sidebar must NOT leak the chat_hub_page link
+    res_c_pos = cashier_client.get("/pos/")
+    if res_c_pos.status_code == 200:
+        pos_html = res_c_pos.content.decode("utf-8")
+        assert "/chat-hub/" not in pos_html and "chat_hub_page" not in pos_html, "Cashier sidebar must not leak WhatsApp Chat Hub link"
+    print("  ✔ PASS: Cashier without call_center_access strictly blocked (403) and sidebar link hidden")
+
+    # Test Call Center Agent: allowed 200 on /chat-hub/ and /whatsapp/
+    agent_client = Client()
+    agent_client.force_login(agent_user)
+    a_session = agent_client.session
+    a_session["active_tenant_id"] = tenant1.id
+    a_session.save()
+
+    res_a_hub = agent_client.get(reverse("chat_hub_page"))
+    assert res_a_hub.status_code == 200, f"Expected 200 for agent on /chat-hub/, got {res_a_hub.status_code}"
+    res_a_wa = agent_client.get(reverse("whatsapp_page"))
+    assert res_a_wa.status_code == 200, f"Expected 200 for agent on /whatsapp/, got {res_a_wa.status_code}"
+    print("  ✔ PASS: Call Center Agent with call_center_access granted access (200 OK)")
+
+    # 13. Subscription Plan Feature Gating
+    print("\n>>> 13. Subscription Plan Feature Gating Verification")
+    plan_no_cc, _ = SubscriptionPlan.objects.get_or_create(code="test_no_cc_plan", defaults={"name": "No CC Plan", "price_monthly": 50, "features": ["pos", "inventory"]})
+    tenant_no_cc, _ = Tenant.objects.get_or_create(slug="tenant-no-call-center", defaults={"name": "Tenant Without Call Center", "subscription_plan": plan_no_cc})
+    tenant_no_cc.subscription_plan = plan_no_cc
+    tenant_no_cc.save()
+
+    # Regular restaurant owner (non-superuser) bound to this tenant
+    reg_owner_user, _ = User.objects.get_or_create(username="test_reg_owner_no_cc")
+    UserProfile.objects.update_or_create(user=reg_owner_user, defaults={"tenant": tenant_no_cc, "role": "owner"})
+
+    owner_client = Client()
+    owner_client.force_login(reg_owner_user)
+
+    res_no_cc = owner_client.get(reverse("chat_hub_page"))
+    assert res_no_cc.status_code == 403, f"Expected 403 when plan lacks call_center, got {res_no_cc.status_code}"
+    res_no_cc_wa = owner_client.get(reverse("whatsapp_page"))
+    assert res_no_cc_wa.status_code == 403, f"Expected 403 on /whatsapp/ when plan lacks call_center, got {res_no_cc_wa.status_code}"
+
+    # Sidebar must NOT show Chat Hub link when plan lacks call_center
+    res_no_cc_dash = owner_client.get("/dashboard/")
+    dash_html = res_no_cc_dash.content.decode("utf-8")
+    assert "/chat-hub/" not in dash_html, "Sidebar must hide WhatsApp Chat Hub when subscription lacks call_center"
+    print("  ✔ PASS: Subscription plan gating strictly enforced (403 + hidden sidebar link)")
+
+    # 14. Edge Case Payload Resilience for _fetch_enriched_calls
+    print("\n>>> 14. Edge Case Payload Resilience (_fetch_enriched_calls)")
+    from apps.callcenter.views import _fetch_enriched_calls
+    from unittest.mock import patch
+
+    # Corrupted / unusual upstream payloads: non-dict items, float duration string, missing fields
+    malformed_calls = [
+        None,
+        "not-a-dict",
+        12345,
+        {"call_id": "call_1", "duration_seconds": "45.7", "caller_phone": ""},
+        {"call_id": "call_2", "duration_seconds": "invalid", "started_at": "2026-10-31T08:00:00Z"},
+        {"call_id": "call_3", "duration_seconds": None, "caller_phone": "+966501234567"},
+    ]
+    with patch("core.partner_service.get_calls", return_value={"calls": malformed_calls}):
+        calls, total, orders, inq = _fetch_enriched_calls(tenant1, 49)
+        assert len(calls) == 3, f"Expected 3 valid dict calls parsed, got {len(calls)}"
+        assert calls[0]["duration_formatted"] == "00:45"
+        assert calls[1]["duration_formatted"] == "00:00"
+        assert calls[2]["duration_formatted"] == "00:00"
+        assert total == 3
+        print("  ✔ PASS: _fetch_enriched_calls safely parsed malformed duration and non-dict records")
+
+    # 15. Upstream Outage Resiliency: Overview & Calls Never Return 500
+    print("\n>>> 15. Upstream Partner Outage Resiliency (Overview & Calls 200 OK)")
+    with patch("core.partner_service.get_telephony_numbers", side_effect=Exception("Partner down")):
+        with patch("core.partner_service.get_client_usage", side_effect=Exception("Timeout")):
+            with patch("core.partner_service.get_profile", side_effect=Exception("ConnectionRefused")):
+                with patch("core.partner_service.get_calls", side_effect=Exception("502 Bad Gateway")):
+                    client.force_login(owner)
+                    client.get(f"/switch-tenant/{tenant1.id}/")
+                    res_ov_outage = client.get(reverse("ai_callcenter_overview"))
+                    assert res_ov_outage.status_code == 200, f"Expected 200 during partner outage on overview, got {res_ov_outage.status_code}"
+                    res_calls_outage = client.get(reverse("ai_callcenter_calls"))
+                    assert res_calls_outage.status_code == 200, f"Expected 200 during partner outage on calls, got {res_calls_outage.status_code}"
+                    print("  ✔ PASS: Overview and Calls return 200 OK gracefully even during total partner API outage")
+
+    # Cleanup temporary test objects
+    cashier_user.delete()
+    agent_user.delete()
+    cashier_role.delete()
+    agent_role.delete()
+    reg_owner_user.delete()
+    tenant_no_cc.delete()
+    plan_no_cc.delete()
+
     print("\n======================================================================")
     print("ALL EMBEDDED SUITE & STANDALONE INTEGRATION TESTS PASSED! (100%)")
     print("======================================================================")

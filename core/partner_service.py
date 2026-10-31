@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 PARTNER_API_BASE_URL = os.getenv("PARTNER_API_BASE_URL", "https://app.169.58.32.179.nip.io/api/partner/v1").rstrip("/")
 PARTNER_API_KEY = os.getenv("PARTNER_API_KEY", "sk_live_prt_RwTTVvzpzrGbWRmxklS8BC3qm_3djMVxxD1UVom0cfA")
+PARTNER_EMBED_BASE_URL = os.getenv(
+    "PARTNER_EMBED_BASE_URL",
+    PARTNER_API_BASE_URL.replace("/api/partner/v1", "").rstrip("/") or "https://app.169.58.32.179.nip.io"
+).rstrip("/")
 
 # SSL Context to allow local self-signed or wildcard certs
 _SSL_CONTEXT = ssl.create_default_context()
@@ -75,6 +79,42 @@ def get_client_id_for_tenant(tenant) -> int:
     if not cid:
         raise ValueError(f"تعذر العثور على حساب سنترال صوتي مربوط بالمنشأة «{getattr(tenant, 'name', '')}». يرجى مراجعة إعدادات الكول سنتر.")
     return cid
+
+
+def get_embed_urls_for_tenant(tenant, locale: str = "ar") -> Dict[str, Any]:
+    """
+    Generate authenticated, tenant-isolated embed URLs for upstream:
+      1. AI Call Center suite (/embed/call-center/)
+      2. WhatsApp Chat Hub inbox (/embed/chat-hub/)
+    Both views support &client_id={client_id} for sub-client multi-tenant isolation.
+    """
+    client_id = 49
+    if tenant:
+        try:
+            client_id = get_client_id_for_tenant(tenant)
+        except Exception as e:
+            logger.warning(f"Could not resolve partner client_id for tenant {getattr(tenant, 'name', '')}: {e}")
+            client_id = getattr(tenant, "voice_client_id", None) or 49
+
+    # Normalize locale from Django request.LANGUAGE_CODE (ar, en, fr, tr, de)
+    loc = str(locale or "ar").lower().split("-")[0].split("_")[0]
+    if loc not in ["ar", "en", "fr", "tr", "de"]:
+        loc = "ar"
+
+    base_url = PARTNER_EMBED_BASE_URL.rstrip("/")
+    token = PARTNER_API_KEY
+
+    call_center_url = f"{base_url}/embed/call-center/?token={token}&locale={loc}&client_id={client_id}"
+    chat_hub_url = f"{base_url}/embed/chat-hub/?token={token}&locale={loc}&client_id={client_id}"
+
+    return {
+        "client_id": client_id,
+        "token": token,
+        "locale": loc,
+        "call_center_url": call_center_url,
+        "chat_hub_url": chat_hub_url,
+        "embed_base_url": base_url,
+    }
 
 
 DEFAULT_PLAN_VOICE_CAPS = {

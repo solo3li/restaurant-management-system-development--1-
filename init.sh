@@ -30,6 +30,9 @@ venv/bin/python manage.py test test_landing_assistant_admin_tabs
 echo "=== venv/bin/python manage.py test test_landing_voice_customization ==="
 venv/bin/python manage.py test test_landing_voice_customization
 
+echo "=== venv/bin/python test_embed_callcenter_and_chathub.py ==="
+venv/bin/python test_embed_callcenter_and_chathub.py
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

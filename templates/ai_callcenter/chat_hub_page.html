@@ -89,6 +89,9 @@
             const originalSrc = frame.src;
             frame.src = 'about:blank';
             setTimeout(() => { frame.src = originalSrc; }, 100);
+            if (typeof showToast === 'function') {
+                showToast(typeof tJs === 'function' ? tJs('جاري تحديث صندوق المحادثات...', 'Reloading chat hub...') : 'جاري تحديث صندوق المحادثات...');
+            }
         }
     }
 

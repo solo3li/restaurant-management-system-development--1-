@@ -243,7 +243,7 @@ def chat_hub_page_view(request):
         return HttpResponseForbidden("ميزة الكول سنتر والواتساب غير مفعلة في باقة اشتراك هذا المطعم. يرجى ترقية الباقة لتفعيلها.")
 
     profile = getattr(request.user, "profile", None)
-    is_owner = request.user.is_superuser or (profile and (profile.role in ["owner", "platform_admin"] or profile.is_platform_admin))
+    is_owner = request.user.is_superuser or getattr(request, "is_platform_admin", False) or (profile and (profile.role in ["owner", "platform_admin"] or getattr(profile, "is_platform_admin", False)))
     has_perm = user_has_perm(request.user, "call_center_access") or user_has_perm(request.user, "call_center_manage_ai")
     if not is_owner and not has_perm:
         return HttpResponseForbidden("غير مصرح لك بالوصول إلى صندوق محادثات الواتساب")
@@ -491,11 +491,21 @@ def _fetch_enriched_calls(tenant, client_id):
         except Exception as e:
             logger.warning(f"Error fetching demo calls for client 49: {e}")
 
+    if not isinstance(calls_data, list):
+        calls_data = []
+
     tenant_orders = list(Order.objects.filter(tenant=tenant).select_related("branch").order_by("-created_at")[:50])
 
+    valid_calls = []
     for c in calls_data:
-        # Format duration properly
-        sec = int(c.get("duration_seconds") or 0)
+        if not isinstance(c, dict):
+            continue
+
+        try:
+            sec = int(float(c.get("duration_seconds") or 0))
+        except (ValueError, TypeError):
+            sec = 0
+
         mins = sec // 60
         rem_secs = sec % 60
         c["duration_formatted"] = f"{mins:02d}:{rem_secs:02d}"
@@ -503,9 +513,10 @@ def _fetch_enriched_calls(tenant, client_id):
         c["created_at"] = c.get("started_at") or ""
         c["transcript"] = c.get("transcript_text") or ""
 
-        summary = c.get("summary") or ""
+        summary = str(c.get("summary") or "")
         turns = str(c.get("dialogue_turns") or "")
-        c_phone = _norm_phone(c.get("caller_phone"))
+        raw_phone = str(c.get("caller_phone") or "").strip()
+        c_phone = _norm_phone(raw_phone)
         matched_ord = None
 
         for o in tenant_orders:
@@ -523,15 +534,19 @@ def _fetch_enriched_calls(tenant, client_id):
 
         if matched_ord and matched_ord.customer_name:
             c["customer_name"] = matched_ord.customer_name
-        else:
-            raw_phone = c.get("caller_phone") or ""
-            cust = Customer.objects.filter(tenant=tenant).filter(Q(phone=raw_phone) | Q(phone__endswith=c_phone) if c_phone else Q(phone=raw_phone)).first()
+        elif raw_phone:
+            cust = Customer.objects.filter(tenant=tenant).filter(Q(phone=raw_phone) | (Q(phone__endswith=c_phone) if c_phone else Q(phone=raw_phone))).first()
             c["customer_name"] = cust.name if cust else "عميل اتصال هاتفي"
+        else:
+            c["customer_name"] = "عميل اتصال هاتفي"
 
         cid = c.get("call_id")
         if c.get("recording_url") and cid:
             c["recording_url"] = f"/api/ai-callcenter/calls/{cid}/recording/"
 
+        valid_calls.append(c)
+
+    calls_data = valid_calls
     total_calls_count = len(calls_data)
     orders_converted_count = sum(1 for c in calls_data if c.get("linked_order"))
     inquiries_count = max(0, total_calls_count - orders_converted_count)
@@ -860,7 +875,11 @@ def ai_callcenter_calls_view(request):
         return err_resp
 
     client_id, _ = _get_callcenter_client_info(tenant)
-    calls_data, total_calls_count, orders_converted_count, inquiries_count = _fetch_enriched_calls(tenant, client_id)
+    try:
+        calls_data, total_calls_count, orders_converted_count, inquiries_count = _fetch_enriched_calls(tenant, client_id)
+    except Exception as e:
+        logger.warning(f"Could not fetch enriched calls for client {client_id}: {e}")
+        calls_data, total_calls_count, orders_converted_count, inquiries_count = [], 0, 0, 0
 
     context = {
         "tenant": tenant,
