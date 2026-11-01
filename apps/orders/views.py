@@ -1210,16 +1210,10 @@ def api_create_order(request):
                     customer.address = address
                 customer.save()
 
-        prefix = (tenant.slug[:3] if tenant and tenant.slug else "ORD").upper()
+        from core.redis_mcp_cache import generate_order_number
         order = None
-        for attempt in range(5):
-            last_order = Order.objects.filter(tenant=tenant).order_by("-id").first()
-            next_seq = (last_order.id + 1 + attempt) if last_order else (1 + attempt)
-            candidate_num = f"{prefix}-{1000 + next_seq}"
-            while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
-                next_seq += 1
-                candidate_num = f"{prefix}-{1000 + next_seq}"
-            order_number = candidate_num
+        for attempt in range(10):
+            order_number = generate_order_number(tenant, branch)
 
             try:
                 sid = transaction.savepoint()
@@ -1277,7 +1271,13 @@ def api_create_order(request):
     if order.order_type == "delivery":
         notify_delivery_order_event(order, "delivery_new_order")
 
-    return JsonResponse({"order": {"id": order.id, "orderNumber": order.order_number}}, status=201)
+    return JsonResponse({
+        "order": {
+            "id": order.id,
+            "orderNumber": order.order_number,
+            "shortOrderNumber": order.short_order_number,
+        }
+    }, status=201)
 
 
 @login_required

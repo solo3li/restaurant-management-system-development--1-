@@ -1247,11 +1247,9 @@ def api_digital_menu_place_order(request, slug):
 
     total = subtotal + delivery_fee
 
-    # Generate unique order number
-    import secrets
-    ord_number = f"QR-{secrets.token_hex(3).upper()}"
-    while Order.objects.filter(tenant=tenant, order_number=ord_number).exists():
-        ord_number = f"QR-{secrets.token_hex(3).upper()}"
+    # Generate unified order number (ORD-{YYYYMMDD}-B{branch_id}-{sequence:04d})
+    from core.redis_mcp_cache import generate_order_number
+    ord_number = generate_order_number(tenant, branch)
 
     # Customer record
     cust, _ = Customer.objects.get_or_create(
@@ -1312,6 +1310,7 @@ def api_digital_menu_place_order(request, slug):
         "message": "Your order has been received successfully! Preparing in the kitchen." if is_en else "تم استلام طلبك بنجاح! جاري تحضيره في المطبخ.",
         "order_id": order.id,
         "order_number": order.order_number,
+        "short_order_number": order.short_order_number,
         "order_type": ("Takeaway Pickup" if order.order_type == "takeaway" else "Home Delivery") if is_en else order.get_order_type_display(),
         "branch_name": branch.get_display_name(active_lang),
         "total": float(order.total),

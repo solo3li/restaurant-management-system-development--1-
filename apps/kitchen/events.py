@@ -42,6 +42,7 @@ def serialize_kitchen_order(order) -> Dict[str, Any]:
     return {
         "id": order.id,
         "order_number": order.order_number,
+        "short_order_number": order.short_order_number,
         "order_type": order.order_type,
         "order_type_display": order.get_order_type_display(),
         "channel": order.channel,

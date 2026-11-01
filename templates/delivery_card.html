@@ -2,7 +2,7 @@
     id="order-card-{{ order.id }}" 
     class="delivery-order-card bg-white rounded-xl p-2.5 text-xs font-sans border border-slate-200/70 shadow-xs hover:border-violet-500 hover:shadow-xs transition duration-150 flex flex-col justify-between gap-1.5 relative"
     data-order-id="{{ order.id }}" 
-    data-search="{{ order.order_number }} {{ order.customer_name }} {{ order.customer_phone|default:'' }} {{ order.address|default:'' }} {{ order.notes|default:'' }} {{ order.driver.name|default:'' }} {{ order.branch.name|default:'' }}"
+    data-search="{{ order.order_number }} {{ order.short_order_number }} {{ order.customer_name }} {{ order.customer_phone|default:'' }} {{ order.address|default:'' }} {{ order.notes|default:'' }} {{ order.driver.name|default:'' }} {{ order.branch.name|default:'' }}"
 >
     <!-- Row 1: Header (Checkbox + Order Number + Elapsed Time + Price Badge) -->
     <div>
@@ -15,7 +15,10 @@
                     onchange="handleCardSelect(this)"
                     title="{{ "تحديد الطلب للإجراء الجماعي"|t }}"
                 >
-                <span class="font-bold text-slate-900 tracking-tight text-xs truncate">#{{ order.order_number }}</span>
+                <span class="font-bold text-slate-900 tracking-tight text-xs truncate font-mono">{{ order.order_number }}</span>
+                {% if order.short_order_number %}
+                <span class="text-[10px] font-bold text-violet-700 bg-violet-50 px-1 py-0.2 rounded border border-violet-200/50 font-mono shrink-0">{{ order.short_order_number }}</span>
+                {% endif %}
                 <span class="text-[10.5px] text-slate-600 font-bold font-mono shrink-0" title="{{ order.created_at }}">
                     {{ order.created_at|time:"H:i" }}
                 </span>

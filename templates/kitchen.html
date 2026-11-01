@@ -773,7 +773,8 @@
 
             // Search Query Filter
             if (searchQuery) {
-                const numMatch = (order.order_number || '').toLowerCase().includes(searchQuery);
+                const shortNum = (order.short_order_number || ('#' + ((order.order_number || '').split('-').pop()))).toLowerCase();
+                const numMatch = (order.order_number || '').toLowerCase().includes(searchQuery) || shortNum.includes(searchQuery);
                 const custMatch = (order.customer_name || '').toLowerCase().includes(searchQuery);
                 const itemMatch = (order.items || []).some(it => {
                     if (activeStationFilter !== 'all' && it.category !== activeStationFilter) return false;
@@ -1029,7 +1030,8 @@
                 <div class="px-2.5 py-2 bg-slate-100/90 border-b border-slate-100 flex items-center justify-between gap-1.5">
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-xs font-bold text-slate-900 tracking-tight">#${order.order_number}</span>
+                            <span class="text-sm font-black text-slate-900 tracking-tight font-mono">${order.short_order_number || ('#' + ((order.order_number || '').split('-').pop()))}</span>
+                            <span class="text-[10px] font-mono font-medium text-slate-600 bg-slate-200/80 px-1.5 py-0.5 rounded border border-slate-300/70 select-all">${order.order_number}</span>
                             ${isStationMode ? `
                                 <span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">
                                     ${stationDisplayName}

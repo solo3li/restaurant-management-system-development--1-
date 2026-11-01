@@ -283,7 +283,8 @@
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
         <h3 class="text-base font-bold text-slate-900 tracking-tight">{{ "تم إصدار الطلب بنجاح"|t }}</h3>
-        <p id="modal-order-number" class="text-2xl font-bold text-blue-600 my-2">ORD-1000</p>
+        <p id="modal-order-number" class="text-xl font-bold font-mono text-blue-600 my-2">ORD-1000</p>
+        <p id="modal-short-order-number" class="text-sm font-bold font-mono text-slate-700 bg-slate-100 py-1 px-3 rounded-lg inline-block mb-3"></p>
         <p class="text-xs text-slate-500 mb-5">{{ "تم إرسال الطلب للمطبخ وحفظ الفاتورة في النظام"|t }}</p>
         <button onclick="closeOrderModal()" class="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium py-2.5 text-xs font-medium transition cursor-pointer">
             {{ "فاتورة جديدة"|t }}
@@ -670,7 +671,13 @@
             if (!res.ok) throw new Error(data.error || 'تعذر إصدار الطلب');
 
             // Show success modal
-            document.getElementById('modal-order-number').textContent = data.order.orderNumber;
+            const fullNum = data.order.orderNumber;
+            const shortNum = data.order.shortOrderNumber || ('#' + (fullNum && fullNum.includes('-') && /^\d+$/.test(fullNum.split('-').pop()) ? fullNum.split('-').pop() : fullNum));
+            document.getElementById('modal-order-number').textContent = fullNum;
+            const shortEl = document.getElementById('modal-short-order-number');
+            if (shortEl) {
+                shortEl.textContent = `${tJs('الرقم المختصر:', 'Short #:')} ${shortNum}`;
+            }
             document.getElementById('order-modal').classList.remove('hidden');
             document.getElementById('order-modal').classList.add('flex');
 
@@ -681,7 +688,7 @@
             document.getElementById('cust-phone').value = '';
             document.getElementById('cust-address').value = '';
             renderCart();
-            showToast(`تم إصدار الطلب ${data.order.orderNumber} بنجاح!`);
+            showToast(`${tJs('تم إصدار الطلب', 'Order created')} ${fullNum} (${shortNum}) ${tJs('بنجاح!', 'successfully!')}`);
         } catch (err) {
             showToast(err.message, 'error');
         } finally {

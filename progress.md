@@ -2,9 +2,10 @@
 
 ## Current State
 
-**Last Updated:** 2026-11-01 06:40
-**Session ID:** Production ASGI Performance Boost: Gunicorn + Uvicorn Workers, GZip Compression, WhiteNoise Caching & Precompiled Zero-CDN Tailwind
+**Last Updated:** 2026-11-01 07:25
+**Session ID:** Unified Omnichannel Order Number Format: ORD-{YYYYMMDD}-B{branch_id}-{sequence:04d} with Daily Atomic Reset & Multi-Screen Display
 **Active Features:** 
+- `feat-unified-order-number-format` (Completed & Verified 100%)
 - `feat-performance-boost-gunicorn-uvicorn-tailwind` (Completed & Verified 100%)
 - `feat-admin-support-chat-workspace` (Completed & Verified 100%)
 - `feat-brevo-email-verification` (Completed & Verified 100%)
@@ -37,6 +38,28 @@
 ## Status
 
 ### What's Done
+
+- [x] **Unified Omnichannel Order Number Format (`feat-unified-order-number-format`)**
+  - **1. Standard Unified Format across All Channels**:
+    - Format: `ORD-{YYYYMMDD}-B{branch_id}-{sequence:04d}` (e.g. `ORD-20261101-B5-0001`). When branch is unspecified/none, uses `ORD-{YYYYMMDD}-BR-{sequence:04d}`.
+    - POS & Cashier: `api_create_order` in `apps/orders/views.py` upgraded to use `generate_order_number(tenant, branch)`.
+    - Call Center & Branch Reception: passes through `api_create_order` with channel `call_center`, issuing unified numbers.
+    - Digital QR Menu: `api_digital_menu_place_order` in `apps/menu/views.py` completely migrated from legacy `QR-XXXXXX` to the unified format.
+    - AI Voice Call Center (FastMCP): aligned in `core/mcp/tools.py` (`create_callcenter_order`) using unified sequence generator.
+  - **2. Sub-Millisecond Daily Sequence Reset**:
+    - Daily sequence resets to `0001` per branch every day using atomic Redis counter `order_seq:{tenant_id}:{branch_id}:{date_str}`.
+    - Automatic DB synchronization: if Redis restarts mid-day, checks DB for existing `ORD-{date_str}-{b_code}-` records to resume sequence seamlessly without duplicate keys.
+    - Graceful fallback: when Redis is unreachable, cleanly queries current day's database count and sequence.
+  - **3. Screen Displays & Short Order Number (`#0001`)**:
+    - Added `Order.short_order_number` property on model: extracts `#0001` for unified orders while gracefully supporting legacy orders (`#1558`, `#QR-A1B2C3`).
+    - Kitchen Display Screen (KDS): card header displays both large bold `#0001` and full `ORD-20261101-B5-0001`. Search filter allows chefs to search by short sequence or full number.
+    - POS and Call Center: success modals and toasts show full order number and short sequence badge.
+    - QR Menu: confirmation screen displays full order number and short pickup badge.
+    - Branch Orders, HQ Orders, Delivery Cards: displays both full order number and short sequence badge.
+  - **4. Legacy Orders & Testing**:
+    - Zero destructive migrations; legacy orders remain completely valid and intact.
+    - Automated test suite `test_unified_order_numbers.py` (12 tests covering format, branch isolation, daily reset, POS API, Call Center, QR Menu, KDS serialization, concurrent threading, Redis fallback).
+    - Integrated into `./init.sh` verification gate.
 
 - [x] **Production ASGI Performance Boost (`feat-performance-boost-gunicorn-uvicorn-tailwind`)**
   - **1. Application Server: Gunicorn with Uvicorn Worker (`gunicorn + uvicorn`)**:

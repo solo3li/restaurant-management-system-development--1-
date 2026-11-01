@@ -182,10 +182,12 @@
         <div id="orders-cards-container" class="p-2 space-y-1.5 divide-y divide-slate-100/60">
             {% for o in orders %}
             <div class="p-2.5 rounded-xl border border-slate-200/70 bg-white hover:bg-blue-50/30 hover:border-violet-300 transition cursor-pointer space-y-1.5 shadow-2xs" onclick="openOrderModal('order-{{ o.id }}')">
-                <!-- Line 1: Order #, Badges, Price, Status -->
                 <div class="flex items-center justify-between gap-1.5">
                     <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-slate-900 text-xs font-mono">#{{ o.order_number }}</span>
+                        <span class="font-bold text-slate-900 text-xs font-mono">{{ o.order_number }}</span>
+                        {% if o.short_order_number %}
+                            <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60 font-mono">{{ o.short_order_number }}</span>
+                        {% endif %}
                         {% if o.channel == 'call_center' %}
                             <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-purple-100 text-purple-900 border border-purple-200">{{ "هاتف"|t }}</span>
                         {% elif o.channel == 'qr_menu' %}
@@ -277,7 +279,10 @@
                         <!-- Order Number & Channel (Sticky on Right in RTL) -->
                         <td class="px-3 py-1.5 whitespace-nowrap sticky right-0 bg-white z-10 shadow-xs">
                             <div class="flex items-center gap-1.5">
-                                <span class="font-bold text-slate-900 text-xs font-mono">#{{ o.order_number }}</span>
+                                <span class="font-bold text-slate-900 text-xs font-mono">{{ o.order_number }}</span>
+                                {% if o.short_order_number %}
+                                    <span class="px-1 py-0.5 rounded text-[9.5px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60 font-mono">{{ o.short_order_number }}</span>
+                                {% endif %}
                                 {% if o.channel == 'call_center' %}
                                     <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">{{ "هاتف"|t }}</span>
                                 {% elif o.channel == 'qr_menu' %}

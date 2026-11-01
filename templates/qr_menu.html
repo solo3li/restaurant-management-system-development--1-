@@ -472,7 +472,8 @@
 
             <div class="my-4 p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-1.5">
                 <span class="text-[11px] text-stone-500 font-bold block">{{ "رقم الطلب"|t }}</span>
-                <span id="success-order-number" class="text-xl font-bold font-mono text-brand-600 tracking-wider">QR-0000</span>
+                <span id="success-order-number" class="text-lg font-bold font-mono text-brand-600 tracking-wider block">ORD-0000</span>
+                <span id="success-short-order-number" class="text-xs font-bold font-mono text-stone-700 bg-stone-200/70 py-0.5 px-2.5 rounded-lg inline-block"></span>
                 <span id="success-order-type" class="text-xs font-bold text-stone-700 block">{{ "استلام سفري"|t }}</span>
                 <div class="text-xs font-semibold text-stone-900 pt-1 border-t border-stone-200">
                     {{ "الإجمالي:"|t }} <span id="success-order-total" class="text-emerald-700">0.00</span> {{ branch_currency_symbol }}
@@ -906,6 +907,11 @@
 
         function showSuccessModal(data) {
             document.getElementById('success-order-number').textContent = data.order_number;
+            const shortNum = data.short_order_number || ('#' + (data.order_number && data.order_number.includes('-') && /^\d+$/.test(data.order_number.split('-').pop()) ? data.order_number.split('-').pop() : data.order_number));
+            const shortEl = document.getElementById('success-short-order-number');
+            if (shortEl) {
+                shortEl.textContent = `${tJs('الرقم المختصر:', 'Short #:')} ${shortNum}`;
+            }
             const orderTypeLabel = (currentOrderType === 'delivery' ? tJs('توصيل منزلي', 'Home Delivery') : tJs('استلام سفري', 'Takeaway Pickup'));
             const branchName = data.branch_name || "{{ selected_branch.display_name|default:''|escapejs }}";
             document.getElementById('success-order-type').textContent = `${orderTypeLabel} • ${i18n.branchPrefix} ${branchName}`;

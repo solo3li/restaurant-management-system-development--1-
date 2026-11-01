@@ -279,6 +279,14 @@
       "dependencies": [],
       "status": "completed",
       "evidence": "entrypoint.sh (gunicorn -k uvicorn.workers.UvicornWorker --workers 3), requirements.txt (gunicorn>=22.0.0), restaurant_system/settings.py (GZipMiddleware, STORAGES CompressedStaticFilesStorage, WHITENOISE_MAX_AGE=31536000), tailwind.config.js, static/css/tailwind.input.css, static/css/tailwind.min.css (90KB minified, 14.8KB gzip), templates/base.html, templates/qr_menu.html, verified via ./init.sh (100% PASS), docker restart motaem_web, curl -sI -H 'Accept-Encoding: gzip' https://uggu.space/login/ (content-encoding: gzip, 11529 bytes), https://uggu.space/ (content-encoding: gzip, 25973 bytes), and https://uggu.space/static/css/tailwind.min.css (cache-control: max-age=31536000, 14833 bytes gzip)."
+    },
+    {
+      "id": "feat-unified-order-number-format",
+      "name": "Unified Omnichannel Order Number Format with Daily Branch Sequence Reset",
+      "description": "Harmonized order number generation across POS, Call Center, QR Menu, and FastMCP Voice AI into standard ORD-{YYYYMMDD}-B{branch_id}-{sequence:04d} (or ORD-{YYYYMMDD}-BR-{sequence:04d} when no branch is specified). Features sub-millisecond atomic daily sequence resets starting from 0001 per branch via Redis INCR with robust DB fallback, zero collision concurrency, simultaneous short order number (#0001) display on KDS and POS/Call Center screens, and preservation of legacy order numbers.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "core/redis_mcp_cache.py (get_next_order_sequence, generate_order_number), apps/orders/models.py (Order.short_order_number), apps/orders/views.py (api_create_order), apps/menu/views.py (api_digital_menu_place_order), apps/kitchen/events.py (serialize_kitchen_order), apps/orders/events.py (serialize_delivery_order), templates/kitchen.html, templates/pos.html, templates/call_center.html, templates/qr_menu.html, templates/branch_orders.html, templates/hq_orders.html, templates/delivery_card.html, test_unified_order_numbers.py (12 suites 100% PASS), and ./init.sh (100% PASS)."
     }
   ]
 }

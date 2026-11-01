@@ -136,6 +136,22 @@ class Order(models.Model):
             models.Index(fields=["tenant", "branch", "-created_at"], name="idx_ord_t_br_dt"),
         ]
 
+    @property
+    def short_order_number(self):
+        """
+        Returns short sequence display (e.g. #0001) for unified order numbers
+        like ORD-20261101-B5-0001. Falls back cleanly for legacy orders.
+        """
+        num = str(self.order_number or "").strip()
+        if not num:
+            return ""
+        if "-" in num:
+            parts = num.split("-")
+            last_part = parts[-1]
+            if last_part.isdigit():
+                return f"#{last_part}"
+        return f"#{num}"
+
     def __str__(self):
         return f"{self.order_number} ({self.get_status_display()})"
 
