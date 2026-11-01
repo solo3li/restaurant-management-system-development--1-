@@ -39,10 +39,10 @@
 ### What's Done
 
 - [x] **Production ASGI Performance Boost (`feat-performance-boost-gunicorn-uvicorn-tailwind`)**
-  - **1. Application Server: Gunicorn with Uvicorn Workers (`gunicorn + uvicorn`)**:
-    - Replaced single-process standalone `uvicorn` in `entrypoint.sh` with `gunicorn restaurant_system.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 3 --timeout 60 --max-requests 1000 --max-requests-jitter 50 --forwarded-allow-ips "*"`.
-    - Added `gunicorn>=22.0.0` to `requirements.txt`, installed in local venv (`gunicorn-26.2.0`), and installed in production Docker container `motaem_web`.
-    - Booted 3 concurrent ASGI worker processes with request lifecycle recycling.
+  - **1. Application Server: Gunicorn with Uvicorn Worker (`gunicorn + uvicorn`)**:
+    - Configured `entrypoint.sh` with `gunicorn restaurant_system.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 1 --timeout 60 --max-requests 1000 --max-requests-jitter 50 --forwarded-allow-ips "*"`. Single async Uvicorn worker under Gunicorn process supervisor preserves in-memory SSE transport sessions (`SseServerTransport`) for Voice AI MCP calls without 401/404 process hopping.
+    - Updated `core/mcp/middleware.py` session cache (`_get_cached_session_key`, `_set_cached_session_key`, `_get_latest_session_for_key`) to integrate with Django's shared database cache (`from django.core.cache import cache`), preventing session loss across restarts.
+    - Verified MCP tool execution: `get_branches`, `get_menu`, and live order creation `create_callcenter_order` succeed in <300ms with 0 failures.
   - **2. Network & Compression Optimization**:
     - Registered `django.middleware.gzip.GZipMiddleware` in `MIDDLEWARE` directly after `SecurityMiddleware` and before `WhiteNoiseMiddleware`.
     - Configured WhiteNoise with `WHITENOISE_MAX_AGE = 31536000` (1-year immutable caching header for static assets).

@@ -91,9 +91,18 @@ def _get_cached_session_key(sid: Optional[str]) -> Optional[str]:
     r = get_redis_client()
     if r:
         try:
-            return r.get(f"mcp_session:{clean_sid}")
+            val = r.get(f"mcp_session:{clean_sid}")
+            if val:
+                return val
         except Exception:
             pass
+    try:
+        from django.core.cache import cache
+        val = cache.get(f"mcp_session:{clean_sid}")
+        if val:
+            return val
+    except Exception:
+        pass
     return _in_memory_sessions.get(f"mcp_session:{clean_sid}")
 
 
@@ -108,9 +117,14 @@ def _set_cached_session_key(sid: Optional[str], key: Optional[str], timeout: int
                 pipe.set(f"mcp_session:{clean_sid}", clean_key, ex=timeout)
                 pipe.set(f"mcp_key_latest:{clean_key}", clean_sid, ex=timeout)
                 pipe.execute()
-                return
             except Exception:
                 pass
+        try:
+            from django.core.cache import cache
+            cache.set(f"mcp_session:{clean_sid}", clean_key, timeout=timeout)
+            cache.set(f"mcp_key_latest:{clean_key}", clean_sid, timeout=timeout)
+        except Exception:
+            pass
         _in_memory_sessions[f"mcp_session:{clean_sid}"] = clean_key
         _in_memory_sessions[f"mcp_key_latest:{clean_key}"] = clean_sid
 
@@ -122,9 +136,18 @@ def _get_latest_session_for_key(key: Optional[str]) -> Optional[str]:
     r = get_redis_client()
     if r:
         try:
-            return r.get(f"mcp_key_latest:{clean_key}")
+            val = r.get(f"mcp_key_latest:{clean_key}")
+            if val:
+                return val
         except Exception:
             pass
+    try:
+        from django.core.cache import cache
+        val = cache.get(f"mcp_key_latest:{clean_key}")
+        if val:
+            return val
+    except Exception:
+        pass
     return _in_memory_sessions.get(f"mcp_key_latest:{clean_key}")
 
 

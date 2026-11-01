@@ -44,11 +44,11 @@ if [ -f "/app/data_dump.json" ] && [ ! -f "/app/media/.data_imported" ]; then
     fi
 fi
 
-echo "==> Starting Gunicorn ASGI Application with Uvicorn Workers (Django + FastMCP)..."
+echo "==> Starting Gunicorn ASGI Application with Uvicorn Worker (Django + FastMCP)..."
 exec gunicorn restaurant_system.asgi:application \
     -k uvicorn.workers.UvicornWorker \
     --bind 0.0.0.0:8000 \
-    --workers 3 \
+    --workers 1 \
     --timeout 60 \
     --max-requests 1000 \
     --max-requests-jitter 50 \

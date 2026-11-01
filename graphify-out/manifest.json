@@ -624,9 +624,9 @@
     "semantic_hash": ""
   },
   "core/mcp/middleware.py": {
-    "mtime": 1792734070.6081185,
-    "seen": 1792755068.7958937,
-    "ast_hash": "6565f5c02c64471d6d952ea5194b65a4",
+    "mtime": 1793515424.956636,
+    "seen": 1793515552.9098125,
+    "ast_hash": "6fa6cc38096a7f61502a9266b2f16386",
     "semantic_hash": ""
   },
   "core/mcp/resolvers.py": {
@@ -882,9 +882,9 @@
     "semantic_hash": ""
   },
   "entrypoint.sh": {
-    "mtime": 1793511054.5416317,
-    "seen": 1793511734.1606374,
-    "ast_hash": "bb0e720622410f00f40f73501e756da4",
+    "mtime": 1793515416.1763577,
+    "seen": 1793515552.9136033,
+    "ast_hash": "a8bd3a4e4d6744a650dd101af1eff860",
     "semantic_hash": ""
   },
   "manage.py": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793511786.12654,
-    "seen": 1793512344.224906,
-    "ast_hash": "a1e2d2655d314d91311ef2ede9e8b0c2",
+    "mtime": 1793512381.8550835,
+    "seen": 1793515552.9405236,
+    "ast_hash": "8b4a604ad8f57ad8da0c716bda9351fc",
     "semantic_hash": ""
   },
   "session-handoff.md": {
