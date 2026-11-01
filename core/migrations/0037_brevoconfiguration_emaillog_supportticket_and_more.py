@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='BrevoConfiguration',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('api_key', models.CharField(default='mock_brevo_key_redacted', help_text='مفتاح API المعتمد من حساب Brevo لإرسال رسائل البريد الإلكتروني.', max_length=255, verbose_name='مفتاح Brevo API (API Key)')),
+                ('api_key', models.CharField(blank=True, default='', help_text='مفتاح API المعتمد من حساب Brevo لإرسال رسائل البريد الإلكتروني.', max_length=255, verbose_name='مفتاح Brevo API (API Key)')),
                 ('sender_email', models.EmailField(default='hamed3alii.11@gmail.com', help_text='عنوان البريد الإلكتروني المعتمد في Brevo Senders الذي ستصل الرسائل منه للعملاء.', max_length=254, verbose_name='البريد الإلكتروني المعتمد للمرسل (Sender Email)')),
                 ('sender_name', models.CharField(default='منظومة مطاعم Cloud Restaurant OS', help_text='اسم المنشأة أو النظام الظاهر في عنوان البريد الوارد لدى المستلم.', max_length=120, verbose_name='اسم المرسل الظاهر (Sender Name)')),
                 ('is_active', models.BooleanField(default=True, help_text='عند التعطيل، لن يتم إرسال رسائل بريد حقيقية للعملاء.', verbose_name='تفعيل الإرسال عبر Brevo')),

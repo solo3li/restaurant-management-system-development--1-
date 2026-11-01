@@ -13,7 +13,8 @@ class BrevoConfiguration(models.Model):
     """
     api_key = models.CharField(
         max_length=255,
-        default="mock_brevo_key_redacted",
+        blank=True,
+        default="",
         verbose_name="مفتاح Brevo API (API Key)",
         help_text="مفتاح API المعتمد من حساب Brevo لإرسال رسائل البريد الإلكتروني."
     )
@@ -65,7 +66,13 @@ class BrevoConfiguration(models.Model):
 
     @classmethod
     def get_config(cls):
-        obj, _ = cls.objects.get_or_create(id=1)
+        import os
+        obj, created = cls.objects.get_or_create(id=1)
+        if not obj.api_key:
+            env_key = os.getenv("BREVO_API_KEY", "").strip()
+            if env_key:
+                obj.api_key = env_key
+                obj.save(update_fields=["api_key"])
         return obj
 
     def save(self, *args, **kwargs):

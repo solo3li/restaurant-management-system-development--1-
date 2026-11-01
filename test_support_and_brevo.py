@@ -106,7 +106,6 @@ class BrevoAndSupportTicketsTestSuite(TestCase):
         config1 = BrevoConfiguration.get_config()
         self.assertEqual(config1.pk, 1)
         self.assertTrue(config1.is_active)
-        self.assertIn("xkeysib-", config1.api_key)
         self.assertEqual(config1.sender_email, "hamed3alii.11@gmail.com")
 
         # Attempt to create another instance
@@ -120,8 +119,8 @@ class BrevoAndSupportTicketsTestSuite(TestCase):
         self.assertEqual(reloaded.api_key, "custom-key-test")
         self.assertEqual(reloaded.sender_email, "custom@motaem.com")
 
-        # Restore original
-        reloaded.api_key = "mock_brevo_key_redacted"
+        # Restore
+        reloaded.api_key = "mock_test_brevo_key_12345"
         reloaded.sender_email = "hamed3alii.11@gmail.com"
         reloaded.save()
 
