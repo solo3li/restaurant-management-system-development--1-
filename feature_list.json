@@ -271,6 +271,14 @@
       "dependencies": ["feat-support-tickets-rich-media"],
       "status": "completed",
       "evidence": "apps/support/models.py (TicketMessage.is_internal), core/migrations/0039_ticketmessage_is_internal.py, apps/support/views.py (api_admin_ticket_reply with fallback message & atomic transaction & 405 guards, api_admin_delete_message with atomic cleanup & 405 guards, api_ticket_update_status staff authorization, support_ticket_detail_view internal note filtering), apps/support/admin.py (change_form_template, changeform_view context, TicketMessageAdmin is_internal), apps/support/urls.py and core/urls.py, templates/admin/core/supportticket/change_form.html (quick status buttons & dropdown, safe modal lifecycle with backdrop cleanup, empty message handling, full-width actions bar), test_support_and_brevo.py (25/25 PASS 100%), ./init.sh (100% PASS), and motaem_web operational reload."
+    },
+    {
+      "id": "feat-performance-boost-gunicorn-uvicorn-tailwind",
+      "name": "Production ASGI Performance Boost: Gunicorn + Uvicorn Workers, GZip Compression, WhiteNoise Caching & Zero-CDN Precompiled Tailwind",
+      "description": "Multi-tier production performance optimization: (1) Upgrade ASGI application server in entrypoint.sh from standalone single-process uvicorn to gunicorn running uvicorn.workers.UvicornWorker with 3 workers, 60s timeout, and request recycling; (2) Network & compression optimization with django.middleware.gzip.GZipMiddleware compressing HTML/JSON text responses (reducing login page payload from 66KB to 11.5KB, >82% reduction) and WhiteNoise caching configured with WHITENOISE_MAX_AGE=31536000 (1 year immutable static asset caching) and CompressedStaticFilesStorage generating pre-compressed gzip static files; (3) Elimination of render-blocking and layout freezing cdn.tailwindcss.com runtime JIT compiler across templates (base.html and qr_menu.html), replaced with pre-compiled 90KB minified static CSS bundle (compressed to 14.8KB via WhiteNoise) preserving 100% of custom brand/blue palettes and CSS variable fallbacks for dynamic tenant brand colors.",
+      "dependencies": [],
+      "status": "completed",
+      "evidence": "entrypoint.sh (gunicorn -k uvicorn.workers.UvicornWorker --workers 3), requirements.txt (gunicorn>=22.0.0), restaurant_system/settings.py (GZipMiddleware, STORAGES CompressedStaticFilesStorage, WHITENOISE_MAX_AGE=31536000), tailwind.config.js, static/css/tailwind.input.css, static/css/tailwind.min.css (90KB minified, 14.8KB gzip), templates/base.html, templates/qr_menu.html, verified via ./init.sh (100% PASS), docker restart motaem_web, curl -sI -H 'Accept-Encoding: gzip' https://uggu.space/login/ (content-encoding: gzip, 11529 bytes), https://uggu.space/ (content-encoding: gzip, 25973 bytes), and https://uggu.space/static/css/tailwind.min.css (cache-control: max-age=31536000, 14833 bytes gzip)."
     }
   ]
 }

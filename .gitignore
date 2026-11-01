@@ -22,5 +22,6 @@ build/
 .DS_Store
 Thumbs.db
 *.log
+*.gz
 media/
 .agent/skills/impeccable/scripts/bin/

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="{{ CURRENT_LANG|default:'ar' }}" dir="{{ DIR|default:'rtl' }}">
 <head>
@@ -5,49 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ tenant.name }} — {{ "قائمة الطعام والطلب الذاتي"|t }}</title>
     
-    <!-- Tailwind CSS CDN & Cairo / Inter / Amiri Fonts -->
-    <script>
-        (function() {
-            var _w = console.warn;
-            console.warn = function() {
-                if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].indexOf('cdn.tailwindcss.com') !== -1) return;
-                _w.apply(console, arguments);
-            };
-        })();
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Production Compiled Tailwind CSS Bundle & Google Fonts -->
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#FAF5EC',
-                            100: '#F5EBD9',
-                            500: '{{ brand_color|default:"#6366F1" }}',
-                            600: '{{ brand_color|default:"#6366F1" }}',
-                            700: '#09241B',
-                        },
-                        gold: {
-                            400: '#E6C898',
-                            500: '#6366F1',
-                            600: '#4F46E5',
-                        }
-                    },
-                    fontFamily: {
-                        sans: {% if IS_RTL %}['Cairo', 'Inter', 'sans-serif']{% else %}['Inter', 'Cairo', 'sans-serif']{% endif %},
-                        royal: ['Cairo', 'Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
 
     <style>
+        {% if brand_color %}
+        :root {
+            --brand-color: {{ brand_color }};
+        }
+        .bg-brand-600, .bg-brand-500 { background-color: {{ brand_color }} !important; }
+        .hover\:bg-brand-700:hover { filter: brightness(0.9); }
+        .text-brand-600, .text-brand-500 { color: {{ brand_color }} !important; }
+        .border-brand-600, .border-brand-500 { border-color: {{ brand_color }} !important; }
+        .focus\:border-brand-600:focus { border-color: {{ brand_color }} !important; }
+        .peer:checked ~ .peer-checked\:border-brand-600 { border-color: {{ brand_color }} !important; }
+        {% endif %}
         body {
             font-family: {% if IS_RTL %}'Cairo', 'Inter', sans-serif{% else %}'Inter', 'Cairo', sans-serif{% endif %};
             background-color: #F8FAFC;
