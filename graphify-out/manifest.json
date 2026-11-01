@@ -2220,9 +2220,9 @@
     "semantic_hash": ""
   },
   "templates/base.html": {
-    "mtime": 1793511178.747542,
-    "seen": 1793511734.1863089,
-    "ast_hash": "fabf63f4acff32cdec8e7a3351d7d529",
+    "mtime": 1793512252.8440711,
+    "seen": 1793512344.2270234,
+    "ast_hash": "6103486c0b3f1e11e9b0e00ec02324e2",
     "semantic_hash": ""
   },
   "templates/branch_dashboard.html": {
@@ -2340,9 +2340,9 @@
     "semantic_hash": ""
   },
   "templates/qr_menu.html": {
-    "mtime": 1793511190.6389158,
-    "seen": 1793511734.1875734,
-    "ast_hash": "a6fae344976fc07f781a2b96aa801b98",
+    "mtime": 1793512257.4282138,
+    "seen": 1793512344.2283413,
+    "ast_hash": "d149c7cf8e03bdfbec05e71d1d1e7439",
     "semantic_hash": ""
   },
   "templates/register.html": {
@@ -3060,9 +3060,9 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793491167.5414696,
-    "seen": 1793511734.1606424,
-    "ast_hash": "737efb97b06cde87c6b3d02f0ee32a09",
+    "mtime": 1793511753.2745159,
+    "seen": 1793512344.187204,
+    "ast_hash": "6d598161a2f8e5938a817c548548b157",
     "semantic_hash": ""
   },
   "init.sh": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793491157.0191448,
-    "seen": 1793511734.184956,
-    "ast_hash": "19e8233cb5234858a9c51906ac7794cd",
+    "mtime": 1793511786.12654,
+    "seen": 1793512344.224906,
+    "ast_hash": "a1e2d2655d314d91311ef2ede9e8b0c2",
     "semantic_hash": ""
   },
   "session-handoff.md": {

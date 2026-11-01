@@ -54,9 +54,11 @@
     - Compiled minified 90KB production CSS bundle `static/css/tailwind.min.css` (pre-compressed to 14.8KB gzip via WhiteNoise).
     - Preserved 100% of brand, blue (slate-violet), paper, ink, good, warn, bad, info palettes.
     - Added CSS variable fallbacks (`--brand-color`) in `templates/qr_menu.html` for dynamic tenant branding.
+    - Hardened `templates/base.html` font-family from legacy `'Tajawal'` to `'IBM Plex Sans Arabic'` matching loaded Google Fonts and Tailwind config.
+    - Enhanced `templates/qr_menu.html` variant option highlighting (`peer-checked:text-brand-700`) and hero dark vignette gradient (`from-brand-700` and `via-brand-600/80`) to seamlessly harmonize with custom tenant branding colors.
   - **4. Verification & Live Operational Proof**:
     - Ran `collectstatic --noinput` generating pre-compressed `.gz` assets.
-    - Restarted `motaem_web` container, confirming Gunicorn master process booted 3 Uvicorn workers.
+    - Reloaded Gunicorn workers via SIGHUP with zero downtime, confirming 3 active Uvicorn ASGI workers.
     - Ran `./init.sh` end-to-end (100% PASS across all 11 test suites).
     - Verified live responses on `https://uggu.space/login/`, `https://uggu.space/`, `https://uggu.space/static/css/tailwind.min.css`, and `https://uggu.space/m/test-rest/` (HTTP 200, `content-encoding: gzip`, 1-year `cache-control`).
 

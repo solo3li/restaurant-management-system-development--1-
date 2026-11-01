@@ -23,6 +23,9 @@
         .border-brand-600, .border-brand-500 { border-color: {{ brand_color }} !important; }
         .focus\:border-brand-600:focus { border-color: {{ brand_color }} !important; }
         .peer:checked ~ .peer-checked\:border-brand-600 { border-color: {{ brand_color }} !important; }
+        .peer:checked ~ .peer-checked\:text-brand-700 { color: {{ brand_color }} !important; }
+        .from-brand-700 { --tw-gradient-from: rgba(0, 0, 0, 0.45) var(--tw-gradient-from-position) !important; }
+        .via-brand-600\/80 { --tw-gradient-stops: var(--tw-gradient-from), transparent var(--tw-gradient-via-position), var(--tw-gradient-to) !important; }
         {% endif %}
         body {
             font-family: {% if IS_RTL %}'Cairo', 'Inter', sans-serif{% else %}'Inter', 'Cairo', sans-serif{% endif %};
