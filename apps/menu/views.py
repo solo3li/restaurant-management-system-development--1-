@@ -1247,10 +1247,6 @@ def api_digital_menu_place_order(request, slug):
 
     total = subtotal + delivery_fee
 
-    # Generate unified order number (ORD-{YYYYMMDD}-B{branch_id}-{sequence:04d})
-    from core.redis_mcp_cache import generate_order_number
-    ord_number = generate_order_number(tenant, branch)
-
     # Customer record
     cust, _ = Customer.objects.get_or_create(
         tenant=tenant,
@@ -1258,25 +1254,41 @@ def api_digital_menu_place_order(request, slug):
         defaults={"name": customer_name, "address": address}
     )
 
-    order = Order.objects.create(
-        tenant=tenant,
-        branch=branch,
-        order_number=ord_number,
-        order_type=order_type,
-        channel="qr_menu",
-        status="new",
-        pay_method="cash",
-        paid=False,
-        customer=cust,
-        customer_name=customer_name,
-        customer_phone=customer_phone,
-        address=address,
-        delivery_area=area,
-        delivery_fee=delivery_fee,
-        subtotal=subtotal,
-        total=total,
-        notes=notes,
-    )
+    from core.redis_mcp_cache import generate_order_number
+    from django.db import transaction, IntegrityError
+
+    order = None
+    for attempt in range(10):
+        ord_number = generate_order_number(tenant, branch)
+        try:
+            sid = transaction.savepoint()
+            order = Order.objects.create(
+                tenant=tenant,
+                branch=branch,
+                order_number=ord_number,
+                order_type=order_type,
+                channel="qr_menu",
+                status="new",
+                pay_method="cash",
+                paid=False,
+                customer=cust,
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+                address=address,
+                delivery_area=area,
+                delivery_fee=delivery_fee,
+                subtotal=subtotal,
+                total=total,
+                notes=notes,
+            )
+            transaction.savepoint_commit(sid)
+            break
+        except IntegrityError:
+            transaction.savepoint_rollback(sid)
+            continue
+
+    if not order:
+        return JsonResponse({"error": "حدث تضارب أثناء إنشاء الطلب، يرجى إعادة المحاولة."}, status=409)
 
     for row in order_items_to_create:
         OrderItem.objects.create(

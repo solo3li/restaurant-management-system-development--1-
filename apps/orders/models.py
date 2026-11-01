@@ -145,6 +145,10 @@ class Order(models.Model):
         num = str(self.order_number or "").strip()
         if not num:
             return ""
+        if num.startswith("#"):
+            num = num.lstrip("#")
+            if not num:
+                return ""
         if "-" in num:
             parts = num.split("-")
             last_part = parts[-1]

@@ -48,18 +48,20 @@
     - AI Voice Call Center (FastMCP): aligned in `core/mcp/tools.py` (`create_callcenter_order`) using unified sequence generator.
   - **2. Sub-Millisecond Daily Sequence Reset**:
     - Daily sequence resets to `0001` per branch every day using atomic Redis counter `order_seq:{tenant_id}:{branch_id}:{date_str}`.
+    - True numerical maximum extraction (`_find_max_order_sequence_in_db`): scans today's orders in DB without vulnerable string sorting or fragile `count()`, safely handling non-consecutive deleted orders and sequences exceeding 9999.
     - Automatic DB synchronization: if Redis restarts mid-day, checks DB for existing `ORD-{date_str}-{b_code}-` records to resume sequence seamlessly without duplicate keys.
-    - Graceful fallback: when Redis is unreachable, cleanly queries current day's database count and sequence.
+    - Graceful fallback: when Redis is unreachable, cleanly queries current day's database max sequence.
   - **3. Screen Displays & Short Order Number (`#0001`)**:
-    - Added `Order.short_order_number` property on model: extracts `#0001` for unified orders while gracefully supporting legacy orders (`#1558`, `#QR-A1B2C3`).
+    - Added `Order.short_order_number` property on model: extracts `#0001` for unified orders while gracefully supporting legacy orders (`#1558`, `#QR-A1B2C3`) and preventing double-hash prefixing.
     - Kitchen Display Screen (KDS): card header displays both large bold `#0001` and full `ORD-20261101-B5-0001`. Search filter allows chefs to search by short sequence or full number.
     - POS and Call Center: success modals and toasts show full order number and short sequence badge.
-    - QR Menu: confirmation screen displays full order number and short pickup badge.
-    - Branch Orders, HQ Orders, Delivery Cards: displays both full order number and short sequence badge.
+    - Delivery screen (`templates/delivery.html` and `delivery_card.html`): displays full monospace order number and short sequence badge, and includes short order number in search index.
+    - Branch dashboard, Order Detail, Order Edit, and Thermal Receipt printing: displays full order number and short sequence badge.
+    - QR Menu: confirmation screen displays full order number and short pickup badge, backed by savepoint retry loop on `Order.objects.create`.
   - **4. Legacy Orders & Testing**:
     - Zero destructive migrations; legacy orders remain completely valid and intact.
-    - Automated test suite `test_unified_order_numbers.py` (12 tests covering format, branch isolation, daily reset, POS API, Call Center, QR Menu, KDS serialization, concurrent threading, Redis fallback).
-    - Integrated into `./init.sh` verification gate.
+    - Automated test suite `test_unified_order_numbers.py` (15 tests covering format, branch isolation, daily reset, POS API, Call Center, QR Menu, KDS serialization, concurrent threading, Redis fallback, DB gap handling, branch ID variations, and FastMCP compatibility). Redis keys are strictly isolated per test to prevent test leakage.
+    - Integrated into `./init.sh` verification gate (100% PASS).
 
 - [x] **Production ASGI Performance Boost (`feat-performance-boost-gunicorn-uvicorn-tailwind`)**
   - **1. Application Server: Gunicorn with Uvicorn Worker (`gunicorn + uvicorn`)**:

@@ -240,6 +240,9 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-xs text-slate-900 font-mono">{{ item.order.order_number }}</span>
+                            {% if item.order.short_order_number %}
+                            <span class="text-[10px] font-bold text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-200/50 font-mono">{{ item.order.short_order_number }}</span>
+                            {% endif %}
                             <span class="rounded-md px-2 py-0.5 text-[11px] font-medium {% if item.order.status == 'new' %}bg-violet-50 text-violet-700 border border-violet-200/60{% else %}bg-amber-50 text-amber-700 border border-amber-200/60{% endif %}">
                                 {{ item.order.get_status_display }}
                             </span>

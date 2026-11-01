@@ -298,12 +298,37 @@ def invalidate_branch_menu_cache(tenant_id: int, branch_id: Optional[int] = None
 # 3. Atomic Order Sequence Generator (Zero-collision <0.05ms)
 # =====================================================================
 
+def _find_max_order_sequence_in_db(tenant_id: int, prefix_pattern: str) -> int:
+    """
+    Extract the true maximum integer sequence from all today's orders matching prefix_pattern.
+    Guaranteed immune to string sorting order anomalies and deleted gaps.
+    """
+    from core.models import Order
+    orders = Order.objects.filter(
+        tenant_id=tenant_id,
+        order_number__startswith=prefix_pattern
+    ).values_list("order_number", flat=True)
+    max_seq = 0
+    for num in orders:
+        try:
+            suffix = str(num).rsplit("-", 1)[-1]
+            val = int(suffix)
+            if val > max_seq:
+                max_seq = val
+        except (ValueError, TypeError):
+            pass
+    return max_seq
+
+
 def get_next_order_sequence(tenant_id: int, branch_id: int, date_str: str) -> int:
     """
     Generate an atomic incremental order sequence for a branch on a given date.
     Zero race conditions, sub-millisecond execution (<0.05ms) using Redis INCR.
     Daily sequence resets to 0001 per branch.
     """
+    b_code = f"B{branch_id}" if branch_id else "BR"
+    prefix_pattern = f"ORD-{date_str}-{b_code}-"
+
     client = get_redis_client()
     key = f"order_seq:{tenant_id}:{branch_id}:{date_str}"
     if client:
@@ -313,46 +338,18 @@ def get_next_order_sequence(tenant_id: int, branch_id: int, date_str: str) -> in
                 # First order of the day; set TTL to 48 hours to clean up automatically
                 client.expire(key, 172800)
                 # Check if DB already has orders today to synchronize counter if Redis was restarted
-                from core.models import Order
-                b_code = f"B{branch_id}" if branch_id else "BR"
-                prefix_pattern = f"ORD-{date_str}-{b_code}-"
-                last_order = Order.objects.filter(
-                    tenant_id=tenant_id,
-                    order_number__startswith=prefix_pattern
-                ).order_by("-order_number").first()
-                if last_order and last_order.order_number:
-                    try:
-                        last_seq = int(last_order.order_number.split("-")[-1])
-                        if last_seq >= 1:
-                            client.set(key, last_seq + 1)
-                            client.expire(key, 172800)
-                            return last_seq + 1
-                    except Exception:
-                        pass
+                max_seq = _find_max_order_sequence_in_db(tenant_id, prefix_pattern)
+                if max_seq >= 1:
+                    client.set(key, max_seq + 1)
+                    client.expire(key, 172800)
+                    return max_seq + 1
             return seq
         except Exception as e:
             logger.warning(f"Error incrementing order sequence in Redis: {e}")
 
-    # Fallback to DB count
-    from core.models import Order
-    b_code = f"B{branch_id}" if branch_id else "BR"
-    prefix_pattern = f"ORD-{date_str}-{b_code}-"
-    last_order = Order.objects.filter(
-        tenant_id=tenant_id,
-        order_number__startswith=prefix_pattern
-    ).order_by("-order_number").first()
-    if last_order and last_order.order_number:
-        try:
-            return int(last_order.order_number.split("-")[-1]) + 1
-        except Exception:
-            pass
-
-    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    if branch_id:
-        cnt = Order.objects.filter(tenant_id=tenant_id, branch_id=branch_id, created_at__gte=today_start).count()
-    else:
-        cnt = Order.objects.filter(tenant_id=tenant_id, branch__isnull=True, created_at__gte=today_start).count()
-    return cnt + 1
+    # Fallback to DB max sequence
+    max_seq = _find_max_order_sequence_in_db(tenant_id, prefix_pattern)
+    return max_seq + 1
 
 
 def generate_order_number(tenant, branch=None, date_str: Optional[str] = None) -> str:
@@ -365,7 +362,17 @@ def generate_order_number(tenant, branch=None, date_str: Optional[str] = None) -
         date_str = timezone.now().strftime("%Y%m%d")
 
     tenant_id = tenant.id if hasattr(tenant, "id") else int(tenant)
-    branch_id = branch.id if (branch and hasattr(branch, "id")) else (int(branch) if branch else 0)
+    if branch is None:
+        branch_id = 0
+    elif hasattr(branch, "id"):
+        branch_id = branch.id
+    elif isinstance(branch, int):
+        branch_id = branch
+    elif str(branch).isdigit():
+        branch_id = int(branch)
+    else:
+        branch_id = 0
+
     b_code = f"B{branch_id}" if branch_id else "BR"
     base_prefix = f"ORD-{date_str}-{b_code}"
 

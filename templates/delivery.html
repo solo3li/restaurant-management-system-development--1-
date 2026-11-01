@@ -557,7 +557,8 @@
             driverOptions += `<option value="${d.id}" ${isSel}>${d.name}</option>`;
         });
 
-        const searchBlob = `${order.order_number} ${order.customer_name || ''} ${order.customer_phone || ''} ${order.address || ''} ${order.notes || ''} ${order.driver_name || ''} ${order.branch_name || ''}`.toLowerCase();
+        const shortNum = order.short_order_number || ('#' + ((order.order_number || '').split('-').pop()));
+        const searchBlob = `${order.order_number} ${shortNum} ${order.customer_name || ''} ${order.customer_phone || ''} ${order.address || ''} ${order.notes || ''} ${order.driver_name || ''} ${order.branch_name || ''}`.toLowerCase();
 
         let actionControls = '';
         if (order.status !== 'delivered' && order.status !== 'cancelled') {
@@ -625,7 +626,8 @@
                                 onchange="handleCardSelect(this)"
                                 title="${tJs('تحديد الطلب للإجراء الجماعي', 'Select order for bulk action')}"
                             >
-                            <span class="font-bold text-slate-900 tracking-tight text-xs truncate">#${order.order_number}</span>
+                            <span class="font-bold text-slate-900 tracking-tight text-xs truncate font-mono">${order.order_number}</span>
+                            ${order.short_order_number ? `<span class="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-1 py-0.2 rounded border border-slate-200">${order.short_order_number}</span>` : ''}
                             <span class="text-[10.5px] text-slate-600 font-bold font-mono shrink-0">
                                 ${order.created_at_time || ''}
                             </span>

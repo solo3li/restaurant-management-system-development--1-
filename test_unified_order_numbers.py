@@ -73,6 +73,18 @@ class UnifiedOrderNumberTests(TestCase):
             role="cashier",
             job_role=self.job_role
         )
+        self._cleanup_redis()
+
+    def tearDown(self):
+        self._cleanup_redis()
+        super().tearDown()
+
+    def _cleanup_redis(self):
+        redis = get_redis_client()
+        if redis and hasattr(self, "tenant"):
+            keys = redis.keys(f"order_seq:{self.tenant.id}:*")
+            if keys:
+                redis.delete(*keys)
 
     def test_format_with_branch(self):
         """Unified format: ORD-{YYYYMMDD}-B{branch_id}-{sequence:04d}"""
@@ -267,6 +279,68 @@ class UnifiedOrderNumberTests(TestCase):
             )
             seq2 = get_next_order_sequence(self.tenant.id, self.branch1.id, today_str)
             self.assertEqual(seq2, 2)
+
+    def test_db_fallback_with_deleted_orders_and_high_sequences(self):
+        """DB sequence scan handles sequence > 9999 and non-consecutive deleted orders accurately"""
+        from unittest.mock import patch
+        today_str = "20261115"
+        with patch("core.redis_mcp_cache.get_redis_client", return_value=None):
+            # Create orders with gaps (0001, 0005, 10002)
+            Order.objects.create(
+                tenant=self.tenant,
+                branch=self.branch1,
+                order_number=f"ORD-{today_str}-B{self.branch1.id}-0001",
+                total=Decimal("10.00")
+            )
+            Order.objects.create(
+                tenant=self.tenant,
+                branch=self.branch1,
+                order_number=f"ORD-{today_str}-B{self.branch1.id}-0005",
+                total=Decimal("15.00")
+            )
+            # Next should be 6
+            next_seq = get_next_order_sequence(self.tenant.id, self.branch1.id, today_str)
+            self.assertEqual(next_seq, 6)
+
+            # Now add order 10002 (beyond 4 digits, string sort anomaly edge case)
+            Order.objects.create(
+                tenant=self.tenant,
+                branch=self.branch1,
+                order_number=f"ORD-{today_str}-B{self.branch1.id}-10002",
+                total=Decimal("20.00")
+            )
+            next_seq_high = get_next_order_sequence(self.tenant.id, self.branch1.id, today_str)
+            self.assertEqual(next_seq_high, 10003)
+
+    def test_branch_input_variations(self):
+        """generate_order_number handles Branch instance, int ID, string ID, None, and BR/B0"""
+        today_str = timezone.now().strftime("%Y%m%d")
+        # Instance
+        num_inst = generate_order_number(self.tenant, self.branch1)
+        self.assertTrue(num_inst.startswith(f"ORD-{today_str}-B{self.branch1.id}-"))
+
+        # Int ID
+        num_int = generate_order_number(self.tenant, self.branch2.id)
+        self.assertTrue(num_int.startswith(f"ORD-{today_str}-B{self.branch2.id}-"))
+
+        # String digit ID
+        num_str = generate_order_number(self.tenant, str(self.branch1.id))
+        self.assertTrue(num_str.startswith(f"ORD-{today_str}-B{self.branch1.id}-"))
+
+        # None
+        num_none = generate_order_number(self.tenant, None)
+        self.assertTrue(num_none.startswith(f"ORD-{today_str}-BR-"))
+
+        # String "BR"
+        num_br = generate_order_number(self.tenant, "BR")
+        self.assertTrue(num_br.startswith(f"ORD-{today_str}-BR-"))
+
+    def test_short_order_number_edge_cases(self):
+        """short_order_number handles edge cases like pre-existing hashes, no hyphens, and high sequences"""
+        self.assertEqual(Order(order_number="#0042").short_order_number, "#0042")
+        self.assertEqual(Order(order_number="ORD-20261101-B5-10005").short_order_number, "#10005")
+        self.assertEqual(Order(order_number="999").short_order_number, "#999")
+        self.assertEqual(Order(order_number="#").short_order_number, "")
 
 
 if __name__ == "__main__":

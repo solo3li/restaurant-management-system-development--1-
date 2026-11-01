@@ -36,6 +36,7 @@ from core.redis_mcp_cache import (
     get_active_order_by_phone,
     remove_active_order,
     get_next_order_sequence,
+    generate_order_number,
     cart_get,
     cart_is_abandoned,
     cart_clear as redis_cart_clear,
@@ -1334,12 +1335,7 @@ def create_callcenter_order(
         with transaction.atomic():
             order = None
             for attempt in range(10):
-                next_seq = get_next_order_sequence(tenant.id, branch_obj.id if branch_obj else 0, date_str)
-                candidate_num = f"{base_prefix}-{next_seq:04d}"
-                while Order.objects.filter(tenant=tenant, order_number=candidate_num).exists():
-                    next_seq = get_next_order_sequence(tenant.id, branch_obj.id if branch_obj else 0, date_str)
-                    candidate_num = f"{base_prefix}-{next_seq:04d}"
-                order_number = candidate_num
+                order_number = generate_order_number(tenant, branch_obj, date_str)
 
                 try:
                     sid = transaction.savepoint()
@@ -1492,6 +1488,7 @@ def create_callcenter_order(
             "ok": True,
             "message": f"تم إنشاء الأوردر بنجاح برقم {order.order_number}",
             "order_number": order.order_number,
+            "short_order_number": order.short_order_number,
             "currency": branch_obj.currency,
             "currency_name": cur_name,
             "currency_symbol": cur_sym,
@@ -1502,6 +1499,7 @@ def create_callcenter_order(
             "order": {
                 "id": order.id,
                 "order_number": order.order_number,
+                "short_order_number": order.short_order_number,
                 "branch_name": branch_obj.name,
                 "currency": branch_obj.currency,
                 "currency_name": cur_name,
