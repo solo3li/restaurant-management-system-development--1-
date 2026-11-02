@@ -39,6 +39,9 @@ def serialize_kitchen_order(order) -> Dict[str, Any]:
             "emoji": emoji,
         })
 
+    curr = getattr(order, "currency", "SAR") or "SAR"
+    curr_sym = getattr(order, "currency_symbol", "") or (order.branch.get_currency_symbol_ar() if (order.branch and hasattr(order.branch, "get_currency_symbol_ar")) else "ر.س")
+
     return {
         "id": order.id,
         "order_number": order.order_number,
@@ -52,6 +55,9 @@ def serialize_kitchen_order(order) -> Dict[str, Any]:
         "customer_phone": order.customer_phone or "",
         "address": order.address or "",
         "notes": order.notes or "",
+        "currency": curr,
+        "currency_symbol": curr_sym,
+        "total": float(order.total or 0),
         "created_at_iso": created_at.isoformat(),
         "created_at_time": created_at.strftime("%H:%M"),
         "elapsed_minutes": elapsed_minutes,

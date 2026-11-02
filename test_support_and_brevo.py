@@ -97,6 +97,8 @@ class BrevoAndSupportTicketsTestSuite(TestCase):
 
         # Ensure Brevo Config
         self.brevo_config = BrevoConfiguration.get_config()
+        self.brevo_config.api_key = "mock_test_brevo_key_12345"
+        self.brevo_config.save()
 
     # =========================================================================
     # SUITE 1: Brevo Configuration Singleton & Service

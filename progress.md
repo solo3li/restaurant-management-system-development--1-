@@ -2,42 +2,49 @@
 
 ## Current State
 
-**Last Updated:** 2026-11-01 07:25
-**Session ID:** Unified Omnichannel Order Number Format: ORD-{YYYYMMDD}-B{branch_id}-{sequence:04d} with Daily Atomic Reset & Multi-Screen Display
+**Last Updated:** 2026-11-02 06:45
+**Session ID:** Option 1 End-to-End Multi-Currency Revenue Disaggregation & Immutability Architecture across All Screens
 **Active Features:** 
+- `feat-multi-currency-revenue-disaggregation` (Completed & Verified 100%)
 - `feat-unified-order-number-format` (Completed & Verified 100%)
 - `feat-performance-boost-gunicorn-uvicorn-tailwind` (Completed & Verified 100%)
 - `feat-admin-support-chat-workspace` (Completed & Verified 100%)
 - `feat-brevo-email-verification` (Completed & Verified 100%)
 - `feat-support-tickets-rich-media` (Completed & Verified 100%)
-- `feat-https-canonical-domain-redirect` (Completed)
-- `feat-landing-webrtc-voice-demo` (Completed)
-- `feat-landing-navbar-auth` (Completed)
-- `feat-landing-bilingual` (Completed)
-- `feat-user-subscription-profile` (Completed)
-- `feat-post-registration-routing` (Completed)
-- `feat-subscription-plan-features-grid` (Completed)
-- `feat-kds-standby-redesign` (Completed)
-- `feat-pos-dynamic-categories` (Completed)
-- `feat-callcenter-telephony-sip-trunks` (Completed & Hardened)
-- `feat-landing-text-animations-and-counters` (Completed)
-- `feat-landing-pure-native-animations` (Completed)
-- `feat-official-5-language-multilingual` (Completed & Verified 100%)
-- `feat-zero-arabic-leakage-multilingual` (Completed & Verified 100%)
-- `feat-callcenter-dynamic-categories` (Completed & Verified 100%)
-- `feat-decoupled-public-voice-and-persona-studio` (Completed & Verified 100%)
-- `feat-landing-persona-live-sync` (Completed & Verified 100%)
-- `feat-landing-voice-leads-crm` (Completed & Verified 100%)
-- `feat-landing-assistant-admin-tabs` (Completed & Verified 100%)
-- `feat-landing-voice-customization-and-lock` (Completed & Verified 100%)
-- `feat-landing-assistant-studio-audio-custom-redis` (Completed & Verified 100%)
-- `feat-live-webrtc-studio-11lang-30voices` (Completed & Verified 100%)
-- `feat-embed-callcenter-and-chathub` (Completed & Verified 100%)
-- `feat-standalone-chathub-page-and-overview-fix` (Completed & Verified 100%)
 
 ## Status
 
 ### What's Done
+
+- [x] **Multi-Currency Revenue Disaggregation & Immutability Architecture across All Screens (`feat-multi-currency-revenue-disaggregation`)**
+  - **1. Database Schema & Financial Immutability (`Order.currency` & `Order.currency_symbol`)**:
+    - Added `currency = CharField(max_length=10, default="SAR")` and `currency_symbol = CharField(max_length=10, default="ر.س")` to `Order` in `apps/orders/models.py`.
+    - Created schema migration `core.0040_order_currency_order_currency_symbol` and data backfill migration `core.0041_backfill_order_currency` setting existing orders to their branch/tenant currency.
+    - Implemented immutable `Order.save()` override: on creation inherits branch currency/symbol; once saved (`self.pk` exists), historical currency and symbol remain immutable even if the branch currency is modified later.
+  - **2. Order Creation Across All Channels**:
+    - POS & Call Center (`apps/orders/views.py:api_create_order`): persists `currency` and `currency_symbol` explicitly from active branch and returns them in JSON response.
+    - Digital QR Menu (`apps/menu/views.py:api_digital_menu_place_order`): sets `currency` and `currency_symbol` from branch/tenant and returns in JSON response.
+    - FastMCP Voice AI Assistant (`core/mcp/tools.py:create_callcenter_order`): resolves branch currency and persists `order_currency` and `order_currency_symbol`.
+    - Dynamic Audit Logs (`apps/orders/views.py`): updated order cancellation, deletion, status change audit logs to use `order.currency_symbol` instead of hardcoded `'ر.س'`.
+  - **3. HQ Unified Orders Screen (`apps/orders/views.py` & `templates/hq_orders.html`)**:
+    - Aggregation: when viewing all branches, groups revenue by `currency_symbol` (`rev_by_currency`) without summing disparate currencies together; provides `is_single_currency` and `active_currency_symbol` when filtered to a single branch.
+    - UI Breakdown Strip: renders an elegant badge/pill strip displaying each currency's total and order count (e.g. `35.00 د.ت (1) • 198.00 ج.م (2) • 1,645.00 د.ج (23)`); displays single total when filtered.
+    - Updated mobile cards, table columns, and modal JSON receipt to use `order.currency_symbol`.
+  - **4. HQ Central Dashboard (`core/views.py` & `templates/hq_dashboard.html`)**:
+    - Computes `today_sales_by_currency` and `is_single_currency`.
+    - Renders multi-currency KPI pill strip for today's sales badge.
+  - **5. Call Center & POS Dynamic Branch Switching**:
+    - Solved the pricing desynchronization trap: views serialize `BranchMenuAvailability` custom prices into `branch_custom_prices_json`.
+    - POS (`templates/pos.html`): `onPosBranchChanged()` updates all 12 DOM summary labels, delivery fee badges, menu prices (`data-base-price`), and recomputes cart.
+    - Call Center (`templates/call_center.html`): `onBranchChanged()` dynamically updates currency symbol, menu item price badges, and cart line items on branch dropdown change.
+  - **6. Real-time SSE Streams, KDS & Delivery Fleet**:
+    - Added `currency` and `currency_symbol` to `serialize_kitchen_order` (`apps/kitchen/events.py`) and `serialize_delivery_order` (`apps/orders/events.py`).
+    - Updated `templates/kitchen.html`, `templates/delivery.html`, and `templates/delivery_card.html` to render `order.currency_symbol` on cards and live arrival toasts.
+    - Updated `templates/branch_orders.html` cards, table columns, and modal to use `o.currency_symbol`.
+  - **7. Dedicated Automated Test Suite & Verification**:
+    - Created `test_multi_currency_orders.py` (11 unit and integration test suites, 100% PASS).
+    - Verified with `manage.py check` (0 issues), `test_system.py` (100% PASS), `test_e2e_rbac.py` (100% PASS), `test_support_and_brevo.py` (25/25 PASS), `test_unified_order_numbers.py` (15/15 PASS), `test_multilingual_5lang.py` (9/9 suites PASS), and `./init.sh` (100% PASS).
+    - Updated AST knowledge graph via `graphify update .`.
 
 - [x] **Unified Omnichannel Order Number Format (`feat-unified-order-number-format`)**
   - **1. Standard Unified Format across All Channels**:

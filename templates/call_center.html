@@ -74,10 +74,11 @@
                     class="menu-item group relative flex flex-col justify-between p-2.5 rounded-xl border border-slate-200/70 bg-white hover:border-violet-600 hover:bg-blue-50/30 active:scale-[0.98] transition-all text-right shadow-xs cursor-pointer select-none min-h-[64px] {% if not m.available %}opacity-40 pointer-events-none{% endif %} {{ m.border_color_class|default:'border-r-4 border-r-blue-400' }}"
                     data-id="{{ m.id }}"
                     data-name="{{ m.name }}"
+                    data-base-price="{{ m.price }}"
                     data-price="{{ m.price }}"
                     data-category-id="{{ m.pos_category_id|default:m.category }}"
                     data-category="{{ m.pos_category_name|default:m.category }}"
-                    onclick="addToCart({{ m.id }}, '{{ m.name|escapejs }}', {{ m.price }})"
+                    onclick="addToCart({{ m.id }}, '{{ m.name|escapejs }}', parseFloat(this.dataset.price))"
                 >
                     <!-- Top: Dish Name (Preserve Dish Name as entered by Restaurant) -->
                     <div class="flex items-start justify-between gap-1 w-full">
@@ -88,8 +89,8 @@
 
                     <!-- Bottom: Price & Category Tag -->
                     <div class="mt-1.5 flex items-center justify-between w-full pt-1 border-t border-slate-200">
-                        <span class="text-xs font-bold text-violet-700 font-mono">
-                            {{ m.price|floatformat:0 }} <span class="text-[10.5px] font-bold text-slate-700 font-sans">{{ tenant_currency_symbol|t }}</span>
+                        <span class="text-xs font-bold text-violet-700 font-mono item-price-display">
+                            <span class="item-price-val">{{ m.price|floatformat:0 }}</span> <span class="text-[10.5px] font-bold text-slate-700 font-sans item-currency-val">{{ tenant_currency_symbol|t }}</span>
                         </span>
                         <span class="text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-800 border border-slate-200 max-w-[65px] truncate">
                             {{ m.pos_category_name|default:m.category|t }}
@@ -458,6 +459,7 @@
     let callCart = {};
     let callDeliveryFee = 8.00;
     let currentCallCurrency = "{{ tenant_currency_symbol|default:'ر.س'|t|escapejs }}";
+    const BRANCH_CUSTOM_PRICES = {{ branch_custom_prices_json|default:'{}'|safe }};
     let currentCategory = 'الكل';
     let currentOrderType = 'delivery'; // Default to delivery
 
@@ -539,8 +541,38 @@
             const opt = bSel.options[bSel.selectedIndex];
             if (opt && opt.dataset.currency) {
                 currentCallCurrency = opt.dataset.currency;
-                renderCart();
             }
+            const branchId = String(bSel.value);
+            const branchCustom = (BRANCH_CUSTOM_PRICES && BRANCH_CUSTOM_PRICES[branchId]) || {};
+
+            // Update all menu item cards in grid
+            document.querySelectorAll('#menu-grid .menu-item').forEach(btn => {
+                const itemId = String(btn.dataset.id);
+                const basePrice = parseFloat(btn.dataset.basePrice || btn.dataset.price);
+                const effectivePrice = (branchCustom[itemId] !== undefined && branchCustom[itemId] !== null)
+                    ? parseFloat(branchCustom[itemId])
+                    : basePrice;
+                btn.dataset.price = effectivePrice;
+                const priceValEl = btn.querySelector('.item-price-val');
+                if (priceValEl) priceValEl.textContent = effectivePrice.toFixed(0);
+                const currValEl = btn.querySelector('.item-currency-val');
+                if (currValEl) currValEl.textContent = currentCallCurrency;
+            });
+
+            // Synchronize items currently in cart to new branch custom price
+            Object.keys(callCart).forEach(k => {
+                const it = callCart[k];
+                const base = (it.basePrice !== undefined) ? it.basePrice : it.price;
+                it.basePrice = base;
+                const itemIdStr = String(it.id);
+                if (branchCustom[itemIdStr] !== undefined && branchCustom[itemIdStr] !== null) {
+                    it.price = parseFloat(branchCustom[itemIdStr]);
+                } else {
+                    it.price = base;
+                }
+            });
+
+            renderCart();
         }
     }
 
@@ -562,10 +594,6 @@
                 branchSelect.value = branchId;
             }
 
-            if (opt.dataset.currency) {
-                currentCallCurrency = opt.dataset.currency;
-            }
-
             // Update delivery fee & time if in delivery mode
             if (currentOrderType === 'delivery') {
                 callDeliveryFee = fee;
@@ -576,6 +604,7 @@
             timeBadge.textContent = `${timeMin} ${tJs('دقيقة', 'min')}`;
             timeBadge.classList.remove('hidden');
 
+            onBranchChanged();
             showToast(`${tJs('تم توجيه الطلب تلقائياً لـ', 'Order auto-routed to')} «${branchName}» ${tJs('برسم توصيل', 'with delivery fee')} ${fee} ${currentCallCurrency}`);
         } else {
             if (currentOrderType === 'delivery') {
@@ -583,9 +612,8 @@
             }
             routeBadge.classList.add('hidden');
             timeBadge.classList.add('hidden');
+            renderCart();
         }
-
-        renderCart();
     }
 
     async function searchCustomer() {
@@ -647,7 +675,7 @@
 
     function addToCart(id, name, price) {
         if (!callCart[id]) {
-            callCart[id] = { id, name, price, qty: 1 };
+            callCart[id] = { id, name, price, basePrice: price, qty: 1 };
         } else {
             callCart[id].qty += 1;
         }
@@ -902,6 +930,7 @@
         } else if (targetTab === 'pos') {
             switchMainTab('pos');
         }
+        onBranchChanged();
     });
 </script>
 {% endblock %}

@@ -35,11 +35,28 @@
                 <span class="text-slate-300 hidden sm:inline">•</span>
 
                 <!-- Total Revenue -->
+                {% if is_single_currency %}
                 <div class="flex items-center gap-1.5">
                     <span class="text-slate-700 text-xs font-bold">{{ "الإيرادات"|t }}:</span>
                     <span class="font-bold text-violet-700 text-sm font-mono">{{ total_revenue|floatformat:2 }}</span>
-                    <span class="text-xs text-violet-700 font-bold">{{ t.currency }}</span>
+                    <span class="text-xs text-violet-700 font-bold">{{ active_currency_symbol }}</span>
                 </div>
+                {% else %}
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-slate-700 text-xs font-bold">{{ "الإيرادات"|t }}:</span>
+                    {% for rc in rev_by_currency %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-800 border border-violet-200">
+                        <span class="font-mono">{{ rc.total|floatformat:2 }}</span>
+                        <span>{{ rc.currency_symbol }}</span>
+                        <span class="text-[10px] text-violet-500 font-mono">({{ rc.count }})</span>
+                    </span>
+                    {% if not forloop.last %}<span class="text-slate-300">•</span>{% endif %}
+                    {% empty %}
+                    <span class="font-bold text-violet-700 text-sm font-mono">0.00</span>
+                    <span class="text-xs text-violet-700 font-bold">{{ active_currency_symbol }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 <span class="text-slate-300 hidden sm:inline">•</span>
 
@@ -205,7 +222,7 @@
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
-                        <span class="font-bold text-violet-700 text-xs font-mono">{{ o.total|floatformat:2 }} <span class="text-[9.5px]">{{ o.branch.get_currency_symbol_ar|default:t.currency }}</span></span>
+                        <span class="font-bold text-violet-700 text-xs font-mono">{{ o.total|floatformat:2 }} <span class="text-[9.5px]">{{ o.currency_symbol|default:o.branch.get_currency_symbol_ar|default:t.currency }}</span></span>
                         <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[9.5px] font-bold
                             {% if o.status == 'delivered' %}bg-emerald-50 text-emerald-700 border border-emerald-200/60
                             {% elif o.status == 'out_for_delivery' %}bg-indigo-100 text-indigo-900 border border-indigo-300
@@ -335,7 +352,7 @@
                         <!-- Total -->
                         <td class="px-2.5 py-1.5 whitespace-nowrap">
                             <span class="font-bold text-violet-700 text-xs font-mono">{{ o.total|floatformat:2 }}</span>
-                            <span class="text-[10.5px] font-bold text-slate-700">{{ o.branch.get_currency_symbol_ar|default:t.currency }}</span>
+                            <span class="text-[10.5px] font-bold text-slate-700">{{ o.currency_symbol|default:o.branch.get_currency_symbol_ar|default:t.currency }}</span>
                         </td>
 
                         <!-- Status Badge -->
@@ -439,7 +456,7 @@
                 "delivery_fee": "{{ o.delivery_fee|floatformat:2 }}",
                 "discount": "{{ o.discount|floatformat:2 }}",
                 "total": "{{ o.total|floatformat:2 }}",
-                "currency_symbol": "{{ o.branch.get_currency_symbol_ar|default:t.get_currency_symbol_ar }}",
+                "currency_symbol": "{{ o.currency_symbol|default:o.branch.get_currency_symbol_ar|default:t.get_currency_symbol_ar }}",
                 "items": [
                     {% for item in o.items.all %}
                     {

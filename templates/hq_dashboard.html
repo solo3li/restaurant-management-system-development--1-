@@ -62,9 +62,23 @@
                 </span>
             </div>
             <div class="mt-3">
+                {% if is_single_currency %}
                 <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
-                    {{ sales_today|floatformat:2 }} <span class="text-xs font-medium text-slate-400 font-sans">{{ tenant.get_currency_symbol_ar|default:t.currency }}</span>
+                    {{ sales_today|floatformat:2 }} <span class="text-xs font-medium text-slate-400 font-sans">{% if today_sales_by_currency %}{{ today_sales_by_currency.0.currency_symbol }}{% else %}{{ tenant.get_currency_symbol_ar|default:t.currency }}{% endif %}</span>
                 </p>
+                {% else %}
+                <div class="flex flex-wrap gap-1.5 items-center my-1">
+                    {% for sc in today_sales_by_currency %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-50 text-violet-800 border border-violet-200">
+                        <span class="font-mono text-sm">{{ sc.total|floatformat:2 }}</span>
+                        <span>{{ sc.currency_symbol }}</span>
+                        <span class="text-[10px] text-violet-500 font-mono">({{ sc.count }})</span>
+                    </span>
+                    {% empty %}
+                    <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">0.00 <span class="text-xs font-medium text-slate-400 font-sans">{{ tenant.get_currency_symbol_ar|default:t.currency }}</span></span>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 <div class="mt-2 flex items-center justify-between text-xs">
                     <span class="text-slate-500 font-normal">{{ orders_today }} {{ "طلباً محققاً اليوم"|t }}</span>
                     <span class="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md text-[11px]">
@@ -319,7 +333,7 @@
                                     <span class="text-[11px] text-slate-400 font-mono" dir="ltr">{{ o.customer_phone|default:"—" }}</span>
                                 </td>
                                 <td class="p-3 font-bold text-slate-900 font-mono text-xs">
-                                    {{ o.total|floatformat:2 }} {{ o.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar|default:t.currency }}
+                                    {{ o.total|floatformat:2 }} {{ o.currency_symbol|default:o.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar|default:t.currency }}
                                 </td>
                                 <td class="p-3">
                                     <span class="inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-[11px] font-medium 

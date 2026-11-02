@@ -226,6 +226,31 @@ def hq_orders_view(request):
     delivered_orders = metrics["delivered_orders"] or 0
     cancelled_orders = metrics["cancelled_orders"] or 0
 
+    if branch_filter != "all" and branch_filter:
+        active_branch = branches.filter(id=branch_filter).first()
+        active_currency_symbol = active_branch.get_currency_symbol_ar() if active_branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+        is_single_currency = True
+        rev_by_currency = [
+            {
+                "currency_symbol": active_currency_symbol,
+                "total": total_revenue,
+                "count": total_orders - cancelled_orders,
+            }
+        ]
+    else:
+        rev_by_currency = list(
+            orders.filter(~Q(status="cancelled"))
+            .values("currency_symbol")
+            .annotate(total=Sum("total"), count=Count("id"))
+            .order_by("-total")
+        )
+        for item in rev_by_currency:
+            if not item.get("currency_symbol"):
+                item["currency_symbol"] = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+
+        is_single_currency = (len(rev_by_currency) <= 1)
+        active_currency_symbol = rev_by_currency[0]["currency_symbol"] if rev_by_currency else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+
     page_num = request.GET.get("page", 1)
     paginator = Paginator(orders, 50)
     try:
@@ -243,6 +268,9 @@ def hq_orders_view(request):
         "paginator": paginator,
         "total_orders": total_orders,
         "total_revenue": total_revenue,
+        "rev_by_currency": rev_by_currency,
+        "is_single_currency": is_single_currency,
+        "active_currency_symbol": active_currency_symbol,
         "pending_orders": pending_orders,
         "delivered_orders": delivered_orders,
         "cancelled_orders": cancelled_orders,
@@ -477,7 +505,7 @@ def order_edit_view(request, order_id):
                 action="order_edited",
                 target_model="Order",
                 target_id=order.id,
-                description=f"تعديل أصناف وتفاصيل الطلب #{order.order_number} (الإجمالي الجديد: {order.total} ر.س)",
+                description=f"تعديل أصناف وتفاصيل الطلب #{order.order_number} (الإجمالي الجديد: {order.total} {order.currency_symbol})",
                 ip_address=_get_client_ip(request),
             )
 
@@ -545,7 +573,7 @@ def api_cancel_order(request, order_id):
         action="order_cancelled",
         target_model="Order",
         target_id=order.id,
-        description=f"إلغاء الطلب #{order.order_number} بقيمة {order.total} ر.س",
+        description=f"إلغاء الطلب #{order.order_number} بقيمة {order.total} {order.currency_symbol}",
         ip_address=_get_client_ip(request),
     )
     notify_kitchen_order_event(order, "order_cancelled")
@@ -584,13 +612,14 @@ def api_delete_order(request, order_id):
     order_id_val = order.id
     order_number = order.order_number
     order_total = order.total
+    order_currency_sym = getattr(order, "currency_symbol", "") or "ر.س"
     log_audit_event(
         tenant=tenant,
         user=request.user,
         action="order_deleted",
         target_model="Order",
         target_id=order_id_val,
-        description=f"حذف الفاتورة #{order_number} نهائياً بقيمة {order_total} ر.س من قاعدة البيانات",
+        description=f"حذف الفاتورة #{order_number} نهائياً بقيمة {order_total} {order_currency_sym} من قاعدة البيانات",
         ip_address=_get_client_ip(request),
     )
     notify_kitchen_order_event(order, "order_cancelled")
@@ -763,6 +792,12 @@ def pos_view(request):
 
     currency_sym = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
     branches = list(tenant.branches.filter(status="active").order_by("name")) if tenant else []
+    branch_custom_prices = {}
+    if tenant:
+        for b_avail in BranchMenuAvailability.objects.filter(branch__tenant=tenant, custom_price__isnull=False).values("branch_id", "menu_item_id", "custom_price"):
+            b_id = str(b_avail["branch_id"])
+            m_id = str(b_avail["menu_item_id"])
+            branch_custom_prices.setdefault(b_id, {})[m_id] = float(b_avail["custom_price"])
 
     context = {
         "tenant": tenant,
@@ -773,6 +808,7 @@ def pos_view(request):
         "menu_items": menu_items,
         "recent_orders": recent_orders[:10],
         "branch_currency_symbol": currency_sym,
+        "branch_custom_prices_json": json.dumps(branch_custom_prices),
     }
     return render(request, "pos.html", context)
 
@@ -1211,6 +1247,9 @@ def api_create_order(request):
                 customer.save()
 
         from core.redis_mcp_cache import generate_order_number
+        order_currency = branch.currency if (branch and branch.currency) else (getattr(tenant, "default_currency", "SAR") if tenant else "SAR")
+        order_currency_symbol = branch.get_currency_symbol_ar() if (branch and hasattr(branch, "get_currency_symbol_ar")) else (tenant.get_currency_symbol_ar() if (tenant and hasattr(tenant, "get_currency_symbol_ar")) else "ر.س")
+
         order = None
         for attempt in range(10):
             order_number = generate_order_number(tenant, branch)
@@ -1235,6 +1274,8 @@ def api_create_order(request):
                     delivery_fee=delivery_fee,
                     discount=discount,
                     total=total,
+                    currency=order_currency,
+                    currency_symbol=order_currency_symbol,
                     cashier=cashier_name,
                     notes=str(data.get("notes") or ""),
                 )
@@ -1262,7 +1303,7 @@ def api_create_order(request):
             action="order_created",
             target_model="Order",
             target_id=order.id,
-            description=f"إنشاء الطلب #{order.order_number} ({order.get_order_type_display()}) بقيمة {order.total} ر.س بواسطة الكاشير: {cashier_name}",
+            description=f"إنشاء الطلب #{order.order_number} ({order.get_order_type_display()}) بقيمة {order.total} {order.currency_symbol} بواسطة الكاشير: {cashier_name}",
             ip_address=_get_client_ip(request),
         )
 
@@ -1276,6 +1317,8 @@ def api_create_order(request):
             "id": order.id,
             "orderNumber": order.order_number,
             "shortOrderNumber": order.short_order_number,
+            "currency": order.currency,
+            "currencySymbol": order.currency_symbol,
         }
     }, status=201)
 
@@ -1331,7 +1374,7 @@ def api_update_order(request, order_id):
             action="order_refunded",
             target_model="Order",
             target_id=order.id,
-            description=f"استرجاع الفاتورة #{order.order_number} وإعادة المبلغ بقيمة {order.total} ر.س",
+            description=f"استرجاع الفاتورة #{order.order_number} وإعادة المبلغ بقيمة {order.total} {order.currency_symbol}",
             ip_address=_get_client_ip(request),
         )
 

@@ -27,7 +27,7 @@ from apps.accounts.helpers import user_has_perm, _get_client_ip
 from apps.callcenter.models import TenantApiKey
 from django.utils import translation
 from apps.tenants.models import Tenant, Branch, DeliveryArea
-from apps.menu.models import MenuItem, MenuCategory
+from apps.menu.models import MenuItem, MenuCategory, BranchMenuAvailability
 from apps.orders.models import Order, Customer
 from apps.audit.models import log_audit_event, KnowledgeDocument
 from apps.accounts.models import Employee
@@ -209,6 +209,13 @@ def call_center_view(request, tab=None):
     else:
         active_tab = "pos"
 
+    branch_custom_prices = {}
+    if tenant:
+        for b_avail in BranchMenuAvailability.objects.filter(branch__tenant=tenant, custom_price__isnull=False).values("branch_id", "menu_item_id", "custom_price"):
+            b_id = str(b_avail["branch_id"])
+            m_id = str(b_avail["menu_item_id"])
+            branch_custom_prices.setdefault(b_id, {})[m_id] = float(b_avail["custom_price"])
+
     context = {
         "tenant": tenant,
         "branches": branches,
@@ -218,6 +225,7 @@ def call_center_view(request, tab=None):
         "recent_orders": recent_orders,
         "tenant_currency_symbol": currency_sym,
         "branch_currency_symbol": currency_sym,
+        "branch_custom_prices_json": json.dumps(branch_custom_prices),
         "active_tab": active_tab,
         "callcenter_embed_url": embed_info["call_center_url"],
         "chathub_embed_url": embed_info["chat_hub_url"],

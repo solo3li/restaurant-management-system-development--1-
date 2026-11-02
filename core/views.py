@@ -306,6 +306,17 @@ def dashboard_view(request):
     sales_today = today_orders.aggregate(total=Sum("total"))["total"] or Decimal("0")
     orders_count_today = today_orders.count()
 
+    today_sales_by_currency = list(
+        today_orders.values("currency_symbol")
+        .annotate(total=Sum("total"), count=Count("id"))
+        .order_by("-total")
+    )
+    for item in today_sales_by_currency:
+        if not item.get("currency_symbol"):
+            item["currency_symbol"] = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+
+    is_single_currency = (len(today_sales_by_currency) <= 1)
+
     # 2. Active deliveries across tenant
     active_deliveries = Order.objects.filter(
         tenant=tenant,
@@ -413,6 +424,8 @@ def dashboard_view(request):
         "top_items": top_items_qs,
         "low_stock_items": low_stock[:8],
         "default_currency": tenant.default_currency if tenant else "SAR",
+        "today_sales_by_currency": today_sales_by_currency,
+        "is_single_currency": is_single_currency,
     }
     return render(request, "hq_dashboard.html", context)
 

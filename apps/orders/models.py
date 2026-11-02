@@ -110,6 +110,8 @@ class Order(models.Model):
     tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, verbose_name="نسبة الضريبة المطبقة (%)")
     tax = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="مبلغ الضريبة")
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="الإجمالي")
+    currency = models.CharField(max_length=10, default="SAR", verbose_name="عملة الطلب")
+    currency_symbol = models.CharField(max_length=10, default="ر.س", blank=True, verbose_name="رمز عملة الطلب")
     cashier = models.CharField(max_length=255, default="", blank=True, verbose_name="الكاشير")
     driver = models.ForeignKey(
         'core.Employee',
@@ -121,6 +123,24 @@ class Order(models.Model):
     )
     notes = models.TextField(default="", blank=True, verbose_name="ملاحظات")
     created_at = models.DateTimeField(default=timezone.now, verbose_name="تاريخ ووقت الطلب")
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            if self.branch and getattr(self.branch, "currency", None):
+                if not self.currency or (self.currency == "SAR" and self.branch.currency != "SAR"):
+                    self.currency = self.branch.currency
+                if not self.currency_symbol or (self.currency_symbol == "ر.س" and self.branch.currency != "SAR"):
+                    self.currency_symbol = self.branch.get_currency_symbol_ar()
+            elif self.tenant and getattr(self.tenant, "default_currency", None):
+                if not self.currency:
+                    self.currency = self.tenant.default_currency
+                if not self.currency_symbol:
+                    self.currency_symbol = self.tenant.get_currency_symbol_ar()
+        if not self.currency:
+            self.currency = "SAR"
+        if not self.currency_symbol:
+            self.currency_symbol = "ر.س"
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = 'core'

@@ -368,7 +368,7 @@
         }
         return fallback !== undefined ? fallback : key;
     }
-    const CURRENCY_SYMBOL = "{{ "ر.س"|t }}";
+    const CURRENCY_SYMBOL = "{{ branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar|default:"ر.س" }}";
 
     let currentDeliveryTab = 'new';
     let isDriversPanelCollapsed = false;
@@ -634,7 +634,7 @@
                         </div>
                         <div class="flex items-center gap-1 shrink-0">
                             <span class="text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200/60 px-2 py-0.5 rounded-md">
-                                ${Number(order.total || 0).toFixed(2)} ${CURRENCY_SYMBOL}
+                                ${Number(order.total || 0).toFixed(2)} ${order.currency_symbol || CURRENCY_SYMBOL}
                             </span>
                         </div>
                     </div>
@@ -693,7 +693,7 @@
         moveOrderCardToPane(order, true);
         updateTabAndHeaderCounters();
         recalculateAndRenderDriverStats();
-        showDeliveryToast(`${tJs('وصول طلب توصيل جديد', 'New delivery order arrived')} #${order.order_number} ${tJs('بقيمة', 'amount')} ${Number(order.total || 0).toFixed(2)} ${CURRENCY_SYMBOL} 🚀`, 'success');
+        showDeliveryToast(`${tJs('وصول طلب توصيل جديد', 'New delivery order arrived')} #${order.order_number} ${tJs('بقيمة', 'amount')} ${Number(order.total || 0).toFixed(2)} ${order.currency_symbol || CURRENCY_SYMBOL} 🚀`, 'success');
     }
 
     function handleDeliveryStatusChanged(order) {

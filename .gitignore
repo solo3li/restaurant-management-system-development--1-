@@ -25,3 +25,5 @@ Thumbs.db
 *.gz
 media/
 .agent/skills/impeccable/scripts/bin/
+*.sqlite3-shm
+*.sqlite3-wal

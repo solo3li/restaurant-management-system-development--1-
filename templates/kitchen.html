@@ -915,9 +915,10 @@
         relevantItems.forEach(it => {
             const isChecked = !!checkedItemsState[`order_${order.id}_item_${it.id}`];
             const itemCatDisplay = getStationDisplayName(it.category);
+            const cur = order.currency_symbol || CURRENCY_SYMBOL;
             const itemPriceDisplay = it.qty > 1 
-                ? (it.qty * it.price) + ' ' + CURRENCY_SYMBOL 
-                : it.price + ' ' + CURRENCY_SYMBOL;
+                ? (it.qty * it.price) + ' ' + cur 
+                : it.price + ' ' + cur;
 
             itemsHtml += `
                 <div 

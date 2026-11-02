@@ -1349,6 +1349,9 @@ def create_callcenter_order(
                         if getattr(matched_area, "notes", None) and str(matched_area.notes) not in order_notes:
                             order_notes = f"{order_notes} | {matched_area.notes}".strip(" |")
 
+                    order_currency = branch_obj.currency if (branch_obj and branch_obj.currency) else (getattr(tenant, "default_currency", "SAR") if tenant else "SAR")
+                    order_currency_symbol = branch_obj.get_currency_symbol_ar() if (branch_obj and hasattr(branch_obj, "get_currency_symbol_ar")) else (tenant.get_currency_symbol_ar() if (tenant and hasattr(tenant, "get_currency_symbol_ar")) else "ر.س")
+
                     order = Order.objects.create(
                         tenant=tenant,
                         branch=branch_obj,
@@ -1366,6 +1369,8 @@ def create_callcenter_order(
                         delivery_fee=delivery_fee,
                         discount=Decimal("0.00"),
                         total=total,
+                        currency=order_currency,
+                        currency_symbol=order_currency_symbol,
                         pay_method="cash",
                         paid=False,
                         cashier=f"AI: {key_obj.name}",

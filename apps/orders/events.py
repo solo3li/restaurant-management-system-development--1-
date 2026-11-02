@@ -38,6 +38,8 @@ def serialize_delivery_order(order) -> Dict[str, Any]:
         }
 
     area_name = order.delivery_area.name if order.delivery_area else ""
+    curr = getattr(order, "currency", "SAR") or "SAR"
+    curr_sym = getattr(order, "currency_symbol", "") or (order.branch.get_currency_symbol_ar() if (order.branch and hasattr(order.branch, "get_currency_symbol_ar")) else "ر.س")
 
     return {
         "id": order.id,
@@ -59,6 +61,8 @@ def serialize_delivery_order(order) -> Dict[str, Any]:
         "pay_method": order.pay_method,
         "pay_method_display": order.get_pay_method_display(),
         "paid": order.paid,
+        "currency": curr,
+        "currency_symbol": curr_sym,
         "subtotal": float(order.subtotal or 0),
         "delivery_fee": float(order.delivery_fee or 0),
         "discount": float(order.discount or 0),

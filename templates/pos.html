@@ -61,11 +61,12 @@
                     data-id="{{ m.id }}"
                     data-name="{{ m.name }}"
                     data-name-en="{{ m.name_en|default:'' }}"
+                    data-base-price="{{ m.price }}"
                     data-price="{{ m.price }}"
                     data-category="{{ m.pos_category_name|default:m.category }}"
                     data-category-id="{{ m.pos_category_id|default:'' }}"
                     data-category-name="{{ m.pos_category_name|default:m.category }}"
-                    onclick="addToCart({{ m.id }}, '{% if CURRENT_LANG != 'ar' and m.name_en %}{{ m.name_en|escapejs }}{% else %}{{ m.name|escapejs }}{% endif %}', {{ m.price }})"
+                    onclick="addToCart({{ m.id }}, '{% if CURRENT_LANG != 'ar' and m.name_en %}{{ m.name_en|escapejs }}{% else %}{{ m.name|escapejs }}{% endif %}', parseFloat(this.dataset.price))"
                 >
                     <!-- Top: Dish Name -->
                     <div class="flex items-start justify-between gap-1 w-full">
@@ -76,8 +77,8 @@
 
                     <!-- Bottom: Price & Category Tag -->
                     <div class="mt-1.5 flex items-center justify-between w-full pt-1 border-t border-slate-200">
-                        <span class="text-xs font-bold text-violet-700 font-mono">
-                            {{ m.price|floatformat:0 }} <span class="text-[10.5px] font-bold text-slate-700 font-sans">{{ branch_currency_symbol }}</span>
+                        <span class="text-xs font-bold text-violet-700 font-mono item-price-display">
+                            <span class="item-price-val">{{ m.price|floatformat:0 }}</span> <span class="text-[10.5px] font-bold text-slate-700 font-sans pos-currency-text">{{ branch_currency_symbol }}</span>
                         </span>
                         <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 max-w-[85px] truncate" title="{{ m.pos_category_name|default:m.category }}">
                             {{ m.pos_category_name|default:m.category }}
@@ -146,11 +147,11 @@
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div>
                             <label class="mb-1 block font-bold text-slate-800">{{ "الفرع"|t }}</label>
-                            <select id="order-branch" class="input text-xs font-bold border-slate-200/70">
+                            <select id="order-branch" class="input text-xs font-bold border-slate-200/70" onchange="onPosBranchChanged()">
                                 {% for b in branches %}
-                                <option value="{{ b.id }}" {% if current_branch and current_branch.id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                                <option value="{{ b.id }}" data-currency="{{ b.get_currency_symbol_ar }}" {% if current_branch and current_branch.id == b.id %}selected{% endif %}>{{ b.name }} ({{ b.get_currency_symbol_ar }})</option>
                                 {% empty %}
-                                <option value="{% if current_branch %}{{ current_branch.id }}{% endif %}">{{ current_branch.name|default:"الفرع الرئيسي" }}</option>
+                                <option value="{% if current_branch %}{{ current_branch.id }}{% endif %}" data-currency="{{ branch_currency_symbol }}">{{ current_branch.name|default:"الفرع الرئيسي" }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -195,7 +196,7 @@
                         </div>
                         <div id="row-delivery-fee" class="hidden flex justify-between text-slate-700 font-bold">
                             <span>{{ "رسوم التوصيل"|t }}</span>
-                            <span class="font-bold text-slate-900 font-mono">8.00 {{ branch_currency_symbol }}</span>
+                            <span id="pos-delivery-fee-val" class="font-bold text-slate-900 font-mono">8.00 <span class="pos-currency-text">{{ branch_currency_symbol }}</span></span>
                         </div>
                         <div id="row-discount" class="hidden flex justify-between text-rose-700 font-bold">
                             <span>{{ "الخصم"|t }}</span>
@@ -314,7 +315,7 @@
                     </span>
                     <div>
                         <p class="text-xs font-semibold text-slate-900">{% if CURRENT_LANG != 'ar' and m.name_en %}{{ m.name_en }}{% else %}{{ m.name }}{% endif %}</p>
-                        <p class="text-[10px] text-slate-400">{{ m.pos_category_name|default:m.category }} • {{ m.price }} {{ branch_currency_symbol }}</p>
+                        <p class="text-[10px] text-slate-400">{{ m.pos_category_name|default:m.category }} • {{ m.price }} <span class="pos-currency-text">{{ branch_currency_symbol }}</span></p>
                     </div>
                 </div>
                 <button 
@@ -368,11 +369,11 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">{{ "سعر البيع"|t }} ({{ branch_currency_symbol }})</label>
+                    <label class="mb-1 block font-medium text-slate-600">{{ "سعر البيع"|t }} (<span class="pos-currency-text">{{ branch_currency_symbol }}</span>)</label>
                     <input type="number" id="new-item-price" placeholder="45" class="input text-xs font-bold">
                 </div>
                 <div>
-                    <label class="mb-1 block font-medium text-slate-600">{{ "التكلفة"|t }} ({{ branch_currency_symbol }})</label>
+                    <label class="mb-1 block font-medium text-slate-600">{{ "التكلفة"|t }} (<span class="pos-currency-text">{{ branch_currency_symbol }}</span>)</label>
                     <input type="number" id="new-item-cost" placeholder="18" class="input text-xs font-bold">
                 </div>
             </div>
@@ -388,11 +389,68 @@
 
 {% block extra_scripts %}
 <script>
-    const CURRENCY_SYMBOL = "{{ branch_currency_symbol|default:'ر.س'|escapejs }}";
+    let CURRENCY_SYMBOL = "{{ branch_currency_symbol|default:'ر.س'|escapejs }}";
+    const BRANCH_CUSTOM_PRICES = {{ branch_custom_prices_json|default:'{}'|safe }};
     const IS_RTL_UI = {{ IS_RTL|yesno:"true,false" }};
     let cart = {};
     let selectedOrderType = 'dine_in';
     let currentCategory = 'all';
+
+    function onPosBranchChanged() {
+        const bSel = document.getElementById('order-branch');
+        if (!bSel || bSel.selectedIndex < 0) return;
+        const opt = bSel.options[bSel.selectedIndex];
+        if (opt && opt.dataset.currency) {
+            CURRENCY_SYMBOL = opt.dataset.currency;
+        }
+        const branchId = String(bSel.value);
+        const branchCustom = (BRANCH_CUSTOM_PRICES && BRANCH_CUSTOM_PRICES[branchId]) || {};
+
+        // 1. Update all currency text spans across the 12 DOM elements
+        document.querySelectorAll('.pos-currency-text').forEach(el => {
+            el.textContent = CURRENCY_SYMBOL;
+        });
+
+        // 2. Update discount placeholder
+        const discInput = document.getElementById('order-discount');
+        if (discInput && discInput.type === 'number') {
+            discInput.placeholder = `خصم (${CURRENCY_SYMBOL})`;
+        }
+
+        // 3. Update delivery fee row label
+        const feeEl = document.getElementById('pos-delivery-fee-val');
+        if (feeEl) {
+            feeEl.innerHTML = `8.00 <span class="pos-currency-text">${CURRENCY_SYMBOL}</span>`;
+        }
+
+        // 4. Update menu item card prices in grid
+        document.querySelectorAll('#menu-grid .menu-item').forEach(btn => {
+            const itemId = String(btn.dataset.id);
+            const basePrice = parseFloat(btn.dataset.basePrice || btn.dataset.price);
+            const effectivePrice = (branchCustom[itemId] !== undefined && branchCustom[itemId] !== null)
+                ? parseFloat(branchCustom[itemId])
+                : basePrice;
+            btn.dataset.price = effectivePrice;
+            const priceValEl = btn.querySelector('.item-price-val');
+            if (priceValEl) priceValEl.textContent = effectivePrice.toFixed(0);
+        });
+
+        // 5. Synchronize existing items in cart to new branch custom prices
+        Object.keys(cart).forEach(k => {
+            const it = cart[k];
+            const base = (it.basePrice !== undefined) ? it.basePrice : it.price;
+            it.basePrice = base;
+            const itemIdStr = String(it.id);
+            if (branchCustom[itemIdStr] !== undefined && branchCustom[itemIdStr] !== null) {
+                it.price = parseFloat(branchCustom[itemIdStr]);
+            } else {
+                it.price = base;
+            }
+        });
+
+        renderCart();
+        updateTotals();
+    }
 
     function normStr(str) {
         if (!str) return '';
@@ -488,7 +546,7 @@
 
     function addToCart(id, name, price) {
         if (!cart[id]) {
-            cart[id] = { id, name, price, qty: 1 };
+            cart[id] = { id, name, price, basePrice: price, qty: 1 };
         } else {
             cart[id].qty += 1;
         }
@@ -840,5 +898,7 @@
             if (searchInput) searchInput.focus();
         }
     });
+
+    document.addEventListener('DOMContentLoaded', onPosBranchChanged);
 </script>
 {% endblock %}

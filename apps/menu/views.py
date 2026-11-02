@@ -1257,6 +1257,9 @@ def api_digital_menu_place_order(request, slug):
     from core.redis_mcp_cache import generate_order_number
     from django.db import transaction, IntegrityError
 
+    order_currency = branch.currency if (branch and branch.currency) else (getattr(tenant, "default_currency", "SAR") if tenant else "SAR")
+    order_currency_symbol = branch.get_currency_symbol_ar() if (branch and hasattr(branch, "get_currency_symbol_ar")) else (tenant.get_currency_symbol_ar() if (tenant and hasattr(tenant, "get_currency_symbol_ar")) else "ر.س")
+
     order = None
     for attempt in range(10):
         ord_number = generate_order_number(tenant, branch)
@@ -1279,6 +1282,8 @@ def api_digital_menu_place_order(request, slug):
                 delivery_fee=delivery_fee,
                 subtotal=subtotal,
                 total=total,
+                currency=order_currency,
+                currency_symbol=order_currency_symbol,
                 notes=notes,
             )
             transaction.savepoint_commit(sid)
@@ -1328,5 +1333,7 @@ def api_digital_menu_place_order(request, slug):
         "total": float(order.total),
         "subtotal": float(order.subtotal),
         "delivery_fee": float(order.delivery_fee),
+        "currency": order.currency,
+        "currency_symbol": order.currency_symbol,
     }, status=201)
 
