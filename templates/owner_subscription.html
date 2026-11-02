@@ -34,6 +34,7 @@
                 <a href="{% url 'set_language' 'fr' %}?next={{ request.get_full_path|urlencode }}" class="px-1.5 py-0.5 rounded {% if CURRENT_LANG == 'fr' %}bg-violet-600 text-white{% else %}hover:bg-slate-100{% endif %}" title="Français">FR</a>
                 <a href="{% url 'set_language' 'tr' %}?next={{ request.get_full_path|urlencode }}" class="px-1.5 py-0.5 rounded {% if CURRENT_LANG == 'tr' %}bg-violet-600 text-white{% else %}hover:bg-slate-100{% endif %}" title="Türkçe">TR</a>
                 <a href="{% url 'set_language' 'de' %}?next={{ request.get_full_path|urlencode }}" class="px-1.5 py-0.5 rounded {% if CURRENT_LANG == 'de' %}bg-violet-600 text-white{% else %}hover:bg-slate-100{% endif %}" title="Deutsch">DE</a>
+                <a href="{% url 'set_language' 'es' %}?next={{ request.get_full_path|urlencode }}" class="px-1.5 py-0.5 rounded {% if CURRENT_LANG == 'es' %}bg-violet-600 text-white{% else %}hover:bg-slate-100{% endif %}" title="Español">ES</a>
             </div>
             <a href="#ai-fastmcp-section" class="px-3 py-1.5 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
                 <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>

@@ -131,6 +131,12 @@
                         <span>🇩🇪</span>
                         <span class="text-[11px]">DE</span>
                     </a>
+                    <a href="{% url 'set_language' 'es' %}?next={{ request.get_full_path|urlencode }}" 
+                       class="px-2 py-0.5 rounded-lg transition-all flex items-center gap-1 {% if CURRENT_LANG == 'es' %}bg-gold-500 text-stone-900 shadow-sm font-semibold{% else %}text-white/80 hover:text-white{% endif %}"
+                       title="Español">
+                        <span>🇪🇸</span>
+                        <span class="text-[11px]">ES</span>
+                    </a>
                 </div>
 
                 <!-- Branch Switcher (If multiple) -->
