@@ -316,7 +316,19 @@ class Branch(models.Model):
         return self.name
 
     def get_display_name(self, lang=None):
-        return self.display_name(lang)
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.name
+        if self.name_en and self.name_en.strip():
+            return self.name_en
+        tr = get_translation(self.name, active_lang, default=None)
+        if tr and tr != self.name:
+            return tr
+        return self.name
 
     def display_address(self, lang=None):
         from django.utils import translation

@@ -90,7 +90,7 @@
                         {% if selected_branch %}
                             <span class="flex items-center gap-1 text-gold-400 font-bold">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span>{{ selected_branch.display_name|default:'' }}</span>
+                                <span>{{ selected_branch.localized_name|default:selected_branch.name|default:'' }}</span>
                             </span>
                         {% endif %}
                     </div>
@@ -145,7 +145,7 @@
                     <select id="branch-select" onchange="switchBranch(this.value)" class="bg-black/40 backdrop-blur-md text-white border border-white/20 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-gold-500">
                         {% for b in branches %}
                             <option value="{{ b.id }}" {% if selected_branch and b.id == selected_branch.id %}selected{% endif %} class="text-stone-900 font-bold">
-                                {{ "فرع:"|t }} {{ b.display_name|default:'' }}
+                                {{ "فرع:"|t }} {{ b.localized_name|default:b.name|default:'' }}
                             </option>
                         {% endfor %}
                     </select>
@@ -162,7 +162,7 @@
             <span class="text-2xl flex-shrink-0">⛔</span>
             <div class="text-xs">
                 <p class="font-semibold text-amber-900">
-                    {{ "عذراً، فرع"|t }} «{{ selected_branch.display_name|default:'' }}» {{ "مغلق حالياً لاستقبال الطلبات"|t }}
+                    {{ "عذراً، فرع"|t }} «{{ selected_branch.localized_name|default:selected_branch.name|default:'' }}» {{ "مغلق حالياً لاستقبال الطلبات"|t }}
                 </p>
                 <p class="text-stone-600 mt-0.5">
                     {% if selected_branch.opening_time and selected_branch.closing_time %}
@@ -919,7 +919,7 @@
                 shortEl.textContent = `${tJs('الرقم المختصر:', 'Short #:')} ${shortNum}`;
             }
             const orderTypeLabel = (currentOrderType === 'delivery' ? tJs('توصيل منزلي', 'Home Delivery') : tJs('استلام سفري', 'Takeaway Pickup'));
-            const branchName = data.branch_name || "{{ selected_branch.display_name|default:''|escapejs }}";
+            const branchName = data.branch_name || "{{ selected_branch.localized_name|default:selected_branch.name|default:''|escapejs }}";
             document.getElementById('success-order-type').textContent = `${orderTypeLabel} • ${i18n.branchPrefix} ${branchName}`;
             document.getElementById('success-order-total').textContent = (data.total || 0).toFixed(2);
 

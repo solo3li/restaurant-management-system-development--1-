@@ -18,6 +18,14 @@
 
 ### What's Done
 
+- [x] **Fix QR Menu Branch Name Collision 500 Error (`fix-qr-menu-branch-display-name`)**
+  - Resolved `TypeError: 'str' object is not callable` and template variable naming on `/m/<slug>/`.
+  - In `apps/tenants/models.py`, decoupled `get_display_name` implementation so it does not collide with overwritten instance attributes.
+  - In `apps/menu/views.py`, updated branch name assignment to `b.localized_name` and expanded language fallback to all 6 supported languages (`ar`, `en`, `fr`, `tr`, `de`, `es`).
+  - In `templates/qr_menu.html`, bound branch name to `{{ selected_branch.localized_name|default:selected_branch.name }}` with clean fallback.
+  - Verified 200 OK across all 6 languages locally and in live production container at `https://uggu.space/m/burger-classic/`.
+  - Ran `./init.sh` (100% pass across all test suites). Updated knowledge graph via `graphify update .`.
+
 - [x] **Boost Multilingual Integrity: Zero Arabic Leakage Across All Core Screens & Dynamic Model Properties (`feat-boost-zero-arabic-leakage`)**
   - **1. Model Display Properties & Dynamic Fallbacks**:
     - `Branch`: Added `display_name(lang=None)`, `display_address(lang=None)`, `display_city(lang=None)`, and `get_currency_symbol(lang=None)`. In LTR languages (`en`, `fr`, `es`, `tr`, `de`), currency symbols resolve to international ISO codes / Latin equivalents (e.g. `SAR`, `EGP`, `USD`, `TND`, `DZD`, `AED`) instead of Arabic symbols (`ر.س`, `ج.م`).

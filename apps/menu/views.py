@@ -938,12 +938,12 @@ def digital_menu_view(request, slug=None, branch_id=None):
 
     if "-" in active_lang:
         active_lang = active_lang.split("-")[0]
-    if active_lang not in ["ar", "en"]:
+    if active_lang not in ["ar", "en", "fr", "tr", "de", "es"]:
         active_lang = "ar"
 
     branches = list(Branch.objects.filter(tenant=tenant, status="active").order_by("id"))
     for b in branches:
-        b.display_name = b.get_display_name(active_lang)
+        b.localized_name = b.get_display_name(active_lang)
 
     if not branches:
         # Fallback to any branches configured for this restaurant so menu items remain browsable
@@ -951,7 +951,7 @@ def digital_menu_view(request, slug=None, branch_id=None):
         if all_branches:
             branches = all_branches
             for b in branches:
-                b.display_name = b.get_display_name(active_lang)
+                b.localized_name = b.get_display_name(active_lang)
 
     if not branches:
         return render(request, "qr_menu.html", {
@@ -977,7 +977,7 @@ def digital_menu_view(request, slug=None, branch_id=None):
     if not selected_branch:
         selected_branch = branches[0]
 
-    selected_branch.display_name = selected_branch.get_display_name(active_lang)
+    selected_branch.localized_name = selected_branch.get_display_name(active_lang)
 
     # Disabled items in this branch
     disabled_ids = set(
