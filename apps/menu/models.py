@@ -28,14 +28,40 @@ class MenuCategory(models.Model):
     def __str__(self):
         return f"{self.name} ({self.tenant.name if self.tenant else 'عام'})"
 
-    def get_display_name(self, lang="ar"):
-        if lang == "en" and self.name_en:
+    def display_name(self, lang=None):
+        return self.get_display_name(lang)
+
+    def get_display_name(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.name
+        if self.name_en and self.name_en.strip():
             return self.name_en
+        tr = get_translation(self.name, active_lang, default=None)
+        if tr and tr != self.name:
+            return tr
         return self.name
 
-    def get_display_description(self, lang="ar"):
-        if lang == "en" and self.description_en:
+    def display_description(self, lang=None):
+        return self.get_display_description(lang)
+
+    def get_display_description(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.description
+        if self.description_en and self.description_en.strip():
             return self.description_en
+        tr = get_translation(self.description, active_lang, default=None)
+        if tr and tr != self.description:
+            return tr
         return self.description
 
 
@@ -78,14 +104,40 @@ class MenuItem(models.Model):
     def __str__(self):
         return self.name
 
-    def get_display_name(self, lang="ar"):
-        if lang == "en" and self.name_en:
+    def display_name(self, lang=None):
+        return self.get_display_name(lang)
+
+    def get_display_name(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.name
+        if self.name_en and self.name_en.strip():
             return self.name_en
+        tr = get_translation(self.name, active_lang, default=None)
+        if tr and tr != self.name:
+            return tr
         return self.name
 
-    def get_display_description(self, lang="ar"):
-        if lang == "en" and self.description_en:
+    def display_description(self, lang=None):
+        return self.get_display_description(lang)
+
+    def get_display_description(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.description
+        if self.description_en and self.description_en.strip():
             return self.description_en
+        tr = get_translation(self.description, active_lang, default=None)
+        if tr and tr != self.description:
+            return tr
         return self.description
 
     @property
@@ -135,9 +187,22 @@ class MenuItemVariant(models.Model):
     def __str__(self):
         return f"{self.menu_item.name} - {self.name} ({self.price} {self.menu_item.tenant.get_currency_symbol_ar() if self.menu_item and self.menu_item.tenant else 'ر.س'})"
 
-    def get_display_name(self, lang="ar"):
-        if lang == "en" and self.name_en:
+    def display_name(self, lang=None):
+        return self.get_display_name(lang)
+
+    def get_display_name(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.name
+        if self.name_en and self.name_en.strip():
             return self.name_en
+        tr = get_translation(self.name, active_lang, default=None)
+        if tr and tr != self.name:
+            return tr
         return self.name
 
     def get_price_for_branch(self, branch):

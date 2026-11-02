@@ -103,6 +103,28 @@ class Tenant(models.Model):
         from core.currencies import get_currency_info
         return get_currency_info(self.default_currency).get("symbol_en", "SAR")
 
+    def get_currency_symbol(self, lang=None):
+        from django.utils import translation
+        from core.currencies import get_currency_info
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        info = get_currency_info(self.default_currency)
+        if active_lang == "ar":
+            return info.get("symbol_ar", "ر.س")
+        return info.get("symbol_en", self.default_currency or "SAR")
+
+    def get_currency_name(self, lang=None):
+        from django.utils import translation
+        from core.currencies import get_currency_info
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        info = get_currency_info(self.default_currency)
+        if active_lang == "ar":
+            return info.get("name_ar", "ريال سعودي")
+        return info.get("name_en", "Saudi Riyal")
+
     def can_add_branch(self):
         if not self.subscription_plan:
             return True
@@ -256,10 +278,72 @@ class Branch(models.Model):
         from core.currencies import get_currency_info
         return get_currency_info(self.currency).get("symbol_en", "SAR")
 
-    def get_display_name(self, lang="ar"):
-        if lang == "en" and self.name_en:
+    def get_currency_symbol(self, lang=None):
+        from django.utils import translation
+        from core.currencies import get_currency_info
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        info = get_currency_info(self.currency)
+        if active_lang == "ar":
+            return info.get("symbol_ar", "ر.س")
+        return info.get("symbol_en", self.currency or "SAR")
+
+    def get_currency_name(self, lang=None):
+        from django.utils import translation
+        from core.currencies import get_currency_info
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        info = get_currency_info(self.currency)
+        if active_lang == "ar":
+            return info.get("name_ar", "ريال سعودي")
+        return info.get("name_en", "Saudi Riyal")
+
+    def display_name(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.name
+        if self.name_en and self.name_en.strip():
             return self.name_en
+        tr = get_translation(self.name, active_lang, default=None)
+        if tr and tr != self.name:
+            return tr
         return self.name
+
+    def get_display_name(self, lang=None):
+        return self.display_name(lang)
+
+    def display_address(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.address
+        tr = get_translation(self.address, active_lang, default=None)
+        if tr and tr != self.address:
+            return tr
+        return self.address
+
+    def display_city(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        city_val = self.city or "الرياض"
+        if active_lang == "ar":
+            return city_val
+        tr = get_translation(city_val, active_lang, default=None)
+        if tr and tr != city_val:
+            return tr
+        return city_val
 
     def is_currently_open(self):
         if not self.is_accepting_orders or self.status != "active":

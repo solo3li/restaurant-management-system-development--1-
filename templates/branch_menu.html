@@ -13,7 +13,7 @@
             <p class="text-xs text-xs text-slate-500 font-normal mt-0.5 flex items-center gap-1.5">
                 {% if branch %}
                     <svg class="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>{{ "فرع"|t }}: <span class="text-slate-900 font-semibold">{{ branch.name }}</span> • {{ "التحكم في توفر الأطباق في المطبخ ونقاط البيع"|t }}</span>
+                    <span>{{ "فرع"|t }}: <span class="text-slate-900 font-semibold">{{ branch.display_name }}</span> • {{ "التحكم في توفر الأطباق في المطبخ ونقاط البيع"|t }}</span>
                 {% else %}
                     <svg class="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>{{ "كل الفروع • التعديل يؤثر على الحالة العامة للأصناف"|t }}</span>
@@ -88,7 +88,7 @@
                     {% if c.image %}
                         <img src="{{ c.image.url }}" alt="{{ c.name }}" class="w-3.5 h-3.5 rounded-full object-cover">
                     {% endif %}
-                    <span>{{ c.name }}</span>
+                    <span>{{ c.display_name }}</span>
                 </a>
                 {% endfor %}
             </div>
@@ -138,8 +138,8 @@
                             </span>
                         {% endif %}
                         <div class="min-w-0 flex-1">
-                            <h3 class="font-semibold text-xs text-slate-900 leading-snug truncate" title="{{ row.item.name }}">{{ row.item.name }}</h3>
-                            <span class="text-xs text-slate-700 font-bold truncate block">{{ row.item.category }}</span>
+                            <h3 class="font-semibold text-xs text-slate-900 leading-snug truncate" title="{{ row.item.display_name }}">{{ row.item.display_name }}</h3>
+                            <span class="text-xs text-slate-700 font-bold truncate block">{{ row.item.category|t }}</span>
                         </div>
                     </div>
 
@@ -175,7 +175,7 @@
                 </div>
 
                 {% if row.item.description %}
-                    <p class="text-[10px] text-slate-500 line-clamp-1 my-1">{{ row.item.description }}</p>
+                    <p class="text-[10px] text-slate-500 line-clamp-1 my-1">{{ row.item.display_description }}</p>
                 {% endif %}
 
                 <!-- Price Row (Compact) -->
@@ -753,11 +753,11 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     </div>
                     {% if branch %}
                         <span class="text-[10px] font-bold text-blue-600 bg-white border border-violet-600/40 px-2 py-0.5 rounded-lg shadow-xs">
-                            📍 {{ branch.name }} ({{ branch_currency_symbol }})
+                            📍 {{ branch.display_name }} ({{ branch_currency_symbol }})
                         </span>
                     {% else %}
                         <span class="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-lg">
-                            🏢 {{ "الإدارة العامة (لكل الفروع"|t }})
+                            🏢 {{ "الإدارة العامة (لكل الفروع)"|t }}
                         </span>
                     {% endif %}
                 </div>
@@ -771,7 +771,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                             <input type="radio" name="price_scope" value="branch" checked class="accent-blue-600" onchange="onPriceScopeChange('branch')">
                             <div class="flex flex-col">
                                 <span class="text-xs font-semibold">{{ "لهذا الفرع فقط"|t }}</span>
-                                <span class="text-[9px] font-normal text-slate-500">{{ "يخصص السعر لـ"|t }} «{{ branch.name }}» {{ "فقط"|t }}</span>
+                                <span class="text-[9px] font-normal text-slate-500">{{ "يخصص السعر لـ"|t }} «{{ branch.display_name }}» {{ "فقط"|t }}</span>
                             </div>
                         </label>
                         <label id="scope-all-label" class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border-2 transition bg-white border-slate-200 text-slate-500 hover:border-violet-600/60 font-bold">
@@ -785,8 +785,8 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
 
                     <!-- Scope Info Banner -->
                     <div id="priceScopeInfo" class="mt-2 text-[10px] p-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center justify-between">
-                        <span id="priceScopeNotice">⚡ {{ "سيتم حفظ السعر وتطبيقه حصراً على فرع"|t }} «{{ branch.name }}» {{ "بعملة"|t }} ({{ branch_currency_symbol }}).</span>
-                        <span id="masterPriceBadge" class="hidden text-slate-500 font-bold">{{ "السعر العام"|t }}: <b id="masterPriceValText" class="text-slate-900">0.00</b> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
+                        <span id="priceScopeNotice">⚡ {{ "سيتم حفظ السعر وتطبيقه حصراً على فرع"|t }} «{{ branch.display_name }}» {{ "بعملة"|t }} ({{ branch_currency_symbol }}).</span>
+                        <span id="masterPriceBadge" class="hidden text-slate-500 font-bold">{{ "السعر العام"|t }}: <b id="masterPriceValText" class="text-slate-900">0.00</b> {{ tenant.get_currency_symbol }}</span>
                     </div>
                 </div>
                 {% else %}
@@ -948,7 +948,7 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                 </span>
                 <div>
                     <h3 class="text-sm font-bold font-sans text-slate-900">{{ "تخصيص سعر الصنف للفرع"|t }}</h3>
-                    <p class="text-[11px] text-slate-500">{{ "فرع"|t }}: <span id="bpm-branch-name" class="font-bold text-blue-600">{{ branch.name|default:'الفرع النشط' }}</span></p>
+                    <p class="text-[11px] text-slate-500">{{ "فرع"|t }}: <span id="bpm-branch-name" class="font-bold text-blue-600">{% if branch %}{{ branch.display_name }}{% else %}{{ "الفرع النشط"|t }}{% endif %}</span></p>
                 </div>
             </div>
             <button onclick="closeBranchPriceModal()" class="text-slate-500 hover:text-slate-900 p-1">✕</button>
@@ -963,13 +963,13 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
                     <span id="bpm-item-name" class="font-semibold text-slate-900 text-sm"></span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-slate-500 font-bold">{{ "السعر الافتراضي العام (Master"|t }}):</span>
-                    <span class="font-mono font-bold text-slate-500"><span id="bpm-default-price">0.00</span> {{ tenant.get_currency_symbol_ar|default:'ر.س' }}</span>
+                    <span class="text-slate-500 font-bold">{{ "السعر الافتراضي العام (Master)"|t }}:</span>
+                    <span class="font-mono font-bold text-slate-500"><span id="bpm-default-price">0.00</span> {{ tenant.get_currency_symbol }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-slate-500 font-bold">{{ "عملة هذا الفرع"|t }}:</span>
                     <span class="font-bold text-blue-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        {{ branch.currency|default:'SAR' }} ({{ branch.get_currency_symbol_ar|default:'ر.س' }})
+                        {{ branch.currency|default:'SAR' }} ({{ branch.get_currency_symbol }})
                     </span>
                 </div>
             </div>
@@ -977,11 +977,11 @@ document.getElementById('brandColorPicker')?.addEventListener('input', (e) => {
             <!-- Single Price Customization Input -->
             <div id="bpm-single-price-box">
                 <label class="block font-bold text-slate-900 mb-1">
-                    {{ "السعر المخصص لهذا الفرع"|t }} ({{ branch.get_currency_symbol_ar|default:'ر.س' }}):
+                    {{ "السعر المخصص لهذا الفرع"|t }} ({{ branch.get_currency_symbol }}):
                 </label>
                 <div class="relative">
                     <input type="number" step="0.25" min="0" id="bpm-custom-price-input" placeholder='{{ "اتركه فارغاً لاستخدام السعر العام"|t }}' class="input w-full font-bold text-slate-900">
-                    <span class="absolute left-3 top-2.5 text-xs text-slate-500 font-bold">{{ branch.get_currency_symbol_ar|default:'ر.س' }}</span>
+                    <span class="absolute left-3 top-2.5 text-xs text-slate-500 font-bold">{{ branch.get_currency_symbol }}</span>
                 </div>
                 <div class="flex items-center justify-between mt-1.5">
                     <p class="text-[10px] text-slate-500">{{ "إذا ترك فارغاً، سيتم تطبيق السعر العام للمطعم تلقائياً"|t }}.</p>

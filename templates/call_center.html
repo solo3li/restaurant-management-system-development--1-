@@ -73,17 +73,17 @@
                     type="button"
                     class="menu-item group relative flex flex-col justify-between p-2.5 rounded-xl border border-slate-200/70 bg-white hover:border-violet-600 hover:bg-blue-50/30 active:scale-[0.98] transition-all text-right shadow-xs cursor-pointer select-none min-h-[64px] {% if not m.available %}opacity-40 pointer-events-none{% endif %} {{ m.border_color_class|default:'border-r-4 border-r-blue-400' }}"
                     data-id="{{ m.id }}"
-                    data-name="{{ m.name }}"
+                    data-name="{{ m.display_name }}"
                     data-base-price="{{ m.price }}"
                     data-price="{{ m.price }}"
                     data-category-id="{{ m.pos_category_id|default:m.category }}"
                     data-category="{{ m.pos_category_name|default:m.category }}"
-                    onclick="addToCart({{ m.id }}, '{{ m.name|escapejs }}', parseFloat(this.dataset.price))"
+                    onclick="addToCart({{ m.id }}, '{{ m.display_name|escapejs }}', parseFloat(this.dataset.price))"
                 >
-                    <!-- Top: Dish Name (Preserve Dish Name as entered by Restaurant) -->
+                    <!-- Top: Dish Name -->
                     <div class="flex items-start justify-between gap-1 w-full">
                         <span class="text-xs font-bold text-slate-900 group-hover:text-violet-700 transition leading-snug line-clamp-2">
-                            {{ m.name }}
+                            {{ m.display_name }}
                         </span>
                     </div>
 
@@ -213,8 +213,8 @@
                             <select id="order-delivery-area" class="input !py-1 text-xs font-bold w-full border-slate-200/70" onchange="onDeliveryAreaChanged()">
                                 <option value="">{{ "-- اختر المنطقة لتوجيه الفرع وحساب التوصيل --"|t }}</option>
                                 {% for a in delivery_areas %}
-                                <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.name }}" data-currency="{{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol }}">
-                                    [{{ a.get_area_type_display|default:"منطقة"|t }}] {{ a.name }} ({{ a.branch.name }} • {{ a.delivery_fee }} {{ a.branch.get_currency_symbol_ar|default:tenant_currency_symbol|t }})
+                                <option value="{{ a.id }}" data-branch="{{ a.branch.id }}" data-fee="{{ a.delivery_fee }}" data-time="{{ a.estimated_time_minutes }}" data-branch-name="{{ a.branch.display_name }}" data-currency="{{ a.branch.get_currency_symbol|default:tenant_currency_symbol }}">
+                                    [{{ a.get_area_type_display|default:"منطقة"|t }}] {{ a.name }} ({{ a.branch.display_name }} • {{ a.delivery_fee }} {{ a.branch.get_currency_symbol|default:tenant_currency_symbol }})
                                 </option>
                                 {% endfor %}
                             </select>
@@ -256,7 +256,7 @@
                             <label class="mb-0.5 block font-bold text-slate-800 text-xs">{{ "الفرع المنفذ"|t }}</label>
                             <select id="order-branch" class="input !py-1 text-xs font-bold border-slate-200/70" onchange="onBranchChanged()">
                                 {% for b in branches %}
-                                <option value="{{ b.id }}" data-currency="{{ b.get_currency_symbol_ar|t }}">{{ b.name }} ({{ b.get_currency_symbol_ar|t }})</option>
+                                <option value="{{ b.id }}" data-currency="{{ b.get_currency_symbol }}">{{ b.display_name }} ({{ b.get_currency_symbol }})</option>
                                 {% endfor %}
                             </select>
                         </div>

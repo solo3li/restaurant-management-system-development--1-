@@ -85,7 +85,7 @@ CURRENCIES_DATA: Dict[str, Dict[str, str]] = {
     "MVR": {"name_ar": "روفية مالديفية", "name_en": "Maldivian Rufiyaa", "symbol_ar": "Rf", "symbol_en": "Rf"},
     "KZT": {"name_ar": "تينغي كازاخستاني", "name_en": "Kazakhstani Tenge", "symbol_ar": "₸", "symbol_en": "₸"},
     "UZS": {"name_ar": "سوم أوزبكستاني", "name_en": "Uzbekistani Som", "symbol_ar": "so'm", "symbol_en": "so'm"},
-    "AFN": {"name_ar": "أفغاني أفغانستاني", "name_en": "Afghan Afghani", "symbol_ar": "؋", "symbol_en": "؋"},
+    "AFN": {"name_ar": "أفغاني أفغانستاني", "name_en": "Afghan Afghani", "symbol_ar": "؋", "symbol_en": "AFN"},
     "BND": {"name_ar": "دولار بروني", "name_en": "Brunei Dollar", "symbol_ar": "B$", "symbol_en": "B$"},
     "FJD": {"name_ar": "دولار فيجي", "name_en": "Fijian Dollar", "symbol_ar": "FJ$", "symbol_en": "FJ$"},
     "MNT": {"name_ar": "توغروغ منغولي", "name_en": "Mongolian Tugrik", "symbol_ar": "₮", "symbol_en": "₮"},

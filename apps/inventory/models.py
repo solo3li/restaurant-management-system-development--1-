@@ -31,3 +31,29 @@ class InventoryItem(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.branch.name}"
+
+    def display_name(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.name
+        tr = get_translation(self.name, active_lang, default=None)
+        if tr and tr != self.name:
+            return tr
+        return self.name
+
+    def display_unit(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.unit
+        tr = get_translation(self.unit, active_lang, default=None)
+        if tr and tr != self.unit:
+            return tr
+        return self.unit

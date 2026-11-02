@@ -81,6 +81,42 @@ class SubscriptionPlan(models.Model):
     def __str__(self):
         return f"{self.name} ({self.price_monthly} ر.س/شهر)"
 
+    def display_name(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.name
+        tr = get_translation(self.name, active_lang, default=None)
+        if tr and tr != self.name:
+            return tr
+        code_map = {
+            "trial": {"en": "Trial Plan", "fr": "Forfait Essai", "tr": "Deneme Paketi", "de": "Testpaket", "es": "Plan de prueba"},
+            "starter": {"en": "Starter Plan", "fr": "Forfait Débutant", "tr": "Başlangıç Paketi", "de": "Starter-Paket", "es": "Plan Inicial"},
+            "basic": {"en": "Basic Plan", "fr": "Forfait Basique", "tr": "Temel Paket", "de": "Basis-Paket", "es": "Plan Básico"},
+            "growth": {"en": "Growth Plan", "fr": "Forfait Croissance", "tr": "Büyüme Paketi", "de": "Wachstum-Paket", "es": "Plan Crecimiento"},
+            "pro": {"en": "Pro Plan", "fr": "Forfait Pro", "tr": "Profesyonel Paket", "de": "Profi-Paket", "es": "Plan Profesional"},
+            "enterprise": {"en": "Enterprise Plan", "fr": "Forfait Entreprise", "tr": "Kurumsal Paket", "de": "Enterprise-Paket", "es": "Plan Empresarial"},
+        }
+        if self.code in code_map and active_lang in code_map[self.code]:
+            return code_map[self.code][active_lang]
+        return self.name
+
+    def display_description(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        if active_lang == "ar":
+            return self.description
+        tr = get_translation(self.description, active_lang, default=None)
+        if tr and tr != self.description:
+            return tr
+        return self.description
+
 
 class UpgradeRequest(models.Model):
     STATUS_CHOICES = [

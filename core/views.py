@@ -310,10 +310,15 @@ def dashboard_view(request):
         today_orders.values("currency_symbol")
         .annotate(total=Sum("total"), count=Count("id"))
     )
+    curr_lang = request.GET.get("lang") or (request.session.get("django_language") if hasattr(request, "session") else None) or translation.get_language() or "ar"
+    is_ar = str(curr_lang).lower().startswith("ar")
+    from core.i18n_catalog import get_translation
+    fallback_sym = tenant.get_currency_symbol(curr_lang) if tenant else ("ر.س" if is_ar else "SAR")
     merged_today_sales = {}
-    fallback_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
     for item in raw_today_sales:
         sym = (item.get("currency_symbol") or "").strip() or fallback_sym
+        if not is_ar:
+            sym = get_translation(sym, curr_lang, default=sym)
         if sym not in merged_today_sales:
             merged_today_sales[sym] = {"currency_symbol": sym, "total": Decimal("0"), "count": 0}
         merged_today_sales[sym]["total"] += (item.get("total") or Decimal("0"))

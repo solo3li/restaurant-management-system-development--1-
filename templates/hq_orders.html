@@ -216,9 +216,9 @@
                             {% if o.order_type == 'dine_in' %}bg-violet-50 text-violet-700 border border-violet-200/50
                             {% elif o.order_type == 'takeaway' %}bg-slate-100 text-slate-800 border border-slate-200
                             {% else %}bg-purple-50 text-purple-800 border border-purple-200{% endif %}">
-                            {{ o.get_order_type_display }}
+                            {{ o.display_order_type }}
                         </span>
-                        <span class="text-[10.5px] font-semibold text-slate-500 truncate max-w-[120px]">{{ o.branch.name }}</span>
+                        <span class="text-[10.5px] font-semibold text-slate-500 truncate max-w-[120px]">{{ o.branch.display_name }}</span>
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
@@ -230,7 +230,7 @@
                             {% elif o.status == 'preparing' %}bg-amber-50 text-amber-700 border border-amber-200/60
                             {% elif o.status == 'cancelled' %}bg-rose-50 text-rose-700 border border-rose-200/60
                             {% else %}bg-violet-50 text-violet-700 border border-violet-200/60{% endif %}">
-                            {{ o.get_status_display }}
+                            {{ o.display_status }}
                         </span>
                     </div>
                 </div>
@@ -238,12 +238,12 @@
                 <!-- Line 2: Customer, Time, Payment, Actions -->
                 <div class="flex items-center justify-between text-[11px] text-slate-600 pt-0.5 border-t border-slate-100/70">
                     <div class="flex items-center gap-2 truncate">
-                        <span class="font-bold text-slate-800 truncate">👤 {{ o.customer_name }}</span>
+                        <span class="font-bold text-slate-800 truncate">👤 {{ o.customer_name|t }}</span>
                         <span class="text-slate-300">•</span>
                         <span class="font-mono text-[10px] text-slate-500">{{ o.created_at|time:"H:i" }}</span>
                         <span class="text-slate-300">•</span>
                         <span class="text-[10px] font-semibold {% if o.paid %}text-emerald-700{% else %}text-rose-600{% endif %}">
-                            {{ o.get_pay_method_display }} {% if o.paid %}✓{% else %}{{ "معلق"|t }}{% endif %}
+                            {{ o.display_payment_method }} {% if o.paid %}✓{% else %}{{ "معلق"|t }}{% endif %}
                         </span>
                     </div>
 
@@ -312,7 +312,7 @@
 
                         <!-- Branch -->
                         <td class="px-2.5 py-1.5 text-xs font-semibold text-slate-800 whitespace-nowrap">
-                            {{ o.branch.name|default:"—" }}
+                            {{ o.branch.display_name|default:"—" }}
                         </td>
 
                         <!-- Order Type -->
@@ -321,13 +321,13 @@
                                 {% if o.order_type == 'dine_in' %}bg-violet-50 text-violet-700 border border-violet-200/60
                                 {% elif o.order_type == 'takeaway' %}bg-slate-200 text-slate-900 border border-slate-200/70
                                 {% else %}bg-purple-100 text-purple-900 border border-purple-300{% endif %}">
-                                {{ o.get_order_type_display }}
+                                {{ o.display_order_type }}
                             </span>
                         </td>
 
                         <!-- Customer -->
                         <td class="px-2.5 py-1.5 whitespace-nowrap">
-                            <span class="font-bold text-slate-900 text-xs">{{ o.customer_name }}</span>
+                            <span class="font-bold text-slate-900 text-xs">{{ o.customer_name|t }}</span>
                             {% if o.customer_phone %}
                             <span class="text-[11px] text-slate-600 font-bold font-mono mr-1" dir="ltr">{{ o.customer_phone }}</span>
                             {% endif %}
@@ -343,7 +343,7 @@
 
                         <!-- Payment -->
                         <td class="px-2 py-1.5 whitespace-nowrap text-xs">
-                            <span class="font-bold text-slate-900">{{ o.get_pay_method_display }}</span>
+                            <span class="font-bold text-slate-900">{{ o.display_payment_method }}</span>
                             <span class="text-xs mr-1 font-semibold {% if o.paid %}text-emerald-700{% else %}text-rose-700{% endif %}">
                                 {% if o.paid %}✓ {{ "مدفوع"|t }}{% else %}{{ "معلق"|t }}{% endif %}
                             </span>
@@ -364,7 +364,7 @@
                                 {% elif o.status == 'preparing' %}bg-amber-50 text-amber-700 border border-amber-200/60
                                 {% elif o.status == 'cancelled' %}bg-rose-50 text-rose-700 border border-rose-200/60
                                 {% else %}bg-violet-50 text-violet-700 border border-violet-200/60{% endif %}">
-                                {{ o.get_status_display }}
+                                {{ o.display_status }}
                             </span>
                         </td>
 
@@ -438,19 +438,19 @@
             {
                 "id": {{ o.id }},
                 "order_number": "{{ o.order_number|escapejs }}",
-                "branch": "{{ o.branch.name|default:'غير محدد'|escapejs }}",
-                "order_type": "{{ o.get_order_type_display|escapejs }}",
-                "channel": "{% if o.channel == 'call_center' %}كول سنتر مركزي{% elif o.channel == 'qr_menu' %}منيو رقمي (QR){% else %}كاشير الفرع{% endif %}",
-                "status": "{{ o.get_status_display|escapejs }}",
+                "branch": "{{ o.branch.display_name|default:'غير محدد'|escapejs }}",
+                "order_type": "{{ o.display_order_type|escapejs }}",
+                "channel": "{% if o.channel == 'call_center' %}{{ "كول سنتر مركزي"|t|escapejs }}{% elif o.channel == 'qr_menu' %}QR{% else %}{{ "كاشير الفرع"|t|escapejs }}{% endif %}",
+                "status": "{{ o.display_status|escapejs }}",
                 "status_raw": "{{ o.status }}",
                 "created_at": "{{ o.created_at|date:'Y-m-d H:i' }}",
-                "customer_name": "{{ o.customer_name|escapejs }}",
+                "customer_name": "{{ o.customer_name|t|escapejs }}",
                 "customer_phone": "{{ o.customer_phone|escapejs }}",
                 "address": "{{ o.address|escapejs }}",
                 "cashier": "{{ o.cashier|default:'—'|escapejs }}",
                 "driver": "{{ o.driver.name|default:''|escapejs }}",
-                "notes": "{{ o.notes|escapejs }}",
-                "pay_method": "{{ o.get_pay_method_display|escapejs }}",
+                "notes": "{{ o.notes|t|escapejs }}",
+                "pay_method": "{{ o.display_payment_method|escapejs }}",
                 "paid": {{ o.paid|yesno:"true,false" }},
                 "subtotal": "{{ o.subtotal|floatformat:2 }}",
                 "delivery_fee": "{{ o.delivery_fee|floatformat:2 }}",
@@ -460,7 +460,7 @@
                 "items": [
                     {% for item in o.items.all %}
                     {
-                        "name": "{{ item.name|escapejs }}",
+                        "name": "{{ item.name|t|escapejs }}",
                         "qty": {{ item.qty }},
                         "price": "{{ item.price|floatformat:2 }}",
                         "line_total": "{{ item.line_total|floatformat:2 }}"
@@ -512,7 +512,7 @@
                 <select name="branch" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-900 focus:outline-none focus:border-violet-600">
                     <option value="all">{{ "كافة الفروع"|t }}</option>
                     {% for b in branches %}
-                    <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:"i" %}selected{% endif %}>{{ b.name }}</option>
+                    <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:"i" %}selected{% endif %}>{{ b.display_name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -523,7 +523,7 @@
                     <select name="type" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-900 focus:outline-none focus:border-violet-600">
                         <option value="all">{{ "كافة الأنواع"|t }}</option>
                         {% for t_val, t_lbl in order_types %}
-                        <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl }}</option>
+                        <option value="{{ t_val }}" {% if type_filter == t_val %}selected{% endif %}>{{ t_lbl|t }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -532,7 +532,7 @@
                     <select name="pay_method" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-900 focus:outline-none focus:border-violet-600">
                         <option value="all">{{ "كافة الطرق"|t }}</option>
                         {% for p_val, p_lbl in pay_choices %}
-                        <option value="{{ p_val }}" {% if pay_method_filter == p_val %}selected{% endif %}>{{ p_lbl }}</option>
+                        <option value="{{ p_val }}" {% if pay_method_filter == p_val %}selected{% endif %}>{{ p_lbl|t }}</option>
                         {% endfor %}
                     </select>
                 </div>

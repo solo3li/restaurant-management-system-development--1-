@@ -83,7 +83,7 @@
             </a>
             {% for jr in job_roles %}
             <a href="?job_role={{ jr.id }}&branch={{ branch_filter }}&q={{ search_query }}" class="rounded-lg px-2.5 py-1 text-xs font-bold transition {% if job_role_filter == jr.id|stringformat:'s' %}bg-violet-600 text-white font-semibold shadow-xs{% else %}border border-slate-200/70 bg-white text-slate-800 hover:bg-slate-100{% endif %}">
-                {{ jr.name }} ({{ jr.emp_count }})
+                {{ jr.display_title }} ({{ jr.emp_count }})
             </a>
             {% endfor %}
         </div>
@@ -97,7 +97,7 @@
                 <select name="branch" onchange="this.form.submit()" class="px-2.5 py-1 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900 focus:border-violet-500">
                     <option value="all">{{ "كافة الفروع"|t }}</option>
                     {% for b in branches %}
-                    <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:'s' or branch_filter == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    <option value="{{ b.id }}" {% if branch_filter == b.id|stringformat:'s' or branch_filter == b.id %}selected{% endif %}>{{ b.display_name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -160,16 +160,16 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                                 {% if emp.job_role %}
-                                    {{ emp.job_role.name }}
+                                    {{ emp.job_role.display_title }}
                                 {% else %}
-                                    {{ emp.get_role_display }}
+                                    {{ emp.get_role_display|t }}
                                 {% endif %}
                             </span>
                         </td>
                         <td class="py-2 px-3" data-label="نطاق العمل">
                             {% if emp.job_role %}
                                 {% if emp.job_role.scope == 'hq' %}
-                                    <span class="rounded bg-purple-50 text-purple-700 border border-purple-200/60 px-2 py-0.5 text-[10px] font-bold">{{ "إدارة عامة (HQ"|t }})</span>
+                                    <span class="rounded bg-purple-50 text-purple-700 border border-purple-200/60 px-2 py-0.5 text-[10px] font-bold">{{ "إدارة عامة (HQ)"|t }}</span>
                                 {% else %}
                                     <span class="rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold">{{ "تشغيل فرع"|t }}</span>
                                 {% endif %}
@@ -178,18 +178,18 @@
                             {% endif %}
                         </td>
                         <td class="py-2 px-3 text-slate-800 font-bold text-xs" data-label="الفرع">
-                            {{ emp.branch.name|default:"الإدارة العامة" }}
+                            {% if emp.branch %}{{ emp.branch.display_name }}{% else %}{{ "الإدارة العامة (HQ)"|t }}{% endif %}
                         </td>
                         <td class="py-2 px-3 font-mono font-bold text-slate-900 text-xs" data-label="الراتب الأساسي">
                             {% if can_manage_salaries or is_owner or 'hr_manage_salaries' in user_perms or 'manage_employees' in user_perms %}
-                                {{ emp.salary }} <span class="text-[10px] text-slate-700 font-sans font-bold">{{ "ر.س"|t }}</span>
+                                {{ emp.salary }} <span class="text-[10px] text-slate-700 font-sans font-bold">{{ emp.branch.get_currency_symbol|default:tenant.get_currency_symbol }}</span>
                             {% else %}
                                 <span class="text-xs font-mono text-slate-400 tracking-widest" title='{{ "محتوى محجوب — يتطلب صلاحية إدارة الرواتب"|t }}'>••••</span>
                             {% endif %}
                         </td>
                         <td class="py-2 px-3" data-label="الحالة">
                             <span class="rounded px-2.5 py-0.5 text-[10px] font-semibold border {% if emp.status == 'active' %}bg-emerald-100 text-emerald-950 border-emerald-300{% elif emp.status == 'vacation' %}bg-amber-100 text-amber-950 border-amber-300{% else %}bg-rose-100 text-rose-950 border-rose-300{% endif %}">
-                                {{ emp.get_status_display }}
+                                {{ emp.get_status_display|t }}
                             </span>
                         </td>
                         <td class="py-1.5 px-3 text-center" data-label="الإجراءات">
@@ -213,7 +213,7 @@
                                 <button 
                                     type="button"
                                     onclick="toggleEmpStatus({{ emp.id }}, '{{ emp.name|escapejs }}', '{{ emp.status }}')" 
-                                    title="{% if emp.status == 'active' %}تجميد الحساب{% else %}تفعيل الحساب{% endif %}" 
+                                    title="{% if emp.status == 'active' %}{{ 'تجميد الحساب'|t }}{% else %}{{ 'تفعيل الحساب'|t }}{% endif %}" 
                                     class="rounded-md border p-1 transition {% if emp.status == 'active' %}border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200 shadow-xs{% else %}border-emerald-300 bg-emerald-100 text-emerald-950 hover:bg-emerald-200 shadow-xs{% endif %}"
                                 >
                                     {% if emp.status == 'active' %}
@@ -345,18 +345,18 @@
                         {% for r in job_roles %}
                         <tr class="hover:bg-slate-50/70 transition" data-role-id="{{ r.id }}">
                             <td class="py-3 px-4">
-                                <p class="font-bold text-slate-900 text-xs">{{ r.name }}</p>
+                                <p class="font-bold text-slate-900 text-xs">{{ r.display_title }}</p>
                                 <p class="text-xs text-slate-500 mt-0.5">{{ r.description|default:"—" }}</p>
                             </td>
                             <td class="py-3 px-4">
                                 {% if r.scope == 'hq' %}
-                                <span class="text-xs font-semibold text-purple-800 border-l-2 border-purple-600 pl-2">{{ "الإدارة العامة (HQ"|t }})</span>
+                                <span class="text-xs font-semibold text-purple-800 border-l-2 border-purple-600 pl-2">{{ "إدارة عامة (HQ)"|t }}</span>
                                 {% else %}
                                 <span class="text-xs font-semibold text-emerald-800 border-l-2 border-emerald-600 pl-2">{{ "تشغيل فرع محدد"|t }}</span>
                                 {% endif %}
                             </td>
                             <td class="py-3 px-4 text-center">
-                                <button type="button" onclick="openRoleEmployeesModal({{ r.id }}, '{{ r.name|escapejs }}')" class="font-bold text-xs text-violet-700 hover:text-violet-900 underline underline-offset-2 cursor-pointer transition">
+                                <button type="button" onclick="openRoleEmployeesModal({{ r.id }}, '{{ r.display_title|escapejs }}')" class="font-bold text-xs text-violet-700 hover:text-violet-900 underline underline-offset-2 cursor-pointer transition">
                                     {{ r.emp_count }} {{ "موظف"|t }}
                                 </button>
                             </td>
@@ -370,7 +370,7 @@
                                     <button type="button" onclick="openEditRoleModal({{ r.id }})" class="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
                                         {{ "تعديل الصلاحيات"|t }}
                                     </button>
-                                    <button type="button" onclick="deleteJobRole({{ r.id }}, '{{ r.name|escapejs }}', {{ r.emp_count }})" class="rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
+                                    <button type="button" onclick="deleteJobRole({{ r.id }}, '{{ r.display_title|escapejs }}', {{ r.emp_count }})" class="rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 text-xs font-bold transition cursor-pointer">
                                         {{ "حذف"|t }}
                                     </button>
                                 </div>
@@ -431,7 +431,7 @@
                         {% if job_roles %}
                         <option value="" disabled selected>— {{ "اختر المسمى الوظيفي"|t }} —</option>
                         {% for jr in job_roles %}
-                        <option value="{{ jr.id }}" data-scope="{{ jr.scope }}">{{ jr.name }} ({{ jr.get_scope_display }})</option>
+                        <option value="{{ jr.id }}" data-scope="{{ jr.scope }}">{{ jr.display_title }} ({{ jr.get_scope_display|t }})</option>
                         {% endfor %}
                         {% else %}
                         <option value="" disabled selected>— {{ "لا توجد مسميات وظيفية بعد"|t }} —</option>
@@ -455,12 +455,12 @@
                     <select id="add-emp-branch" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                         <option value="">— {{ "بدون فرع (إدارة عامة)"|t }} —</option>
                         {% for b in branches %}
-                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        <option value="{{ b.id }}">{{ b.display_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block font-bold text-slate-700">{{ "الراتب الشهري (ر.س"|t }})</label>
+                    <label class="mb-1 block font-bold text-slate-700">{{ "الراتب الشهري"|t }} ({{ tenant.get_currency_symbol }})</label>
                     <input type="number" id="add-emp-salary" placeholder="5000" value="5000" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                 </div>
             </div>
@@ -560,7 +560,7 @@
                     <select id="edit-emp-job-role" onchange="syncEmpRoleScope('edit-emp-job-role', 'edit-emp-branch', 'edit-emp-scope-notice')" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                         <option value="" disabled>— {{ "اختر المسمى الوظيفي"|t }} —</option>
                         {% for jr in job_roles %}
-                        <option value="{{ jr.id }}" data-scope="{{ jr.scope }}">{{ jr.name }} ({{ jr.get_scope_display }})</option>
+                        <option value="{{ jr.id }}" data-scope="{{ jr.scope }}">{{ jr.display_title }} ({{ jr.get_scope_display|t }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -575,7 +575,7 @@
                     <select id="edit-emp-branch" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                         <option value="">— {{ "بدون فرع (إدارة عامة)"|t }} —</option>
                         {% for b in branches %}
-                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        <option value="{{ b.id }}">{{ b.display_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -590,7 +590,7 @@
             </div>
 
             <div>
-                <label class="mb-1 block font-bold text-slate-700">{{ "الراتب (ر.س)"|t }} *</label>
+                <label class="mb-1 block font-bold text-slate-700">{{ "الراتب"|t }} ({{ tenant.get_currency_symbol }}) *</label>
                 {% if can_manage_salaries or is_owner or 'hr_manage_salaries' in user_perms or 'manage_employees' in user_perms %}
                 <input type="number" step="0.01" min="0" id="edit-emp-salary" autocomplete="off" placeholder='{{ "الراتب الأساسي بالريال (إلزامي)"|t }}' class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
                 {% else %}

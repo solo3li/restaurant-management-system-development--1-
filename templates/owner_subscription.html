@@ -507,11 +507,11 @@
                     <tr class="hover:bg-slate-50/50 transition">
                         <td class="py-1.5 px-3 font-mono font-bold text-slate-500" data-label="#">#{{ req.id }}</td>
                         <td class="py-1.5 px-3 font-bold text-slate-900" data-label="{{ "الباقة المطلوبة"|t }}">
-                            {{ req.requested_plan.name|t }}
+                            {{ req.requested_plan.display_name }}
                         </td>
                         <td class="py-1.5 px-3 font-semibold text-slate-600" data-label="{{ "دورة الفوترة"|t }}">{{ req.get_billing_cycle_display|default:req.billing_cycle|t }}</td>
                         <td class="py-1.5 px-3 text-slate-500" data-label="{{ "تاريخ الطلب"|t }}">{{ req.created_at|date:"Y-m-d H:i" }}</td>
-                        <td class="py-1.5 px-3 text-slate-500 max-w-xs truncate" data-label="{{ "ملاحظات"|t }}">{{ req.notes|default:"—" }}</td>
+                        <td class="py-1.5 px-3 text-slate-500 max-w-xs truncate" data-label="{{ "ملاحظات"|t }}">{{ req.notes|t|default:"—" }}</td>
                         <td class="py-1.5 px-3" data-label="{{ "الحالة"|t }}">
                             {% if req.status == 'pending' %}
                             <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold text-[10px] border border-amber-200">{{ "قيد المراجعة"|t }}</span>
@@ -609,7 +609,7 @@
                         </td>
                         <td class="p-3 text-slate-500 font-semibold" data-label="{{ "الفرع المخصص"|t }}">
                             {% if k.assigned_branch %}
-                            {{ k.assigned_branch.name }}
+                            {{ k.assigned_branch.display_name }}
                             {% else %}
                             <span class="text-slate-900 font-bold">{{ "كافة الفروع"|t }}</span>
                             {% endif %}
@@ -1078,7 +1078,7 @@ restaurant_tools = await mcp_client.tools()`;
                 <select id="modal-key-branch" class="w-full px-3 py-2 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900">
                     <option value="">{{ "كافة فروع المنشأة (موصى به للكول سنتر)"|t }}</option>
                     {% for b in branches %}
-                    <option value="{{ b.id }}">{{ b.name }}{% if b.city %} ({{ b.city }}){% endif %}</option>
+                    <option value="{{ b.id }}">{{ b.display_name }}{% if b.city %} ({{ b.display_city }}){% endif %}</option>
                     {% endfor %}
                 </select>
                 <p class="text-[10.5px] text-slate-500 mt-1">{{ "إذا خصصت فرعاً محدداً، فلن يستطيع البوت الاطلاع أو طلب أوردرات إلا من هذا الفرع."|t }}</p>

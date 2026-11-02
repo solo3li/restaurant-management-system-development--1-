@@ -98,7 +98,9 @@ def branch_menu_view(request):
             "variants": list(item.variants.all()),
         })
 
-    currency_sym = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+    from django.utils import translation
+    curr_lang = request.session.get("django_language") or translation.get_language() or "ar"
+    currency_sym = branch.get_currency_symbol(curr_lang) if branch else (tenant.get_currency_symbol(curr_lang) if tenant else ("ر.س" if str(curr_lang).startswith("ar") else "SAR"))
 
     context = {
         "tenant": tenant,
@@ -1081,8 +1083,8 @@ def digital_menu_view(request, slug=None, branch_id=None):
         })
 
     is_open = selected_branch.is_currently_open()
-    cur_sym = selected_branch.get_currency_symbol_ar() if active_lang == "ar" else selected_branch.get_currency_symbol_en()
-    cur_name = selected_branch.get_currency_name_ar()
+    cur_sym = selected_branch.get_currency_symbol(active_lang)
+    cur_name = selected_branch.get_currency_name(active_lang)
     context = {
         "tenant": tenant,
         "branches": branches,
@@ -1232,7 +1234,7 @@ def api_digital_menu_place_order(request, slug):
 
     # Validate Minimum Delivery Order
     if order_type == "delivery" and branch.min_delivery_order > 0 and subtotal < branch.min_delivery_order:
-        cur_sym = branch.get_currency_symbol_ar()
+        cur_sym = branch.get_currency_symbol()
         return JsonResponse({
             "status": "error",
             "message": f"الحد الأدنى لطلب التوصيل من هذا الفرع هو {branch.min_delivery_order} {cur_sym}. (المجموع الحالي: {subtotal} {cur_sym})."
@@ -1258,7 +1260,7 @@ def api_digital_menu_place_order(request, slug):
     from django.db import transaction, IntegrityError
 
     order_currency = branch.currency if (branch and branch.currency) else (getattr(tenant, "default_currency", "SAR") if tenant else "SAR")
-    order_currency_symbol = branch.get_currency_symbol_ar() if (branch and hasattr(branch, "get_currency_symbol_ar")) else (tenant.get_currency_symbol_ar() if (tenant and hasattr(tenant, "get_currency_symbol_ar")) else "ر.س")
+    order_currency_symbol = branch.get_currency_symbol() if (branch and hasattr(branch, "get_currency_symbol")) else (tenant.get_currency_symbol() if (tenant and hasattr(tenant, "get_currency_symbol")) else "SAR")
 
     order = None
     for attempt in range(10):

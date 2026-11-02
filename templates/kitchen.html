@@ -38,7 +38,7 @@
                 >
                     <option value="" {% if not target_branch_id %}selected{% endif %}>{{ "كل الفروع"|t }}</option>
                     {% for b in branches %}
-                    <option value="{{ b.id }}" {% if target_branch_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    <option value="{{ b.id }}" {% if target_branch_id == b.id %}selected{% endif %}>{{ b.display_name }}</option>
                     {% endfor %}
                 </select>
                 {% endif %}

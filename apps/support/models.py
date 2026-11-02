@@ -94,6 +94,30 @@ class SupportTicket(models.Model):
     def __str__(self):
         return f"[{self.ticket_number}] {self.subject} ({self.get_status_display()})"
 
+    def display_category(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        return get_translation(self.get_category_display(), active_lang)
+
+    def display_priority(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        return get_translation(self.get_priority_display(), active_lang)
+
+    def display_status(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        return get_translation(self.get_status_display(), active_lang)
+
     @classmethod
     def generate_ticket_number(cls):
         """Generates a unique reference ticket number like TCK-202610-4821."""

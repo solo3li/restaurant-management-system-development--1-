@@ -243,12 +243,12 @@ def i18n_context(request):
             request.session["django_language"] = lang
             request.session["_language"] = lang
         translation.activate(lang)
-    elif hasattr(request, "LANGUAGE_CODE") and request.LANGUAGE_CODE:
-        lang = request.LANGUAGE_CODE
     elif hasattr(request, "session") and request.session.get("django_language"):
         lang = request.session.get("django_language")
     elif request.COOKIES.get("django_language"):
         lang = request.COOKIES.get("django_language")
+    elif hasattr(request, "LANGUAGE_CODE") and request.LANGUAGE_CODE:
+        lang = request.LANGUAGE_CODE
     else:
         lang = translation.get_language() or "ar"
 

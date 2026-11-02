@@ -219,6 +219,9 @@ def branches_view(request):
         })
 
     from core.currencies import CURRENCIES_DATA
+    from django.utils import translation
+    curr_lang = request.GET.get("lang") or request.session.get("django_language") or translation.get_language() or "ar"
+    is_ar = str(curr_lang).lower().startswith("ar")
     currencies_list = [
         {
             "code": code,
@@ -226,7 +229,7 @@ def branches_view(request):
             "name_en": info["name_en"],
             "symbol_ar": info["symbol_ar"],
             "symbol_en": info["symbol_en"],
-            "label": f"{info['name_ar']} ({code} - {info['symbol_ar']})"
+            "label": f"{info['name_ar']} ({code} - {info['symbol_ar']})" if is_ar else f"{info['name_en']} ({code} - {info['symbol_en']})"
         }
         for code, info in CURRENCIES_DATA.items()
     ]

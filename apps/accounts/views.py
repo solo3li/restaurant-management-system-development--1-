@@ -1045,6 +1045,9 @@ def api_employee_detail(request, emp_id):
     can_view_salary = is_owner_or_super or user_has_perm(request.user, "hr_manage_salaries") or user_has_perm(request.user, "manage_employees")
     salary_display = str(emp.salary) if can_view_salary else "••••"
 
+    curr_lang = request.session.get("django_language") or translation.get_language() or "ar"
+    is_ar = str(curr_lang).lower().startswith("ar")
+
     data = {
         "ok": True,
         "employee": {
@@ -1060,13 +1063,13 @@ def api_employee_detail(request, emp_id):
             "role_legacy": emp.role,
             "branch": {
                 "id": emp.branch.id if emp.branch else None,
-                "name": emp.branch.name if emp.branch else "الإدارة العامة (HQ)",
+                "name": emp.branch.display_name(curr_lang) if emp.branch else ("General Management (HQ)" if not is_ar else "الإدارة العامة (HQ)"),
             },
             "job_role": {
                 "id": emp.job_role.id if emp.job_role else None,
-                "name": emp.job_role.name if emp.job_role else emp.get_role_display(),
+                "name": emp.job_role.display_title(curr_lang) if emp.job_role else (emp.get_role_display() if is_ar else str(emp.role).title()),
                 "scope": emp.job_role.scope if emp.job_role else "branch",
-                "scope_display": emp.job_role.get_scope_display() if emp.job_role else "تشغيل فرع",
+                "scope_display": emp.job_role.get_scope_display() if is_ar else ("HQ / Chain-wide" if (emp.job_role and emp.job_role.scope == 'hq') else "Branch Level"),
             },
             "user": {
                 "id": emp.user.id if emp.user else None,
@@ -1163,15 +1166,17 @@ def api_job_roles(request):
         ):
             return JsonResponse({"error": "غير مصرح لك باستعراض المسميات الوظيفية وهيكل الصلاحيات"}, status=403)
 
+        curr_lang = request.session.get("django_language") or translation.get_language() or "ar"
+        is_ar = str(curr_lang).lower().startswith("ar")
         roles = JobRole.objects.filter(tenant=tenant).annotate(employees_count=Count("employees")).order_by("ordering", "id")
         data = []
         for r in roles:
             perms_list = r.get_permissions_list()
             data.append({
                 "id": r.id,
-                "name": r.name,
+                "name": r.display_title(curr_lang),
                 "scope": r.scope,
-                "scope_display": r.get_scope_display(),
+                "scope_display": r.get_scope_display() if is_ar else ("HQ / Chain-wide" if r.scope == 'hq' else "Branch Level"),
                 "description": r.description,
                 "is_system": r.is_system,
                 "permissions": perms_list,

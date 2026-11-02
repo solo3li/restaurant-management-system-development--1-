@@ -682,7 +682,8 @@
                         </span>
                         <div class="min-w-0 text-right sidebar-text">
                             <p class="text-xs font-semibold text-white truncate leading-tight">{{ user.first_name|default:user.username }}</p>
-                                {% if is_owner %}{{ "مالك المنشأة (HQ)"|t }}{% elif user_profile and user_profile.job_role %}{{ user_profile.job_role.name }}{% elif user_profile %}{{ user_profile.get_role_display }}{% else %}{{ "مسؤول النظام"|t }}{% endif %}
+                            <p class="text-[10px] text-slate-400 truncate leading-tight">
+                                {% if is_owner %}{{ "مالك المنشأة (HQ)"|t }}{% elif user_profile and user_profile.job_role %}{{ user_profile.job_role.display_title }}{% elif user_profile %}{{ user_profile.get_role_display|t }}{% else %}{{ "مسؤول النظام"|t }}{% endif %}
                             </p>
                         </div>
                     </div>

@@ -113,7 +113,8 @@ def branch_orders_view(request):
     can_delete = is_owner or user_has_perm(request.user, "branch_delete_orders") or user_has_perm(request.user, "delete_orders")
     can_edit = is_owner or user_has_perm(request.user, "branch_edit_orders") or user_has_perm(request.user, "edit_orders")
 
-    currency_symbol = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+    curr_lang = request.session.get("django_language") or translation.get_language() or "ar"
+    currency_symbol = branch.get_currency_symbol(curr_lang) if branch else (tenant.get_currency_symbol(curr_lang) if tenant else ("ر.س" if str(curr_lang).startswith("ar") else "SAR"))
 
     context = {
         "tenant": tenant,
@@ -229,9 +230,11 @@ def hq_orders_view(request):
     delivered_orders = metrics["delivered_orders"] or 0
     cancelled_orders = metrics["cancelled_orders"] or 0
 
+    curr_lang = request.GET.get("lang") or request.session.get("django_language") or translation.get_language() or "ar"
+    is_ar = str(curr_lang).lower().startswith("ar")
     if branch_filter != "all" and branch_filter:
         active_branch = branches.filter(id=branch_filter).first()
-        active_currency_symbol = active_branch.get_currency_symbol_ar() if active_branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+        active_currency_symbol = active_branch.get_currency_symbol(curr_lang) if active_branch else (tenant.get_currency_symbol(curr_lang) if tenant else ("ر.س" if is_ar else "SAR"))
         is_single_currency = True
         rev_by_currency = [
             {
@@ -241,15 +244,18 @@ def hq_orders_view(request):
             }
         ]
     else:
+        from core.i18n_catalog import get_translation
         raw_rev_by_currency = list(
             orders.filter(~Q(status="cancelled"))
             .values("currency_symbol")
             .annotate(total=Sum("total"), count=Count("id"))
         )
         merged_rev = {}
-        fallback_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+        fallback_sym = tenant.get_currency_symbol(curr_lang) if tenant else ("ر.س" if is_ar else "SAR")
         for item in raw_rev_by_currency:
             sym = (item.get("currency_symbol") or "").strip() or fallback_sym
+            if not is_ar:
+                sym = get_translation(sym, curr_lang, default=sym)
             if sym not in merged_rev:
                 merged_rev[sym] = {"currency_symbol": sym, "total": Decimal("0"), "count": 0}
             merged_rev[sym]["total"] += (item.get("total") or Decimal("0"))
@@ -656,11 +662,9 @@ def pos_view(request):
     tenant = get_active_tenant(request)
     branch = get_active_branch(request)
 
-    lang = getattr(request, "LANGUAGE_CODE", None) or translation.get_language() or "ar"
+    lang = getattr(request, "LANGUAGE_CODE", None) or request.session.get("django_language") or translation.get_language() or "ar"
     if "-" in lang:
         lang = lang.split("-")[0]
-    if lang not in ["ar", "en"]:
-        lang = "ar"
 
     # Dynamic Menu Categories from apps.menu.models.MenuCategory
     active_categories_qs = (
@@ -798,7 +802,7 @@ def pos_view(request):
     if branch:
         recent_orders = recent_orders.filter(branch=branch)
 
-    currency_sym = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+    currency_sym = branch.get_currency_symbol(lang) if branch else (tenant.get_currency_symbol(lang) if tenant else ("ر.س" if lang == "ar" else "SAR"))
     branches = list(tenant.branches.filter(status="active").order_by("name")) if tenant else []
     branch_custom_prices = {}
     if tenant:
@@ -1256,7 +1260,7 @@ def api_create_order(request):
 
         from core.redis_mcp_cache import generate_order_number
         order_currency = branch.currency if (branch and branch.currency) else (getattr(tenant, "default_currency", "SAR") if tenant else "SAR")
-        order_currency_symbol = branch.get_currency_symbol_ar() if (branch and hasattr(branch, "get_currency_symbol_ar")) else (tenant.get_currency_symbol_ar() if (tenant and hasattr(tenant, "get_currency_symbol_ar")) else "ر.س")
+        order_currency_symbol = branch.get_currency_symbol() if (branch and hasattr(branch, "get_currency_symbol")) else (tenant.get_currency_symbol() if (tenant and hasattr(tenant, "get_currency_symbol")) else "SAR")
 
         order = None
         for attempt in range(10):

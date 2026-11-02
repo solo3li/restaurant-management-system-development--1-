@@ -42,7 +42,7 @@
                 <select name="branch" onchange="this.form.submit()" class="input !w-40 !py-1 text-xs border-slate-200/70 font-bold text-slate-900">
                     <option value="all">{{ "كافة الفروع"|t }}</option>
                     {% for b in branches %}
-                    <option value="{{ b.id }}" {% if selected_branch == b.id %}selected{% endif %}>{{ b.name }}</option>
+                    <option value="{{ b.id }}" {% if selected_branch == b.id %}selected{% endif %}>{{ b.display_name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -83,22 +83,22 @@
                     {% for it in items %}
                     <tr class="hover:bg-slate-50 transition">
                         <td class="td !py-2 !px-3 font-bold text-slate-900" data-label="المادة الغذائية">
-                            <p class="text-xs font-bold text-slate-900">{{ it.name }}</p>
-                            <p class="text-[10px] text-slate-700 font-bold">{{ "الوحدة"|t }}: {{ it.unit }}</p>
+                            <p class="text-xs font-bold text-slate-900">{{ it.display_name }}</p>
+                            <p class="text-[10px] text-slate-700 font-bold">{{ "الوحدة"|t }}: {{ it.display_unit }}</p>
                         </td>
-                        <td class="td !py-2 !px-3 text-slate-800 font-bold" data-label="الفرع">{{ it.branch.name }}</td>
+                        <td class="td !py-2 !px-3 text-slate-800 font-bold" data-label="الفرع">{{ it.branch.display_name }}</td>
                         <td class="td !py-2 !px-3" data-label="الكمية الحالية">
                             <span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px]
                                 {% if it.quantity == 0 %}bg-rose-50 text-rose-700 border border-rose-200/60
                                 {% elif it.quantity <= it.min_quantity %}bg-amber-50 text-amber-700 border border-amber-200/60
                                 {% else %}bg-emerald-50 text-emerald-700 border border-emerald-200/60{% endif %}">
-                                {{ it.quantity|floatformat:1 }} {{ it.unit }}
+                                {{ it.quantity|floatformat:1 }} {{ it.display_unit }}
                                 {% if it.quantity == 0 %} ({{ "نفد"|t }})
                                 {% elif it.quantity <= it.min_quantity %} ({{ "منخفض"|t }})
                                 {% endif %}
                             </span>
                         </td>
-                        <td class="td !py-2 !px-3 font-mono font-bold text-slate-900" data-label="حد الأمان">{{ it.min_quantity|floatformat:1 }} {{ it.unit }}</td>
+                        <td class="td !py-2 !px-3 font-mono font-bold text-slate-900" data-label="حد الأمان">{{ it.min_quantity|floatformat:1 }} {{ it.display_unit }}</td>
                         <td class="td !py-2 !px-3 text-slate-700 font-bold" data-label="المورد">{{ it.supplier|default:"—" }}</td>
                         <td class="td !py-2 !px-3" data-label="تعديل سريع">
                             <div class="flex items-center gap-1">
@@ -109,11 +109,11 @@
                         </td>
                         <td class="td !py-2 !px-3 text-center" data-label="إجراءات">
                             <div class="flex items-center justify-center gap-2">
-                                <button onclick="openEditInvModal({{ it.id }}, '{{ it.name }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier }}')" class="text-violet-600 hover:text-violet-700 font-bold text-xs cursor-pointer">
+                                <button onclick="openEditInvModal({{ it.id }}, '{{ it.display_name|escapejs }}', {{ it.quantity }}, {{ it.min_quantity }}, '{{ it.supplier|escapejs }}')" class="text-violet-600 hover:text-violet-700 font-bold text-xs cursor-pointer">
                                     {{ "تعديل"|t }}
                                 </button>
                                 <span class="text-slate-400">•</span>
-                                <button onclick="deleteInventoryItem({{ it.id }}, '{{ it.name }}')" class="text-rose-700 hover:text-rose-900 font-bold text-xs cursor-pointer">
+                                <button onclick="deleteInventoryItem({{ it.id }}, '{{ it.display_name|escapejs }}')" class="text-rose-700 hover:text-rose-900 font-bold text-xs cursor-pointer">
                                     {{ "حذف"|t }}
                                 </button>
                             </div>
@@ -144,7 +144,7 @@
                     <label class="mb-1 block font-bold text-slate-800">{{ "الفرع"|t }} *</label>
                     <select id="add-inv-branch" class="input text-xs border-slate-200/70 font-bold text-slate-900">
                         {% for b in branches %}
-                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        <option value="{{ b.id }}">{{ b.display_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -152,7 +152,7 @@
                     <label class="mb-1 block font-bold text-slate-800">{{ "وحدة القياس"|t }}</label>
                     <select id="add-inv-unit" class="input text-xs border-slate-200/70 font-bold text-slate-900">
                         {% for u in units %}
-                        <option value="{{ u }}">{{ u }}</option>
+                        <option value="{{ u }}">{{ u|t }}</option>
                         {% endfor %}
                     </select>
                 </div>

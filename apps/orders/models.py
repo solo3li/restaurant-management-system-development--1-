@@ -156,20 +156,67 @@ class Order(models.Model):
             models.Index(fields=["tenant", "branch", "-created_at"], name="idx_ord_t_br_dt"),
         ]
 
+    def get_currency_symbol(self, lang=None):
+        from django.utils import translation
+        from core.currencies import get_currency_info
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        curr_code = getattr(self, "currency", None)
+        if not curr_code:
+            branch = getattr(self, "branch", None)
+            if branch and getattr(branch, "currency", None):
+                curr_code = branch.currency
+            elif getattr(self, "tenant", None) and getattr(self.tenant, "default_currency", None):
+                curr_code = self.tenant.default_currency
+            else:
+                curr_code = "SAR"
+        info = get_currency_info(curr_code)
+        if active_lang == "ar":
+            return info.get("symbol_ar", "ر.س")
+        return info.get("symbol_en", curr_code)
+
+    def display_currency_symbol_for_lang(self, lang=None):
+        return self.get_currency_symbol(lang)
+
     @property
     def display_currency_symbol(self):
         """
-        Returns safe, guaranteed currency symbol for order display without template lookup errors.
+        Returns safe, guaranteed localized currency symbol for order display without template lookup errors.
         """
-        if self.currency_symbol:
-            return self.currency_symbol
-        branch = getattr(self, "branch", None)
-        if branch and hasattr(branch, "get_currency_symbol_ar"):
-            return branch.get_currency_symbol_ar()
-        tenant = getattr(self, "tenant", None)
-        if tenant and hasattr(tenant, "get_currency_symbol_ar"):
-            return tenant.get_currency_symbol_ar()
-        return "ر.س"
+        return self.get_currency_symbol()
+
+    def display_order_type(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        return get_translation(self.get_order_type_display(), active_lang)
+
+    def display_status(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        return get_translation(self.get_status_display(), active_lang)
+
+    def display_payment_method(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        return get_translation(self.get_pay_method_display(), active_lang)
+
+    def display_channel(self, lang=None):
+        from django.utils import translation
+        from core.i18n_catalog import get_translation
+        active_lang = lang or translation.get_language() or "ar"
+        if "-" in active_lang:
+            active_lang = active_lang.split("-")[0]
+        return get_translation(self.get_channel_display(), active_lang)
 
     @property
     def short_order_number(self):

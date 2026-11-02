@@ -303,6 +303,14 @@
       "dependencies": ["feat-performance-boost-gunicorn-uvicorn-tailwind"],
       "status": "completed",
       "evidence": "restaurant_system/settings.py (LANGUAGES with 'es'), core/views.py (set_language_view with 'es'), core/context_processors.py (supported_langs, lang_names, lang_flags, languages_list, pick_lang, base_t Spanish keys), core/i18n_catalog.py (all 2906 entries verified in Spanish with zero fake and zero Arabic residue), static/js/diyafa_i18n_catalog.json, staticfiles/js/diyafa_i18n_catalog.json, static/js/diyafa_i18n_engine.js, staticfiles/js/diyafa_i18n_engine.js, templates/qr_menu.html, templates/owner_subscription.html, test_multilingual_5lang.py (all 9 test suites 100% PASS across 6 languages), manage.py check (0 issues in local venv and docker motaem_web), docker exec motaem_web python test_multilingual_5lang.py (100% PASS), and ./init.sh (100% PASS)."
+    },
+    {
+      "id": "feat-boost-zero-arabic-leakage",
+      "name": "Boost Multilingual Integrity: Zero Arabic Leakage Across All Core Screens & Dynamic Model Properties",
+      "description": "Comprehensive elimination of Arabic text leakage across 14 core views when switching to non-Arabic languages (en, fr, es, tr, de). Implements localized display properties across models (Branch.display_name, Branch.display_address, Branch.display_city, Branch.get_currency_symbol, JobRole.display_title, Order.display_order_type, Order.display_status, Order.display_payment_method, Order.display_currency_symbol_for_lang, MenuItem.display_name, MenuItem.display_unit, Plan.display_name), context processor language resolution hardening, dynamic LTR/RTL currency symbol rendering, catalog expansion to 3,059 terms across all 6 languages, and full template attribute and script tag sanitization.",
+      "dependencies": ["feat-official-6-language-multilingual-spanish"],
+      "status": "completed",
+      "evidence": "Expanded core/i18n_catalog.py and static catalogs to 3,059 entries. Added display_* localized properties to apps/tenants/models.py, apps/accounts/models.py, apps/orders/models.py, apps/menu/models.py, apps/billing/models.py, apps/inventory/models.py, apps/support/models.py. Updated templates (branches.html, employees.html, branch_menu.html, inventory.html, pos.html, kitchen.html, delivery.html, call_center.html, support_tickets.html, owner_subscription.html, hq_dashboard.html, hq_orders.html, branch_orders.html, base.html). Verified 0 leaks across 14 screens in 5 LTR languages. manage.py check (0 issues), test_multilingual_5lang.py (100% PASS), test_system.py (100% PASS), test_e2e_rbac.py (100% PASS), and ./init.sh (100% PASS)."
     }
   ]
 }

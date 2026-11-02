@@ -2,9 +2,10 @@
 
 ## Current State
 
-**Last Updated:** 2026-11-02 08:45
-**Session ID:** Official 6-Language Multilingual Architecture with Full Spanish (es) Support
+**Last Updated:** 2026-11-02 11:20
+**Session ID:** Boost Multilingual Integrity & Zero Arabic Leakage Across All Views
 **Active Features:** 
+- `feat-boost-zero-arabic-leakage` (Completed & Verified 100%)
 - `feat-official-6-language-multilingual-spanish` (Completed & Verified 100%)
 - `feat-multi-currency-revenue-disaggregation` (Completed & Verified 100%)
 - `feat-unified-order-number-format` (Completed & Verified 100%)
@@ -16,6 +17,32 @@
 ## Status
 
 ### What's Done
+
+- [x] **Boost Multilingual Integrity: Zero Arabic Leakage Across All Core Screens & Dynamic Model Properties (`feat-boost-zero-arabic-leakage`)**
+  - **1. Model Display Properties & Dynamic Fallbacks**:
+    - `Branch`: Added `display_name(lang=None)`, `display_address(lang=None)`, `display_city(lang=None)`, and `get_currency_symbol(lang=None)`. In LTR languages (`en`, `fr`, `es`, `tr`, `de`), currency symbols resolve to international ISO codes / Latin equivalents (e.g. `SAR`, `EGP`, `USD`, `TND`, `DZD`, `AED`) instead of Arabic symbols (`ر.س`, `ج.م`).
+    - `JobRole`: Added `display_title(lang=None)` returning contextually localized job titles (e.g., "Senior Cashier", "Branch Manager", "Kitchen Chef").
+    - `Order`: Added `display_order_type(lang=None)`, `display_status(lang=None)`, `display_payment_method(lang=None)`, and `display_currency_symbol_for_lang(lang=None)` returning LTR currency symbol when viewed in LTR modes.
+    - `MenuItem`: Added `display_name(lang=None)` and `display_unit(lang=None)`.
+    - `Plan`: Added `display_name(lang=None)`.
+    - `StockItem` & `RecipeItem`: Localized unit measurements and status labels.
+    - `SupportTicket`: Localized status, category, and priority badges.
+  - **2. Language Resolution Hardening**:
+    - Fixed order of language detection in `core/context_processors.py` to prioritize active session `django_language` and cookie over Django middleware default `ar`.
+    - Localized currency lists and symbols dynamically in `apps/tenants/views.py`, `apps/orders/views.py`, and `core/views.py`.
+  - **3. Expanded I18N Catalog**:
+    - Expanded `core/i18n_catalog.py`, `static/js/diyafa_i18n_catalog.json`, `staticfiles/js/diyafa_i18n_catalog.json` (and `.gz`) from 2,906 to 3,059 terms across all 6 languages.
+  - **4. Template Leakage Remediation Across 14 Views**:
+    - Cleaned and localized: `/branches/`, `/employees/`, `/branch/menu/`, `/inventory/`, `/pos/`, `/kitchen/`, `/delivery/`, `/call-center/`, `/call-center/embedded/`, `/support/`, `/subscription/`, `/dashboard/?view=tenant`, `/hq/orders/`, `/branch/orders/`.
+    - Replaced all hardcoded Arabic placeholders, table cells, badge texts, empty states, and modal scripts.
+  - **5. Deep Verification**:
+    - Ran automated BeautifulSoup leakage scanner across all 14 URLs and 5 non-Arabic languages (`en`, `fr`, `es`, `tr`, `de`): **0 Arabic leaks found (100% clean)**.
+    - Verified `venv/bin/python manage.py check` (0 issues).
+    - Verified `venv/bin/python test_multilingual_5lang.py` (9/9 suites 100% PASS).
+    - Verified `venv/bin/python test_system.py` (100% PASS).
+    - Verified `venv/bin/python test_e2e_rbac.py` (100% PASS).
+    - Verified `./init.sh` (100% PASS across all project test suites).
+    - Updated AST graph via `graphify update .`.
 
 - [x] **Official 6-Language Multilingual Architecture with Full Spanish (es) Support (`feat-official-6-language-multilingual-spanish`)**
   - **1. Django Configuration & Language Switching Routing**:
