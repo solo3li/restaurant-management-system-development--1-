@@ -157,6 +157,21 @@ class Order(models.Model):
         ]
 
     @property
+    def display_currency_symbol(self):
+        """
+        Returns safe, guaranteed currency symbol for order display without template lookup errors.
+        """
+        if self.currency_symbol:
+            return self.currency_symbol
+        branch = getattr(self, "branch", None)
+        if branch and hasattr(branch, "get_currency_symbol_ar"):
+            return branch.get_currency_symbol_ar()
+        tenant = getattr(self, "tenant", None)
+        if tenant and hasattr(tenant, "get_currency_symbol_ar"):
+            return tenant.get_currency_symbol_ar()
+        return "ر.س"
+
+    @property
     def short_order_number(self):
         """
         Returns short sequence display (e.g. #0001) for unified order numbers

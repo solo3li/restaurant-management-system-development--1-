@@ -319,7 +319,7 @@
                                     <span class="text-[11px] text-slate-400 font-mono" dir="ltr">{{ o.customer_phone|default:"—" }}</span>
                                 </td>
                                 <td class="p-3 font-bold text-slate-900 font-mono text-xs">
-                                    {{ o.total|floatformat:2 }} {{ o.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar|default:t.currency }}
+                                    {{ o.total|floatformat:2 }} {{ o.display_currency_symbol }}
                                 </td>
                                 <td class="p-3">
                                     <span class="inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-[11px] font-medium 

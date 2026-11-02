@@ -113,9 +113,12 @@ def branch_orders_view(request):
     can_delete = is_owner or user_has_perm(request.user, "branch_delete_orders") or user_has_perm(request.user, "delete_orders")
     can_edit = is_owner or user_has_perm(request.user, "branch_edit_orders") or user_has_perm(request.user, "edit_orders")
 
+    currency_symbol = branch.get_currency_symbol_ar() if branch else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+
     context = {
         "tenant": tenant,
         "branch": branch,
+        "currency_symbol": currency_symbol,
         "orders": page_obj,
         "page_obj": page_obj,
         "paginator": paginator,

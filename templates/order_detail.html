@@ -211,8 +211,8 @@
                                     </div>
                                 </td>
                                 <td class="p-2.5 text-center font-bold text-slate-900 text-sm font-mono">{{ item.qty }}</td>
-                                <td class="p-2.5 text-left text-slate-700 font-bold font-mono">{{ item.price|floatformat:2 }} {{ order.currency_symbol|default:order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
-                                <td class="p-2.5 text-left font-bold text-violet-700 font-mono">{{ item.line_total|floatformat:2 }} {{ order.currency_symbol|default:order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</td>
+                                <td class="p-2.5 text-left text-slate-700 font-bold font-mono">{{ item.price|floatformat:2 }} {{ order.display_currency_symbol }}</td>
+                                <td class="p-2.5 text-left font-bold text-violet-700 font-mono">{{ item.line_total|floatformat:2 }} {{ order.display_currency_symbol }}</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -235,20 +235,20 @@
                 <div class="space-y-2.5 text-xs">
                     <div class="flex justify-between text-slate-700 font-bold">
                         <span>{{ "المجموع الفرعي"|t }}:</span>
-                        <span class="font-bold text-slate-900 font-mono">{{ order.subtotal|floatformat:2 }} {{ order.currency_symbol|default:order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ order.subtotal|floatformat:2 }} {{ order.display_currency_symbol }}</span>
                     </div>
                     <div class="flex justify-between text-slate-700 font-bold">
                         <span>{{ "رسوم التوصيل"|t }}:</span>
-                        <span class="font-bold text-slate-900 font-mono">{{ order.delivery_fee|floatformat:2 }} {{ order.currency_symbol|default:order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ order.delivery_fee|floatformat:2 }} {{ order.display_currency_symbol }}</span>
                     </div>
                     <div class="flex justify-between text-rose-700 font-bold">
                         <span>{{ "الخصم المطبق"|t }}:</span>
-                        <span class="font-bold font-mono">-{{ order.discount|floatformat:2 }} {{ order.currency_symbol|default:order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span>
+                        <span class="font-bold font-mono">-{{ order.discount|floatformat:2 }} {{ order.display_currency_symbol }}</span>
                     </div>
 
                     <div class="border-t border-slate-100 pt-3 flex justify-between items-center text-base font-semibold">
                         <span class="text-slate-900">{{ "المبلغ الإجمالي"|t }}:</span>
-                        <span class="text-violet-800 text-xl font-bold font-mono">{{ order.total|floatformat:2 }} <span class="text-xs font-bold text-slate-700 font-sans">{{ order.currency_symbol|default:order.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar }}</span></span>
+                        <span class="text-violet-800 text-xl font-bold font-mono">{{ order.total|floatformat:2 }} <span class="text-xs font-bold text-slate-700 font-sans">{{ order.display_currency_symbol }}</span></span>
                     </div>
 
                     <div class="rounded-lg bg-slate-50 p-3 mt-3 space-y-2 text-xs border border-slate-200/70 shadow-xs">

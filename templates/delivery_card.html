@@ -25,7 +25,7 @@
             </div>
             <div class="flex items-center gap-1 shrink-0">
                 <span class="text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200/60 px-2 py-0.5 rounded-md">
-                    {{ order.total|floatformat:2 }} {{ order.currency_symbol|default:order.branch.get_currency_symbol_ar|default:t.currency|default:"ر.س" }}
+                    {{ order.total|floatformat:2 }} {{ order.display_currency_symbol }}
                 </span>
             </div>
         </div>
