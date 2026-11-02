@@ -15268,10 +15268,10 @@
   },
   "ج.م": {
     "ar": "ج.م",
-    "en": "J.M",
-    "fr": "J.M.",
-    "tr": "JM",
-    "de": "J.M"
+    "en": "EGP",
+    "fr": "EGP",
+    "tr": "EGP",
+    "de": "EGP"
   },
   "ج.م / كم": {
     "ar": "ج.م / كم",
@@ -20305,5 +20305,40 @@
     "fr": "Conversation et réponses",
     "tr": "Konuşma ve Yanıtlar",
     "de": "Konversation und Antworten"
+  },
+  "د.ت": {
+    "ar": "د.ت",
+    "en": "TND",
+    "fr": "TND",
+    "tr": "TND",
+    "de": "TND"
+  },
+  "د.ج": {
+    "ar": "د.ج",
+    "en": "DZD",
+    "fr": "DZD",
+    "tr": "DZD",
+    "de": "DZD"
+  },
+  "د.إ": {
+    "ar": "د.إ",
+    "en": "AED",
+    "fr": "AED",
+    "tr": "AED",
+    "de": "AED"
+  },
+  "د.ك": {
+    "ar": "د.ك",
+    "en": "KWD",
+    "fr": "KWD",
+    "tr": "KWD",
+    "de": "KWD"
+  },
+  "د.م": {
+    "ar": "د.م",
+    "en": "MAD",
+    "fr": "MAD",
+    "tr": "MAD",
+    "de": "MAD"
   }
 }

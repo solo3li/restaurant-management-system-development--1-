@@ -15479,10 +15479,45 @@ _RAW_CATALOG = {
     },
     "ج.م": {
         "ar": "ج.م",
-        "en": "J.M",
-        "fr": "J.M.",
-        "tr": "JM",
-        "de": "J.M"
+        "en": "EGP",
+        "fr": "EGP",
+        "tr": "EGP",
+        "de": "EGP"
+    },
+    "د.ت": {
+        "ar": "د.ت",
+        "en": "TND",
+        "fr": "TND",
+        "tr": "TND",
+        "de": "TND"
+    },
+    "د.ج": {
+        "ar": "د.ج",
+        "en": "DZD",
+        "fr": "DZD",
+        "tr": "DZD",
+        "de": "DZD"
+    },
+    "د.إ": {
+        "ar": "د.إ",
+        "en": "AED",
+        "fr": "AED",
+        "tr": "AED",
+        "de": "AED"
+    },
+    "د.ك": {
+        "ar": "د.ك",
+        "en": "KWD",
+        "fr": "KWD",
+        "tr": "KWD",
+        "de": "KWD"
+    },
+    "د.م": {
+        "ar": "د.م",
+        "en": "MAD",
+        "fr": "MAD",
+        "tr": "MAD",
+        "de": "MAD"
     },
     "ج.م / كم": {
         "ar": "ج.م / كم",

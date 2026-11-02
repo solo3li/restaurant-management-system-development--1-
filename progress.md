@@ -42,7 +42,7 @@
     - Updated `templates/kitchen.html`, `templates/delivery.html`, and `templates/delivery_card.html` to render `order.currency_symbol` on cards and live arrival toasts.
     - Updated `templates/branch_orders.html` cards, table columns, and modal to use `o.currency_symbol`.
   - **7. Dedicated Automated Test Suite & Verification**:
-    - Created `test_multi_currency_orders.py` (11 unit and integration test suites, 100% PASS).
+    - Created `test_multi_currency_orders.py` (15 unit and integration test suites, 100% PASS).
     - Verified with `manage.py check` (0 issues), `test_system.py` (100% PASS), `test_e2e_rbac.py` (100% PASS), `test_support_and_brevo.py` (25/25 PASS), `test_unified_order_numbers.py` (15/15 PASS), `test_multilingual_5lang.py` (9/9 suites PASS), and `./init.sh` (100% PASS).
     - Updated AST knowledge graph via `graphify update .`.
 

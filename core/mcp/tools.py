@@ -1411,7 +1411,7 @@ def create_callcenter_order(
                 action="order_created",
                 target_model="Order",
                 target_id=order.id,
-                description=f"إنشاء الطلب #{order.order_number} تلقائياً عبر كول سنتر الذكاء الاصطناعي ({key_obj.name}) للعميل {cust_label} بقيمة {order.total} {branch_obj.get_currency_symbol_ar()}",
+                description=f"إنشاء الطلب #{order.order_number} تلقائياً عبر كول سنتر الذكاء الاصطناعي ({key_obj.name}) للعميل {cust_label} بقيمة {order.total} {order.currency_symbol}",
                 ip_address=None,
             )
 
@@ -1494,9 +1494,9 @@ def create_callcenter_order(
             "message": f"تم إنشاء الأوردر بنجاح برقم {order.order_number}",
             "order_number": order.order_number,
             "short_order_number": order.short_order_number,
-            "currency": branch_obj.currency,
+            "currency": order.currency,
             "currency_name": cur_name,
-            "currency_symbol": cur_sym,
+            "currency_symbol": order.currency_symbol,
             "customer_recognized": customer_recognized,
             "used_draft_cart": used_cart_checkout,
             "ai_speech_response": speech,
@@ -1506,9 +1506,9 @@ def create_callcenter_order(
                 "order_number": order.order_number,
                 "short_order_number": order.short_order_number,
                 "branch_name": branch_obj.name,
-                "currency": branch_obj.currency,
+                "currency": order.currency,
                 "currency_name": cur_name,
-                "currency_symbol": cur_sym,
+                "currency_symbol": order.currency_symbol,
                 "order_type": order.get_order_type_display(),
                 "status": order.get_status_display(),
                 "status_code": order.status,
@@ -1536,6 +1536,10 @@ def create_callcenter_order(
         }
     finally:
         close_old_connections()
+
+
+# Alias create_order for FastMCP and Voice Assistant callers
+create_order = create_callcenter_order
 
 
 # =====================================================================

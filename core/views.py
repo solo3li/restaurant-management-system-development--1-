@@ -306,15 +306,20 @@ def dashboard_view(request):
     sales_today = today_orders.aggregate(total=Sum("total"))["total"] or Decimal("0")
     orders_count_today = today_orders.count()
 
-    today_sales_by_currency = list(
+    raw_today_sales = list(
         today_orders.values("currency_symbol")
         .annotate(total=Sum("total"), count=Count("id"))
-        .order_by("-total")
     )
-    for item in today_sales_by_currency:
-        if not item.get("currency_symbol"):
-            item["currency_symbol"] = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+    merged_today_sales = {}
+    fallback_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+    for item in raw_today_sales:
+        sym = (item.get("currency_symbol") or "").strip() or fallback_sym
+        if sym not in merged_today_sales:
+            merged_today_sales[sym] = {"currency_symbol": sym, "total": Decimal("0"), "count": 0}
+        merged_today_sales[sym]["total"] += (item.get("total") or Decimal("0"))
+        merged_today_sales[sym]["count"] += (item.get("count") or 0)
 
+    today_sales_by_currency = sorted(merged_today_sales.values(), key=lambda x: x["total"], reverse=True)
     is_single_currency = (len(today_sales_by_currency) <= 1)
 
     # 2. Active deliveries across tenant

@@ -33,7 +33,8 @@ from apps.accounts.models import UserProfile, JobRole
 from apps.menu.models import BranchMenuAvailability
 from apps.kitchen.events import serialize_kitchen_order
 from apps.orders.events import serialize_delivery_order
-from core.mcp.tools import create_callcenter_order as mcp_create_order
+from core.mcp.tools import create_callcenter_order as mcp_create_order, create_order as mcp_create_order_alias
+from core.i18n_catalog import get_translation
 
 
 from unittest.mock import patch
@@ -412,6 +413,103 @@ class MultiCurrencyOrderTests(TestCase):
         order.save()
         self.assertEqual(order.currency, "TND")
         self.assertEqual(order.currency_symbol, "د.ت")
+
+    def test_hq_orders_aggregation_deduplicates_legacy_and_unpopulated_currency_symbols(self):
+        """HQ orders and dashboard merge orders with empty, whitespace, or fallback symbols into one group without pill duplicates"""
+        Order.objects.filter(tenant=self.tenant).delete()
+
+        # 1. Order with explicit SAR
+        Order.objects.create(
+            tenant=self.tenant, branch=self.branch_sa,
+            order_number="ORD-DEDUP-01", total=Decimal("100.00"),
+            currency="SAR", currency_symbol="ر.س", status="delivered"
+        )
+        # 2. Legacy order with blank currency_symbol
+        o2 = Order.objects.create(
+            tenant=self.tenant, branch=self.branch_sa,
+            order_number="ORD-DEDUP-02", total=Decimal("50.00"),
+            status="delivered"
+        )
+        Order.objects.filter(id=o2.id).update(currency_symbol="")
+
+        # 3. Legacy order with whitespace currency_symbol
+        o3 = Order.objects.create(
+            tenant=self.tenant, branch=self.branch_sa,
+            order_number="ORD-DEDUP-03", total=Decimal("25.00"),
+            status="delivered"
+        )
+        Order.objects.filter(id=o3.id).update(currency_symbol="   ")
+
+        self.client.force_login(self.user)
+        res = self.client.get("/hq/orders/")
+        self.assertEqual(res.status_code, 200)
+
+        # All 3 orders resolve to SAR / "ر.س", so is_single_currency MUST be True!
+        self.assertTrue(res.context["is_single_currency"], "Expected is_single_currency=True for all SAR orders")
+        rev_by_currency = res.context["rev_by_currency"]
+        self.assertEqual(len(rev_by_currency), 1, "Expected exactly 1 consolidated currency group")
+        self.assertEqual(rev_by_currency[0]["currency_symbol"], "ر.س")
+        self.assertEqual(rev_by_currency[0]["total"], Decimal("175.00"))
+        self.assertEqual(rev_by_currency[0]["count"], 3)
+
+        # Same consolidation in Dashboard view
+        res_dash = self.client.get("/dashboard/")
+        self.assertEqual(res_dash.status_code, 200)
+        self.assertTrue(res_dash.context["is_single_currency"])
+        dash_sales = res_dash.context["today_sales_by_currency"]
+        self.assertEqual(len(dash_sales), 1)
+        self.assertEqual(dash_sales[0]["currency_symbol"], "ر.س")
+        self.assertEqual(dash_sales[0]["total"], Decimal("175.00"))
+        self.assertEqual(dash_sales[0]["count"], 3)
+
+    def test_mcp_create_order_alias_and_payload(self):
+        """create_order MCP tool alias creates order and returns order.currency and order.currency_symbol"""
+        result = mcp_create_order_alias(
+            access_key=self.mcp_key.key,
+            customer_phone="01199887766",
+            customer_name="عميل التوجيه السريع",
+            customer_address="شارع التحلية الرياض",
+            items=[{"name": self.menu_item.name, "quantity": 2}],
+            order_type="takeaway",
+            branch_id=self.branch_sa.id
+        )
+        self.assertTrue(result.get("ok"), f"create_order failed: {result}")
+        self.assertEqual(result.get("currency"), "SAR")
+        self.assertEqual(result.get("currency_symbol"), "ر.س")
+        self.assertIn("order", result)
+        self.assertEqual(result["order"]["currency"], "SAR")
+        self.assertEqual(result["order"]["currency_symbol"], "ر.س")
+
+    def test_order_detail_view_renders_immutable_order_currency(self):
+        """order_detail view renders order.currency_symbol even if branch currency was modified"""
+        order = Order.objects.create(
+            tenant=self.tenant, branch=self.branch_eg,
+            order_number="ORD-DETAIL-TEST-01", total=Decimal("250.00"),
+            subtotal=Decimal("250.00"), currency="EGP", currency_symbol="ج.م",
+            status="delivered", cashier="كاشير فرع المعادي"
+        )
+        OrderItem.objects.create(
+            order=order, menu_item=self.menu_item,
+            name=self.menu_item.name, price=Decimal("250.00"), qty=1
+        )
+
+        self.client.force_login(self.user)
+        res = self.client.get(f"/orders/{order.id}/")
+        self.assertEqual(res.status_code, 200)
+        content = res.content.decode("utf-8")
+        self.assertIn("ج.م", content)
+        self.assertTrue("250,00" in content or "250.00" in content, "Expected formatted total in content")
+
+    def test_i18n_catalog_multilingual_currencies(self):
+        """core.i18n_catalog translates Arabic currency symbols to standard ISO English codes"""
+        self.assertEqual(get_translation("ج.م", "en"), "EGP")
+        self.assertEqual(get_translation("ج.م", "fr"), "EGP")
+        self.assertEqual(get_translation("د.ت", "en"), "TND")
+        self.assertEqual(get_translation("د.ج", "en"), "DZD")
+        self.assertEqual(get_translation("د.إ", "en"), "AED")
+        self.assertEqual(get_translation("د.ك", "en"), "KWD")
+        self.assertEqual(get_translation("د.م", "en"), "MAD")
+        self.assertEqual(get_translation("ر.س", "en"), "SAR")
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ from apps.orders.models import Order, OrderItem, Customer
 from apps.tenants.models import Tenant, Branch, DeliveryArea
 from apps.menu.models import MenuItem, MenuCategory, MenuItemVariant, BranchMenuAvailability, BranchVariantPrice
 from apps.accounts.models import Employee
-from apps.audit.models import log_audit_event
+from apps.audit.models import AuditLog, log_audit_event
 from apps.kitchen.events import notify_kitchen_order_event
 from apps.orders.events import (
     delivery_broadcaster,
@@ -238,18 +238,23 @@ def hq_orders_view(request):
             }
         ]
     else:
-        rev_by_currency = list(
+        raw_rev_by_currency = list(
             orders.filter(~Q(status="cancelled"))
             .values("currency_symbol")
             .annotate(total=Sum("total"), count=Count("id"))
-            .order_by("-total")
         )
-        for item in rev_by_currency:
-            if not item.get("currency_symbol"):
-                item["currency_symbol"] = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+        merged_rev = {}
+        fallback_sym = tenant.get_currency_symbol_ar() if tenant else "ر.س"
+        for item in raw_rev_by_currency:
+            sym = (item.get("currency_symbol") or "").strip() or fallback_sym
+            if sym not in merged_rev:
+                merged_rev[sym] = {"currency_symbol": sym, "total": Decimal("0"), "count": 0}
+            merged_rev[sym]["total"] += (item.get("total") or Decimal("0"))
+            merged_rev[sym]["count"] += (item.get("count") or 0)
 
+        rev_by_currency = sorted(merged_rev.values(), key=lambda x: x["total"], reverse=True)
         is_single_currency = (len(rev_by_currency) <= 1)
-        active_currency_symbol = rev_by_currency[0]["currency_symbol"] if rev_by_currency else (tenant.get_currency_symbol_ar() if tenant else "ر.س")
+        active_currency_symbol = rev_by_currency[0]["currency_symbol"] if rev_by_currency else fallback_sym
 
     page_num = request.GET.get("page", 1)
     paginator = Paginator(orders, 50)

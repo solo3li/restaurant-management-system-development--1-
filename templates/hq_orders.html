@@ -456,7 +456,7 @@
                 "delivery_fee": "{{ o.delivery_fee|floatformat:2 }}",
                 "discount": "{{ o.discount|floatformat:2 }}",
                 "total": "{{ o.total|floatformat:2 }}",
-                "currency_symbol": "{{ o.currency_symbol|default:o.branch.get_currency_symbol_ar|default:t.get_currency_symbol_ar }}",
+                "currency_symbol": "{{ o.currency_symbol|default:o.branch.get_currency_symbol_ar|default:tenant.get_currency_symbol_ar|default:t.currency }}",
                 "items": [
                     {% for item in o.items.all %}
                     {
