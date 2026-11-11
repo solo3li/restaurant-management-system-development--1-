@@ -45,6 +45,9 @@ venv/bin/python manage.py test test_support_and_brevo
 echo "=== venv/bin/python test_unified_order_numbers.py ==="
 venv/bin/python test_unified_order_numbers.py
 
+echo "=== venv/bin/python manage.py test test_subscription_fixes ==="
+venv/bin/python manage.py test test_subscription_fixes
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

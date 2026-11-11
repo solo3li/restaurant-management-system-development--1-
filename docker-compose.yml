@@ -117,10 +117,38 @@ services:
       # Target Service
       - "traefik.http.services.motaem.loadbalancer.server.port=8000"
 
+  minio:
+    image: minio/minio:latest
+    container_name: motaem_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9200:9000"
+      - "9201:9001"
+    networks:
+      - motaem_network
+
+  inngest:
+    image: inngest/inngest:latest
+    container_name: motaem_inngest
+    restart: unless-stopped
+    command: "inngest dev -u http://web:8000/api/inngest/ --host 0.0.0.0"
+    ports:
+      - "8488:8288"
+    networks:
+      - motaem_network
+    depends_on:
+      - web
 
 volumes:
   postgres_data:
   media_data:
+  minio_data:
 
 networks:
   motaem_network:

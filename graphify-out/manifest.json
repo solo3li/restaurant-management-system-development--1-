@@ -270,9 +270,9 @@
     "semantic_hash": ""
   },
   "apps/billing/admin.py": {
-    "mtime": 1793018909.1795123,
-    "seen": 1793019076.1145377,
-    "ast_hash": "f44ea52be6ec21984ea1c0f6438b6632",
+    "mtime": 1794431990.6369135,
+    "seen": 1794434657.3050447,
+    "ast_hash": "6705694cba2064646776e9b9eaacef45",
     "semantic_hash": ""
   },
   "apps/billing/apps.py": {
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "apps/billing/models.py": {
-    "mtime": 1794428068.1475286,
-    "seen": 1794428937.7921677,
-    "ast_hash": "28581c798d461686422ce3c6f2bbc4f8",
+    "mtime": 1794433688.396945,
+    "seen": 1794434657.3051193,
+    "ast_hash": "18d965e580afc497c6f3db7e66c06f6a",
     "semantic_hash": ""
   },
   "apps/billing/urls.py": {
@@ -294,9 +294,9 @@
     "semantic_hash": ""
   },
   "apps/billing/views.py": {
-    "mtime": 1792794500.9373689,
-    "seen": 1792794727.4455733,
-    "ast_hash": "a8178ec00eab487541c7a9c3b5ce935f",
+    "mtime": 1794432020.9488747,
+    "seen": 1794434657.3052945,
+    "ast_hash": "016f2b3ce18c1a5838121f203095f710",
     "semantic_hash": ""
   },
   "apps/callcenter/__init__.py": {
@@ -510,9 +510,9 @@
     "semantic_hash": ""
   },
   "apps/tenants/models.py": {
-    "mtime": 1793617519.6483793,
-    "seen": 1793626444.3120685,
-    "ast_hash": "8b00452ebe5c8f274681f65d2c98d867",
+    "mtime": 1794433027.1465504,
+    "seen": 1794434657.309021,
+    "ast_hash": "3a9a0374cf1ad16f18ab25aa55292efb",
     "semantic_hash": ""
   },
   "apps/tenants/urls.py": {
@@ -552,9 +552,9 @@
     "semantic_hash": ""
   },
   "core/context_processors.py": {
-    "mtime": 1793613058.4074876,
-    "seen": 1793614685.4241982,
-    "ast_hash": "05c205005750eb20063624bd17bbc23a",
+    "mtime": 1794432087.8259945,
+    "seen": 1794434657.309413,
+    "ast_hash": "c6c9736471e2cafe4029d6abc5ecc4da",
     "semantic_hash": ""
   },
   "core/currencies.py": {
@@ -654,9 +654,9 @@
     "semantic_hash": ""
   },
   "core/middleware.py": {
-    "mtime": 1793097292.9098544,
-    "seen": 1793098004.4201386,
-    "ast_hash": "737cbe0f2532bceeaa636503c27ce7f3",
+    "mtime": 1794432074.2315636,
+    "seen": 1794434657.310561,
+    "ast_hash": "a0dc09cbfa045a3adc34c69ebb64da32",
     "semantic_hash": ""
   },
   "core/migrations/0001_initial.py": {
@@ -864,9 +864,9 @@
     "semantic_hash": ""
   },
   "core/urls.py": {
-    "mtime": 1794428320.3225832,
-    "seen": 1794428937.8008084,
-    "ast_hash": "7cf967b81dce4d42a0e236f7006c1a7a",
+    "mtime": 1794431630.8834932,
+    "seen": 1794434657.314197,
+    "ast_hash": "d9cabd3ef9f7247f8cd4e561cc9e9dad",
     "semantic_hash": ""
   },
   "core/views.py": {
@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   "restaurant_system/settings.py": {
-    "mtime": 1793603815.4585893,
-    "seen": 1793605424.2250457,
-    "ast_hash": "9da5290e0ebc41a28c830225bdcfb2b9",
+    "mtime": 1794432473.234202,
+    "seen": 1794434657.314591,
+    "ast_hash": "5e14c8e658253a2b11c0c3b8922411d5",
     "semantic_hash": ""
   },
   "restaurant_system/urls.py": {
@@ -2082,9 +2082,9 @@
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1793011397.3169706,
-    "seen": 1793018319.5838497,
-    "ast_hash": "7bc97db145f10c4722fd849db285abdd",
+    "mtime": 1794432488.9286988,
+    "seen": 1794434657.338964,
+    "ast_hash": "ae5731bff6c6d245fced3e191a3928a2",
     "semantic_hash": ""
   },
   "docs/awesome-harness-engineering/CONTRIBUTING.md": {
@@ -2106,9 +2106,9 @@
     "semantic_hash": ""
   },
   "requirements.txt": {
-    "mtime": 1793511046.1553671,
-    "seen": 1793511734.184959,
-    "ast_hash": "289e2173b21bed69427b60065b67a42a",
+    "mtime": 1794432419.830511,
+    "seen": 1794434657.3392096,
+    "ast_hash": "b1bdcfc8fb1f397c0cdebd91e9384fe0",
     "semantic_hash": ""
   },
   "staticfiles/admin/css/vendor/select2/LICENSE-SELECT2.md": {
@@ -2220,9 +2220,9 @@
     "semantic_hash": ""
   },
   "templates/base.html": {
-    "mtime": 1793611365.1065655,
-    "seen": 1793614685.457953,
-    "ast_hash": "74a45e812908dbb6afa5949ada76356e",
+    "mtime": 1794432109.290675,
+    "seen": 1794434657.340772,
+    "ast_hash": "8627d486e6510f2cd7921b4e4d0eade0",
     "semantic_hash": ""
   },
   "templates/branch_dashboard.html": {
@@ -2328,9 +2328,9 @@
     "semantic_hash": ""
   },
   "templates/owner_subscription.html": {
-    "mtime": 1793613753.162546,
-    "seen": 1793614685.4585695,
-    "ast_hash": "1c2e4fd3f95c39e6b6bfba6d32a1b3d1",
+    "mtime": 1794432588.743002,
+    "seen": 1794434657.3416805,
+    "ast_hash": "dc04d1bdd4d8bc09501f9b26ef015d16",
     "semantic_hash": ""
   },
   "templates/pos.html": {
@@ -3060,15 +3060,15 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1793614704.9186692,
-    "seen": 1793626444.317609,
-    "ast_hash": "ac80882e0c71de9b7a0559d7fe13c81d",
+    "mtime": 1794434494.6727543,
+    "seen": 1794434657.3143802,
+    "ast_hash": "99059edceb9b5d8c0a934d96f69ce094",
     "semantic_hash": ""
   },
   "init.sh": {
-    "mtime": 1794428833.7726557,
-    "seen": 1794428937.8009262,
-    "ast_hash": "f73e62c694488f9f17a77e94093df592",
+    "mtime": 1794434030.8379238,
+    "seen": 1794434657.3143842,
+    "ast_hash": "7e82d02fe01a47de6327e69dc6b91af9",
     "semantic_hash": ""
   },
   "harness-assessment.html": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793626485.3566005,
-    "seen": 1794428937.8331017,
-    "ast_hash": "bf2b7f4e5e4a925c2b8db03a99d01c4f",
+    "mtime": 1794434602.273127,
+    "seen": 1794434657.3392072,
+    "ast_hash": "aeffe13e26ac1fb3ec55ed0934ac46db",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -4161,6 +4161,36 @@
     "mtime": 1794428778.356022,
     "seen": 1794428937.8146565,
     "ast_hash": "c391671959db9082fdfc85158d9d1c61",
+    "semantic_hash": ""
+  },
+  "apps/billing/notifications.py": {
+    "mtime": 1794431533.3423908,
+    "seen": 1794434657.3051236,
+    "ast_hash": "653133332aa97cfaf6e912a102c0b4f7",
+    "semantic_hash": ""
+  },
+  "core/inngest_client.py": {
+    "mtime": 1794433807.1457565,
+    "seen": 1794434657.309594,
+    "ast_hash": "6975b8533c4a54f8be293c9e634b41a6",
+    "semantic_hash": ""
+  },
+  "core/migrations/0043_subscription_fixes_and_payments.py": {
+    "mtime": 1794433115.6204388,
+    "seen": 1794434657.3136346,
+    "ast_hash": "6742359820ba2d00eaf8b1b05634ff09",
+    "semantic_hash": ""
+  },
+  "test_subscription_fixes.py": {
+    "mtime": 1794433896.4406192,
+    "seen": 1794434657.3281293,
+    "ast_hash": "d436ced28d305c39350e67dd68759401",
+    "semantic_hash": ""
+  },
+  "templates/subscription_expired_block.html": {
+    "mtime": 1794432051.743851,
+    "seen": 1794434657.3418841,
+    "ast_hash": "80a6871fd2872326b135d1711d0d807d",
     "semantic_hash": ""
   }
 }

@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'apps.audit',
     'apps.communication',
     'apps.support',
+    'storages',
 ]
 
 
@@ -233,6 +234,34 @@ WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static assets (default is 60s)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# MinIO & S3 Media Storage Configuration
+USE_MINIO = os.getenv("USE_MINIO", "False").lower() in ("true", "1", "yes")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", os.getenv("MINIO_ROOT_USER", "minioadmin"))
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", os.getenv("MINIO_ROOT_PASSWORD", "minioadmin123"))
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "motaem-media")
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", os.getenv("MINIO_ENDPOINT", "http://minio:9000"))
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = True  # Secure signed access for payment receipts
+
+if USE_MINIO:
+    STORAGES['default'] = {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'OPTIONS': {
+            'access_key': AWS_ACCESS_KEY_ID,
+            'secret_key': AWS_SECRET_ACCESS_KEY,
+            'bucket_name': AWS_STORAGE_BUCKET_NAME,
+            'endpoint_url': AWS_S3_ENDPOINT_URL,
+            'region_name': AWS_S3_REGION_NAME,
+            'signature_version': AWS_S3_SIGNATURE_VERSION,
+            'file_overwrite': AWS_S3_FILE_OVERWRITE,
+            'default_acl': AWS_DEFAULT_ACL,
+            'querystring_auth': AWS_QUERYSTRING_AUTH,
+        },
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

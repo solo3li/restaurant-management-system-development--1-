@@ -850,7 +850,20 @@
         <div class="w-full max-w-7xl mx-auto">
             <!-- Subscription Warning Banner -->
             {% if tenant_subscription and not is_platform_admin %}
-                {% if not tenant_subscription.is_active %}
+                {% if subscription_in_grace_period or tenant_subscription.is_in_grace_period %}
+                <div class="mb-5 rounded-xl border border-amber-300 bg-amber-50/95 p-4 text-amber-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </span>
+                        <div>
+                            <p class="font-bold text-sm text-amber-950">{{ "فترة سماح نشطة (Grace Period)"|t }} — {{ grace_days_remaining|default:tenant_subscription.grace_days_remaining }} {{ "أيام متبقية"|t }}</p>
+                            <p class="text-xs text-amber-800 mt-0.5">{{ "انتهت فترة الاشتراك. نقاط البيع والطلبات تعمل حالياً بشكل طبيعي، بينما تم قفل تعديل الإعدادات والمنيو والفروع لحين التجديد."|t }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'owner_subscription' %}" class="rounded-lg bg-amber-600 hover:bg-amber-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition whitespace-nowrap self-start sm:self-auto">{{ "تجديد الاشتراك فوراً"|t }}</a>
+                </div>
+                {% elif not tenant_subscription.is_active or subscription_is_locked_out %}
                 <div class="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <span class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">

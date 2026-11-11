@@ -2,9 +2,10 @@
 
 ## Current State
 
-**Last Updated:** 2026-11-11 23:30
-**Session ID:** Partner Telephony & Messaging Billing, Quotas, and Live Trackers
+**Last Updated:** 2026-11-12 00:00
+**Session ID:** Subscription Plans Dual Currency (USD & EGP), Manual Payment Workflow, 3-Tier Hard Lockout & Inngest Crons
 **Active Features:** 
+- `feat-subscription-dual-currency-and-manual-payments` (Completed & Verified 100%)
 - `feat-partner-billing-message-quotas-and-rates` (Completed & Verified 100%)
 - `feat-boost-zero-arabic-leakage` (Completed & Verified 100%)
 - `feat-official-6-language-multilingual-spanish` (Completed & Verified 100%)
@@ -19,7 +20,42 @@
 
 ### What's Done
 
-- [x] **Partner Telephony & Messaging API: Message & Character Quotas, Wholesale/Retail Rate Controls & Live Dual Progress Trackers (`feat-partner-billing-message-quotas-and-rates`)**
+- [x] **Subscription Plans Dual Currency (USD & EGP), Manual Payment Workflow, 3-Tier Hard Lockout & Inngest Crons (`feat-subscription-dual-currency-and-manual-payments`)**
+  - **1. Dual Currency Pricing (USD & EGP)**:
+    - Added `price_monthly_egp` and `price_yearly_egp` fields to `SubscriptionPlan` model (`apps/billing/models.py`).
+    - Added schema and data migration `core/migrations/0043_subscription_fixes_and_payments.py` seeding official pricing across all tiers (Trial: 0/0, Starter: $29/1,400 EGP, Basic: $59/2,900 EGP, Growth: $99/4,900 EGP, Pro: $179/8,800 EGP, Enterprise: $349/17,200 EGP).
+    - Updated owner subscription page (`templates/owner_subscription.html`) to display both USD and EGP on plan comparison cards and in the manual payment submission modal.
+  - **2. Manual Payment Workflow & Django Admin Verification**:
+    - Expanded `UpgradeRequest` with `payment_method` (Wallets, Bank/InstaPay, Binance Pay), `currency` (USD, EGP), `amount`, `sender_account`, `transaction_reference`, `receipt`, and `admin_notes`.
+    - Created secure receipt upload handler supporting multipart/form-data and JSON fallback in `apps/billing/views.py:api_request_upgrade`.
+    - Enhanced Django Admin in `apps/billing/admin.py` with clickable receipt image preview, status badges, and action triggers.
+    - Implemented `UpgradeRequest.apply_upgrade(admin_user=None)`:
+      - Automatically extends subscription duration (+30 days monthly / +365 days yearly).
+      - Sets tenant status to `active` and synchronizes `tenant.subscription_plan` and `tenant.plan`.
+      - Synchronizes PBX call and messaging caps with upstream telephony via `core.partner_service.sync_tenant_voice_caps`.
+      - Dispatches transactional confirmation email to tenant owner via Brevo (`apps/billing/notifications.py`).
+      - Emits Inngest `upgrade.approved` background event.
+      - Includes recursion protection with `_in_apply` guard and direct QuerySet update.
+  - **3. Downgrade Overflow Auto-Deactivation**:
+    - In `apply_upgrade()`, added overflow check: if new plan allows fewer branches or employees than currently active, excess active branches are safely updated to `status='closed'` and employees to `status='inactive'` (preserving all historical data).
+  - **4. Subscription Lifecycle & 3-Tier Hard Lockout**:
+    - Closed `subscription_plan is None` loophole in `apps/tenants/models.py`: `can_add_branch`, `can_add_employee`, and `has_feature` return `False` when null (Platform HQ explicitly bypassed).
+    - Auto-assigns 14-day Trial plan to new tenants on initial save; backfilled all legacy orphan tenants.
+    - Implemented `SubscriptionLockoutMiddleware` (`core/middleware.py`):
+      - **Tier 1 (Active)**: Full unrestricted platform access.
+      - **Tier 2 (3-Day Grace Period)**: Active immediately post-expiration. POS and order creation remain functional; management mutations (menus, branches, employees, settings) return HTTP 403; prominent amber warning banner rendered via `templates/base.html`.
+      - **Tier 3 (Hard Read-Only Lockout)**: Post-grace expiration. Tenant Owner can view/export past invoices and access `/subscription/` (all mutations blocked); Staff/cashiers receive an elegant multilingual lockout screen (`templates/subscription_expired_block.html`) in 6 languages.
+  - **5. Containerized Infrastructure & Inngest Crons**:
+    - Added `minio` and `inngest` services to `docker-compose.yml` with dedicated host ports.
+    - Configured `django-storages` with conditional MinIO/S3 support in `restaurant_system/settings.py`.
+    - Created `core/inngest_client.py` integrating `inngest` Python SDK with webhook at `/api/inngest/`:
+      - Cron `daily-subscription-transition`: Midnight run checking Active -> Grace Period -> Read-Only transitions.
+      - Cron `monthly-quota-reset`: Billing cycle day quota reset for voice minutes and message characters.
+      - Event `upgrade.approved`: Asynchronous quota push to PBX.
+  - **6. Verification & Automated Testing**:
+    - Authored dedicated 14-test suite `test_subscription_fixes.py` covering all 7 pillars.
+    - Integrated suite into `./init.sh`.
+    - 100% PASS across all 15 test suites in `./init.sh`.
   - **1. Data Model & Quota Schema (`apps/billing/models.py`, `core/migrations/0042_...`)**:
     - Added `monthly_voice_minutes`, `monthly_messages_quota`, `monthly_chars_quota`, and `spending_cap` to `SubscriptionPlan`.
     - Applied migration `0042_subscriptionplan_monthly_chars_quota_and_more.py` across development environment and Docker container.

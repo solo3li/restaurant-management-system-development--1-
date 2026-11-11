@@ -189,3 +189,7 @@ urlpatterns = [
     path("api/settings/custom-domain/", views.api_update_custom_domain, name="api_update_custom_domain"),
 ]
 
+# Inngest Background Jobs & Scheduled Crons Webhook Endpoint
+from core.inngest_client import inngest_url_pattern
+urlpatterns.append(inngest_url_pattern)
+

@@ -154,7 +154,7 @@ def owner_subscription_view(request):
 
 @login_required
 def api_request_upgrade(request):
-    """API for tenant owner to submit an upgrade request."""
+    """API for tenant owner to submit an upgrade request (supports JSON and multipart FormData with screenshot)."""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
@@ -171,15 +171,25 @@ def api_request_upgrade(request):
         err_msg = "No active restaurant associated with your account" if is_en else "لا توجد منشأة نشطة مرتبطة بحسابك"
         return JsonResponse({"error": err_msg}, status=400)
 
-    try:
-        body = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        err_msg = "Invalid JSON data" if is_en else "بيانات غير صالحة"
-        return JsonResponse({"error": err_msg}, status=400)
+    # Handle both multipart/form-data and JSON payloads
+    content_type = request.content_type or ""
+    if "application/json" in content_type:
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            err_msg = "Invalid JSON data" if is_en else "بيانات غير صالحة"
+            return JsonResponse({"error": err_msg}, status=400)
+    else:
+        payload = request.POST
 
-    plan_id = body.get("plan_id")
-    billing_cycle = body.get("billing_cycle", "monthly")
-    notes = str(body.get("notes", "")).strip()
+    plan_id = payload.get("plan_id")
+    billing_cycle = payload.get("billing_cycle", "monthly")
+    payment_method = payload.get("payment_method", "wallet")
+    currency = str(payload.get("currency", "USD")).upper()
+    sender_account = str(payload.get("sender_account", "")).strip()
+    transaction_reference = str(payload.get("transaction_reference", "")).strip()
+    notes = str(payload.get("notes", "")).strip()
+    receipt_file = request.FILES.get("receipt")
 
     if not plan_id:
         err_msg = "Please select the target plan" if is_en else "يرجى تحديد الباقة المطلوبة"
@@ -190,11 +200,37 @@ def api_request_upgrade(request):
     if billing_cycle not in ["monthly", "yearly"]:
         billing_cycle = "monthly"
 
-    # Create upgrade request
+    if currency not in ["USD", "EGP"]:
+        currency = "USD"
+
+    if payment_method not in ["wallet", "instapay", "binance"]:
+        payment_method = "wallet"
+
+    # Calculate amount according to currency and cycle if not provided
+    from decimal import Decimal
+    raw_amount = payload.get("amount")
+    if raw_amount:
+        try:
+            amount = Decimal(str(raw_amount))
+        except Exception:
+            amount = Decimal("0.00")
+    else:
+        if currency == "EGP":
+            amount = plan.price_yearly_egp if billing_cycle == "yearly" else plan.price_monthly_egp
+        else:
+            amount = plan.price_yearly if billing_cycle == "yearly" else plan.price_monthly
+
+    # Create upgrade request with manual payment details
     upgrade_req = UpgradeRequest.objects.create(
         tenant=tenant,
         requested_plan=plan,
         billing_cycle=billing_cycle,
+        payment_method=payment_method,
+        currency=currency,
+        amount=amount,
+        sender_account=sender_account,
+        transaction_reference=transaction_reference,
+        receipt=receipt_file,
         requested_by=request.user,
         notes=notes,
         status="pending",

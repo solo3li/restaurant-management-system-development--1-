@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 
@@ -126,24 +127,30 @@ class Tenant(models.Model):
         return info.get("name_en", "Saudi Riyal")
 
     def can_add_branch(self):
-        if not self.subscription_plan:
+        if self.slug == "platform-hq":
             return True
+        if not self.subscription_plan:
+            return False
         limit = self.subscription_plan.max_branches
-        if limit is None or limit <= 0:
+        if limit is None or limit <= 0 or limit >= 999:
             return True
         return self.branches.filter(status="active").count() < limit
 
     def can_add_employee(self):
-        if not self.subscription_plan:
+        if self.slug == "platform-hq":
             return True
+        if not self.subscription_plan:
+            return False
         limit = self.subscription_plan.max_employees
-        if limit is None or limit <= 0:
+        if limit is None or limit <= 0 or limit >= 999:
             return True
         return self.employees.filter(status__in=["active", "vacation"]).count() < limit
 
     def has_feature(self, feature_key):
-        if not self.subscription_plan:
+        if self.slug == "platform-hq":
             return True
+        if not self.subscription_plan:
+            return False
         raw_features = self.subscription_plan.features or []
         f_set = set(raw_features)
         if f_set & {"inventory", "inventory_mgmt"}:
@@ -163,11 +170,39 @@ class Tenant(models.Model):
         return feature_key in f_set
 
     def is_subscription_active(self):
+        if self.slug == "platform-hq":
+            return True
         if not self.is_active:
             return False
         if self.subscription_status in ["active", "trial"]:
             if self.subscription_end and self.subscription_end < timezone.now():
                 return False
+            return True
+        return False
+
+    def is_in_grace_period(self):
+        """Returns True if within 3 days post-expiration."""
+        if self.slug == "platform-hq":
+            return False
+        if not self.is_active:
+            return False
+        if self.subscription_status == "grace_period":
+            return True
+        now = timezone.now()
+        if self.subscription_end and self.subscription_end <= now:
+            return self.subscription_end >= (now - timedelta(days=3))
+        return False
+
+    def is_locked_out(self):
+        """Returns True if subscription has expired past the 3-day grace period."""
+        if self.slug == "platform-hq":
+            return False
+        if not self.is_active:
+            return True
+        if self.subscription_status == "expired":
+            return True
+        now = timezone.now()
+        if self.subscription_end and self.subscription_end < (now - timedelta(days=3)):
             return True
         return False
 
@@ -179,6 +214,57 @@ class Tenant(models.Model):
             return 999
         diff = (self.subscription_end - timezone.now()).total_seconds()
         return max(0, int(diff // 86400))
+
+    def grace_days_remaining(self):
+        """Days remaining before hard lockout during grace period."""
+        if not self.subscription_end:
+            return 0
+        end_grace = self.subscription_end + timedelta(days=3)
+        diff = (end_grace - timezone.now()).total_seconds()
+        return max(0, int(diff // 86400) + 1)
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        if not self.subscription_plan:
+            try:
+                from apps.billing.models import SubscriptionPlan
+                target_code = getattr(self, "plan", None) or ("enterprise" if self.slug == "platform-hq" else "trial")
+                plan_obj = SubscriptionPlan.objects.filter(code=target_code).first()
+                if not plan_obj and target_code != "trial":
+                    plan_obj = SubscriptionPlan.objects.filter(code="trial").first()
+                if not plan_obj:
+                    plan_obj, _ = SubscriptionPlan.objects.get_or_create(
+                        code=target_code,
+                        defaults={
+                            "name": "باقة المؤسسات" if target_code == "enterprise" else "باقة تجريبية",
+                            "name_en": "Enterprise Plan" if target_code == "enterprise" else "Trial Plan",
+                            "price_monthly": 399 if target_code == "enterprise" else 0,
+                            "price_yearly": 3990 if target_code == "enterprise" else 0,
+                            "price_monthly_egp": 19950 if target_code == "enterprise" else 0,
+                            "price_yearly_egp": 199500 if target_code == "enterprise" else 0,
+                            "features": ["pos", "kds", "inventory", "delivery", "call_center", "ai_call_center", "menu_management", "custom_roles"],
+                            "max_branches": 999 if target_code == "enterprise" else 2,
+                            "max_employees": 999 if target_code == "enterprise" else 10,
+                            "trial_days": 14,
+                        }
+                    )
+                if plan_obj:
+                    self.subscription_plan = plan_obj
+                    self.plan = plan_obj.code
+                    if not self.subscription_status or self.subscription_status == "active":
+                        self.subscription_status = "trial" if plan_obj.code == "trial" else "active"
+                    if not self.subscription_end:
+                        self.subscription_end = timezone.now() + timedelta(days=plan_obj.trial_days or 14)
+                    if update_fields is not None:
+                        kwargs["update_fields"] = set(update_fields) | {"subscription_plan", "plan", "subscription_status", "subscription_end"}
+            except Exception:
+                pass
+        elif self.subscription_plan:
+            self.plan = self.subscription_plan.code
+            if update_fields is not None and "subscription_plan" in update_fields:
+                kwargs["update_fields"] = set(update_fields) | {"plan"}
+
+        super().save(*args, **kwargs)
 
 
 class Branch(models.Model):

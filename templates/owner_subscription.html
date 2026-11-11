@@ -219,7 +219,11 @@
                         <div class="border-s border-slate-200/70 ps-3">
                             {{ "السعر:"|t }} 
                             <strong class="text-slate-900">
-                                {% if tenant.billing_cycle == 'yearly' %}${{ plan.price_yearly|floatformat:0 }} {{ "دولار / سنوياً"|t }}{% else %}${{ plan.price_monthly|floatformat:0 }} {{ "دولار / شهرياً"|t }}{% endif %}
+                                {% if tenant.billing_cycle == 'yearly' %}
+                                    ${{ plan.price_yearly|floatformat:0 }} <span class="text-slate-500 font-normal">({{ plan.price_yearly_egp|floatformat:0 }} ج.م)</span> {{ "سنوياً"|t }}
+                                {% else %}
+                                    ${{ plan.price_monthly|floatformat:0 }} <span class="text-slate-500 font-normal">({{ plan.price_monthly_egp|floatformat:0 }} ج.م)</span> {{ "شهرياً"|t }}
+                                {% endif %}
                             </strong>
                         </div>
                     </div>
@@ -437,10 +441,15 @@
                         {{ p.description|t }}
                     </p>
 
-                    <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/70 mb-2.5 text-center">
-                        <span class="font-sans text-lg font-bold text-slate-900">${{ p.price_monthly|floatformat:0 }}</span>
-                        <span class="text-[10px] font-medium text-slate-500">{{ "دولار / شهرياً"|t }}</span>
-                        <p class="text-[10px] text-slate-600 font-semibold mt-0.5">{{ "أو"|t }} ${{ p.price_yearly|floatformat:0 }} {{ "دولار / سنوياً"|t }}</p>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 mb-2.5 text-center space-y-1">
+                        <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                            <span class="font-sans text-lg font-bold text-slate-900">${{ p.price_monthly|floatformat:0 }}</span>
+                            <span class="text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200/60 px-1.5 py-0.5 rounded">{{ p.price_monthly_egp|floatformat:0 }} {{ "ج.م"|t }}</span>
+                            <span class="text-[10px] font-medium text-slate-500">{{ "/ شهرياً"|t }}</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 font-medium">
+                            {{ "أو سنوياً:"|t }} <span class="font-bold text-slate-800">${{ p.price_yearly|floatformat:0 }}</span> <span class="text-slate-600 font-semibold">({{ p.price_yearly_egp|floatformat:0 }} {{ "ج.م"|t }})</span>
+                        </p>
                     </div>
 
                     <ul class="space-y-1.5 text-[11px] text-slate-600 mb-3">
@@ -671,59 +680,245 @@
 </div>
 
 <!-- ========================================== -->
-<!-- UPGRADE REQUEST MODAL                      -->
+<!-- UPGRADE & MANUAL PAYMENT MODAL             -->
 <!-- ========================================== -->
-<div id="upgrade-modal" onclick="if (event.target === this) closeUpgradeModal()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm w-full max-w-md p-6 shadow-2xl border border-violet-200/50">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
-            <h3 class="font-sans text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span class="h-9 w-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 w-6 h-6">
-                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+<div id="upgrade-modal" onclick="if (event.target === this) closeUpgradeModal()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xl w-full max-w-xl p-5 sm:p-6 my-auto max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-4">
+            <h3 class="font-sans text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span class="h-8 w-8 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600">
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </span>
                 {{ "تقديم طلب ترقية باقة"|t }}
             </h3>
-            <button type="button" onclick="closeUpgradeModal()" class="text-slate-500 hover:text-slate-900 p-1 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            <button type="button" onclick="closeUpgradeModal()" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer rounded-lg transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
         <form id="form-upgrade" novalidate onsubmit="submitUpgradeRequest(event)" class="space-y-4">
+            <!-- 1. Plan Selection -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1.5">{{ "الباقة المستهدفة:"|t }}</label>
-                <select id="modal-plan-id" name="plan_id" required class="w-full px-3 py-2 rounded-lg border border-slate-200/70 bg-white text-xs font-bold text-slate-900">
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ "اختر الباقة المرغوبة:"|t }}</label>
+                <select id="modal-plan-id" name="plan_id" required onchange="updateModalPriceDisplay()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold text-slate-900 focus:bg-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition">
                     {% for p in available_plans %}
-                    <option value="{{ p.id }}" {% if p.id != plan.id and forloop.first %}selected{% endif %}>
-                        {{ p.name|t }} (${{ p.price_monthly|floatformat:0 }} {{ "دولار / شهرياً"|t }} • {% if p.max_branches >= 999 %}{{ "غير محدود"|t }}{% else %}{{ p.max_branches }} {{ "فروع"|t }}{% endif %})
+                    <option value="{{ p.id }}" 
+                        data-monthly-usd="{{ p.price_monthly|floatformat:0 }}"
+                        data-yearly-usd="{{ p.price_yearly|floatformat:0 }}"
+                        data-monthly-egp="{{ p.price_monthly_egp|floatformat:0 }}"
+                        data-yearly-egp="{{ p.price_yearly_egp|floatformat:0 }}"
+                        data-name="{{ p.name }}"
+                        {% if p.id != plan.id and forloop.first %}selected{% elif p.id == plan.id %}selected{% endif %}>
+                        {{ p.name|t }} (${{ p.price_monthly|floatformat:0 }} USD / {{ p.price_monthly_egp|floatformat:0 }} ج.م شهرياً)
                     </option>
                     {% endfor %}
                 </select>
             </div>
 
+            <!-- 2. Dual Currency & Billing Cycle Selection -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Currency Selector -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "عملة السداد:"|t }}</label>
+                    <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200">
+                        <label class="cursor-pointer text-center">
+                            <input type="radio" name="modal-currency" value="EGP" checked onchange="updateModalPriceDisplay()" class="peer sr-only">
+                            <span class="block py-1.5 rounded-lg text-xs font-bold text-slate-600 peer-checked:bg-white peer-checked:text-violet-700 peer-checked:shadow-xs transition">
+                                🇪🇬 {{ "جنيه (EGP)"|t }}
+                            </span>
+                        </label>
+                        <label class="cursor-pointer text-center">
+                            <input type="radio" name="modal-currency" value="USD" onchange="updateModalPriceDisplay()" class="peer sr-only">
+                            <span class="block py-1.5 rounded-lg text-xs font-bold text-slate-600 peer-checked:bg-white peer-checked:text-violet-700 peer-checked:shadow-xs transition">
+                                💵 {{ "دولار (USD)"|t }}
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Billing Cycle -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "دورة الاشتراك:"|t }}</label>
+                    <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200">
+                        <label class="cursor-pointer text-center">
+                            <input type="radio" name="modal-cycle" value="monthly" checked onchange="updateModalPriceDisplay()" class="peer sr-only">
+                            <span class="block py-1.5 rounded-lg text-xs font-bold text-slate-600 peer-checked:bg-white peer-checked:text-violet-700 peer-checked:shadow-xs transition">
+                                {{ "شهري"|t }}
+                            </span>
+                        </label>
+                        <label class="cursor-pointer text-center">
+                            <input type="radio" name="modal-cycle" value="yearly" onchange="updateModalPriceDisplay()" class="peer sr-only">
+                            <span class="block py-1.5 rounded-lg text-xs font-bold text-slate-600 peer-checked:bg-white peer-checked:text-violet-700 peer-checked:shadow-xs transition">
+                                {{ "سنوي (خصم)"|t }}
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculated Amount Banner -->
+            <div class="p-3 rounded-xl bg-violet-50/80 border border-violet-200/70 flex items-center justify-between text-xs">
+                <span class="text-slate-600 font-medium">{{ "إجمالي المبلغ المطلوب سداده:"|t }}</span>
+                <span id="modal-calculated-amount" class="text-base font-extrabold text-violet-700 font-sans">0.00</span>
+            </div>
+
+            <!-- 3. Manual Payment Method Selector -->
             <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1.5">{{ "دورة الدفع المرغوبة:"|t }}</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/70 bg-slate-50 cursor-pointer">
-                        <input type="radio" name="modal-cycle" value="monthly" checked class="accent-blue-600">
-                        <span class="text-xs font-bold text-slate-900">{{ "شهري"|t }}</span>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">{{ "طريقة التحويل / السداد:"|t }}</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="modal-payment-method" value="wallet" checked onchange="selectPaymentMethod('wallet')" class="peer sr-only">
+                        <div class="p-2.5 rounded-xl border border-slate-200 peer-checked:border-violet-600 peer-checked:bg-violet-50/30 text-center transition">
+                            <div class="text-lg mb-0.5">📱</div>
+                            <div class="text-[11px] font-bold text-slate-800 peer-checked:text-violet-700">{{ "محافظ كاش"|t }}</div>
+                            <div class="text-[9px] text-slate-400">{{ "Vodafone/Orange"|t }}</div>
+                        </div>
                     </label>
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/70 bg-slate-50 cursor-pointer">
-                        <input type="radio" name="modal-cycle" value="yearly" class="accent-blue-600">
-                        <span class="text-xs font-bold text-slate-900">{{ "سنوي (خصم 20%)"|t }}</span>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="modal-payment-method" value="instapay" onchange="selectPaymentMethod('instapay')" class="peer sr-only">
+                        <div class="p-2.5 rounded-xl border border-slate-200 peer-checked:border-violet-600 peer-checked:bg-violet-50/30 text-center transition">
+                            <div class="text-lg mb-0.5">⚡</div>
+                            <div class="text-[11px] font-bold text-slate-800 peer-checked:text-violet-700">{{ "إنستاباي / بنك"|t }}</div>
+                            <div class="text-[9px] text-slate-400">{{ "InstaPay / CIB"|t }}</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="modal-payment-method" value="binance" onchange="selectPaymentMethod('binance')" class="peer sr-only">
+                        <div class="p-2.5 rounded-xl border border-slate-200 peer-checked:border-violet-600 peer-checked:bg-violet-50/30 text-center transition">
+                            <div class="text-lg mb-0.5">🪙</div>
+                            <div class="text-[11px] font-bold text-slate-800 peer-checked:text-violet-700">{{ "بينانس / USDT"|t }}</div>
+                            <div class="text-[9px] text-slate-400">{{ "Pay ID / TRC20"|t }}</div>
+                        </div>
                     </label>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1.5">{{ "ملاحظات إضافية أو طلب توسع خاص:"|t }}</label>
-                <textarea id="modal-notes" rows="3" class="w-full px-3 py-2 rounded-lg border border-slate-200/70 bg-white text-xs" placeholder="{{ "اكتب أي استفسار أو طلب لفروع إضافية لإدارة المنصة..."|t }}"></textarea>
+            <!-- Dynamic Payment Instructions Card -->
+            <div id="payment-instructions-card" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+                <!-- Method 1: E-Wallets Info -->
+                <div id="info-wallet" class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-800">{{ "بيانات التحويل للمحافظ الإلكترونية:"|t }}</span>
+                        <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold">{{ "فوري ولحظي"|t }}</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
+                        <span class="text-slate-500 text-[11px]">{{ "رقم الكاش (فودافون / أورنج / اتصالات / وي):"|t }}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-mono font-bold text-slate-900" id="wallet-number-text">01027179040</span>
+                            <button type="button" onclick="copyText('01027179040', this)" class="text-violet-600 hover:text-violet-800 text-[11px] font-bold px-1.5 py-0.5 rounded hover:bg-violet-50">
+                                {{ "نسخ"|t }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Method 2: InstaPay Info -->
+                <div id="info-instapay" class="space-y-1.5 hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-800">{{ "بيانات التحويل عبر إنستاباي / الحساب البنكي:"|t }}</span>
+                        <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold">InstaPay IPN</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
+                        <span class="text-slate-500 text-[11px]">{{ "معرف إنستاباي (IPA):"|t }}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-mono font-bold text-slate-900" id="instapay-text">motaem@instapay</span>
+                            <button type="button" onclick="copyText('motaem@instapay', this)" class="text-violet-600 hover:text-violet-800 text-[11px] font-bold px-1.5 py-0.5 rounded hover:bg-violet-50">
+                                {{ "نسخ"|t }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
+                        <span class="text-slate-500 text-[11px]">{{ "رقم الحساب (CIB / البنك التجاري الدولي):"|t }}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-mono font-bold text-slate-900">100054892301</span>
+                            <button type="button" onclick="copyText('100054892301', this)" class="text-violet-600 hover:text-violet-800 text-[11px] font-bold px-1.5 py-0.5 rounded hover:bg-violet-50">
+                                {{ "نسخ"|t }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Method 3: Binance Info -->
+                <div id="info-binance" class="space-y-1.5 hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-800">{{ "بيانات الدفع عبر بينانس (Binance):"|t }}</span>
+                        <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-semibold">USDT TRC20</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
+                        <span class="text-slate-500 text-[11px]">{{ "معرف بينانس (Binance Pay ID):"|t }}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-mono font-bold text-slate-900">849201948</span>
+                            <button type="button" onclick="copyText('849201948', this)" class="text-violet-600 hover:text-violet-800 text-[11px] font-bold px-1.5 py-0.5 rounded hover:bg-violet-50">
+                                {{ "نسخ"|t }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-2 rounded-lg border border-slate-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-slate-500 text-[11px]">{{ "عنوان محفظة USDT (شبكة TRON TRC-20):"|t }}</span>
+                            <button type="button" onclick="copyText('TXv17bKzN9yP6wL2hM8qRtC4eZx8P9vL1q', this)" class="text-violet-600 hover:text-violet-800 text-[11px] font-bold px-1.5 py-0.5 rounded hover:bg-violet-50">
+                                {{ "نسخ العنوان"|t }}
+                            </button>
+                        </div>
+                        <span class="font-mono text-[10px] text-slate-900 break-all block bg-slate-50 p-1.5 rounded">TXv17bKzN9yP6wL2hM8qRtC4eZx8P9vL1q</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+            <!-- 4. Payment Submission Verification Form -->
+            <div class="space-y-3 pt-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            {{ "الرقم أو الحساب المحول منه:"|t }} <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" id="modal-sender-account" required placeholder="{{ "مثال: 01012345678 أو IPA أو Binance ID"|t }}" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            {{ "رقم العملية / المرجع (TxID):"|t }}
+                        </label>
+                        <input type="text" id="modal-reference" placeholder="{{ "رقم الحوالة أو المعاملة (اختياري)"|t }}" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                    </div>
+                </div>
+
+                <!-- Receipt Upload -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        {{ "إشعار التحويل / لقطة الشاشة (Proof of Payment):"|t }}
+                    </label>
+                    <div class="relative border-2 border-dashed border-slate-300 hover:border-violet-500 rounded-xl p-3 text-center transition cursor-pointer bg-slate-50/50 hover:bg-violet-50/20" onclick="document.getElementById('modal-receipt').click()">
+                        <input type="file" id="modal-receipt" accept="image/*,.pdf" onchange="previewReceiptFile(event)" class="hidden">
+                        <div id="receipt-upload-placeholder" class="space-y-1">
+                            <svg class="w-6 h-6 text-slate-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span class="text-xs font-semibold text-violet-700 block">{{ "انقر لرفع صورة الإيصال أو لقطة الشاشة"|t }}</span>
+                            <span class="text-[10px] text-slate-400 block">PNG, JPG, WEBP (حتى 10MB)</span>
+                        </div>
+                        <div id="receipt-preview-container" class="hidden flex items-center justify-center gap-2">
+                            <img id="receipt-preview-img" src="" alt="Receipt" class="h-14 w-14 object-cover rounded-lg border border-slate-300">
+                            <div class="text-start">
+                                <span id="receipt-preview-name" class="text-xs font-bold text-slate-800 block truncate max-w-[200px]"></span>
+                                <span class="text-[10px] text-emerald-600 font-semibold">{{ "تم إرفاق الإيصال بنجاح"|t }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">{{ "ملاحظات إضافية (اختياري):"|t }}</label>
+                    <textarea id="modal-notes" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500" placeholder="{{ "اكتب أي تفاصيل إضافية للإدارة..."|t }}"></textarea>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
                 <button type="button" onclick="closeUpgradeModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-900 cursor-pointer">
                     {{ "إلغاء"|t }}
                 </button>
-                <button type="submit" id="btn-submit-upgrade" class="bg-violet-600 hover:bg-violet-700 text-white font-medium font-bold rounded-xl px-5 py-2.5 text-xs font-bold shadow-md cursor-pointer transition active:scale-95">
-                    {{ "إرسال طلب الترقية"|t }}
+                <button type="submit" id="btn-submit-upgrade" class="bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl px-5 py-2.5 text-xs shadow-md cursor-pointer transition active:scale-95 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>{{ "إرسال طلب الترقية وإثبات السداد"|t }}</span>
                 </button>
             </div>
         </form>
@@ -733,6 +928,7 @@
 <script>
     function openUpgradeModal() {
         document.getElementById('upgrade-modal').classList.remove('hidden');
+        updateModalPriceDisplay();
     }
 
     function closeUpgradeModal() {
@@ -747,43 +943,132 @@
         openUpgradeModal();
     }
 
+    function selectPaymentMethod(method) {
+        const methods = ['wallet', 'instapay', 'binance'];
+        methods.forEach(m => {
+            const el = document.getElementById(`info-${m}`);
+            if (el) {
+                if (m === method) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    function updateModalPriceDisplay() {
+        const select = document.getElementById('modal-plan-id');
+        if (!select) return;
+        const opt = select.selectedOptions[0];
+        if (!opt) return;
+
+        const currency = document.querySelector('input[name="modal-currency"]:checked')?.value || 'EGP';
+        const cycle = document.querySelector('input[name="modal-cycle"]:checked')?.value || 'monthly';
+        const amountEl = document.getElementById('modal-calculated-amount');
+
+        let amount = 0;
+        let symbol = '';
+        if (currency === 'EGP') {
+            amount = (cycle === 'yearly') ? opt.dataset.yearlyEgp : opt.dataset.monthlyEgp;
+            symbol = 'ج.م EGP';
+        } else {
+            amount = (cycle === 'yearly') ? opt.dataset.yearlyUsd : opt.dataset.monthlyUsd;
+            symbol = '$ USD';
+        }
+        if (amountEl) {
+            amountEl.innerText = `${amount || 0} ${symbol} ${cycle === 'yearly' ? '({{ "سنوياً"|t }})' : '({{ "شهرياً"|t }})'}`;
+        }
+    }
+
+    function previewReceiptFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const placeholder = document.getElementById('receipt-upload-placeholder');
+        const container = document.getElementById('receipt-preview-container');
+        const img = document.getElementById('receipt-preview-img');
+        const nameEl = document.getElementById('receipt-preview-name');
+
+        if (nameEl) nameEl.innerText = file.name;
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                img.src = evt.target.result;
+                placeholder.classList.add('hidden');
+                container.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            placeholder.classList.add('hidden');
+            container.classList.remove('hidden');
+        }
+    }
+
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const original = btn.innerText;
+            btn.innerText = '✓ ' + '{{ "تم النسخ"|t }}';
+            setTimeout(() => { btn.innerText = original; }, 1800);
+        }).catch(() => {
+            const fallback = prompt('{{ "انسخ النص:"|t }}', text);
+        });
+    }
+
     async function submitUpgradeRequest(e) {
         e.preventDefault();
         const planId = document.getElementById('modal-plan-id').value;
         const cycle = document.querySelector('input[name="modal-cycle"]:checked')?.value || 'monthly';
+        const currency = document.querySelector('input[name="modal-currency"]:checked')?.value || 'USD';
+        const method = document.querySelector('input[name="modal-payment-method"]:checked')?.value || 'wallet';
+        const sender = document.getElementById('modal-sender-account').value.trim();
+        const ref = document.getElementById('modal-reference').value.trim();
         const notes = document.getElementById('modal-notes').value.trim();
+        const receiptInput = document.getElementById('modal-receipt');
         const submitBtn = document.getElementById('btn-submit-upgrade');
 
+        if (!planId) {
+            showToast('{{ "يرجى اختيار الباقة المطلوبة"|t }}', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('plan_id', planId);
+        formData.append('billing_cycle', cycle);
+        formData.append('currency', currency);
+        formData.append('payment_method', method);
+        formData.append('sender_account', sender);
+        formData.append('transaction_reference', ref);
+        formData.append('notes', notes);
+        if (receiptInput && receiptInput.files[0]) {
+            formData.append('receipt', receiptInput.files[0]);
+        }
+
         submitBtn.disabled = true;
-        submitBtn.innerText = '{{ "جاري الإرسال..."|t }}';
+        submitBtn.innerText = '{{ "جاري إرسال الطلب..."|t }}';
 
         try {
             const resp = await fetch('{% url "api_request_upgrade" %}', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({
-                    plan_id: planId,
-                    billing_cycle: cycle,
-                    notes: notes
-                })
+                body: formData
             });
             const data = await resp.json();
             if (!resp.ok || data.error) {
                 showToast(data.error || '{{ "حدث خطأ أثناء تقديم الطلب"|t }}', 'error');
                 submitBtn.disabled = false;
-                submitBtn.innerText = '{{ "إرسال طلب الترقية"|t }}';
+                submitBtn.innerText = '{{ "إرسال طلب الترقية وإثبات السداد"|t }}';
             } else {
-                showToast(data.message || '{{ "تم إرسال الطلب بنجاح"|t }}');
+                showToast(data.message || '{{ "تم إرسال الطلب وإثبات السداد بنجاح!"|t }}');
                 closeUpgradeModal();
-                setTimeout(() => location.reload(), 1200);
+                setTimeout(() => location.reload(), 1400);
             }
         } catch (err) {
             showToast('{{ "خطأ في الاتصال بالخادم"|t }}', 'error');
             submitBtn.disabled = false;
-            submitBtn.innerText = '{{ "إرسال طلب الترقية"|t }}';
+            submitBtn.innerText = '{{ "إرسال طلب الترقية وإثبات السداد"|t }}';
         }
     }
 

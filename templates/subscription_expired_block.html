@@ -1,0 +1,88 @@
+{% load i18n_tags %}
+<!DOCTYPE html>
+<html lang="{{ CURRENT_LANG|default:'ar' }}" dir="{{ DIR|default:'rtl' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ "انتهى اشتراك المنشأة"|t }} — {{ tenant.name|default:"Motaem OS" }}</title>
+    <link rel="stylesheet" href="/static/css/tailwind.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap');
+        body {
+            font-family: {% if CURRENT_LANG == 'ar' %}'Cairo', sans-serif{% else %}'Plus Jakarta Sans', sans-serif{% endif %};
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center relative overflow-hidden">
+        <!-- Ambient glow -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Language switcher pills -->
+        <div class="flex items-center justify-center gap-1.5 mb-6 text-xs font-semibold">
+            <a href="{% url 'set_language' 'ar' %}?next={{ request.get_full_path|urlencode }}" class="px-2 py-1 rounded-md {% if CURRENT_LANG == 'ar' %}bg-violet-600 text-white{% else %}text-slate-400 hover:text-white bg-slate-700/60{% endif %}">العربية</a>
+            <a href="{% url 'set_language' 'en' %}?next={{ request.get_full_path|urlencode }}" class="px-2 py-1 rounded-md {% if CURRENT_LANG == 'en' %}bg-violet-600 text-white{% else %}text-slate-400 hover:text-white bg-slate-700/60{% endif %}">English</a>
+            <a href="{% url 'set_language' 'fr' %}?next={{ request.get_full_path|urlencode }}" class="px-2 py-1 rounded-md {% if CURRENT_LANG == 'fr' %}bg-violet-600 text-white{% else %}text-slate-400 hover:text-white bg-slate-700/60{% endif %}">Français</a>
+            <a href="{% url 'set_language' 'tr' %}?next={{ request.get_full_path|urlencode }}" class="px-2 py-1 rounded-md {% if CURRENT_LANG == 'tr' %}bg-violet-600 text-white{% else %}text-slate-400 hover:text-white bg-slate-700/60{% endif %}">Türkçe</a>
+            <a href="{% url 'set_language' 'de' %}?next={{ request.get_full_path|urlencode }}" class="px-2 py-1 rounded-md {% if CURRENT_LANG == 'de' %}bg-violet-600 text-white{% else %}text-slate-400 hover:text-white bg-slate-700/60{% endif %}">Deutsch</a>
+            <a href="{% url 'set_language' 'es' %}?next={{ request.get_full_path|urlencode }}" class="px-2 py-1 rounded-md {% if CURRENT_LANG == 'es' %}bg-violet-600 text-white{% else %}text-slate-400 hover:text-white bg-slate-700/60{% endif %}">Español</a>
+        </div>
+
+        <!-- Warning icon -->
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-5 shadow-inner">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+
+        <!-- Tenant Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/60 border border-slate-600/60 text-xs font-semibold text-slate-300 mb-3">
+            <span>{{ tenant.logo_emoji|default:"🍽️" }}</span>
+            <span>{{ tenant.name }}</span>
+        </div>
+
+        <!-- Main Title -->
+        <h1 class="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight">
+            {{ "انتهت صلاحية اشتراك المنشأة"|t }}
+        </h1>
+
+        <!-- Explanatory text -->
+        <p class="text-sm text-slate-300 leading-relaxed mb-6">
+            {{ "نعتذر، انتهت فترة صلاحية الاشتراك لهذه المنشأة وتجاوزت فترة السماح. تم قفل تسجيل الطلبات والعمليات مؤقتاً."|t }}
+            <br>
+            <span class="text-rose-300 font-semibold mt-2 inline-block">
+                {{ "يرجى التواصل مع إدارة المطعم لتجديد الاشتراك وتفعيل الحساب."|t }}
+            </span>
+        </p>
+
+        <!-- Informational box -->
+        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3.5 mb-6 text-xs text-slate-400 text-start space-y-1.5">
+            <div class="flex items-center justify-between">
+                <span>{{ "اسم المنشأة:"|t }}</span>
+                <strong class="text-slate-200">{{ tenant.name }}</strong>
+            </div>
+            <div class="flex items-center justify-between">
+                <span>{{ "حالة الحساب:"|t }}</span>
+                <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold text-[10px]">{{ "منتهي الصلاحية"|t }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span>{{ "المستخدم الحالي:"|t }}</span>
+                <span class="text-slate-300">{{ request.user.get_full_name|default:request.user.username }}</span>
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="{% url 'logout' %}" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition shadow-sm">
+                {{ "تسجيل الخروج والعودة"|t }}
+            </a>
+            {% if request.user.profile.role == 'owner' or request.user.is_superuser %}
+            <a href="{% url 'owner_subscription' %}" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold transition shadow-sm">
+                {{ "الذهاب لصفحة تجديد الاشتراك"|t }}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

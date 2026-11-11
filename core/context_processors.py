@@ -203,6 +203,9 @@ def branch_context(request):
             "end_date": tenant.subscription_end,
             "days_left": tenant.days_until_expiry(),
             "is_active": tenant.is_subscription_active(),
+            "is_in_grace_period": tenant.is_in_grace_period(),
+            "grace_days_remaining": tenant.grace_days_remaining(),
+            "is_locked_out": tenant.is_locked_out(),
             "is_expiring_soon": (tenant.days_until_expiry() <= 7) if tenant.subscription_end else False,
             "max_branches": tenant.subscription_plan.max_branches if tenant.subscription_plan else 1,
             "branches_count": tenant.branches.filter(status="active").count(),
@@ -226,6 +229,9 @@ def branch_context(request):
         "user_profile": profile,
         "user_perms": user_perms,
         "tenant_subscription": tenant_subscription,
+        "subscription_in_grace_period": tenant.is_in_grace_period() if tenant else False,
+        "grace_days_remaining": tenant.grace_days_remaining() if tenant else 0,
+        "subscription_is_locked_out": tenant.is_locked_out() if tenant else False,
     }
 
 

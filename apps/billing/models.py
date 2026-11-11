@@ -62,6 +62,8 @@ class SubscriptionPlan(models.Model):
     description = models.CharField(max_length=255, blank=True, default="", verbose_name="وصف الباقة")
     price_monthly = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="السعر الشهري ($)")
     price_yearly = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, verbose_name="السعر السنوي ($)")
+    price_monthly_egp = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="السعر الشهري (ج.م EGP)")
+    price_yearly_egp = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="السعر السنوي (ج.م EGP)")
     max_branches = models.IntegerField(default=1, verbose_name="الحد الأقصى للفروع (0 لغير محدود)")
     max_employees = models.IntegerField(default=5, verbose_name="الحد الأقصى للموظفين (0 لغير محدود)")
     features = models.JSONField(default=list, blank=True, verbose_name="الميزات المفعلة في الباقة")
@@ -83,7 +85,7 @@ class SubscriptionPlan(models.Model):
         ordering = ["ordering", "price_monthly"]
 
     def __str__(self):
-        return f"{self.name} ({self.price_monthly} ر.س/شهر)"
+        return f"{self.name} (${self.price_monthly} / {self.price_monthly_egp} ج.م شهرياً)"
 
     def display_name(self, lang=None):
         from django.utils import translation
@@ -128,6 +130,15 @@ class UpgradeRequest(models.Model):
         ("approved", "تمت الموافقة"),
         ("rejected", "مرفوض"),
     ]
+    PAYMENT_METHOD_CHOICES = [
+        ("wallet", "محفظة إلكترونية (Vodafone Cash / Orange / Etisalat / WE)"),
+        ("instapay", "تحويل بنكي / إنستاباي (InstaPay / Bank Transfer)"),
+        ("binance", "بينانس (Binance Pay / USDT - TRC20)"),
+    ]
+    CURRENCY_CHOICES = [
+        ("USD", "USD ($)"),
+        ("EGP", "EGP (ج.م)"),
+    ]
 
     tenant = models.ForeignKey(
         'core.Tenant',
@@ -146,6 +157,49 @@ class UpgradeRequest(models.Model):
         default="monthly",
         choices=[("monthly", "شهري"), ("yearly", "سنوي")],
         verbose_name="دورة الفوترة",
+    )
+    payment_method = models.CharField(
+        max_length=30,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="wallet",
+        verbose_name="طريقة الدفع",
+    )
+    currency = models.CharField(
+        max_length=10,
+        choices=CURRENCY_CHOICES,
+        default="USD",
+        verbose_name="عملة السداد",
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="المبلغ المسدد",
+    )
+    sender_account = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+        verbose_name="الرقم أو الحساب المحول منه",
+        help_text="رقم المحفظة أو معرف إنستاباي أو حساب بينانس",
+    )
+    transaction_reference = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+        verbose_name="رقم العملية / المرجع (Reference / TxID)",
+        help_text="رقم المعاملة أو مرجع التحويل أو TxID",
+    )
+    receipt = models.FileField(
+        upload_to="payment_receipts/%Y/%m/",
+        null=True,
+        blank=True,
+        verbose_name="إيصال الدفع / لقطة الشاشة",
+    )
+    admin_notes = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="ملاحظات المراجعة الإدارية",
     )
     requested_by = models.ForeignKey(
         User,
@@ -173,26 +227,91 @@ class UpgradeRequest(models.Model):
     def __str__(self):
         return f"طلب {self.tenant.name} -> {self.requested_plan.name} ({self.get_status_display()})"
 
-    def apply_upgrade(self):
-        """Apply requested plan and extension to the tenant."""
-        tenant = self.tenant
-        tenant.subscription_plan = self.requested_plan
-        tenant.billing_cycle = self.billing_cycle
-        tenant.subscription_status = "active"
-        tenant.is_active = True
-
-        extension_days = 365 if self.billing_cycle == "yearly" else 30
-        base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
-        tenant.subscription_end = base_time + timedelta(days=extension_days)
-        tenant.save()
-
-        # Synchronize call minute & spending caps with Partner API
+    def apply_upgrade(self, admin_user=None):
+        """Apply requested plan and extension to the tenant, handle downgrade overflow, sync PBX, and notify."""
+        if getattr(self, "_in_apply", False):
+            return True
+        self._in_apply = True
         try:
-            from core import partner_service as ps
-            ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"Voice quota sync failed on upgrade for {tenant.slug}: {e}")
+            self.status = "approved"
+            if not self.reviewed_at:
+                self.reviewed_at = timezone.now()
+            if self.pk:
+                UpgradeRequest.objects.filter(pk=self.pk).update(
+                    status="approved",
+                    reviewed_at=self.reviewed_at,
+                )
+
+            tenant = self.tenant
+            plan = self.requested_plan
+            tenant.subscription_plan = plan
+            if hasattr(tenant, "plan"):
+                tenant.plan = plan.code
+            tenant.billing_cycle = self.billing_cycle
+            tenant.subscription_status = "active"
+            tenant.is_active = True
+
+            extension_days = 365 if self.billing_cycle == "yearly" else 30
+            base_time = tenant.subscription_end if (tenant.subscription_end and tenant.subscription_end > timezone.now()) else timezone.now()
+            tenant.subscription_end = base_time + timedelta(days=extension_days)
+            tenant.save()
+
+            # Requirement 7: Downgrade Overflow Handling
+            # If tenant active branches exceed new plan max_branches, deactivate excess (close branches)
+            max_b = plan.max_branches
+            if max_b > 0 and max_b < 999:
+                active_branches = list(tenant.branches.filter(status="active").order_by("id"))
+                if len(active_branches) > max_b:
+                    excess_branches = active_branches[max_b:]
+                    for b in excess_branches:
+                        b.status = "closed"
+                        b.save(update_fields=["status"])
+
+            # If tenant active employees exceed new plan max_employees, deactivate excess
+            max_e = plan.max_employees
+            if max_e > 0 and max_e < 999:
+                active_employees = list(tenant.employees.filter(status__in=["active", "vacation"]).order_by("id"))
+                if len(active_employees) > max_e:
+                    excess_employees = active_employees[max_e:]
+                    for emp in excess_employees:
+                        emp.status = "inactive"
+                        emp.save(update_fields=["status"])
+
+            # Synchronize call minute & spending caps with Partner API
+            try:
+                from core import partner_service as ps
+                ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Voice quota sync failed on upgrade for {tenant.slug}: {e}")
+
+            # Dispatch Brevo Notification Email
+            try:
+                from apps.billing.notifications import send_upgrade_approved_notification
+                send_upgrade_approved_notification(self)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Brevo email notification failed on upgrade for {tenant.slug}: {e}")
+
+            # Trigger Inngest Event
+            try:
+                from core.inngest_client import send_inngest_event
+                send_inngest_event("upgrade.approved", {
+                    "request_id": self.id,
+                    "tenant_id": tenant.id,
+                    "tenant_name": tenant.name,
+                    "plan_code": plan.code,
+                    "billing_cycle": self.billing_cycle,
+                    "currency": self.currency,
+                    "amount": float(self.amount),
+                })
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Inngest event dispatch failed for upgrade #{self.id}: {e}")
+
+            return True
+        finally:
+            self._in_apply = False
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -206,8 +325,10 @@ class UpgradeRequest(models.Model):
         if self.status == "approved":
             if not self.reviewed_at:
                 self.reviewed_at = timezone.now()
+            super().save(*args, **kwargs)
             if is_new or old_status != "approved" or (self.tenant.subscription_plan_id != self.requested_plan_id):
                 self.apply_upgrade()
+            return
         elif self.status == "rejected":
             if not self.reviewed_at:
                 self.reviewed_at = timezone.now()

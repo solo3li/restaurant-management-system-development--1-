@@ -127,7 +127,9 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         "name",
         "code",
         "price_monthly",
+        "price_monthly_egp",
         "price_yearly",
+        "price_yearly_egp",
         "max_branches_display",
         "max_employees_display",
         "features_count_display",
@@ -138,14 +140,14 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
     )
     list_filter = ("is_active", "is_popular")
     search_fields = ("name", "code", "description")
-    list_editable = ("price_monthly", "price_yearly", "is_active", "is_popular", "ordering")
+    list_editable = ("price_monthly", "price_monthly_egp", "price_yearly", "price_yearly_egp", "is_active", "is_popular", "ordering")
     prepopulated_fields = {"code": ("name",)}
     fieldsets = (
         ("البيانات الأساسية", {
             "fields": ("name", "code", "description", "ordering", "is_active", "is_popular")
         }),
-        ("التسعير وفترة التجربة", {
-            "fields": ("price_monthly", "price_yearly", "trial_days")
+        ("التسعير وفترة التجربة (دولار وجنيه مصري)", {
+            "fields": ("price_monthly", "price_monthly_egp", "price_yearly", "price_yearly_egp", "trial_days")
         }),
         ("سعة المنشأة والحدود", {
             "fields": ("max_branches", "max_employees")
@@ -213,20 +215,88 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         "tenant",
         "requested_plan",
         "billing_cycle_badge",
-        "requested_by",
+        "payment_method_badge",
+        "amount_badge",
+        "sender_account",
+        "transaction_reference",
+        "receipt_thumbnail",
         "status_badge",
         "quick_actions",
         "created_at",
-        "reviewed_at",
     )
-    list_filter = ("status", "billing_cycle", "requested_plan", "created_at")
-    search_fields = ("tenant__name", "tenant__slug", "requested_by__username", "notes")
-    readonly_fields = ("created_at", "reviewed_at")
+    list_filter = ("status", "payment_method", "currency", "billing_cycle", "requested_plan", "created_at")
+    search_fields = ("tenant__name", "tenant__slug", "sender_account", "transaction_reference", "requested_by__username", "notes", "admin_notes")
+    readonly_fields = ("created_at", "reviewed_at", "receipt_preview_large")
+    fieldsets = (
+        ("بيانات المنشأة والترقية", {
+            "fields": ("tenant", "requested_plan", "billing_cycle", "requested_by", "status", "created_at", "reviewed_at")
+        }),
+        ("بيانات التحويل والدفع اليدوي", {
+            "fields": ("payment_method", "currency", "amount", "sender_account", "transaction_reference", "receipt", "receipt_preview_large")
+        }),
+        ("الملاحظات والمراجعة", {
+            "fields": ("notes", "admin_notes")
+        }),
+    )
     actions = ["approve_requests", "reject_requests"]
 
     @admin.display(description="دورة الفوترة")
     def billing_cycle_badge(self, obj):
         return obj.get_billing_cycle_display()
+
+    @admin.display(description="طريقة الدفع")
+    def payment_method_badge(self, obj):
+        color_map = {
+            "wallet": "#7c3aed",
+            "instapay": "#059669",
+            "binance": "#d97706",
+        }
+        color = color_map.get(obj.payment_method, "#475569")
+        return format_html(
+            '<span style="background-color: {}15; color: {}; border: 1px solid {}40; padding: 3px 7px; border-radius: 6px; font-weight: bold; font-size: 11px;">{}</span>',
+            color, color, color, obj.get_payment_method_display()
+        )
+
+    @admin.display(description="المبلغ المسدد")
+    def amount_badge(self, obj):
+        sym = "$" if obj.currency == "USD" else "ج.م"
+        return format_html(
+            '<span style="font-weight: bold; color: #0f172a;">{} {}</span>',
+            obj.amount, sym
+        )
+
+    @admin.display(description="إيصال الدفع")
+    def receipt_thumbnail(self, obj):
+        if obj.receipt:
+            try:
+                url = obj.receipt.url
+                return format_html(
+                    '<a href="{}" target="_blank" title="عرض الإيصال بالحجم الكامل">'
+                    '<img src="{}" style="height: 38px; width: 38px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" />'
+                    '</a>',
+                    url, url
+                )
+            except Exception:
+                return "مرفق"
+        return mark_safe('<span style="color: #94a3b8; font-size: 11px;">بدون إيصال</span>')
+
+    @admin.display(description="معاينة الإيصال بالحجم الكامل")
+    def receipt_preview_large(self, obj):
+        if obj.receipt:
+            try:
+                url = obj.receipt.url
+                return format_html(
+                    '<div style="margin-top: 5px;">'
+                    '<a href="{}" target="_blank">'
+                    '<img src="{}" style="max-height: 420px; max-width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />'
+                    '</a>'
+                    '<p style="font-size: 11px; color: #64748b; margin-top: 6px;">انقر على الصورة لفتحها في تبويب جديد بالحجم الكامل.</p>'
+                    '</div>',
+                    url, url
+                )
+            except Exception:
+                return "مرفق"
+        return "لا يوجد إيصال مرفوع لهذا الطلب."
 
     @admin.display(description="حالة الطلب")
     def status_badge(self, obj):
@@ -244,7 +314,7 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
             safe_tenant = obj.tenant.name.replace("'", "\\'")
             safe_plan = obj.requested_plan.name.replace("'", "\\'")
             return format_html(
-                '<a href="{}" onclick="return confirm(\'هل أنت متأكد من الموافقة على ترقية منشأة «{}» إلى باقة «{}»؟\');" '
+                '<a href="{}" onclick="return confirm(\'هل أنت متأكد من الموافقة على ترقية منشأة «{}» إلى باقة «{}» وتمديد الصلاحية؟\');" '
                 'style="background-color: #257a4e; color: #ffffff; padding: 4px 9px; border-radius: 6px; font-weight: bold; '
                 'text-decoration: none; font-size: 11px; margin-left: 5px; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">✓ موافقة وتفعيل</a>'
                 '<a href="{}" onclick="return confirm(\'هل أنت متأكد من رفض طلب ترقية منشأة «{}»؟\');" '
