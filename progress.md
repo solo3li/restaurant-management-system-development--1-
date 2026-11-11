@@ -2,9 +2,10 @@
 
 ## Current State
 
-**Last Updated:** 2026-11-02 11:20
-**Session ID:** Boost Multilingual Integrity & Zero Arabic Leakage Across All Views
+**Last Updated:** 2026-11-11 23:30
+**Session ID:** Partner Telephony & Messaging Billing, Quotas, and Live Trackers
 **Active Features:** 
+- `feat-partner-billing-message-quotas-and-rates` (Completed & Verified 100%)
 - `feat-boost-zero-arabic-leakage` (Completed & Verified 100%)
 - `feat-official-6-language-multilingual-spanish` (Completed & Verified 100%)
 - `feat-multi-currency-revenue-disaggregation` (Completed & Verified 100%)
@@ -17,6 +18,34 @@
 ## Status
 
 ### What's Done
+
+- [x] **Partner Telephony & Messaging API: Message & Character Quotas, Wholesale/Retail Rate Controls & Live Dual Progress Trackers (`feat-partner-billing-message-quotas-and-rates`)**
+  - **1. Data Model & Quota Schema (`apps/billing/models.py`, `core/migrations/0042_...`)**:
+    - Added `monthly_voice_minutes`, `monthly_messages_quota`, `monthly_chars_quota`, and `spending_cap` to `SubscriptionPlan`.
+    - Applied migration `0042_subscriptionplan_monthly_chars_quota_and_more.py` across development environment and Docker container.
+    - Backfilled existing plan tiers (`trial`, `starter`, `basic`, `growth`, `pro`, `enterprise`) with official quota defaults.
+  - **2. Partner Integration Layer (`core/partner_service.py`)**:
+    - Expanded `DEFAULT_PLAN_VOICE_CAPS` and `DEFAULT_VOICE_CAPS` across all tiers with dual message and character caps.
+    - Updated `get_plan_voice_caps()` to resolve directly from `SubscriptionPlan` model instances with fallback to code mapping.
+    - Updated `update_client_cap()` and `register_sub_client()` to forward `message_cap` and `message_char_cap` to partner PBX.
+    - Implemented partner rate helper methods: `get_partner_settings()`, `update_partner_settings()`, `get_partner_wallet()`, and `get_partner_transactions()`.
+  - **3. Usage API & Quota Calculation (`apps/callcenter/views.py`)**:
+    - Enhanced `api_ai_callcenter_usage` returning `total_messages`, `message_cap`, `remaining_messages`, `message_percent`, `total_message_chars`, `message_char_cap`, `remaining_message_chars`, `char_percent`, `retail_revenue`, and `estimated_profit`.
+    - Implemented admin API endpoints: `api_landing_assistant_rates`, `api_landing_assistant_rates_update`, and `api_landing_assistant_wallet`.
+    - Wired routes in `apps/callcenter/urls.py` and `core/urls.py`.
+  - **4. Super Admin Tab 3 Panel (`templates/admin/core/platformvoiceassistantconfig/change_form.html`)**:
+    - Built comprehensive Partner Rates & Pooled Wallet panel in Tab 3 (Usage Quotas & Limits).
+    - Added live Pooled Wallet card, wholesale rates display (`0.0300$` min, `0.0070$` 1k chars), SaaS client aggregates, and interactive retail rate editor (`retail_rate_per_minute` and `retail_rate_per_1k_chars`) with dynamic margin estimation and one-click PBX sync (`POST /settings/`).
+  - **5. Call Center Live Dual Progress Trackers (`templates/call_center.html`)**:
+    - Added high-density command toolbar with 3-tab switcher (`POS Orders`, `Voice AI Suite`, `WhatsApp Chat Hub`).
+    - Embedded live Dual Quota progress bars displaying real-time voice minutes and WhatsApp message/character consumption with color-coded states (emerald, amber, rose).
+  - **6. Verification & Automated Testing**:
+    - Created dedicated test suite `test_partner_billing_and_quotas.py` with 13 comprehensive unit/integration tests (13/13 PASS 100%).
+    - Added test suite to `init.sh`.
+    - Verified `manage.py check` (0 issues).
+    - Updated AST knowledge graph via `graphify update .`.
+    - Collected static assets and restarted production container `motaem_web` with 200 OK verified.
+
 
 - [x] **Fix QR Menu Branch Name Collision 500 Error (`fix-qr-menu-branch-display-name`)**
   - Resolved `TypeError: 'str' object is not callable` and template variable naming on `/m/<slug>/`.

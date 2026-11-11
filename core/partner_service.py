@@ -118,27 +118,41 @@ def get_embed_urls_for_tenant(tenant, locale: str = "ar") -> Dict[str, Any]:
 
 
 DEFAULT_PLAN_VOICE_CAPS = {
-    "trial": {"minute_cap": 50, "spending_cap": 5.0},
-    "starter": {"minute_cap": 150, "spending_cap": 15.0},
-    "basic": {"minute_cap": 150, "spending_cap": 15.0},
-    "standard": {"minute_cap": 150, "spending_cap": 15.0},
-    "growth": {"minute_cap": 500, "spending_cap": 40.0},
-    "pro": {"minute_cap": 500, "spending_cap": 40.0},
-    "premium": {"minute_cap": 500, "spending_cap": 40.0},
-    "enterprise": {"minute_cap": 1500, "spending_cap": 100.0},
+    "trial": {"minute_cap": 50, "spending_cap": 5.0, "message_cap": 200, "message_char_cap": 10000},
+    "starter": {"minute_cap": 150, "spending_cap": 15.0, "message_cap": 500, "message_char_cap": 25000},
+    "basic": {"minute_cap": 150, "spending_cap": 15.0, "message_cap": 500, "message_char_cap": 25000},
+    "standard": {"minute_cap": 150, "spending_cap": 15.0, "message_cap": 500, "message_char_cap": 25000},
+    "growth": {"minute_cap": 500, "spending_cap": 40.0, "message_cap": 1500, "message_char_cap": 75000},
+    "pro": {"minute_cap": 500, "spending_cap": 40.0, "message_cap": 2500, "message_char_cap": 125000},
+    "premium": {"minute_cap": 500, "spending_cap": 40.0, "message_cap": 2500, "message_char_cap": 125000},
+    "enterprise": {"minute_cap": 1500, "spending_cap": 100.0, "message_cap": 10000, "message_char_cap": 500000},
 }
-DEFAULT_VOICE_CAPS = {"minute_cap": 150, "spending_cap": 15.0}
+DEFAULT_VOICE_CAPS = {"minute_cap": 150, "spending_cap": 15.0, "message_cap": 500, "message_char_cap": 25000}
 
 
 def get_plan_voice_caps(tenant_or_plan=None) -> Dict[str, Any]:
     """
-    Resolve minute and spending caps based on tenant subscription plan tier.
-    Default distribution:
-      - Trial: 50 mins, $5.00
-      - Starter / Basic / Standard: 150 mins, $15.00
-      - Pro / Growth / Premium: 500 mins, $40.00
-      - Enterprise: 1500 mins, $100.00
+    Resolve minute, message, character, and spending caps based on tenant subscription plan tier.
+    Checks model fields on SubscriptionPlan first (monthly_voice_minutes, monthly_messages_quota,
+    monthly_chars_quota, spending_cap) with fallback to DEFAULT_PLAN_VOICE_CAPS dictionary.
     """
+    # 1. Check direct SubscriptionPlan model instance
+    plan_obj = None
+    if tenant_or_plan:
+        if hasattr(tenant_or_plan, "subscription_plan") and tenant_or_plan.subscription_plan:
+            plan_obj = tenant_or_plan.subscription_plan
+        elif hasattr(tenant_or_plan, "monthly_voice_minutes"):
+            plan_obj = tenant_or_plan
+
+    if plan_obj and getattr(plan_obj, "monthly_voice_minutes", None) is not None:
+        return {
+            "minute_cap": int(getattr(plan_obj, "monthly_voice_minutes", 150) or 150),
+            "spending_cap": float(getattr(plan_obj, "spending_cap", 25.0) or 25.0),
+            "message_cap": int(getattr(plan_obj, "monthly_messages_quota", 1000) or 1000),
+            "message_char_cap": int(getattr(plan_obj, "monthly_chars_quota", 50000) or 50000),
+        }
+
+    # 2. Fallback to plan code lookup
     plan_code = "standard"
     if tenant_or_plan:
         if hasattr(tenant_or_plan, "subscription_plan") and tenant_or_plan.subscription_plan:
@@ -165,9 +179,17 @@ def get_plan_voice_caps(tenant_or_plan=None) -> Dict[str, Any]:
     return dict(caps)
 
 
-def update_client_cap(client_id: int, minute_cap: Optional[int] = None, spending_cap: Optional[float] = None, is_active: Optional[bool] = None) -> Dict[str, Any]:
+def update_client_cap(
+    client_id: int,
+    minute_cap: Optional[int] = None,
+    spending_cap: Optional[float] = None,
+    message_cap: Optional[int] = None,
+    message_char_cap: Optional[int] = None,
+    is_active: Optional[bool] = None,
+) -> Dict[str, Any]:
     """
-    Direct Partner API call to update call minute and spending caps for a client.
+    Direct Partner API call to update call minute, message count, message characters,
+    and spending caps for a client.
     Target: POST /api/partner/v1/clients/<client_id>/cap/
     """
     payload = {"client_id": int(client_id)}
@@ -175,6 +197,10 @@ def update_client_cap(client_id: int, minute_cap: Optional[int] = None, spending
         payload["minute_cap"] = int(minute_cap)
     if spending_cap is not None:
         payload["spending_cap"] = float(spending_cap)
+    if message_cap is not None:
+        payload["message_cap"] = int(message_cap)
+    if message_char_cap is not None:
+        payload["message_char_cap"] = int(message_char_cap)
     if is_active is not None:
         payload["is_active"] = bool(is_active)
 
@@ -201,15 +227,19 @@ def get_client_usage(client_id: int) -> Dict[str, Any]:
     return resp
 
 
-def sync_tenant_voice_caps(tenant, reset_to_plan: bool = True, minute_cap: Optional[int] = None, spending_cap: Optional[float] = None, is_active: Optional[bool] = None) -> Dict[str, Any]:
+def sync_tenant_voice_caps(
+    tenant,
+    reset_to_plan: bool = True,
+    minute_cap: Optional[int] = None,
+    spending_cap: Optional[float] = None,
+    message_cap: Optional[int] = None,
+    message_char_cap: Optional[int] = None,
+    is_active: Optional[bool] = None,
+) -> Dict[str, Any]:
     """
-    Synchronize call minute and spending caps to the Voice AI partner platform for a tenant.
+    Synchronize call minute, message, and spending caps to the Voice AI partner platform for a tenant.
     If caps are not explicitly passed and reset_to_plan is True, caps are determined by the
-    tenant's active subscription plan tier:
-      - Trial: 50 mins, $5.00
-      - Starter / Basic / Standard: 150 mins, $15.00
-      - Pro / Growth / Premium: 500 mins, $40.00
-      - Enterprise: 1500 mins, $100.00
+    tenant's active subscription plan tier.
     """
     if not tenant:
         return {"status": "error", "message": "No tenant provided"}
@@ -225,22 +255,40 @@ def sync_tenant_voice_caps(tenant, reset_to_plan: bool = True, minute_cap: Optio
     if not client_id:
         return {"status": "error", "message": f"المنشأة «{tenant.name}» غير مسجلة في السنترال الصوتي بعد."}
 
-    if minute_cap is None and spending_cap is None:
+    if minute_cap is None and spending_cap is None and message_cap is None and message_char_cap is None:
         plan_caps = get_plan_voice_caps(tenant)
-        minute_cap = plan_caps["minute_cap"]
-        spending_cap = plan_caps["spending_cap"]
+        minute_cap = plan_caps.get("minute_cap")
+        spending_cap = plan_caps.get("spending_cap")
+        message_cap = plan_caps.get("message_cap")
+        message_char_cap = plan_caps.get("message_char_cap")
 
     resp = update_client_cap(
         client_id=client_id,
         minute_cap=minute_cap,
         spending_cap=spending_cap,
+        message_cap=message_cap,
+        message_char_cap=message_char_cap,
         is_active=is_active if is_active is not None else tenant.is_active,
     )
-    logger.info(f"Synced voice caps for tenant '{tenant.slug}' (client_id={client_id}): minute_cap={minute_cap}, spending_cap={spending_cap}, result={resp.get('status')}")
+    logger.info(
+        f"Synced voice caps for tenant '{tenant.slug}' (client_id={client_id}): "
+        f"minute_cap={minute_cap}, spending_cap={spending_cap}, "
+        f"message_cap={message_cap}, message_char_cap={message_char_cap}, "
+        f"result={resp.get('status')}"
+    )
     return resp
 
 
-def register_sub_client(name: str, external_reference: str, email: str = "", password: str = "", spending_cap: float = 25.0, minute_cap: int = 300) -> Dict[str, Any]:
+def register_sub_client(
+    name: str,
+    external_reference: str,
+    email: str = "",
+    password: str = "",
+    spending_cap: float = 25.0,
+    minute_cap: int = 300,
+    message_cap: int = 1000,
+    message_char_cap: int = 50000,
+) -> Dict[str, Any]:
     """Register a new sub-client tenant on the Voice AI partner platform."""
     import secrets
     if not password:
@@ -253,6 +301,8 @@ def register_sub_client(name: str, external_reference: str, email: str = "", pas
         "password": password.strip(),
         "spending_cap": float(spending_cap),
         "minute_cap": int(minute_cap),
+        "message_cap": int(message_cap),
+        "message_char_cap": int(message_char_cap),
     }
     resp = _request("/clients/register/", method="POST", data=payload)
     if resp.get("status") == "success":
@@ -282,6 +332,8 @@ def ensure_tenant_registered(tenant, password: str = "") -> Dict[str, Any]:
         password=password or tenant.voice_password or "",
         minute_cap=caps["minute_cap"],
         spending_cap=caps["spending_cap"],
+        message_cap=caps.get("message_cap", 1000),
+        message_char_cap=caps.get("message_char_cap", 50000),
     )
     if res.get("status") == "success":
         client_data = res.get("client") or {}
@@ -959,6 +1011,64 @@ def initiate_webrtc_call(
             payload[key] = extra_kwargs[key]
 
     return _request(f"/clients/{client_id}/calls/webrtc/", method="POST", data=payload)
+
+
+def get_partner_settings() -> Dict[str, Any]:
+    """
+    Retrieve partner settings, retail rates, and wholesale rates from Partner API.
+    Target: GET /api/partner/v1/settings/
+    """
+    return _request("/settings/")
+
+
+def update_partner_settings(
+    retail_rate_per_minute: Optional[float] = None,
+    retail_rate_per_1k_chars: Optional[float] = None,
+    webhook_url: Optional[str] = None,
+    shared_mcp_server_id: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Update partner retail markup rates and webhook settings.
+    Target: POST /api/partner/v1/settings/
+    """
+    payload: Dict[str, Any] = {}
+    if retail_rate_per_minute is not None:
+        payload["retail_rate_per_minute"] = float(retail_rate_per_minute)
+    if retail_rate_per_1k_chars is not None:
+        payload["retail_rate_per_1k_chars"] = float(retail_rate_per_1k_chars)
+    if webhook_url is not None:
+        payload["webhook_url"] = str(webhook_url)
+    if shared_mcp_server_id is not None:
+        payload["shared_mcp_server_id"] = shared_mcp_server_id
+    return _request("/settings/", method="POST", data=payload)
+
+
+def get_partner_wallet() -> Dict[str, Any]:
+    """
+    Fetch live pooled wallet balance and wholesale rates from Partner API.
+    Target: GET /api/partner/v1/wallet/
+    """
+    return _request("/wallet/")
+
+
+def get_partner_transactions(
+    limit: int = 50,
+    offset: int = 0,
+    client_id: Optional[int] = None,
+    tx_type: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Fetch wholesale billing transactions from Partner API.
+    Target: GET /api/partner/v1/transactions/
+    """
+    params = [f"limit={int(limit)}", f"offset={int(offset)}"]
+    if client_id:
+        params.append(f"client_id={int(client_id)}")
+    if tx_type:
+        params.append(f"type={urllib.parse.quote(str(tx_type))}")
+    qs = f"?{'&'.join(params)}"
+    return _request(f"/transactions/{qs}")
+
 
 
 

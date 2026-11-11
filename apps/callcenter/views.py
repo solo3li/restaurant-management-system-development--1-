@@ -2661,9 +2661,26 @@ def api_ai_callcenter_usage(request):
     plan_caps = ps.get_plan_voice_caps(tenant)
     client_data = usage.get("client") or {}
 
-    total_mins = client_data.get("total_minutes") or 0
-    cap_mins = client_data.get("minute_cap") or plan_caps.get("minute_cap") or 0
+    total_mins = int(client_data.get("total_minutes") or 0)
+    cap_mins = int(client_data.get("minute_cap") or plan_caps.get("minute_cap") or 0)
     remaining_mins = max(0, cap_mins - total_mins)
+    mins_percent = round((total_mins / cap_mins * 100), 1) if cap_mins > 0 else 0.0
+
+    total_msgs = int(client_data.get("total_messages") or 0)
+    cap_msgs = int(client_data.get("message_cap") or plan_caps.get("message_cap") or 0)
+    remaining_msgs = max(0, cap_msgs - total_msgs)
+    msgs_percent = round((total_msgs / cap_msgs * 100), 1) if cap_msgs > 0 else 0.0
+
+    total_chars = int(client_data.get("total_message_chars") or 0)
+    cap_chars = int(client_data.get("message_char_cap") or plan_caps.get("message_char_cap") or 0)
+    remaining_chars = max(0, cap_chars - total_chars)
+    chars_percent = round((total_chars / cap_chars * 100), 1) if cap_chars > 0 else 0.0
+
+    spending_cap = float(client_data.get("spending_cap") or plan_caps.get("spending_cap") or 25.0)
+    total_spent = float(client_data.get("total_spent") or 0.0)
+
+    retail_revenue = float(client_data.get("retail_revenue") or 0.0)
+    estimated_profit = float(client_data.get("estimated_profit") or 0.0)
 
     return JsonResponse({
         "status": "success",
@@ -2673,8 +2690,19 @@ def api_ai_callcenter_usage(request):
         "total_minutes": total_mins,
         "minute_cap": cap_mins,
         "remaining_minutes": remaining_mins,
-        "spending_cap": client_data.get("spending_cap") or plan_caps.get("spending_cap"),
-        "total_spent": client_data.get("total_spent") or 0.0,
+        "minute_percent": mins_percent,
+        "total_messages": total_msgs,
+        "message_cap": cap_msgs,
+        "remaining_messages": remaining_msgs,
+        "message_percent": msgs_percent,
+        "total_message_chars": total_chars,
+        "message_char_cap": cap_chars,
+        "remaining_message_chars": remaining_chars,
+        "char_percent": chars_percent,
+        "spending_cap": spending_cap,
+        "total_spent": total_spent,
+        "retail_revenue": retail_revenue,
+        "estimated_profit": estimated_profit,
         "is_active": client_data.get("is_active", True),
     })
 
@@ -3708,6 +3736,53 @@ def api_landing_assistant_ensure_partner_client(request):
     from apps.callcenter.landing_assistant_service import ensure_landing_sales_client
     result = ensure_landing_sales_client()
     return JsonResponse(result)
+
+
+@login_required
+def api_landing_assistant_rates(request):
+    """Return partner rates (wholesale and retail) and settings."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"status": "error", "message": "غير مصرح لك"}, status=403)
+    from core import partner_service as ps
+    settings_res = ps.get_partner_settings()
+    return JsonResponse(settings_res)
+
+
+@login_required
+def api_landing_assistant_rates_update(request):
+    """Update partner retail markup rates."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"status": "error", "message": "غير مصرح لك"}, status=403)
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+
+    from core import partner_service as ps
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        data = request.POST
+
+    retail_rate_min = data.get("retail_rate_per_minute")
+    retail_rate_1k = data.get("retail_rate_per_1k_chars")
+    webhook_url = data.get("webhook_url")
+
+    resp = ps.update_partner_settings(
+        retail_rate_per_minute=float(retail_rate_min) if retail_rate_min is not None and str(retail_rate_min).strip() != "" else None,
+        retail_rate_per_1k_chars=float(retail_rate_1k) if retail_rate_1k is not None and str(retail_rate_1k).strip() != "" else None,
+        webhook_url=webhook_url if webhook_url is not None else None,
+    )
+    return JsonResponse(resp)
+
+
+@login_required
+def api_landing_assistant_wallet(request):
+    """Return live partner pooled wallet balance and wholesale rates."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"status": "error", "message": "غير مصرح لك"}, status=403)
+    from core import partner_service as ps
+    wallet_res = ps.get_partner_wallet()
+    return JsonResponse(wallet_res)
+
 
 
 

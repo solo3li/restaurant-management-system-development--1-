@@ -663,6 +663,143 @@
                         {% include "admin/includes/fieldset.html" with card=False %}
                     {% endif %}
                 {% endfor %}
+
+                <!-- ================================================================
+                     PARTNER PRICING, RETAIL RATES & POOLED WALLET MANAGEMENT
+                     ================================================================ -->
+                <div class="mt-4 pt-4 border-top border-secondary">
+                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                        <div>
+                            <h5 class="m-0 text-white font-weight-bold">
+                                <i class="fas fa-wallet text-success me-2"></i> أسعار وهوامش ربح الشريك والمحفظة المركزية (Partner Rates & Pooled Wallet)
+                            </h5>
+                            <p class="text-muted small mt-1 mb-0">
+                                مراقبة رصيد المحفظة المجمعة المخصصة للشريك، أسعار الجملة، وضبط أسعار إعادة البيع (Retail Markup) للمطاعم.
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-light" onclick="fetchPartnerWalletAndRates(true);" id="btn-refresh-rates">
+                            <i class="fas fa-sync-alt me-1"></i> تحديث الأسعار والرصيد
+                        </button>
+                    </div>
+
+                    <!-- 3 Metric Cards: Pooled Wallet / Wholesale Cost / Current Retail Pricing -->
+                    <div class="row g-3 mb-3">
+                        <!-- Card 1: Pooled Wallet -->
+                        <div class="col-md-4">
+                            <div class="slate-subcard h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-muted small font-weight-bold">رصيد المحفظة المركزية (Pooled Wallet)</span>
+                                    <span class="badge bg-success-subtle text-success border border-success" id="partner-wallet-status">نشط</span>
+                                </div>
+                                <div class="d-flex align-items-baseline gap-2">
+                                    <h3 class="m-0 text-white font-weight-bold" id="partner-wallet-balance">--</h3>
+                                    <span class="text-muted small" id="partner-wallet-currency">USD ($)</span>
+                                </div>
+                                <div class="text-muted small mt-2">
+                                    <span>إجمالي المشحون: <strong class="text-light" id="partner-wallet-deposited">--</strong></span> • 
+                                    <span>المستهلك: <strong class="text-warning" id="partner-wallet-spent">--</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Wholesale Rates (التكلفة بالجملة) -->
+                        <div class="col-md-4">
+                            <div class="slate-subcard h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-muted small font-weight-bold">أسعار الجملة للشريك (Wholesale Cost)</span>
+                                    <span class="badge bg-info-subtle text-info border border-info">سعر الشريك</span>
+                                </div>
+                                <div class="space-y-1 mt-1">
+                                    <div class="d-flex justify-content-between text-xs text-muted">
+                                        <span>تكلفة الدقيقة الصوتية:</span>
+                                        <strong class="text-info font-mono" id="wholesale-rate-min">0.0300 $</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-xs text-muted">
+                                        <span>تكلفة 1,000 حرف رسائل:</span>
+                                        <strong class="text-info font-mono" id="wholesale-rate-char">0.0070 $</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-xs text-muted pt-1 border-top border-secondary">
+                                        <span>طريقة التقريب المالي:</span>
+                                        <span class="text-light font-weight-bold" id="wholesale-rounding">أعلى دقيقة (Ceil)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Estimated Platform Metrics -->
+                        <div class="col-md-4">
+                            <div class="slate-subcard h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-muted small font-weight-bold">مؤشرات عملاء الساس (SaaS Aggregates)</span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary" id="partner-clients-count">-- عميل</span>
+                                </div>
+                                <div class="space-y-1 mt-1">
+                                    <div class="d-flex justify-content-between text-xs text-muted">
+                                        <span>إجمالي الدقائق المفوترة:</span>
+                                        <strong class="text-light font-mono" id="partner-billed-minutes">--</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-xs text-muted">
+                                        <span>إجمالي تكاليف العملاء:</span>
+                                        <strong class="text-warning font-mono" id="partner-sub-spent">--</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-xs text-muted pt-1 border-top border-secondary">
+                                        <span>رمز الشريك (Partner Code):</span>
+                                        <span class="text-light font-mono" id="partner-code-badge">--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Retail Rates Configuration Form -->
+                    <div class="slate-subcard">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary">
+                            <div>
+                                <h6 class="m-0 text-white font-weight-bold">
+                                    <i class="fas fa-tags text-warning me-2"></i> ضبط أسعار البيع والتجزئة للعملاء (Retail Markup Rates)
+                                </h6>
+                                <p class="text-muted small mt-1 mb-0">تُطبق هذه الأسعار على عملاء ومطاعم الساس لحساب الإيرادات المتوقعة وهامش ربح المنصة.</p>
+                            </div>
+                            <span class="badge bg-warning-subtle text-warning border border-warning">مزامنة فورية مع السنترال</span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-light small font-weight-bold">
+                                    سعر بيع الدقيقة الصوتية للمطعم ($ / دقيقة)
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-muted">$</span>
+                                    <input type="number" step="0.001" min="0.01" class="form-control bg-dark text-white border-secondary" id="input-retail-min" placeholder="0.05" oninput="calculateRetailMargins();">
+                                    <span class="input-group-text bg-dark border-secondary text-muted">/ دقيقة</span>
+                                </div>
+                                <div class="form-text text-muted small">
+                                    سعر الجملة: <span class="text-info font-mono">0.03$</span> • الهامش الربحي المقترح: <span class="text-success font-weight-bold" id="margin-calc-min">+0.02$ (+66.7%)</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-light small font-weight-bold">
+                                    سعر بيع رسائل الواتساب ($ / 1,000 حرف)
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-muted">$</span>
+                                    <input type="number" step="0.001" min="0.001" class="form-control bg-dark text-white border-secondary" id="input-retail-char" placeholder="0.015" oninput="calculateRetailMargins();">
+                                    <span class="input-group-text bg-dark border-secondary text-muted">/ 1,000 حرف</span>
+                                </div>
+                                <div class="form-text text-muted small">
+                                    سعر الجملة: <span class="text-info font-mono">0.007$</span> • الهامش الربحي المقترح: <span class="text-success font-weight-bold" id="margin-calc-char">+0.008$ (+114.3%)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-end gap-2 mt-3 pt-3 border-top border-secondary">
+                            <button type="button" class="btn btn-slate-primary px-4 py-2" id="btn-save-partner-rates" onclick="savePartnerRates();">
+                                <i class="fas fa-check-circle me-1"></i> حفظ وتحديث أسعار التجزئة في السنترال
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1487,6 +1624,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (history.replaceState) {
             history.replaceState(null, null, '#' + tabId);
         }
+        if (tabId === 'tab-quotas') {
+            fetchPartnerWalletAndRates(false);
+        }
     }
 
     tabButtons.forEach(btn => {
@@ -1503,6 +1643,136 @@ document.addEventListener('DOMContentLoaded', function() {
         activateTab(hash);
     }
 });
+
+// Partner Pooled Wallet & Retail Markup Management
+async function fetchPartnerWalletAndRates(showToastOnSuccess) {
+    try {
+        const [ratesRes, walletRes] = await Promise.all([
+            fetch('/api/landing-assistant/rates/').then(r => r.json()),
+            fetch('/api/landing-assistant/wallet/').then(r => r.json())
+        ]);
+        if (walletRes && walletRes.status === 'success') {
+            const w = walletRes.wallet || {};
+            const p = walletRes.partner || {};
+            const rules = walletRes.billing_rules || {};
+
+            const balEl = document.getElementById('partner-wallet-balance');
+            if (balEl) balEl.textContent = (w.balance !== undefined ? Number(w.balance).toFixed(2) : '--');
+            const curEl = document.getElementById('partner-wallet-currency');
+            if (curEl) curEl.textContent = (w.currency || 'USD') + ` (${w.currency_symbol || '$'})`;
+            const depEl = document.getElementById('partner-wallet-deposited');
+            if (depEl) depEl.textContent = (w.total_deposited !== undefined ? `${Number(w.total_deposited).toFixed(2)} $` : '--');
+            const spEl = document.getElementById('partner-wallet-spent');
+            if (spEl) spEl.textContent = (w.total_spent !== undefined ? `${Number(w.total_spent).toFixed(2)} $` : '--');
+
+            const wsMinEl = document.getElementById('wholesale-rate-min');
+            if (wsMinEl) wsMinEl.textContent = (p.custom_rate_per_minute !== undefined ? `${Number(p.custom_rate_per_minute).toFixed(4)} $` : '0.0300 $');
+            const rndEl = document.getElementById('wholesale-rounding');
+            if (rndEl) rndEl.textContent = rules.rounding_mode === 'ceil' ? 'أعلى دقيقة (Ceil)' : 'دقيقة فعلية';
+
+            const clCountEl = document.getElementById('partner-clients-count');
+            if (clCountEl) clCountEl.textContent = `${p.total_clients || p.clients_count || 0} عميل`;
+            const billMinEl = document.getElementById('partner-billed-minutes');
+            if (billMinEl) billMinEl.textContent = `${p.total_billed_minutes || 0} دقيقة`;
+            const subSpEl = document.getElementById('partner-sub-spent');
+            if (subSpEl) subSpEl.textContent = `${Number(p.total_sub_spent || 0).toFixed(2)} $`;
+            const codeEl = document.getElementById('partner-code-badge');
+            if (codeEl) codeEl.textContent = p.partner_code || '--';
+        }
+
+        if (ratesRes && ratesRes.status === 'success') {
+            const s = ratesRes.settings || {};
+            if (s.custom_rate_per_1k_chars !== undefined) {
+                const wsCharEl = document.getElementById('wholesale-rate-char');
+                if (wsCharEl) wsCharEl.textContent = `${Number(s.custom_rate_per_1k_chars).toFixed(4)} $`;
+            }
+            if (s.retail_rate_per_minute !== undefined) {
+                const inMin = document.getElementById('input-retail-min');
+                if (inMin && !inMin.matches(':focus')) inMin.value = s.retail_rate_per_minute;
+            }
+            if (s.retail_rate_per_1k_chars !== undefined) {
+                const inChar = document.getElementById('input-retail-char');
+                if (inChar && !inChar.matches(':focus')) inChar.value = s.retail_rate_per_1k_chars;
+            }
+            calculateRetailMargins();
+        }
+
+        if (showToastOnSuccess) {
+            showToast('تم تحديث بيانات المحفظة وأسعار التجزئة بنجاح.');
+        }
+    } catch (e) {
+        console.error('Error fetching wallet/rates:', e);
+    }
+}
+
+function calculateRetailMargins() {
+    const minInputEl = document.getElementById('input-retail-min');
+    const charInputEl = document.getElementById('input-retail-char');
+    if (!minInputEl || !charInputEl) return;
+
+    const minInput = parseFloat(minInputEl.value) || 0.05;
+    const charInput = parseFloat(charInputEl.value) || 0.015;
+
+    const wholesaleMin = 0.03;
+    const wholesaleChar = 0.007;
+
+    const diffMin = minInput - wholesaleMin;
+    const pctMin = wholesaleMin > 0 ? ((diffMin / wholesaleMin) * 100).toFixed(1) : 0;
+    const minEl = document.getElementById('margin-calc-min');
+    if (minEl) {
+        minEl.textContent = `${diffMin >= 0 ? '+' : ''}${diffMin.toFixed(3)}$ (${diffMin >= 0 ? '+' : ''}${pctMin}%)`;
+        minEl.className = diffMin >= 0 ? 'text-success font-weight-bold' : 'text-danger font-weight-bold';
+    }
+
+    const diffChar = charInput - wholesaleChar;
+    const pctChar = wholesaleChar > 0 ? ((diffChar / wholesaleChar) * 100).toFixed(1) : 0;
+    const charEl = document.getElementById('margin-calc-char');
+    if (charEl) {
+        charEl.textContent = `${diffChar >= 0 ? '+' : ''}${diffChar.toFixed(3)}$ (${diffChar >= 0 ? '+' : ''}${pctChar}%)`;
+        charEl.className = diffChar >= 0 ? 'text-success font-weight-bold' : 'text-danger font-weight-bold';
+    }
+}
+
+async function savePartnerRates() {
+    const btn = document.getElementById('btn-save-partner-rates');
+    const minVal = parseFloat(document.getElementById('input-retail-min').value);
+    const charVal = parseFloat(document.getElementById('input-retail-char').value);
+
+    if (isNaN(minVal) || minVal <= 0 || isNaN(charVal) || charVal <= 0) {
+        showToast('يرجى إدخال أسعار صالحة أكبر من الصفر.', true);
+        return;
+    }
+
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+
+    try {
+        const resp = await fetch('/api/landing-assistant/rates/update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                retail_rate_per_minute: minVal,
+                retail_rate_per_1k_chars: charVal
+            })
+        });
+        const res = await resp.json();
+        if (res.status === 'success') {
+            showToast('تم حفظ وتحديث أسعار التجزئة في السنترال بنجاح!');
+            fetchPartnerWalletAndRates(false);
+        } else {
+            showToast(res.message || 'حدث خطأ أثناء حفظ الأسعار.', true);
+        }
+    } catch (e) {
+        showToast('فشل الاتصال بخادم الاتصالات: ' + e.message, true);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+}
 
 // Ensure Partner Client Account
 function ensurePartnerClient() {

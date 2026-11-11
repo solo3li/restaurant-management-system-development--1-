@@ -32,6 +32,109 @@
         </div>
     </div>
 
+    <!-- Main Call Center Tabs & Live Dual Quota Toolbar -->
+    <div class="bg-white rounded-xl border border-slate-200/80 p-3 shadow-xs space-y-3">
+        <!-- Top Row: Tab Switcher Buttons & Status -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-2.5 border-b border-slate-100">
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <button 
+                    type="button" 
+                    id="main-tab-btn-pos" 
+                    onclick="switchMainTab('pos');" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer {% if active_tab == 'pos' %}bg-violet-600 text-white shadow-xs{% else %}bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/70{% endif %}"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>{{ "شاشة الطلبات والكاشير"|t }}</span>
+                </button>
+                <button 
+                    type="button" 
+                    id="main-tab-btn-callcenter" 
+                    onclick="switchMainTab('call-center');" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer {% if active_tab == 'call-center' %}bg-violet-600 text-white shadow-xs{% else %}bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/70{% endif %}"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    <span>{{ "السنترال الصوتي والمساعد"|t }}</span>
+                    <span class="inline-flex items-center px-1 py-0.2 rounded text-[9px] font-semibold bg-violet-100 text-violet-700">Live</span>
+                </button>
+                <button 
+                    type="button" 
+                    id="main-tab-btn-chathub" 
+                    onclick="switchMainTab('chat-hub');" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer {% if active_tab == 'chat-hub' %}bg-violet-600 text-white shadow-xs{% else %}bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/70{% endif %}"
+                >
+                    <svg class="w-3.5 h-3.5 fill-[#25D366]" viewBox="0 0 24 24"><path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.101-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.201-.3.301-.501.101-.2.051-.376-.025-.527-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519-.176-.01-.376-.01-.577-.01-.201 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.229 3.111c.15.201 2.123 3.242 5.143 4.547.718.311 1.279.497 1.716.636.721.23 1.377.198 1.896.12.578-.088 1.78-.727 2.031-1.429.251-.702.251-1.304.176-1.429-.076-.125-.276-.201-.577-.351z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.98-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.167c-1.57 0-3.04-.45-4.29-1.233l-.307-.19-2.96.831.849-2.883-.2-.317A8.13 8.13 0 013.833 12c0-4.502 3.665-8.167 8.167-8.167s8.167 3.665 8.167 8.167-3.665 8.167-8.167 8.167z"/></svg>
+                    <span>{{ "محادثات الواتساب"|t }}</span>
+                    <span class="inline-flex items-center px-1 py-0.2 rounded text-[9px] font-semibold bg-emerald-100 text-emerald-700">Hub</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>{{ "الباقة:"|t }}</span>
+                    <strong>{{ tenant.subscription_plan.name|default:tenant.get_plan_display }}</strong>
+                </span>
+                <button 
+                    type="button" 
+                    onclick="fetchCallCenterQuotas(true);" 
+                    id="btn-sync-quotas"
+                    class="h-7 px-2 rounded-lg border border-slate-200/70 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer shrink-0"
+                    title="{{ "مزامنة الرصيد والحصص"|t }}"
+                >
+                    <svg class="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>{{ "مزامنة الحصة"|t }}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Live Dual Quota Trackers (Voice Minutes + WhatsApp Messages) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-0.5 text-xs">
+            <!-- Tracker 1: Voice Minutes Quota -->
+            <div class="p-2.5 rounded-xl bg-slate-50/70 border border-slate-200/70 space-y-1.5">
+                <div class="flex items-center justify-between text-[11px]">
+                    <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+                        <span>{{ "دقائق المكالمات الصوتية"|t }}</span>
+                    </span>
+                    <span class="font-mono text-slate-600">
+                        <strong class="text-slate-900" id="quota-mins-used">0</strong> / <span id="quota-mins-cap">--</span> {{ "دقيقة"|t }}
+                        (<span id="quota-mins-pct" class="font-bold text-violet-700">0%</span>)
+                    </span>
+                </div>
+                <!-- Progress bar -->
+                <div class="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
+                    <div id="quota-mins-bar" class="bg-violet-600 h-2 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-500">
+                    <span>{{ "المتبقي:"|t }} <strong class="text-slate-800" id="quota-mins-rem">--</strong> {{ "دقيقة"|t }}</span>
+                    <span>{{ "السقف المالي:"|t }} <strong class="text-slate-800 font-mono" id="quota-spend-cap">$--</strong></span>
+                </div>
+            </div>
+
+            <!-- Tracker 2: WhatsApp Messages & Characters Quota -->
+            <div class="p-2.5 rounded-xl bg-slate-50/70 border border-slate-200/70 space-y-1.5">
+                <div class="flex items-center justify-between text-[11px]">
+                    <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 fill-[#25D366]" viewBox="0 0 24 24"><path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.101-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.201-.3.301-.501.101-.2.051-.376-.025-.527-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519-.176-.01-.376-.01-.577-.01-.201 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.229 3.111c.15.201 2.123 3.242 5.143 4.547.718.311 1.279.497 1.716.636.721.23 1.377.198 1.896.12.578-.088 1.78-.727 2.031-1.429.251-.702.251-1.304.176-1.429-.076-.125-.276-.201-.577-.351z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.98-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.167c-1.57 0-3.04-.45-4.29-1.233l-.307-.19-2.96.831.849-2.883-.2-.317A8.13 8.13 0 013.833 12c0-4.502 3.665-8.167 8.167-8.167s8.167 3.665 8.167 8.167-3.665 8.167-8.167 8.167z"/></svg>
+                        <span>{{ "رسائل الواتساب والردود"|t }}</span>
+                    </span>
+                    <span class="font-mono text-slate-600">
+                        <strong class="text-slate-900" id="quota-msgs-used">0</strong> / <span id="quota-msgs-cap">--</span> {{ "رسالة"|t }}
+                        (<span id="quota-msgs-pct" class="font-bold text-emerald-700">0%</span>)
+                    </span>
+                </div>
+                <!-- Progress bar -->
+                <div class="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
+                    <div id="quota-msgs-bar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-500">
+                    <span>{{ "المتبقي:"|t }} <strong class="text-slate-800" id="quota-msgs-rem">--</strong> {{ "رسالة"|t }}</span>
+                    <span>{{ "الحروف المستهلكة:"|t }} <strong class="text-slate-800 font-mono" id="quota-chars-used">0</strong> / <span id="quota-chars-cap">--</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tab 1: POS Order Entry Content -->
     <div id="tab-content-pos" class="{% if active_tab != 'pos' %}hidden {% endif %}space-y-3">
         <!-- Main POS Layout: Menu Left + Invoice Right -->
@@ -893,9 +996,96 @@
         if (ccEl) ccEl.classList.toggle('hidden', tabName !== 'call-center');
         if (chEl) chEl.classList.toggle('hidden', tabName !== 'chat-hub');
 
+        // Tab button active states
+        const btnPos = document.getElementById('main-tab-btn-pos');
+        const btnCc = document.getElementById('main-tab-btn-callcenter');
+        const btnCh = document.getElementById('main-tab-btn-chathub');
+
+        const activeClass = ['bg-violet-600', 'text-white', 'shadow-xs'];
+        const inactiveClass = ['bg-slate-50', 'text-slate-700', 'hover:bg-slate-100', 'border', 'border-slate-200/70'];
+
+        function setBtnStyle(btn, isActive) {
+            if (!btn) return;
+            if (isActive) {
+                activeClass.forEach(c => btn.classList.add(c));
+                inactiveClass.forEach(c => btn.classList.remove(c));
+            } else {
+                activeClass.forEach(c => btn.classList.remove(c));
+                inactiveClass.forEach(c => btn.classList.add(c));
+            }
+        }
+        setBtnStyle(btnPos, tabName === 'pos');
+        setBtnStyle(btnCc, tabName === 'call-center');
+        setBtnStyle(btnCh, tabName === 'chat-hub');
+
         try {
             history.replaceState(null, '', '#' + tabName);
         } catch (e) {}
+    }
+
+    async function fetchCallCenterQuotas(showToastNotice = false) {
+        const btn = document.getElementById('btn-sync-quotas');
+        if (showToastNotice && btn) {
+            btn.classList.add('animate-pulse');
+        }
+        try {
+            const res = await fetch('/api/ai-callcenter/usage/').then(r => r.json());
+            if (res.status === 'success') {
+                const totalMins = res.total_minutes || 0;
+                const capMins = res.minute_cap || 0;
+                const remMins = res.remaining_minutes || 0;
+                const pctMins = Math.min(100, Math.max(0, res.minute_percent || 0));
+
+                const minsUsedEl = document.getElementById('quota-mins-used');
+                if (minsUsedEl) minsUsedEl.textContent = totalMins;
+                const minsCapEl = document.getElementById('quota-mins-cap');
+                if (minsCapEl) minsCapEl.textContent = capMins;
+                const minsRemEl = document.getElementById('quota-mins-rem');
+                if (minsRemEl) minsRemEl.textContent = remMins;
+                const minsPctEl = document.getElementById('quota-mins-pct');
+                if (minsPctEl) minsPctEl.textContent = `${pctMins}%`;
+                const minsBarEl = document.getElementById('quota-mins-bar');
+                if (minsBarEl) {
+                    minsBarEl.style.width = `${pctMins}%`;
+                    minsBarEl.className = pctMins >= 90 ? 'bg-rose-500 h-2 rounded-full transition-all duration-500' : (pctMins >= 70 ? 'bg-amber-500 h-2 rounded-full transition-all duration-500' : 'bg-violet-600 h-2 rounded-full transition-all duration-500');
+                }
+
+                const totalMsgs = res.total_messages || 0;
+                const capMsgs = res.message_cap || 0;
+                const remMsgs = res.remaining_messages || 0;
+                const pctMsgs = Math.min(100, Math.max(0, res.message_percent || 0));
+
+                const msgsUsedEl = document.getElementById('quota-msgs-used');
+                if (msgsUsedEl) msgsUsedEl.textContent = totalMsgs;
+                const msgsCapEl = document.getElementById('quota-msgs-cap');
+                if (msgsCapEl) msgsCapEl.textContent = capMsgs;
+                const msgsRemEl = document.getElementById('quota-msgs-rem');
+                if (msgsRemEl) msgsRemEl.textContent = remMsgs;
+                const msgsPctEl = document.getElementById('quota-msgs-pct');
+                if (msgsPctEl) msgsPctEl.textContent = `${pctMsgs}%`;
+                const msgsBarEl = document.getElementById('quota-msgs-bar');
+                if (msgsBarEl) {
+                    msgsBarEl.style.width = `${pctMsgs}%`;
+                    msgsBarEl.className = pctMsgs >= 90 ? 'bg-rose-500 h-2 rounded-full transition-all duration-500' : (pctMsgs >= 70 ? 'bg-amber-500 h-2 rounded-full transition-all duration-500' : 'bg-emerald-500 h-2 rounded-full transition-all duration-500');
+                }
+
+                const charsUsedEl = document.getElementById('quota-chars-used');
+                if (charsUsedEl) charsUsedEl.textContent = (res.total_message_chars || 0).toLocaleString();
+                const charsCapEl = document.getElementById('quota-chars-cap');
+                if (charsCapEl) charsCapEl.textContent = (res.message_char_cap || 0).toLocaleString();
+
+                const spendCapEl = document.getElementById('quota-spend-cap');
+                if (spendCapEl) spendCapEl.textContent = `$${res.spending_cap || '--'}`;
+
+                if (showToastNotice) {
+                    showToast(tJs('تم تحديث ومزامنة الحصص والرصيد بنجاح', 'Quotas synced successfully'));
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch call center quotas:', e);
+        } finally {
+            if (btn) btn.classList.remove('animate-pulse');
+        }
     }
 
     function reloadCallCenterIframe() {
@@ -931,6 +1121,7 @@
             switchMainTab('pos');
         }
         onBranchChanged();
+        fetchCallCenterQuotas(false);
     });
 </script>
 {% endblock %}

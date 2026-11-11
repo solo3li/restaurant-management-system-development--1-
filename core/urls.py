@@ -173,6 +173,9 @@ urlpatterns = [
     path("api/landing-assistant/profiles/<int:profile_id>/activate/", views.api_landing_assistant_activate_profile, name="api_landing_assistant_activate_profile"),
     path("api/landing-assistant/profiles/<int:profile_id>/update/", views.api_landing_assistant_update_profile, name="api_landing_assistant_update_profile"),
     path("api/landing-assistant/partner-client/ensure/", views.api_landing_assistant_ensure_partner_client, name="api_landing_assistant_ensure_partner_client"),
+    path("api/landing-assistant/rates/", views.api_landing_assistant_rates, name="api_landing_assistant_rates"),
+    path("api/landing-assistant/rates/update/", views.api_landing_assistant_rates_update, name="api_landing_assistant_rates_update"),
+    path("api/landing-assistant/wallet/", views.api_landing_assistant_wallet, name="api_landing_assistant_wallet"),
     path("api/ai-callcenter/calls/webrtc/", views.api_ai_callcenter_initiate_webrtc, name="api_ai_callcenter_initiate_webrtc"),
     path("api/audit-logs/", views.api_audit_logs, name="api_audit_logs"),
 

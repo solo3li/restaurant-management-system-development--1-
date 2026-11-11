@@ -209,6 +209,9 @@ from apps.callcenter.views import (
     api_landing_assistant_activate_profile,
     api_landing_assistant_update_profile,
     api_landing_assistant_ensure_partner_client,
+    api_landing_assistant_rates,
+    api_landing_assistant_rates_update,
+    api_landing_assistant_wallet,
 )
 
 from apps.audit.views import (
