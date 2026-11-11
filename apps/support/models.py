@@ -1,8 +1,18 @@
 import os
 import random
+import uuid
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+
+
+def ticket_attachment_upload_path(instance, filename):
+    """Generate unguessable cryptographic UUID path for support ticket attachments."""
+    ext = os.path.splitext(filename)[1].lower()
+    unique_id = uuid.uuid4().hex
+    now = timezone.now()
+    return f"support_tickets/{now.strftime('%Y/%m')}/{unique_id}{ext}"
+
 
 
 class SupportTicket(models.Model):
@@ -205,7 +215,7 @@ class TicketAttachment(models.Model):
         verbose_name="الرسالة التابعة للمرفق"
     )
     file = models.FileField(
-        upload_to="support_tickets/%Y/%m/",
+        upload_to=ticket_attachment_upload_path,
         verbose_name="الملف المرفق"
     )
     file_type = models.CharField(

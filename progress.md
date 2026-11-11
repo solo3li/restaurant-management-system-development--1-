@@ -2,9 +2,10 @@
 
 ## Current State
 
-**Last Updated:** 2026-11-12 00:00
-**Session ID:** Subscription Plans Dual Currency (USD & EGP), Manual Payment Workflow, 3-Tier Hard Lockout & Inngest Crons
+**Last Updated:** 2026-11-12 00:45
+**Session ID:** Full Media Migration to MinIO S3 Storage, Traefik SSL Routing, and Cryptographic UUID Uploads
 **Active Features:** 
+- `feat-minio-media-migration` (Completed & Verified 100%)
 - `feat-subscription-dual-currency-and-manual-payments` (Completed & Verified 100%)
 - `feat-partner-billing-message-quotas-and-rates` (Completed & Verified 100%)
 - `feat-boost-zero-arabic-leakage` (Completed & Verified 100%)
@@ -19,6 +20,35 @@
 ## Status
 
 ### What's Done
+
+- [x] **Full Media Migration to MinIO S3 Storage, Traefik SSL Routing, and Cryptographic UUID Uploads (`feat-minio-media-migration`)**
+  - **1. Docker Compose MinIO & Auto-Init**:
+    - Configured `minio` service (`minio/minio:latest`) in `docker-compose.yml` with persistent volume `minio_data:/data`, mapped host ports `9200:9000` and `127.0.0.1:9201:9001` (securing the admin console to local loopback).
+    - Built and integrated lightweight one-shot `minio-init` container using `minio/mc` with auto-retry health loop that creates the `motaem-media` bucket and sets anonymous download policy.
+  - **2. Traefik SSL Media Routing**:
+    - Added high-priority (`priority=100`) routing in `docker-compose.yml` on `minio`:
+      - HTTPS router for `Host('uggu.space') && PathPrefix('/media/')` with Let's Encrypt TLS and HSTS security headers.
+      - HTTP router with canonical redirect to clean HTTPS.
+      - Traefik `replacepathregex` middleware (`^/media/(.*)` -> `/motaem-media/$1`), proxying directly to `minio:9000`.
+      - Verified via curl: `https://uggu.space/media/...` returns HTTP/2 200 with MinIO server headers and no port leakage.
+  - **3. Django S3/MinIO Storage Configuration**:
+    - Updated `restaurant_system/settings.py` and `.env` with `USE_MINIO=True`, `AWS_STORAGE_BUCKET_NAME="motaem-media"`, `AWS_S3_CUSTOM_DOMAIN="uggu.space/media"`, `AWS_QUERYSTRING_AUTH=False`, and `AWS_S3_FILE_OVERWRITE=False`.
+    - Implemented `_is_minio_reachable` with automatic port fallback (resolving container `minio:9000` to local `127.0.0.1:9200` during host runs) and graceful fallback to `FileSystemStorage` if MinIO is unreachable.
+  - **4. Cryptographic UUID Upload Paths**:
+    - Replaced sequential and raw filename uploads with unguessable cryptographic UUID4 hex paths:
+      - `apps/billing/models.py:upgrade_receipt_upload_path` -> `payment_receipts/%Y/%m/<uuid4>.ext`
+      - `apps/support/models.py:ticket_attachment_upload_path` -> `support_tickets/%Y/%m/<uuid4>.ext`
+    - Created and applied schema migration `core/migrations/0044_alter_ticketattachment_file_and_more.py`.
+  - **5. Management Migration Command (`migrate_media_to_minio`)**:
+    - Authored `core/management/commands/migrate_media_to_minio.py` supporting `--dry-run`, `--force`, `--bucket`, and `--endpoint-url`.
+    - Executed migration: all 507 files (0.16 MB) successfully transferred and verified with byte-for-byte size checks.
+    - Verified idempotency: re-running skips 507/507 existing files without re-uploading.
+    - Container verification: executed inside `motaem_web`, migrating and verifying production media files against MinIO.
+  - **6. Verification & Automated Testing**:
+    - Authored dedicated test suite `test_minio_media_migration.py` (7 tests, 100% pass) covering storage URL generation, UUID paths, reachability check, and command idempotency.
+    - Added test suite to `./init.sh`.
+    - Full `./init.sh` execution passed 100% across all suites.
+
 
 - [x] **Subscription Plans Dual Currency (USD & EGP), Manual Payment Workflow, 3-Tier Hard Lockout & Inngest Crons (`feat-subscription-dual-currency-and-manual-payments`)**
   - **1. Dual Currency Pricing (USD & EGP)**:

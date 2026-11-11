@@ -129,9 +129,56 @@ services:
       - minio_data:/data
     ports:
       - "9200:9000"
-      - "9201:9001"
+      - "127.0.0.1:9201:9001"
     networks:
       - motaem_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=motaem_motaem_network"
+
+      # Middleware: Replace /media/ with /motaem-media/
+      - "traefik.http.middlewares.motaem-minio-replacepath.replacepathregex.regex=^/media/(.*)"
+      - "traefik.http.middlewares.motaem-minio-replacepath.replacepathregex.replacement=/motaem-media/$${1}"
+
+      # Router: HTTPS for uggu.space/media/*
+      - "traefik.http.routers.motaem-minio-media.rule=Host(`uggu.space`) && PathPrefix(`/media/`)"
+      - "traefik.http.routers.motaem-minio-media.entrypoints=websecure"
+      - "traefik.http.routers.motaem-minio-media.service=motaem-minio"
+      - "traefik.http.routers.motaem-minio-media.tls=true"
+      - "traefik.http.routers.motaem-minio-media.tls.certresolver=myresolver"
+      - "traefik.http.routers.motaem-minio-media.middlewares=motaem-minio-replacepath,motaem-sec-headers"
+      - "traefik.http.routers.motaem-minio-media.priority=100"
+
+      # Router: HTTP for uggu.space/media/*
+      - "traefik.http.routers.motaem-minio-media-http.rule=(Host(`uggu.space`) || Host(`www.uggu.space`)) && PathPrefix(`/media/`)"
+      - "traefik.http.routers.motaem-minio-media-http.entrypoints=web"
+      - "traefik.http.routers.motaem-minio-media-http.middlewares=motaem-canonical-redirect"
+      - "traefik.http.routers.motaem-minio-media-http.service=motaem-minio"
+      - "traefik.http.routers.motaem-minio-media-http.priority=100"
+
+      # Target Service on port 9000
+      - "traefik.http.services.motaem-minio.loadbalancer.server.port=9000"
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: motaem_minio_init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin123} && /usr/bin/mc ready myminio; do
+        echo 'Waiting for MinIO readiness...';
+        sleep 2;
+      done;
+      /usr/bin/mc mb --ignore-existing myminio/motaem-media;
+      /usr/bin/mc anonymous set download myminio/motaem-media;
+      echo 'MinIO motaem-media bucket initialized successfully.';
+      exit 0;
+      "
+    networks:
+      - motaem_network
+    restart: "no"
+
 
   inngest:
     image: inngest/inngest:latest

@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "apps/billing/models.py": {
-    "mtime": 1794436295.8977816,
-    "seen": 1794436561.5074973,
-    "ast_hash": "91ee21bae6a3ee210ea8c9127f82bde7",
+    "mtime": 1794440252.7771168,
+    "seen": 1794441287.4959638,
+    "ast_hash": "1a04e9b891da659ecfe577e93222a080",
     "semantic_hash": ""
   },
   "apps/billing/urls.py": {
@@ -294,9 +294,9 @@
     "semantic_hash": ""
   },
   "apps/billing/views.py": {
-    "mtime": 1794436143.175961,
-    "seen": 1794436561.507592,
-    "ast_hash": "cee21a0b8e1c147a89515e12bf0defe3",
+    "mtime": 1794436732.516399,
+    "seen": 1794438175.076861,
+    "ast_hash": "ef2d6e1f25e326159be91c8124b30641",
     "semantic_hash": ""
   },
   "apps/callcenter/__init__.py": {
@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   "restaurant_system/settings.py": {
-    "mtime": 1794432473.234202,
-    "seen": 1794434657.314591,
-    "ast_hash": "5e14c8e658253a2b11c0c3b8922411d5",
+    "mtime": 1794440221.5340557,
+    "seen": 1794441287.5067422,
+    "ast_hash": "30df3052542579630f79c86ff9789cba",
     "semantic_hash": ""
   },
   "restaurant_system/urls.py": {
@@ -2082,9 +2082,9 @@
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1794432488.9286988,
-    "seen": 1794434657.338964,
-    "ast_hash": "ae5731bff6c6d245fced3e191a3928a2",
+    "mtime": 1794440168.6702573,
+    "seen": 1794441287.5370755,
+    "ast_hash": "14d709e92be8842a99b197f73d23525a",
     "semantic_hash": ""
   },
   "docs/awesome-harness-engineering/CONTRIBUTING.md": {
@@ -3060,15 +3060,15 @@
     "semantic_hash": ""
   },
   "feature_list.json": {
-    "mtime": 1794434494.6727543,
-    "seen": 1794434657.3143802,
-    "ast_hash": "99059edceb9b5d8c0a934d96f69ce094",
+    "mtime": 1794441209.3290112,
+    "seen": 1794441287.5065203,
+    "ast_hash": "4b7d437a52c3f1da9bc3a4a493cd0f25",
     "semantic_hash": ""
   },
   "init.sh": {
-    "mtime": 1794434030.8379238,
-    "seen": 1794434657.3143842,
-    "ast_hash": "7e82d02fe01a47de6327e69dc6b91af9",
+    "mtime": 1794440516.9830418,
+    "seen": 1794441287.5065238,
+    "ast_hash": "cae26af5ea60927a902fd3b35aaa15a3",
     "semantic_hash": ""
   },
   "harness-assessment.html": {
@@ -3078,9 +3078,9 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794434602.273127,
-    "seen": 1794434657.3392072,
-    "ast_hash": "aeffe13e26ac1fb3ec55ed0934ac46db",
+    "mtime": 1794441229.572627,
+    "seen": 1794441287.5374482,
+    "ast_hash": "0e33a921b31ca1a0cc6a6cfb40f9cffe",
     "semantic_hash": ""
   },
   "session-handoff.md": {
@@ -4038,9 +4038,9 @@
     "semantic_hash": ""
   },
   "apps/support/models.py": {
-    "mtime": 1793611057.0481808,
-    "seen": 1793614685.4236393,
-    "ast_hash": "6c08e29f51eda78b5f815dcc2f46ca5b",
+    "mtime": 1794440285.0132098,
+    "seen": 1794441287.5001175,
+    "ast_hash": "8b908311f2ba06a67e65f5ac9335df25",
     "semantic_hash": ""
   },
   "apps/support/urls.py": {
@@ -4182,15 +4182,33 @@
     "semantic_hash": ""
   },
   "test_subscription_fixes.py": {
-    "mtime": 1794436185.5952995,
-    "seen": 1794436561.6116889,
-    "ast_hash": "2bbe9a2d3bdec1c1048bbd1765d6f6c0",
+    "mtime": 1794436743.2286346,
+    "seen": 1794438175.1033223,
+    "ast_hash": "6f24d631c8344bb063dd4a8e5763c813",
     "semantic_hash": ""
   },
   "templates/subscription_expired_block.html": {
     "mtime": 1794432051.743851,
     "seen": 1794434657.3418841,
     "ast_hash": "80a6871fd2872326b135d1711d0d807d",
+    "semantic_hash": ""
+  },
+  "core/management/commands/migrate_media_to_minio.py": {
+    "mtime": 1794440330.8257613,
+    "seen": 1794441287.5014613,
+    "ast_hash": "68239f0dac34497f4e60a484a8c46ab1",
+    "semantic_hash": ""
+  },
+  "core/migrations/0044_alter_ticketattachment_file_and_more.py": {
+    "mtime": 1794440300.154723,
+    "seen": 1794441287.5057652,
+    "ast_hash": "94abac30e3552f136c51ae668dab8355",
+    "semantic_hash": ""
+  },
+  "test_minio_media_migration.py": {
+    "mtime": 1794440493.1382391,
+    "seen": 1794441287.5216742,
+    "ast_hash": "d84aba867620171d47ed02d14f8eeabe",
     "semantic_hash": ""
   }
 }

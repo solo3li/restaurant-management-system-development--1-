@@ -1,7 +1,18 @@
+import os
+import uuid
 from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+
+
+def upgrade_receipt_upload_path(instance, filename):
+    """Generate unguessable cryptographic UUID path for sensitive payment receipts."""
+    ext = os.path.splitext(filename)[1].lower()
+    unique_id = uuid.uuid4().hex
+    now = timezone.now()
+    return f"payment_receipts/{now.strftime('%Y/%m')}/{unique_id}{ext}"
+
 
 AVAILABLE_FEATURES = [
     {
@@ -191,7 +202,7 @@ class UpgradeRequest(models.Model):
         help_text="رقم المعاملة أو مرجع التحويل أو TxID",
     )
     receipt = models.FileField(
-        upload_to="payment_receipts/%Y/%m/",
+        upload_to=upgrade_receipt_upload_path,
         null=True,
         blank=True,
         verbose_name="إيصال الدفع / لقطة الشاشة",
