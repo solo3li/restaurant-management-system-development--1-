@@ -53,9 +53,17 @@
       - Cron `monthly-quota-reset`: Billing cycle day quota reset for voice minutes and message characters.
       - Event `upgrade.approved`: Asynchronous quota push to PBX.
   - **6. Verification & Automated Testing**:
-    - Authored dedicated 14-test suite `test_subscription_fixes.py` covering all 7 pillars.
+    - Authored and expanded dedicated test suite `test_subscription_fixes.py` to 19 tests covering all pillars.
     - Integrated suite into `./init.sh`.
-    - 100% PASS across all 15 test suites in `./init.sh`.
+    - Passed 100% across SQLite and live Docker PostgreSQL environment.
+  - **7. Review Audit & Robustness Fixes**:
+    - Fixed Inngest event handler `on_upgrade_approved` to process both PBX quota sync AND Brevo email dispatch with `request_id`.
+    - Added deduplication check in `send_upgrade_approved_notification` to prevent redundant transactional emails within 5 minutes.
+    - Added validation in `api_request_upgrade` rejecting empty or whitespace `sender_account` with HTTP 400.
+    - Added PBX/WhatsApp quota fields (`monthly_voice_minutes`, `monthly_messages_quota`, `monthly_chars_quota`, `spending_cap`) to `SubscriptionPlanAdmin.fieldsets`.
+    - Fixed `quick_approve_view` and `approve_requests` admin actions to explicitly invoke `apply_upgrade(admin_user=request.user)` and persist `admin_notes`.
+    - Aligned `is_in_grace_period()` and `is_locked_out()` to eliminate status string race conditions post 3 days.
+    - Implemented dynamic `Tenant.plan` resolution via `__getattribute__` to immediately mirror `subscription_plan.code`.
   - **1. Data Model & Quota Schema (`apps/billing/models.py`, `core/migrations/0042_...`)**:
     - Added `monthly_voice_minutes`, `monthly_messages_quota`, `monthly_chars_quota`, and `spending_cap` to `SubscriptionPlan`.
     - Applied migration `0042_subscriptionplan_monthly_chars_quota_and_more.py` across development environment and Docker container.

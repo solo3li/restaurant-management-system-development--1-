@@ -152,6 +152,9 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         ("سعة المنشأة والحدود", {
             "fields": ("max_branches", "max_employees")
         }),
+        ("حصص الاتصالات والرسائل (PBX / WhatsApp)", {
+            "fields": ("monthly_voice_minutes", "monthly_messages_quota", "monthly_chars_quota", "spending_cap")
+        }),
         ("الميزات والأنظمة المضمنة", {
             "fields": ("features",),
             "description": "حدد الميزات والأنظمة المتاحة للمنشآت المشتركة في هذه الباقة بالنقر على البطاقات أدناه."
@@ -345,8 +348,9 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
 
     def quick_approve_view(self, request, req_id):
         req = get_object_or_404(UpgradeRequest, id=req_id)
-        req.status = "approved"
-        req.save()
+        if not req.admin_notes:
+            req.admin_notes = f"تمت الموافقة السريعة بواسطة: {request.user.username}"
+        req.apply_upgrade(admin_user=request.user)
         self.message_user(
             request,
             f"تمت الموافقة بنجاح على طلب ترقية منشأة «{req.tenant.name}» إلى «{req.requested_plan.name}» وتمديد الصلاحية."
@@ -356,6 +360,9 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
     def quick_reject_view(self, request, req_id):
         req = get_object_or_404(UpgradeRequest, id=req_id)
         req.status = "rejected"
+        req.reviewed_at = timezone.now()
+        if not req.admin_notes:
+            req.admin_notes = f"تم الرفض بواسطة: {request.user.username}"
         req.save()
         self.message_user(
             request,
@@ -368,9 +375,9 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         approved_count = 0
         for req in queryset:
             if req.status != "approved":
-                req.status = "approved"
-                req.reviewed_at = timezone.now()
-                req.save()
+                if not req.admin_notes:
+                    req.admin_notes = f"تمت الموافقة الجماعية بواسطة: {request.user.username}"
+                req.apply_upgrade(admin_user=request.user)
                 approved_count += 1
 
         self.message_user(

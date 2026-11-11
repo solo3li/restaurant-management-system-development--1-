@@ -39,6 +39,21 @@ def send_upgrade_approved_notification(upgrade_request):
 
     subject = f"🎉 تم تفعيل اشتراكك في «{plan.name}» بنجاح | Subscription Activated"
 
+    # Deduplicate recent sends for the same recipient and plan
+    try:
+        from datetime import timedelta
+        from apps.communication.models import EmailLog
+        recent_sent = EmailLog.objects.filter(
+            recipient_email=recipient_email,
+            subject=subject,
+            created_at__gte=timezone.now() - timedelta(minutes=5),
+        ).exists()
+        if recent_sent:
+            logger.info(f"Upgrade notification email already sent to {recipient_email}. Skipping duplicate.")
+            return True
+    except Exception:
+        pass
+
     html_content = f"""
     <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
         <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 32px 24px; text-align: center; color: #ffffff;">

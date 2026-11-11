@@ -186,11 +186,14 @@ class Tenant(models.Model):
             return False
         if not self.is_active:
             return False
+        now = timezone.now()
+        three_days_ago = now - timedelta(days=3)
+        if self.subscription_end:
+            if self.subscription_end > now:
+                return False
+            return self.subscription_end >= three_days_ago
         if self.subscription_status == "grace_period":
             return True
-        now = timezone.now()
-        if self.subscription_end and self.subscription_end <= now:
-            return self.subscription_end >= (now - timedelta(days=3))
         return False
 
     def is_locked_out(self):
@@ -199,10 +202,13 @@ class Tenant(models.Model):
             return False
         if not self.is_active:
             return True
-        if self.subscription_status == "expired":
-            return True
         now = timezone.now()
-        if self.subscription_end and self.subscription_end < (now - timedelta(days=3)):
+        three_days_ago = now - timedelta(days=3)
+        if self.subscription_end:
+            if self.subscription_end >= three_days_ago:
+                return False
+            return True
+        if self.subscription_status == "expired":
             return True
         return False
 
@@ -222,6 +228,17 @@ class Tenant(models.Model):
         end_grace = self.subscription_end + timedelta(days=3)
         diff = (end_grace - timezone.now()).total_seconds()
         return max(0, int(diff // 86400) + 1)
+
+    def __getattribute__(self, name):
+        if name == "plan":
+            try:
+                if super().__getattribute__("subscription_plan_id") is not None:
+                    sub_plan = super().__getattribute__("subscription_plan")
+                    if sub_plan and hasattr(sub_plan, "code") and sub_plan.code:
+                        return sub_plan.code
+            except Exception:
+                pass
+        return super().__getattribute__(name)
 
     def save(self, *args, **kwargs):
         update_fields = kwargs.get("update_fields")

@@ -187,6 +187,8 @@ def api_request_upgrade(request):
     payment_method = payload.get("payment_method", "wallet")
     currency = str(payload.get("currency", "USD")).upper()
     sender_account = str(payload.get("sender_account", "")).strip()
+    if not sender_account:
+        sender_account = getattr(request.user, "phone", "") or getattr(request.user, "email", "") or request.user.username or "N/A"
     transaction_reference = str(payload.get("transaction_reference", "")).strip()
     notes = str(payload.get("notes", "")).strip()
     receipt_file = request.FILES.get("receipt")

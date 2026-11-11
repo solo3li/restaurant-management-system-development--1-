@@ -508,3 +508,92 @@ class SubscriptionFixesTestSuite(TestCase):
         self.assertIn("storages", settings.INSTALLED_APPS)
         self.assertIn("default", settings.STORAGES)
         self.assertIn("BACKEND", settings.STORAGES["default"])
+
+    # =========================================================================
+    # 9. ENHANCED VALIDATION & AUDIT SUITE
+    # =========================================================================
+    def test_manual_payment_missing_sender_account_fallback(self):
+        """api_request_upgrade falls back to user email when sender_account is omitted."""
+        self.client.force_login(self.owner_user)
+        payload = {
+            "plan_id": self.plan_growth.id,
+            "billing_cycle": "monthly",
+            "payment_method": "wallet",
+            "currency": "EGP",
+            "sender_account": "   ",  # whitespace only
+        }
+        resp = self.client.post("/api/subscription/request-upgrade/", payload)
+        self.assertEqual(resp.status_code, 200)
+        req_id = resp.json().get("request_id")
+        req_obj = UpgradeRequest.objects.get(id=req_id)
+        self.assertEqual(req_obj.sender_account, self.owner_user.email)
+
+    @patch("core.partner_service.sync_tenant_voice_caps")
+    def test_inngest_run_upgrade_approved_quota_and_email(self, mock_quota_sync):
+        """run_upgrade_approved pushes quotas and dispatches Brevo confirmation email."""
+        mock_quota_sync.return_value = {"status": "success"}
+
+        req = UpgradeRequest.objects.create(
+            tenant=self.tenant,
+            requested_by=self.owner_user,
+            requested_plan=self.plan_growth,
+            billing_cycle="monthly",
+            payment_method="wallet",
+            currency="EGP",
+            amount=Decimal("4950.00"),
+            sender_account="01099887766",
+            status="pending",
+        )
+
+        result = run_upgrade_approved(tenant_id=self.tenant.id, request_id=req.id)
+        self.assertEqual(result.get("quota"), "synced")
+        self.assertIn(result.get("email"), ["sent", "logged"])
+
+        # Check that Brevo email log exists
+        email_log = EmailLog.objects.filter(recipient_email=self.owner_user.email).order_by("-created_at").first()
+        self.assertIsNotNone(email_log)
+        self.assertIn("تفعيل اشتراكك", email_log.subject)
+
+    def test_tenant_plan_dynamic_property_alignment(self):
+        """tenant.plan dynamically reflects subscription_plan.code immediately."""
+        self.tenant.subscription_plan = self.plan_pro
+        self.assertEqual(self.tenant.plan, "pro")
+
+        self.tenant.subscription_plan = self.plan_growth
+        self.assertEqual(self.tenant.plan, "growth")
+
+    def test_grace_period_expired_past_three_days_returns_false(self):
+        """is_in_grace_period() strictly returns False when subscription_end is >3 days ago."""
+        self.tenant.subscription_status = "grace_period"
+        self.tenant.subscription_end = timezone.now() - timedelta(days=4)
+        self.assertFalse(self.tenant.is_in_grace_period())
+        self.assertTrue(self.tenant.is_locked_out())
+
+    @patch("core.partner_service.sync_tenant_voice_caps")
+    def test_admin_quick_approve_view_action(self, mock_quota_sync):
+        """quick_approve_view executes apply_upgrade with admin user audit note."""
+        mock_quota_sync.return_value = {"status": "success"}
+        self.client.force_login(self.admin_user)
+
+        req = UpgradeRequest.objects.create(
+            tenant=self.tenant,
+            requested_by=self.owner_user,
+            requested_plan=self.plan_growth,
+            billing_cycle="monthly",
+            payment_method="instapay",
+            currency="EGP",
+            amount=Decimal("4950.00"),
+            sender_account="admin_test@ipn",
+            status="pending",
+        )
+
+        approve_url = f"/admin/core/upgraderequest/{req.id}/approve/"
+        resp = self.client.get(approve_url)
+        self.assertEqual(resp.status_code, 302)
+
+        req.refresh_from_db()
+        self.assertEqual(req.status, "approved")
+        self.assertIn("الموافقة السريعة", req.admin_notes)
+        self.tenant.refresh_from_db()
+        self.assertEqual(self.tenant.subscription_plan, self.plan_growth)
+

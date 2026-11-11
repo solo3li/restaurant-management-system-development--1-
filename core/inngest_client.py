@@ -125,17 +125,42 @@ def reset_monthly_tenant_quotas(ctx, step):
     return run_reset_monthly_quotas()
 
 
-def run_upgrade_approved(tenant_id):
-    """Core logic to push quota when upgrade is approved."""
+def run_upgrade_approved(tenant_id, request_id=None):
+    """Core logic to push quota and dispatch notification email when upgrade is approved."""
     from apps.tenants.models import Tenant
+    from apps.billing.models import UpgradeRequest
+    from apps.billing.notifications import send_upgrade_approved_notification
     from core import partner_service as ps
+
+    result = {"quota": None, "email": None}
 
     tenant = Tenant.objects.filter(id=tenant_id).first() if tenant_id else None
     if tenant:
-        ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
-        logger.info(f"[Inngest Event] Quota push executed for upgraded tenant {tenant.slug}")
-        return {"status": "synced", "tenant": tenant.slug}
-    return {"status": "tenant_not_found", "tenant_id": tenant_id}
+        try:
+            ps.sync_tenant_voice_caps(tenant, reset_to_plan=True)
+            logger.info(f"[Inngest Event] Quota push executed for upgraded tenant {tenant.slug}")
+            result["quota"] = "synced"
+            result["tenant"] = tenant.slug
+        except Exception as e:
+            logger.warning(f"[Inngest Event] Quota push failed for {tenant.slug}: {e}")
+            result["quota"] = f"failed: {e}"
+    else:
+        result["quota"] = "tenant_not_found"
+
+    if request_id:
+        req = UpgradeRequest.objects.filter(id=request_id).first()
+        if req:
+            try:
+                email_result = send_upgrade_approved_notification(req)
+                logger.info(f"[Inngest Event] Brevo notification email processed for upgrade #{request_id}")
+                result["email"] = "sent" if email_result else "logged"
+            except Exception as e:
+                logger.warning(f"[Inngest Event] Brevo notification email failed for #{request_id}: {e}")
+                result["email"] = f"failed: {e}"
+        else:
+            result["email"] = "request_not_found"
+
+    return result
 
 
 @inngest_client.create_function(
@@ -146,7 +171,8 @@ def on_upgrade_approved(ctx, step):
     """Event-driven job fired when an upgrade request is approved."""
     event_data = ctx.event.data or {}
     tenant_id = event_data.get("tenant_id")
-    return run_upgrade_approved(tenant_id)
+    request_id = event_data.get("request_id")
+    return run_upgrade_approved(tenant_id, request_id)
 
 
 def send_inngest_event(name: str, data: dict):

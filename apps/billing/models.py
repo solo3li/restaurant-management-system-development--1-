@@ -236,10 +236,13 @@ class UpgradeRequest(models.Model):
             self.status = "approved"
             if not self.reviewed_at:
                 self.reviewed_at = timezone.now()
+            if admin_user and not self.admin_notes:
+                self.admin_notes = f"تمت الموافقة بواسطة: {admin_user.username}"
             if self.pk:
                 UpgradeRequest.objects.filter(pk=self.pk).update(
                     status="approved",
                     reviewed_at=self.reviewed_at,
+                    admin_notes=self.admin_notes,
                 )
 
             tenant = self.tenant
