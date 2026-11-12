@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "apps/billing/models.py": {
-    "mtime": 1794440252.7771168,
-    "seen": 1794441287.4959638,
-    "ast_hash": "1a04e9b891da659ecfe577e93222a080",
+    "mtime": 1794442194.1831143,
+    "seen": 1794443075.0114427,
+    "ast_hash": "f76a67dd79c42791f6b6d61ef3f23eb0",
     "semantic_hash": ""
   },
   "apps/billing/urls.py": {
@@ -2082,9 +2082,9 @@
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1794440168.6702573,
-    "seen": 1794441287.5370755,
-    "ast_hash": "14d709e92be8842a99b197f73d23525a",
+    "mtime": 1794442296.1794038,
+    "seen": 1794443075.053215,
+    "ast_hash": "654f798bc403a083a17374a543d4a8f4",
     "semantic_hash": ""
   },
   "docs/awesome-harness-engineering/CONTRIBUTING.md": {
@@ -4038,9 +4038,9 @@
     "semantic_hash": ""
   },
   "apps/support/models.py": {
-    "mtime": 1794440285.0132098,
-    "seen": 1794441287.5001175,
-    "ast_hash": "8b908311f2ba06a67e65f5ac9335df25",
+    "mtime": 1794442200.6623232,
+    "seen": 1794443075.01421,
+    "ast_hash": "bf415faa9d8ea1c9072149fd4c1f00ca",
     "semantic_hash": ""
   },
   "apps/support/urls.py": {
@@ -4194,9 +4194,9 @@
     "semantic_hash": ""
   },
   "core/management/commands/migrate_media_to_minio.py": {
-    "mtime": 1794440330.8257613,
-    "seen": 1794441287.5014613,
-    "ast_hash": "68239f0dac34497f4e60a484a8c46ab1",
+    "mtime": 1794442327.1874049,
+    "seen": 1794443075.0154276,
+    "ast_hash": "dda966c11d4e0170f05e0fdda9635bbd",
     "semantic_hash": ""
   },
   "core/migrations/0044_alter_ticketattachment_file_and_more.py": {
@@ -4206,9 +4206,9 @@
     "semantic_hash": ""
   },
   "test_minio_media_migration.py": {
-    "mtime": 1794440493.1382391,
-    "seen": 1794441287.5216742,
-    "ast_hash": "d84aba867620171d47ed02d14f8eeabe",
+    "mtime": 1794442435.838916,
+    "seen": 1794443075.0333476,
+    "ast_hash": "2fec10fdb9b6c9881a938417cbe26cfa",
     "semantic_hash": ""
   }
 }

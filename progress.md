@@ -25,6 +25,7 @@
   - **1. Docker Compose MinIO & Auto-Init**:
     - Configured `minio` service (`minio/minio:latest`) in `docker-compose.yml` with persistent volume `minio_data:/data`, mapped host ports `9200:9000` and `127.0.0.1:9201:9001` (securing the admin console to local loopback).
     - Built and integrated lightweight one-shot `minio-init` container using `minio/mc` with auto-retry health loop that creates the `motaem-media` bucket and sets anonymous download policy.
+    - Explicitly passed `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD` under `environment:` in `minio-init` so custom environment variables inherit cleanly without shell substitution fallback failures.
   - **2. Traefik SSL Media Routing**:
     - Added high-priority (`priority=100`) routing in `docker-compose.yml` on `minio`:
       - HTTPS router for `Host('uggu.space') && PathPrefix('/media/')` with Let's Encrypt TLS and HSTS security headers.
@@ -38,14 +39,17 @@
     - Replaced sequential and raw filename uploads with unguessable cryptographic UUID4 hex paths:
       - `apps/billing/models.py:upgrade_receipt_upload_path` -> `payment_receipts/%Y/%m/<uuid4>.ext`
       - `apps/support/models.py:ticket_attachment_upload_path` -> `support_tickets/%Y/%m/<uuid4>.ext`
+    - Hardened extension extraction to cleanly handle dotfiles (e.g. `.png` from mobile pickers retaining `.png`), uppercase extensions (`.PNG` -> `.png`), non-ASCII unicode filenames, and extensionless files without stripping extensions.
     - Created and applied schema migration `core/migrations/0044_alter_ticketattachment_file_and_more.py`.
   - **5. Management Migration Command (`migrate_media_to_minio`)**:
-    - Authored `core/management/commands/migrate_media_to_minio.py` supporting `--dry-run`, `--force`, `--bucket`, and `--endpoint-url`.
+    - Authored `core/management/commands/migrate_media_to_minio.py` supporting `--dry-run`, `--force`, `--bucket`, `--endpoint-url`, and `--source-dir`.
+    - Switched from manual `s3.put_object(Body=f)` to streaming `s3.upload_file` with automatic multipart support and MIME-type metadata.
+    - Added `OSError` error trapping and file validity checks for broken symlinks/unreadable files.
     - Executed migration: all 507 files (0.16 MB) successfully transferred and verified with byte-for-byte size checks.
     - Verified idempotency: re-running skips 507/507 existing files without re-uploading.
     - Container verification: executed inside `motaem_web`, migrating and verifying production media files against MinIO.
   - **6. Verification & Automated Testing**:
-    - Authored dedicated test suite `test_minio_media_migration.py` (7 tests, 100% pass) covering storage URL generation, UUID paths, reachability check, and command idempotency.
+    - Authored comprehensive test suite `test_minio_media_migration.py` (10 tests, 100% pass) covering storage URL generation, UUID paths (standard, dotfiles, no-extension, Arabic), real model-level uploads (`UpgradeRequest`, `TicketAttachment`), reachability checks, dry-run, live upload, idempotency, force overwrite, and connection error handling.
     - Added test suite to `./init.sh`.
     - Full `./init.sh` execution passed 100% across all suites.
 

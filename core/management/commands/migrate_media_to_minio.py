@@ -35,12 +35,19 @@ class Command(BaseCommand):
             default=None,
             help="MinIO S3 endpoint URL (defaults to AWS_S3_ENDPOINT_URL with local host fallback).",
         )
+        parser.add_argument(
+            "--source-dir",
+            type=str,
+            default=None,
+            help="Custom source directory to migrate (defaults to MEDIA_ROOT).",
+        )
 
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
         force = options["force"]
         bucket_name = options["bucket"]
         endpoint_url = options["endpoint_url"] or getattr(settings, "AWS_S3_ENDPOINT_URL", "http://minio:9000")
+        source_dir = options.get("source_dir")
 
         # In local runs outside Docker, resolve minio:9000 to localhost:9200 if needed
         if "minio:9000" in endpoint_url:
@@ -53,7 +60,7 @@ class Command(BaseCommand):
         access_key = getattr(settings, "AWS_ACCESS_KEY_ID", "minioadmin")
         secret_key = getattr(settings, "AWS_SECRET_ACCESS_KEY", "minioadmin123")
         region_name = getattr(settings, "AWS_S3_REGION_NAME", "us-east-1")
-        media_root = str(settings.MEDIA_ROOT)
+        media_root = os.path.abspath(source_dir) if source_dir else str(settings.MEDIA_ROOT)
 
         self.stdout.write(self.style.NOTICE("=" * 70))
         self.stdout.write(self.style.NOTICE("MOTAEM MEDIA MIGRATION TO MINIO S3"))
@@ -136,7 +143,17 @@ class Command(BaseCommand):
         transferred_bytes = 0
 
         for idx, (full_path, rel_path) in enumerate(all_files, start=1):
-            local_size = os.path.getsize(full_path)
+            if not os.path.isfile(full_path):
+                self.stdout.write(self.style.WARNING(f"[{idx}/{total_files}] Skipping non-regular file: {rel_path}"))
+                continue
+
+            try:
+                local_size = os.path.getsize(full_path)
+            except OSError as e:
+                error_count += 1
+                self.stdout.write(self.style.ERROR(f"[{idx}/{total_files}] Cannot access {rel_path}: {e}"))
+                continue
+
             content_type = mimetypes.guess_type(full_path)[0] or "application/octet-stream"
 
             # Check if object already exists with matching size
@@ -166,13 +183,12 @@ class Command(BaseCommand):
 
             # Upload to MinIO
             try:
-                with open(full_path, "rb") as f:
-                    s3.put_object(
-                        Bucket=bucket_name,
-                        Key=rel_path,
-                        Body=f,
-                        ContentType=content_type,
-                    )
+                s3.upload_file(
+                    Filename=full_path,
+                    Bucket=bucket_name,
+                    Key=rel_path,
+                    ExtraArgs={"ContentType": content_type},
+                )
 
                 # Verify upload existence and byte length
                 verify_head = s3.head_object(Bucket=bucket_name, Key=rel_path)

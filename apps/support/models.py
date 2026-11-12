@@ -8,7 +8,9 @@ from django.contrib.auth.models import User
 
 def ticket_attachment_upload_path(instance, filename):
     """Generate unguessable cryptographic UUID path for support ticket attachments."""
-    ext = os.path.splitext(filename)[1].lower()
+    ext = os.path.splitext(filename or "")[1].lower()
+    if not ext and filename and filename.startswith(".") and len(filename) > 1 and filename.count(".") == 1:
+        ext = filename.lower()
     unique_id = uuid.uuid4().hex
     now = timezone.now()
     return f"support_tickets/{now.strftime('%Y/%m')}/{unique_id}{ext}"
