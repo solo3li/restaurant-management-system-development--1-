@@ -1167,7 +1167,7 @@ if (typeof Centrifuge === 'undefined') {
                     try {
                         const event = ctx.data;
                         const order = event.data;
-                        if (event.type === 'new_order' || event.type === 'order_status_changed') {
+                        if (event.type === 'new_order' || event.type === 'order_status_changed' || event.type === 'order_cancelled' || event.type === 'order_updated') {
                             handleIncomingCallCenterOrder(order, event.type);
                         }
                     } catch(e) {
@@ -1193,7 +1193,14 @@ if (typeof Centrifuge === 'undefined') {
 
         const existing = list.querySelector(`[data-order-id="${order.id}"]`);
         if (existing) {
-            if (eventType === 'order_status_changed') {
+            if (eventType === 'order_cancelled') {
+                existing.classList.add('opacity-50', 'line-through');
+                const badge = existing.querySelector('.cc-order-type-badge');
+                if (badge) {
+                    badge.className = 'text-[9px] px-1 py-0.2 rounded font-semibold block bg-rose-50 text-rose-600 line-through cc-order-type-badge';
+                    badge.textContent = tJs('ملغي', 'Cancelled');
+                }
+            } else if (eventType === 'order_status_changed' || eventType === 'order_updated') {
                 existing.classList.add('bg-violet-50', 'transition-colors');
                 setTimeout(() => existing.classList.remove('bg-violet-50'), 1500);
             }
@@ -1222,7 +1229,7 @@ if (typeof Centrifuge === 'undefined') {
             </div>
             <div class="text-left">
                 <span class="font-bold text-violet-600 font-sans text-xs">${totalVal}</span>
-                <span class="text-[9px] px-1 py-0.2 rounded font-semibold block ${badgeColor}">
+                <span class="text-[9px] px-1 py-0.2 rounded font-semibold block ${badgeColor} cc-order-type-badge">
                     ${typeLabel}
                 </span>
             </div>

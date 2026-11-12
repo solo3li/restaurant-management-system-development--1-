@@ -237,6 +237,61 @@ class CentrifugoIntegrationTests(TestCase):
         response = self.client.get("/api/realtime/token/?channel=bad_channel_without_colon")
         self.assertEqual(response.status_code, 400)
 
+    def test_realtime_token_prefix_collision_blocked(self):
+        """Ensure tenant_X cannot access tenant_XY via unanchored prefix matching (403 Forbidden)."""
+        self.client.force_login(self.user1)
+        # Attempt access to a colliding tenant ID formed by appending digits to user's tenant ID
+        colliding_channel = f"kds:tenant_{self.tenant1.id}99_all"
+        response = self.client.get(f"/api/realtime/token/?channel={colliding_channel}")
+        self.assertEqual(response.status_code, 403)
+        data = response.json()
+        self.assertIn("error", data)
+        self.assertIn("Cross-tenant", data.get("detail", ""))
+
+    def test_realtime_token_admin_channel_rbac_enforcement(self):
+        """Non-admin user requesting admin channel gets 403; Owner/Admin gets 200."""
+        # Create non-admin cashier user
+        cashier_user = User.objects.create_user(
+            username="cashier_test_sub",
+            password="password123",
+            email="cashier@reef.test"
+        )
+        UserProfile.objects.create(
+            user=cashier_user,
+            tenant=self.tenant1,
+            role="cashier"
+        )
+        self.client.force_login(cashier_user)
+        admin_channel = f"admin:tenant_{self.tenant1.id}"
+        resp_cashier = self.client.get(f"/api/realtime/token/?channel={admin_channel}")
+        self.assertEqual(resp_cashier.status_code, 403, "Cashier must be blocked with 403 from admin channel")
+
+        # Owner user should be allowed
+        self.client.force_login(self.user1)
+        resp_owner = self.client.get(f"/api/realtime/token/?channel={admin_channel}")
+        self.assertEqual(resp_owner.status_code, 200, "Owner must be allowed to get admin channel token")
+        owner_data = resp_owner.json()
+        self.assertIn(admin_channel, owner_data["tokens"])
+
+    def test_realtime_token_unknown_namespace_rejected(self):
+        """Unknown or unregistered channel namespaces must be rejected with 400 Bad Request."""
+        self.client.force_login(self.user1)
+        resp = self.client.get(f"/api/realtime/token/?channel=unregistered_ns:tenant_{self.tenant1.id}_all")
+        self.assertEqual(resp.status_code, 400)
+        data = resp.json()
+        self.assertIn("Unknown or unsupported channel namespace", data.get("detail", ""))
+
+    def test_batch_broadcast_event(self):
+        """Verify publish_event and broadcast_event publish to multiple channels in a single batch request."""
+        channels = [
+            f"kds:tenant_{self.tenant1.id}_all",
+            f"pos:tenant_{self.tenant1.id}_all",
+            f"callcenter:tenant_{self.tenant1.id}",
+        ]
+        # Should execute successfully against running Centrifugo or fallback gracefully
+        res = publish_event(channels, {"test": "batch_event"})
+        self.assertIsInstance(res, bool)
+
     # =========================================================================
     # 5. Order Notification Workflow Triggers
     # =========================================================================

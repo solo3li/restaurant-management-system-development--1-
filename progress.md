@@ -54,10 +54,15 @@
     - Updated `templates/kitchen.html`: upgraded SSE listener to Centrifuge client with auto-reconnection, historical message recovery (`recoverable: true`), and native SSE fallback.
     - Updated `templates/delivery.html`: upgraded delivery screen to Centrifuge subscription with native SSE fallback.
     - Updated `templates/pos.html`: integrated Centrifuge subscribing to `pos:tenant_{t}_branch_{b}`, implemented Web Audio API cash-register chime (`playPosBell()`), and live toast notifications.
-    - Updated `templates/call_center.html`: integrated Centrifuge subscribing to `callcenter:tenant_{t}`, with dynamic real-time insertion/prepending of incoming orders into the active orders table.
-  - **7. Comprehensive Verification**:
-    - Authored `test_centrifugo_integration.py` (16 test cases) covering configuration JSON, Django settings, JWT HMAC generation & invalid secret rejection, offline publishing resilience, API authentication & multi-tenant isolation, cross-tenant 403 protection, event triggers, static asset integrity, and template bindings.
-    - Added to `./init.sh` harness. Full suite passing 100%.
+    - Updated `templates/call_center.html`: integrated Centrifuge subscribing to `callcenter:tenant_{t}`, with dynamic real-time insertion/prepending of incoming orders into the active orders table, dynamic cancellation status updates and line-through styling, and update flashing.
+  - **7. Adversarial Hardening & Optimization**:
+    - Fixed prefix-collision multi-tenant isolation vulnerability in `core/views.py`: replaced loose `rest.startswith(f"tenant_{id}")` with strict anchored regex `^tenant_(\d+)(?:_branch_(\d+)|_all)?$`, eliminating cross-tenant access between tenants sharing numerical prefixes.
+    - Closed administrative channel privilege escalation: enforced `is_admin_user` role check on `admin:*` channels in `api_realtime_token_view` returning 403 Forbidden for unauthorized roles.
+    - Added channel namespace whitelisting (`ALLOWED_NAMESPACES`), rejecting unknown namespaces with 400 Bad Request.
+    - Optimized Centrifugo HTTP publishing: added batch `broadcast` API support to `publish_event` and `broadcast_event` with HTTP connection pooling, replacing 5 sequential requests with a single atomic batch broadcast.
+  - **8. Comprehensive Verification**:
+    - Expanded `test_centrifugo_integration.py` to 20 tests (covering prefix collision protection, admin RBAC denial, namespace validation, and batch broadcasting).
+    - Ran full `./init.sh` verification harness (all 17 test suites passing 100%).
 
 - [x] **Full Media Migration to MinIO S3 Storage, Traefik SSL Routing, and Cryptographic UUID Uploads (`feat-minio-media-migration`)**
   - **1. Docker Compose MinIO & Auto-Init**:

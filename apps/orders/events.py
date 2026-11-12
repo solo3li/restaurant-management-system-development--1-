@@ -213,9 +213,10 @@ def notify_delivery_order_event(order, event_type: str):
             }
             tenant_id = order.tenant_id
             branch_id = order.branch_id
+            deliv_channels = [f"delivery:tenant_{tenant_id}_all"]
             if branch_id:
-                publish_event(f"delivery:tenant_{tenant_id}_branch_{branch_id}", event_payload)
-            publish_event(f"delivery:tenant_{tenant_id}_all", event_payload)
+                deliv_channels.insert(0, f"delivery:tenant_{tenant_id}_branch_{branch_id}")
+            publish_event(deliv_channels, event_payload)
         except Exception as ce:
             logger.warning("Failed to publish delivery event to Centrifugo: %s", ce)
 

@@ -200,15 +200,16 @@ def notify_kitchen_order_event(order, event_type: str):
         tenant_id = order.tenant_id
         branch_id = order.branch_id
 
-        # KDS channels (branch-specific and tenant-wide)
+        target_channels = [
+            f"kds:tenant_{tenant_id}_all",
+            f"pos:tenant_{tenant_id}_all",
+            f"callcenter:tenant_{tenant_id}",
+        ]
         if branch_id:
-            publish_event(f"kds:tenant_{tenant_id}_branch_{branch_id}", event_payload)
-            publish_event(f"pos:tenant_{tenant_id}_branch_{branch_id}", event_payload)
-        publish_event(f"kds:tenant_{tenant_id}_all", event_payload)
-        publish_event(f"pos:tenant_{tenant_id}_all", event_payload)
+            target_channels.insert(0, f"kds:tenant_{tenant_id}_branch_{branch_id}")
+            target_channels.insert(2, f"pos:tenant_{tenant_id}_branch_{branch_id}")
 
-        # Call Center channel
-        publish_event(f"callcenter:tenant_{tenant_id}", event_payload)
+        publish_event(target_channels, event_payload)
     except Exception as ce:
         logger.warning("Failed to publish order event to Centrifugo: %s", ce)
 

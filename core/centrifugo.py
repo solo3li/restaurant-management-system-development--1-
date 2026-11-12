@@ -112,17 +112,29 @@ def generate_subscription_token(
     return jwt.encode(payload, key, algorithm="HS256")
 
 
+_session = None
+
+
+def _get_http_session() -> requests.Session:
+    """Returns a process-wide requests Session with connection pooling."""
+    global _session
+    if _session is None:
+        _session = requests.Session()
+    return _session
+
+
 def publish_event(
-    channel: str,
+    channel: Any,
     data: Dict[str, Any],
     timeout: float = 1.0,
     api_url: Optional[str] = None,
     api_key: Optional[str] = None
 ) -> bool:
     """
-    Publish an event to a Centrifugo channel via HTTP API.
-    Sends POST {"method": "publish", "params": {"channel": ..., "data": ...}}.
-    Includes automatic fallback to host port (127.0.0.1:9300) when running outside docker.
+    Publish an event to one or more Centrifugo channels via HTTP API.
+    If 'channel' is a list/tuple/set, uses Centrifugo 'broadcast' API in a single HTTP request.
+    If 'channel' is a string, uses Centrifugo 'publish' API.
+    Includes automatic fallback to host loopback port (127.0.0.1:9300) when running outside docker.
     Gracefully catches any connection errors / offline container without raising exceptions.
     """
     target_api_url = api_url or get_centrifugo_api_url()
@@ -132,13 +144,29 @@ def publish_event(
         "Content-Type": "application/json",
         "X-API-Key": target_api_key,
     }
-    payload = {
-        "method": "publish",
-        "params": {
-            "channel": channel,
-            "data": data,
+
+    if isinstance(channel, (list, tuple, set)):
+        channels_list = [str(c) for c in channel if c]
+        if not channels_list:
+            return True
+        payload = {
+            "method": "broadcast",
+            "params": {
+                "channels": channels_list,
+                "data": data,
+            }
         }
-    }
+        chan_repr = f"{len(channels_list)} channels"
+    else:
+        chan_str = str(channel)
+        payload = {
+            "method": "publish",
+            "params": {
+                "channel": chan_str,
+                "data": data,
+            }
+        }
+        chan_repr = chan_str
 
     # If running outside container, resolve docker internal host to local loopback port
     candidate_urls = [target_api_url]
@@ -147,17 +175,19 @@ def publish_event(
     elif "localhost:8000" in target_api_url or "127.0.0.1:8000" in target_api_url:
         candidate_urls.append("http://127.0.0.1:9300/api")
 
+    session = _get_http_session()
+
     for url in candidate_urls:
         try:
-            resp = requests.post(url, json=payload, headers=headers, timeout=timeout)
+            resp = session.post(url, json=payload, headers=headers, timeout=timeout)
             if resp.status_code == 200:
                 body = resp.json()
                 if "error" in body and body["error"]:
-                    logger.warning("Centrifugo API error publishing to %s via %s: %s", channel, url, body["error"])
+                    logger.warning("Centrifugo API error publishing to %s via %s: %s", chan_repr, url, body["error"])
                     return False
                 return True
             else:
-                logger.warning("Centrifugo API HTTP %s for %s via %s: %s", resp.status_code, channel, url, resp.text)
+                logger.warning("Centrifugo API HTTP %s for %s via %s: %s", resp.status_code, chan_repr, url, resp.text)
         except (requests.exceptions.RequestException, OSError) as e:
             logger.debug("Centrifugo unreachable at %s: %s", url, e)
             continue
@@ -165,8 +195,19 @@ def publish_event(
             logger.warning("Unexpected error publishing to Centrifugo at %s: %s", url, e)
             continue
 
-    logger.warning("Centrifugo offline or unreachable; skipping real-time event for channel '%s'", channel)
+    logger.warning("Centrifugo offline or unreachable; skipping real-time event for %s", chan_repr)
     return False
+
+
+def broadcast_event(
+    channels: Any,
+    data: Dict[str, Any],
+    timeout: float = 1.0,
+    api_url: Optional[str] = None,
+    api_key: Optional[str] = None
+) -> bool:
+    """Convenience helper to broadcast an event payload to multiple channels in a single request."""
+    return publish_event(channel=channels, data=data, timeout=timeout, api_url=api_url, api_key=api_key)
 
 
 def build_kds_channel(tenant_id: int, branch_id: Optional[int] = None) -> str:

@@ -535,6 +535,12 @@ def api_realtime_token_view(request):
     tenant_id = tenant.id
     branch_id = branch.id if branch else None
 
+    ALLOWED_NAMESPACES = {"kds", "delivery", "pos", "callcenter", "admin"}
+    is_admin_user = (
+        request.user.is_superuser
+        or (hasattr(request.user, "profile") and getattr(request.user.profile, "role", "") in ("owner", "admin"))
+    )
+
     # Check if a specific channel is requested
     requested_channel = request.GET.get("channel") or request.POST.get("channel")
     requested_token = None
@@ -545,17 +551,25 @@ def api_realtime_token_view(request):
             return JsonResponse({"error": "Bad Request", "detail": "Malformed channel string"}, status=400)
 
         ns, rest = parts
-        expected_tenant_prefix = f"tenant_{tenant_id}"
-        if not rest.startswith(expected_tenant_prefix):
+        if ns not in ALLOWED_NAMESPACES:
+            return JsonResponse({"error": "Bad Request", "detail": f"Unknown or unsupported channel namespace: '{ns}'"}, status=400)
+
+        if ns == "admin" and not is_admin_user:
+            return JsonResponse({"error": "Forbidden", "detail": "Admin channel access requires administrative privileges"}, status=403)
+
+        import re
+        match = re.match(r"^tenant_(\d+)(?:_branch_(\d+)|_all)?$", rest)
+        if not match:
+            return JsonResponse({"error": "Bad Request", "detail": "Malformed channel format"}, status=400)
+
+        target_tenant_id = int(match.group(1))
+        if target_tenant_id != tenant_id:
             return JsonResponse({"error": "Forbidden", "detail": "Cross-tenant channel access prohibited"}, status=403)
 
-        if "_branch_" in rest:
-            try:
-                ch_bid = int(rest.split("_branch_")[1].split("_")[0])
-                if not Branch.objects.filter(id=ch_bid, tenant=tenant).exists():
-                    return JsonResponse({"error": "Forbidden", "detail": "Branch in channel does not belong to active tenant"}, status=403)
-            except (ValueError, IndexError):
-                return JsonResponse({"error": "Bad Request", "detail": "Malformed branch in channel"}, status=400)
+        if match.group(2):
+            ch_bid = int(match.group(2))
+            if not Branch.objects.filter(id=ch_bid, tenant=tenant).exists():
+                return JsonResponse({"error": "Forbidden", "detail": "Branch in channel does not belong to active tenant"}, status=403)
 
         requested_token = generate_subscription_token(user_id, requested_channel)
 
@@ -574,7 +588,7 @@ def api_realtime_token_view(request):
         pos_chan: generate_subscription_token(user_id, pos_chan),
         cc_chan: generate_subscription_token(user_id, cc_chan),
     }
-    if request.user.is_superuser or (hasattr(request.user, "profile") and getattr(request.user.profile, "role", "") in ("owner", "admin")):
+    if is_admin_user:
         tokens_map[admin_chan] = generate_subscription_token(user_id, admin_chan)
 
     if requested_channel and requested_channel not in tokens_map:
