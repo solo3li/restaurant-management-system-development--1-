@@ -199,6 +199,25 @@ def notify_delivery_order_event(order, event_type: str):
             )
         except Exception as e:
             logger.error("Failed to broadcast delivery order event: %s", e)
+            data = None
+
+        # Centrifugo Real-time Broadcast for Delivery Management
+        try:
+            from core.centrifugo import publish_event
+            if data is None:
+                data = serialize_delivery_order(order)
+            event_payload = {
+                "type": event_type,
+                "data": data,
+                "timestamp": timezone.now().isoformat(),
+            }
+            tenant_id = order.tenant_id
+            branch_id = order.branch_id
+            if branch_id:
+                publish_event(f"delivery:tenant_{tenant_id}_branch_{branch_id}", event_payload)
+            publish_event(f"delivery:tenant_{tenant_id}_all", event_payload)
+        except Exception as ce:
+            logger.warning("Failed to publish delivery event to Centrifugo: %s", ce)
 
     try:
         # Check if running in an active event loop thread

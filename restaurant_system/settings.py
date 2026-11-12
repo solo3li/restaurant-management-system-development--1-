@@ -482,4 +482,13 @@ JAZZMIN_UI_TWEAKS = {
     }
 }
 
+# ==============================================================================
+# CENTRIFUGO REAL-TIME CONTAINER INTEGRATION
+# ==============================================================================
+CENTRIFUGO_API_URL = os.getenv("CENTRIFUGO_API_URL", "http://centrifugo:8000/api")
+CENTRIFUGO_API_KEY = os.getenv("CENTRIFUGO_API_KEY", "motaem-centrifugo-api-key-2026-very-secure")
+CENTRIFUGO_HMAC_SECRET = os.getenv("CENTRIFUGO_HMAC_SECRET", "motaem-cloud-centrifugo-hmac-secret-key-32chars-min-secure-2026")
+CENTRIFUGO_WS_URL = os.getenv("CENTRIFUGO_WS_URL", "/connection/websocket")
+
+
 

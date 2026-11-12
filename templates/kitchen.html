@@ -206,9 +206,15 @@
 {{ kitchen_orders|json_script:"initial-orders-data" }}
 {{ station_counts|json_script:"initial-stations-data" }}
 {{ category_translations|json_script:"category-translations-data" }}
+<script src="{% static 'js/centrifuge.min.js' %}"></script>
+<script>
+if (typeof Centrifuge === 'undefined') {
+    document.write('<script src="https://unpkg.com/centrifuge@5.2.2/dist/centrifuge.js"><\/script>');
+}
+</script>
 <script>
     // ================================================================
-    // KURA KDS (Kitchen Display System) - True Real-Time SSE Engine
+    // KURA KDS (Kitchen Display System) - Centrifugo Real-Time WebSocket & SSE Engine
     // Zero polling, zero page reloads, station filtering & audio bell
     // ================================================================
 
@@ -415,26 +421,115 @@
     }
 
     // ----------------------------------------------------------------
-    // 2. Server-Sent Events (SSE) Live Push Connection
+    // 2. Real-Time Centrifugo (WebSocket / SSE) Engine
     // ----------------------------------------------------------------
-    function initSSE() {
+    let centrifugeClient = null;
+    let centrifugeSub = null;
+
+    async function initSSE() {
+        if (centrifugeSub) {
+            try { centrifugeSub.unsubscribe(); } catch(e){}
+            centrifugeSub = null;
+        }
+        if (centrifugeClient) {
+            try { centrifugeClient.disconnect(); } catch(e){}
+            centrifugeClient = null;
+        }
         if (sseEventSource) {
             sseEventSource.close();
+            sseEventSource = null;
         }
 
+        updateSSEStatus('connecting');
+
+        // 1. Try Centrifugo real-time container
+        if (typeof Centrifuge !== 'undefined') {
+            try {
+                let tokenUrl = '/api/realtime/token/';
+                if (TARGET_BRANCH_ID) {
+                    tokenUrl += '?branch_id=' + encodeURIComponent(TARGET_BRANCH_ID);
+                }
+                const res = await fetch(tokenUrl);
+                if (res.ok) {
+                    const tokenData = await res.json();
+                    const kdsChannel = tokenData.channels?.kds;
+                    const subToken = tokenData.tokens?.[kdsChannel] || tokenData.token;
+
+                    if (tokenData.connection_token && kdsChannel) {
+                        const wsScheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
+                        const httpScheme = location.protocol === 'https:' ? 'https://' : 'http://';
+                        const wsUrl = wsScheme + location.host + (tokenData.ws_url || '/connection/websocket');
+                        const sseUrl = httpScheme + location.host + '/connection/sse';
+                        const httpStreamUrl = httpScheme + location.host + '/connection/http_stream';
+
+                        const transports = [
+                            { transport: 'websocket', endpoint: wsUrl },
+                            { transport: 'sse', endpoint: sseUrl },
+                            { transport: 'http_stream', endpoint: httpStreamUrl }
+                        ];
+
+                        centrifugeClient = new Centrifuge(transports, {
+                            token: tokenData.connection_token,
+                            minReconnectDelay: 1000,
+                            maxReconnectDelay: 10000,
+                        });
+
+                        centrifugeSub = centrifugeClient.newSubscription(kdsChannel, {
+                            token: subToken,
+                            recoverable: true,
+                        });
+
+                        centrifugeSub.on('publication', function(ctx) {
+                            try {
+                                const payload = ctx.data;
+                                const eventType = payload.type;
+                                const orderData = payload.data;
+                                if (eventType === 'new_order') {
+                                    handleIncomingNewOrder(orderData);
+                                } else if (eventType === 'order_status_changed') {
+                                    handleOrderStatusChanged(orderData);
+                                } else if (eventType === 'order_updated') {
+                                    handleOrderUpdated(orderData);
+                                } else if (eventType === 'order_cancelled') {
+                                    const msg = getOrderActionMsg('cancelled', orderData.order_number);
+                                    handleOrderRemoved(orderData.id, msg);
+                                }
+                            } catch(err) {
+                                console.error("[Centrifugo] KDS publication parse error:", err);
+                            }
+                        });
+
+                        centrifugeSub.on('subscribing', () => updateSSEStatus('connecting'));
+                        centrifugeSub.on('subscribed', () => updateSSEStatus('connected'));
+                        centrifugeSub.on('unsubscribed', () => updateSSEStatus('disconnected'));
+                        centrifugeSub.on('error', (err) => {
+                            console.warn("[Centrifugo] KDS subscription error:", err);
+                        });
+
+                        centrifugeClient.on('connecting', () => updateSSEStatus('connecting'));
+                        centrifugeClient.on('connected', () => updateSSEStatus('connected'));
+                        centrifugeClient.on('disconnected', () => updateSSEStatus('disconnected'));
+
+                        centrifugeSub.subscribe();
+                        centrifugeClient.connect();
+                        return;
+                    }
+                }
+            } catch(e) {
+                console.warn("[Centrifugo] Initializing Centrifugo failed, using fallback SSE:", e);
+            }
+        }
+
+        // 2. Fallback to native SSE stream
         let streamUrl = '/api/kitchen/stream/';
         if (TARGET_BRANCH_ID) {
             streamUrl += '?branch_id=' + encodeURIComponent(TARGET_BRANCH_ID);
         }
 
-        updateSSEStatus('connecting');
-
         sseEventSource = new EventSource(streamUrl);
-
         sseEventSource.addEventListener('connected', (e) => {
             updateSSEStatus('connected');
         });
-
         sseEventSource.addEventListener('new_order', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -443,7 +538,6 @@
                 console.error("Failed to parse new_order payload:", err);
             }
         });
-
         sseEventSource.addEventListener('order_status_changed', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -452,7 +546,6 @@
                 console.error("Failed to parse status_changed payload:", err);
             }
         });
-
         sseEventSource.addEventListener('order_updated', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -461,7 +554,6 @@
                 console.error("Failed to parse order_updated payload:", err);
             }
         });
-
         sseEventSource.addEventListener('order_cancelled', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -471,7 +563,6 @@
                 console.error("Failed to parse order_cancelled payload:", err);
             }
         });
-
         sseEventSource.onerror = (err) => {
             updateSSEStatus('disconnected');
         };

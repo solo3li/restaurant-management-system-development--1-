@@ -1,0 +1,50 @@
+{
+  "token_hmac_secret_key": "motaem-cloud-centrifugo-hmac-secret-key-32chars-min-secure-2026",
+  "admin_password": "motaem-admin-centrifugo-pass-2026",
+  "admin_secret": "motaem-admin-centrifugo-secret-2026",
+  "api_key": "motaem-centrifugo-api-key-2026-very-secure",
+  "admin": true,
+  "http_stream": true,
+  "sse": true,
+  "allowed_origins": [
+    "https://uggu.space",
+    "http://uggu.space",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "*"
+  ],
+  "namespaces": [
+    {
+      "name": "kds",
+      "history_size": 300,
+      "history_ttl": "300s",
+      "presence": true,
+      "force_recovery": true
+    },
+    {
+      "name": "delivery",
+      "history_size": 300,
+      "history_ttl": "300s",
+      "presence": true,
+      "force_recovery": true
+    },
+    {
+      "name": "pos",
+      "history_size": 100,
+      "history_ttl": "180s",
+      "force_recovery": true
+    },
+    {
+      "name": "callcenter",
+      "history_size": 100,
+      "history_ttl": "180s",
+      "force_recovery": true
+    },
+    {
+      "name": "admin",
+      "history_size": 50,
+      "history_ttl": "300s",
+      "force_recovery": true
+    }
+  ]
+}

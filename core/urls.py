@@ -28,6 +28,7 @@ urlpatterns = [
     path("delivery/", views.delivery_view, name="delivery"),
     path("api/delivery/stream/", views.delivery_stream_view, name="delivery_stream"),
     path("api/delivery/live/", views.api_delivery_live, name="api_delivery_live"),
+    path("api/realtime/token/", views.api_realtime_token_view, name="api_realtime_token"),
     path("inventory/", views.inventory_view, name="inventory"),
     path("branches/", views.branches_view, name="branches"),
     path("restaurant/profile/", views.restaurant_profile_view, name="restaurant_profile"),

@@ -185,6 +185,32 @@ def notify_kitchen_order_event(order, event_type: str):
         )
     except Exception as e:
         logger.error("Failed to broadcast kitchen order event: %s", e)
+        data = None
+
+    # Broadcast real-time event to Centrifugo container namespaces (KDS, POS, Call Center)
+    try:
+        from core.centrifugo import publish_event
+        if data is None:
+            data = serialize_kitchen_order(order)
+        event_payload = {
+            "type": event_type,
+            "data": data,
+            "timestamp": timezone.now().isoformat(),
+        }
+        tenant_id = order.tenant_id
+        branch_id = order.branch_id
+
+        # KDS channels (branch-specific and tenant-wide)
+        if branch_id:
+            publish_event(f"kds:tenant_{tenant_id}_branch_{branch_id}", event_payload)
+            publish_event(f"pos:tenant_{tenant_id}_branch_{branch_id}", event_payload)
+        publish_event(f"kds:tenant_{tenant_id}_all", event_payload)
+        publish_event(f"pos:tenant_{tenant_id}_all", event_payload)
+
+        # Call Center channel
+        publish_event(f"callcenter:tenant_{tenant_id}", event_payload)
+    except Exception as ce:
+        logger.warning("Failed to publish order event to Centrifugo: %s", ce)
 
     # Synchronize Active Orders in Redis in-memory cache
     try:

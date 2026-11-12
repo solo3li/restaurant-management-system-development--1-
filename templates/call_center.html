@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ t.cc_title|default:"الكول سنتر — منظومة كورا"|t }}{% endblock %}
 
@@ -451,9 +452,9 @@
                     <span>{{ "آخر طلبات الكول سنتر"|t }}</span>
                     <span class="text-[10px] text-slate-400 font-normal">{{ "اليوم"|t }}</span>
                 </h3>
-                <div class="space-y-1 max-h-40 overflow-y-auto pr-0.5">
+                <div id="cc-recent-orders-list" class="space-y-1 max-h-40 overflow-y-auto pr-0.5">
                     {% for o in recent_orders %}
-                    <div class="rounded-lg border border-slate-100 p-1.5 bg-slate-50 hover:bg-white hover:border-slate-200/70 transition text-xs flex items-center justify-between">
+                    <div class="rounded-lg border border-slate-100 p-1.5 bg-slate-50 hover:bg-white hover:border-slate-200/70 transition text-xs flex items-center justify-between" data-order-id="{{ o.id }}">
                         <div>
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="font-bold text-slate-900 text-xs font-mono">{{ o.order_number }}</span>
@@ -471,7 +472,7 @@
                         </div>
                     </div>
                     {% empty %}
-                    <p class="text-center py-2 text-[11px] text-slate-400">{{ "لا توجد طلبات سابقة"|t }}</p>
+                    <p id="cc-empty-orders-msg" class="text-center py-2 text-[11px] text-slate-400">{{ "لا توجد طلبات سابقة"|t }}</p>
                     {% endfor %}
                 </div>
             </div>
@@ -549,6 +550,12 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{% static 'js/centrifuge.min.js' %}"></script>
+<script>
+if (typeof Centrifuge === 'undefined') {
+    document.write('<script src="https://unpkg.com/centrifuge@5.2.2/dist/centrifuge.js"><\/script>');
+}
+</script>
 <script>
     const CURRENT_LANG = "{{ CURRENT_LANG|default:'ar' }}";
     function tJs(key, fallback) {
@@ -1108,6 +1115,123 @@
         }
     }
 
+    // ----------------------------------------------------------------
+    // Real-Time Centrifugo Subscription for Call Center Orders
+    // ----------------------------------------------------------------
+    let ccCentrifugeClient = null;
+    let ccCentrifugeSub = null;
+
+    async function initCallCenterRealtime() {
+        if (typeof Centrifuge === 'undefined') return;
+        try {
+            const res = await fetch('/api/realtime/token/');
+            if (!res.ok) return;
+            const tokenData = await res.json();
+            const ccChannel = tokenData.channels?.callcenter;
+            const subToken = tokenData.tokens?.[ccChannel] || tokenData.token;
+
+            if (tokenData.connection_token && ccChannel) {
+                const wsScheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
+                const httpScheme = location.protocol === 'https:' ? 'https://' : 'http://';
+                const wsUrl = wsScheme + location.host + (tokenData.ws_url || '/connection/websocket');
+                const sseUrl = httpScheme + location.host + '/connection/sse';
+                const httpStreamUrl = httpScheme + location.host + '/connection/http_stream';
+
+                const transports = [
+                    { transport: 'websocket', endpoint: wsUrl },
+                    { transport: 'sse', endpoint: sseUrl },
+                    { transport: 'http_stream', endpoint: httpStreamUrl }
+                ];
+
+                if (ccCentrifugeSub) {
+                    try { ccCentrifugeSub.unsubscribe(); } catch(e){}
+                    ccCentrifugeSub = null;
+                }
+                if (ccCentrifugeClient) {
+                    try { ccCentrifugeClient.disconnect(); } catch(e){}
+                    ccCentrifugeClient = null;
+                }
+
+                ccCentrifugeClient = new Centrifuge(transports, {
+                    token: tokenData.connection_token,
+                    minReconnectDelay: 1000,
+                    maxReconnectDelay: 10000,
+                });
+
+                ccCentrifugeSub = ccCentrifugeClient.newSubscription(ccChannel, {
+                    token: subToken,
+                    recoverable: true,
+                });
+
+                ccCentrifugeSub.on('publication', function(ctx) {
+                    try {
+                        const event = ctx.data;
+                        const order = event.data;
+                        if (event.type === 'new_order' || event.type === 'order_status_changed') {
+                            handleIncomingCallCenterOrder(order, event.type);
+                        }
+                    } catch(e) {
+                        console.error("[Centrifugo] Call center publication error:", e);
+                    }
+                });
+
+                ccCentrifugeSub.subscribe();
+                ccCentrifugeClient.connect();
+            }
+        } catch(err) {
+            console.warn("[Centrifugo] Call center realtime init error:", err);
+        }
+    }
+
+    function handleIncomingCallCenterOrder(order, eventType) {
+        if (!order) return;
+        const list = document.getElementById('cc-recent-orders-list');
+        if (!list) return;
+
+        const emptyMsg = document.getElementById('cc-empty-orders-msg');
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        const existing = list.querySelector(`[data-order-id="${order.id}"]`);
+        if (existing) {
+            if (eventType === 'order_status_changed') {
+                existing.classList.add('bg-violet-50', 'transition-colors');
+                setTimeout(() => existing.classList.remove('bg-violet-50'), 1500);
+            }
+            return;
+        }
+
+        const orderNum = order.order_number || '';
+        const shortNum = order.short_order_number ? `<span class="text-[10px] font-bold text-violet-700 bg-violet-50 px-1 py-0.2 rounded border border-violet-200/50 font-mono">${order.short_order_number}</span>` : '';
+        const custName = order.customer_name || tJs('عميل نقدي', 'Cash Customer');
+        const timeStr = order.created_at_time || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const totalVal = parseFloat(order.total || 0).toFixed(2);
+        const isDeliv = (order.order_type === 'delivery');
+        const typeLabel = isDeliv ? tJs('توصيل', 'Delivery') : tJs('سفري', 'Takeaway');
+        const badgeColor = isDeliv ? 'bg-blue-50 text-violet-600' : 'bg-amber-50 text-amber-700';
+
+        const card = document.createElement('div');
+        card.className = 'rounded-lg border border-slate-100 p-1.5 bg-emerald-50 hover:bg-white hover:border-slate-200/70 transition text-xs flex items-center justify-between animate-pulse';
+        card.dataset.orderId = order.id;
+        card.innerHTML = `
+            <div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-slate-900 text-xs font-mono">${orderNum}</span>
+                    ${shortNum}
+                </div>
+                <span class="text-[10px] text-slate-500 block truncate mt-0.5">${custName} • ${timeStr}</span>
+            </div>
+            <div class="text-left">
+                <span class="font-bold text-violet-600 font-sans text-xs">${totalVal}</span>
+                <span class="text-[9px] px-1 py-0.2 rounded font-semibold block ${badgeColor}">
+                    ${typeLabel}
+                </span>
+            </div>
+        `;
+
+        list.insertBefore(card, list.firstChild);
+        setTimeout(() => card.classList.remove('animate-pulse', 'bg-emerald-50'), 2500);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const hash = (window.location.hash || '').replace('#', '').toLowerCase();
         const urlParams = new URLSearchParams(window.location.search);
@@ -1122,6 +1246,7 @@
         }
         onBranchChanged();
         fetchCallCenterQuotas(false);
+        initCallCenterRealtime();
     });
 </script>
 {% endblock %}

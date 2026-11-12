@@ -2,9 +2,10 @@
 
 ## Current State
 
-**Last Updated:** 2026-11-12 00:45
-**Session ID:** Full Media Migration to MinIO S3 Storage, Traefik SSL Routing, and Cryptographic UUID Uploads
+**Last Updated:** 2026-11-12 02:35
+**Session ID:** Standalone Centrifugo Real-Time Migration with Multi-Tenant Isolation, WebSocket & Fallback Transports
 **Active Features:** 
+- `feat-centrifugo-realtime-migration` (Completed & Verified 100%)
 - `feat-minio-media-migration` (Completed & Verified 100%)
 - `feat-subscription-dual-currency-and-manual-payments` (Completed & Verified 100%)
 - `feat-partner-billing-message-quotas-and-rates` (Completed & Verified 100%)
@@ -20,6 +21,43 @@
 ## Status
 
 ### What's Done
+
+- [x] **Standalone Centrifugo Real-Time Migration with Multi-Tenant Isolation, WebSocket & Fallback Transports (`feat-centrifugo-realtime-migration`)**
+  - **1. Docker Compose & Centrifugo Container**:
+    - Created `centrifugo` service (`centrifugal/centrifugo:v5`) in `docker-compose.yml` with persistent memory engine, mounted configuration `./centrifugo/config.json`, loopback host port `127.0.0.1:9300:8000` (protecting admin UI from public internet), and connected to `motaem_network`.
+    - Configured Traefik reverse-proxy labels on `Host('uggu.space')` with `PathPrefix('/connection/') || PathPrefix('/emulation')`, priority 100, Let's Encrypt TLS, supporting WebSocket, SSE, and HTTP-streaming connections.
+    - Verified container startup (`motaem_centrifugo`), health, and checkconfig validation.
+  - **2. Centrifugo Namespaces & Security**:
+    - Authored `centrifugo/config.json` with 256-bit HMAC secret, API key, admin secret/password, and enabled `http_stream`, `sse`, and `admin` interfaces.
+    - Defined channel namespaces:
+      - `kds`: history_size 300, history_ttl "300s", presence true.
+      - `delivery`: history_size 300, history_ttl "300s", presence true.
+      - `pos`: history_size 100, history_ttl "180s".
+      - `callcenter`: history_size 100, history_ttl "180s".
+      - `admin`: history_size 50, history_ttl "300s".
+  - **3. Django Settings & Backend Helper Module**:
+    - Configured `.env` and `restaurant_system/settings.py` with `CENTRIFUGO_API_URL`, `CENTRIFUGO_API_KEY`, `CENTRIFUGO_HMAC_SECRET`, and `CENTRIFUGO_WS_URL`.
+    - Created `core/centrifugo.py`:
+      - `generate_connection_token(user_id)`: HS256 JWT generation with 24h expiration.
+      - `generate_subscription_token(user_id, channel)`: HS256 JWT bound strictly to specified channel.
+      - `publish_event(channel, data)`: HTTP POST helper to Centrifugo API with automatic Docker bridge / loopback fallback (`centrifugo:8000` vs `127.0.0.1:9300`), timeout resilience, and non-blocking offline logging.
+      - Channel name builders: `build_kds_channel`, `build_delivery_channel`, `build_pos_channel`, `build_callcenter_channel`.
+  - **4. Authentication & Multi-Tenant Authorization Endpoint**:
+    - Implemented `api_realtime_token_view` in `core/views.py` registered at `/api/realtime/token/` (`core/urls.py`).
+    - Enforced strict multi-tenancy: verifies requested channel matches authenticated user's active tenant and branch (or global tenant staff for Call Center / HQ).
+    - Unauthenticated requests rejected with 401; cross-tenant or unpermitted branch requests rejected with 403 Forbidden; malformed channels rejected with 400 Bad Request.
+  - **5. Real-Time Order Event Broadcasts**:
+    - Updated `apps/kitchen/events.py` (`notify_kitchen_order_event`) to broadcast kitchen orders to both `kds:tenant_{t}_branch_{b}` and `kds:tenant_{t}_all`, as well as notifying `pos:tenant_{t}_branch_{b}` and `callcenter:tenant_{t}`.
+    - Updated `apps/orders/events.py` (`notify_delivery_order_event`) to broadcast delivery updates to `delivery:tenant_{t}_branch_{b}` and `delivery:tenant_{t}_all`.
+  - **6. Frontend Client Integration & Sound Alerts**:
+    - Bundled `centrifuge.js` (v5.2.2) to `static/js/centrifuge.min.js` and `staticfiles/js/centrifuge.min.js`.
+    - Updated `templates/kitchen.html`: upgraded SSE listener to Centrifuge client with auto-reconnection, historical message recovery (`recoverable: true`), and native SSE fallback.
+    - Updated `templates/delivery.html`: upgraded delivery screen to Centrifuge subscription with native SSE fallback.
+    - Updated `templates/pos.html`: integrated Centrifuge subscribing to `pos:tenant_{t}_branch_{b}`, implemented Web Audio API cash-register chime (`playPosBell()`), and live toast notifications.
+    - Updated `templates/call_center.html`: integrated Centrifuge subscribing to `callcenter:tenant_{t}`, with dynamic real-time insertion/prepending of incoming orders into the active orders table.
+  - **7. Comprehensive Verification**:
+    - Authored `test_centrifugo_integration.py` (16 test cases) covering configuration JSON, Django settings, JWT HMAC generation & invalid secret rejection, offline publishing resilience, API authentication & multi-tenant isolation, cross-tenant 403 protection, event triggers, static asset integrity, and template bindings.
+    - Added to `./init.sh` harness. Full suite passing 100%.
 
 - [x] **Full Media Migration to MinIO S3 Storage, Traefik SSL Routing, and Cryptographic UUID Uploads (`feat-minio-media-migration`)**
   - **1. Docker Compose MinIO & Auto-Init**:

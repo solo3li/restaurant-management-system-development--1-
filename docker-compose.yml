@@ -195,6 +195,40 @@ services:
     depends_on:
       - web
 
+  centrifugo:
+    image: centrifugal/centrifugo:v5
+    container_name: motaem_centrifugo
+    restart: unless-stopped
+    command: centrifugo -c /centrifugo/config.json
+    volumes:
+      - ./centrifugo/config.json:/centrifugo/config.json:ro
+    ports:
+      - "127.0.0.1:9300:8000"
+    networks:
+      - motaem_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=motaem_motaem_network"
+
+      # Router: HTTPS for uggu.space/connection/*
+      - "traefik.http.routers.motaem-centrifugo.rule=Host(`uggu.space`) && (PathPrefix(`/connection/`) || PathPrefix(`/emulation`))"
+      - "traefik.http.routers.motaem-centrifugo.entrypoints=websecure"
+      - "traefik.http.routers.motaem-centrifugo.service=motaem-centrifugo"
+      - "traefik.http.routers.motaem-centrifugo.tls=true"
+      - "traefik.http.routers.motaem-centrifugo.tls.certresolver=myresolver"
+      - "traefik.http.routers.motaem-centrifugo.middlewares=motaem-sec-headers"
+      - "traefik.http.routers.motaem-centrifugo.priority=100"
+
+      # Router: HTTP for uggu.space/connection/*
+      - "traefik.http.routers.motaem-centrifugo-http.rule=(Host(`uggu.space`) || Host(`www.uggu.space`)) && (PathPrefix(`/connection/`) || PathPrefix(`/emulation`))"
+      - "traefik.http.routers.motaem-centrifugo-http.entrypoints=web"
+      - "traefik.http.routers.motaem-centrifugo-http.middlewares=motaem-canonical-redirect"
+      - "traefik.http.routers.motaem-centrifugo-http.service=motaem-centrifugo"
+      - "traefik.http.routers.motaem-centrifugo-http.priority=100"
+
+      # Target Service on port 8000
+      - "traefik.http.services.motaem-centrifugo.loadbalancer.server.port=8000"
+
 volumes:
   postgres_data:
   media_data:

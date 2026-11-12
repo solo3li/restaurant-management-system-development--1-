@@ -51,6 +51,9 @@ venv/bin/python manage.py test test_subscription_fixes
 echo "=== venv/bin/python manage.py test test_minio_media_migration ==="
 venv/bin/python manage.py test test_minio_media_migration
 
+echo "=== venv/bin/python manage.py test test_centrifugo_integration ==="
+venv/bin/python manage.py test test_centrifugo_integration
+
 echo "=== Verification Complete ==="
 echo ""
 echo "Next steps:"

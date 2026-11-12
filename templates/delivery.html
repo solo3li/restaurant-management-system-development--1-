@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ t.deliv_title|default:"إدارة التوصيل"|t }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
@@ -358,6 +359,12 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{% static 'js/centrifuge.min.js' %}"></script>
+<script>
+if (typeof Centrifuge === 'undefined') {
+    document.write('<script src="https://unpkg.com/centrifuge@5.2.2/dist/centrifuge.js"><\/script>');
+}
+</script>
 <script>
     // Global State Bootstrapped from Server Context
     const CURRENT_LANG = "{{ CURRENT_LANG|default:'ar' }}";
@@ -459,25 +466,114 @@
     }
 
     // ----------------------------------------------------------------
-    // 2. Real-Time Server-Sent Events (SSE) Engine
+    // 2. Real-Time Centrifugo (WebSocket / SSE) Delivery Engine
     // ----------------------------------------------------------------
-    function initDeliverySSE() {
+    let centrifugeDeliveryClient = null;
+    let centrifugeDeliverySub = null;
+
+    async function initDeliverySSE() {
+        if (centrifugeDeliverySub) {
+            try { centrifugeDeliverySub.unsubscribe(); } catch(e){}
+            centrifugeDeliverySub = null;
+        }
+        if (centrifugeDeliveryClient) {
+            try { centrifugeDeliveryClient.disconnect(); } catch(e){}
+            centrifugeDeliveryClient = null;
+        }
         if (sseEventSource) {
             sseEventSource.close();
+            sseEventSource = null;
         }
 
+        updateSSEStatus('connecting');
+
+        // 1. Try Centrifugo real-time container
+        if (typeof Centrifuge !== 'undefined') {
+            try {
+                let tokenUrl = '/api/realtime/token/';
+                if (TARGET_BRANCH_ID) {
+                    tokenUrl += '?branch_id=' + encodeURIComponent(TARGET_BRANCH_ID);
+                }
+                const res = await fetch(tokenUrl);
+                if (res.ok) {
+                    const tokenData = await res.json();
+                    const delivChannel = tokenData.channels?.delivery;
+                    const subToken = tokenData.tokens?.[delivChannel] || tokenData.token;
+
+                    if (tokenData.connection_token && delivChannel) {
+                        const wsScheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
+                        const httpScheme = location.protocol === 'https:' ? 'https://' : 'http://';
+                        const wsUrl = wsScheme + location.host + (tokenData.ws_url || '/connection/websocket');
+                        const sseUrl = httpScheme + location.host + '/connection/sse';
+                        const httpStreamUrl = httpScheme + location.host + '/connection/http_stream';
+
+                        const transports = [
+                            { transport: 'websocket', endpoint: wsUrl },
+                            { transport: 'sse', endpoint: sseUrl },
+                            { transport: 'http_stream', endpoint: httpStreamUrl }
+                        ];
+
+                        centrifugeDeliveryClient = new Centrifuge(transports, {
+                            token: tokenData.connection_token,
+                            minReconnectDelay: 1000,
+                            maxReconnectDelay: 10000,
+                        });
+
+                        centrifugeDeliverySub = centrifugeDeliveryClient.newSubscription(delivChannel, {
+                            token: subToken,
+                            recoverable: true,
+                        });
+
+                        centrifugeDeliverySub.on('publication', function(ctx) {
+                            try {
+                                const payload = ctx.data;
+                                const eventType = payload.type;
+                                const orderData = payload.data;
+                                if (eventType === 'delivery_new_order') {
+                                    handleIncomingDeliveryOrder(orderData);
+                                } else if (eventType === 'delivery_status_changed') {
+                                    handleDeliveryStatusChanged(orderData);
+                                } else if (eventType === 'delivery_driver_assigned') {
+                                    handleDeliveryDriverAssigned(orderData);
+                                } else if (eventType === 'delivery_order_cancelled') {
+                                    handleDeliveryOrderCancelled(orderData);
+                                }
+                            } catch(err) {
+                                console.error("[Centrifugo] Delivery publication parse error:", err);
+                            }
+                        });
+
+                        centrifugeDeliverySub.on('subscribing', () => updateSSEStatus('connecting'));
+                        centrifugeDeliverySub.on('subscribed', () => updateSSEStatus('connected'));
+                        centrifugeDeliverySub.on('unsubscribed', () => updateSSEStatus('disconnected'));
+                        centrifugeDeliverySub.on('error', (err) => {
+                            console.warn("[Centrifugo] Delivery subscription error:", err);
+                        });
+
+                        centrifugeDeliveryClient.on('connecting', () => updateSSEStatus('connecting'));
+                        centrifugeDeliveryClient.on('connected', () => updateSSEStatus('connected'));
+                        centrifugeDeliveryClient.on('disconnected', () => updateSSEStatus('disconnected'));
+
+                        centrifugeDeliverySub.subscribe();
+                        centrifugeDeliveryClient.connect();
+                        return;
+                    }
+                }
+            } catch(e) {
+                console.warn("[Centrifugo] Failed to initialize Centrifugo for delivery, using fallback SSE:", e);
+            }
+        }
+
+        // 2. Fallback to native SSE stream
         let streamUrl = '/api/delivery/stream/';
         if (TARGET_BRANCH_ID) {
             streamUrl += '?branch_id=' + encodeURIComponent(TARGET_BRANCH_ID);
         }
 
-        updateSSEStatus('connecting');
         sseEventSource = new EventSource(streamUrl);
-
         sseEventSource.addEventListener('connected', (e) => {
             updateSSEStatus('connected');
         });
-
         sseEventSource.addEventListener('delivery_new_order', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -486,7 +582,6 @@
                 console.error("Failed to parse delivery_new_order:", err);
             }
         });
-
         sseEventSource.addEventListener('delivery_status_changed', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -495,7 +590,6 @@
                 console.error("Failed to parse delivery_status_changed:", err);
             }
         });
-
         sseEventSource.addEventListener('delivery_driver_assigned', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -504,7 +598,6 @@
                 console.error("Failed to parse delivery_driver_assigned:", err);
             }
         });
-
         sseEventSource.addEventListener('delivery_order_cancelled', (e) => {
             try {
                 const orderData = JSON.parse(e.data);
@@ -513,7 +606,6 @@
                 console.error("Failed to parse delivery_order_cancelled:", err);
             }
         });
-
         sseEventSource.onerror = (err) => {
             updateSSEStatus('disconnected');
         };

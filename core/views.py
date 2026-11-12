@@ -489,3 +489,122 @@ def set_language_view(request, lang_code):
         samesite="Lax"
     )
     return response
+
+
+def api_realtime_token_view(request):
+    """
+    Returns Centrifugo connection token and channel subscription tokens
+    scoped strictly to the authenticated user's active tenant and branch.
+    Guarantees strict multi-tenant authorization.
+    """
+    from django.http import JsonResponse
+    from core.centrifugo import (
+        generate_connection_token,
+        generate_subscription_token,
+        get_centrifugo_ws_url,
+    )
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Unauthorized", "detail": "Authentication required"}, status=401)
+
+    tenant = get_active_tenant(request)
+    if not tenant:
+        if hasattr(request.user, "tenant") and request.user.tenant:
+            tenant = request.user.tenant
+        elif hasattr(request.user, "restaurant_owner") and getattr(request.user.restaurant_owner, "tenant", None):
+            tenant = request.user.restaurant_owner.tenant
+        elif request.user.is_superuser:
+            tenant = Tenant.objects.first()
+
+    if not tenant:
+        return JsonResponse({"error": "Forbidden", "detail": "No active tenant associated with this account"}, status=403)
+
+    branch = get_active_branch(request)
+    req_branch_id = request.GET.get("branch_id") or request.POST.get("branch_id")
+    if req_branch_id:
+        try:
+            bid = int(req_branch_id)
+            target_branch = Branch.objects.filter(id=bid, tenant=tenant).first()
+            if not target_branch:
+                return JsonResponse({"error": "Forbidden", "detail": "Branch does not belong to active tenant"}, status=403)
+            branch = target_branch
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "Bad Request", "detail": "Invalid branch_id"}, status=400)
+
+    user_id = str(request.user.id)
+    tenant_id = tenant.id
+    branch_id = branch.id if branch else None
+
+    # Check if a specific channel is requested
+    requested_channel = request.GET.get("channel") or request.POST.get("channel")
+    requested_token = None
+
+    if requested_channel:
+        parts = requested_channel.split(":", 1)
+        if len(parts) != 2:
+            return JsonResponse({"error": "Bad Request", "detail": "Malformed channel string"}, status=400)
+
+        ns, rest = parts
+        expected_tenant_prefix = f"tenant_{tenant_id}"
+        if not rest.startswith(expected_tenant_prefix):
+            return JsonResponse({"error": "Forbidden", "detail": "Cross-tenant channel access prohibited"}, status=403)
+
+        if "_branch_" in rest:
+            try:
+                ch_bid = int(rest.split("_branch_")[1].split("_")[0])
+                if not Branch.objects.filter(id=ch_bid, tenant=tenant).exists():
+                    return JsonResponse({"error": "Forbidden", "detail": "Branch in channel does not belong to active tenant"}, status=403)
+            except (ValueError, IndexError):
+                return JsonResponse({"error": "Bad Request", "detail": "Malformed branch in channel"}, status=400)
+
+        requested_token = generate_subscription_token(user_id, requested_channel)
+
+    # Standard authorized channels
+    kds_chan = f"kds:tenant_{tenant_id}_branch_{branch_id}" if branch_id else f"kds:tenant_{tenant_id}_all"
+    kds_all_chan = f"kds:tenant_{tenant_id}_all"
+    deliv_chan = f"delivery:tenant_{tenant_id}_branch_{branch_id}" if branch_id else f"delivery:tenant_{tenant_id}_all"
+    pos_chan = f"pos:tenant_{tenant_id}_branch_{branch_id}" if branch_id else f"pos:tenant_{tenant_id}_all"
+    cc_chan = f"callcenter:tenant_{tenant_id}"
+    admin_chan = f"admin:tenant_{tenant_id}"
+
+    tokens_map = {
+        kds_chan: generate_subscription_token(user_id, kds_chan),
+        kds_all_chan: generate_subscription_token(user_id, kds_all_chan),
+        deliv_chan: generate_subscription_token(user_id, deliv_chan),
+        pos_chan: generate_subscription_token(user_id, pos_chan),
+        cc_chan: generate_subscription_token(user_id, cc_chan),
+    }
+    if request.user.is_superuser or (hasattr(request.user, "profile") and getattr(request.user.profile, "role", "") in ("owner", "admin")):
+        tokens_map[admin_chan] = generate_subscription_token(user_id, admin_chan)
+
+    if requested_channel and requested_channel not in tokens_map:
+        tokens_map[requested_channel] = requested_token
+
+    conn_token = generate_connection_token(
+        user_id,
+        info={"username": request.user.username, "tenant_id": tenant_id}
+    )
+
+    data = {
+        "status": "success",
+        "user_id": user_id,
+        "tenant_id": tenant_id,
+        "branch_id": branch_id,
+        "connection_token": conn_token,
+        "ws_url": get_centrifugo_ws_url(),
+        "channels": {
+            "kds": kds_chan,
+            "kds_all": kds_all_chan,
+            "delivery": deliv_chan,
+            "pos": pos_chan,
+            "callcenter": cc_chan,
+        },
+        "tokens": tokens_map,
+    }
+    if requested_channel:
+        data["channel"] = requested_channel
+        data["subscription_token"] = requested_token
+        data["token"] = requested_token
+
+    return JsonResponse(data)
+

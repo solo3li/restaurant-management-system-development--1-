@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ t.pos_title }} — {{ tenant_name|default:t.app_title }}{% endblock %}
 
@@ -388,6 +389,12 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{% static 'js/centrifuge.min.js' %}"></script>
+<script>
+if (typeof Centrifuge === 'undefined') {
+    document.write('<script src="https://unpkg.com/centrifuge@5.2.2/dist/centrifuge.js"><\/script>');
+}
+</script>
 <script>
     let CURRENCY_SYMBOL = "{{ branch_currency_symbol|default:'ر.س'|escapejs }}";
     const BRANCH_CUSTOM_PRICES = {{ branch_custom_prices_json|default:'{}'|safe }};
@@ -450,6 +457,7 @@
 
         renderCart();
         updateTotals();
+        initPosRealtime();
     }
 
     function normStr(str) {
@@ -890,6 +898,110 @@
         }
     }
 
+    // ----------------------------------------------------------------
+    // Real-Time Centrifugo Subscription for POS (Live Push Orders)
+    // ----------------------------------------------------------------
+    let posAudioCtx = null;
+    let posCentrifugeClient = null;
+    let posCentrifugeSub = null;
+
+    function playPosBell() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            if (!posAudioCtx) posAudioCtx = new AudioCtx();
+            if (posAudioCtx.state === 'suspended') posAudioCtx.resume();
+            const now = posAudioCtx.currentTime;
+            const osc = posAudioCtx.createOscillator();
+            const gain = posAudioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(1760, now + 0.3);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc.connect(gain);
+            gain.connect(posAudioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.8);
+        } catch(e) {
+            console.warn("Pos bell failed:", e);
+        }
+    }
+
+    async function initPosRealtime() {
+        if (typeof Centrifuge === 'undefined') return;
+        try {
+            const bSel = document.getElementById('order-branch');
+            const branchId = bSel ? bSel.value : '';
+            let url = '/api/realtime/token/';
+            if (branchId) url += '?branch_id=' + encodeURIComponent(branchId);
+
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const tokenData = await res.json();
+            const posChannel = tokenData.channels?.pos;
+            const subToken = tokenData.tokens?.[posChannel] || tokenData.token;
+
+            if (tokenData.connection_token && posChannel) {
+                const wsScheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
+                const httpScheme = location.protocol === 'https:' ? 'https://' : 'http://';
+                const wsUrl = wsScheme + location.host + (tokenData.ws_url || '/connection/websocket');
+                const sseUrl = httpScheme + location.host + '/connection/sse';
+                const httpStreamUrl = httpScheme + location.host + '/connection/http_stream';
+
+                const transports = [
+                    { transport: 'websocket', endpoint: wsUrl },
+                    { transport: 'sse', endpoint: sseUrl },
+                    { transport: 'http_stream', endpoint: httpStreamUrl }
+                ];
+
+                if (posCentrifugeSub) {
+                    try { posCentrifugeSub.unsubscribe(); } catch(e){}
+                    posCentrifugeSub = null;
+                }
+                if (posCentrifugeClient) {
+                    try { posCentrifugeClient.disconnect(); } catch(e){}
+                    posCentrifugeClient = null;
+                }
+
+                posCentrifugeClient = new Centrifuge(transports, {
+                    token: tokenData.connection_token,
+                    minReconnectDelay: 1000,
+                    maxReconnectDelay: 10000,
+                });
+
+                posCentrifugeSub = posCentrifugeClient.newSubscription(posChannel, {
+                    token: subToken,
+                    recoverable: true,
+                });
+
+                posCentrifugeSub.on('publication', function(ctx) {
+                    try {
+                        const event = ctx.data;
+                        const order = event.data;
+                        if (event.type === 'new_order') {
+                            playPosBell();
+                            const orderNum = order?.order_number || order?.short_order_number || '';
+                            const totalVal = order?.total !== undefined ? `${order.total} ${CURRENCY_SYMBOL}` : '';
+                            showToast(`🛎️ ${tJs('طلب جديد وارد', 'New order received')}: #${orderNum} ${totalVal}`, 'info');
+                        } else if (event.type === 'order_status_changed') {
+                            const orderNum = order?.order_number || '';
+                            const statusName = order?.status_display || order?.status || '';
+                            showToast(`🔄 #${orderNum}: ${statusName}`, 'info');
+                        }
+                    } catch(e) {
+                        console.error("[Centrifugo] POS publication error:", e);
+                    }
+                });
+
+                posCentrifugeSub.subscribe();
+                posCentrifugeClient.connect();
+            }
+        } catch(err) {
+            console.warn("[Centrifugo] POS connection init failed:", err);
+        }
+    }
+
     // Hotkey: press '/' to focus search bar
     document.addEventListener('keydown', (e) => {
         if (e.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
@@ -899,6 +1011,19 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', onPosBranchChanged);
+    document.addEventListener('DOMContentLoaded', () => {
+        onPosBranchChanged();
+        const unlockAudio = () => {
+            if (!posAudioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) posAudioCtx = new AudioCtx();
+            }
+            if (posAudioCtx && posAudioCtx.state === 'suspended') posAudioCtx.resume();
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+    });
 </script>
 {% endblock %}
